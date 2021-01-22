@@ -528,6 +528,21 @@ Root project 'webinar-parent'
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/15827")
+    def "compilePluginWithoutConfiguration"() {
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        succeeds 'build'
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def libRequest(MavenHttpRepository repo, String group, String name, Object version) {
         MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()

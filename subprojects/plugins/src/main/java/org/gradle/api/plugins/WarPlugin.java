@@ -40,6 +40,8 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add tasks which assemble a web application into a WAR
  * file.</p>
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/war_plugin.html">WAR plugin reference</a>
  */
 public class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";

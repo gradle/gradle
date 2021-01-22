@@ -18,10 +18,9 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
-@RunWith(FluidDependenciesResolveRunner)
+@FluidDependenciesResolveTest
 class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """

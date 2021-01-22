@@ -17,8 +17,8 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.junit.AssumptionViolatedException
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
+import org.opentest4j.TestAbortedException
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
@@ -28,7 +28,7 @@ import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExten
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.iterationMatches
 
-class UnsupportedWithConfigurationCacheExtension extends AbstractAnnotationDrivenExtension<UnsupportedWithConfigurationCache> {
+class UnsupportedWithConfigurationCacheExtension implements IAnnotationDrivenExtension<UnsupportedWithConfigurationCache> {
 
     @Override
     void visitSpecAnnotation(UnsupportedWithConfigurationCache annotation, SpecInfo spec) {
@@ -37,7 +37,7 @@ class UnsupportedWithConfigurationCacheExtension extends AbstractAnnotationDrive
                 spec.skipped = true
             } else {
                 spec.features.each { feature ->
-                    feature.iterationInterceptors.add(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
+                    feature.getFeatureMethod().addInterceptor(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
                 }
             }
         }
@@ -49,7 +49,7 @@ class UnsupportedWithConfigurationCacheExtension extends AbstractAnnotationDrive
             if (isAllIterations(annotation.iterationMatchers()) && isEnabledBottomSpec(annotation.bottomSpecs(), { feature.parent.bottomSpec.name == it })) {
                 feature.skipped = true
             } else {
-                feature.iterationInterceptors.add(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
+                feature.getFeatureMethod().addInterceptor(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
             }
         }
     }
@@ -64,11 +64,10 @@ class UnsupportedWithConfigurationCacheExtension extends AbstractAnnotationDrive
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            if (!iterationMatches(iterationMatchers, invocation.iteration.name)) {
-                invocation.proceed()
-            } else {
-                throw new AssumptionViolatedException("Unsupported with configuration cache")
+            if (iterationMatches(iterationMatchers, invocation.iteration.name)) {
+                throw new TestAbortedException("Unsupported with configuration cache")
             }
+            invocation.proceed()
         }
     }
 }

@@ -52,36 +52,6 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         verifyProject(project(':a:c:d'), 'd', ':a:c:d', [], testDirectory.file('d'), 'd.gradle')
     }
 
-    def "settings with master folder are exposed correctly"() {
-        executer.expectDocumentedDeprecationWarning("Searching for settings files in a directory named 'master' from a sibling directory has been deprecated. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#master_subdirectory_root_build")
-
-        def customSettingsFile = file("master/settings.gradle")
-        customSettingsFile << """
-        rootProject.name = "root"
-        rootProject.buildFileName = 'root.gradle'
-
-        includeFlat "a"
-        """
-
-        def projectDirectory = testDirectory.createDir("a")
-
-        when:
-        projectDir(projectDirectory)
-        succeeds('help')
-
-        then:
-        operation().result.buildPath == ":"
-        operation().result.rootProject.name == "root"
-        operation().result.rootProject.path == ":"
-        operation().result.rootProject.projectDir == customSettingsFile.parentFile.absolutePath
-        operation().result.rootProject.buildFile == customSettingsFile.parentFile.file("root.gradle").absolutePath
-
-        opResult.buildPath == ":"
-        opResult.rootProject.path == ":"
-        verifyProject(opResult.rootProject, 'root', ':', [':a'], customSettingsFile.parentFile, 'root.gradle')
-        verifyProject(project(':a'), 'a')
-    }
-
     def "settings set via cmdline flag are exposed correctly"() {
         def customSettingsDir = file("custom")
         customSettingsDir.mkdirs()

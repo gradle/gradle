@@ -18,14 +18,14 @@ package org.gradle.test.fixtures.file
 
 import org.spockframework.runtime.AbstractRunListener
 import org.spockframework.runtime.GroovyRuntimeUtil
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.ErrorInfo
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
 
-class CleanupTestDirectoryExtension extends AbstractAnnotationDrivenExtension<CleanupTestDirectory> {
+class CleanupTestDirectoryExtension implements IAnnotationDrivenExtension<CleanupTestDirectory> {
     @Override
     void visitSpecAnnotation(CleanupTestDirectory annotation, SpecInfo spec) {
         spec.features.each { FeatureInfo feature ->

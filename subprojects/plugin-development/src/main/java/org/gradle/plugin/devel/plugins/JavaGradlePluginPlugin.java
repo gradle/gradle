@@ -75,6 +75,8 @@ import java.util.concurrent.Callable;
  * be customized with the help of {@link GradlePluginDevelopmentExtension}.
  *
  * Integrates with the 'maven-publish' and 'ivy-publish' plugins to automatically publish the plugins so they can be resolved using the `pluginRepositories` and `plugins` DSL.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/java_gradle_plugin.html">Gradle plugin development reference</a>
  */
 @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
 @NonNullApi

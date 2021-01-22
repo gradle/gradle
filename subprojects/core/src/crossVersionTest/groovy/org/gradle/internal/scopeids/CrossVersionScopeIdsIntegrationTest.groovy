@@ -19,18 +19,20 @@ package org.gradle.internal.scopeids
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.junit.Rule
 
 @TargetVersions("4.0+")
 class CrossVersionScopeIdsIntegrationTest extends CrossVersionIntegrationSpec {
 
-    def currentExecuter = version(current)
-    def previousExecuter = version(previous)
+    GradleExecuter currentExecuter = version(current)
+    GradleExecuter previousExecuter
 
     @Rule
     ScopeIdsFixture scopeIds = new ScopeIdsFixture(currentExecuter, temporaryFolder)
 
     def setup() {
+        previousExecuter = version(previous)
         scopeIds.configureExecuter(previousExecuter)
     }
 

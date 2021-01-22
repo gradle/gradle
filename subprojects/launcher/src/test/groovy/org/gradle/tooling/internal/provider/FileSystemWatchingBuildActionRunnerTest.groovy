@@ -23,12 +23,15 @@ import org.gradle.internal.file.StatStatistics
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
+import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
+import org.gradle.internal.watch.vfs.VfsLogging
+import org.gradle.internal.watch.vfs.WatchLogging
+import org.gradle.internal.watch.vfs.WatchMode
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -52,38 +55,45 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     }
     def delegate = Mock(BuildActionRunner)
     def buildAction = Mock(BuildAction)
+    def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
 
-    def "watching virtual file system is informed about watching the file system being #watchFsEnabledString (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
+    def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
-        _ * startParameter.isWatchFileSystem() >> watchFsEnabled
+        _ * startParameter.watchFileSystemMode >> watchMode
         _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
         _ * startParameter.isVfsDebugLogging() >> false
 
-        def runner = new FileSystemWatchingBuildActionRunner(delegate)
+        def runner = new FileSystemWatchingBuildActionRunner(buildOperationProgressEventEmitter, delegate)
 
         when:
         runner.run(buildAction, buildController)
         then:
-        1 * watchingHandler.afterBuildStarted(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner)
+        1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner) >> actuallyEnabled
+
+        then:
+        1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled == actuallyEnabled })
 
         then:
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(watchMode, vfsLogging, watchLogging, buildOperationRunner, _)
 
         then:
         0 * _
 
         where:
-        watchFsEnabled | vfsLogging         | watchLogging
-        true           | VfsLogging.VERBOSE | WatchLogging.NORMAL
-        true           | VfsLogging.NORMAL  | WatchLogging.NORMAL
-        true           | VfsLogging.VERBOSE | WatchLogging.DEBUG
-        true           | VfsLogging.NORMAL  | WatchLogging.DEBUG
-        false          | VfsLogging.NORMAL  | WatchLogging.NORMAL
-        false          | VfsLogging.NORMAL  | WatchLogging.DEBUG
-        watchFsEnabledString = watchFsEnabled ? "enabled" : "disabled"
+        watchMode          | vfsLogging         | watchLogging        | actuallyEnabled
+        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.NORMAL | true
+        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.NORMAL | false
+        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.DEBUG  | false
+        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.DEBUG  | true
+        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.NORMAL | true
+        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.NORMAL | true
+        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.DEBUG  | true
+        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.DEBUG  | true
+        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.NORMAL | false
+        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.DEBUG  | false
     }
 }

@@ -47,6 +47,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Plugin that provides support for generating Jacoco coverage data.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/jacoco_plugin.html">JaCoCo plugin reference</a>
  */
 public class JacocoPlugin implements Plugin<Project> {
 

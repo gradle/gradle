@@ -38,7 +38,7 @@ import javax.inject.Inject;
  * and create the source set container.
  *
  * @since 6.7
- *
+ * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
  */
 public class JvmEcosystemPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;

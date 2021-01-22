@@ -33,6 +33,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
+import org.gradle.internal.watch.vfs.WatchMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -96,8 +97,6 @@ public class BuildActionSerializer {
             nullableFileSerializer.write(encoder, startParameter.getGradleHomeDir());
             nullableFileSerializer.write(encoder, startParameter.getProjectCacheDir());
             fileListSerializer.write(encoder, startParameter.getIncludedBuilds());
-            encoder.writeBoolean(startParameter.isUseEmptySettingsWithoutDeprecationWarning());
-            encoder.writeBoolean(startParameter.isSearchUpwardsWithoutDeprecationWarning());
 
             // Other stuff
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectProperties());
@@ -115,9 +114,8 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshDependencies());
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
-            encoder.writeBoolean(startParameter.isWatchFileSystem());
+            encoder.writeString(startParameter.getWatchFileSystemMode().name());
             encoder.writeBoolean(startParameter.isWatchFileSystemDebugLogging());
-            encoder.writeBoolean(startParameter.isWatchFileSystemUsingDeprecatedOption());
             encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             encoder.writeBoolean(startParameter.isConfigurationCache());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
@@ -174,10 +172,6 @@ public class BuildActionSerializer {
             startParameter.setGradleHomeDir(nullableFileSerializer.read(decoder));
             startParameter.setProjectCacheDir(nullableFileSerializer.read(decoder));
             startParameter.setIncludedBuilds(fileListSerializer.read(decoder));
-            if (decoder.readBoolean()) {
-                startParameter.useEmptySettingsWithoutDeprecationWarning();
-            }
-            startParameter.setSearchUpwardsWithoutDeprecationWarning(decoder.readBoolean());
 
             // Other stuff
             startParameter.setProjectProperties(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
@@ -195,9 +189,8 @@ public class BuildActionSerializer {
             startParameter.setRefreshDependencies(decoder.readBoolean());
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
-            startParameter.setWatchFileSystem(decoder.readBoolean());
+            startParameter.setWatchFileSystemMode(WatchMode.valueOf(decoder.readString()));
             startParameter.setWatchFileSystemDebugLogging(decoder.readBoolean());
-            startParameter.setWatchFileSystemUsingDeprecatedOption(decoder.readBoolean());
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(decoder.readBoolean());
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));

@@ -15,18 +15,19 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.*
-import org.junit.runner.RunWith
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
-@RunWith(FluidDependenciesResolveRunner)
+@FluidDependenciesResolveTest
 class DependencyResolutionEventsIntegrationTest extends AbstractIntegrationSpec {
     def "fires exactly one beforeResolve and afterResolve event when configuration is resolved"() {
         given:
         buildFile << """
             configurations {
                 parent { }
-                things.extendsFrom parent          
+                things.extendsFrom parent
                 all {
                     incoming.beforeResolve { c -> println "before " + c.path }
                     incoming.afterResolve { c -> println "after " + c.path }

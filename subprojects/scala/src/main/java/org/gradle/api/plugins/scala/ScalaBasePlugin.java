@@ -65,6 +65,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Scala sources.</p>
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/scala_plugin.html">Scala plugin reference</a>
  */
 public class ScalaBasePlugin implements Plugin<Project> {
 

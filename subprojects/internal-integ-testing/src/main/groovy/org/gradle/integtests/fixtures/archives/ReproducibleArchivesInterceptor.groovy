@@ -17,31 +17,44 @@
 package org.gradle.integtests.fixtures.archives
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.spockframework.runtime.extension.AbstractMethodInterceptor
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
-import org.spockframework.runtime.model.IterationInfo
-import org.spockframework.runtime.model.NameProvider
 
-class ReproducibleArchivesInterceptor extends AbstractMethodInterceptor {
+class ReproducibleArchivesInterceptor extends AbstractMultiTestInterceptor {
 
-    boolean reproducibleArchives
-
-    @Override
-    void interceptFeatureExecution(IMethodInvocation invocation) throws Throwable {
-        reproducibleArchives = false
-        invocation.proceed()
-        reproducibleArchives = true
-        invocation.proceed()
+    protected ReproducibleArchivesInterceptor(Class<?> target) {
+        super(target)
     }
 
     @Override
-    void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
-        // Allow tests to check at runtime if reproducible archives is switched on or not
-        invocation.instance.metaClass.reproducibleArchives = reproducibleArchives
-        if (reproducibleArchives) {
-            AbstractIntegrationSpec instance = invocation.instance as AbstractIntegrationSpec
-            def initScript = instance.testDirectory.file('reproducible-archives-init.gradle')
-            initScript.text = """
+    protected void createExecutions() {
+        add(new ReproducibleArchivesExecution(false))
+        add(new ReproducibleArchivesExecution(true))
+    }
+
+    private static class ReproducibleArchivesExecution extends AbstractMultiTestInterceptor.Execution {
+
+        private final boolean withReproducibleArchives
+
+        ReproducibleArchivesExecution(boolean withReproducibleArchives) {
+            this.withReproducibleArchives = withReproducibleArchives
+        }
+
+        @Override
+        String toString() {
+            return getDisplayName()
+        }
+
+        @Override
+        protected String getDisplayName() {
+            return withReproducibleArchives ? "with reproducible archives" : "without reproducible archives"
+        }
+
+        protected void before(IMethodInvocation invocation) {
+            if (withReproducibleArchives) {
+                AbstractIntegrationSpec instance = invocation.instance as AbstractIntegrationSpec
+                def initScript = instance.testDirectory.file('reproducible-archives-init.gradle')
+                initScript.text = """
                         rootProject { prj ->
                             allprojects {
                                 tasks.withType(AbstractArchiveTask) {
@@ -51,22 +64,10 @@ class ReproducibleArchivesInterceptor extends AbstractMethodInterceptor {
                             }
                         }
                     """.stripIndent()
-            instance.executer.beforeExecute {
-                usingInitScript(initScript)
+                instance.executer.beforeExecute {
+                    usingInitScript(initScript)
+                }
             }
         }
-
-        invocation.proceed()
-    }
-
-    NameProvider<IterationInfo> nameProvider(final NameProvider<IterationInfo> delegate) {
-        return new NameProvider<IterationInfo>() {
-            @Override
-            String getName(IterationInfo iterationInfo) {
-                return (delegate?.getName(iterationInfo) ?: iterationInfo.parent.name) +
-                    (reproducibleArchives ? ' [reproducible archives]' : '')
-            }
-        }
-
     }
 }

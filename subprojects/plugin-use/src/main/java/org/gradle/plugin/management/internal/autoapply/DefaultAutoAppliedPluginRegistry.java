@@ -52,7 +52,7 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Settings target) {
-        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettingsWithoutDeprecationWarning()) {
+        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings()) {
             return PluginRequests.EMPTY;
         }
 

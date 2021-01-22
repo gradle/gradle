@@ -104,7 +104,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of(*KOTLIN_VERSIONS.latests.findAll {
             def lowerCaseVersion = it.toLowerCase(Locale.US)
-            !lowerCaseVersion.contains('-m') && !lowerCaseVersion.contains('-rc') && !(lowerCaseVersion.contains('-beta'))
+            !lowerCaseVersion.contains('-m') && !(lowerCaseVersion.contains('-beta'))
         })
 
         // https://plugins.gradle.org/plugin/org.gretty
@@ -117,7 +117,7 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleVersions = "0.36.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.10"
+        static playframework = "0.11"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
         static errorProne = "1.3.0"

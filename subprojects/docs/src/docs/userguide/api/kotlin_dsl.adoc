@@ -14,7 +14,6 @@
 
 :kotlin-reference: https://kotlinlang.org/docs/reference/
 :kotlin-tutorials: https://kotlinlang.org/tutorials/
-:kotlin-dsl-samples: https://github.com/gradle/kotlin-dsl-samples/tree/master/samples
 :gradle-issues: https://github.com/gradle/gradle/issues/
 :plugin-portal: https://plugins.gradle.org/
 
@@ -874,8 +873,6 @@ The `KotlinClosure0` to `KotlinClosure2` types allows adapting Kotlin functions 
 include::sample[dir="snippets/kotlinDsl/interoperability-kotlinClosure/kotlin",files="build.gradle.kts[tags=kotlinClosure]"]
 ====
 
-Also see the link:{kotlin-dsl-samples}groovy-interop[groovy-interop] sample.
-
 === The Kotlin DSL Groovy Builder
 
 If some plugin makes heavy use of link:https://groovy-lang.org/metaprogramming.html[Groovy metaprogramming], then using it from Kotlin or Java or any statically-compiled language can be very cumbersome.
@@ -934,13 +931,11 @@ native {                                                    <3>
 [[kotdsl:limitations]]
 == Limitations
 
-* The Kotlin DSL is link:https://github.com/gradle/kotlin-dsl/issues/902[known to be slower than the Groovy DSL] on first use, for example with clean checkouts or on ephemeral continuous integration agents.
+* The Kotlin DSL is link:https://github.com/gradle/gradle/issues/15886[known to be slower than the Groovy DSL] on first use, for example with clean checkouts or on ephemeral continuous integration agents.
 Changing something in the _buildSrc_ directory also has an impact as it invalidates build-script caching.
 The main reason for this is the slower script compilation for Kotlin DSL.
 * In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] in order to get content assist and refactoring support for your Kotlin DSL build scripts.
 * The Kotlin DSL will not support the `model {}` block, which is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
-However, you _can_ apply model rules from scripts — see the link:{kotlin-dsl-samples}model-rules[model rules] sample for more information.
 * We recommend against enabling the incubating <<multi_project_configuration_and_execution#sec:configuration_on_demand,configuration on demand>> feature as it can lead to very hard-to-diagnose problems.
 
 If you run into trouble or discover a suspected bug, please report the issue in the link:{gradle-issues}[Gradle issue tracker].
-

@@ -21,5 +21,5 @@ import org.gradle.api.component.SoftwareComponentVariant;
 
 public interface UsageContext extends SoftwareComponentVariant {
     @Deprecated
-    Usage getUsage(); // kept for backwards compatibility of plugins using internal APIs
+    Usage getUsage(); // kept for backwards compatibility of plugins (like kotlin-multiplatform) using internal APIs
 }

@@ -33,6 +33,7 @@ public class SettingsEvaluatedCallbackFiringSettingsProcessor implements Setting
     public SettingsInternal process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameter startParameter) {
         SettingsInternal settings = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
         gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
+        settings.preventFromFurtherMutation();
         return settings;
     }
 }

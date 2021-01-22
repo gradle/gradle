@@ -31,17 +31,16 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ConfigurationCacheRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
-import org.junit.runner.RunWith
 import spock.lang.Unroll
 
 import javax.inject.Inject
 
-@RunWith(ConfigurationCacheRunner)
+@ConfigurationCacheTest
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()

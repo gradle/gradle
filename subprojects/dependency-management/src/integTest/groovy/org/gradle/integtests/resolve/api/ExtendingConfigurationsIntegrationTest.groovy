@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.api;
+package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.junit.runner.RunWith
-import spock.lang.Issue;
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import spock.lang.Issue
 
-@RunWith(FluidDependenciesResolveRunner)
-public class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
+@FluidDependenciesResolveTest
+class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Issue("GRADLE-2873")
     def "may replace configuration extension targets"() {

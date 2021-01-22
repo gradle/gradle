@@ -250,6 +250,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileType
         - org.gradle.api.model.ReplacedBy
         - org.gradle.api.Task.getTimeout
+        - org.gradle.process.JavaDebugOptions
+        - org.gradle.process.JavaForkOptions.getDebugOptions()
+        - org.gradle.process.JavaForkOptions.debugOptions(Action)
         - org.gradle.api.tasks.WorkResult.or
         - org.gradle.api.tasks.IgnoreEmptyDirectories
         - org.gradle.api.tasks.TaskInputFilePropertyBuilder.ignoreEmptyDirectories()
@@ -257,6 +260,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.normalization.PropertiesFileNormalization
         - org.gradle.normalization.RuntimeClasspathNormalization.properties(java.lang.String, org.gradle.api.Action<? super org.gradle.normalization.PropertiesFileNormalization>)
         - org.gradle.normalization.RuntimeClasspathNormalization.properties(org.gradle.api.Action<? super org.gradle.normalization.PropertiesFileNormalization>)
+        - org.gradle.api.file.DuplicatesStrategy.INHERIT
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
@@ -344,6 +348,16 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.jvm.JvmLibrary
         - org.gradle.language.base.artifact.SourcesArtifact
         - org.gradle.language.java.artifact.JavadocArtifact
+- IDE
+    - Eclipse plugin
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublication()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublication(FileReference)
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationSourcePath()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationSourcePath(FileReference)
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationJavadocPath()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationJavadocPath(FileReference)
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getBuildDependencies()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.buildDependencies(Object...)
 - Tooling API
     - Eclipse models
         - org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary
@@ -351,6 +365,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.model.eclipse.EclipseWorkspace
         - org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
         - org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
+        - org.gradle.tooling.model.eclipse.EclipseExternalDependency.isResolved()
+        - org.gradle.tooling.model.eclipse.EclipseExternalDependency.getAttemptedSelector()
+        - org.gradle.tooling.model.ComponentSelector
     - Testing events
         - org.gradle.tooling.events.OperationType.TestOutput
         - org.gradle.tooling.events.test.Destination
@@ -359,6 +376,10 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - Miscellaneous
         - org.gradle.tooling.events.OperationCompletionListener
         - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
+    - Debugging
+        - org.gradle.tooling.TestLauncher.withTaskAndTestClasses(String, Iterable)
+        - org.gradle.tooling.TestLauncher.withTaskAndTestMethods(String, String, Iterable)
+        - org.gradle.tooling.TestLauncher.debugTestsOn(int)
 - Java Ecosystem
     - Antlr plugin
         - org.gradle.api.plugins.antlr.AntlrTask.getStableSources

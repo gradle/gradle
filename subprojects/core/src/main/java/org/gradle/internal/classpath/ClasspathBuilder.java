@@ -30,6 +30,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
@@ -51,6 +52,11 @@ public class ClasspathBuilder {
     public void jar(File jarFile, Action action) {
         try {
             buildJar(jarFile, action);
+        } catch (FileAlreadyExistsException e) {
+            // Temporarily ignore this.
+            // We run identical transforms concurrently and we can sometimes
+            // finish two transforms at the same time in a way that Files.move will
+            // see the jarFile created before the move is done.
         } catch (Exception e) {
             throw new GradleException(String.format("Failed to create Jar file %s.", jarFile), e);
         }

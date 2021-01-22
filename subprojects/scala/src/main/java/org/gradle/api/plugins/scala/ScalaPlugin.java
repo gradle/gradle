@@ -40,6 +40,7 @@ import java.util.concurrent.Callable;
  * <p>A {@link Plugin} which sets up a Scala project.</p>
  *
  * @see ScalaBasePlugin
+ * @see <a href="https://docs.gradle.org/current/userguide/scala_plugin.html">Scala plugin reference</a>
  */
 public class ScalaPlugin implements Plugin<Project> {
 

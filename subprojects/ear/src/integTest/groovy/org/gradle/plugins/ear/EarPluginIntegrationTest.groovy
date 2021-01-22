@@ -534,7 +534,7 @@ ear {
     def "using nested descriptor file name is not allowed"() {
         buildScript '''
             apply plugin: 'ear'
-            
+
             ear {
                 deploymentDescriptor {
                     fileName = 'nested/blubb.xml'
@@ -542,7 +542,7 @@ ear {
 
                 }
             }
-            
+
         '''.stripIndent()
 
         when:

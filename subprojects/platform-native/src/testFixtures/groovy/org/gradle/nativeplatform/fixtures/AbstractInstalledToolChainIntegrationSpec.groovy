@@ -27,12 +27,11 @@ import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
-import org.junit.runner.RunWith
 
 /**
  * Runs a test separately for each installed tool chain.
  */
-@RunWith(NativeToolChainTestRunner.class)
+@NativeToolchainTest
 @Category(ContextualMultiVersionTest.class)
 abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     static AvailableToolChains.InstalledToolChain toolChain
@@ -44,7 +43,7 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
         initScript = file("init.gradle") << """
             allprojects { p ->
                 apply plugin: ${toolChain.pluginClass}
-            
+
                 model {
                       toolChains {
                         ${toolChain.buildScriptConfig}

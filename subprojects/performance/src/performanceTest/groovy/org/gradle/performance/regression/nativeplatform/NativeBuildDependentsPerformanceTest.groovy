@@ -27,7 +27,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.9-20201210230047+0000"]
+        runner.targetVersions = ["7.0-20210122131800+0000"]
         runner.minimumBaseVersion = "4.0"
     }
 

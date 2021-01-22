@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
@@ -484,12 +483,5 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
 
         where:
         platformType << PlatformType.values()
-    }
-
-    @Ignore
-    // Having only Unroll tests breaks something in the combination with GradleMetadataResolveRunner
-    void "dummy"() {
-        expect:
-        true
     }
 }

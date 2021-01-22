@@ -24,8 +24,8 @@ import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
-import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
+import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
@@ -37,7 +37,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.warmUpRuns = 11
         runner.runs = 21
         runner.minimumBaseVersion = "3.5"
-        runner.targetVersions = ["6.9-20201210230047+0000"]
+        runner.targetVersions = ["7.0-20210122131800+0000"]
     }
 
     def "clean assemble with remote http cache"() {

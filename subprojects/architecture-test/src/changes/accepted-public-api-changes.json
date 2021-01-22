@@ -817,22 +817,6 @@
             "changes": []
         },
 
-
-        {
-            "type": "org.gradle.plugins.javascript.base.SourceTransformationException",
-            "member": "Class org.gradle.plugins.javascript.base.SourceTransformationException",
-            "acceptation": "Temporarily re-added for compatibility with the playframework plugin - see https://github.com/gradle/playframework/pull/161",
-            "changes": [
-                "ANNOTATION_DEPRECATED_ADDED"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.javascript.base.SourceTransformationException",
-            "member": "Constructor org.gradle.plugins.javascript.base.SourceTransformationException(java.lang.String,java.lang.Throwable)",
-            "acceptation": "Temporarily re-added for compatibility with the playframework plugin - see https://github.com/gradle/playframework/pull/161",
-            "changes": []
-        },
-
         {
             "type": "org.gradle.api.artifacts.maven.GroovyMavenDeployer",
             "member": "Class org.gradle.api.artifacts.maven.GroovyMavenDeployer",
@@ -1508,6 +1492,63 @@
             "type": "org.gradle.jvm.toolchain.JavaToolChain",
             "member": "Method org.gradle.jvm.toolchain.JavaToolChain.getVersion()",
             "acceptation": "Has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Field useEmptySettings",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Field searchUpwards",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.doUseEmptySettings()",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.isSearchUpwards()",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.isUseEmptySettings()",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.setSearchUpwards(boolean)",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.useEmptySettings()",
+            "acceptation": "Deprecated start parameter has been removed",
             "changes": [
                 "Method has been removed"
             ]

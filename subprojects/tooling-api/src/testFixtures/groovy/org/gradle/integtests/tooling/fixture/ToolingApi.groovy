@@ -63,6 +63,10 @@ class ToolingApi implements TestRule {
         this.testWorkDirProvider = testWorkDirProvider
     }
 
+    void setDist(GradleDistribution dist) {
+        this.dist = dist
+    }
+
     /**
      * Specifies that the test use its own Gradle user home dir and daemon registry.
      */
@@ -167,7 +171,7 @@ class ToolingApi implements TestRule {
         }
     }
 
-    GradleConnector connector() {
+    GradleConnector connector(projectDir = testWorkDirProvider.testDirectory) {
         DefaultGradleConnector connector
         if (isolatedToolingClient != null) {
             connector = isolatedToolingClient.getFactory(DefaultGradleConnector).create()
@@ -175,14 +179,22 @@ class ToolingApi implements TestRule {
             connector = GradleConnector.newConnector() as DefaultGradleConnector
         }
 
-        connector.forProjectDirectory(testWorkDirProvider.testDirectory)
+        connector.forProjectDirectory(projectDir)
         if (embedded) {
             connector.useClasspathDistribution()
         } else {
             connector.useInstallation(dist.gradleHomeDir.absoluteFile)
         }
         connector.embedded(embedded)
-        connector.searchUpwards(false)
+        if (GradleVersion.version(dist.getVersion().version) < GradleVersion.version("6.0")) {
+            connector.searchUpwards(false)
+        } else {
+            def settingsFile = projectDir.file('settings.gradle')
+            def settingsFileKts = projectDir.file('settings.gradle.kts')
+            if (!settingsFile.exists() && !settingsFileKts.exists()) {
+                settingsFile << ''
+            }
+        }
         if (useSeparateDaemonBaseDir) {
             connector.daemonBaseDir(new File(daemonBaseDir.path))
         }

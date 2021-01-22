@@ -51,6 +51,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         when:
         def properties = properties()
         def layout = layout(properties)
+        rootDir.file("settings.gradle") << ''
         gradleDistribution.file("gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx1024m -Dprop=value"
 
         then:
@@ -71,6 +72,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         when:
         def properties = properties()
         def layout = layout(properties)
+        rootDir.file("settings.gradle") << ''
         rootDir.file("gradle.properties") << "$DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY=125"
 
         then:
@@ -101,7 +103,6 @@ class LayoutToPropertiesConverterTest extends Specification {
         def properties = properties()
         def layout = layout(properties) {
             setProjectDir(rootDir.file("foo"))
-            searchUpwards = true
         }
         rootDir.file("settings.gradle") << "include 'foo'"
         rootDir.file("gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx128m"
@@ -114,6 +115,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         when:
         def properties = properties()
         def layout = layout(properties)
+        rootDir.file("settings.gradle") << ''
         rootDir.file("gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx1024m"
         gradleDistribution.file("gradle.properties") << "$DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY=-Xmx512m"
 
@@ -193,7 +195,6 @@ class LayoutToPropertiesConverterTest extends Specification {
             it.setGradleInstallationHomeDir(gradleDistribution)
             it.setGradleUserHomeDir(gradleHome)
             it.setProjectDir(rootDir)
-            it.setSearchUpwards(false)
             overrides.delegate = it
             overrides()
         }

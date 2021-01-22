@@ -85,7 +85,4 @@ class ToolingApiDistributionResolver {
         this.useExternalToolingApiDistribution = true
         this
     }
-
-    void stop() {
-    }
 }

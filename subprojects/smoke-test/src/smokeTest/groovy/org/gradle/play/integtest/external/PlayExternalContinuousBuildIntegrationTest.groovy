@@ -18,14 +18,12 @@ package org.gradle.play.integtest.external
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.external.AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest
-import org.gradle.play.integtest.fixtures.external.BasicPlayApp
-import org.gradle.play.integtest.fixtures.external.PlayApp
 import org.gradle.play.integtest.fixtures.external.RunningPlayApp
 
 class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
-    PlayApp playApp = new BasicPlayApp(versionNumber)
 
+    @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
     def "build does not block when running play app with continuous build" () {
         when: "the build runs until it enters continuous build"
         succeeds("runPlay")
@@ -34,7 +32,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         appIsRunningAndDeployed()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
     def "can run play app multiple times with continuous build" () {
         when:
         succeeds("runPlay")
@@ -61,7 +59,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
     def "build failure prior to launch does not prevent launch on subsequent build" () {
         executer.withStackTraceChecksDisabled()
         def original = file("app/controllers/Application.scala").text
@@ -82,6 +80,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         appIsRunningAndDeployed()
     }
 
+    @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
     def "play application is stopped when build is cancelled" () {
         when:
         succeeds("runPlay")

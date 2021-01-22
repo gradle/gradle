@@ -16,14 +16,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -32,7 +31,7 @@ import static org.hamcrest.CoreMatchers.containsString
  * This test contains some of the original coverage for dependency resolution.
  * These tests should be migrated to live with the rest of the coverage over time.
  */
-@RunWith(FluidDependenciesResolveRunner)
+@FluidDependenciesResolveTest
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)

@@ -48,6 +48,7 @@ import java.util.Set;
  * or Gradle platforms (Gradle metadata).
  *
  * @since 5.2
+ * @see <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html">Java Platform plugin reference</a>
  */
 public class JavaPlatformPlugin implements Plugin<Project> {
     // Buckets of dependencies

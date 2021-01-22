@@ -141,6 +141,9 @@ Source dependencies are configured, providing cross-build navigation and refacto
 By default, Gradle will configure each included build in order to determine the dependencies it can provide.
 The algorithm for doing this is very simple: Gradle will inspect the group and name for the projects in the included build, and substitute project dependencies for any external dependency matching `${project.group}:${project.name}`.
 
+NOTE: By default, substitutions are not registered for the _main_ build.
+To make the (sub)projects of the main build addressable by `${project.group}:${project.name}`, you can tell Gradle to treat the main build like an included build by self-including it: `includeBuild(".")`.
+
 There are cases when the default substitutions determined by Gradle are not sufficient, or they are not correct for a particular composite.
 For these cases it is possible to explicitly declare the substitutions for an included build.
 Take for example a single-project build 'anonymous-library', that produces a java utility library but does not declare a value for the group attribute:

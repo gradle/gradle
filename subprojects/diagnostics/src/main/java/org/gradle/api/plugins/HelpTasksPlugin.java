@@ -35,6 +35,8 @@ import org.gradle.configuration.Help;
 
 /**
  * Adds various reporting tasks that provide information about the project.
+ *
+ * @see <a href="https://gradle.org/help/">Getting additional help with Gradle</a>
  */
 public class HelpTasksPlugin implements Plugin<Project> {
 

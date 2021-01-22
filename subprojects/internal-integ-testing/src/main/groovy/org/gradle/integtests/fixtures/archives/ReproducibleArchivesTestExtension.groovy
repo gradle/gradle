@@ -17,39 +17,15 @@
 package org.gradle.integtests.fixtures.archives
 
 import groovy.transform.CompileStatic
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
-import org.spockframework.runtime.model.FeatureInfo
-import org.spockframework.runtime.model.SpecInfo
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
+import org.gradle.integtests.fixtures.extensions.MultiTestExtension
 
 @CompileStatic
-class ReproducibleArchivesTestExtension extends AbstractAnnotationDrivenExtension<TestReproducibleArchives> {
-    @Override
-    void visitSpecAnnotation(TestReproducibleArchives annotation, SpecInfo spec) {
-        spec.features.each { feature ->
-            runForReproducibleArchives(feature)
-        }
-    }
+class ReproducibleArchivesTestExtension extends MultiTestExtension<TestReproducibleArchives> {
 
     @Override
-    void visitFeatureAnnotation(TestReproducibleArchives annotation, FeatureInfo feature) {
-        runForReproducibleArchives(feature)
-    }
-
-    @Override
-    void visitSpec(SpecInfo spec) {
-        spec.features.each { FeatureInfo feature ->
-            feature.interceptors.find { it instanceof ReproducibleArchivesInterceptor }.each { ReproducibleArchivesInterceptor interceptor ->
-                // Add the name provider as late as possible to capture name providers from other extensions (e.g. @Unroll)
-                feature.iterationNameProvider = interceptor.nameProvider(feature.iterationNameProvider)
-            }
-        }
-    }
-
-    private static void runForReproducibleArchives(FeatureInfo feature) {
-        def interceptor = new ReproducibleArchivesInterceptor()
-        feature.reportIterations = true
-        feature.addInterceptor(interceptor)
-        feature.addIterationInterceptor(interceptor)
+    protected AbstractMultiTestInterceptor makeInterceptor(Class<?> testClass) {
+        return new ReproducibleArchivesInterceptor(testClass);
     }
 }
 

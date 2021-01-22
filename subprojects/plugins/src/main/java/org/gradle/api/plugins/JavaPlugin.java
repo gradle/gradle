@@ -65,6 +65,8 @@ import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocT
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
  */
 public class JavaPlugin implements Plugin<Project> {
     /**

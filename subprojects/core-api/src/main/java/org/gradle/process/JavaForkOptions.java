@@ -17,7 +17,6 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -237,7 +236,6 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @since 5.6
      */
     @Nested
-    @Incubating
     JavaDebugOptions getDebugOptions();
 
     /**
@@ -247,7 +245,6 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param action the Java debug configuration
      * @since 5.6
      */
-    @Incubating
     void debugOptions(Action<JavaDebugOptions> action);
 
     /**

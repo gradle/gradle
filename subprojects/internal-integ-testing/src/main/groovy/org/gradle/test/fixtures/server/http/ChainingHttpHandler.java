@@ -140,7 +140,8 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
                     Throwable failure = responseProducer.getFailure();
                     requestFailed(outcome, failure);
                     String stacktrace = ExceptionUtils.getStackTrace(failure);
-                    dumpThreadsUponTimeout(stacktrace);
+                    // We observed jstack hanging on windows
+//                    dumpThreadsUponTimeout(stacktrace);
                     System.out.printf("[%d] handling failed with exception %s%n", id, stacktrace);
                     sendFailure(httpExchange, 400, outcome);
                 }

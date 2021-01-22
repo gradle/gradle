@@ -84,6 +84,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         compileOnly.extendsFrom == [] as Set
         !compileOnly.visible
+        !compileOnly.canBeConsumed
+        !compileOnly.canBeResolved
         compileOnly.transitive
 
         when:
@@ -128,6 +130,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         testCompileOnly.extendsFrom == toSet()
         !testCompileOnly.visible
+        !testRuntimeOnly.canBeConsumed
+        !testRuntimeOnly.canBeResolved
         testCompileOnly.transitive
 
         when:

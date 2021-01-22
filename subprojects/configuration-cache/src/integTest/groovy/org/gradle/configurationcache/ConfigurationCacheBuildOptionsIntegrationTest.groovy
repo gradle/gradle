@@ -220,15 +220,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
                 case SystemPropertySource.GRADLE_PROPERTIES:
                     file('root/gradle.properties').text = "systemProp.greeting=$greeting"
                     return configurationCacheRun('greet')
-                case SystemPropertySource.GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR:
-                    // because the 'master' directory special treatment deprecation message is not emitted when configuration is loaded form config cache
-                    executer.noDeprecationChecks()
-
-                    file('master/gradle.properties').text = "systemProp.greeting=$greeting"
-                    file('master/settings.gradle').text = """
-                        rootProject.projectDir = file('../root')
-                    """
-                    return configurationCacheRun('greet')
             }
             throw new IllegalArgumentException('source')
         }
@@ -259,8 +250,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
     enum SystemPropertySource {
         COMMAND_LINE,
-        GRADLE_PROPERTIES,
-        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR;
+        GRADLE_PROPERTIES
 
         @Override
         String toString() {

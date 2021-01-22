@@ -41,7 +41,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         server.after()
     }
 
-    private static String expectedDisplayName(String name, String extension, String version) {
+    private String expectedDisplayName(String name, String extension, String version) {
         getTargetVersion() < GradleVersion.version("6.0") ? "$name.$extension" : "$name-$version.$extension"
     }
 

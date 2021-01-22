@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -515,11 +514,5 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         fixConflict | description
         false       | 'conflict fix not applied'
         true        | 'conflict fix applied'
-    }
-
-    @Ignore
-    def "trust no one"() {
-        expect:
-        true // Spock doesn't like when there are only Unroll tests in a test class
     }
 }

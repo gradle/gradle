@@ -38,7 +38,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPer
         runner.warmUpRuns = 40
         runner.runs = 40
         runner.minimumBaseVersion = "6.5"
-        runner.targetVersions = ["6.8-20201108230029+0000"]
+        runner.targetVersions = ["7.0-20210122131800+0000"]
 
         runner.toolingApi("Android Studio Sync") {
             it.action(new GetModel())

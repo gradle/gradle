@@ -31,8 +31,12 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
 
     /**
      * Called when the build is started.
+     *
+     * @return whether watching the file system is currently enabled. This requires that the feature
+     * is supported on the current operating system, it is enabled for the build, and has been successfully
+     * started.
      */
-    void afterBuildStarted(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner);
+    boolean afterBuildStarted(WatchMode watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner);
 
     /**
      * Register a watchable hierarchy.
@@ -46,13 +50,6 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     /**
      * Called when the build is finished.
      */
-    void beforeBuildFinished(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies);
+    void beforeBuildFinished(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies);
 
-    enum VfsLogging {
-        NORMAL, VERBOSE
-    }
-
-    enum WatchLogging {
-        NORMAL, DEBUG
-    }
 }

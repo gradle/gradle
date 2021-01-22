@@ -328,20 +328,22 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
         when:
         buildFile << """
-            plugins {
-                id("java-library")
+            configurations.create("conf") {
+                canBeConsumed = false
             }
             dependencies {
-                implementation("${build.group}:${build.buildName}")
+                conf("${build.group}:${build.buildName}")
             }
-        """
-        file("src/main/java/Foo.java") << """
-            class Foo { Bar newBar() { return new Bar(); }}
+            tasks.register('resolve') {
+                doLast {
+                    configurations.conf.files()
+                }
+            }
         """
 
         then:
-        fails("build")
-        failureDescriptionContains("Could not determine the dependencies of task ':compileJava'.")
+        fails("resolve")
+        failureDescriptionContains("Execution failed for task ':resolve'.")
         failureCauseContains("Cannot resolve external dependency com.example:included-build")
     }
 

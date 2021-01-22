@@ -17,19 +17,11 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.junit.runner.RunWith
-import spock.lang.Ignore
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Unroll
 
-@RunWith(FluidDependenciesResolveRunner)
+@FluidDependenciesResolveTest
 class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
-
-    @Ignore
-    def "Spock bug workaround - do not remove or the test won't execute" () {
-        expect:
-        true
-    }
 
     @Unroll("cannot resolve a configuration with role #role at execution time")
     def "cannot resolve a configuration which is for publishing only at execution time"() {
