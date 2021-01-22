@@ -33,7 +33,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.1' // minimum version that contains new C++ plugins
-        runner.targetVersions = ["6.8-20201115230028+0000"]
+        runner.targetVersions = ["7.0-20210122131800+0000"]
     }
 
     def "up-to-date assemble (native)"() {
