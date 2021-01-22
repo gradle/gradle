@@ -253,19 +253,21 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         settingsFile << """
             rootProject.name = 'root'
             include '1', '2'
-"""
+        """
         buildFile << """
             subprojects {
                 task otherBuild(type:GradleBuild) {
                     dir = "\${rootProject.file('subprojects')}"
                     tasks = ['log']
                     buildName = project.name + "nested"
-                }
-                otherBuild.doFirst {
-                    ${barrier.callFromBuildUsingExpression('project.name + "-started"')}
-                }
-                otherBuild.doLast {
-                    ${barrier.callFromBuildUsingExpression('project.name + "-finished"')}
+                    def startEvent = project.name + "-started"
+                    def finishEvent = project.name + "-finished"
+                    doFirst {
+                        ${barrier.callFromBuildUsingExpression('startEvent')}
+                    }
+                    doLast {
+                        ${barrier.callFromBuildUsingExpression('finishEvent')}
+                    }
                 }
             }
             task otherBuild(type:GradleBuild) {
@@ -287,12 +289,17 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
             task log { }
         """
 
-        barrier.expectConcurrent("child-build-started", "1-started", "2-started")
-        barrier.expectConcurrent("child-build-finished", "1-finished", "2-finished")
+        def runs = GradleContextualExecuter.isConfigCache() ? 2 : 1
+        runs.times {
+            barrier.expectConcurrent("child-build-started", "1-started", "2-started")
+            barrier.expectConcurrent("child-build-finished", "1-finished", "2-finished")
+        }
 
         when:
-        executer.withArgument("--parallel")
-        run 'otherBuild'
+        runs.times {
+            executer.withArgument("--parallel")
+            run 'otherBuild'
+        }
 
         then:
         noExceptionThrown()
