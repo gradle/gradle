@@ -18,6 +18,7 @@ package org.gradle.play.integtest.fixtures.external
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.play.integtest.fixtures.Repositories
+import org.gradle.smoketests.AbstractSmokeTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.RelativePathUtil
 import org.gradle.util.VersionNumber
@@ -43,7 +44,7 @@ abstract class PlayApp {
     SourceFile getGradleBuild() {
         def buildFileName = oldVersion ? "build.gradle.old" : "build.gradle"
         def gradleBuild = sourceFile("", buildFileName)
-        def gradleBuildWithRepositories = gradleBuild.content.concat """
+        def gradleBuildWithRepositories = gradleBuild.content.replace("PLUGIN_VERSION", AbstractSmokeTest.TestedVersions.playframework).concat """
             allprojects {
                 ${Repositories.PLAY_REPOSITORIES}
             }
