@@ -27,7 +27,7 @@ public class LowHeapSpaceDaemonExpirationStrategy implements DaemonExpirationStr
     private final DaemonMemoryStatus status;
     private static final Logger LOG = Logging.getLogger(LowHeapSpaceDaemonExpirationStrategy.class);
 
-    public static final String EXPIRATION_REASON = "after running out of JVM memory";
+    public static final String EXPIRATION_REASON = "after running out of JVM heap space";
     public static final String EXPIRE_DAEMON_MESSAGE = "Expiring Daemon because JVM heap space is exhausted";
 
     public LowHeapSpaceDaemonExpirationStrategy(DaemonMemoryStatus status) {
