@@ -29,12 +29,12 @@ import static org.objectweb.asm.Opcodes.ASM7;
 
 class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
 
-    private static final List<Pair<String, String>> RENAMED_INTERFACES = asList(
+    private static final List<Pair<String, String>> RENAMED_TYPE_INTERNAL_NAMES = asList(
         Pair.of("org/gradle/logging/LoggingManagerInternal", "org/gradle/api/logging/LoggingManager"),
         Pair.of("org/gradle/logging/StandardOutputCapture", "org/gradle/internal/logging/StandardOutputCapture")
     );
 
-    private static final List<Pair<String, String>> RENAMED_INTERFACE_DESCRIPTORS = RENAMED_INTERFACES.stream().map(
+    private static final List<Pair<String, String>> RENAMED_TYPE_DESCRIPTORS = RENAMED_TYPE_INTERNAL_NAMES.stream().map(
         p -> Pair.of("L" + p.left + ";", "L" + p.right + ";")
     ).collect(toList());
 
@@ -59,8 +59,8 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-            final String newOwner = fixMethodOwnerForBackwardCompatibility(owner);
-            final String newDescriptor = fixMethodDescriptorForBackwardCompatibility(descriptor);
+            final String newOwner = fixInternalNameForBackwardCompatibility(owner);
+            final String newDescriptor = fixDescriptorForBackwardCompatibility(descriptor);
             super.visitMethodInsn(opcode, newOwner, name, newDescriptor, isInterface);
         }
     }
@@ -69,23 +69,23 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
         // Restore compatibility with plugins compiled with an old Groovy version (like org.samples.greeting:1.0 used by the GE build)
         // in which super class getters are accessed via bridge methods.
         return (access & ACC_SYNTHETIC) != 0 && descriptor.startsWith("()")
-            ? fixMethodDescriptorForBackwardCompatibility(descriptor)
+            ? fixDescriptorForBackwardCompatibility(descriptor)
             : descriptor;
     }
 
-    private static String fixMethodOwnerForBackwardCompatibility(String typeName) {
+    private static String fixInternalNameForBackwardCompatibility(String internalName) {
         // Fix renamed type references
-        for (Pair<String, String> renamedInterface : RENAMED_INTERFACES) {
-            if (renamedInterface.left.equals(typeName)) {
+        for (Pair<String, String> renamedInterface : RENAMED_TYPE_INTERNAL_NAMES) {
+            if (renamedInterface.left.equals(internalName)) {
                 return renamedInterface.right;
             }
         }
-        return typeName;
+        return internalName;
     }
 
-    private static String fixMethodDescriptorForBackwardCompatibility(String descriptor) {
+    private static String fixDescriptorForBackwardCompatibility(String descriptor) {
         // Fix method signatures involving renamed types
-        for (Pair<String, String> renamedDescriptor : RENAMED_INTERFACE_DESCRIPTORS) {
+        for (Pair<String, String> renamedDescriptor : RENAMED_TYPE_DESCRIPTORS) {
             descriptor = descriptor.replace(renamedDescriptor.left, renamedDescriptor.right);
         }
         return descriptor;
