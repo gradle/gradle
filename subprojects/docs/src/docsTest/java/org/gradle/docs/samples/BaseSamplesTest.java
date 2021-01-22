@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.FileSystemWatchingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
@@ -39,7 +40,8 @@ import org.gradle.samples.test.runner.SamplesOutputNormalizers;
     ArtifactResolutionOmittingOutputNormalizer.class,
     NativeComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,
-    ConfigurationCacheOutputNormalizer.class
+    ConfigurationCacheOutputNormalizer.class,
+    FileSystemWatchingOutputNormalizer.class
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
