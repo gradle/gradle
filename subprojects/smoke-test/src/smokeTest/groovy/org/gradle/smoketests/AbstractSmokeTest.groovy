@@ -117,7 +117,7 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleVersions = "0.36.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.10"
+        static playframework = "0.11"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
         static errorProne = "1.3.0"
