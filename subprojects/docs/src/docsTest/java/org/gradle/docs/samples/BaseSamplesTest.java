@@ -41,6 +41,7 @@ import org.gradle.samples.test.runner.SamplesOutputNormalizers;
     NativeComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,
     ConfigurationCacheOutputNormalizer.class,
+    // Adding FileSystemWatchingOutputNormalizer is a workaround until we remove the directory for the sample after the test
     FileSystemWatchingOutputNormalizer.class
 })
 @SampleModifiers({
