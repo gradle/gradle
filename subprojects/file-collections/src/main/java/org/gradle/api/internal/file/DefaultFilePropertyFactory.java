@@ -329,7 +329,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public FileTree getAsFileTree() {
-            return fileCollectionFactory.resolving(this).getAsFileTree();
+            return fileCollectionFactory.fileTree().from(this);
         }
 
         @Override

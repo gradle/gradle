@@ -234,8 +234,8 @@ class DefaultFilePropertyFactoryTest extends Specification {
         tree.files
 
         then:
-        // Is that OK?
-        noExceptionThrown()
+        def e5 = thrown(IllegalArgumentException)
+        e5.message == 'Cannot convert path to File. path=\'property(org.gradle.api.file.Directory, undefined)\''
     }
 
     @SuppressWarnings("GroovyAssignabilityCheck")

@@ -56,10 +56,7 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         UnpackingVisitor unpackingVisitor = new UnpackingVisitor(visitor, resolver, patternSetFactory);
-        Object providerValue = provider.getOrNull();
-        if (providerValue != null) {
-            unpackingVisitor.add(providerValue);
-        }
+        unpackingVisitor.add(provider.getOrNull());
     }
 
     public ProviderInternal<?> getProvider() {

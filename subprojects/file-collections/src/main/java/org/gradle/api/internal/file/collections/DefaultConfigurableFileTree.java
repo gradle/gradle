@@ -21,6 +21,8 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -156,6 +158,12 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(buildDependency);
+        if (dir instanceof ProviderInternal<?>) {
+            ValueSupplier.ValueProducer producer = ((ProviderInternal<?>) dir).getProducer();
+            if (producer.isKnown()) {
+                producer.visitProducerTasks(context);
+            }
+        }
     }
 
     @Override
