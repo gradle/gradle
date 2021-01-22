@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
-
 /**
  * Provides information about some work which was performed.
  */
@@ -28,7 +26,6 @@ public interface WorkResult {
      *
      * @since 6.0
      */
-    @Incubating
     default WorkResult or(WorkResult other) {
         if (!getDidWork()) {
             return other;

@@ -72,7 +72,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
         connectionException.message.contains(unsupportedGradleVersion())
     }
 
-    private static String unsupportedGradleVersion() {
+    private String unsupportedGradleVersion() {
         "Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later."
     }
 }

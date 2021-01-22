@@ -173,6 +173,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         """
         buildA.settingsFile << """
             rootProject.name = 'theNameOfBuildA'
+            includeBuild '../rootBuild'
         """
 
         when:
@@ -195,6 +196,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
                 }
             """
             settingsFile << """
+                includeBuild '.'
                 includeBuild '../buildA'
                 includeBuild '../buildB'
             """
@@ -210,6 +212,9 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         buildB.buildFile << """
             apply plugin: 'java-library'
             dependencies { api 'org.test:x3' }
+        """
+        buildB.settingsFile << """
+            includeBuild '../rootBuild'
         """
 
         when:

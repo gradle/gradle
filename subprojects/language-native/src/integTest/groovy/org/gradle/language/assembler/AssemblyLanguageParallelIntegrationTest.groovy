@@ -23,7 +23,11 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 
 
 class AssemblyLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {
-    HelloWorldApp app = new AssemblerWithCHelloWorldApp(toolChain)
+
+    @Override
+    HelloWorldApp getApp() {
+        return new AssemblerWithCHelloWorldApp(toolChain)
+    }
 
     @ToBeFixedForConfigurationCache
     def "can execute assembler tasks in parallel"() {

@@ -192,7 +192,7 @@ A significant part of the story for modern JVM performance is runtime code optim
 The Daemon also allows more effective in memory caching across builds. For example, the classes needed by the build (e.g. plugins, build scripts) can be held in memory between builds. Similarly, Gradle can maintain in-memory caches of build data such as the hashes of task inputs and outputs, used for incremental building.
 
 To detect changes on the file system, and to calculate what needs to be rebuilt, Gradle collects a lot of information about the state of the file system during every build.
-When <<sec:daemon_watch_fs,watching the file system>> is enabled, the Daemon can re-use the already collected information from the last build.
+On supported operating systems the Daemon re-uses the already collected information from the last build (see <<sec:daemon_watch_fs,watching the file system>>).
 This can save a significant amount of time for incremental builds, where the number of changes to the file system between two builds is typically low.
 
 [[sec:daemon_watch_fs]]
@@ -204,33 +204,34 @@ Doing so allows the Daemon to save the time to rebuild the Virtual File System f
 For incremental builds, there are typically only a few changes between builds.
 Therefore, incremental builds can re-use most of the Virtual File System from the last build and benefit the most from watching the file system.
 
-Gradle uses operating system features for watching the file system.
+Gradle uses native operating system features for watching the file system.
 It supports the feature on these operating systems and file systems:
 
 - Windows 10 with NTFS,
 - Linux (Ubuntu 16.04 or later, CentOS 8 or later, Red Hat Enterprise Linux 8 or later, Amazon Linux 2) using ext3 and ext4,
 - macOS 10.14 (Mojave) or later on APFS and HFS+.
 
-Network file systems like NFS and SMB are not supported.
-FAT file systems are not supported.
+Provided the operating system is supported by Gradle file system watching is enabled by default.
 
-Watching the file system is an experimental feature and is disabled by default.
-You can enable the feature in a couple of ways:
+=== Limitations
+File system watching currently has the following limitations:
 
-Run with `--watch-fs` on the command line::
-This enables watching the file system for this build only.
-Put `org.gradle.vfs.watch=true` in your `gradle.properties`::
-This enables watching the file system for all builds, unless explicitly disabled with `--no-watch-fs`.
+- If you have symlinks in your build, you won’t get the performance benefits for those locations.
+- Network drives like NFS or SMB are not supported
+- FAT file systems are not supported
 
 [[sec:daemon_watch_fs_troubleshooting]]
 === Troubleshooting file system watching
 
-Limitations::
-File system watching currently has the following limitations:
-- If you have symlinks in your build, you won’t get the performance benefits for those locations.
-- On Windows, we don’t support network drives (they might work, but we don’t test them yet).
+==== Disable file system watching
+Should the need arise, it can be explicitly disabled in the following ways:
 
-Enable verbose logging::
+Run with `--no-watch-fs` on the command line::
+This disables watching the file system for this build only.
+Put `org.gradle.vfs.watch=false` in your `gradle.properties`::
+This disables watching the file system for all builds, unless explicitly enabled with `--watch-fs`.
+
+==== Enable verbose logging
 You can instruct Gradle to some more information about the state of the virtual file system, and the events received from the file system using the `org.gradle.vfs.verbose` flag.
 This produces the following output at the start and end of the build:
 +
@@ -252,6 +253,8 @@ Virtual file system retains information about 3 files, 2 directories and 2 missi
 +
 Note that on Windows and macOS Gradle might report changes received since the last build even if you haven't changed anything.
 These are harmless notifications about changes to Gradle's own caches and can be ignored safely.
+
+==== Common problems
 
 Gradle does not pick up some of my changes::
 _Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack] if that happens to you._

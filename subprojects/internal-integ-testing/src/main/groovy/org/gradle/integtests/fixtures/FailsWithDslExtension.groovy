@@ -17,14 +17,15 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.polyglot.PolyglotDslTestInterceptor
 import org.gradle.test.fixtures.dsl.GradleDsl
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
 
 @CompileStatic
-class FailsWithDslExtension extends AbstractAnnotationDrivenExtension<FailsWithDsl> {
+class FailsWithDslExtension implements IAnnotationDrivenExtension<FailsWithDsl> {
     @Override
     void visitFeatureAnnotation(FailsWithDsl annotation, FeatureInfo feature) {
         def dsl = annotation.value()
@@ -40,7 +41,7 @@ class FailsWithDslExtension extends AbstractAnnotationDrivenExtension<FailsWithD
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            if (PolyglotDslTestRunner.currentDsl == dsl) {
+            if (PolyglotDslTestInterceptor.currentDsl == dsl) {
                 try {
                     invocation.proceed()
                 } catch (Throwable err) {

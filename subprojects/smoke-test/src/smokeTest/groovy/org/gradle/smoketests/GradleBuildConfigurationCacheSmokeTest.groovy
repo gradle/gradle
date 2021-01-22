@@ -32,7 +32,6 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.experimental.categories.Category
 
 import java.text.SimpleDateFormat
 
@@ -41,7 +40,6 @@ import java.text.SimpleDateFormat
  *
  * gradle/gradle requires Java >=9 and <=11 to build, see {@link GradleBuildJvmSpec}.
  */
-@Category(GradleBuild)
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
     GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
 })

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.ClassInspector
 import org.gradle.test.fixtures.ResettableExpectations
 import org.junit.AssumptionViolatedException
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
@@ -31,7 +31,7 @@ import java.util.function.Predicate
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP
 
-class ToBeFixedForConfigurationCacheExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForConfigurationCache> {
+class ToBeFixedForConfigurationCacheExtension implements IAnnotationDrivenExtension<ToBeFixedForConfigurationCache> {
 
     @Override
     void visitFeatureAnnotation(ToBeFixedForConfigurationCache annotation, FeatureInfo feature) {

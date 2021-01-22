@@ -77,8 +77,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private final NodeValidator nodeValidator;
-    private final RelatedLocations producedLocations;
-    private final RelatedLocations consumedLocations;
+    private final ExecutionNodeAccessHierarchy outputHierarchy;
+    private final ExecutionNodeAccessHierarchy inputHierarchy;
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private boolean invalidNodeRunning;
@@ -98,15 +98,15 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver,
         NodeValidator nodeValidator,
-        RelatedLocations producedLocations,
-        RelatedLocations consumedLocations
+        ExecutionNodeAccessHierarchy outputHierarchy,
+        ExecutionNodeAccessHierarchy inputHierarchy
     ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
         this.nodeValidator = nodeValidator;
-        this.producedLocations = producedLocations;
-        this.consumedLocations = consumedLocations;
+        this.outputHierarchy = outputHierarchy;
+        this.inputHierarchy = inputHierarchy;
     }
 
     @Override
@@ -502,8 +502,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         reachableCache.clear();
         dependenciesWhichRequireMonitoring.clear();
         runningNodes.clear();
-        producedLocations.clear();
-        consumedLocations.clear();
+        outputHierarchy.clear();
+        inputHierarchy.clear();
     }
 
     @Override
@@ -653,7 +653,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (!mutations.resolved) {
             node.resolveMutations();
             mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
-            producedLocations.recordRelatedToNode(node, mutations.outputPaths);
+            outputHierarchy.recordNodeAccessingLocations(node, mutations.outputPaths);
         }
         return mutations;
     }

@@ -17,6 +17,7 @@
 import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionPlugin
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.basics.extension.BuildJvms
 import gradlebuild.basics.extension.vendorAndMajorVersion
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
@@ -51,11 +52,11 @@ fun configureCompile() {
     java.sourceCompatibility = JavaVersion.VERSION_1_8
 
     tasks.withType<JavaCompile>().configureEach {
-        configureCompileTask(this, options, buildJvms.compileJvm.get())
+        configureCompileTask(this, options, project.the<BuildJvms>().compileJvm.get())
     }
     tasks.withType<GroovyCompile>().configureEach {
         groovyOptions.encoding = "utf-8"
-        configureCompileTask(this, options, buildJvms.compileJvm.get())
+        configureCompileTask(this, options, project.the<BuildJvms>().compileJvm.get())
     }
     addCompileAllTask()
 }
@@ -116,6 +117,8 @@ fun addDependencies() {
         testRuntimeOnly(libs.junit5Vintage)
         testImplementation(libs.groovy)
         testImplementation(libs.spock)
+        testImplementation(libs.junit5Vintage)
+        testImplementation(libs.spockJUnit4)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
@@ -155,7 +158,7 @@ fun configureJarTasks() {
 }
 
 fun Test.configureJvmForTest() {
-    val jvmForTest = project.buildJvms.testJvm.get()
+    val jvmForTest = project.the<BuildJvms>().testJvm.get()
 
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     executable = jvmForTest.javaExecutable.asFile.absolutePath
@@ -214,9 +217,9 @@ fun configureTests() {
             }
         }
 
+        useJUnitPlatform()
         if (project.testDistributionEnabled() && !isUnitTest()) {
             println("Test distribution has been enabled for $testName")
-            useJUnitPlatform()
             distribution {
                 enabled.set(true)
                 if (BuildEnvironment.isCiServer) {

@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.spockframework.runtime.AbstractRunListener
 import org.spockframework.runtime.extension.AbstractGlobalExtension
-import org.spockframework.runtime.extension.builtin.TestRuleInterceptor
+import org.spockframework.junit4.TestRuleInterceptor
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.FieldInfo
 import org.spockframework.runtime.model.SpecInfo

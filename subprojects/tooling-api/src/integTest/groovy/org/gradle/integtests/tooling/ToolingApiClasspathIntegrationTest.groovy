@@ -30,9 +30,8 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.classpath.size() == 2
         resolve.classpath.any {it.name ==~ /slf4j-api-.*\.jar/}
+        // If this suddenly fails without an obvious reason, you likely have added some code
+        // that references types that were previously eliminated from gradle-tooling-api.jar.
         resolve.classpath.find { it.name ==~ /gradle-tooling-api.*\.jar/ }.size() < 2.13 * 1024 * 1024
-
-        cleanup:
-        resolver.stop()
     }
 }

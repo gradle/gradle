@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.GradleVersion
 
 import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption.LONG_OPTION
@@ -28,11 +29,19 @@ import static org.gradle.initialization.StartParameterBuildOptions.Configuration
 @TargetVersions("6.5-rc-1+")
 class ConfigurationCacheCrossVersionTest extends CrossVersionIntegrationSpec {
 
-    def previousExecuter = version(previous)
-    def previousFixture = new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(previousExecuter, temporaryFolder))
+    GradleExecuter previousExecuter
+    ConfigurationCacheBuildOperationsFixture previousFixture
 
-    def currentExecuter = version(current)
-    def currentFixture = new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(currentExecuter, temporaryFolder))
+    GradleExecuter currentExecuter
+    ConfigurationCacheBuildOperationsFixture currentFixture
+
+    def setup() {
+        previousExecuter = version(previous)
+        previousFixture = new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(previousExecuter, temporaryFolder))
+
+        currentExecuter = version(current)
+        currentFixture = new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(currentExecuter, temporaryFolder))
+    }
 
     void runPrevious() {
         previousExecuter.withArguments(argFor(previous.version), 'help').run()

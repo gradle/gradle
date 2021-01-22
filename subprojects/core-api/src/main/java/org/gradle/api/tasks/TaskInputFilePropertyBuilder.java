@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -77,7 +76,6 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
      *
      * @since 6.8
      */
-    @Incubating
     TaskInputFilePropertyBuilder ignoreEmptyDirectories();
 
     /**
@@ -87,6 +85,5 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
      *
      * @since 6.8
      */
-    @Incubating
     TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreEmptyDirectories);
 }

@@ -15,14 +15,14 @@
  */
 
 package org.gradle.integtests.resolve.api
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.junit.runner.RunWith
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@RunWith(FluidDependenciesResolveRunner)
+@FluidDependenciesResolveTest
 class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow adding dependencies to a configuration that has been resolved"() {

@@ -84,7 +84,7 @@ latch.await()
         assertHasBuildFailedLogging()
     }
 
-    private static void targetIsGradle51OrLater() {
+    private void targetIsGradle51OrLater() {
         targetVersion >= GradleVersion.version('5.1')
     }
 

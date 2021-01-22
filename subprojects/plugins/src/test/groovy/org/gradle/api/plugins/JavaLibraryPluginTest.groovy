@@ -145,6 +145,8 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         then:
         testCompileOnly.extendsFrom == toSet(compileOnlyApi)
         !testCompileOnly.visible
+        !testRuntimeOnly.canBeConsumed
+        !testRuntimeOnly.canBeResolved
         testCompileOnly.transitive
 
         when:

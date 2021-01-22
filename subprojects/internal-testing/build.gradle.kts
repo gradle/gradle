@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.asmTree)
     implementation(libs.junit)
     implementation(libs.spock)
+    implementation(libs.spockJUnit4)
     implementation(libs.jsoup)
     implementation(libs.testcontainersSpock)
 

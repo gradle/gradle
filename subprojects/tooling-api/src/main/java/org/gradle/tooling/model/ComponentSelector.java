@@ -16,14 +16,11 @@
 
 package org.gradle.tooling.model;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents a component selector. Used for displaying unresolved dependency warnings in the IDE.
  *
  * @since 6.7
  */
-@Incubating
 public interface ComponentSelector {
 
     /**

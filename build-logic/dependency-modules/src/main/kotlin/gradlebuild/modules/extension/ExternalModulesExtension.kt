@@ -155,6 +155,7 @@ abstract class ExternalModulesExtension {
     val snappy = "org.iq80.snappy:snappy"
     val servletApi = "javax.servlet:javax.servlet-api"
     val spock = "org.spockframework:spock-core"
+    val spockJUnit4 = "org.spockframework:spock-junit4"
     val sshdCore = "org.apache.sshd:sshd-core"
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"

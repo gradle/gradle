@@ -19,28 +19,34 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
-import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
+import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging;
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging;
+import org.gradle.internal.watch.vfs.VfsLogging;
+import org.gradle.internal.watch.vfs.WatchLogging;
+import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemWatchingBuildActionRunner.class);
 
+    private final BuildOperationProgressEventEmitter eventEmitter;
     private final BuildActionRunner delegate;
 
-    public FileSystemWatchingBuildActionRunner(BuildActionRunner delegate) {
+    public FileSystemWatchingBuildActionRunner(
+        BuildOperationProgressEventEmitter eventEmitter,
+        BuildActionRunner delegate
+    ) {
+        this.eventEmitter = eventEmitter;
         this.delegate = delegate;
     }
 
@@ -55,7 +61,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector = services.get(DirectorySnapshotterStatistics.Collector.class);
         BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
 
-        boolean watchFileSystem = startParameter.isWatchFileSystem();
+        WatchMode watchFileSystemMode = startParameter.getWatchFileSystemMode();
         VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging()
             ? VfsLogging.VERBOSE
             : VfsLogging.NORMAL;
@@ -63,21 +69,28 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             ? WatchLogging.DEBUG
             : WatchLogging.NORMAL;
 
-        logMessageForDeprecatedWatchFileSystemProperty(startParameter);
-        logMessageForDeprecatedVfsRetentionProperty(startParameter);
-        LOGGER.info("Watching the file system is {}", watchFileSystem ? "enabled" : "disabled");
-        if (watchFileSystem) {
+        LOGGER.info("Watching the file system is {}", watchFileSystemMode.getDescription());
+        if (watchFileSystemMode.isEnabled()) {
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
         if (verboseVfsLogging == VfsLogging.VERBOSE) {
             logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
         }
-        virtualFileSystem.afterBuildStarted(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
+
+        boolean actuallyWatching = virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
+        //noinspection Convert2Lambda
+        eventEmitter.emitNowForCurrent(new FileSystemWatchingSettingsFinalizedProgressDetails() {
+            @Override
+            public boolean isEnabled() {
+                return actuallyWatching;
+            }
+        });
+
         try {
             return delegate.run(action, buildController);
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
-            virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
+            virtualFileSystem.beforeBuildFinished(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
             if (verboseVfsLogging == VfsLogging.VERBOSE) {
                 logVfsStatistics("during current build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
             }
@@ -99,30 +112,6 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(startParameter)) {
             virtualFileSystem.invalidateAll();
-        }
-    }
-
-    private static void logMessageForDeprecatedWatchFileSystemProperty(StartParameterInternal startParameter) {
-        if (startParameter.isWatchFileSystemUsingDeprecatedOption()) {
-            @SuppressWarnings("deprecation")
-            String deprecatedWatchFsProperty = StartParameterBuildOptions.DeprecatedWatchFileSystemOption.GRADLE_PROPERTY;
-            DeprecationLogger.deprecateSystemProperty(deprecatedWatchFsProperty)
-                .replaceWith(StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY)
-                .willBeRemovedInGradle7()
-                .withUserManual("gradle_daemon")
-                .nagUser();
-        }
-    }
-
-    private static void logMessageForDeprecatedVfsRetentionProperty(StartParameterInternal startParameter) {
-        if (VirtualFileSystemServices.isDeprecatedVfsRetentionPropertyPresent(startParameter)) {
-            @SuppressWarnings("deprecation")
-            String deprecatedVfsRetentionEnabledProperty = VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY;
-            DeprecationLogger.deprecateIndirectUsage("Using the system property " + deprecatedVfsRetentionEnabledProperty + " to enable watching the file system")
-                .withAdvice("Use the gradle property " + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + " instead.")
-                .willBeRemovedInGradle7()
-                .withUserManual("gradle_daemon")
-                .nagUser();
         }
     }
 }

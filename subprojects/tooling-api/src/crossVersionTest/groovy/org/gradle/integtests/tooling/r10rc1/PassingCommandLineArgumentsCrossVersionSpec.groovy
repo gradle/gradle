@@ -115,7 +115,8 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
     def "can overwrite project dir via build arguments"() {
         given:
         file('otherDir').createDir()
-        file('build.gradle') << "assert projectDir.name.endsWith('otherDir')"
+        file('otherDir/build.gradle') << "assert projectDir.name.endsWith('otherDir')"
+        file('otherDir/settings.gradle') << ''
 
         when:
         withConnection {

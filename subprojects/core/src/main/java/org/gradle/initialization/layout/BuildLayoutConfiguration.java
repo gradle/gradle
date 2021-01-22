@@ -34,9 +34,9 @@ public class BuildLayoutConfiguration {
 
     public BuildLayoutConfiguration(StartParameter startParameter) {
         currentDir = startParameter.getCurrentDir();
-        searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwardsWithoutDeprecationWarning() && !isInitTaskRequested(startParameter);
+        searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwards() && !isInitTaskRequested(startParameter);
         settingsFile = startParameter.getSettingsFile();
-        useEmptySettings = ((StartParameterInternal)startParameter).isUseEmptySettingsWithoutDeprecationWarning();
+        useEmptySettings = ((StartParameterInternal)startParameter).isUseEmptySettings();
     }
 
     private boolean isInitTaskRequested(StartParameter startParameter) {

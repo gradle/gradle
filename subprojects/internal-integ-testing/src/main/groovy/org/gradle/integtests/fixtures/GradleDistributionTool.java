@@ -21,7 +21,7 @@ import org.gradle.util.GradleVersion;
 
 import java.util.Objects;
 
-public class GradleDistributionTool implements AbstractContextualMultiVersionSpecRunner.VersionedTool {
+public class GradleDistributionTool implements VersionedTool {
     private final GradleDistribution distribution;
     private final String ignored;
 
