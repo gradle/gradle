@@ -86,34 +86,6 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Included build $testDirectory has build path :bp which is the same as included build $testDirectory")
     }
 
-    @Unroll
-    def "shows deprecation warning when accessing #displayName when configuring GradleBuild task"() {
-        given:
-        settingsFile << "rootProject.name = 'parent'"
-        buildFile << """
-            task buildInBuild(type:GradleBuild) {
-                buildFile = 'other.gradle'
-            }
-
-            ${codeUnderTest}
-        """
-        file('other.gradle') << 'assert true'
-
-        when:
-        executer.expectDeprecationWarning()
-        run 'buildInBuild'
-
-        then:
-        outputContains("${displayName} method has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-
-        where:
-        displayName                                | codeUnderTest
-        "StartParameter.setSearchUpwards(boolean)" | "buildInBuild.startParameter.searchUpwards = true"
-        "StartParameter.isSearchUpwards()"         | "buildInBuild.startParameter.searchUpwards"
-        "StartParameter.useEmptySettings()"        | "buildInBuild.startParameter.useEmptySettings()"
-        "StartParameter.isUseEmptySettings()"      | "buildInBuild.startParameter.useEmptySettings"
-    }
-
     def "nested build can use Gradle home directory that is different to outer build"() {
         given:
         def dir = file("other-home")
