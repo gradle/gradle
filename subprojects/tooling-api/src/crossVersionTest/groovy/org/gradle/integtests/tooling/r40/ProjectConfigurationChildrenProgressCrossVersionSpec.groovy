@@ -25,7 +25,9 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
+@Ignore("wip")
 @IntegrationTestTimeout(300)
 @TargetGradleVersion('>=4.0')
 class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
