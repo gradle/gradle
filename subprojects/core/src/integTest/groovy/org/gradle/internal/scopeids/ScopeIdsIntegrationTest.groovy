@@ -17,7 +17,6 @@
 package org.gradle.internal.scopeids
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -69,7 +68,6 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.lastBuildPaths() == [":", ":a", ":a:buildSrc", ":b", ":b:buildSrc"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild")
     def "gradle-build builds with different root does not inherit workspace id"() {
         given:
         // GradleBuild launched builds with a different root dir
@@ -91,7 +89,6 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         ids[":"].workspace != ids[":other"].workspace
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild")
     def "gradle-build builds with different gradle user home does not inherit user id"() {
         given:
         scopeIds.disableConsistentUserIdCheck = true
@@ -113,7 +110,6 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         ids[":"].user != ids[buildPaths[1]].user
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild")
     def "gradle-build with same root and user dir inherits all"() {
         when:
         settingsFile << "rootProject.name = 'root'"

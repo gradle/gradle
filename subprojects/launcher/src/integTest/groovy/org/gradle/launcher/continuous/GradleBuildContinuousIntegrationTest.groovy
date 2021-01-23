@@ -17,7 +17,6 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class GradleBuildContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def setup() {
@@ -46,7 +45,6 @@ class GradleBuildContinuousIntegrationTest extends AbstractContinuousIntegration
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "will rebuild on input change for GradleBuild task"() {
         def outputFile = file("gradle-build/build/output.txt")
 
