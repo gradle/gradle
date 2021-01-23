@@ -277,7 +277,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion('>=5.1')
-    @TargetGradleVersion('<7.0')
+    @TargetGradleVersion('>=3.5 <7.0')
     def "generates events for worker actions with old Worker API (post 5.1)"() {
         expect:
         runBuildWithWorkerRunnable() != null

@@ -25,9 +25,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
-@Ignore("wip")
 @IntegrationTestTimeout(300)
 @TargetGradleVersion('>=4.0')
 class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
@@ -47,7 +45,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         getTargetVersion() < GradleVersion.version("6.0") ? "$name.$extension" : "$name-$version.$extension"
     }
 
-    private static String workerActionClass(String name) {
+    private String workerActionClass(String name) {
         if (getTargetVersion() < GradleVersion.version("6.0")) {
             "class ${name}WorkAction implements Runnable { public void run() { } }"
         } else {
@@ -55,7 +53,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         }
     }
 
-    private static String workerSubmit(String actionName) {
+    private String workerSubmit(String actionName) {
         if (getTargetVersion() < GradleVersion.version("6.0")) {
             "workerExecutor.submit(${actionName}WorkAction) { c -> c.isolationMode = IsolationMode.${actionName == 'Forked' ? 'PROCESS' : 'NONE'} }"
         } else {

@@ -62,7 +62,7 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         then:
         def taskOperation = events.operation("Task :runInWorker")
         taskOperation.task
-        with(taskOperation.descendant("TestWork")) {
+        with(taskOperation.descendant("org.gradle.test.TestWork")) {
             successful
             buildOperation
         }
