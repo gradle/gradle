@@ -37,4 +37,46 @@ class BuildSrcLocationIntegrationTest extends AbstractIntegrationSpec {
         executed(":buildSrc:compileGroovy")
     }
 
+    def "empty buildSrc directory is ignored"() {
+        file("buildSrc").createDir()
+
+        when:
+        succeeds("help")
+
+        then:
+        notExecuted(":buildSrc:compileGroovy", ":buildSrc:jar", ":buildSrc:build")
+    }
+
+    def "buildSrc directory with only buildSrc jar file is ignored"() {
+        file("buildSrc/src/main/java/org/acme/build/SomeBuildSrcClass.java") << """
+package org.acme.build;
+
+public class SomeBuildSrcClass {}
+"""
+        when: // Create the initial buildSrc jar
+        succeeds("help")
+        executed(":buildSrc:jar")
+        def originalBuildSrcJar = file("buildSrc/build/libs/buildSrc.jar").assertIsFile()
+        def originalBuildSrcJarState = originalBuildSrcJar.snapshot()
+
+        and: // Remove the src directory, leaving only the generated jar
+        file("buildSrc/src").deleteDir()
+
+        and: // Run another build, checking that `buildSrc.jar` is not in the class path
+        buildFile << """
+            try {
+                getClass().classLoader.loadClass("org.acme.build.SomeBuildSrcClass")
+                throw new IllegalStateException("Class should not be visible")
+            } catch (ClassNotFoundException e) {
+                // Expected
+            }
+"""
+        succeeds("help")
+
+        then:
+        // The original buildSrc jar remains intact, but is not added to the build class path
+        originalBuildSrcJar.assertHasNotChangedSince(originalBuildSrcJarState)
+        notExecuted(":buildSrc:jar")
+    }
+
 }
