@@ -68,11 +68,9 @@ public class GradleBuildController implements BuildController {
                 @Override
                 public T create() {
                     GradleLauncher launcher = getLauncher();
-                    try {
-                        return build.transform(launcher);
-                    } finally {
-                        launcher.finishBuild();
-                    }
+                    T result = build.transform(launcher);
+                    launcher.finishBuild();
+                    return result;
                 }
             });
         } finally {
