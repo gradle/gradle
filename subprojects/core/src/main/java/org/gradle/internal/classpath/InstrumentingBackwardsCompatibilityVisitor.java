@@ -108,34 +108,44 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
 
         @Override
         public void visitLdcInsn(Object value) {
-            Object newValue = fixTypeForBackwardsCompatibility(value);
+            Object newValue = fixAsmObjectForBackwardsCompatibility(value);
             super.visitLdcInsn(newValue);
         }
 
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
             String newDescriptor = fixDescriptorForBackwardCompatibility(descriptor);
-            Object[] newBootstrapMethodArguments = fixTypesForBackwardsCompatibility(bootstrapMethodArguments);
-            super.visitInvokeDynamicInsn(name, newDescriptor, bootstrapMethodHandle, newBootstrapMethodArguments);
+            Handle newBootstrapMethodHandle = fixHandleForBackwardsCompatibility(bootstrapMethodHandle);
+            Object[] newBootstrapMethodArguments = fixAsmObjectsForBackwardsCompatibility(bootstrapMethodArguments);
+            super.visitInvokeDynamicInsn(name, newDescriptor, newBootstrapMethodHandle, newBootstrapMethodArguments);
         }
     }
 
-    private static Object[] fixTypesForBackwardsCompatibility(Object[] values) {
+    private static Object[] fixAsmObjectsForBackwardsCompatibility(Object[] values) {
         Object[] newValues = new Object[values.length];
         for (int idx = 0; idx < values.length; idx++) {
-            newValues[idx] = fixTypeForBackwardsCompatibility(values[idx]);
+            newValues[idx] = fixAsmObjectForBackwardsCompatibility(values[idx]);
         }
         return newValues;
     }
 
-    private static Object fixTypeForBackwardsCompatibility(Object value) {
+    private static Object fixAsmObjectForBackwardsCompatibility(Object value) {
         if (value instanceof Type) {
             Type type = (Type) value;
             String newDescriptor = fixDescriptorForBackwardCompatibility(type.getDescriptor());
             return Type.getType(newDescriptor);
+        } else if (value instanceof Handle) {
+            Handle handle = (Handle) value;
+            return fixHandleForBackwardsCompatibility(handle);
         } else {
             return value;
         }
+    }
+
+    private static Handle fixHandleForBackwardsCompatibility(Handle handle) {
+        String newHandleOwner = fixInternalNameForBackwardCompatibility(handle.getOwner());
+        String newHandleDescriptor = fixDescriptorForBackwardCompatibility(handle.getDesc());
+        return new Handle(handle.getTag(), newHandleOwner, handle.getName(), newHandleDescriptor, handle.isInterface());
     }
 
     private static String[] fixInternalNamesForBackwardsCompatibility(String[] internalNames) {
