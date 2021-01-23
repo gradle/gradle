@@ -307,33 +307,34 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         }
         return createNestedRootBuild("$path:${startParameter.projectDir?.name}", startParameter, services).run { controller ->
             require(controller is GradleBuildController)
-            controller.doBuild { launcher ->
-                Try.ofFailable {
-                    val settings = launcher.loadedSettings
-                    val gradle = settings.gradle
-                    val coreAndPluginsScope = gradle.serviceOf<ClassLoaderScopeRegistry>().coreAndPluginsScope
-                    val baseScope = coreAndPluginsScope.createChild("accessors-classpath").apply {
-                        export(DefaultClassPath.of(classPathFiles + runtimeClassPathFiles))
-                        lock()
-                    }
-                    val selfScope = baseScope.createChild("accessors-root-project")
-                    val rootProject = gradle.serviceOf<IProjectFactory>().createProject(
-                        gradle,
-                        settings.rootProject.apply { name = "test" },
-                        null,
-                        selfScope,
-                        baseScope
-                    )
-                    gradle.rootProject = rootProject
-                    gradle.defaultProject = rootProject
-                    rootProject.run {
-                        applyPluginRequests(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first()))
-                        serviceOf<ProjectSchemaProvider>().schemaFor(this)
-                    }
+            Try.ofFailable {
+                val settings = controller.launcher.loadedSettings
+                val gradle = settings.gradle
+                val coreAndPluginsScope = gradle.serviceOf<ClassLoaderScopeRegistry>().coreAndPluginsScope
+                val baseScope = coreAndPluginsScope.createChild("accessors-classpath").apply {
+                    export(buildLogicClassPath())
+                    lock()
+                }
+                val rootProjectScope = baseScope.createChild("accessors-root-project")
+                val rootProject = gradle.serviceOf<IProjectFactory>().createProject(
+                    gradle,
+                    settings.rootProject.apply { name = "test" },
+                    null,
+                    rootProjectScope,
+                    baseScope
+                )
+                gradle.rootProject = rootProject
+                gradle.defaultProject = rootProject
+                rootProject.run {
+                    applyPluginRequests(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first()))
+                    serviceOf<ProjectSchemaProvider>().schemaFor(this)
                 }
             }
         }
     }
+
+    private
+    fun buildLogicClassPath() = DefaultClassPath.of(runtimeClassPathFiles)
 
     private
     fun uniqueTempDirectory() = Files.createTempDirectory(temporaryDir.toPath(), "accessors").toFile()
