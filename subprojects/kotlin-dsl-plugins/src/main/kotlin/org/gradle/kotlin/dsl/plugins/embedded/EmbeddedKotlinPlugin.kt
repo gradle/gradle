@@ -65,6 +65,7 @@ class EmbeddedKotlinPlugin @Inject internal constructor(
 
 fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
     if (kotlinVersion != embeddedKotlinVersion) {
+        warn("TEST!")
         warn(
             """
                 WARNING: Unsupported Kotlin plugin version.

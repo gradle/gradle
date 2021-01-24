@@ -213,4 +213,21 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
             }
         }
     }
+
+    public static class IgnoreDslVersionOption extends StringBuildOption<LoggingConfiguration> {
+        public static final String LONG_OPTION = "ignore-dsl-version";
+
+        public IgnoreDslVersionOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Ignore a wrong kotlin dsl plugin version."));
+        }
+
+        @Override
+        public void applyTo(String value, LoggingConfiguration settings, final Origin origin) {
+            try {
+                settings.setWarningMode(WarningMode.valueOf(StringUtils.capitalize(value.toLowerCase(Locale.ENGLISH))));
+            } catch (IllegalArgumentException e) {
+                origin.handleInvalidValue(value);
+            }
+        }
+    }
 }
