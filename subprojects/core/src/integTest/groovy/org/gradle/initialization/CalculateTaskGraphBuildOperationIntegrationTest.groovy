@@ -113,7 +113,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             includeBuild "b"
         """
 
-        file('buildSrc').mkdir()
+        file("buildSrc/settings.gradle").createFile()
 
         buildFile << """
             apply plugin:'java'
