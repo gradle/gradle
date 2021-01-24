@@ -17,11 +17,12 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.GradleException
-import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.provider.Property
@@ -39,6 +40,8 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedRootBuild
 import org.gradle.internal.build.NestedRootBuildRunner.createStartParameterForNewBuild
+import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
@@ -57,6 +60,7 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
 import org.gradle.kotlin.dsl.support.KotlinScriptType
+import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.plugin.management.internal.PluginRequestInternal
@@ -149,7 +153,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     fun IO.generateTypeSafeAccessorsFor(projectPlugins: List<PrecompiledScriptPlugin>) {
         resolvePluginGraphOf(projectPlugins)
             .groupBy(
-                { it.plugins },
+                { it.appliedPlugins },
                 { it.scriptPlugin }
             ).let {
                 projectSchemaImpliedByPluginGroups(it)
@@ -176,13 +180,13 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         }
 
         return reduceGraph(pluginGraph).asSequence().mapNotNull { (id, plugins) ->
-            scriptPluginsById[id]?.copy(plugins = plugins.toList())
+            scriptPluginsById[id]?.copy(appliedPlugins = plugins.toList())
         }
     }
 
     private
     fun pluginsAppliedBy(scriptPlugin: PrecompiledScriptPlugin, scriptPluginsById: Map<String, ScriptPluginPlugins>) =
-        scriptPluginsById[scriptPlugin.id]?.plugins ?: emptyList()
+        scriptPluginsById[scriptPlugin.id]?.appliedPlugins ?: emptyList()
 
     private
     fun scriptPluginPluginsFor(projectPlugins: List<PrecompiledScriptPlugin>) = sequence {
@@ -281,11 +285,11 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun projectSchemaImpliedByPluginGroups(
         pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>
-    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> {
-        // TODO: assert the schema matches syntheticProjectSchemaImpliedByPluginGroups
-        return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
+    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
+
+        pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             try {
-                val schema = projectSchemaFor(uniquePluginRequests, scriptPlugins).get()
+                val schema = projectSchemaFor(pluginRequestsOf(scriptPlugins.first(), uniquePluginRequests)).get()
                 val hashed = HashedProjectSchema(schema)
                 scriptPlugins.map { hashed to it }
             } catch (error: Throwable) {
@@ -296,10 +300,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             { (schema, _) -> schema },
             { (_, plugin) -> plugin }
         )
-    }
 
+    /**
+     * Computes the [project schema][TypedProjectSchema] implied by the given plugins by applying
+     * them to a synthetic root project in the context of a nested build.
+     */
     private
-    fun projectSchemaFor(uniquePluginRequests: List<String>, scriptPlugins: List<PrecompiledScriptPlugin>): Try<TypedProjectSchema> {
+    fun projectSchemaFor(plugins: PluginRequests): Try<TypedProjectSchema> {
+        val buildLogicClassPath = buildLogicClassPath()
         val startParameter = createStartParameterForNewBuild(services).apply {
             require(this is StartParameterInternal)
             projectDir = uniqueTempDirectory()
@@ -310,9 +318,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             Try.ofFailable {
                 val settings = controller.launcher.loadedSettings
                 val gradle = settings.gradle
-                val coreAndPluginsScope = gradle.serviceOf<ClassLoaderScopeRegistry>().coreAndPluginsScope
-                val baseScope = coreAndPluginsScope.createChild("accessors-classpath").apply {
-                    export(buildLogicClassPath())
+                val baseScope = coreAndPluginsScopeOf(gradle).createChild("accessors-classpath").apply {
+                    // we export the build logic classpath to the base scope here so that all referenced plugins
+                    // can be resolved in the root project scope created below.
+                    export(buildLogicClassPath)
                     lock()
                 }
                 val rootProjectScope = baseScope.createChild("accessors-root-project")
@@ -326,7 +335,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                 gradle.rootProject = rootProject
                 gradle.defaultProject = rootProject
                 rootProject.run {
-                    applyPluginRequests(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first()))
+                    applyPlugins(plugins)
                     serviceOf<ProjectSchemaProvider>().schemaFor(this)
                 }
             }
@@ -334,13 +343,22 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun buildLogicClassPath() = DefaultClassPath.of(runtimeClassPathFiles)
+    fun coreAndPluginsScopeOf(gradle: GradleInternal): ClassLoaderScope =
+        gradle.serviceOf<ClassLoaderScopeRegistry>().coreAndPluginsScope
 
     private
-    fun uniqueTempDirectory() = Files.createTempDirectory(temporaryDir.toPath(), "accessors").toFile()
+    fun buildLogicClassPath(): ClassPath =
+        services.get<CachedClasspathTransformer>().transform(
+            DefaultClassPath.of(runtimeClassPathFiles),
+            CachedClasspathTransformer.StandardTransform.BuildLogic
+        )
 
     private
-    fun pluginRequestsFor(pluginIds: List<String>, plugin: PrecompiledScriptPlugin): PluginRequests =
+    fun uniqueTempDirectory() =
+        Files.createTempDirectory(temporaryDir.toPath(), "accessors").toFile()
+
+    private
+    fun pluginRequestsOf(plugin: PrecompiledScriptPlugin, pluginIds: List<String>): PluginRequests =
         pluginRequestCollectorFor(plugin).run {
             createSpec(1).apply {
                 pluginIds.forEach {
@@ -409,17 +427,16 @@ data class HashedProjectSchema(
 private
 data class ScriptPluginPlugins(
     val scriptPlugin: PrecompiledScriptPlugin,
-    val plugins: List<String>
+    val appliedPlugins: List<String>
 )
 
 
 private
-fun Project.applyPluginRequests(pluginRequests: PluginRequests) {
-    val targetProjectScope = (this as ProjectInternal).classLoaderScope
+fun ProjectInternal.applyPlugins(pluginRequests: PluginRequests) {
     serviceOf<PluginRequestApplicator>().applyPlugins(
         pluginRequests,
         buildscript,
         pluginManager,
-        targetProjectScope
+        classLoaderScope
     )
 }
