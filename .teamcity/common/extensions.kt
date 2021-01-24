@@ -127,7 +127,9 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-Dorg.gradle.workers.max=%maxParallelForks%",
         "-PmaxParallelForks=%maxParallelForks%",
         "-s",
-        if (daemon) "--daemon" else "--no-daemon",
+        "--no-daemon",
+        // Disable daemon until Kotlin compilation flakiness is resolved
+        // if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else ""
     )
 

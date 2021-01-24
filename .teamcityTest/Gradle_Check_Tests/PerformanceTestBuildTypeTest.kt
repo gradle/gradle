@@ -72,7 +72,7 @@ class PerformanceTestBuildTypeTest {
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks%",
             "-s",
-            "--daemon",
+            "--no-daemon",
             "--continue",
             "\"-Dscan.tag.PerformanceTest\""
         )
