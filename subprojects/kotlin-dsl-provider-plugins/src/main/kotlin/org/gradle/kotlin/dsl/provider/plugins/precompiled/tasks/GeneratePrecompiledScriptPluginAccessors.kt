@@ -315,28 +315,30 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         }
         return createNestedRootBuild("$path:${startParameter.projectDir?.name}", startParameter, services).run { controller ->
             require(controller is GradleBuildController)
-            Try.ofFailable {
-                val settings = controller.launcher.loadedSettings
-                val gradle = settings.gradle
-                val baseScope = coreAndPluginsScopeOf(gradle).createChild("accessors-classpath").apply {
-                    // we export the build logic classpath to the base scope here so that all referenced plugins
-                    // can be resolved in the root project scope created below.
-                    export(buildLogicClassPath)
-                    lock()
-                }
-                val rootProjectScope = baseScope.createChild("accessors-root-project")
-                val rootProject = gradle.serviceOf<IProjectFactory>().createProject(
-                    gradle,
-                    settings.rootProject.apply { name = "test" },
-                    null,
-                    rootProjectScope,
-                    baseScope
-                )
-                gradle.rootProject = rootProject
-                gradle.defaultProject = rootProject
-                rootProject.run {
-                    applyPlugins(plugins)
-                    serviceOf<ProjectSchemaProvider>().schemaFor(this)
+            controller.doBuild {
+                Try.ofFailable {
+                    val settings = controller.launcher.loadedSettings
+                    val gradle = settings.gradle
+                    val baseScope = coreAndPluginsScopeOf(gradle).createChild("accessors-classpath").apply {
+                        // we export the build logic classpath to the base scope here so that all referenced plugins
+                        // can be resolved in the root project scope created below.
+                        export(buildLogicClassPath)
+                        lock()
+                    }
+                    val rootProjectScope = baseScope.createChild("accessors-root-project")
+                    val rootProject = gradle.serviceOf<IProjectFactory>().createProject(
+                        gradle,
+                        settings.rootProject.apply { name = "test" },
+                        null,
+                        rootProjectScope,
+                        baseScope
+                    )
+                    gradle.rootProject = rootProject
+                    gradle.defaultProject = rootProject
+                    rootProject.run {
+                        applyPlugins(plugins)
+                        serviceOf<ProjectSchemaProvider>().schemaFor(this)
+                    }
                 }
             }
         }
