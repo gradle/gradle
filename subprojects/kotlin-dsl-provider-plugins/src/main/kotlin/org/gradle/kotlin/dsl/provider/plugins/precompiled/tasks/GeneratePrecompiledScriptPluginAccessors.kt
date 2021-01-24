@@ -328,7 +328,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     val rootProjectScope = baseScope.createChild("accessors-root-project")
                     val rootProject = gradle.serviceOf<IProjectFactory>().createProject(
                         gradle,
-                        settings.rootProject.apply { name = "test" },
+                        settings.rootProject.apply { name = "gradle-kotlin-dsl-accessors" },
                         null,
                         rootProjectScope,
                         baseScope
