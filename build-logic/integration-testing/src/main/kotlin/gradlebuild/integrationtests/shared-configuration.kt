@@ -77,9 +77,10 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
         resolver("${prefix}TestSrcDistributionPath", "gradle-src-distribution-zip", srcDistribution)
     }
 
-    dependencies {
-        "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
-        if (name != "test") { // do not attempt to find projects during script compilation
+    // do not attempt to find projects when the plugin is applied just to generate accessors
+    if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
+        dependencies {
+            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
         }
