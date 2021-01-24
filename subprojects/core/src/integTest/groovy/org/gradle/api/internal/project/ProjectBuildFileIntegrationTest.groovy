@@ -42,7 +42,7 @@ class ProjectBuildFileIntegrationTest extends AbstractIntegrationSpec {
     def "buildSrc project.buildFile is non null when does not exist"() {
         given:
         executer.requireOwnGradleUserHomeDir()
-        file("buildSrc").mkdirs()
+        file("buildSrc/settings.gradle").createFile()
 
         expect:
         !buildFile.exists()
