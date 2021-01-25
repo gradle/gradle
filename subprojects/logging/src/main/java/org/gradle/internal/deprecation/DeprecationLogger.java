@@ -35,10 +35,17 @@ import javax.annotation.concurrent.ThreadSafe;
  * Summary is populated by the deprecateX methods in this class.
  *
  * Context can be added in free text using {@link DeprecationMessageBuilder#withContext(String)}.
- * It should provide any _instance specific_ details about the deprecated usage that would help a user identify
- * the full nature of the use site. This is particularly important when the use site is not directly within user code.
+ * It should provide any <em>usage specific</em> details about the deprecated usage that would
+ * help a user determine what to change and where to avoid the deprecated usage, when the summary is insufficient for this.
+ * This is particularly important when the usage is not a call site within user code (see discussion of “indirect usage” below).
  *
- * Advice is constructed contextually using {@link DeprecationMessageBuilder.WithReplacement#replaceWith(Object)} methods based on the thing being deprecated. Alternatively, it can be populated using {@link DeprecationMessageBuilder#withAdvice(String)}.
+ * Advice is constructed contextually using {@link DeprecationMessageBuilder.WithReplacement#replaceWith(Object)} methods based on the thing being deprecated.
+ * Alternatively, it can be populated using {@link DeprecationMessageBuilder#withAdvice(String)}.
+ *
+ * {@link DeprecationMessageBuilder#setIndirectUsage()} should be used whenever the call stack at the time the notice is logged
+ * is irrelevant in fixing the deprecated usage. For example, if use of a certain annotation has been deprecated and this is
+ * detected by Gradle infrastructure some time later, the call stack at this time is not helpful in resolving the problem and
+ * should not be displayed.
  *
  * DeprecationTimeline is mandatory and is added using one of:
  * - ${@link DeprecationMessageBuilder#willBeRemovedInGradle7()}
@@ -49,9 +56,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withDslReference(Class, String)}
  * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withUserManual(String, String)}
  *
- * Generally, only one deprecation of a type (i.e. summary/advice) should be emitted during a logical unit of work.
- * If there are multiple instances of the same logical deprecation during a logical unit of work,
- * the individual instance specifics should be included as part of the context.
+ * Wherever possible, a deprecation notice should map one-to-one with a change that would avoid the notice.
+ * If accepting negative numbers within a collection
  *
  * In order for the deprecation message to be emitted, terminal operation {@link DeprecationMessageBuilder.WithDocumentation#nagUser()} has to be called after one of the documentation providing methods.
  */
