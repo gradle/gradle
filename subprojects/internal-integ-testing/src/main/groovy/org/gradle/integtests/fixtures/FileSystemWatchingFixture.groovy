@@ -28,10 +28,6 @@ trait FileSystemWatchingFixture {
         executer.withArgument(FileSystemWatchingHelper.dropVfsArgument)
     }
 
-    AbstractIntegrationSpec doNotDropVfs() {
-
-    }
-
     AbstractIntegrationSpec withWatchFs() {
         executer.withArgument(FileSystemWatchingHelper.enableFsWatchingArgument)
         this as AbstractIntegrationSpec

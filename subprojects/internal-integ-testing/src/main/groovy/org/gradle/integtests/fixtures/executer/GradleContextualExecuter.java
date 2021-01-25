@@ -39,8 +39,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         forking(true),
         noDaemon(true),
         parallel(true, true),
-        configCache(true),
-        watchFs(true);
+        configCache(true);
 
         final public boolean forks;
         final public boolean executeParallel;
@@ -65,10 +64,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     public static boolean isNoDaemon() {
         return getSystemPropertyExecuter() == Executer.noDaemon;
-    }
-
-    public static boolean isWatchFs() {
-        return getSystemPropertyExecuter() == Executer.watchFs;
     }
 
     public static boolean isDaemon() {
@@ -139,8 +134,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
                 return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case configCache:
                 return new ConfigurationCacheGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
-            case watchFs:
-                return new FileSystemWatchingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }
