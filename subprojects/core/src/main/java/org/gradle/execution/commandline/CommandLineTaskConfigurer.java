@@ -72,7 +72,8 @@ public class CommandLineTaskConfigurer {
                         commandLineOptionDescriptor.apply(task, o.getValues());
                     } catch (TypeConversionException ex) {
                         throw new TaskConfigurationException(task.getPath(),
-                                String.format("Problem configuring option '%s' on task '%s' from command line.", name, task.getPath()), ex);
+                                "Problem configuring option '" + name + "' on task '" + task.getPath() + "' from command line.",
+                                ex);
                     }
                 }
             }
