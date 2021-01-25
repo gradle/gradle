@@ -22,12 +22,14 @@ import org.spockframework.mock.runtime.MockController;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInvocation;
+import org.spockframework.runtime.extension.MethodInvocation;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.IterationInfo;
 import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -79,19 +81,8 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
                 void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
                     currentExecution.assertCanExecute();
                     currentExecution.before(invocation);
-                    // TODO: there is still some clash between Spock's JUnit rule interceptor and our cleanup interceptor
-                    // that causes @Rule fields to be initialized with before() and torn down with after() twice.
-                    // A particularly nasty side effect of this was that the HttpServerFixture allocates the ports twice,
-                    // but releases them only once. This is worked-around on the HttpServerFixture for now to not start the
-                    // server if it is already started. To sanity-check this, run ForcingPlatformAlignmentTest from dependency-management
-                    // - it will cause the port exhaustion.
-                    Iterator<IMethodInterceptor> iterator = invocation.getMethod().getInterceptors().iterator();
-                    iterator.next(); // This interceptor should be the first - skip it
-                    if (iterator.hasNext()) {
-                        iterator.next().intercept(invocation);
-                    } else {
-                        invocation.proceed();
-                    }
+                    resetInterceptors(invocation);
+                    invocation.proceed();
                     currentExecution.after();
                 }
             });
@@ -105,6 +96,14 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             feature.addInterceptor(interceptor);
             feature.addIterationInterceptor(interceptor);
         }
+    }
+
+    private static void resetInterceptors(IMethodInvocation invocation) throws NoSuchFieldException, IllegalAccessException {
+        Iterator<IMethodInterceptor> iterator = invocation.getMethod().getInterceptors().iterator();
+        iterator.next(); // This interceptor should be the first - skip it
+        Field interceptorsField = MethodInvocation.class.getDeclaredField("interceptors");
+        interceptorsField.setAccessible(true);
+        interceptorsField.set(invocation, iterator);
     }
 
     @Override
