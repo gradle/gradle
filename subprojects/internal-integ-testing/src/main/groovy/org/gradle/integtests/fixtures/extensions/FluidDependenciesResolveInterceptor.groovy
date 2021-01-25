@@ -29,7 +29,7 @@ class FluidDependenciesResolveInterceptor extends BehindFlagFeatureInterceptor {
     public final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
 
     FluidDependenciesResolveInterceptor(Class<?> target) {
-        super(target, [ASSUME_FLUID_DEPENDENCIES: booleanFeature("fluid dependencies")], doNotExecuteAllPermutationsForNoDaemonExecuter())
+        super(target, [(ASSUME_FLUID_DEPENDENCIES): booleanFeature("fluid dependencies")], doNotExecuteAllPermutationsForNoDaemonExecuter())
     }
 
     private static boolean doNotExecuteAllPermutationsForNoDaemonExecuter() {
