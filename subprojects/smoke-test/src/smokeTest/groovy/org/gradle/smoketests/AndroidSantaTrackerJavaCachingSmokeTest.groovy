@@ -35,7 +35,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
     }
 
     @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_4_0_ITERATION_MATCHER)
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
 
         given:

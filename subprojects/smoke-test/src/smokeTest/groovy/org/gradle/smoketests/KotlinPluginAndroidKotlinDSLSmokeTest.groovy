@@ -34,7 +34,7 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = [KotlinPluginSmokeTest.NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [KotlinPluginSmokeTest.NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example-kotlin-dsl (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:
         AndroidHome.assertIsSet()

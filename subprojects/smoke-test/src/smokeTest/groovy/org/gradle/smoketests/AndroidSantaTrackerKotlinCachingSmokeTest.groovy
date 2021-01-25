@@ -29,7 +29,7 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
     @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
     def "can cache Santa Tracker Kotlin Android application (agp=#agpVersion)"() {
 
         given:
