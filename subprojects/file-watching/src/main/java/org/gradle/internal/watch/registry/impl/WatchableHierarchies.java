@@ -79,7 +79,7 @@ public class WatchableHierarchies {
         SnapshotHierarchy result = root;
         int toRemove = recentlyUsedHierarchies.size() - maximumNumberOfWatchedHierarchies;
         if (toRemove > 0) {
-            LOGGER.warn(
+            LOGGER.info(
                 "Watching too many directories in the file system (watching {}, limit {}), dropping some state from the virtual file system",
                 recentlyUsedHierarchies.size(),
                 maximumNumberOfWatchedHierarchies
