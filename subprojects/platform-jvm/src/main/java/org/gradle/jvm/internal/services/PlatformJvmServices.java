@@ -25,7 +25,6 @@ import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
@@ -42,7 +41,6 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(DefaultJavaInstallationRegistry.class);
         registration.add(JdkCacheDirectory.class);
         registration.add(SharedJavaInstallationRegistry.class);
         registerJavaInstallationSuppliers(registration);
