@@ -26,6 +26,8 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugin.devel.tasks.ValidatePlugins;
@@ -38,6 +40,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP;
@@ -57,6 +60,7 @@ import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.VALIDATE_PL
 @Incubating
 @CacheableTask
 public abstract class ExternalPluginValidationPlugin implements Plugin<Project> {
+    private final static Logger LOGGER = Logging.getLogger(ExternalPluginValidationPlugin.class);
 
     private final static String VALIDATE_EXTERNAL_PLUGINS_TASK_NAME = "validateExternalPlugins";
     private final static String VALIDATE_EXTERNAL_PLUGIN_TASK_PREFIX = "validatePluginWithId_";
@@ -72,25 +76,44 @@ public abstract class ExternalPluginValidationPlugin implements Plugin<Project> 
     public void apply(Project project) {
         TaskProvider<Task> lifecycleTask = createLifecycleTask(project);
         PluginRegistry registry = findPluginRegistry(project);
-        Map<PluginId, List<File>> jarsByPlugin = Maps.newHashMap();
-        project.getPlugins().configureEach(p -> {
-            Class<?> pluginClass = p.getClass();
-            if (isExternal(pluginClass)) {
-                registry.findPluginForClass(pluginClass).ifPresent(pluginId -> {
-                    File pluginJar = findPluginJar(pluginClass);
-                    if (pluginJar != null) {
-                        List<File> pluginJars = jarsByPlugin.get(pluginId);
-                        if (pluginJars == null) {
-                            pluginJars = Lists.newArrayList();
-                            TaskProvider<ValidatePlugins> validationTask = configureValidationTask(project, pluginJars, pluginId);
-                            lifecycleTask.configure(t -> t.dependsOn(validationTask));
-                            jarsByPlugin.put(pluginId, pluginJars);
-                        }
-                        pluginJars.add(pluginJar);
-                    }
-                });
+        Map<String, List<File>> jarsByPlugin = Maps.newHashMap();
+        project.getPlugins().configureEach(p -> configurePluginValidation(project, lifecycleTask, registry, jarsByPlugin, p));
+    }
+
+    private void configurePluginValidation(Project project,
+                                           TaskProvider<Task> lifecycleTask,
+                                           PluginRegistry registry,
+                                           Map<String, List<File>> jarsByPlugin,
+                                           Plugin<?> plugin) {
+        Class<?> pluginClass = plugin.getClass();
+        if (isExternal(pluginClass)) {
+            Optional<PluginId> pluginForClass = registry.findPluginForClass(pluginClass);
+            String pluginId;
+            pluginId = pluginForClass.map(PluginId::getId).orElseGet(() -> computePluginName(plugin));
+            File pluginJar = findPluginJar(pluginClass);
+            if (pluginJar != null) {
+                jarsByPlugin.computeIfAbsent(pluginId, firstSeenPlugin -> registerValidationTaskForNewPlugin(firstSeenPlugin, project, lifecycleTask))
+                    .add(pluginJar);
+            } else {
+                LOGGER.warn("Validation won't be performed for plugin '{}' because we couldn't locate its jar file", pluginId);
             }
-        });
+        }
+    }
+
+    /**
+     * Generates a plugin name for a plugin which doesn't have an id.
+     * @param plugin the plugin class
+     * @return an id that will be used for generating task names and for reporting
+     */
+    private static String computePluginName(Plugin<?> plugin) {
+        return plugin.getClass().getName();
+    }
+
+    private List<File> registerValidationTaskForNewPlugin(String pluginId, Project project, TaskProvider<Task> lifecycleTask) {
+        List<File> jarsForPlugin = Lists.newArrayList();
+        TaskProvider<ValidatePlugins> validationTask = configureValidationTask(project, jarsForPlugin, pluginId);
+        lifecycleTask.configure(task -> task.dependsOn(validationTask));
+        return jarsForPlugin;
     }
 
     private static PluginRegistry findPluginRegistry(Project project) {
@@ -102,9 +125,9 @@ public abstract class ExternalPluginValidationPlugin implements Plugin<Project> 
     }
 
     private TaskProvider<ValidatePlugins> configureValidationTask(Project project,
-                                                                         List<File> pluginJars,
-                                                                         PluginId pluginId) {
-        String idWithoutDots = pluginId.getId().replace('.', '_');
+                                                                  List<File> pluginJars,
+                                                                  String pluginId) {
+        String idWithoutDots = pluginId.replace('.', '_');
         return project.getTasks().register(VALIDATE_EXTERNAL_PLUGIN_TASK_PREFIX + idWithoutDots, ValidatePlugins.class, task -> {
             task.setGroup(PLUGIN_DEVELOPMENT_GROUP);
             task.setDescription(VALIDATE_PLUGIN_TASK_DESCRIPTION);
@@ -125,7 +148,7 @@ public abstract class ExternalPluginValidationPlugin implements Plugin<Project> 
 
     @Nullable
     private static File findPluginJar(Class<?> pluginClass) {
-        return toSourceFile(pluginClass.getProtectionDomain().getCodeSource().getLocation());
+        return toFile(pluginClass.getProtectionDomain().getCodeSource().getLocation());
     }
 
     private static boolean isExternal(Class<?> pluginClass) {
@@ -133,7 +156,7 @@ public abstract class ExternalPluginValidationPlugin implements Plugin<Project> 
     }
 
     @Nullable
-    private static File toSourceFile(URL url) {
+    private static File toFile(URL url) {
         try {
             return new File(url.toURI());
         } catch (URISyntaxException e) {
