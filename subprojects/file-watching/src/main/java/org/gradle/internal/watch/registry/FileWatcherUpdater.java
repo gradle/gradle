@@ -21,6 +21,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 
 public interface FileWatcherUpdater {
@@ -46,5 +47,5 @@ public interface FileWatcherUpdater {
     @CheckReturnValue
     SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies);
 
-    int getNumberOfWatchedHierarchies();
+    Collection<Path> getWatchedHierarchies();
 }

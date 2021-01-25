@@ -111,8 +111,8 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public int getNumberOfWatchedHierarchies() {
-        return watchableHierarchies.getWatchableHierarchies().size();
+    public Collection<Path> getWatchedHierarchies() {
+        return watchableHierarchies.getWatchableHierarchies();
     }
 
     private boolean containsSnapshots(Path location, SnapshotHierarchy root) {

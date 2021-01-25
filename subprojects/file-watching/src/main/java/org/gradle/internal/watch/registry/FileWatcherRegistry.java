@@ -33,7 +33,7 @@ public interface FileWatcherRegistry extends Closeable {
     interface ChangeHandler {
         void handleChange(Type type, Path path);
 
-        void handleLostState();
+        void stopWatchingAfterError();
     }
 
     enum Type {
