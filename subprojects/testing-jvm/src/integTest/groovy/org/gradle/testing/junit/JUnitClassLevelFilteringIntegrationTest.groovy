@@ -26,13 +26,17 @@ import static org.gradle.testing.fixture.JUnitCoverage.LARGE_COVERAGE
 
 @TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE})
 class JUnitClassLevelFilteringIntegrationTest extends JUnitMultiVersionIntegrationSpec {
-    def "runs all tests for class instead of method when runner is not filterable"() {
+
+    def setup() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies { testImplementation '${dependencyNotation}' }
             test { use${testFramework}() }
         """
+    }
+
+    def "runs all tests for class instead of method when runner is not filterable"() {
         file("src/test/java/FooTest.java") << """
             import org.junit.*;
             import org.junit.runner.*;
@@ -86,5 +90,37 @@ class JUnitClassLevelFilteringIntegrationTest extends JUnitMultiVersionIntegrati
 
         then:
         failure.assertHasCause("No tests found for given includes: [NotFooTest.pass]")
+    }
+
+    def "can filter tests from a superclass"() {
+        given:
+        file('src/test/java/SuperClass.java') << '''
+            import org.junit.Test;
+
+            public abstract class SuperClass {
+                @Test
+                public void superTest() {
+                }
+            }
+        '''
+        file('src/test/java/SubClass.java') << '''
+            import org.junit.Test;
+
+            public class SubClass extends SuperClass {
+                @Test
+                public void subTest() {
+                }
+            }
+        '''
+
+        when:
+        succeeds('test', '--tests', 'SubClass.superTest')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('SubClass')
+            .testClass('SubClass')
+            .assertTestCount(1, 0, 0)
+            .assertTestPassed('superTest')
     }
 }
