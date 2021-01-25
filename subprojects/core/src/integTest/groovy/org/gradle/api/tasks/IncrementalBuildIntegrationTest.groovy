@@ -829,7 +829,6 @@ task b(dependsOn: a)
         result.assertTasksSkipped(":a", ":b")
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "can share artifacts between builds"() {
         writeTransformerTask()
 

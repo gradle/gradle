@@ -25,7 +25,8 @@ import static org.gradle.integtests.fixtures.daemon.JavaGarbageCollector.ORACLE_
 
 class DaemonPerformanceMonitoringCoverage {
     static final def ALL_VERSIONS = [
+        new FullyQualifiedGarbageCollector(vendor: JvmVendor.KnownJvmVendor.ADOPTOPENJDK, version: JavaVersion.VERSION_15, gc: ORACLE_G1),
         new FullyQualifiedGarbageCollector(vendor: JvmVendor.KnownJvmVendor.IBM, version: JavaVersion.VERSION_1_8, gc: ORACLE_PARALLEL_CMS),
-        new FullyQualifiedGarbageCollector(vendor: JvmVendor.KnownJvmVendor.ORACLE, version: JavaVersion.VERSION_1_8, gc: ORACLE_G1)
+        new FullyQualifiedGarbageCollector(vendor: JvmVendor.KnownJvmVendor.ORACLE, version: JavaVersion.VERSION_1_8, gc: ORACLE_G1),
     ]
 }

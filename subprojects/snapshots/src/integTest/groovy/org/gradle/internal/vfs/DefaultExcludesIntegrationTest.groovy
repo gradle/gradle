@@ -121,7 +121,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         copyOfExcludedFile.exists()
     }
 
-    def "emits deprecation warning when default excludes are changed during the build"() {
+    def "fails when default excludes are changed during the build"() {
         settingsFile << addDefaultExclude(EXCLUDED_FILE_NAME)
 
         buildFile << """
@@ -136,15 +136,10 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         List<String> defaultExcludesInTask = DEFAULT_EXCLUDES.toSorted()
 
         when:
-        executer.expectDocumentedDeprecationWarning("Changing default excludes during the build has been deprecated. " +
-            "This is scheduled to be removed in Gradle 7.0. " +
-            "Default excludes changed from ${defaultExcludesFromSettings} to ${defaultExcludesInTask}. " +
-            "Configure default excludes in the settings script instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#changing_default_excludes_during_the_execution_phase")
-        run "copyTask"
+        fails "copyTask"
+
         then:
-        executedAndNotSkipped(":copyTask")
-        copyOfExcludedFile.exists()
+        failure.assertHasCause "Cannot change default excludes during the build. They were changed from ${defaultExcludesFromSettings} to ${defaultExcludesInTask}. Configure default excludes in the settings script instead."
     }
 
     private static String addDefaultExclude(String excludedFileName = EXCLUDED_FILE_NAME) {

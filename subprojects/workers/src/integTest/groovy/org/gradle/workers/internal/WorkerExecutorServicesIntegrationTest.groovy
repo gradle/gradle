@@ -137,7 +137,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         file("anotherProject/bar/foo").text == "foo2"
 
         and:
-        if (isolationMode == "IsolationMode.PROCESS") {
+        if (isolationMode == "'processIsolation'") {
             assertSameDaemonWasUsed("runInWorker", "runInWorker2")
         }
 

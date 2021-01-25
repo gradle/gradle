@@ -26,11 +26,17 @@ import spock.lang.Unroll
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.util.TextUtil.normaliseFileSeparators
-import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
-    static final String OUTPUT_FILE_NAME = "output.txt"
+    static final ISOLATION_MODES = (org.gradle.workers.IsolationMode.values() - org.gradle.workers.IsolationMode.AUTO).collect { "IsolationMode.${it.toString()}" }
+    static final OUTPUT_FILE_NAME = "output.txt"
     boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled && (Jvm.current().jre != null)
+
+    def setup() {
+       executer.beforeExecute {
+           expectDocumentedDeprecationWarning("The WorkerExecutor.submit() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. See https://docs.gradle.org/current/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
+       }
+    }
 
     @Unroll
     def "can submit an item of work with the legacy API using isolation mode #isolationMode"() {

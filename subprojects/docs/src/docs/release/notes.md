@@ -8,10 +8,11 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
-[Martin d'Anjou](https://github.com/martinda)
-[Till Krullmann](https://github.com/tkrullmann)
-[Andreas Axelsson](https://github.com/judgeaxl)
-[Pedro Tôrres](https://github.com/t0rr3sp3dr0)
+[Martin d'Anjou](https://github.com/martinda),
+[Till Krullmann](https://github.com/tkrullmann),
+[Andreas Axelsson](https://github.com/judgeaxl),
+[Pedro Tôrres](https://github.com/t0rr3sp3dr0),
+[Stefan Oehme](https://github.com/oehme),
 
 ## Upgrade Instructions
 
@@ -141,6 +142,10 @@ It is no longer required to activate the functionality using `java.modularity.in
 ### Dependency Verification
 
 [Dependency verification](userguide/dependency_verification.html) is promoted to a stable feature.
+
+### Java Toolchain
+
+[Java Toolchains](userguide/toolchains.html) is promoted to a stable feature.
 
 ### Changing the priority of the daemon process
 
@@ -425,6 +430,23 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.process.JavaExecSpec.getMainClass()
         - org.gradle.process.JavaExecSpec.getMainModule()
         - org.gradle.process.JavaExecSpec.getModularity()
+    - Java Toolchains
+        - org.gradle.api.tasks.JavaExec.getJavaLauncher()
+        - org.gradle.api.tasks.compile.JavaCompile.getJavaCompiler()
+        - org.gradle.api.tasks.javadoc.Javadoc.getJavadocTool()
+        - org.gradle.api.tasks.testing.Test.getJavaLauncher()
+        - org.gradle.jvm.toolchain.JavaCompiler
+        - org.gradle.jvm.toolchain.JavaInstallationMetadata
+        - org.gradle.jvm.toolchain.JavaLanguageVersion
+        - org.gradle.jvm.toolchain.JavaLauncher
+        - org.gradle.jvm.toolchain.JavaToolchainService
+        - org.gradle.jvm.toolchain.JavaToolchainSpec
+        - org.gradle.jvm.toolchain.JavadocTool
+        - org.gradle.jvm.toolchain.JvmImplementation
+        - org.gradle.jvm.toolchain.JvmVendorSpec
+        - org.gradle.api.plugins.JavaPluginExtension.toolchain(action)
+        - org.gradle.api.plugins.JavaPluginExtension.getToolchain()
+        - org.gradle.api.tasks.compile.GroovyCompile.getJavaLauncher()
     - Testing
         - org.gradle.api.plugins.JavaTestFixturesPlugin
         - org.gradle.api.tasks.testing.JUnitXmlReport.getMergeReruns()

@@ -510,6 +510,16 @@ tasks.named("docsTest") { task ->
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-cross-compilation_*.sample' // fails to find javadoc
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample' // plugin [id: 'com.android.application', version: '3.2.0', apply: false] was not found: Gradle Central Plugin Repository
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-single-build_*.sample' // seems legit: java.lang.NoClassDefFoundError: Could not initialize class org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetKt
+
+        // https://github.com/gradle/gradle-private/issues/3264
+        excludeTestsMatching '*snippet-tasks-incremental-task*'
+
+        // https://github.com/gradle/gradle-private/issues/3265
+        excludeTestsMatching '*jvm-multi-project-with-additional-test-types_kotlin_checkTask*'
+        excludeTestsMatching '*jvm-multi-project-with-code-coverage_kotlin_testTask*'
+        excludeTestsMatching '*jvm-multi-project-with-toolchains_kotlin_checkTask*'
+        excludeTestsMatching '*java-modules-multi-project_kotlin_testTask*'
+        excludeTestsMatching '*java-modules-multi-project-with-integration-tests_kotlin_testTask*'
     }
 }
 

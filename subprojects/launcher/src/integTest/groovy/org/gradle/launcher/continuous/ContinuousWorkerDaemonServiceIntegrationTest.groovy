@@ -70,11 +70,11 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
     String getTaskTypeUsingWorkerDaemon() {
         return """
             import org.gradle.api.file.ProjectLayout
-            import org.gradle.workers.WorkerExecutor
+            import org.gradle.workers.WorkParameters
             import org.gradle.workers.internal.WorkerDaemonFactory
 
-            class TestRunnable implements Runnable {
-                void run() {
+            abstract class TestWorkAction implements WorkAction<WorkParameters.None> {
+                void execute() {
                     println "Runnable executed..."
                 }
             }
@@ -91,7 +91,7 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
 
                 @TaskAction
                 void runInDaemon() {
-                    workerExecutor.submit(TestRunnable.class) {}
+                    workerExecutor.noIsolation().submit(TestWorkAction) {}
                     workerExecutor.await()
                     captureWorkerDaemons()
                 }

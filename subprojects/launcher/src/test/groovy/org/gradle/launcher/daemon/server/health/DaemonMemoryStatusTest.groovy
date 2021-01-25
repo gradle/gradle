@@ -22,7 +22,6 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-
 class DaemonMemoryStatusTest extends Specification {
     @Rule
     SetSystemProperties props = new SetSystemProperties()
@@ -59,9 +58,12 @@ class DaemonMemoryStatusTest extends Specification {
     }
 
     @Unroll
-    def "knows when metaspace is exhausted (#usageThreshold <= #usage, #usageThreshold <= #usage)"() {
+    def "knows when metaspace is exhausted (#usageThreshold <= #usage, #rateThreshold <= #rate)"(double rateThreshold, int usageThreshold, double rate, int usage, boolean unhealthy) {
         when:
-        def status = create(100, 100, usageThreshold, 100)
+        def status = create(100, rateThreshold, usageThreshold, 100)
+        stats.getHeapStats() >> {
+            new GarbageCollectionStats(rate, 0, 100, 10)
+        }
         stats.getNonHeapStats() >> {
             new GarbageCollectionStats(0, usage, 100, 10)
         }
@@ -70,14 +72,18 @@ class DaemonMemoryStatusTest extends Specification {
         status.isNonHeapSpaceExhausted() == unhealthy
 
         where:
-        usageThreshold | usage | unhealthy
-        90             | 100   | true
-        90             | 91    | true
-        90             | 90    | true
-        90             | 89    | false
-        0              | 0     | false
-        0              | 100   | false
-        100            | 100   | true
+        rateThreshold | usageThreshold | rate | usage | unhealthy
+        1.0           | 90             | 1.1  | 100   | true
+        1.0           | 90             | 1.1  | 91    | true
+        1.0           | 90             | 1.1  | 89    | false
+        1.0           | 90             | 0.9  | 91    | false
+        1.0           | 0              | 1.0  | 0     | false
+        0             | 90             | 0    | 100   | false
+        1.0           | 0              | 1.1  | 100   | false
+        0             | 90             | 1.1  | 100   | false
+        1.0           | 100            | 1.1  | 100   | true
+        1.0           | 75             | 1.1  | 75    | true
+        1.0           | 75             | 1.0  | 100   | true
     }
 
     @Unroll
