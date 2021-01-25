@@ -282,6 +282,38 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         executed(":producer", ":consumer")
     }
 
+    def "emits a deprecation warning when an input file collection can't be resolved"() {
+        buildFile """
+            task "broken" {
+                inputs.files(5).withPropertyName("invalidInputFileCollection")
+
+                doLast {
+                    println "success"
+                }
+            }
+        """
+        when:
+        executer.expectDocumentedDeprecationWarning("Consider using Task.dependsOn instead of an input file collection. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        run "broken"
+        then:
+        executedAndNotSkipped ":broken"
+        outputContains("""
+            Validation failed for task ':broken', disabling optimizations:
+              - Property 'invalidInputFileCollection' cannot be resolved:
+              Cannot convert the provided notation to a File or URI: 5.
+              The following types/formats are supported:
+                - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
+                - A String or CharSequence URI, for example 'file:/usr/include'.
+                - A File instance.
+                - A Path instance.
+                - A Directory instance.
+                - A RegularFile instance.
+                - A URI or URL instance.
+                - A TextResource instance.
+            Consider using Task.dependsOn instead of an input file collection.
+        """.stripIndent())
+    }
+
     void expectMissingDependencyDeprecation(String producer, String consumer) {
         executer.expectDocumentedDeprecationWarning(
             "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
