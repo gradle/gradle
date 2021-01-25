@@ -113,7 +113,12 @@ class ArtifactoryAndDockerSmokeTest extends AbstractSmokeTest {
             artifactoryDeploy.finalizedBy stopArtifactory
         """
 
+        withPluginValidation()
+
         then:
         runner('artifactoryPublish').build()
+
+        and:
+        expectNoPluginValidationError()
     }
 }

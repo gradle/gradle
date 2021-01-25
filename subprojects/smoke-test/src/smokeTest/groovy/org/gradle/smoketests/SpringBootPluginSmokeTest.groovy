@@ -19,6 +19,7 @@ package org.gradle.smoketests
 
 import spock.lang.Issue
 
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
@@ -65,7 +66,11 @@ class SpringBootPluginSmokeTest extends AbstractSmokeTest {
         expectNoDeprecationWarnings(runResult)
 
         and:
-        failsPluginValidation()
+        validatePlugins {
+            forPlugin('org.springframework.boot') {
+                failsWith "Type 'CreateBootStartScripts': property 'mainClassName' is annotated with @Optional that is not allowed for @ReplacedBy properties.", WARNING
+            }
+        }
     }
 
 }

@@ -68,6 +68,8 @@ class GrettySmokeTest extends AbstractSmokeTest {
         result.task(':checkContainerUp').outcome == SUCCESS
 
         and:
-        failsPluginValidation()
+        validatePlugins {
+            // TODO when test is re-enabled with a compatible version
+        }
     }
 }

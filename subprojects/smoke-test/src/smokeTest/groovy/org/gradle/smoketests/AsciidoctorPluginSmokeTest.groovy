@@ -22,6 +22,8 @@ import org.gradle.util.VersionNumber
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+
 class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
@@ -75,7 +77,7 @@ class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
     def 'asciidoctor plugin #version'() {
         given:
         def version3 = VersionNumber.parse("3.0.0")
-        final pluginId
+        def pluginId
         // asciidoctor changed plugin ids after 3.0
         if (VersionNumber.parse(version) >= version3) {
             pluginId = "org.asciidoctor.jvm.convert"
@@ -121,8 +123,45 @@ class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
         }
 
         and:
-        checkThatPluginValidationFailsWhen {
-            VersionNumber.parse(version) < version3
+        validatePlugins {
+            forPlugin(pluginId) {
+                if (VersionNumber.parse(version) < version3) {
+                    failsWith([
+                        "Type 'AbstractAsciidoctorTask': field 'LAST_GRADLE_WITH_CLASSPATH_LEAKAGE' without corresponding getter has been annotated with @Internal.": WARNING,
+                        "Type 'AbstractAsciidoctorTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
+                        "Type 'AbstractAsciidoctorTask': property 'baseDirConfigured' is not annotated with an input or output annotation.": WARNING,
+                        "Type 'AsciidoctorCompatibilityTask': non-property method 'asGemPath()' should not be annotated with: @Optional, @InputDirectory.": WARNING,
+                        "Type 'AsciidoctorCompatibilityTask': property 'logDocuments' is annotated with @Optional that is not allowed for @Console properties.": WARNING,
+                        "Type 'AsciidoctorPdfTask': property 'baseDirConfigured' is not annotated with an input or output annotation.": WARNING,
+                        "Type 'AsciidoctorTask': property 'baseDirConfigured' is not annotated with an input or output annotation.": WARNING,
+                        "Type 'AsciidoctorTask': property 'logDocuments' is annotated with @Optional that is not allowed for @Console properties.": WARNING
+                    ])
+                } else {
+                    passes()
+                }
+            }
+
+            forPlugin('org_asciidoctor_gradle_base_AsciidoctorBasePlugin') {
+                if (VersionNumber.parse(version) < version3) {
+                    passes()
+                } else {
+                    failsWith([
+                        "Type 'AbstractAsciidoctorBaseTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
+                        "Type 'AbstractAsciidoctorBaseTask': non-property method 'attributes()' should not be annotated with: @Input.": WARNING,
+                        "Type 'AbstractAsciidoctorBaseTask': non-property method 'getDefaultResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
+                        "Type 'AbstractAsciidoctorBaseTask': non-property method 'getResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
+                        "Type 'SlidesToExportAware': property 'profile' is not annotated with an input or output annotation.": WARNING
+                    ])
+                }
+            }
+
+            forPlugin('org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin') {
+                if (VersionNumber.parse(version) >= version3) {
+                    passes()
+                } else {
+                    skip()
+                }
+            }
         }
 
         where:
