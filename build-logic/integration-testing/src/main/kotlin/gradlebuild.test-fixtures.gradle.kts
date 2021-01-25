@@ -53,19 +53,20 @@ val testFixturesApiElements by configurations
 // Required due to: https://github.com/gradle/gradle/issues/13278
 testFixturesRuntimeElements.extendsFrom(testFixturesRuntimeOnly)
 
-dependencies {
-    if (project.name != "test") { // do not attempt to find projects during script compilation
+// do not attempt to find projects when the plugin is applied just to generate accessors
+if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
+    dependencies {
         testFixturesApi(project(":internal-testing"))
         // platform
         testFixturesImplementation(platform(project(":distributions-dependencies")))
-    }
 
-    // add a set of default dependencies for fixture implementation
-    testFixturesImplementation(libs.junit)
-    testFixturesImplementation(libs.groovy)
-    testFixturesImplementation(libs.spock)
-    testFixturesRuntimeOnly(libs.bytebuddy)
-    testFixturesRuntimeOnly(libs.cglib)
+        // add a set of default dependencies for fixture implementation
+        testFixturesImplementation(libs.junit)
+        testFixturesImplementation(libs.groovy)
+        testFixturesImplementation(libs.spock)
+        testFixturesRuntimeOnly(libs.bytebuddy)
+        testFixturesRuntimeOnly(libs.cglib)
+    }
 }
 
 // Add an outgoing variant allowing to select the exploded resources directory

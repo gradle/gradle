@@ -19,7 +19,6 @@ package org.gradle.internal.watch
 import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
@@ -119,7 +118,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         executedAndNotSkipped(":includedBuild:jar")
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task is not yet supported")
     def "works with GradleBuild task"() {
         buildTestFixture.withBuildInSubDir()
         def buildInBuild = singleProjectBuild("buildInBuild") {

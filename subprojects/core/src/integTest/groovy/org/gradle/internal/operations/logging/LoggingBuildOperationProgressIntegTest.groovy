@@ -260,7 +260,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked()
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "captures output from GradleBuild task builds"() {
         given:
         configureNestedBuild()

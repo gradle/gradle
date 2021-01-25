@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.initialization.RunNestedBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -27,7 +27,6 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "handles properties which are not String when calling GradleBuild"() {
         given:
         settingsFile << "rootProject.name = 'parent'"
@@ -46,7 +45,6 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "can set build path"() {
         given:
         settingsFile << "rootProject.name = 'parent'"
@@ -65,7 +63,6 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         executed(":bp:t")
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "fails when build path is not unique"() {
         given:
         settingsFile << "rootProject.name = 'parent'"
@@ -89,7 +86,6 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Included build $testDirectory has build path :bp which is the same as included build $testDirectory")
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "nested build can use Gradle home directory that is different to outer build"() {
         given:
         def dir = file("other-home")
@@ -114,7 +110,6 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         output.contains("build script code source: ${dir.toURI()}")
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "nested build can have buildSrc"() {
         given:
         buildFile << """
@@ -158,7 +153,6 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         result.assertTaskExecuted(":buildSrc:otherBuild")
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "nested build can nest more builds"() {
         given:
         buildFile << """
@@ -188,7 +182,6 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         outputContains(":other:other2:build")
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "nested build can contain project dependencies"() {
         given:
         buildFile << """
@@ -220,7 +213,6 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
     @Rule
     BlockingHttpServer barrier = new BlockingHttpServer()
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "can run multiple GradleBuild tasks concurrently"() {
         barrier.start()
 
@@ -233,19 +225,21 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         settingsFile << """
             rootProject.name = 'root'
             include '1', '2'
-"""
+        """
         buildFile << """
             subprojects {
                 task otherBuild(type:GradleBuild) {
                     dir = "\${rootProject.file('subprojects')}"
                     tasks = ['log']
                     buildName = project.name + "nested"
-                }
-                otherBuild.doFirst {
-                    ${barrier.callFromBuildUsingExpression('project.name + "-started"')}
-                }
-                otherBuild.doLast {
-                    ${barrier.callFromBuildUsingExpression('project.name + "-finished"')}
+                    def startEvent = project.name + "-started"
+                    def finishEvent = project.name + "-finished"
+                    doFirst {
+                        ${barrier.callFromBuildUsingExpression('startEvent')}
+                    }
+                    doLast {
+                        ${barrier.callFromBuildUsingExpression('finishEvent')}
+                    }
                 }
             }
             task otherBuild(type:GradleBuild) {
@@ -267,12 +261,17 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
             task log { }
         """
 
-        barrier.expectConcurrent("child-build-started", "1-started", "2-started")
-        barrier.expectConcurrent("child-build-finished", "1-finished", "2-finished")
+        def runs = GradleContextualExecuter.isConfigCache() ? 2 : 1
+        runs.times {
+            barrier.expectConcurrent("child-build-started", "1-started", "2-started")
+            barrier.expectConcurrent("child-build-finished", "1-finished", "2-finished")
+        }
 
         when:
-        executer.withArgument("--parallel")
-        run 'otherBuild'
+        runs.times {
+            executer.withArgument("--parallel")
+            run 'otherBuild'
+        }
 
         then:
         noExceptionThrown()

@@ -51,7 +51,7 @@ tasks.registerEarlyFeedbackRootLifecycleTasks()
  * Print all stacktraces of running JVMs on the machine upon timeout. Helps us diagnose deadlock issues.
  */
 fun setupTimeoutMonitorOnCI() {
-    if (BuildEnvironment.isCiServer) {
+    if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
         val timer = Timer(true).apply {
             schedule(
                 timerTask {
