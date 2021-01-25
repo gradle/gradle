@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.ConfigurableFileCollection;
