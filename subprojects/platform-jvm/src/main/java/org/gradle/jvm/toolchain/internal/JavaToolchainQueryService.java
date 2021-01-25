@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 
 public class JavaToolchainQueryService {
 
-    private final SharedJavaInstallationRegistry registry;
+    private final JavaInstallationRegistry registry;
     private final JavaToolchainFactory toolchainFactory;
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
@@ -43,7 +43,7 @@ public class JavaToolchainQueryService {
     private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
 
     @Inject
-    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
+    public JavaToolchainQueryService(JavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;

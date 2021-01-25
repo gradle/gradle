@@ -20,15 +20,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import spock.lang.IgnoreIf
 
-class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
+class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
     def "installation registry has no installations without environment setup or auto-detection"() {
         buildFile << """
-            import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
+            import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 
             abstract class ShowPlugin implements Plugin<Project> {
                 @Inject
-                abstract SharedJavaInstallationRegistry getRegistry()
+                abstract JavaInstallationRegistry getRegistry()
 
                 void apply(Project project) {
                     project.tasks.register("show") {
@@ -56,11 +56,11 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
         def secondJavaHome = AvailableJavaHomes.availableJvms[1].javaHome.absolutePath
 
         buildFile << """
-            import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
+            import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 
             abstract class ShowPlugin implements Plugin<Project> {
                 @Inject
-                abstract SharedJavaInstallationRegistry getRegistry()
+                abstract JavaInstallationRegistry getRegistry()
 
                 void apply(Project project) {
                     project.tasks.register("show") {

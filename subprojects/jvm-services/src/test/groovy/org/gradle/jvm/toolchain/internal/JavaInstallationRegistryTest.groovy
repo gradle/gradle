@@ -22,7 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class SharedJavaInstallationRegistryTest extends Specification {
+class JavaInstallationRegistryTest extends Specification {
 
     def tempFolder = createTempDir()
 
@@ -82,7 +82,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         given:
         def expectedHome = new File(tempFolder, "Contents/Home")
         assert expectedHome.mkdirs()
-        def registry = new SharedJavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.MAC_OS)
+        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.MAC_OS)
 
         when:
         def installations = registry.listInstallations()
@@ -99,7 +99,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         assert jreBinFolder.mkdir()
         assert new File(jreBinFolder, OperatingSystem.current().getExecutableName( "java")).createNewFile()
 
-        def registry = new SharedJavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.current())
+        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.current())
 
         when:
         def installations = registry.listInstallations()
@@ -113,7 +113,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def rootWithMacOsLayout = createTempDir()
         def expectedHome = new File(rootWithMacOsLayout, "Contents/Home")
         assert expectedHome.mkdirs()
-        def registry = new SharedJavaInstallationRegistry([forDirectory(rootWithMacOsLayout)], new TestBuildOperationExecutor(), OperatingSystem.LINUX)
+        def registry = new JavaInstallationRegistry([forDirectory(rootWithMacOsLayout)], new TestBuildOperationExecutor(), OperatingSystem.LINUX)
 
         when:
         def installations = registry.listInstallations()
@@ -125,7 +125,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
     def "detecting installations is tracked as build operation"() {
         def executor = new TestBuildOperationExecutor()
         given:
-        def registry = new SharedJavaInstallationRegistry(Collections.emptyList(), executor, OperatingSystem.current())
+        def registry = new JavaInstallationRegistry(Collections.emptyList(), executor, OperatingSystem.current())
 
         when:
         registry.listInstallations()
@@ -142,7 +142,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         file.isDirectory() >> directory
         file.absolutePath >> path
         def logger = Mock(Logger)
-        def registry = SharedJavaInstallationRegistry.withLogger([forDirectory(file)], logger, new TestBuildOperationExecutor())
+        def registry = JavaInstallationRegistry.withLogger([forDirectory(file)], logger, new TestBuildOperationExecutor())
 
         when:
         def installations = registry.listInstallations()
@@ -167,7 +167,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         file.canonicalFile
     }
 
-    private SharedJavaInstallationRegistry newRegistry(File... location) {
-        new SharedJavaInstallationRegistry(location.collect { forDirectory(it) }, new TestBuildOperationExecutor(), OperatingSystem.current())
+    private JavaInstallationRegistry newRegistry(File... location) {
+        new JavaInstallationRegistry(location.collect { forDirectory(it) }, new TestBuildOperationExecutor(), OperatingSystem.current())
     }
 }

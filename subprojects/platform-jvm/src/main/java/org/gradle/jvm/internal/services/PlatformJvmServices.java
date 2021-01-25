@@ -34,7 +34,7 @@ import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 
 public class PlatformJvmServices extends AbstractPluginServiceRegistry {
@@ -42,7 +42,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(JdkCacheDirectory.class);
-        registration.add(SharedJavaInstallationRegistry.class);
+        registration.add(JavaInstallationRegistry.class);
         registerJavaInstallationSuppliers(registration);
     }
 

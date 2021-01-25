@@ -27,7 +27,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
-import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 
 import javax.inject.Inject;
 import java.util.Comparator;
@@ -103,7 +103,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     @Inject
-    protected SharedJavaInstallationRegistry getInstallationRegistry() {
+    protected JavaInstallationRegistry getInstallationRegistry() {
         throw new UnsupportedOperationException();
     }
 
