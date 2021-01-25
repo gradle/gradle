@@ -43,6 +43,7 @@ import java.io.File;
  *
  * @since 3.5
  */
+@Deprecated
 public interface WorkerConfiguration extends ActionConfiguration, ForkingWorkerSpec, Describable {
     /**
      * Gets the isolation mode for this worker, see {@link IsolationMode}.
@@ -88,7 +89,6 @@ public interface WorkerConfiguration extends ActionConfiguration, ForkingWorkerS
      *
      * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
      */
-    @Deprecated
     ForkMode getForkMode();
 
     /**
@@ -96,7 +96,6 @@ public interface WorkerConfiguration extends ActionConfiguration, ForkingWorkerS
      *
      * @param forkMode the forking mode for this worker, see {@link ForkMode}
      */
-    @Deprecated
     void setForkMode(ForkMode forkMode);
 
     /**

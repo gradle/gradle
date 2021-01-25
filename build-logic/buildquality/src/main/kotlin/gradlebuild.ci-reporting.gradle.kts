@@ -43,7 +43,7 @@ val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCle
     reportOnly.convention(false)
 }
 
-if (BuildEnvironment.isCiServer) {
+if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
     gradle.buildFinished {
         val failedTasks = failedTasks()
         val executedTasks = executedTasks()

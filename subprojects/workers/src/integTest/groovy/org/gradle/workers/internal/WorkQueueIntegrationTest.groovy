@@ -65,11 +65,11 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                 doLast {
                     def workQueue1 = submit(ParallelWorkAction.class, [ "item1", "item2"])
                     def workQueue2 = submit(ParallelWorkAction.class, [ "item3" ])
-                    
+
                     signal("submitted")
 
                     workQueue1.await()
-                    
+
                     signal("finished")
                 }
             }
@@ -113,7 +113,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                 doLast {
                     def workQueue1 = submitFailure(ParallelWorkAction.class, [ "item1", "item2"])
                     def workQueue2 = submit(ParallelWorkAction.class, [ "item3" ])
-                    
+
                     signal("submitted")
 
                     try {
@@ -121,7 +121,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                     } catch (Exception e) {
                         printMessages(e)
                     }
-                    
+
                     signal("finished")
                 }
             }
@@ -168,7 +168,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                 doLast {
                     def workQueue1 = submitFailure(ParallelWorkAction.class, [ "item1", "item2"])
                     def workQueue2 = submitFailure(ParallelWorkAction.class, [ "item3" ])
-                    
+
                     signal("submitted")
 
                     try {
@@ -176,7 +176,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                     } catch (Exception e) {
                         printMessages(e)
                     }
-                    
+
                     signal("finished")
                 }
             }
@@ -231,19 +231,19 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
             class WorkItemTask extends DefaultTask {
                 @Internal
-                IsolationMode isolationMode = IsolationMode.AUTO
+                String isolationMode = 'noIsolation'
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
                     throw new UnsupportedOperationException()
                 }
-                
+
                 def submitFailure(Class<?> executionClass, List<String> items) {
                     return submit(executionClass, items, true)
                 }
 
                 def submit(Class<?> executionClass, List<String> items, boolean error = false) {
-                    def workQueue = workerExecutor."\${getWorkerMethod(isolationMode)}"()
+                    def workQueue = workerExecutor."\${isolationMode}"()
                     items.each { name ->
                         workQueue.submit(executionClass) {
                             itemName = name
@@ -252,11 +252,11 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                     }
                     return workQueue
                 }
-                
+
                 def signal(String signal) {
                     new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${signal}", null, null).toURL().text
                 }
-                
+
                 def printMessages(Exception e) {
                     println e.message
                     if (e.cause == null || e.cause == e) {
@@ -270,8 +270,6 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                         printMessages(e.cause)
                     }
                 }
-                
-                ${fixture.workerMethodTranslation}
             }
         """
     }

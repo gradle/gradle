@@ -83,6 +83,8 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
+      with:
+        config-file: ./.github/codeql/codeql-config.yml
 
     - name: Cleanup Gradle Cache
       # Cleans up the Gradle caches before being cached

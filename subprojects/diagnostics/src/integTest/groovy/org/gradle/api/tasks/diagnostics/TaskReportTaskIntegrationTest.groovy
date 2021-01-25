@@ -48,7 +48,7 @@ buildEnvironment - Displays all buildscript dependencies declared in root projec
 dependencies - Displays all dependencies declared in root project '$projectName'.
 dependencyInsight - Displays the insight into a specific dependency in root project '$projectName'.
 help - Displays a help message.
-javaToolchains - Displays the detected java toolchains. [incubating]
+javaToolchains - Displays the detected java toolchains.
 outgoingVariants - Displays the outgoing variants of root project '$projectName'.
 projects - Displays the sub-projects of root project '$projectName'.
 properties - Displays the properties of root project '$projectName'.
