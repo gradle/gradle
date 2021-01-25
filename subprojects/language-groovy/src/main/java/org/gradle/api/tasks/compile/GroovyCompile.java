@@ -431,7 +431,6 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      * @return the java launcher property
      * @since 6.8
      */
-    @Incubating
     @Nested
     @Optional
     public Property<JavaLauncher> getJavaLauncher() {

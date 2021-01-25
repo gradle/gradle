@@ -17,14 +17,11 @@
 package org.gradle.jvm.toolchain;
 
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents a filter for a implementation of a Java Virtual Machine.
  *
  * @since 6.8
  */
-@Incubating
 public final class JvmImplementation {
 
     /**

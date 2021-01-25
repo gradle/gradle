@@ -17,7 +17,6 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -29,7 +28,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 6.7
  */
-@Incubating
 @HasInternalProtocol
 public interface JavaToolchainSpec extends Describable {
 

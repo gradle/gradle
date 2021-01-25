@@ -25,7 +25,7 @@ public class ShowToolchainsTaskConfigurator implements ProjectConfigureAction {
     @Override
     public void execute(ProjectInternal project) {
         project.getTasks().register("javaToolchains", ShowToolchainsTask.class, task -> {
-            task.setDescription("Displays the detected java toolchains. [incubating]");
+            task.setDescription("Displays the detected java toolchains.");
             task.setGroup(HelpTasksPlugin.HELP_GROUP);
             task.setImpliesSubProjects(true);
         });
