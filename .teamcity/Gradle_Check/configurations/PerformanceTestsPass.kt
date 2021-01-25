@@ -70,9 +70,7 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                 "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                 "-Porg.gradle.performance.db.url" to "%performance.db.url%",
                 "-Porg.gradle.performance.db.username" to "%performance.db.username%"
-            ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) } +
-                os.javaInstallationLocations() +
-                "-Porg.gradle.java.installations.auto-download=false"
+            ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
         )
     }
 

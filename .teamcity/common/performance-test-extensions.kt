@@ -45,7 +45,8 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
     "-PperformanceBaselines=$baselines",
     "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
     "-PtestJavaVendor=${os.perfTestJavaVendor}",
-    "-Porg.gradle.java.installations.auto-download=false"
+    "-Porg.gradle.java.installations.auto-download=false",
+    os.javaInstallationLocations()
 ) + listOf(
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",
