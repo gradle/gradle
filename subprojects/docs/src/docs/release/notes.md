@@ -93,6 +93,17 @@ includeBuild("../project-with-plugin-and-library")
 This distinction reflects what Gradle offers for repository declarations - 
 repositories are specified separately for plugin dependencies and for production dependencies.
 
+## General improvements
+
+### Ignore empty `buildSrc` project
+
+In earlier Gradle versions, the mere presence of a `buildSrc` directory was enough to trigger Gradle to execute all `buildSrc` tasks and to add the resulting `buildSrc.jar` to the buildscript class path.
+Gradle will now ignore an empty `buildSrc` directory, and will only generate a `buildSrc.jar` if build files and/or source files are detected.
+
+This has two benefits when an empty `buildSrc` directory is detected:
+- `:buildSrc:*` tasks will not be needlessly executed.
+- The empty `buildSrc.jar` will not be added to the buildscript class path, avoiding cache misses that this can cause.
+
 <!-- 
 
 ================== TEMPLATE ==============================
