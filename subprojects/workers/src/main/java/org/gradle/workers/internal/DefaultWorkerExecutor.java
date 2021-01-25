@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -44,7 +45,6 @@ import org.gradle.workers.ProcessWorkerSpec;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkQueue;
-import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.WorkerSpec;
@@ -139,7 +139,13 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Override
     @SuppressWarnings("deprecation")
-    public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
+    public void submit(Class<? extends Runnable> actionClass, Action<? super org.gradle.workers.WorkerConfiguration> configAction) {
+        DeprecationLogger.deprecateMethod(WorkerExecutor.class, "submit()")
+            .replaceWith("noIsolation(), classLoaderIsolation() or processIsolation()")
+            .willBeRemovedInGradle8()
+            .withUserManual("upgrading_version_5", "method_workerexecutor_submit_is_deprecated")
+            .nagUser();
+
         DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory);
         configAction.execute(configuration);
 

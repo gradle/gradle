@@ -36,10 +36,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'include "a", "b"'
 
         buildFile << """
-            import org.gradle.workers.WorkerExecutor
-            import org.gradle.workers.IsolationMode
-
-            class SerialPing extends DefaultTask {
+            abstract class SerialPing extends DefaultTask {
 
                 SerialPing() { outputs.upToDateWhen { false } }
 
@@ -49,16 +46,13 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            public class TestParallelRunnable implements Runnable {
-                final String path
+            interface TestParallelWorkActionConfig extends WorkParameters {
+                Property<String> getPath()
+            }
 
-                @Inject
-                public TestParallelRunnable(String path) {
-                    this.path = path
-                }
-
-                public void run() {
-                    new URL("http://localhost:${blockingServer.port}/" + path).text
+            abstract class TestParallelWorkAction implements WorkAction<TestParallelWorkActionConfig> {
+                void execute() {
+                    new URL("http://localhost:${blockingServer.port}/" + parameters.path.get()).text
                 }
             }
 
@@ -71,9 +65,9 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void ping() {
-                    workerExecutor.submit(TestParallelRunnable) { config ->
-                        config.params = [ path ]
-                        config.isolationMode = IsolationMode.NONE
+                    def taskPath = path
+                    workerExecutor.noIsolation().submit(TestParallelWorkAction) { config ->
+                        config.path.set(taskPath)
                     }
                 }
             }

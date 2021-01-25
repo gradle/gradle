@@ -24,19 +24,17 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.util.GUtil;
 import org.gradle.workers.ClassLoaderWorkerSpec;
-import org.gradle.workers.ForkMode;
-import org.gradle.workers.IsolationMode;
 import org.gradle.workers.ProcessWorkerSpec;
-import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerSpec;
 
 import java.io.File;
 import java.util.List;
 
-public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements WorkerConfiguration {
+@SuppressWarnings("deprecation")
+public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements org.gradle.workers.WorkerConfiguration {
     private final ActionConfiguration actionConfiguration = new DefaultActionConfiguration();
     private final JavaForkOptionsFactory forkOptionsFactory;
-    private IsolationMode isolationMode = IsolationMode.AUTO;
+    private org.gradle.workers.IsolationMode isolationMode = org.gradle.workers.IsolationMode.AUTO;
     private JavaForkOptions forkOptions;
     private String displayName;
     private List<File> classpath = Lists.newArrayList();
@@ -46,13 +44,13 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     }
 
     @Override
-    public IsolationMode getIsolationMode() {
+    public org.gradle.workers.IsolationMode getIsolationMode() {
         return isolationMode;
     }
 
     @Override
-    public void setIsolationMode(IsolationMode isolationMode) {
-        this.isolationMode = isolationMode == null ? IsolationMode.AUTO : isolationMode;
+    public void setIsolationMode(org.gradle.workers.IsolationMode isolationMode) {
+        this.isolationMode = isolationMode == null ? org.gradle.workers.IsolationMode.AUTO : isolationMode;
     }
 
     @Override
@@ -109,33 +107,31 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public ForkMode getForkMode() {
+    public org.gradle.workers.ForkMode getForkMode() {
         switch (getIsolationMode()) {
             case AUTO:
-                return ForkMode.AUTO;
+                return org.gradle.workers.ForkMode.AUTO;
             case NONE:
             case CLASSLOADER:
-                return ForkMode.NEVER;
+                return org.gradle.workers.ForkMode.NEVER;
             case PROCESS:
-                return ForkMode.ALWAYS;
+                return org.gradle.workers.ForkMode.ALWAYS;
             default:
                 throw new IllegalStateException();
         }
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public void setForkMode(ForkMode forkMode) {
+    public void setForkMode(org.gradle.workers.ForkMode forkMode) {
         switch (forkMode) {
             case AUTO:
-                setIsolationMode(IsolationMode.AUTO);
+                setIsolationMode(org.gradle.workers.IsolationMode.AUTO);
                 break;
             case NEVER:
-                setIsolationMode(IsolationMode.CLASSLOADER);
+                setIsolationMode(org.gradle.workers.IsolationMode.CLASSLOADER);
                 break;
             case ALWAYS:
-                setIsolationMode(IsolationMode.PROCESS);
+                setIsolationMode(org.gradle.workers.IsolationMode.PROCESS);
                 break;
         }
     }

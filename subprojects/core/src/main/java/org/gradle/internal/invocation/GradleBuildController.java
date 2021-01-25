@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.invocation;
 
-import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
@@ -61,17 +61,16 @@ public class GradleBuildController implements BuildController {
         return doBuild(GradleLauncher::getConfiguredBuild);
     }
 
-    private GradleInternal doBuild(final Action<? super GradleLauncher> build) {
+    public <T> T doBuild(final Transformer<T, ? super GradleLauncher> build) {
         try {
             // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
-            return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Factory<GradleInternal>() {
+            return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Factory<T>() {
                 @Override
-                public GradleInternal create() {
-                    GradleInternal gradle = getGradle();
+                public T create() {
                     GradleLauncher launcher = getLauncher();
-                    build.execute(launcher);
+                    T result = build.transform(launcher);
                     launcher.finishBuild();
-                    return gradle;
+                    return result;
                 }
             });
         } finally {

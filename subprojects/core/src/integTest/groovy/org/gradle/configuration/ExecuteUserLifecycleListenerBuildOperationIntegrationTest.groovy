@@ -719,7 +719,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, 0)
     }
 
-    @ToBeFixedForConfigurationCache(because = "GradleBuild")
     def 'application ids are unique across gradleBuild builds'() {
         given:
         initFile << ""

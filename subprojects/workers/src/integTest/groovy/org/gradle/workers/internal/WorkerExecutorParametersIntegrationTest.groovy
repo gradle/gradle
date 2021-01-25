@@ -39,7 +39,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 private final WorkerExecutor workerExecutor
 
                 @Internal
-                IsolationMode isolationMode
+                String isolationMode
                 @Internal
                 Closure paramConfig
 
@@ -51,14 +51,12 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void doWork() {
                     def parameterAction = paramConfig != null ? paramConfig : {}
-                    workerExecutor."\${getWorkerMethod(isolationMode)}"().submit(ParameterWorkAction.class, parameterAction)
+                    workerExecutor."\${isolationMode}"().submit(ParameterWorkAction.class, parameterAction)
                 }
 
                 void parameters(Closure closure) {
                     paramConfig = closure
                 }
-
-                ${fixture.workerMethodTranslation}
             }
         """
     }
@@ -374,7 +372,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
             def countingService = gradle.sharedServices.registerIfAbsent("counting", CountingService) { }
 
             task runWork(type: ParameterTask) {
-                isolationMode = ${isolationMode}
+                isolationMode = '${isolationMode}'
                 parameters {
                     testParam.set(countingService)
                 }
@@ -390,7 +388,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         // TODO - this should work with classloader isolation too
-        isolationMode << ["IsolationMode.NONE"]
+        isolationMode << ['noIsolation']
     }
 
     def "can provide managed object parameters with isolation mode #isolationMode"() {

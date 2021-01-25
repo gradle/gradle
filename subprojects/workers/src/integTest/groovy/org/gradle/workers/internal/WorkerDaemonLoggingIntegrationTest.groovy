@@ -40,7 +40,7 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
         fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
                 workActionClass = ${workActionThatProducesLotsOfOutput.name}.class
             }
         """

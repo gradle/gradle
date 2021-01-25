@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Optional;
@@ -86,15 +87,20 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
                             @Override
                             public void handleUnknownEvent(String absolutePath) {
+                                LOGGER.error("Received unknown event for {}", absolutePath);
                                 fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
-                                handler.handleLostState();
+                                handler.stopWatchingAfterError();
                             }
 
                             @Override
                             public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
                                 if (absolutePath == null) {
-                                    handler.handleLostState();
+                                    LOGGER.info("Overflow detected, invalidating all watched hierarchies");
+                                    for (Path watchedHierarchy : fileWatcherUpdater.getWatchedHierarchies()) {
+                                        handler.handleChange(INVALIDATED, watchedHierarchy);
+                                    }
                                 } else {
+                                    LOGGER.info("Overflow detected for watched hierarchy '{}', invalidating", absolutePath);
                                     handler.handleChange(INVALIDATED, Paths.get(absolutePath));
                                 }
                             }
@@ -103,7 +109,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             public void handleFailure(Throwable failure) {
                                 LOGGER.error("Error while receiving file changes", failure);
                                 fileWatchingStatistics.updateAndGet(statistics -> statistics.errorWhileReceivingFileChanges(failure));
-                                handler.handleLostState();
+                                handler.stopWatchingAfterError();
                             }
 
                             @Override
@@ -157,7 +163,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     @Override
     public FileWatchingStatistics getAndResetStatistics() {
         MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics.getAndSet(new MutableFileWatchingStatistics());
-        int numberOfWatchedHierarchies = fileWatcherUpdater.getNumberOfWatchedHierarchies();
+        int numberOfWatchedHierarchies = fileWatcherUpdater.getWatchedHierarchies().size();
         return new FileWatchingStatistics() {
             @Override
             public Optional<Throwable> getErrorWhileReceivingFileChanges() {

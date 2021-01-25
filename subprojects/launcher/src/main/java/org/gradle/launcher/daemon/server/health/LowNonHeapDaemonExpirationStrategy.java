@@ -27,7 +27,7 @@ public class LowNonHeapDaemonExpirationStrategy implements DaemonExpirationStrat
     private final DaemonMemoryStatus status;
     private static final Logger LOG = Logging.getLogger(LowNonHeapDaemonExpirationStrategy.class);
 
-    public static final String EXPIRATION_REASON = "after running out of JVM memory";
+    public static final String EXPIRATION_REASON = "after running out of JVM metaspace";
 
     public LowNonHeapDaemonExpirationStrategy(DaemonMemoryStatus status) {
         this.status = status;

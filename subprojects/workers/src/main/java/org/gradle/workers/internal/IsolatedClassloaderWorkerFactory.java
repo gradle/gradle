@@ -23,7 +23,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.worker.RequestHandler;
-import org.gradle.workers.IsolationMode;
 
 public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;

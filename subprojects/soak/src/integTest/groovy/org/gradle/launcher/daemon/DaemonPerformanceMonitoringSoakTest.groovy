@@ -20,11 +20,11 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
+import spock.lang.Unroll
 
-@TargetCoverage({DaemonPerformanceMonitoringCoverage.ALL_VERSIONS})
+@TargetCoverage({ DaemonPerformanceMonitoringCoverage.ALL_VERSIONS })
 class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest {
     def setup() {
-        // Set JVM args for GC
         String jvmArgs = ""
         if (file('gradle.properties').exists()) {
             jvmArgs = file("gradle.properties").getProperties().getOrDefault("org.gradle.jvmargs", "")
@@ -35,25 +35,40 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         )
     }
 
-    def "when build leaks slowly daemon is eventually expired"() {
+    @Unroll
+    def "when build leaks heap space slowly daemon is eventually expired (maxBuilds=#maxBuilds, heapSize=#heapSize, leakRate=#leakRate"() {
         when:
         setupTenuredHeapLeak(leakRate)
+
         then:
-        daemonIsExpiredEagerly(maxBuilds, heapSize)
+        daemonIsExpiredEagerly(maxBuilds, heapSize, heapSize * 2)
 
         where:
         maxBuilds | heapSize | leakRate
-        45        | "200m"   | 600
-        40        | "1024m"  | 4000
+        45        | 200      | 2000
+        40        | 1024     | 14000
     }
 
-    private boolean daemonIsExpiredEagerly(int maxBuilds, String heapSize) {
+    def "when build leaks metaspace slowly daemon is eventually expired"() {
+        given:
+        def maxBuilds = 80
+        def metaspaceSize  = 200
+        def leakRate = 5
+
+        when:
+        setupMetaspaceLeak(leakRate)
+
+        then:
+        daemonIsExpiredEagerly(maxBuilds, metaspaceSize * 2, metaspaceSize)
+    }
+
+    private boolean daemonIsExpiredEagerly(int maxBuilds, int heapSize, int metaspaceSize) {
         def dataFile = file("stats")
         int newDaemons = 0
         try {
             for (int i = 0; i < maxBuilds; i++) {
                 executer.noExtraLogging()
-                executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-XX:MaxMetaspaceSize=${heapSize}", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+                executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-XX:MaxMetaspaceSize=${metaspaceSize}m", "-Xmx${heapSize}m", "-Dorg.gradle.daemon.performance.logging=true")
                 GradleHandle gradle = executer.start()
                 gradle.waitForExit()
                 if (gradle.standardOutput ==~ /(?s).*Starting build in new daemon \[memory: [0-9].*/) {
@@ -92,6 +107,42 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
                 //simulate the leak
                 1000.times {
                     State.map.put(UUID.randomUUID(), "foo" * ${leakRate})
+                }
+
+                println "Build: " + State.x
+            } catch(OutOfMemoryError e) {
+                // TeamCity recognizes this message as build failures if it occurs in build log
+                throw new OutOfMemoryError(e?.message?.replace(' ', '_'))
+            }
+        """
+    }
+
+    private final void setupMetaspaceLeak(int leakRate) {
+
+        buildFile << """
+            logger.warn("Build is running with JDK: " + System.getProperty('java.home'))
+
+            class MyClass {
+                ${ (1..1000).collect {"int field${it}" }.join("\n") }
+            }
+
+            class State {
+                static int x
+                static map = [:]
+            }
+            try {
+                State.x++
+
+                //simulate normal collectible objects
+                ${5 * leakRate}.times {
+                    def myClass = new URLClassLoader(*[getClass().protectionDomain.codeSource.location]).loadClass("MyClass")
+                    State.map.put(it, myClass)
+                }
+
+                //simulate the leak
+                ${leakRate}.times {
+                    def myClass = new URLClassLoader(*[getClass().protectionDomain.codeSource.location]).loadClass("MyClass")
+                    State.map.put(UUID.randomUUID(), myClass)
                 }
 
                 println "Build: " + State.x

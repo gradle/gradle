@@ -21,6 +21,7 @@ package org.gradle.workers;
  *
  * @since 4.0
  */
+@Deprecated
 public enum IsolationMode {
     /**
      * Let Gradle decide, this is the default.

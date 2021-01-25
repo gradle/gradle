@@ -49,12 +49,27 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         def result = buildLocation(checkoutDir, agpVersion)
 
         then:
-        if (agpVersion.startsWith('3.6')) {
-            expectDeprecationWarnings(result,
-                "Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-                    "Please use ObjectFactory.domainObjectSet(Class<T>) instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_gradle_types.html#domainobjectset for more details."
+        if (agpVersion.startsWith("3.6")) {
+            expectDeprecationWarnings(
+                    result,
+                    "Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. " +
+                            "This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead. " +
+                            "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_gradle_types.html#domainobjectset for more details.",
+                    "The WorkerExecutor.submit() method has been deprecated. " +
+                            "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                            "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
             )
+        } else if (agpVersion.startsWith('4.0.2')) {
+            expectDeprecationWarnings(
+                    result,
+                    "The WorkerExecutor.submit() method has been deprecated. " +
+                            "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                            "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
+            )
+        } else if (agpVersion.startsWith('4.1')) {
+            expectDeprecationWarnings(result, "The WorkerExecutor.submit() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
         } else {
             expectNoDeprecationWarnings(result)
         }

@@ -177,7 +177,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
 
             class MultipleWorkItemTask extends DefaultTask {
                 @Internal
-                def isolationMode = IsolationMode.NONE
+                def isolationMode = 'noIsolation'
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {

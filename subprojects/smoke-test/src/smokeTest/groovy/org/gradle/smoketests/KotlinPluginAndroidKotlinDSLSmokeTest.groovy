@@ -18,7 +18,10 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -48,7 +51,8 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def result = useAgpVersion(androidPluginVersion, runner(workers, 'clean', ':app:testDebugUnitTestCoverage')).build()
+        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage') as DefaultGradleRunner
+        def result = useAgpVersion(androidPluginVersion, runner).build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
@@ -57,6 +61,11 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
                 && androidPluginVersion == TestedVersions.androidGradle.latest()) {
             // TODO: re-enable once the Kotlin plugin fixes how it extends configurations
             // expectNoDeprecationWarnings(result)
+        }
+
+        cleanup:
+        if (runner) {
+            DaemonLogsAnalyzer.newAnalyzer(new File(runner.testKitDirProvider.getDir(), ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
         }
 
         where:
@@ -73,7 +82,7 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    private GradleRunner runner(boolean workers, String... tasks) {
+    private GradleRunner createRunner(boolean workers, String... tasks) {
         return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
                 .forwardOutput()
     }
