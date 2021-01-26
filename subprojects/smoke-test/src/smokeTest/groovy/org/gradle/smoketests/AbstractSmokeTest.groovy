@@ -135,6 +135,17 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
         static aspectj = "5.3.0"
+
+        // https://plugins.gradle.org/plugin/de.undercouch.download
+        static undercouchDownload = Versions.of("4.1.1")
+
+        // https://github.com/micronaut-projects/micronaut-gradle-plugin
+        static micronaut = Versions.of("1.3.2")
+
+        // https://plugins.gradle.org/plugin/com.gorylenko.gradle-git-properties
+        static gradleGitProperties = Versions.of("2.2.4")
+
+        static flyway = Versions.of("7.5.1")
     }
 
     static class Versions implements Iterable<String> {

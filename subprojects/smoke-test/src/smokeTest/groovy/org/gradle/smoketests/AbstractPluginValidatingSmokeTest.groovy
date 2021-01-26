@@ -31,6 +31,10 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest {
         [:]
     }
 
+    String getBuildScriptConfigurationForValidation() {
+        ""
+    }
+
     void configureValidation(String testedPluginId, String version) {
         allPlugins.alwaysPasses = true
     }
@@ -68,6 +72,8 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest {
                 id '$id' version '$version'
                 id 'validate-external-gradle-plugin'
             }
+
+            $buildScriptConfigurationForValidation
         """
 
         expect:
