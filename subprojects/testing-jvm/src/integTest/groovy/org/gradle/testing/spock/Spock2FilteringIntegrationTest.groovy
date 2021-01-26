@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.gradle.testing.spock
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
 
@@ -47,6 +48,7 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         """
     }
 
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "can filter tests from a superclass via a subclass"() {
         when:
         succeeds("test", "--tests", "SubClass.superTest")
@@ -59,6 +61,7 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
             .assertTestPassed("superTest")
     }
 
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "can filter tests from a super superclass via a subclass"() {
         when:
         succeeds("test", "--tests", "SubClass.superSuperTest")
