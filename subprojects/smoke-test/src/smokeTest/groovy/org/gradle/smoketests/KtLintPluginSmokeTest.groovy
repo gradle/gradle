@@ -16,12 +16,12 @@
 
 package org.gradle.smoketests
 
-abstract class AbstractSinglePluginValidatingSmokeTest extends AbstractPluginValidatingSmokeTest {
-    abstract String getPluginId()
-    abstract Versions getVersions()
-
+class KtLintPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
-    final Map<String, Versions> getPluginsToValidate() {
-        [(pluginId): versions]
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'org.jlleitschuh.gradle.ktlint': TestedVersions.ktlint,
+            'org.jlleitschuh.gradle.ktlint-idea': TestedVersions.ktlint,
+        ]
     }
 }

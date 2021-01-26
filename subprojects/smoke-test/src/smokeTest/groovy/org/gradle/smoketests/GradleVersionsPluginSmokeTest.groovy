@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class GradleVersionsPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
+class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'can check for updated versions'() {
@@ -62,12 +62,9 @@ class GradleVersionsPluginSmokeTest extends AbstractSinglePluginValidatingSmokeT
     }
 
     @Override
-    String getPluginId() {
-        "com.github.ben-manes.versions"
-    }
-
-    @Override
-    Versions getVersions() {
-        Versions.of(TestedVersions.gradleVersions)
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'com.github.ben-manes.versions': Versions.of(TestedVersions.gradleVersions)
+        ]
     }
 }

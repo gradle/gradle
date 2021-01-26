@@ -16,11 +16,12 @@
 
 package org.gradle.smoketests
 
-class FlywayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
+class KotlinCompilerPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'org.flywaydb.flyway': TestedVersions.flyway
+            'org.jetbrains.kotlin.plugin.allopen': TestedVersions.kotlinPlugins,
+            'org.jetbrains.kotlin.plugin.spring': TestedVersions.kotlinPlugins
         ]
     }
 }

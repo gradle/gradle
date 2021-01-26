@@ -16,11 +16,13 @@
 
 package org.gradle.smoketests
 
-class FlywayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
+class AptPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'org.flywaydb.flyway': TestedVersions.flyway
+            'net.ltgt.apt': TestedVersions.apt,
+            'net.ltgt.apt-eclipse': TestedVersions.apt,
+            'net.ltgt.apt-idea': TestedVersions.apt,
         ]
     }
 }

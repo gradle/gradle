@@ -16,14 +16,11 @@
 
 package org.gradle.smoketests
 
-class UndercouchDownloadPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
+class UndercouchDownloadPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
-    String getPluginId() {
-        "de.undercouch.download"
-    }
-
-    @Override
-    Versions getVersions() {
-        TestedVersions.undercouchDownload
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'de.undercouch.download': TestedVersions.undercouchDownload
+        ]
     }
 }

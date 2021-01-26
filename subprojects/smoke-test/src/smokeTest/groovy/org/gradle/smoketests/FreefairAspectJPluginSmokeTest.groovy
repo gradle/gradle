@@ -21,7 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-class FreefairAspectJPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
+class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     // Latest AspectJ 1.9.5 is not compatible with JDK14
     @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
@@ -85,12 +85,9 @@ class FreefairAspectJPluginSmokeTest extends AbstractSinglePluginValidatingSmoke
     }
 
     @Override
-    String getPluginId() {
-        "io.freefair.aspectj"
-    }
-
-    @Override
-    Versions getVersions() {
-        Versions.of(TestedVersions.aspectj)
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'io.freefair.aspectj': Versions.of(TestedVersions.aspectj)
+        ]
     }
 }

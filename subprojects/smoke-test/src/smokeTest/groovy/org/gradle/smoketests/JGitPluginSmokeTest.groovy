@@ -22,7 +22,7 @@ import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class JGitPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
+class JGitPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
@@ -90,12 +90,9 @@ class JGitPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
     }
 
     @Override
-    String getPluginId() {
-        'org.ajoberstar.grgit'
-    }
-
-    @Override
-    Versions getVersions() {
-        Versions.of(TestedVersions.grgit)
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'org.ajoberstar.grgit': Versions.of(TestedVersions.grgit)
+        ]
     }
 }

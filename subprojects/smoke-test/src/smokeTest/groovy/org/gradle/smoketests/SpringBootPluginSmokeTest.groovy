@@ -23,7 +23,7 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
-class SpringBootPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
+class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
@@ -65,13 +65,10 @@ class SpringBootPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest 
     }
 
     @Override
-    String getPluginId() {
-        'org.springframework.boot'
-    }
-
-    @Override
-    Versions getVersions() {
-        Versions.of(TestedVersions.springBoot)
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'org.springframework.boot': Versions.of(TestedVersions.springBoot)
+        ]
     }
 
     @Override

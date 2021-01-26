@@ -16,11 +16,16 @@
 
 package org.gradle.smoketests
 
-class FlywayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
+class JibPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'org.flywaydb.flyway': TestedVersions.flyway
+            'com.google.cloud.tools.jib': TestedVersions.jib
         ]
+    }
+
+    @Override
+    Map<String, String> getExtraPluginsRequiredForValidation() {
+        ['java': '']
     }
 }

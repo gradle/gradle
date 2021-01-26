@@ -16,11 +16,11 @@
 
 package org.gradle.smoketests
 
-class FlywayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
+class LombokPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'org.flywaydb.flyway': TestedVersions.flyway
+            'io.freefair.lombok': TestedVersions.lombok
         ]
     }
 }

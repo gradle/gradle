@@ -16,14 +16,11 @@
 
 package org.gradle.smoketests
 
-class GradleGitPropertiesSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
+class GradleGitPropertiesSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
-    String getPluginId() {
-        'com.gorylenko.gradle-git-properties'
-    }
-
-    @Override
-    Versions getVersions() {
-        TestedVersions.gradleGitProperties
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'com.gorylenko.gradle-git-properties': TestedVersions.gradleGitProperties
+        ]
     }
 }

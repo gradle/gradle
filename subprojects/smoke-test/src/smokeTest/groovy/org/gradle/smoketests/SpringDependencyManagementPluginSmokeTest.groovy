@@ -19,7 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
-class SpringDependencyManagementPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
+class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')
     @ToBeFixedForConfigurationCache
@@ -55,12 +55,9 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractSinglePluginVali
     }
 
     @Override
-    String getPluginId() {
-        'io.spring.dependency-management'
-    }
-
-    @Override
-    Versions getVersions() {
-        Versions.of(TestedVersions.springDependencyManagement)
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'io.spring.dependency-management' : Versions.of(TestedVersions.springDependencyManagement)
+        ]
     }
 }

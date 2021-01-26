@@ -23,7 +23,7 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class PlayPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
+class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
     @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
@@ -58,12 +58,9 @@ class PlayPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
     }
 
     @Override
-    String getPluginId() {
-        'org.gradle.playframework'
-    }
-
-    @Override
-    Versions getVersions() {
-        Versions.of(TestedVersions.playframework)
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'org.gradle.playframework': Versions.of(TestedVersions.playframework)
+        ]
     }
 }

@@ -22,7 +22,7 @@ import spock.lang.Issue
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
-class ProtobufPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
+class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue("https://plugins.gradle.org/plugin/com.google.protobuf")
     @ToBeFixedForConfigurationCache
@@ -79,17 +79,14 @@ class ProtobufPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
     }
 
     @Override
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'com.google.protobuf': Versions.of(TestedVersions.protobufPlugin)
+        ]
+    }
+
+    @Override
     Map<String, String> getExtraPluginsRequiredForValidation() {
         ['java': '']
-    }
-
-    @Override
-    String getPluginId() {
-        "com.google.protobuf"
-    }
-
-    @Override
-    Versions getVersions() {
-        Versions.of(TestedVersions.protobufPlugin)
     }
 }
