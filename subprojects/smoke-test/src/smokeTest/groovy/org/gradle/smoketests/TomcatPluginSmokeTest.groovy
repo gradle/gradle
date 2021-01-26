@@ -22,7 +22,9 @@ import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.Issue
 
-class TomcatPluginSmokeTest extends AbstractSmokeTest {
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+
+class TomcatPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
 
     @Rule
     final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
@@ -94,4 +96,31 @@ class TomcatPluginSmokeTest extends AbstractSmokeTest {
         )
     }
 
+    @Override
+    String getPluginId() {
+        "com.bmuschko.tomcat"
+    }
+
+    @Override
+    Versions getVersions() {
+        Versions.of(TestedVersions.tomcat)
+    }
+
+    @Override
+    void configureValidation(String testedPluginId, String version) {
+        validatePlugins {
+            onPlugin('com.bmuschko.tomcat') {
+                failsWith([
+                    "Type 'TomcatJasper': property 'jasperAttributes' is private and annotated with @Internal.": WARNING,
+                    "Type 'TomcatRun': property 'classesJarScanningRequired' is private and annotated with @Internal.": WARNING
+                ])
+            }
+            onPlugin("com.bmuschko.gradle.tomcat.TomcatBasePlugin") {
+                failsWith([
+                    "Type 'TomcatJasper': property 'jasperAttributes' is private and annotated with @Internal.": WARNING,
+                    "Type 'TomcatRun': property 'classesJarScanningRequired' is private and annotated with @Internal.": WARNING
+                ])
+            }
+        }
+    }
 }

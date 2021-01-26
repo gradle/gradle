@@ -22,7 +22,9 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class NebulaPluginsSmokeTest extends AbstractSmokeTest {
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+
+class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
     @ToBeFixedForConfigurationCache
@@ -46,13 +48,8 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             }
             """
 
-        withPluginValidation()
-
         then:
         runner('build').build()
-
-        and:
-        expectNoPluginValidationError()
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
@@ -102,13 +99,11 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             }
         """.stripIndent()
 
-        withPluginValidation()
-
         when:
         def result = runner('autoLintGradle').build()
 
         then:
-        int numOfRepoBlockLines = 17 + jcenterRepository().readLines().size()
+        int numOfRepoBlockLines = 14 + jcenterRepository().readLines().size()
         result.output.contains("parentheses are unnecessary for dependencies")
         result.output.contains("warning   dependency-parentheses")
         result.output.contains("build.gradle:$numOfRepoBlockLines")
@@ -123,9 +118,6 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 build.gradle:$numOfRepoBlockLines
 testImplementation('junit:junit:4.7')""")
         buildFile.text.contains("testImplementation 'junit:junit:4.7'")
-
-        and:
-        expectNoPluginValidationError()
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
@@ -138,13 +130,8 @@ testImplementation('junit:junit:4.7')""")
             }
         """.stripIndent()
 
-        withPluginValidation()
-
         then:
         runner('buildEnvironment', 'generateLock').build()
-
-        and:
-        expectNoPluginValidationError()
     }
 
     @Issue("gradle/gradle#3798")
@@ -203,15 +190,10 @@ testImplementation('junit:junit:4.7')""")
     }
 }'''
 
-        withPluginValidation()
-
         then:
         runner('dependencies').build()
         runner('generateLock').build()
         runner('resolve').build()
-
-        and:
-        expectNoPluginValidationError()
 
         where:
         version << TestedVersions.nebulaDependencyLock
@@ -251,12 +233,73 @@ testImplementation('junit:junit:4.7')""")
             }
         """.stripIndent()
 
-        withPluginValidation()
-
         then:
         runner('dependencies').build()
+    }
 
-        and:
-        expectNoPluginValidationError()
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'nebula.dependency-recommender': Versions.of(TestedVersions.nebulaDependencyRecommender),
+            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
+            'nebula.lint': Versions.of(TestedVersions.nebulaLint),
+            'nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
+            'nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
+        ]
+    }
+
+    @Override
+    void configureValidation(String testedPluginId, String version) {
+        validatePlugins {
+            if (testedPluginId == 'nebula.plugin-plugin') {
+                onPlugin('com.github.kt3k.coveralls') {
+                    failsWith([
+                        "Type 'CoverallsTask': property 'env' is not annotated with an input or output annotation.": WARNING,
+                        "Type 'CoverallsTask': property 'logger' is not annotated with an input or output annotation.": WARNING,
+                        "Type 'CoverallsTask': property 'sourceReportFactoryMap' is not annotated with an input or output annotation.": WARNING
+                    ])
+                }
+                onPlugins(['com.gradle.plugin-publish',
+                           'nebula.contacts',
+                           'nebula.contacts-base',
+                           'nebula.dependency-lock',
+                           'nebula.facet',
+                           'nebula.info',
+                           'nebula.integtest',
+                           'nebula.java-cross-compile',
+                           'nebula.javadoc-jar',
+                           'nebula.maven-apache-license',
+                           'nebula.maven-publish',
+                           'nebula.nebula-bintray',
+                           'nebula.nebula-release',
+                           'nebula.optional-base',
+                           'nebula.plugin-plugin',
+                           'nebula.plugin.bintray.NebulaBintrayPublishingPlugin',
+                           'nebula.plugin.info.InfoBrokerPlugin',
+                           'nebula.plugin.info.basic.BasicInfoPlugin',
+                           'nebula.plugin.info.basic.ManifestOwnersPlugin',
+                           'nebula.plugin.info.ci.ContinuousIntegrationInfoPlugin',
+                           'nebula.plugin.info.dependencies.DependenciesInfoPlugin',
+                           'nebula.plugin.info.java.InfoJavaPlugin',
+                           'nebula.plugin.info.reporting.InfoJarManifestPlugin',
+                           'nebula.plugin.info.reporting.InfoJarPropertiesFilePlugin',
+                           'nebula.plugin.info.reporting.InfoPropertiesFilePlugin',
+                           'nebula.plugin.info.scm.ScmInfoPlugin',
+                           'nebula.plugin.publishing.maven.MavenBasePublishPlugin',
+                           'nebula.plugin.publishing.maven.MavenDeveloperPlugin',
+                           'nebula.plugin.publishing.maven.MavenManifestPlugin',
+                           'nebula.plugin.publishing.maven.MavenNebulaPublishPlugin',
+                           'nebula.plugin.publishing.maven.MavenResolvedDependenciesPlugin',
+                           'nebula.plugin.publishing.maven.MavenScmPlugin',
+                           'nebula.plugin.publishing.maven.MavenShadowPublishPlugin',
+                           'nebula.plugin.publishing.publications.SpringBootJarPlugin',
+                           'nebula.publish-verification',
+                           'nebula.source-jar']) {
+                    passes()
+                }
+            } else {
+                alwaysPasses()
+            }
+        }
     }
 }

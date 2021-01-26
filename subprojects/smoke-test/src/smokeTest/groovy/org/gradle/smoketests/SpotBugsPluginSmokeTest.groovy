@@ -21,7 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-class SpotBugsPluginSmokeTest extends AbstractSmokeTest {
+class SpotBugsPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.github.spotbugs')
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
@@ -52,8 +52,6 @@ class SpotBugsPluginSmokeTest extends AbstractSmokeTest {
             }
         """.stripIndent()
 
-        withPluginValidation()
-
         when:
         def result = runner('spotbugsMain').build()
 
@@ -61,9 +59,15 @@ class SpotBugsPluginSmokeTest extends AbstractSmokeTest {
         file('build/reports/spotbugs').isDirectory()
 
         expectNoDeprecationWarnings(result)
-
-        and:
-        expectNoPluginValidationError()
     }
 
+    @Override
+    String getPluginId() {
+        'com.github.spotbugs'
+    }
+
+    @Override
+    Versions getVersions() {
+        Versions.of(TestedVersions.spotbugs)
+    }
 }

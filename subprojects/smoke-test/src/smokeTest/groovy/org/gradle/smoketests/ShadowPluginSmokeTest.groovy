@@ -21,7 +21,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-class ShadowPluginSmokeTest extends AbstractSmokeTest {
+class ShadowPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
 
     @Unroll
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
@@ -51,8 +51,6 @@ class ShadowPluginSmokeTest extends AbstractSmokeTest {
             }
             """.stripIndent()
 
-        withPluginValidation()
-
         when:
         def result = runner('shadowJar').build()
 
@@ -68,11 +66,18 @@ class ShadowPluginSmokeTest extends AbstractSmokeTest {
         result.task(':shadowJar').outcome == SUCCESS
         assertConfigurationCacheStateLoaded()
 
-        and:
-        expectNoPluginValidationError()
-
         where:
         version << TestedVersions.shadow
+    }
+
+    @Override
+    String getPluginId() {
+        'com.github.johnrengelman.shadow'
+    }
+
+    @Override
+    Versions getVersions() {
+        TestedVersions.shadow
     }
 
 }

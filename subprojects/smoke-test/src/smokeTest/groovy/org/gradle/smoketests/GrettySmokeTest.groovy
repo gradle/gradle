@@ -21,7 +21,7 @@ import spock.lang.Ignore
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @Ignore("Ignored until https://github.com/gretty-gradle-plugin/gretty/issues/80 is resolved.")
-class GrettySmokeTest extends AbstractSmokeTest {
+class GrettySmokeTest extends AbstractSinglePluginValidatingSmokeTest {
 
     def 'run with jetty'() {
         given:
@@ -59,17 +59,20 @@ class GrettySmokeTest extends AbstractSmokeTest {
             }
         """
 
-        withPluginValidation()
-
         when:
         def result = runner('checkContainerUp').build()
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
+    }
 
-        and:
-        validatePlugins {
-            // TODO when test is re-enabled with a compatible version
-        }
+    @Override
+    String getPluginId() {
+        'org.gretty'
+    }
+
+    @Override
+    Versions getVersions() {
+        Versions.of(TestedVersions.gretty)
     }
 }

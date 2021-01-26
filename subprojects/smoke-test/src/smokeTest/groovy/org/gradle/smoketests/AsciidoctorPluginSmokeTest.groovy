@@ -24,7 +24,9 @@ import spock.lang.Unroll
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
-class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
+class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
+
+    final VersionNumber version3 = VersionNumber.parse("3.0.0")
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
@@ -76,17 +78,9 @@ class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'asciidoctor plugin #version'() {
         given:
-        def version3 = VersionNumber.parse("3.0.0")
-        def pluginId
-        // asciidoctor changed plugin ids after 3.0
-        if (VersionNumber.parse(version) >= version3) {
-            pluginId = "org.asciidoctor.jvm.convert"
-        } else {
-            pluginId = "org.asciidoctor.convert"
-        }
         buildFile << """
             plugins {
-                id '${pluginId}' version '${version}'
+                id '${pluginIdForVersion(version)}' version '${version}'
             }
 
             repositories {
@@ -101,8 +95,6 @@ class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
             Rubies are red,
             Topazes are blue.
             """.stripIndent()
-
-        withPluginValidation()
 
         when:
         def result = runner('asciidoc').build()
@@ -122,9 +114,30 @@ class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
             )
         }
 
-        and:
+        where:
+        version << TestedVersions.asciidoctor
+    }
+
+    private String pluginIdForVersion(String version) {
+        // asciidoctor changed plugin ids after 3.0
+        if (VersionNumber.parse(version) >= version3) {
+            "org.asciidoctor.jvm.convert"
+        } else {
+            "org.asciidoctor.convert"
+        }
+    }
+
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        TestedVersions.asciidoctor.collectEntries([:]) {
+            [pluginIdForVersion(it), Versions.of(it)]
+        }
+    }
+
+    @Override
+    void configureValidation(String pluginId, String version) {
         validatePlugins {
-            forPlugin(pluginId) {
+            onPlugin(pluginId) {
                 if (VersionNumber.parse(version) < version3) {
                     failsWith([
                         "Type 'AbstractAsciidoctorTask': field 'LAST_GRADLE_WITH_CLASSPATH_LEAKAGE' without corresponding getter has been annotated with @Internal.": WARNING,
@@ -141,7 +154,7 @@ class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
                 }
             }
 
-            forPlugin('org_asciidoctor_gradle_base_AsciidoctorBasePlugin') {
+            onPlugin('org_asciidoctor_gradle_base_AsciidoctorBasePlugin') {
                 if (VersionNumber.parse(version) < version3) {
                     passes()
                 } else {
@@ -155,16 +168,13 @@ class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
                 }
             }
 
-            forPlugin('org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin') {
-                if (VersionNumber.parse(version) >= version3) {
-                    passes()
-                } else {
+            onPlugin('org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin') {
+                if (VersionNumber.parse(version) < version3) {
                     skip()
+                } else {
+                    passes()
                 }
             }
         }
-
-        where:
-        version << TestedVersions.asciidoctor
     }
 }

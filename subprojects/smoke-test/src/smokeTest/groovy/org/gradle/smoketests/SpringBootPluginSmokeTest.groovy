@@ -23,7 +23,7 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
-class SpringBootPluginSmokeTest extends AbstractSmokeTest {
+class SpringBootPluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
 
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
@@ -47,8 +47,6 @@ class SpringBootPluginSmokeTest extends AbstractSmokeTest {
             }
         """.stripIndent()
 
-        withPluginValidation()
-
         when:
         def buildResult = runner('assembleBootDist', 'check').build()
 
@@ -64,13 +62,24 @@ class SpringBootPluginSmokeTest extends AbstractSmokeTest {
         runResult.task(':bootRun').outcome == SUCCESS
 
         expectNoDeprecationWarnings(runResult)
+    }
 
-        and:
+    @Override
+    String getPluginId() {
+        'org.springframework.boot'
+    }
+
+    @Override
+    Versions getVersions() {
+        Versions.of(TestedVersions.springBoot)
+    }
+
+    @Override
+    void configureValidation(String pluginId, String version) {
         validatePlugins {
-            forPlugin('org.springframework.boot') {
+            onPlugin(version) {
                 failsWith "Type 'CreateBootStartScripts': property 'mainClassName' is annotated with @Optional that is not allowed for @ReplacedBy properties.", WARNING
             }
         }
     }
-
 }

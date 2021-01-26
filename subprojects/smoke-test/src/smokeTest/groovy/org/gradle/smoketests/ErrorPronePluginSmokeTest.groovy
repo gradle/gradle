@@ -19,7 +19,7 @@ package org.gradle.smoketests
 
 import spock.lang.Issue
 
-class ErrorPronePluginSmokeTest extends AbstractSmokeTest {
+class ErrorPronePluginSmokeTest extends AbstractSinglePluginValidatingSmokeTest {
 
     @Issue("https://github.com/gradle/gradle/issues/9897")
     def 'errorprone plugin'() {
@@ -64,16 +64,20 @@ class ErrorPronePluginSmokeTest extends AbstractSmokeTest {
             }
         """
 
-        withPluginValidation()
-
         when:
         def result = runner('compileJava').forwardOutput().build()
 
         then:
         expectNoDeprecationWarnings(result)
-
-        and:
-        expectNoPluginValidationError()
     }
 
+    @Override
+    String getPluginId() {
+        'net.ltgt.errorprone'
+    }
+
+    @Override
+    Versions getVersions() {
+        Versions.of(TestedVersions.errorProne)
+    }
 }
