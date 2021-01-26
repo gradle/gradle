@@ -24,7 +24,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public interface TaskExecutionContext {
 
@@ -34,7 +33,7 @@ public interface TaskExecutionContext {
 
     WorkValidationContext getValidationContext();
 
-    Consumer<TypeValidationContext> getValidationAction();
+    ValidationAction getValidationAction();
 
     void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
 
@@ -64,4 +63,8 @@ public interface TaskExecutionContext {
      * by capturing input snapshotting and cache key calculation.
      */
     void setSnapshotTaskInputsBuildOperationContext(BuildOperationContext operation);
+
+    interface ValidationAction {
+        void validate(boolean historyMaintained, TypeValidationContext validationContext);
+    }
 }

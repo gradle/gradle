@@ -431,7 +431,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 reservedFileSystemLocationRegistry,
                 typeValidationContext
             ));
-            context.getValidationAction().accept(typeValidationContext);
+            context.getValidationAction().validate(context.getTaskExecutionMode().isTaskHistoryMaintained(), typeValidationContext);
         }
 
         @Override

@@ -310,8 +310,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 - A RegularFile instance.
                 - A URI or URL instance.
                 - A TextResource instance.
-            Consider using Task.dependsOn instead of an input file collection.
-        """.stripIndent())
+            Consider using Task.dependsOn instead of an input file collection.""".stripIndent())
     }
 
     void expectMissingDependencyDeprecation(String producer, String consumer) {

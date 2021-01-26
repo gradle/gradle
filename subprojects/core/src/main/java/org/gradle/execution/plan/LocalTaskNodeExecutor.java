@@ -65,7 +65,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 localTaskNode,
                 localTaskNode.getTaskProperties(),
                 localTaskNode.getValidationContext(),
-                typeValidationContext -> detectMissingDependencies(localTaskNode, typeValidationContext)
+                (historyMaintained, typeValidationContext) -> detectMissingDependencies(localTaskNode, historyMaintained, typeValidationContext)
             );
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
@@ -76,7 +76,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         }
     }
 
-    private void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
+    private void detectMissingDependencies(LocalTaskNode node, boolean historyMaintained, TypeValidationContext validationContext) {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
@@ -113,11 +113,15 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                         }
                     });
                 } catch (Exception e) {
-                    validationContext.visitPropertyProblem(
-                        TypeValidationContext.Severity.WARNING,
-                        spec.getPropertyName(),
-                        String.format("cannot be resolved:%n%s%nConsider using Task.dependsOn instead of an input file collection", TextUtil.indent(e.getMessage(), "  "))
-                    );
+                    if (historyMaintained) { // We would try to snapshots the inputs anyway, no need to suppress the exception
+                        throw e;
+                    } else {
+                        validationContext.visitPropertyProblem(
+                            TypeValidationContext.Severity.WARNING,
+                            spec.getPropertyName(),
+                            String.format("cannot be resolved:%n%s%nConsider using Task.dependsOn instead of an input file collection", TextUtil.indent(e.getMessage(), "  "))
+                        );
+                    }
                 }
             });
         inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
