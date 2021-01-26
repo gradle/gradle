@@ -57,10 +57,6 @@ abstract class AbstractPlayExternalContinuousBuildIntegrationTest extends Abstra
         runningApp.verifyContent()
     }
 
-    void appIsStopped() {
-        runningApp.verifyStopped()
-    }
-
     @Override
     protected ExecutionResult succeeds(String... tasks) {
         return super.succeeds(tasks)
