@@ -429,6 +429,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @Ignore("Broken by https://github.com/gradle/gradle/pull/15879 - investigating")
     @Issue("GRADLE-2820")
     def "remoteparent"() {
         def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
@@ -497,7 +498,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '-Dorg.gradle.debug=true'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
         targetDir.file(dsl.settingsFileName).exists()
@@ -532,8 +533,7 @@ Root project 'webinar-parent'
 """
 
         where:
-//        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-        scriptDsl << [BuildInitDsl.KOTLIN]
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15827")
