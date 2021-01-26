@@ -522,6 +522,23 @@ class DefaultTaskTest extends AbstractTaskTest {
         then:
         task.actions[0].displayName == "Execute unnamed action"
     }
+
+    def "can detect tasks with custom actions added"() {
+        expect:
+        !task.hasCustomActions
+
+        when:
+        task.prependParallelSafeAction {}
+
+        then:
+        !task.hasCustomActions
+
+        when:
+        task.doFirst {}
+
+        then:
+        task.hasCustomActions
+    }
 }
 
 class TestConvention {
