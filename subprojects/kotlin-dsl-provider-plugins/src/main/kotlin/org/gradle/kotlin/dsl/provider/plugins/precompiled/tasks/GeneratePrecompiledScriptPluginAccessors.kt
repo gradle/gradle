@@ -26,6 +26,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -74,6 +75,7 @@ import java.nio.file.Files
 import javax.inject.Inject
 
 
+@CacheableTask
 abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constructor(
 
     private
@@ -117,6 +119,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     @get:Input
     abstract val strict: Property<Boolean>
+
+    init {
+        outputs.doNotCacheIf(
+            "Generated accessors can only be cached in strict mode."
+        ) {
+            !strict.get()
+        }
+    }
 
     /**
      *  ## Computation and sharing of type-safe accessors
