@@ -26,7 +26,6 @@ class AbstractFileSystemWatchingIntegrationTest extends AbstractIntegrationSpec 
 
     def setup() {
         assumeFalse("No shared state without a daemon", GradleContextualExecuter.noDaemon)
-        assumeFalse("The test manually enables file system watching", GradleContextualExecuter.watchFs)
 
         // Make the first build in each test drop the VFS state
         executer.requireIsolatedDaemons()

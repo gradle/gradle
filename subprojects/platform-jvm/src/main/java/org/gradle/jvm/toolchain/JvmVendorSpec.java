@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
@@ -25,7 +24,6 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
  *
  * @since 6.8
  */
-@Incubating
 public abstract class JvmVendorSpec {
 
     public static final JvmVendorSpec ADOPTOPENJDK = matching(KnownJvmVendor.ADOPTOPENJDK);

@@ -40,7 +40,7 @@ class ShowToolchainsIntegrationTest extends AbstractIntegrationSpec {
         run("tasks")
 
         then:
-        outputContains("javaToolchains - Displays the detected java toolchains. [incubating]")
+        outputContains("javaToolchains - Displays the detected java toolchains.")
     }
 
 }

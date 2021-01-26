@@ -156,6 +156,12 @@ If this is causing issues in cases you manually configure the module path, or us
 
 The `ValidateTaskProperties` task has been removed and replaced by the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html task.
 
+==== Removal of `ImmutableFileCollection`
+
+The `ImmutableFileCollection` type has been removed.
+Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...- factory method instead.
+A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--.
+
 === Deprecations
 
 [[missing_dependencies]]

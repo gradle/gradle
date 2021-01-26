@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -26,7 +25,6 @@ import org.gradle.api.tasks.Nested;
  *
  * @since 6.7
  */
-@Incubating
 public interface JavaLauncher {
 
     /**

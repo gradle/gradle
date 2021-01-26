@@ -260,8 +260,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 }
 
                 @Override
-                public void handleLostState() {
-                    LOGGER.warn("Dropped VFS state due to lost state");
+                public void stopWatchingAfterError() {
                     stopWatchingAndInvalidateHierarchy();
                 }
             });

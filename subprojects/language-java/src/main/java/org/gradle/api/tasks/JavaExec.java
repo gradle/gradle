@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
@@ -749,7 +748,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      *
      * @since 6.7
      */
-    @Incubating
     @Nested
     @Optional
     public Property<JavaLauncher> getJavaLauncher() {
