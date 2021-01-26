@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 
 class BuildSrcDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSrcDetector.class);
@@ -55,8 +57,8 @@ class BuildSrcDetector {
         if (!directory.exists() || !directory.isDirectory()) {
             return false;
         }
-        try {
-            return Files.walk(directory.toPath()).anyMatch(Files::isRegularFile);
+        try (Stream<Path> directoryContents = Files.walk(directory.toPath())) {
+            return directoryContents.anyMatch(Files::isRegularFile);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
