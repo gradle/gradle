@@ -112,8 +112,8 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public int getNumberOfWatchedHierarchies() {
-        return watchedHierarchies.getWatchedRoots().size();
+    public Collection<Path> getWatchedHierarchies() {
+        return watchedHierarchies.getWatchedRoots();
     }
 
     private void updateWatchedHierarchies(SnapshotHierarchy root) {

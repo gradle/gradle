@@ -294,11 +294,6 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
         group = ciGroup
     }
 
-    register("watchFsTest") {
-        description = "Run all integration tests with file system watching enabled"
-        group = ciGroup
-    }
-
     register("forceRealizeDependencyManagementTest") {
         description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
         group = ciGroup
