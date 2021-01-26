@@ -50,15 +50,14 @@ public class TaskFactory implements ITaskFactory {
     @Override
     @SuppressWarnings("deprecation")
     public <S extends Task> S create(final TaskIdentity<S> identity, @Nullable final Object[] constructorArgs) {
-
-        NameValidator.validate(identity.name, "task name", "");
-
         if (!Task.class.isAssignableFrom(identity.type)) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task '%s' of type '%s' as it does not implement the Task interface.",
                 identity.identityPath.toString(),
                 identity.type.getSimpleName()));
         }
+
+        NameValidator.validate(identity.name, "task name", "");
 
         final Class<? extends DefaultTask> implType;
         if (identity.type == Task.class) {
