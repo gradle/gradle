@@ -19,9 +19,6 @@ package org.gradle.play.integtest.fixtures.external
 import org.gradle.util.VersionNumber
 
 class BasicPlayApp extends PlayApp {
-    BasicPlayApp() {
-        super()
-    }
 
     BasicPlayApp(VersionNumber version) {
         super(version)

@@ -16,9 +16,7 @@
 
 package org.gradle.play.integtest.fixtures.external
 
-import org.apache.http.HttpStatus
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder.DistributionTestExecHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 
@@ -40,19 +38,6 @@ class RunningPlayApp {
     URL playUrl(String path='') {
         requireHttpPort()
         return new URL("http://localhost:$httpPort/${path}")
-    }
-
-    def playUrlError(String path='', int timeout=30) {
-        requireHttpPort()
-        HttpURLConnection connection
-        ConcurrentTestUtil.poll(timeout) {
-            connection = playUrl(path).openConnection()
-            assert connection.responseCode >= HttpStatus.SC_BAD_REQUEST
-        }
-
-        return [ 'httpCode': connection.responseCode,
-                 'message': connection.responseMessage,
-                 'text': connection.errorStream.text ]
     }
 
     protected int parseHttpPort(int occurrence) {
@@ -101,15 +86,6 @@ class RunningPlayApp {
     void initialize(GradleHandle gradle) {
         output = { gradle.standardOutput }
         standalone = false
-    }
-
-    void initialize(DistributionTestExecHandle distHandle) {
-        output = { distHandle.standardOutput }
-        standalone = true
-    }
-
-    boolean isInitialized() {
-        output != null
     }
 
     void waitForStarted(int occurrence = 0) {
