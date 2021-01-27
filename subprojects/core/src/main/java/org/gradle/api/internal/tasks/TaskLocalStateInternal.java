@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.TaskLocalState;
 
 
-// Note: this is currently not visible on {@link org.gradle.api.internal.TaskInternal} to avoid it leaking onto AbstractTask and so on to the public API.
+// Note: this is currently not visible on {@link org.gradle.api.internal.TaskInternal} to avoid it leaking onto DefaultTask and so on to the public API.
 public interface TaskLocalStateInternal extends TaskLocalState {
 
     void visitRegisteredProperties(PropertyVisitor visitor);

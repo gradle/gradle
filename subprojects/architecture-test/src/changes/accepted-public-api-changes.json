@@ -107,14 +107,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.DefaultTask",
-            "member": "Class org.gradle.api.DefaultTask",
-            "acceptation": "Removal of unused internal method",
-            "changes": [
-                "org.gradle.api.internal.AbstractTask.setLoggerMessageRewriter(org.gradle.internal.logging.slf4j.ContextAwareTaskLogger$MessageRewriter)"
-            ]
-        },
-        {
             "type": "org.gradle.api.plugins.quality.Pmd",
             "member": "Method org.gradle.api.plugins.quality.Pmd.getRulePriority()",
             "acceptation": "Removal of deprecated method",
@@ -1551,6 +1543,28 @@
             "acceptation": "Deprecated start parameter has been removed",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.getServices()",
+            "acceptation": "Moved from now removed AbstractTask",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.injectIntoNewInstance(org.gradle.api.internal.project.ProjectInternal,org.gradle.api.internal.project.taskfactory.TaskIdentity,java.util.concurrent.Callable)",
+            "acceptation": "Moved from now removed AbstractTask",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.isEnabled()",
+            "acceptation": "Moved from now removed AbstractTask",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
         }
     ]
