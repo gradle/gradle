@@ -520,6 +520,7 @@ tasks.named("docsTest") { task ->
         excludeTestsMatching '*jvm-multi-project-with-toolchains_kotlin_checkTask*'
         excludeTestsMatching '*java-modules-multi-project_kotlin_testTask*'
         excludeTestsMatching '*java-modules-multi-project-with-integration-tests_kotlin_testTask*'
+        excludeTestsMatching '*structuring-software-projects*'
     }
 }
 
