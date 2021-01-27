@@ -701,25 +701,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
-    protected String toJvmArgsString(Iterable<String> jvmArgs) {
-        StringBuilder result = new StringBuilder();
-        for (String jvmArg : jvmArgs) {
-            if (result.length() > 0) {
-                result.append(" ");
-            }
-            if (jvmArg.contains(" ")) {
-                assert !jvmArg.contains("\"") : "jvmArg '" + jvmArg + "' contains '\"'";
-                result.append('"');
-                result.append(jvmArg);
-                result.append('"');
-            } else {
-                result.append(jvmArg);
-            }
-        }
-
-        return result.toString();
-    }
-
     @Override
     public GradleExecuter withTasks(String... names) {
         return withTasks(Arrays.asList(names));

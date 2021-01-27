@@ -25,7 +25,6 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleBuilder;
-import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -56,57 +55,15 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public void assertCanExecute() throws AssertionError {
-        if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-            Map<String, String> environmentVars = buildInvocation().environmentVars;
-            for (String envVarName : Arrays.asList("JAVA_OPTS", "GRADLE_OPTS")) {
-                String envVarValue = environmentVars.get(envVarName);
-                if (envVarValue == null) {
-                    continue;
-                }
-                for (String arg : JvmOptions.fromString(envVarValue)) {
-                    if (arg.contains(" ")) {
-                        throw new AssertionError(String.format("Env var %s contains arg with space (%s) which is not supported by Gradle %s", envVarName, arg, getDistribution().getVersion().getVersion()));
-                    }
-                }
-            }
-        }
     }
 
     @Override
     protected void transformInvocation(GradleInvocation invocation) {
-        if (getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-            // Mix the implicit launcher JVM args in with the requested JVM args
-            super.transformInvocation(invocation);
-        } else {
-            // Need to move those implicit JVM args that contain a space to the Gradle command-line (if possible)
-            // Note that this isn't strictly correct as some system properties can only be set on JVM start up.
-            // Should change the implementation to deal with these properly
-            for (String jvmArg : invocation.implicitLauncherJvmArgs) {
-                if (!jvmArg.contains(" ")) {
-                    invocation.launcherJvmArgs.add(jvmArg);
-                } else if (jvmArg.startsWith("-D")) {
-                    invocation.args.add(jvmArg);
-                } else {
-                    throw new UnsupportedOperationException(String.format("Cannot handle launcher JVM arg '%s' as it contains whitespace. This is not supported by Gradle %s.",
-                        jvmArg, getDistribution().getVersion().getVersion()));
-                }
-            }
-        }
-        invocation.implicitLauncherJvmArgs.clear();
+        // Mix the implicit launcher JVM args in with the requested JVM args
+        super.transformInvocation(invocation);
 
         // Inject the launcher JVM args via one of the environment variables
         Map<String, String> environmentVars = invocation.environmentVars;
-        String jvmOptsEnvVar;
-        if (!environmentVars.containsKey("GRADLE_OPTS")) {
-            jvmOptsEnvVar = "GRADLE_OPTS";
-        } else if (!environmentVars.containsKey("JAVA_OPTS")) {
-            jvmOptsEnvVar = "JAVA_OPTS";
-        } else {
-            // This could be handled, just not implemented yet
-            throw new UnsupportedOperationException(String.format("Both GRADLE_OPTS and JAVA_OPTS environment variables are being used. Cannot provide JVM args %s to Gradle command.", invocation.launcherJvmArgs));
-        }
-        final String value = toJvmArgsString(invocation.launcherJvmArgs);
-        environmentVars.put(jvmOptsEnvVar, value);
 
         // Add a JAVA_HOME if none provided
         if (!environmentVars.containsKey("JAVA_HOME")) {
@@ -178,7 +135,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                 // Clear the user's environment
                 builder.environment("GRADLE_HOME", "");
                 builder.environment("JAVA_HOME", "");
-                builder.environment("GRADLE_OPTS", "");
+//                builder.environment("GRADLE_OPTS", "");
                 builder.environment("JAVA_OPTS", "");
                 builder.environment(ArtifactCachesProvider.READONLY_CACHE_ENV_VAR, "");
 
