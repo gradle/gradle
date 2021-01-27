@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot;
 import org.gradle.internal.file.FileType;
 
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode {
@@ -152,27 +151,9 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
         return anyChildMatches(children, FileSystemNode::hasDescendants);
     }
 
-    private boolean anyChildMatches(ChildMap<FileSystemNode> children, Predicate<FileSystemNode> predicate) {
-        AnyChildHasPropertyVisitor visitor = new AnyChildHasPropertyVisitor(predicate);
-        children.visitChildren(visitor);
-        return visitor.isAnyChildMatches();
-    }
-
-    public static class AnyChildHasPropertyVisitor implements BiConsumer<String, FileSystemNode> {
-        private final Predicate<FileSystemNode> predicate;
-        private boolean anyChildMatches = false;
-
-        public AnyChildHasPropertyVisitor(Predicate<FileSystemNode> predicate) {
-            this.predicate = predicate;
-        }
-
-        @Override
-        public void accept(String path, FileSystemNode child) {
-            anyChildMatches |= predicate.test(child);
-        }
-
-        public boolean isAnyChildMatches() {
-            return anyChildMatches;
-        }
+    private static boolean anyChildMatches(ChildMap<FileSystemNode> children, Predicate<FileSystemNode> predicate) {
+        return children.entries().stream()
+            .map(ChildMap.Entry::getValue)
+            .anyMatch(predicate);
     }
 }

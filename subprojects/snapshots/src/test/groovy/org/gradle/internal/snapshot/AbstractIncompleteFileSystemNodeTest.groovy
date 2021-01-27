@@ -62,7 +62,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
 
         1 * snapshot.asFileSystemNode() >> newGrandChild
         _ * newGrandChild.snapshot >> Optional.of(snapshot)
-        1 * selectedChild.snapshot >> Optional.empty()
+        _ * selectedChild.snapshot >> Optional.empty()
         1 * snapshot.type >> fileType
         interaction { noMoreInteractions() }
 
@@ -94,7 +94,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
 
         1 * snapshot.asFileSystemNode() >> newGrandChild
         _ * newGrandChild.snapshot >> Optional.of(snapshot)
-        1 * selectedChild.snapshot >> Optional.empty()
+        _ * selectedChild.snapshot >> Optional.empty()
         1 * snapshot.type >> FileType.Missing
         interaction { noMoreInteractions() }
 
