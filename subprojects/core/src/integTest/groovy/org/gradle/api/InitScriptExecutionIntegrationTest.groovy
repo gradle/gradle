@@ -247,7 +247,7 @@ initscript {
         executer.requireOwnGradleUserHomeDir()
 
         and:
-        file("buildSrc").mkdir()
+        file("buildSrc/settings.gradle").createFile()
 
         and:
         executer.gradleUserHomeDir.file('init.d/a.gradle') << '''

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
@@ -58,16 +60,34 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     @Override
     public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
         String name = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
+        HashCode fileHash = hashOf(sourceSnapshot);
+        String destFileName = fileHash.toString() + '/' + name;
+        File transformed = new File(cacheDir, destFileName);
+        if (!transformed.isFile()) {
+            try {
+                transform(source, transformed);
+            } catch (GradleException e) {
+                if (e.getCause() instanceof FileAlreadyExistsException) {
+                    // Mostly harmless race-condition, a concurrent writer has already started writing to the file.
+                    // We run identical transforms concurrently and we can sometimes finish two transforms at the same
+                    // time in a way that Files.move (see [ClasspathBuilder.jar]) will see [transformed] created before
+                    // the move is done.
+                    LOGGER.debug("Instrumented classpath file '{}' already exists.", destFileName, e);
+                } else {
+                    throw e;
+                }
+            }
+        }
+        return transformed;
+    }
+
+    private HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putHash(configHash);
         // TODO - apply runtime classpath normalization?
         hasher.putHash(sourceSnapshot.getHash());
         HashCode fileHash = hasher.hash();
-        File transformed = new File(cacheDir, fileHash.toString() + '/' + name);
-        if (!transformed.isFile()) {
-            transform(source, transformed);
-        }
-        return transformed;
+        return fileHash;
     }
 
     private void transform(File source, File dest) {

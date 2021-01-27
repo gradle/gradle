@@ -59,7 +59,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "does not treat buildSrc as undefined build"() {
         given:
         settingsFile.touch()
-        file("buildSrc").mkdir()
+        file("buildSrc/src/main/groovy/Dummy.groovy") << "class Dummy {}"
 
         expect:
         succeeds("help") // without deprecation warning
