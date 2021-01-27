@@ -74,7 +74,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     void configureValidation(String pluginId, String version) {
         validatePlugins {
-            onPlugin(version) {
+            onPlugin(pluginId) {
                 failsWith "Type 'CreateBootStartScripts': property 'mainClassName' is annotated with @Optional that is not allowed for @ReplacedBy properties.", WARNING
             }
         }
