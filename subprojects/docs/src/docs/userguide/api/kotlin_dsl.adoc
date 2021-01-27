@@ -980,7 +980,7 @@ native {                                                    <3>
 [[kotdsl:limitations]]
 == Limitations
 
-* The Kotlin DSL is link:https://github.com/gradle/gradle/issues/15886[known to be slower than the Groovy DSL] on first use, for example with clean checkouts or on ephemeral continuous integration agents.
+* The Kotlin DSL is link:{gradle-issues}15886[known to be slower than the Groovy DSL] on first use, for example with clean checkouts or on ephemeral continuous integration agents.
 Changing something in the _buildSrc_ directory also has an impact as it invalidates build-script caching.
 The main reason for this is the slower script compilation for Kotlin DSL.
 * In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] in order to get content assist and refactoring support for your Kotlin DSL build scripts.
