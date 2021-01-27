@@ -47,14 +47,6 @@ abstract class AbstractRedirectResolveBaseIntegrationTest extends AbstractHttpDe
         executer.withWarningMode(WarningMode.All)
     }
 
-    void optionallyExpectDeprecation() {
-//        if (shouldWarnAboutDeprecation()) {
-//            outputContains("Following insecure redirects, without explicit opt-in, has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-//            outputContains("Switch "); outputContains(" repository ")
-//            outputContains(" to redirect to a secure protocol (like HTTPS) or allow insecure protocols.")
-//        }
-    }
-
     def configurationWithIvyDependencyAndExpectedArtifact(String dependency, String expectedArtifact, boolean allowInsecureProtocol = defaultAllowInsecureProtocol()) {
         String allowInsecureProtocolCall =  allowInsecureProtocol ? "allowInsecureProtocol true" : ""
         """
