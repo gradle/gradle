@@ -37,6 +37,7 @@ dependencies {
     smokeTestImplementation(libs.junitPlatform)
 
     smokeTestImplementation(testFixtures(project(":core")))
+    smokeTestImplementation(testFixtures(project(":plugin-development")))
     smokeTestImplementation(testFixtures(project(":version-control")))
 
     smokeTestDistributionRuntimeOnly(project(":distributions-full"))

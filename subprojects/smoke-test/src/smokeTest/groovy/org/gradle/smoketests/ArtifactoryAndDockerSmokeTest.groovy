@@ -19,11 +19,12 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.Requires
 
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 import static org.gradle.util.TestPrecondition.HAS_DOCKER
 
 // Works on MacOS, but let's test on linux only where we know docker is available
 @Requires(HAS_DOCKER)
-class ArtifactoryAndDockerSmokeTest extends AbstractSmokeTest {
+class ArtifactoryAndDockerSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @ToBeFixedForConfigurationCache
     def 'artifactory with docker and plugin upload'() {
@@ -115,5 +116,29 @@ class ArtifactoryAndDockerSmokeTest extends AbstractSmokeTest {
 
         then:
         runner('artifactoryPublish').build()
+    }
+
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'com.bmuschko.docker-remote-api': Versions.of(TestedVersions.docker),
+            'com.jfrog.artifactory': Versions.of(TestedVersions.artifactoryPlugin)
+        ]
+    }
+
+    @Override
+    void configureValidation(String pluginId, String version) {
+        validatePlugins {
+            onPlugin(pluginId) {
+                if (pluginId == 'com.bmuschko.docker-remote-api') {
+                    failsWith([
+                        "Type 'AbstractDockerRemoteApiTask': non-property method 'memoizedMethodPriv\$getDockerClient()' should not be annotated with: @Internal.": WARNING,
+                        "Type 'AbstractDockerRemoteApiTask': non-property method 'memoizedMethodPriv\$getRegistryAuthLocator()' should not be annotated with: @Internal.": WARNING
+                    ])
+                } else {
+                    passes()
+                }
+            }
+        }
     }
 }

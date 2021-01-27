@@ -49,6 +49,8 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
+
+    testFixturesImplementation(project(":model-core"))
 }
 
 integTest.usesSamples.set(true)

@@ -53,13 +53,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     @Override
     void assertValidationFailsWith(boolean expectDeprecationsForErrors, Map<String, TypeValidationContext.Severity> messages) {
         fails "validatePlugins"
-
-        def expectedReportContents = messages
-            .collect { message, severity ->
-                "$severity: $message"
-            }
-            .join("\n")
-        assert file("build/reports/plugin-development/validation-report.txt").text == expectedReportContents
+        def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.txt"))
+        report.verify(messages)
 
         failure.assertHasCause "Plugin validation failed"
         messages.forEach { message, severity ->

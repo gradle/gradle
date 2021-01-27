@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class GradleVersionsPluginSmokeTest extends AbstractSmokeTest {
+class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'can check for updated versions'() {
@@ -59,5 +59,12 @@ class GradleVersionsPluginSmokeTest extends AbstractSmokeTest {
         result.output.contains("- log4j:log4j [1.2.14 -> 1.2.17]")
 
         file("build/dependencyUpdates/report.txt").exists()
+    }
+
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'com.github.ben-manes.versions': Versions.of(TestedVersions.gradleVersions)
+        ]
     }
 }

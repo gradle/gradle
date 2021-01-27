@@ -21,7 +21,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-class ShadowPluginSmokeTest extends AbstractSmokeTest {
+class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Unroll
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
@@ -70,4 +70,10 @@ class ShadowPluginSmokeTest extends AbstractSmokeTest {
         version << TestedVersions.shadow
     }
 
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'com.github.johnrengelman.shadow': TestedVersions.shadow
+        ]
+    }
 }

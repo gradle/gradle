@@ -29,6 +29,7 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -103,6 +104,35 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
 
         return null;
+    }
+
+    @Override
+    public Optional<PluginId> findPluginForClass(Class<?> clazz) {
+        if (parent != null) {
+            Optional<PluginId> result = parent.findPluginForClass(clazz);
+            if (result.isPresent()) {
+                return result;
+            }
+        }
+
+        Optional<PluginImplementation<?>> impl = Optional.ofNullable(Cast.uncheckedCast(uncheckedGet(classMappings, clazz)));
+        if (impl.isPresent()) {
+            // We don't have to make this lookup efficient for now, as this is only used for plugin validation
+            // and the number of plugins is low in any case
+            Map<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> idToPlugin = idMappings.asMap();
+            PluginImplementation<?> lookup = impl.get();
+            for (Map.Entry<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> entry : idToPlugin.entrySet()) {
+                Optional<PluginImplementation<?>> value = entry.getValue();
+                if (value.isPresent()) {
+                    PluginImplementation<?> found = value.get();
+                    if (found.asClass().equals(lookup.asClass())) {
+                        return Optional.ofNullable(entry.getKey().id);
+                    }
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     @Override

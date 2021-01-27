@@ -21,7 +21,7 @@ import spock.lang.Ignore
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @Ignore("Ignored until https://github.com/gretty-gradle-plugin/gretty/issues/80 is resolved.")
-class GrettySmokeTest extends AbstractSmokeTest {
+class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
     def 'run with jetty'() {
         given:
@@ -31,13 +31,13 @@ class GrettySmokeTest extends AbstractSmokeTest {
                 id "war"
                 id "org.gretty" version "${TestedVersions.gretty}"
             }
-            
+
             ${jcenterRepository()}
 
             dependencies {
                 compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
             }
-            
+
             gretty {
                 contextPath = 'quickstart'
 
@@ -64,5 +64,12 @@ class GrettySmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
+    }
+
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'org.gretty': Versions.of(TestedVersions.gretty)
+        ]
     }
 }
