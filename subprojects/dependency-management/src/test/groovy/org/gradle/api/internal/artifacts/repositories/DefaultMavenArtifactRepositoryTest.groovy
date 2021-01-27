@@ -86,9 +86,9 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "creates http repository"() {
         given:
-        def uri = new URI("http://localhost:9090/repo")
+        def uri = new URI("https://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('http', 'repo', _, _) >> transport()
+        transportFactory.createTransport('https', 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -104,13 +104,13 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "creates repository with additional artifact URLs"() {
         given:
-        def uri = new URI("http://localhost:9090/repo")
-        def uri1 = new URI("http://localhost:9090/repo1")
-        def uri2 = new URI("http://localhost:9090/repo2")
+        def uri = new URI("https://localhost:9090/repo")
+        def uri1 = new URI("https://localhost:9090/repo1")
+        def uri2 = new URI("https://localhost:9090/repo2")
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createTransport('http', 'repo', _, _) >> transport()
+        transportFactory.createTransport('https', 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -159,7 +159,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "create repository from strongly typed URI"() {
         given:
-        def uri = new URI("http://localhost:9090/repo")
+        def uri = new URI("https://localhost:9090/repo")
         _ * resolver.resolveUri(_) >> uri
         transportFactory.createTransport(_, 'repo', _, _) >> transport()
 
@@ -177,9 +177,9 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "can set a custom metadata rule"() {
         repository.name = 'name'
-        repository.url = 'http://host'
-        resolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport('http', 'name', _, _) >> transport()
+        repository.url = 'https://host'
+        resolver.resolveUri('https://host') >> new URI('https://host/')
+        transportFactory.createTransport('https', 'name', _, _) >> transport()
 
         given:
         repository.setMetadataSupplier(CustomMetadataSupplier)
@@ -195,9 +195,9 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "can inject configuration into a custom metadata rule"() {
         repository.name = 'name'
-        repository.url = 'http://host'
-        resolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport('http', 'name', _, _) >> transport()
+        repository.url = 'https://host'
+        resolver.resolveUri('https://host') >> new URI('https://host/')
+        transportFactory.createTransport('https', 'name', _, _) >> transport()
 
         given:
         repository.setMetadataSupplier(CustomMetadataSupplierWithParams) { it.params("a", 12, [1, 2, 3]) }
@@ -213,9 +213,9 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "can set a custom version lister"() {
         repository.name = 'name'
-        repository.url = 'http://host'
-        resolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport('http', 'name', _, _) >> transport()
+        repository.url = 'https://host'
+        resolver.resolveUri('https://host') >> new URI('https://host/')
+        transportFactory.createTransport('https', 'name', _, _) >> transport()
 
         given:
         repository.setComponentVersionsLister(CustomVersionLister)
@@ -230,9 +230,9 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "can inject configuration into a custom version lister"() {
         repository.name = 'name'
-        repository.url = 'http://host'
-        resolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport('http', 'name', _, _) >> transport()
+        repository.url = 'https://host'
+        resolver.resolveUri('https://host') >> new URI('https://host/')
+        transportFactory.createTransport('https', 'name', _, _) >> transport()
 
         given:
         repository.setComponentVersionsLister(CustomVersionListerWithParams) { it.params("a", 12, [1, 2, 3]) }
@@ -247,9 +247,9 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "can retrieve metadataSources"() {
         repository.name = 'name'
-        repository.url = 'http://host'
-        resolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport('http', 'name', _, _) >> transport()
+        repository.url = 'https://host'
+        resolver.resolveUri('https://host') >> new URI('https://host/')
+        transportFactory.createTransport('https', 'name', _, _) >> transport()
 
         given:
         repository.metadataSources(new Action<MavenArtifactRepository.MetadataSources>() {

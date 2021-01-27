@@ -31,7 +31,7 @@ class HttpsToHttpsRedirectResolveIntegrationTest extends AbstractRedirectResolve
     }
 
     @Override
-    boolean shouldWarnAboutDeprecation() {
+    boolean defaultAllowInsecureProtocol() {
         return false
     }
 

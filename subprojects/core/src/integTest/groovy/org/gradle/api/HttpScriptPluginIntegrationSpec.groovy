@@ -15,9 +15,12 @@
  */
 package org.gradle.api
 
+import org.gradle.api.resources.TextResourceFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
@@ -25,6 +28,8 @@ import org.gradle.util.GUtil
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import static org.junit.Assert.fail
 
 class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     @org.junit.Rule
@@ -69,7 +74,9 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         when:
         server.useHostname()
         def script = file('external.gradle')
-        server.expectGet('/external.gradle', script)
+        server.beforeHandle {
+            fail("No requests were expected.")
+        }
 
         script << """
             task doStuff
@@ -83,11 +90,12 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 """
 
         then:
-        executer.expectDocumentedDeprecationWarning("Applying script plugins from insecure URIs has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        ExecutionFailure failure = fails(":help")
+        failure.assertHasCause("Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. " +
             "The provided URI '${server.uri("/external.gradle")}' uses an insecure protocol (HTTP). " +
-            "Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")' to silence the warning. " +
-            "See https://docs.gradle.org/current/dsl/org.gradle.api.resources.TextResourceFactory.html#org.gradle.api.resources.TextResourceFactory:fromInsecureUri(java.lang.Object) for more details.")
-        succeeds()
+            "Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")' to fix this. " +
+            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
+        )
     }
 
     def "does not complain when applying script plugin via http using text resource"() {

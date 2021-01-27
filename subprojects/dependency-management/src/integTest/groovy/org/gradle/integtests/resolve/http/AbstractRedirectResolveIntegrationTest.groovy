@@ -15,48 +15,10 @@
  */
 package org.gradle.integtests.resolve.http
 
-import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
-abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
-    @Rule HttpServer backingServer = new HttpServer()
-
-    abstract String getFrontServerBaseUrl();
-    /**
-     * The goal is to deprecate the download of artifacts over HTTP as it is a security vulnerability.
-     */
-    abstract boolean shouldWarnAboutDeprecation();
-
-    def module = ivyRepo().module('group', 'projectA').publish()
-
-    abstract void beforeServerStart();
-
-    def setupServer() {
-        beforeServerStart()
-        server.useHostname()
-        backingServer.useHostname()
-        backingServer.start()
-    }
-
-    @Override
-    def setup() {
-        setupServer()
-        executer.withWarningMode(WarningMode.All)
-    }
-
-    void optionallyExpectDeprecation() {
-        if (shouldWarnAboutDeprecation()) {
-            outputContains("Following insecure redirects, without explicit opt-in, has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-            outputContains("Switch "); outputContains(" repository ")
-            outputContains(" to redirect to a secure protocol (like HTTPS) or allow insecure protocols.")
-        }
-    }
+abstract class AbstractRedirectResolveIntegrationTest extends AbstractRedirectResolveBaseIntegrationTest {
 
     def "resolves module artifacts via HTTP redirect"() {
         given:
@@ -69,15 +31,7 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         backingServer.expectGet('/redirected/group/projectA/1.0/projectA-1.0.jar', module.jarFile)
 
         then:
-        if (shouldWarnAboutDeprecation()) {
-            int frontServerDeprecationCount = server.uri.scheme == "http" ? 1 : 0
-            int backServerDeprecationCount = backingServer.uri.scheme == "http" ? 2 : 0
-            executer.expectDeprecationWarnings(frontServerDeprecationCount + backServerDeprecationCount)
-        }
         succeeds('listJars')
-
-        and:
-        optionallyExpectDeprecation()
     }
 
     def "prints last redirect location in case of failure"() {
@@ -89,13 +43,9 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         backingServer.expectGetBroken('/redirected/group/projectA/1.0/ivy-1.0.xml')
 
         then:
-        if (shouldWarnAboutDeprecation()) {
-            executer.expectDeprecationWarnings(insecureServerCount())
-        }
         fails('listJars')
 
         and:
-        optionallyExpectDeprecation()
         failureCauseContains("Could not get resource '${server.uri}/repo/group/projectA/1.0/ivy-1.0.xml'")
         failureCauseContains("Could not GET '${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml'")
     }
@@ -110,44 +60,11 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
         then:
         executer.beforeExecute { withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000") }
-        if (shouldWarnAboutDeprecation()) {
-            executer.expectDeprecationWarnings(insecureServerCount())
-        }
         fails('listJars')
 
         and:
-        optionallyExpectDeprecation()
         failureCauseContains("Could not get resource '${server.uri}/repo/group/projectA/1.0/ivy-1.0.xml'")
         failureCauseContains("Could not GET '${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml'")
         failureCauseContains("Read timed out")
     }
-
-    def configurationWithIvyDependencyAndExpectedArtifact(String dependency, String expectedArtifact) {
-        """
-            repositories {
-                ivy {
-                    url "$frontServerBaseUrl/repo"
-                    metadataSources {
-                        ivyDescriptor()
-                        artifact()
-                    }
-                }
-            }
-            configurations { compile }
-            dependencies { compile '$dependency' }
-            task listJars {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['$expectedArtifact']
-                }
-            }
-        """
-    }
-
-    /**
-     * The number of servers involved in the redirect chain using an insecure protocol.
-     */
-    private int insecureServerCount() {
-        [backingServer.uri.scheme == "http", server.uri.scheme == "http"].count { it }.intValue()
-    }
-
 }
