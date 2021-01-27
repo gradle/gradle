@@ -380,6 +380,7 @@ project(":b") {
     dependencies { compile(project(':a')) { artifact { name = 'b'; type = 'jar' } } }
     task test {
         inputs.files configurations.compile
+        outputs.upToDateWhen { false }
         doFirst {
             configurations.compile.files.collect { it.name }
         }

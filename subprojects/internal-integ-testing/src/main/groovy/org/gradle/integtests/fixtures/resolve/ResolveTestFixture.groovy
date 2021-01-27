@@ -874,6 +874,10 @@ class GenerateGraphTask extends DefaultTask {
     @Internal
     boolean buildArtifacts
 
+    GenerateGraphTask() {
+        outputs.upToDateWhen { false }
+    }
+
     @TaskAction
     def generateOutput() {
         outputFile.parentFile.mkdirs()
