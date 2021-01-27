@@ -1566,6 +1566,23 @@
             "changes": [
                 "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
+        },
+
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.compile(org.gradle.api.tasks.incremental.IncrementalTaskInputs)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getSources()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
