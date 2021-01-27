@@ -214,7 +214,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         if (tasksToExecute.isEmpty()) {
             return;
         }
-        LOGGER.info("Executing " + includedBuild.getName() + " tasks " + tasksToExecute);
+        LOGGER.info("Executing {} tasks {}", includedBuild.getName(), tasksToExecute);
         IncludedBuildExecutionListener listener = new IncludedBuildExecutionListener(tasksToExecute);
         try {
             includedBuild.execute(tasksToExecute, listener);
