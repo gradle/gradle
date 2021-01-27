@@ -23,34 +23,34 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
     def 'can filter nested tests'() {
         given:
         file('src/test/java/org/gradle/NestedTest.java') << '''
-package org.gradle;
-import static org.junit.jupiter.api.Assertions.*;
+            package org.gradle;
+            import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.EmptyStackException;
-import java.util.Stack;
+            import java.util.EmptyStackException;
+            import java.util.Stack;
 
-import org.junit.jupiter.api.*;
+            import org.junit.jupiter.api.*;
 
-class NestedTest {
-    @Test
-    void outerTest() {
-    }
+            class NestedTest {
+                @Test
+                void outerTest() {
+                }
 
-    @Nested
-    class Inner {
-        @Test
-        void innerTest() {
-        }
-    }
-}
-'''
+                @Nested
+                class Inner {
+                    @Test
+                    void innerTest() {
+                    }
+                }
+            }
+        '''
         buildFile << '''
-test {
-    filter {
-        includeTestsMatching "*innerTest*"
-    }
-}
-'''
+            test {
+                filter {
+                    includeTestsMatching "*innerTest*"
+                }
+            }
+        '''
         when:
         succeeds('test')
 
@@ -64,31 +64,31 @@ test {
     def 'can use nested class as test pattern'() {
         given:
         file('src/test/java/EnclosingClass.java') << '''
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Nested;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.Nested;
+            import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class EnclosingClass {
-    @Nested
-    class NestedClass {
-        @Test
-        void nestedTest() {
-        }
-        @Test
-        void anotherTest() {
-        }
-    }
-    @Nested
-    class AnotherNestedClass {
-        @Test
-        void foo() {
-        }
-    }
-    @Test
-    void foo() {
-    }
-}
-'''
+            class EnclosingClass {
+                @Nested
+                class NestedClass {
+                    @Test
+                    void nestedTest() {
+                    }
+                    @Test
+                    void anotherTest() {
+                    }
+                }
+                @Nested
+                class AnotherNestedClass {
+                    @Test
+                    void foo() {
+                    }
+                }
+                @Test
+                void foo() {
+                }
+            }
+        '''
         when:
         succeeds('test', '--tests', 'EnclosingClass$NestedClass.nestedTest')
 
@@ -98,6 +98,38 @@ class EnclosingClass {
             .testClass('EnclosingClass$NestedClass')
             .assertTestCount(1, 0, 0)
             .assertTestPassed('nestedTest')
+    }
+
+    def 'can filter tests from a superclass'() {
+        given:
+        file('src/test/java/SuperClass.java') << '''
+            import org.junit.jupiter.api.Test;
+
+            abstract class SuperClass {
+                @Test
+                void superTest() {
+                }
+            }
+        '''
+        file('src/test/java/SubClass.java') << '''
+            import org.junit.jupiter.api.Test;
+
+            class SubClass extends SuperClass {
+                @Test
+                void subTest() {
+                }
+            }
+        '''
+
+        when:
+        succeeds('test', '--tests', 'SubClass.superTest')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('SubClass')
+            .testClass('SubClass')
+            .assertTestCount(1, 0, 0)
+            .assertTestPassed('superTest')
     }
 
 }
