@@ -164,12 +164,14 @@ A handle to the project layout can be obtained via link:{javadocPath}/org/gradle
 
 ==== Removal of domain object collection constructors
 
-The following deprecated constructors were removed: 
+The following deprecated constructors were removed:
 
 - DefaultNamedDomainObjectList(Class, Instantiator, Namer)
 - DefaultNamedDomainObjectSet(Class, Instantiator)
 - DefaultPolymorphicDomainObjectContainer(Class, Instantiator)
 - FactoryNamedDomainObjectContainer(Class, Instantiator, NamedDomainObjectFactory)
+
+==== Removal of arbitrary local cache configuration
 
 The local build cache configuration now needs to be done via the link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-.
 
