@@ -61,7 +61,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
             dependencyReportTask.conventionMapping("projects", convention::getProjects);
         });
 
-        project.getTasks().create(HTML_DEPENDENCY_REPORT, HtmlDependencyReportTask.class, htmlDependencyReportTask -> {
+        project.getTasks().register(HTML_DEPENDENCY_REPORT, HtmlDependencyReportTask.class, htmlDependencyReportTask -> {
             htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
             htmlDependencyReportTask.getReports().getHtml().getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getProjectReportDir(), "dependencies").getAbsolutePath())));
             htmlDependencyReportTask.conventionMapping("projects", convention::getProjects);
