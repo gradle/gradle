@@ -111,7 +111,7 @@ public class WriteProperties extends DefaultTask {
             deferredProperties.put(name, new Callable<String>() {
                 @Override
                 public String call() throws Exception {
-                    Object futureValue = DeferredUtil.unpack(value);
+                    Object futureValue = DeferredUtil.unpack(false, value);
                     checkForNullValue(name, futureValue);
                     return String.valueOf(futureValue);
                 }

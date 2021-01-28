@@ -88,7 +88,7 @@ public abstract class AbstractFileResolver implements FileResolver {
     protected abstract File doResolve(Object path);
 
     protected URI convertObjectToURI(Object path) {
-        Object object = DeferredUtil.unpack(path);
+        Object object = DeferredUtil.unpack(false, path);
         Object converted = fileNotationParser.parseNotation(object);
         if (converted instanceof File) {
             return resolve(converted).toURI();
@@ -98,7 +98,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     @Nullable
     protected File convertObjectToFile(Object path) {
-        Object object = DeferredUtil.unpack(path);
+        Object object = DeferredUtil.unpack(false, path);
         if (object == null) {
             return null;
         }

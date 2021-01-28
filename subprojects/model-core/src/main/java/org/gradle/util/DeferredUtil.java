@@ -31,13 +31,14 @@ public class DeferredUtil {
      * then unpacks the remaining Provider or Factory.
      */
     @Nullable
-    public static Object unpack(@Nullable Object deferred) {
+    public static Object unpack(boolean allowAbsentProvider, @Nullable Object deferred) {
         if (deferred == null) {
             return null;
         }
         Object value = unpackNestableDeferred(deferred);
         if (value instanceof Provider) {
-            return ((Provider<?>) value).get();
+            Provider<?> provider = (Provider<?>) value;
+            return allowAbsentProvider ? provider.getOrNull() : provider.get();
         }
         if (value instanceof Factory) {
             return ((Factory<?>) value).create();

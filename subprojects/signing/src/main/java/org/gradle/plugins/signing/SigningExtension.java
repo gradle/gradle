@@ -556,7 +556,7 @@ public class SigningExtension {
     }
 
     private Object force(Object maybeCallable) {
-        return DeferredUtil.unpack(maybeCallable);
+        return DeferredUtil.unpack(false, maybeCallable);
     }
 
     private static class DefaultDerivedArtifactFile implements PublicationInternal.DerivedArtifact {
