@@ -65,6 +65,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 "org.asciidoctor.jvm.epub",
                 "org.asciidoctor.jvm.gems",
                 "org.asciidoctor.jvm.leanpub",
+                "org.asciidoctor.jvm.leanpub.dropbox-copy",
                 "org.asciidoctor.jvm.pdf",
                 "org.asciidoctor.jvm.revealjs",
                 "org.asciidoctor.js.convert",
@@ -116,6 +117,12 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                         passes()
                     }
                     onPlugin("org.asciidoctor.gradle.jvm.slides.AsciidoctorRevealJSBasePlugin") {
+                        passes()
+                    }
+                }
+
+                if (pluginId == "org.asciidoctor.jvm.leanpub.dropbox-copy") {
+                    onPlugin("org.asciidoctor.gradle.jvm.leanpub.AsciidoctorJLeanpubPlugin") {
                         passes()
                     }
                 }
