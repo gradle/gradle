@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
@@ -47,7 +48,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -353,13 +353,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
-                DeprecationLogger
-                    .deprecate("Injecting the input artifact of a transform as a File")
-                    .withAdvice("Declare the input artifact as Provider<FileSystemLocation> instead.")
-                    .willBeRemovedInGradle7()
-                    .withUserManual("artifact_transforms", "sec:implementing-artifact-transforms")
-                    .nagUser();
-                return inputFileProvider.get().getAsFile();
+                throw new InvalidUserCodeException("Injecting the input artifact of a transform as a File isn't allowed. Declare the input artifact as Provider<FileSystemLocation> instead.");
             }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (artifactTransformDependencies != null) {

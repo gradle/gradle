@@ -251,6 +251,12 @@ Sometimes, Ant's default excludes prove problematic, for example when you want t
 Changing Gradle's default excludes during the execution phase can lead to correctness problems with up-to-date checks.
 As a consequence, you are only allowed to change Gradle's default excludes in the settings script, see the <<working_with_files.adoc#sec:change_default_excludes,user manual>> for an example.
 
+==== Using files as inputs of artifact transforms
+
+It's no longer valid to use a `File` as an input of an artifact transform.
+Instead, you should use a `Provider<FileSystemLocation>`.
+Look at the <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>> documentation for more information.
+
 === Deprecations
 
 [[referencing_tasks_from_included_builds]]
