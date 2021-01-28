@@ -70,6 +70,7 @@ public class BuildLayoutConverter {
         public void applyTo(BuildLayoutParameters buildLayout) {
             buildLayout.setCurrentDir(this.buildLayout.getCurrentDir());
             buildLayout.setProjectDir(this.buildLayout.getProjectDir());
+            buildLayout.setSearchUpwards(this.buildLayout.isSearchUpwards());
             buildLayout.setGradleUserHomeDir(this.buildLayout.getGradleUserHomeDir());
             buildLayout.setGradleInstallationHomeDir(this.buildLayout.getGradleInstallationHomeDir());
         }
@@ -78,6 +79,9 @@ public class BuildLayoutConverter {
         public void applyTo(StartParameterInternal startParameter) {
             startParameter.setProjectDir(buildLayout.getProjectDir());
             startParameter.setCurrentDir(buildLayout.getCurrentDir());
+            if (!buildLayout.isSearchUpwards()) {
+                startParameter.doNotSearchUpwards();
+            }
             startParameter.setGradleUserHomeDir(buildLayout.getGradleUserHomeDir());
         }
 

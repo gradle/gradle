@@ -38,6 +38,7 @@ class BuildLayoutParametersTest extends Specification {
     def "has reasonable defaults"() {
         expect:
         def params = new BuildLayoutParameters()
+        params.searchUpwards
         params.gradleUserHomeDir == canonicalize(BuildLayoutParameters.DEFAULT_GRADLE_USER_HOME)
         params.currentDir == canonicalize(SystemProperties.instance.getCurrentDir())
         params.projectDir == null

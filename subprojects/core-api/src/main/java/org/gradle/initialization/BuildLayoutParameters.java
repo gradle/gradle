@@ -29,6 +29,7 @@ public class BuildLayoutParameters {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     private static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
 
+    private boolean searchUpwards = true;
     private File currentDir = canonicalize(SystemProperties.getInstance().getCurrentDir());
     private File projectDir;
     private File gradleUserHomeDir;
@@ -57,6 +58,11 @@ public class BuildLayoutParameters {
             return gradleInstallation.getGradleHome();
         }
         return null;
+    }
+
+    public BuildLayoutParameters setSearchUpwards(boolean searchUpwards) {
+        this.searchUpwards = searchUpwards;
+        return this;
     }
 
     public BuildLayoutParameters setProjectDir(File projectDir) {
@@ -99,6 +105,10 @@ public class BuildLayoutParameters {
     @Nullable
     public File getGradleInstallationHomeDir() {
         return gradleInstallationHomeDir;
+    }
+
+    public boolean isSearchUpwards() {
+        return searchUpwards;
     }
 
 }

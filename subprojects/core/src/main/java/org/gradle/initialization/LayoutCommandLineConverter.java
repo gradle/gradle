@@ -22,12 +22,23 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
+import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
+
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
     private final CommandLineConverter<BuildLayoutParameters> converter = new BuildLayoutParametersBuildOptions().commandLineConverter();
 
     @Override
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
         converter.convert(options, target);
+
+        if (options.getExtraArguments().contains("init")) {
+            target.setSearchUpwards(false);
+        }
+
+        if (target.getSearchDir().getName().equals(BUILD_SRC)) {
+            target.setSearchUpwards(false);
+        }
+
         return target;
     }
 
