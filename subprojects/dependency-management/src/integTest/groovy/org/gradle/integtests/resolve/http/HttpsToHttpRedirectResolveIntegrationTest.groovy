@@ -16,14 +16,16 @@
 
 package org.gradle.integtests.resolve.http
 
+import org.gradle.api.artifacts.repositories.UrlArtifactRepository
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.junit.Rule
 
-
 class HttpsToHttpRedirectResolveIntegrationTest extends AbstractRedirectResolveIntegrationTest {
 
-    @Rule TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
     TestKeyStore keyStore
 
     @Override
@@ -32,7 +34,7 @@ class HttpsToHttpRedirectResolveIntegrationTest extends AbstractRedirectResolveI
     }
 
     @Override
-    boolean shouldWarnAboutDeprecation() {
+    boolean defaultAllowInsecureProtocol() {
         return true
     }
 
@@ -40,5 +42,24 @@ class HttpsToHttpRedirectResolveIntegrationTest extends AbstractRedirectResolveI
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)
         keyStore.configureServerCert(executer)
+    }
+
+    def "refuses resolves module artifacts via HTTPS to HTTP redirect"() {
+        given:
+        buildFile << configurationWithIvyDependencyAndExpectedArtifact('group:projectA:1.0', 'projectA-1.0.jar', false)
+
+        when:
+        server.expectGetRedirected('/repo/group/projectA/1.0/ivy-1.0.xml', "${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml")
+        backingServer.forbidGet('/redirected/group/projectA/1.0/ivy-1.0.xml', module.ivyFile)
+        server.forbidGet('/repo/group/projectA/1.0/projectA-1.0.jar')
+
+        then:
+        def failure = fails('listJars')
+        failure.assertHasCause(
+            "Redirecting from secure protocol to insecure protocol, without explict opt-in, is unsupported. " +
+                "'$frontServerBaseUrl/repo' is redirecting to '${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml'. " +
+                "Switch Ivy repository 'ivy($frontServerBaseUrl/repo)' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. " +
+                Documentation.dslReference(UrlArtifactRepository, "allowInsecureProtocol").consultDocumentationMessage()
+        )
     }
 }

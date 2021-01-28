@@ -58,15 +58,11 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
     @Override
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>(super.getAllArgs());
+
         if(!isQuiet() && isAllowExtraLogging()) {
             if (!containsLoggingArgument(args)) {
                 args.add(0, "-i");
             }
-        }
-
-        // Workaround for https://issues.gradle.org/browse/GRADLE-2625
-        if (getUserHomeDir() != null) {
-            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
         }
 
         return args;

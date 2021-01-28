@@ -136,7 +136,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         UUID buildId = idGenerator.generateId();
         List<DaemonInitialConnectException> accumulatedExceptions = Lists.newArrayList();
 
-        LOGGER.debug("Executing build " + buildId + " in daemon client {pid=" + processEnvironment.maybeGetPid() + "}");
+        LOGGER.debug("Executing build {} in daemon client {pid={}}", buildId, processEnvironment.maybeGetPid());
 
         int saneNumberOfAttempts = 100; //is it sane enough?
 

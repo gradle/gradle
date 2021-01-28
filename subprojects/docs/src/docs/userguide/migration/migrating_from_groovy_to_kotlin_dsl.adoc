@@ -4,8 +4,7 @@
 :plugin-portal: https://plugins.gradle.org/
 :kotlin-reference: https://kotlinlang.org/docs/reference/
 :kotlin-tutorials: https://kotlinlang.org/tutorials/
-:kotlin-dsl-samples: https://github.com/gradle/kotlin-dsl/tree/master/samples/
-:kotlin-dsl-issues: https://github.com/gradle/kotlin-dsl/issues/
+:gradle-issues: https://github.com/gradle/gradle/issues/
 
 This section will walk you through converting your Groovy-based Gradle build scripts to Kotlin.
 
@@ -29,7 +28,7 @@ This is the best place where to find how to do this and what with each DSL ; and
 * Using the latest versions of Gradle, applied plugins, and your IDE should be your first move.
 * Kotlin DSL is fully supported in Intellij IDEA and Android Studio. Other IDEs, such as Eclipse or NetBeans, do not yet provide helpful tools for editing Gradle Kotlin DSL files, however, importing and working with Kotlin DSL-based builds work as usual.
 * In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts.
-* There are some situations where the Kotlin DSL is slower. First use, on clean checkouts or ephemeral CI agents for example, link:{kotlin-dsl-issues}902[are known to be slower].
+* There are some situations where the Kotlin DSL is slower. First use, on clean checkouts or ephemeral CI agents for example, link:{gradle-issues}15886[are known to be slower].
 The same applies to the scenario in which something in the _buildSrc_ directory changes, which invalidates build-script caching.
 Builds with slow configuration time might affect the IDE responsiveness, please check out the <<performance.adoc#,documentation on Gradle performance>>.
 * You must run Gradle with Java 8 or higher. Java 7 is not supported.
@@ -41,7 +40,7 @@ Builds with slow configuration time might affect the IDE responsiveness, please 
 
 Read more in the link:{user-manual}kotlin_dsl.html[Gradle Kotlin DSL Primer].
 
-If you run to trouble or a suspected bug, please take advantage of the `gradle/kotlin-dsl` link:{kotlin-dsl-issues}[issue tracker].
+If you run to trouble or a suspected bug, please take advantage of the `gradle/gradle` link:{gradle-issues}[issue tracker].
 
 _You don't have to migrate all at once!_ Both Groovy and Kotlin-based build scripts can `apply` other scripts of either language. You can find inspiration for any Gradle features not covered in the link:https://github.com/gradle/kotlin-dsl/tree/master/samples[Kotlin DSL samples].
 
@@ -477,15 +476,12 @@ Utilizing the <<organizing_gradle_projects.adoc#sec:build_sources,_buildSrc_ pro
 
 === Kotlin DSL build structure samples
 
-Depending on your build structure you might be interested in the following samples built with the Kotlin DSL:
+Depending on your build structure you might be interested in the following user manual chapters:
 
-* The link:{kotlin-dsl-samples}modularity[modularity] sample demonstrates the use of `apply(from = "")` to modularize build scripts.
-* The link:{kotlin-dsl-samples}multi-project-with-buildSrc[multi-project-with-buildSrc], link:{kotlin-dsl-samples}multi-kotlin-project[multi-kotlin-project], link:{kotlin-dsl-samples}multi-kotlin-project-with-buildSrc[multi-kotlin-project-with-buildSrc] and link:{kotlin-dsl-samples}multi-kotlin-project-config-injection[multi-kotlin-project-config-injection] samples demonstrate various multi-project build structures.
-* The link:{kotlin-dsl-samples}gradle-plugin[gradle-plugin] sample demonstrates a Gradle plugin implemented in Kotlin and taking advantage of the `kotlin-dsl` plugin.
-* The link:{kotlin-dsl-samples}composite-builds[composite-builds] sample demonstrates how to use link:{user-manual}composite_builds.html[Composite Builds].
-* The link:{kotlin-dsl-samples}source-control[source-control] sample demonstrates how to use external link:https://github.com/gradle/gradle-native/issues/42[source dependencies].
-
-See the samples link:{kotlin-dsl-samples}/README.md[README] for general instructions.
+* The <<writing_build_scripts#writing_build_scripts>> chapter demonstrates the use of `apply(from = "")` to modularize build scripts.
+* The <<multi_project_builds#multi_project_builds>> chapter demonstrates various multi-project build structures.
+* The <<custom_plugins#custom_plugins>> and <<kotlin_dsl#kotlin_dsl>> chapters demonstrate how to develop custom Gradle plugins.
+* The <<composite_builds#composite_builds>> chapter demonstrates how to use Composite Builds.
 
 
 [[interop]]
