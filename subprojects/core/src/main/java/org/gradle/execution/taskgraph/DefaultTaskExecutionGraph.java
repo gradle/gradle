@@ -157,7 +157,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         executionPlan.addEntryTasks(taskSet);
         graphState = GraphState.DIRTY;
 
-        LOGGER.debug("Timing: Creating the DAG took " + clock.getElapsed());
+        LOGGER.debug("Timing: Creating the DAG took {}", clock.getElapsed());
     }
 
     @Override
@@ -173,7 +173,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             fireWhenReady();
             hasFiredWhenReady = true;
         } else if (!graphListeners.isEmpty()) {
-            LOGGER.info("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
+            LOGGER.info("Ignoring listeners of task graph ready event, as this build ({}) has already executed work.", gradleInternal.getIdentityPath());
         }
     }
 
@@ -198,7 +198,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
                     new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
                 )
             );
-            LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
+            LOGGER.debug("Timing: Executing the DAG took {}", clock.getElapsed());
         } finally {
             coordinationService.withStateLock(resourceLockState -> {
                 executionPlan.clear();

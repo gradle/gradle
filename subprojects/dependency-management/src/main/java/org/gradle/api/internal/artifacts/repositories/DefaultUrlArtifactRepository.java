@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 
@@ -84,37 +85,51 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
         return rootUri;
     }
 
-    private void nagUserOfInsecureProtocol() {
-        DeprecationLogger
-            .deprecate("Using insecure protocols with repositories, without explicit opt-in,")
-            .withAdvice(String.format(
-                "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols.",
+    private void throwExceptionDueToInsecureProtocol() throws InvalidUserCodeException {
+        String switchToAdvice =
+            String.format(
+                "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ",
                 repositoryType,
-                displayNameSupplier.get()))
-            .willBeRemovedInGradle7()
-            .withDslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
-            .nagUser();
+                displayNameSupplier.get()
+            );
+        String dslMessage =
+            Documentation
+                .dslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
+                .consultDocumentationMessage() + " ";
+        String message =
+            "Using insecure protocols with repositories, without explicit opt-in, is unsupported. " +
+                switchToAdvice +
+                dslMessage;
+        throw new InvalidUserCodeException(message);
     }
 
-    private void nagUserOfInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation) {
-        String contextualAdvice = null;
+    private void throwExceptionDueToInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation) throws InvalidUserCodeException {
+        final String contextualAdvice;
         if (redirectFrom != null) {
             contextualAdvice = String.format(
-                "'%s' is redirecting to '%s'.",
+                "'%s' is redirecting to '%s'. ",
                 redirectFrom,
                 redirectLocation
             );
+        } else {
+            contextualAdvice = "";
         }
-        DeprecationLogger
-            .deprecate("Following insecure redirects, without explicit opt-in,")
-            .withAdvice(String.format(
-                "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.",
+        String switchToAdvice =
+            String.format(
+                "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ",
                 repositoryType,
-                displayNameSupplier.get()))
-            .withContext(contextualAdvice)
-            .willBeRemovedInGradle7()
-            .withDslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
-            .nagUser();
+                displayNameSupplier.get()
+            );
+        String dslMessage =
+            Documentation
+                .dslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
+                .consultDocumentationMessage() + " ";
+        String message =
+            "Redirecting from secure protocol to insecure protocol, without explict opt-in, is unsupported. " +
+                contextualAdvice +
+                switchToAdvice +
+                dslMessage;
+        throw new InvalidUserCodeException(message);
     }
 
     HttpRedirectVerifier createRedirectVerifier() {
@@ -124,8 +139,8 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
             .create(
                 uri,
                 allowInsecureProtocol,
-                this::nagUserOfInsecureProtocol,
-                redirection -> nagUserOfInsecureRedirect(uri, redirection)
+                this::throwExceptionDueToInsecureProtocol,
+                redirection -> throwExceptionDueToInsecureRedirect(uri, redirection)
             );
     }
 

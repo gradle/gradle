@@ -24,11 +24,23 @@ class HttpRedirectResolveIntegrationTest extends AbstractRedirectResolveIntegrat
     }
 
     @Override
-    boolean shouldWarnAboutDeprecation() {
+    boolean defaultAllowInsecureProtocol() {
         return true
     }
 
     void beforeServerStart() {
         // No-op
+    }
+
+    def "fails to resolves module artifacts via HTTP redirect"() {
+        given:
+        buildFile << configurationWithIvyDependencyAndExpectedArtifact('group:projectA:1.0', 'projectA-1.0.jar', false)
+
+        when:
+        server.forbidGetRedirected('/repo/group/projectA/1.0/ivy-1.0.xml', "${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml")
+        backingServer.forbidGet('/redirected/group/projectA/1.0/ivy-1.0.xml', module.ivyFile)
+
+        then:
+        fails('listJars')
     }
 }

@@ -128,7 +128,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                         }
                         JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
                     }
-                    LOGGER.info("Initialized native services in: " + nativeBaseDir);
+                    LOGGER.info("Initialized native services in: {}", nativeBaseDir);
                 }
                 initialized = true;
             }
