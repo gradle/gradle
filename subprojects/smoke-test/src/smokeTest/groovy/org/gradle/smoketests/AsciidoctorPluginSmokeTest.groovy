@@ -62,9 +62,10 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         TestedVersions.asciidoctor.collectEntries([:]) { version ->
             [
                 "org.asciidoctor.jvm.convert",
-                "org.asciidoctor.js.convert",
                 "org.asciidoctor.jvm.epub",
-                "org.asciidoctor.jvm.gems"
+                "org.asciidoctor.jvm.gems",
+                "org.asciidoctor.jvm.pdf",
+                "org.asciidoctor.js.convert",
             ].collectEntries { plugin ->
                 [(plugin): Versions.of(version)]
             }
@@ -74,10 +75,17 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     void configureValidation(String pluginId, String version) {
         validatePlugins {
-            onPlugin(pluginId) {
-                passes()
-            }
             if (pluginId.startsWith("org.asciidoctor.jvm")) {
+                onPlugin(pluginId) {
+                    if (pluginId == "org.asciidoctor.jvm.pdf") {
+                        failsWith([
+                            "Type 'AsciidoctorPdfTask': property 'fontsDir' is not annotated with an input or output annotation.": WARNING
+                        ])
+                    } else {
+                        passes()
+                    }
+                }
+
                 onPlugin('org.asciidoctor.gradle.base.AsciidoctorBasePlugin') {
                     failsWith([
                         "Type 'AbstractAsciidoctorBaseTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
