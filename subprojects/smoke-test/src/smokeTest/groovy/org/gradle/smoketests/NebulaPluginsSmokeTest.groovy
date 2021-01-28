@@ -19,13 +19,11 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
-@Ignore("Temporarily disabled because of removal of AbstractTask")
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
