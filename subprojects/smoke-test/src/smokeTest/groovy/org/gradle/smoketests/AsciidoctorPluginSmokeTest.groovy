@@ -62,6 +62,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         TestedVersions.asciidoctor.collectEntries([:]) { version ->
             [
                 "org.asciidoctor.decktape",
+                "org.asciidoctor.editorconfig",
                 "org.asciidoctor.js.convert",
                 "org.asciidoctor.jvm.convert",
                 "org.asciidoctor.jvm.epub",
