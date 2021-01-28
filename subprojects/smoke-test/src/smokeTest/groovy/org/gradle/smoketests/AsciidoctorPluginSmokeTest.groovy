@@ -59,8 +59,10 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
-        TestedVersions.asciidoctor.collectEntries([:]) {
-            ["org.asciidoctor.jvm.convert", Versions.of(it)]
+        TestedVersions.asciidoctor.collectEntries([:]) { version ->
+            ["org.asciidoctor.jvm.convert"].collectEntries { plugin ->
+                [(plugin): Versions.of(version)]
+            }
         }
     }
 
