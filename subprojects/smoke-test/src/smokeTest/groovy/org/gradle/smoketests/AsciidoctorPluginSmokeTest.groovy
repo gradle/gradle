@@ -60,7 +60,12 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         TestedVersions.asciidoctor.collectEntries([:]) { version ->
-            ["org.asciidoctor.jvm.convert"].collectEntries { plugin ->
+            [
+                "org.asciidoctor.jvm.convert",
+                "org.asciidoctor.js.convert",
+                "org.asciidoctor.jvm.epub",
+                "org.asciidoctor.jvm.gems"
+            ].collectEntries { plugin ->
                 [(plugin): Versions.of(version)]
             }
         }
@@ -72,19 +77,31 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             onPlugin(pluginId) {
                 passes()
             }
+            if (pluginId.startsWith("org.asciidoctor.jvm")) {
+                onPlugin('org.asciidoctor.gradle.base.AsciidoctorBasePlugin') {
+                    failsWith([
+                        "Type 'AbstractAsciidoctorBaseTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
+                        "Type 'AbstractAsciidoctorBaseTask': non-property method 'attributes()' should not be annotated with: @Input.": WARNING,
+                        "Type 'AbstractAsciidoctorBaseTask': non-property method 'getDefaultResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
+                        "Type 'AbstractAsciidoctorBaseTask': non-property method 'getResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
+                        "Type 'SlidesToExportAware': property 'profile' is not annotated with an input or output annotation.": WARNING
+                    ])
+                }
 
-            onPlugin('org_asciidoctor_gradle_base_AsciidoctorBasePlugin') {
-                failsWith([
-                    "Type 'AbstractAsciidoctorBaseTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
-                    "Type 'AbstractAsciidoctorBaseTask': non-property method 'attributes()' should not be annotated with: @Input.": WARNING,
-                    "Type 'AbstractAsciidoctorBaseTask': non-property method 'getDefaultResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
-                    "Type 'AbstractAsciidoctorBaseTask': non-property method 'getResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
-                    "Type 'SlidesToExportAware': property 'profile' is not annotated with an input or output annotation.": WARNING
-                ])
-            }
+                onPlugin('org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin') {
+                    passes()
+                }
 
-            onPlugin('org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin') {
-                passes()
+                if (pluginId == "org.asciidoctor.jvm.gems") {
+                    onPlugin('com.github.jrubygradle.api.core.JRubyCorePlugin') {
+                        failsWith([
+                            "Type 'AbstractJRubyPrepare': non-property method 'dependencies()' should not be annotated with: @Optional.": WARNING,
+                            "Type 'AbstractJRubyPrepare': non-property method 'gemsAsFileCollection()' should not be annotated with: @InputFiles.": WARNING,
+                        ])
+                    }
+                }
+            } else {
+                alwaysPasses()
             }
         }
     }
