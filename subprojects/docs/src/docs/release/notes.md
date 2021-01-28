@@ -12,7 +12,6 @@ Include only their name, impactful features should be called out separately belo
 [Till Krullmann](https://github.com/tkrullmann),
 [Andreas Axelsson](https://github.com/judgeaxl),
 [Pedro Tôrres](https://github.com/t0rr3sp3dr0),
-[Stefan Oehme](https://github.com/oehme),
 [Niels Doucet](https://github.com/NielsDoucet)
 
 ## Upgrade Instructions
