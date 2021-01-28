@@ -22,7 +22,6 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
 public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {
@@ -40,25 +39,6 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      */
     public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, NamedDomainObjectFactory<T> factory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this(type, instantiator, Named.Namer.forType(type), factory, MutationGuards.identity(), collectionCallbackActionDecorator);
-    }
-
-    /**
-     * <p>Creates a container that instantiates using the given factory.<p>
-     *
-     * @param type The concrete type of element in the container (must implement {@link Named})
-     * @param instantiator The instantiator to use to create any other collections based on this one
-     * @param factory The factory responsible for creating new instances on demand
-     *
-     * This internal constructor is used by 'nebula.plugin-plugin' plugin which we test as part of our ci pipeline.
-     */
-    @Deprecated
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, NamedDomainObjectFactory<T> factory) {
-        this(type, instantiator, Named.Namer.forType(type), factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.deprecateInternalApi("constructor FactoryNamedDomainObjectContainer(Class<T>, Instantiator, NamedDomainObjectFactory<T>)")
-            .replaceWith("ObjectFactory.domainObjectContainer(Class<T>, NamedDomainObjectFactory<T>)")
-            .willBeRemovedInGradle7()
-            .withUserManual("custom_gradle_types", "nameddomainobjectcontainer")
-            .nagUser();
     }
 
     /**

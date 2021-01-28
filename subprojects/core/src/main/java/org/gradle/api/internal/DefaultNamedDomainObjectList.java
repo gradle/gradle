@@ -25,7 +25,6 @@ import org.gradle.api.internal.collections.IndexedElementSource;
 import org.gradle.api.internal.collections.ListElementSource;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
@@ -37,19 +36,6 @@ import java.util.ListIterator;
 public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectList<T> {
     public DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
         super(objects, filter, instantiator, namer);
-    }
-
-    /**
-     * only left here to not break `nebula.dependency-recommender` plugin.
-     */
-    @Deprecated
-    public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, new ListElementSource<T>(), instantiator, namer, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.deprecateInternalApi("constructor DefaultNamedDomainObjectList(Class<T>, Instantiator, Namer<T>)")
-            .replaceWith("ObjectFactory.namedDomainObjectList(Class<T>)")
-            .willBeRemovedInGradle7()
-            .withUserManual("custom_gradle_types", "nameddomainobjectlist")
-            .nagUser();
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {

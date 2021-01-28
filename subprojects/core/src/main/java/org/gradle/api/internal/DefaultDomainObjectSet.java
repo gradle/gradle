@@ -42,7 +42,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         super(type, new IterationOrderRetainingSetElementSource<T>(), CollectionCallbackActionDecorator.NOOP);
         DeprecationLogger.deprecateInternalApi("constructor DefaultDomainObjectSet(Class<T>)")
             .replaceWith("ObjectFactory.domainObjectSet(Class<T>)")
-            .willBeRemovedInGradle7()
+            .willBeRemovedInGradle8()
             .withUserManual("custom_gradle_types", "domainobjectset")
             .nagUser();
     }
