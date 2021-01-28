@@ -29,8 +29,7 @@ import javax.annotation.Nullable;
  * @since 3.5
  */
 @HasInternalProtocol
-@SuppressWarnings("deprecation")
-public interface BuildCacheConfiguration extends CompatibilitySupportForBuildCacheConfiguration {
+public interface BuildCacheConfiguration {
 
     /**
      * Registers a custom build cache type.
@@ -44,31 +43,6 @@ public interface BuildCacheConfiguration extends CompatibilitySupportForBuildCac
      * Returns the local directory cache configuration.
      */
     DirectoryBuildCache getLocal();
-
-    /**
-     * Configures the local cache with the given type.
-     *
-     * <p><strong>Note:</strong> using any type except {@link org.gradle.caching.local.DirectoryBuildCache} is invalid.</p>
-     *
-     * @param type the type of local cache to configure.
-     *
-     * @deprecated Use {@link #getLocal()} instead.
-     */
-    @Deprecated
-    <T extends DirectoryBuildCache> T local(Class<T> type);
-
-    /**
-     * Configures the local cache with the given type.
-     *
-     * <p><strong>Note:</strong> using any type except {@link org.gradle.caching.local.DirectoryBuildCache} is invalid.</p>
-     *
-     * @param type the type of local cache to configure.
-     * @param configuration the configuration to execute against the remote cache.
-     *
-     * @deprecated Use {@link #local(Action)} instead.
-     */
-    @Deprecated
-    <T extends DirectoryBuildCache> T local(Class<T> type, Action<? super T> configuration);
 
     /**
      * Executes the given action against the local configuration.
