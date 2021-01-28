@@ -85,7 +85,7 @@ class DefaultScriptHandlerTest extends Specification {
 
     def "does not resolve classpath configuration when configuration container has not been queried"() {
         when:
-        def classpath = handler.declaredScriptClassPath
+        def classpath = handler.nonInstrumentedScriptClassPath
 
         then:
         0 * configuration._
@@ -100,7 +100,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         when:
         handler.configurations
-        def result = handler.declaredScriptClassPath
+        def result = handler.nonInstrumentedScriptClassPath
 
         then:
         result == classpath

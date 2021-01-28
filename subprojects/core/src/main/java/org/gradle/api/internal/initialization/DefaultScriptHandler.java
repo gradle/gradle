@@ -89,7 +89,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     }
 
     @Override
-    public ClassPath getDeclaredScriptClassPath() {
+    public ClassPath getNonInstrumentedScriptClassPath() {
         return scriptClassPathResolver.resolveClassPath(classpathConfiguration);
     }
 
