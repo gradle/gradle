@@ -22,56 +22,105 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
 
     def setup() {
+        def testBody = """
+            {
+                expect:
+                true
+            }
+        """
+        def unrolledTestBody = """
+            {
+                expect:
+                true
+
+                where:
+                param << ["value1", "value2"]
+            }
+        """
+
         file("src/test/groovy/SuperSuperClass.groovy") << """
             abstract class SuperSuperClass extends spock.lang.Specification {
-                def superSuperTest() {
-                    expect:
-                    true
-                }
+                def "super super test"() $testBody
+                def "super super unrolled test"() $unrolledTestBody
+                def "super super unrolled test param=#param"() $unrolledTestBody
             }
         """
         file("src/test/groovy/SuperClass.groovy") << """
             abstract class SuperClass extends SuperSuperClass {
-                def superTest() {
-                    expect:
-                    true
-                }
+                def "super test"() $testBody
+                def "super unrolled test"() $unrolledTestBody
+                def "super unrolled test param=#param"() $unrolledTestBody
             }
         """
         file("src/test/groovy/SubClass.groovy") << """
             class SubClass extends SuperClass {
-                def subTest() {
-                    expect:
-                    true
-                }
+                def "sub test"() $testBody
+                def "sub unrolled test"() $unrolledTestBody
+                def "sub unrolled test param=#param"() $unrolledTestBody
             }
         """
     }
 
     @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
-    def "can filter tests from a superclass via a subclass"() {
+    def "can filter tests"() {
         when:
-        succeeds("test", "--tests", "SubClass.superTest")
+        succeeds("test", "--tests", "SubClass.$testMethod")
 
         then:
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted("SubClass")
             .testClass("SubClass")
             .assertTestCount(1, 0, 0)
-            .assertTestPassed("superTest")
+            .assertTestPassed(testMethod)
+
+        where:
+        testMethod << ["sub test", "super test", "super super test"]
     }
 
     @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
-    def "can filter tests from a super superclass via a subclass"() {
+    def "can filter unrolled tests"() {
         when:
-        succeeds("test", "--tests", "SubClass.superSuperTest")
+        succeeds("test", "--tests", "SubClass.$testMethod")
 
         then:
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted("SubClass")
             .testClass("SubClass")
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed("superSuperTest")
+            .assertTestCount(2, 0, 0)
+            .assertTestPassed("$testMethod [param: value1, #0]")
+            .assertTestPassed("$testMethod [param: value2, #1]")
+
+        where:
+        testMethod << ["sub unrolled test", "super unrolled test", "super super unrolled test"]
+    }
+
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
+    def "can filter unrolled tests with parameter name in test header"() {
+        when:
+        succeeds("test", "--tests", "SubClass.$testMethod param=#param")
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted("SubClass")
+            .testClass("SubClass")
+            .assertTestCount(2, 0, 0)
+            .assertTestPassed("$testMethod param=value1")
+            .assertTestPassed("$testMethod param=value2")
+
+        where:
+        testMethod << ["sub unrolled test", "super unrolled test", "super super unrolled test"]
+    }
+
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
+    def "can not filter specific iterations of unrolled tests"() {
+        when:
+        fails("test", "--tests", "SubClass.$testMethod")
+
+        then:
+        failureCauseContains("No tests found for given includes: [SubClass.$testMethod](--tests filter)")
+
+        where:
+        testMethod << ["sub unrolled test param=value1", "super unrolled test param=value1", "super super unrolled test param=value1"]
     }
 
 }
