@@ -65,6 +65,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 "org.asciidoctor.jvm.epub",
                 "org.asciidoctor.jvm.gems",
                 "org.asciidoctor.jvm.pdf",
+                "org.asciidoctor.jvm.revealjs",
                 "org.asciidoctor.js.convert",
             ].collectEntries { plugin ->
                 [(plugin): Versions.of(version)]
@@ -100,12 +101,21 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                     passes()
                 }
 
-                if (pluginId == "org.asciidoctor.jvm.gems") {
+                if (["org.asciidoctor.jvm.gems", "org.asciidoctor.jvm.revealjs"].contains(pluginId)) {
                     onPlugin('com.github.jrubygradle.api.core.JRubyCorePlugin') {
                         failsWith([
                             "Type 'AbstractJRubyPrepare': non-property method 'dependencies()' should not be annotated with: @Optional.": WARNING,
                             "Type 'AbstractJRubyPrepare': non-property method 'gemsAsFileCollection()' should not be annotated with: @InputFiles.": WARNING,
                         ])
+                    }
+                }
+
+                if (pluginId == "org.asciidoctor.jvm.revealjs") {
+                    onPlugin("org.asciidoctor.gradle.jvm.gems.AsciidoctorGemSupportPlugin") {
+                        passes()
+                    }
+                    onPlugin("org.asciidoctor.gradle.jvm.slides.AsciidoctorRevealJSBasePlugin") {
+                        passes()
                     }
                 }
             } else {
