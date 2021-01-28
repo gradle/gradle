@@ -261,7 +261,6 @@ abstract class AbstractSmokeTest extends Specification {
 
     private static List<String> outputParameters() {
         return [
-            '--stacktrace',
             '--warning-mode=all',
             "-D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=false" as String,
         ]
