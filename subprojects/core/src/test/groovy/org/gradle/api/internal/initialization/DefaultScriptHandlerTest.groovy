@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.TestUtil
@@ -112,6 +113,14 @@ class DefaultScriptHandlerTest extends Specification {
         1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
         1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
         1 * classpathResolver.resolveClassPath(configuration) >> classpath
+    }
+
+    def "script classpath queries runtime classpath"() {
+        when:
+        def result = handler.scriptClassPath
+
+        then:
+        result == ClasspathUtil.getClasspath(classLoaderScope.localClassLoader)
     }
 
     def "can configure repositories"() {
