@@ -61,6 +61,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     Map<String, Versions> getPluginsToValidate() {
         TestedVersions.asciidoctor.collectEntries([:]) { version ->
             [
+                "org.asciidoctor.js.convert",
                 "org.asciidoctor.jvm.convert",
                 "org.asciidoctor.jvm.epub",
                 "org.asciidoctor.jvm.gems",
@@ -68,7 +69,6 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 "org.asciidoctor.jvm.leanpub.dropbox-copy",
                 "org.asciidoctor.jvm.pdf",
                 "org.asciidoctor.jvm.revealjs",
-                "org.asciidoctor.js.convert",
             ].collectEntries { plugin ->
                 [(plugin): Versions.of(version)]
             }
