@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.BuildCacheConfiguration
-import org.gradle.caching.local.DirectoryBuildCache
 import kotlin.reflect.KClass
 
 
@@ -33,45 +32,6 @@ import kotlin.reflect.KClass
  */
 inline fun <reified T : BuildCache> BuildCacheConfiguration.registerBuildCacheService(buildCacheServiceFactoryType: KClass<out BuildCacheServiceFactory<in T>>) {
     registerBuildCacheService(T::class.java, buildCacheServiceFactoryType.java)
-}
-
-
-/**
- * Configures the local cache with the given type.
- *
- * If a local build cache has already been configured with a different type, this method replaces it.
- *
- * Storing ("push") in the local build cache is enabled by default.
- *
- * @param T the type of local cache to configure.
- *
- * @see BuildCacheConfiguration.local
- */
-@Deprecated(message = "Scheduled to be removed in Gradle 6.0", replaceWith = ReplaceWith("local()"))
-inline fun <reified T : DirectoryBuildCache> BuildCacheConfiguration.local(): T {
-    @Suppress("deprecation")
-    return local(T::class.java)
-}
-
-
-/**
- * Configures the local cache with the given type.
- *
- * If a local build cache has already been configured with a different type, this method replaces it.
- *
- * If a local build cache has already been configured with the **same** type, this method configures it.
- *
- * Storing ("push") in the local build cache is enabled by default.
- *
- * @param T the type of local cache to configure.
- * @param configuration the configuration to execute against the remote cache.
- *
- * @see BuildCacheConfiguration.local
- */
-@Deprecated(message = "Scheduled to be removed in Gradle 6.0", replaceWith = ReplaceWith("local(Action)"))
-inline fun <reified T : DirectoryBuildCache> BuildCacheConfiguration.local(noinline configuration: T.() -> Unit): T {
-    @Suppress("deprecation")
-    return local(T::class.java, configuration)
 }
 
 

@@ -1569,6 +1569,47 @@
         },
 
         {
+            "type": "org.gradle.caching.configuration.BuildCacheConfiguration",
+            "member": "Method org.gradle.caching.configuration.BuildCacheConfiguration.getLocal()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.caching.configuration.BuildCacheConfiguration",
+            "member": "Method org.gradle.caching.configuration.BuildCacheConfiguration.local(java.lang.Class)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.caching.configuration.BuildCacheConfiguration",
+            "member": "Method org.gradle.caching.configuration.BuildCacheConfiguration.local(java.lang.Class,org.gradle.api.Action)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuildCacheConfigurationExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuildCacheConfigurationExtensionsKt.local(org.gradle.caching.configuration.BuildCacheConfiguration)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuildCacheConfigurationExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuildCacheConfigurationExtensionsKt.local(org.gradle.caching.configuration.BuildCacheConfiguration,kotlin.jvm.functions.Function1)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+
+        {
             "type": "org.gradle.api.tasks.compile.JavaCompile",
             "member": "Method org.gradle.api.tasks.compile.JavaCompile.compile(org.gradle.api.tasks.incremental.IncrementalTaskInputs)",
             "acceptation": "Deprecated method was removed",

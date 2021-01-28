@@ -48,30 +48,6 @@ class BuildCacheConfigurationExtensionsTest {
         }
     }
 
-    @Suppress("deprecation")
-    @Test
-    fun local() {
-
-        val buildCache = mock<BuildCacheConfiguration> {
-            on { local(any<Class<DirectoryBuildCache>>()) } doReturn mock<DirectoryBuildCache>()
-            on { local(any<Class<DirectoryBuildCache>>(), any<Action<DirectoryBuildCache>>()) } doReturn mock<DirectoryBuildCache>()
-        }
-
-        buildCache.local<DirectoryBuildCache>()
-
-        inOrder(buildCache) {
-            verify(buildCache).local(DirectoryBuildCache::class.java)
-            verifyNoMoreInteractions()
-        }
-
-        buildCache.local<DirectoryBuildCache> {}
-
-        inOrder(buildCache) {
-            verify(buildCache).local(any<Class<DirectoryBuildCache>>(), any<Action<DirectoryBuildCache>>())
-            verifyNoMoreInteractions()
-        }
-    }
-
     @Test
     fun remote() {
 
