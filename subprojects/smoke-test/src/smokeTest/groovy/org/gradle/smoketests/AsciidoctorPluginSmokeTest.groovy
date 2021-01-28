@@ -64,6 +64,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 "org.asciidoctor.jvm.convert",
                 "org.asciidoctor.jvm.epub",
                 "org.asciidoctor.jvm.gems",
+                "org.asciidoctor.jvm.leanpub",
                 "org.asciidoctor.jvm.pdf",
                 "org.asciidoctor.jvm.revealjs",
                 "org.asciidoctor.js.convert",
