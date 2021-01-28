@@ -83,7 +83,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         usePluginVersion version
 
         and:
-        def output = buildAndFail().output
+        def output = runner("--stacktrace")
+            .buildAndFail().output
 
         then:
         output.contains(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
