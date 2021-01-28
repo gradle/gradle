@@ -152,7 +152,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, Iterable<PluginImplementation<?>> pluginsFromOtherLoaders) {
-        exportBuildLogicClassPathTo(classLoaderScope, scriptHandler.getScriptClassPath());
+        exportBuildLogicClassPathTo(classLoaderScope, scriptHandler.getDeclaredScriptClassPath());
 
         for (PluginImplementation<?> pluginImplementation : pluginsFromOtherLoaders) {
             classLoaderScope.export(pluginImplementation.asClass().getClassLoader());
