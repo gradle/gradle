@@ -61,6 +61,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     Map<String, Versions> getPluginsToValidate() {
         TestedVersions.asciidoctor.collectEntries([:]) { version ->
             [
+                "org.asciidoctor.decktape",
                 "org.asciidoctor.js.convert",
                 "org.asciidoctor.jvm.convert",
                 "org.asciidoctor.jvm.epub",
@@ -78,17 +79,27 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     void configureValidation(String pluginId, String version) {
         validatePlugins {
-            if (pluginId.startsWith("org.asciidoctor.jvm")) {
-                onPlugin(pluginId) {
-                    if (pluginId == "org.asciidoctor.jvm.pdf") {
-                        failsWith([
-                            "Type 'AsciidoctorPdfTask': property 'fontsDir' is not annotated with an input or output annotation.": WARNING
-                        ])
-                    } else {
-                        passes()
-                    }
-                }
 
+            if (pluginId == "org.asciidoctor.jvm.pdf") {
+                onPlugin(pluginId) {
+                    failsWith([
+                        "Type 'AsciidoctorPdfTask': property 'fontsDir' is not annotated with an input or output annotation.": WARNING
+                    ])
+                }
+            } else if (pluginId == "org.asciidoctor.decktape") {
+                onPlugins([pluginId, "org.asciidoctor.gradle.slides.export.decktape.AsciidoctorDeckTapeBasePlugin"]) {
+                    failsWith([
+                        "Type 'AbstractExportBaseTask': property 'outputDir' is annotated with @PathSensitive that is not allowed for @OutputDirectory properties.": WARNING,
+                        "Type 'DeckTapeTask': property 'outputDir' is annotated with @PathSensitive that is not allowed for @OutputDirectory properties.": WARNING,
+                    ])
+                }
+            } else {
+                onPlugin(pluginId) {
+                    passes()
+                }
+            }
+
+            if (pluginId.startsWith("org.asciidoctor.jvm")) {
                 onPlugin('org.asciidoctor.gradle.base.AsciidoctorBasePlugin') {
                     failsWith([
                         "Type 'AbstractAsciidoctorBaseTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
