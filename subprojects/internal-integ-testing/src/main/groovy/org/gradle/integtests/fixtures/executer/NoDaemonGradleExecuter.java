@@ -119,12 +119,6 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
         addPropagatedSystemProperties(args);
-
-        // Workaround for https://issues.gradle.org/browse/GRADLE-2625
-        if (getUserHomeDir() != null) {
-            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
-        }
-
         return args;
     }
 
