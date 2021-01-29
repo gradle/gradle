@@ -147,9 +147,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 import static org.gradle.util.GUtil.addMaps;
 
 @NoConventionMapping
-public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware,
-    // This is here to work around https://github.com/gradle/gradle/issues/6027
-    ProcessOperations {
+public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
 
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
