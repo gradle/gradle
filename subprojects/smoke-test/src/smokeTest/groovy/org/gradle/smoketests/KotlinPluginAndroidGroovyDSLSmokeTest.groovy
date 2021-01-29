@@ -18,10 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -53,7 +51,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage') as DefaultGradleRunner
+        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage')
         def result = useAgpVersion(androidPluginVersion, runner).build()
 
         then:
@@ -63,11 +61,6 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
                 && androidPluginVersion == TestedVersions.androidGradle.latest()) {
             // TODO: re-enable once the Kotlin plugin fixes how it extends configurations
             // expectNoDeprecationWarnings(result)
-        }
-
-        cleanup:
-        if (runner) {
-            DaemonLogsAnalyzer.newAnalyzer(new File(runner.testKitDirProvider.getDir(), ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
         }
 
         where:
