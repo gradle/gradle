@@ -591,7 +591,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         def ex = thrown WorkValidationException
-        ex.causes*.message as List == ["Type '$Object.simpleName': Validation error."]
+        ex.message.contains "Type '$Object.simpleName': Validation error."
     }
 
     def "results are loaded from identity cache"() {

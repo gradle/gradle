@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":persistent-cache"))
     implementation(project(":build-cache"))
     implementation(project(":build-cache-packaging"))
+    implementation(project(":logging"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

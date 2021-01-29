@@ -20,13 +20,13 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.TypeValidationContext.Severity;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -72,17 +72,7 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         if (!errors.isEmpty()) {
             ImmutableSortedSet<String> uniqueSortedErrors = ImmutableSortedSet.copyOf(errors);
             throw new WorkValidationException(
-                String.format("%s found with the configuration of %s (%s).",
-                    uniqueSortedErrors.size() == 1
-                        ? "A problem was"
-                        : "Some problems were",
-                    work.getDisplayName(),
-                    describeTypesChecked(validationContext.getValidatedTypes())
-                ),
-                uniqueSortedErrors.stream()
-                    .limit(5)
-                    .map(InvalidUserDataException::new)
-                    .collect(Collectors.toList())
+                buildValidationErrorMessage(work, validationContext, uniqueSortedErrors)
             );
         }
 
@@ -139,6 +129,24 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
                 return context.getValidationContext();
             }
         });
+    }
+
+    private String buildValidationErrorMessage(UnitOfWork work,
+                                               WorkValidationContext validationContext,
+                                               ImmutableSortedSet<String> uniqueSortedErrors) {
+        TreeFormatter tf = new TreeFormatter();
+        tf.node(String.format("%s found with the configuration of %s (%s).",
+            uniqueSortedErrors.size() == 1
+                ? "A problem was"
+                : "Some problems were",
+            work.getDisplayName(),
+            describeTypesChecked(validationContext.getValidatedTypes())));
+        tf.startChildren();
+        uniqueSortedErrors.stream()
+            .limit(5)
+            .forEachOrdered(tf::node);
+        tf.endChildren();
+        return tf.toString();
     }
 
     private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {

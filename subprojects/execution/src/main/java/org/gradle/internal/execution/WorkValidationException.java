@@ -16,22 +16,15 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-
-import java.util.List;
 
 /**
  * A {@code WorkValidationException} is thrown when there is some validation problem with a work item.
  */
 @Contextual
-public class WorkValidationException extends DefaultMultiCauseException {
+public class WorkValidationException extends GradleException {
     public WorkValidationException(String message) {
         super(message);
-    }
-
-    public WorkValidationException(String message, List<InvalidUserDataException> causes) {
-        super(message, causes);
     }
 }
