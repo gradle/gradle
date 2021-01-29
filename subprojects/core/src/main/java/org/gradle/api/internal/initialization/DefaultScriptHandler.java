@@ -36,6 +36,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -82,9 +83,13 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION, notation);
     }
 
-
     @Override
     public ClassPath getScriptClassPath() {
+        return ClasspathUtil.getClasspath(getClassLoader());
+    }
+
+    @Override
+    public ClassPath getNonInstrumentedScriptClassPath() {
         return scriptClassPathResolver.resolveClassPath(classpathConfiguration);
     }
 
