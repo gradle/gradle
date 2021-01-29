@@ -235,7 +235,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         public FileCollection getFiles() {
-            return fileCollectionFactory.resolving(beanName + " local state", localState, false);
+            return fileCollectionFactory.resolving(beanName + " local state", localState, true);
         }
     }
 
@@ -255,7 +255,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         public FileCollection getFiles() {
-            return fileCollectionFactory.resolving(beanName + " destroy files", destroyables, false);
+            return fileCollectionFactory.resolving(beanName + " destroy files", destroyables, true);
         }
     }
 
