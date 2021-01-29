@@ -58,6 +58,7 @@ import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistrar;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
@@ -101,10 +102,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -376,36 +380,37 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DefaultOutputSnapshotter(fileCollectionSnapshotter);
         }
 
-        AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter);
+        FileCollectionFingerprinterRegistrar createAbsoluteFileCollectionFingerprinterRegistrar(FileCollectionSnapshotter snapshotter) {
+            return FileCollectionFingerprinterRegistrar.of(
+                Arrays.stream(DirectorySensitivity.values())
+                    .map(directorySensitivity -> new AbsolutePathFileCollectionFingerprinter(directorySensitivity, snapshotter))
+            );
         }
 
-        AbsolutePathFileCollectionFingerprinter createAbsolutePathIgnoreDirectoriesFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.IGNORE_DIRECTORIES, fileCollectionSnapshotter);
+        FileCollectionFingerprinterRegistrar createRelativeFileCollectionFingerprinterRegistrar(StringInterner stringInterner, FileCollectionSnapshotter snapshotter) {
+            return FileCollectionFingerprinterRegistrar.of(
+                Arrays.stream(DirectorySensitivity.values())
+                    .map(directorySensitivity -> new RelativePathFileCollectionFingerprinter(stringInterner, directorySensitivity, snapshotter))
+            );
         }
 
-        RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new RelativePathFileCollectionFingerprinter(stringInterner, DirectorySensitivity.DEFAULT, fileCollectionSnapshotter);
-        }
-
-        RelativePathFileCollectionFingerprinter createRelativePathIgnoreDirectoriesFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new RelativePathFileCollectionFingerprinter(stringInterner, DirectorySensitivity.IGNORE_DIRECTORIES, fileCollectionSnapshotter);
-        }
-
-        NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new NameOnlyFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter);
-        }
-
-        NameOnlyFileCollectionFingerprinter createNameOnlyIgnoreDirectoriesFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new NameOnlyFileCollectionFingerprinter(DirectorySensitivity.IGNORE_DIRECTORIES, fileCollectionSnapshotter);
+        FileCollectionFingerprinterRegistrar createNameOnlyFileCollectionFingerprinterRegistrar(FileCollectionSnapshotter snapshotter) {
+            return FileCollectionFingerprinterRegistrar.of(
+                Arrays.stream(DirectorySensitivity.values())
+                    .map(directorySensitivity -> new NameOnlyFileCollectionFingerprinter(directorySensitivity, snapshotter))
+            );
         }
 
         IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
             return new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter);
         }
 
-        FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
-            return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
+        CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
+            return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
+        }
+
+        FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters, List<FileCollectionFingerprinterRegistrar> registrars) {
+            return new DefaultFileCollectionFingerprinterRegistry(Stream.concat(registrars.stream(), fingerprinters.stream().map(FileCollectionFingerprinterRegistrar::of)).collect(Collectors.toList()));
         }
 
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(
@@ -416,10 +421,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()), 800000, true);
             DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache);
             return new SplitResourceSnapshotterCacheService(globalCache, localCache, globalCacheLocations);
-        }
-
-        CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
-            return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
         }
     }
 

@@ -56,6 +56,7 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistrar;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
@@ -68,6 +69,8 @@ import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ProjectExecutionServices extends DefaultServiceRegistry {
 
@@ -176,8 +179,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         );
     }
 
-    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
-        return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters, List<FileCollectionFingerprinterRegistrar> registrars) {
+        return new DefaultFileCollectionFingerprinterRegistry(Stream.concat(registrars.stream(), fingerprinters.stream().map(FileCollectionFingerprinterRegistrar::of)).collect(Collectors.toList()));
     }
 
     TaskExecutionModeResolver createExecutionModeResolver(

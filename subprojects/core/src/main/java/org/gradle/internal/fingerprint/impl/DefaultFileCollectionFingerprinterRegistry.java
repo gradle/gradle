@@ -20,18 +20,21 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistrar;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileNormalizationSpec;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.fingerprint.impl.DefaultFileNormalizationSpec.from;
 
 public class DefaultFileCollectionFingerprinterRegistry implements FileCollectionFingerprinterRegistry {
     private final Map<FileNormalizationSpec, FileCollectionFingerprinter> fingerprinters;
 
-    public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinter> fingerprinters) {
+    public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinterRegistrar> registrars) {
+        Collection<FileCollectionFingerprinter> fingerprinters = registrars.stream().flatMap(registrar -> registrar.getRegistrants().stream()).collect(Collectors.toList());
         this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> from(input.getRegisteredType(), input.getDirectorySensitivity())));
     }
 
