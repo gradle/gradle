@@ -387,13 +387,14 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.Destination
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
+  - Debugging
+      - org.gradle.tooling.TestLauncher.withTaskAndTestClasses(String, Iterable)
+      - org.gradle.tooling.TestLauncher.withTaskAndTestMethods(String, String, Iterable)
+      - org.gradle.tooling.TestLauncher.debugTestsOn(int)
     - Miscellaneous
         - org.gradle.tooling.events.OperationCompletionListener
         - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
-    - Debugging
-        - org.gradle.tooling.TestLauncher.withTaskAndTestClasses(String, Iterable)
-        - org.gradle.tooling.TestLauncher.withTaskAndTestMethods(String, String, Iterable)
-        - org.gradle.tooling.TestLauncher.debugTestsOn(int)
+        - org.gradle.tooling.ProjectConnection.notifyDaemonsAboutChangedPaths
 - Java Ecosystem
     - Antlr plugin
         - org.gradle.api.plugins.antlr.AntlrTask.getStableSources

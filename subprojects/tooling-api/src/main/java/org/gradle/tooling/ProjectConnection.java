@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 import java.io.Closeable;
 import java.nio.file.Path;
 import java.util.List;
@@ -188,7 +186,6 @@ public interface ProjectConnection extends Closeable {
      * @throws GradleConnectionException On some other failure using the connection.
      * @since 6.1
      */
-    @Incubating
     void notifyDaemonsAboutChangedPaths(List<Path> changedPaths);
 
     /**
