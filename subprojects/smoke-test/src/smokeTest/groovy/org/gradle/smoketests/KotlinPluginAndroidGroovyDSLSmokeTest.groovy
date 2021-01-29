@@ -48,7 +48,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage') as DefaultGradleRunner
+        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage')
         def result = useAgpVersion(androidPluginVersion, runner).build()
 
         then:
