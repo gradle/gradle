@@ -387,7 +387,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.Destination
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
-  - Debugging
+    - Debugging
       - org.gradle.tooling.TestLauncher.withTaskAndTestClasses(String, Iterable)
       - org.gradle.tooling.TestLauncher.withTaskAndTestMethods(String, String, Iterable)
       - org.gradle.tooling.TestLauncher.debugTestsOn(int)
