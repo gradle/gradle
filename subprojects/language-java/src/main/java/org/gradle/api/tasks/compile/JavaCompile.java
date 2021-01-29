@@ -51,7 +51,6 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -60,7 +59,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -105,7 +103,7 @@ import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAcce
 @CacheableTask
 public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final CompileOptions compileOptions;
-    private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
+    private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final ModularitySpec modularity;
     private File sourceClassesMappingFile;
     private final Property<JavaCompiler> javaCompiler;
@@ -130,19 +128,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     /**
-     * This method is overwritten by the Android plugin &lt; 3.6.
-     * We add it here as hack so we can add the source from that method to stableSources.
-     * DO NOT USE!
-     *
-     * @since 6.0
-     */
-    @Deprecated
-    @Internal
-    protected FileTree getSources() {
-        return getProjectLayout().files().getAsFileTree();
-    }
-
-    /**
      * Configures the java compiler to be used to compile the Java source.
      *
      * @see org.gradle.jvm.toolchain.JavaToolchainSpec
@@ -152,22 +137,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     @Optional
     public Property<JavaCompiler> getJavaCompiler() {
         return javaCompiler;
-    }
-
-    /**
-     * Compile the sources, taking into account the changes reported by inputs.
-     *
-     * @deprecated Left for backwards compatibility.
-     */
-    @Deprecated
-    @TaskAction
-    protected void compile(@SuppressWarnings("deprecation") org.gradle.api.tasks.incremental.IncrementalTaskInputs inputs) {
-        DeprecationLogger.deprecate("Extending the JavaCompile task")
-            .withAdvice("Configure the task instead.")
-            .willBeRemovedInGradle7()
-            .undocumented()
-            .nagUser();
-        compile((InputChanges) inputs);
     }
 
     /**
