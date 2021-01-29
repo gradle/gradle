@@ -16,13 +16,14 @@
 
 package org.gradle.launcher.daemon.fixtures
 
+
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.util.EmptyStatement
 import org.gradle.util.VersionNumber
-import org.junit.Assume
 import org.junit.Rule
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -33,8 +34,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getAvailableJdk
 @MultiVersionTest
 class DaemonMultiJdkIntegrationTest extends DaemonIntegrationSpec {
     static def version
-    @Rule
-    IgnoreIfJdkNotFound ignoreRule = new IgnoreIfJdkNotFound()
+    @Rule IgnoreIfJdkNotFound ignoreRule = new IgnoreIfJdkNotFound()
 
     JavaInfo jdk
 
@@ -49,21 +49,18 @@ class DaemonMultiJdkIntegrationTest extends DaemonIntegrationSpec {
                 @Override
                 boolean isSatisfiedBy(JvmInstallationMetadata install) {
                     if (version.hasProperty("vendor")) {
-                        def actualVendor = install.getVendor().getKnownVendor()
-                        def expectedVendor = version.vendor
-                        if (actualVendor != expectedVendor) {
+                        if(install.getVendor().getKnownVendor() != version.vendor) {
                             return false
                         }
                     }
-                    def actualVersion = install.languageVersion.majorVersion
-                    def expectedVersion = version.version
-                    return actualVersion == expectedVersion
+                    return install.languageVersion == version.version
                 }
             })
 
-            return {
-                Assume.assumeTrue("$version.vendor JDK $version.version not found.", jdk != null)
-                base.evaluate()
+            if (jdk != null) {
+                return base
+            } else {
+                return EmptyStatement.INSTANCE
             }
         }
     }
