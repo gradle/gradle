@@ -43,7 +43,7 @@ class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceT
     private static final String KOTLIN_TARGET_VERSION = new KotlinGradlePluginVersions().latests.last()
 
     def setup() {
-        runner.minimumBaseVersion = "6.7"
+        runner.minimumBaseVersion = "7.0"
         runner.targetVersions = ["7.0-20210122131800+0000"]
         runner.useToolingApi = true
         runner.args = ["--no-build-cache", "--no-scan"]

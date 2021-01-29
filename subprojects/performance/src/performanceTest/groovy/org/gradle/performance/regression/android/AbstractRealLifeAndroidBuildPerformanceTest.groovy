@@ -24,7 +24,7 @@ import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
 
 class AbstractRealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    static final String SANTA_AGP_TARGET_VERSION = "3.6"
+    static final String SANTA_AGP_TARGET_VERSION = "4.1.2"
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]

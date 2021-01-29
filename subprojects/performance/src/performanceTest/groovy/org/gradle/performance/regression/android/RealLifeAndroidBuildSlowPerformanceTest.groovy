@@ -25,7 +25,6 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
-import static org.gradle.performance.fixture.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
@@ -55,7 +54,7 @@ class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBui
         applyEnterprisePlugin()
 
         and:
-        if (testProject == SANTA_TRACKER_KOTLIN) {
+        if (testProject instanceof IncrementalAndroidTestProject) {
             IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         }
 
