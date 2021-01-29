@@ -83,7 +83,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                 expectDeprecationWarnings(
                         result,
                         "Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. " +
-                                "This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead. " +
+                                "This is scheduled to be removed in Gradle 8.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead. " +
                                 "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_gradle_types.html#domainobjectset for more details.",
                         "The WorkerExecutor.submit() method has been deprecated. " +
                                 "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
