@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.testkit.runner.BuildResult
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
@@ -25,7 +26,7 @@ import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
-
+@Ignore("https://github.com/gradle/gradle-private/issues/3282")
 class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
     @Unroll

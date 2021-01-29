@@ -22,10 +22,12 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Ignore("https://github.com/gradle/gradle-private/issues/3282")
 class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
     // TODO:configuration-cache remove once fixed upstream
     @Override
