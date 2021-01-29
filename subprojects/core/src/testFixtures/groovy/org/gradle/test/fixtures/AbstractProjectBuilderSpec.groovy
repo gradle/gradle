@@ -68,7 +68,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
             null,
             DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
             new DefaultWorkValidationContext(),
-            {}
+            { historyMaintained, context -> }
         )
         executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)
         task.state.rethrowFailure()

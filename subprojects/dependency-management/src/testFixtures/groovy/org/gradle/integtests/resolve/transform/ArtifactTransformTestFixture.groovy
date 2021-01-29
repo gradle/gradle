@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
@@ -94,6 +93,10 @@ import ${ZipEntry.name}
 class ShowFileCollection extends DefaultTask {
     @InputFiles
     final ConfigurableFileCollection files = project.objects.fileCollection()
+
+    ShowFileCollection() {
+        outputs.upToDateWhen { false }
+    }
 
     @TaskAction
     def go() {

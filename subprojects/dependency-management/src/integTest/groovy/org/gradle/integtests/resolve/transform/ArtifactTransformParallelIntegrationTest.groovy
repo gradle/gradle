@@ -352,6 +352,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     attributes { it.attribute(artifactType, 'size') }
                 }.artifacts
                 inputs.files(artifacts.artifactFiles)
+                outputs.upToDateWhen { false }
 
                 doLast {
                     println artifacts.artifactFiles.collect { it.name }
