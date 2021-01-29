@@ -24,6 +24,7 @@ import spock.lang.Unroll
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.hamcrest.Matchers.containsString
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -56,9 +57,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.txt"))
         report.verify(messages)
 
-        failure.assertHasCause "Plugin validation failed"
+        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size()>1?'s':''}"
         messages.forEach { message, severity ->
-            failure.assertHasCause("$severity: $message")
+            failure.assertThatCause(containsString("$severity: $message"))
         }
     }
 

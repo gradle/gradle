@@ -27,6 +27,10 @@ import java.util.List;
  */
 @Contextual
 public class WorkValidationException extends DefaultMultiCauseException {
+    public WorkValidationException(String message) {
+        super(message);
+    }
+
     public WorkValidationException(String message, List<InvalidUserDataException> causes) {
         super(message, causes);
     }
