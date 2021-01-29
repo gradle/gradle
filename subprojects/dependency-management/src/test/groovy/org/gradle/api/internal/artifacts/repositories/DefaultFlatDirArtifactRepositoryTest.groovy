@@ -47,7 +47,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         given:
         def dir1 = new File('a')
         def dir2 = new File('b')
-        _ * fileCollectionFactory.resolving(['a', 'b']) >> TestFiles.fixed(dir1, dir2)
+        _ * fileCollectionFactory.resolving(['a', 'b'], false) >> TestFiles.fixed(dir1, dir2)
         _ * repositoryTransport.repository >> resourceRepository
 
         and:
@@ -74,7 +74,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
 
     def "fails when no directories specified"() {
         given:
-        _ * fileCollectionFactory.resolving(_) >> TestFiles.empty()
+        _ * fileCollectionFactory.resolving(_, false) >> TestFiles.empty()
 
         when:
         repository.createResolver()

@@ -131,22 +131,22 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollectionInternal resolving(String displayName, Object sources) {
+    public FileCollectionInternal resolving(String displayName, Object sources, boolean allowAbsentProviders) {
         if (sources.getClass().isArray() && Array.getLength(sources) == 0) {
             return empty(displayName);
         }
-        return new ResolvingFileCollection(displayName, fileResolver, patternSetFactory, sources);
+        return new ResolvingFileCollection(displayName, fileResolver, patternSetFactory, sources, allowAbsentProviders);
     }
 
     @Override
-    public FileCollectionInternal resolving(Object sources) {
+    public FileCollectionInternal resolving(Object sources, boolean allowAbsentProviders) {
         if (sources instanceof FileCollectionInternal) {
             return (FileCollectionInternal) sources;
         }
         if (sources.getClass().isArray() && Array.getLength(sources) == 0) {
             return empty();
         }
-        return resolving(DEFAULT_COLLECTION_DISPLAY_NAME, sources);
+        return resolving(DEFAULT_COLLECTION_DISPLAY_NAME, sources, allowAbsentProviders);
     }
 
     @Override
@@ -293,12 +293,14 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         private final String displayName;
         private final PathToFileResolver resolver;
         private final Object source;
+        private final boolean allowAbsentProviders;
 
-        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object source) {
+        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object source, boolean allowAbsentProviders) {
             super(patternSetFactory);
             this.displayName = displayName;
             this.resolver = resolver;
             this.source = source;
+            this.allowAbsentProviders = allowAbsentProviders;
         }
 
         @Override
@@ -308,7 +310,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, patternSetFactory);
+            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, patternSetFactory, true, allowAbsentProviders);
             nested.add(source);
         }
 

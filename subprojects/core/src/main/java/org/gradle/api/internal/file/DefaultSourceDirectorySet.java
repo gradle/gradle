@@ -225,7 +225,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
                 DefaultSourceDirectorySet nested = (DefaultSourceDirectorySet) path;
                 result.addAll(nested.getSourceTrees());
             } else {
-                for (File srcDir : fileCollectionFactory.resolving(path)) {
+                for (File srcDir : fileCollectionFactory.resolving(path, false)) {
                     if (srcDir.exists() && !srcDir.isDirectory()) {
                         throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
                     }
@@ -242,7 +242,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
             if (path instanceof SourceDirectorySet) {
                 context.add(((SourceDirectorySet) path).getBuildDependencies());
             } else {
-                context.add(fileCollectionFactory.resolving(path));
+                context.add(fileCollectionFactory.resolving(path, false));
             }
         }
     }

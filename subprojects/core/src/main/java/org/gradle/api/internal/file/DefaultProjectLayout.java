@@ -99,7 +99,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public FileCollection files(Object... paths) {
-        return fileCollectionFactory.resolving(paths);
+        return fileCollectionFactory.resolving(paths, false);
     }
 
     /**

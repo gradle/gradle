@@ -37,8 +37,8 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         def fileResolver = TestFiles.fileCollectionFactory(testDirectory)
 
         when:
-        def a = fileResolver.resolving(["a"]).asFileTree
-        def b = fileResolver.resolving(["b"]).asFileTree
+        def a = fileResolver.resolving(["a"], false).asFileTree
+        def b = fileResolver.resolving(["b"], false).asFileTree
         def composite = new DefaultCompositeFileTree(TestFiles.patternSetFactory, [a, b])
 
         then:
@@ -52,8 +52,8 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         def fileResolver = TestFiles.fileCollectionFactory(testDirectory)
 
         when:
-        def a = fileResolver.resolving(["a"]).asFileTree
-        def b = fileResolver.resolving(["b"]).asFileTree
+        def a = fileResolver.resolving(["a"], false).asFileTree
+        def b = fileResolver.resolving(["b"], false).asFileTree
         def composite = new DefaultCompositeFileTree(TestFiles.patternSetFactory, [a, b])
 
         and:

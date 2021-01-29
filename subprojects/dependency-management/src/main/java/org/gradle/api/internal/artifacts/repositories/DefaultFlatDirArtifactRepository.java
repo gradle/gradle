@@ -96,7 +96,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
 
     @Override
     public Set<File> getDirs() {
-        return fileCollectionFactory.resolving(dirs).getFiles();
+        return fileCollectionFactory.resolving(dirs, false).getFiles();
     }
 
     @Override

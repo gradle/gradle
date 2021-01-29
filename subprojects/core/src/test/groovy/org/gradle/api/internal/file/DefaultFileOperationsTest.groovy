@@ -113,7 +113,7 @@ class DefaultFileOperationsTest extends Specification {
 
         then:
         result == fileCollection
-        1 * fileCollectionFactory.resolving(['a', 'b', 'c'] as Object[]) >> fileCollection
+        1 * fileCollectionFactory.resolving(['a', 'b', 'c'] as Object[], false) >> fileCollection
     }
 
     def createsFileTree() {
@@ -181,7 +181,7 @@ class DefaultFileOperationsTest extends Specification {
     def deletes() {
         def fileToBeDeleted = tmpDir.file("file")
         def fileCollection = Stub(FileCollectionInternal)
-        fileCollectionFactory.resolving(["file"] as Object[]) >> fileCollection
+        fileCollectionFactory.resolving(["file"] as Object[], false) >> fileCollection
         fileCollection.iterator() >> [fileToBeDeleted].iterator()
         fileToBeDeleted.touch()
 

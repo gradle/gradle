@@ -244,7 +244,7 @@ class ConfigurationCacheFingerprintWriter(
                 elements.add(file)
             }
         })
-        return fileCollectionFactory.resolving(elements)
+        return fileCollectionFactory.resolving(elements, false)
     }
 }
 

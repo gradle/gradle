@@ -97,14 +97,14 @@ public interface FileCollectionFactory {
      *
      * <p>The collection is live and resolves the files on each query.
      */
-    FileCollectionInternal resolving(String displayName, Object sources);
+    FileCollectionInternal resolving(String displayName, Object sources, boolean allowAbsentProviders);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
      * <p>The collection is live and resolves the files on each query.
      */
-    FileCollectionInternal resolving(Object sources);
+    FileCollectionInternal resolving(Object sources, boolean allowAbsentProviders);
 
     /**
      * Creates an empty {@link ConfigurableFileCollection} instance.

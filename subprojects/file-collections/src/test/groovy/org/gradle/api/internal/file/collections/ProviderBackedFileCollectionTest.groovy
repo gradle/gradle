@@ -29,7 +29,7 @@ class ProviderBackedFileCollectionTest extends Specification {
     def provider = Mock(ProviderInternal)
     def resolver = Mock(PathToFileResolver)
     def patternSetFactory = Mock(Factory)
-    def fileCollection = new ProviderBackedFileCollection(provider, resolver, patternSetFactory)
+    def fileCollection = new ProviderBackedFileCollection(provider, resolver, patternSetFactory, false)
 
     def "resolves task dependencies for provider with known producer"() {
         def task = Stub(Task)

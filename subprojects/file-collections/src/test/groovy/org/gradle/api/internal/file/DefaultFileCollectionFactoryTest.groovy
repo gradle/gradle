@@ -176,7 +176,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "returns empty collection when resolving collection constructed with empty resolving array"() {
         expect:
-        def collection = factory.resolving([])
+        def collection = factory.resolving([], false)
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
@@ -185,7 +185,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "returns empty collection when resolving collection constructed with display name and empty resolving array"() {
         expect:
-        def collection = factory.resolving("some collection", [])
+        def collection = factory.resolving("some collection", [], false)
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
@@ -196,7 +196,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         def contents = []
 
         expect:
-        def collection = factory.resolving("some collection", contents)
+        def collection = factory.resolving("some collection", contents, false)
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
@@ -210,12 +210,12 @@ class DefaultFileCollectionFactoryTest extends Specification {
         def original = Stub(FileCollectionInternal)
 
         expect:
-        def collection = factory.resolving(original)
+        def collection = factory.resolving(original, false)
         collection.is(original)
     }
 
     def 'resolves specified files for resolving collection using FileResolver'() {
-        def collection = factory.resolving('test files', ['abc', 'def'])
+        def collection = factory.resolving('test files', ['abc', 'def'], false)
 
         when:
         Set<File> files = collection.getFiles()
@@ -226,7 +226,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     }
 
     def 'can use a Closure for resolving collection to specify a single file'() {
-        def collection = factory.resolving('test files', [{ 'abc' }] as Object[])
+        def collection = factory.resolving('test files', [{ 'abc' }] as Object[], false)
 
         when:
         Set<File> files = collection.getFiles()
@@ -238,7 +238,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     @Unroll
     def 'resolving collection source #description can return null'() {
-        def collection = factory.resolving('test files', input)
+        def collection = factory.resolving('test files', input, false)
 
         when:
         Set<File> files = collection.getFiles()
@@ -255,7 +255,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     def 'Provider can throw IllegalStateException'() {
         Provider provider = Mock()
         def exception = new IllegalStateException()
-        def collection = factory.resolving('test files', provider)
+        def collection = factory.resolving('test files', provider, false)
 
         when:
         collection.getFiles()
@@ -270,7 +270,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         Callable<File> callable = Mock()
 
         when:
-        def collection = factory.resolving('test files', callable)
+        def collection = factory.resolving('test files', callable, false)
 
         then:
         0 * callable._
@@ -286,7 +286,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     @Unroll
     def 'can use a #description to specify the contents of a resolving collection'() {
-        def collection = factory.resolving('test files', input)
+        def collection = factory.resolving('test files', input, false)
 
         when:
         Set<File> files = collection.getFiles()
@@ -322,7 +322,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     @Unroll
     def 'can use a #description to specify the single content of the collection'() {
-        def collection = factory.resolving('test files', input)
+        def collection = factory.resolving('test files', input, false)
 
         when:
         Set<File> files = collection.getFiles()

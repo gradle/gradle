@@ -25,16 +25,19 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
+import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class ProviderBackedFileCollection extends CompositeFileCollection {
     private final ProviderInternal<?> provider;
     private final PathToFileResolver resolver;
+    private final boolean allowAbsentProviders;
 
-    public ProviderBackedFileCollection(ProviderInternal<?> provider, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory) {
+    public ProviderBackedFileCollection(ProviderInternal<?> provider, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, boolean allowAbsentProviders) {
         super(patternSetFactory);
         this.provider = provider;
         this.resolver = resolver;
+        this.allowAbsentProviders = allowAbsentProviders;
     }
 
     @Override
@@ -49,14 +52,20 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
             producer.visitProducerTasks(context);
         } else {
             // Producer is unknown, so unpack the value
-            super.visitDependencies(context);
+            UnpackingVisitor unpackingVisitor = new UnpackingVisitor(context::add, resolver, patternSetFactory);
+            unpackingVisitor.add(getProviderValue());
         }
     }
 
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         UnpackingVisitor unpackingVisitor = new UnpackingVisitor(visitor, resolver, patternSetFactory);
-        unpackingVisitor.add(provider.get());
+        unpackingVisitor.add(getProviderValue());
+    }
+
+    @Nullable
+    private Object getProviderValue() {
+        return allowAbsentProviders ? provider.getOrNull() : provider.get();
     }
 
     public ProviderInternal<?> getProvider() {

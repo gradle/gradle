@@ -52,6 +52,6 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
 
     @Override
     public FileCollection getRegisteredFiles() {
-        return fileCollectionFactory.resolving("localState", registeredPaths);
+        return fileCollectionFactory.resolving("localState", registeredPaths, false);
     }
 }

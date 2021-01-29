@@ -40,7 +40,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
         if (resolvedPaths != null) {
             resolvedPaths = null;
         }
-        this.outputs.add(fileCollectionFactory.resolving(files));
+        this.outputs.add(fileCollectionFactory.resolving(files, false));
     }
 
     @Override

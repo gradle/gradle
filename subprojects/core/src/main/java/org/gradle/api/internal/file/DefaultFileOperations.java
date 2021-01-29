@@ -131,7 +131,7 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public FileCollection immutableFiles(Object... paths) {
-        return fileCollectionFactory.resolving(paths);
+        return fileCollectionFactory.resolving(paths, false);
     }
 
     @Override
@@ -203,7 +203,7 @@ public class DefaultFileOperations implements FileOperations {
     public WorkResult delete(Action<? super DeleteSpec> action) {
         DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
         action.execute(deleteSpec);
-        FileCollectionInternal roots = fileCollectionFactory.resolving(deleteSpec.getPaths());
+        FileCollectionInternal roots = fileCollectionFactory.resolving(deleteSpec.getPaths(), false);
         boolean didWork = false;
         for (File root : roots) {
             try {

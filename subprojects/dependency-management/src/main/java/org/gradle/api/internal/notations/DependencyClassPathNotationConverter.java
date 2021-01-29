@@ -100,7 +100,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
                 }
             });
         } else {
-            fileCollectionInternal = fileCollectionFactory.resolving(getClassPath(notation));
+            fileCollectionInternal = fileCollectionFactory.resolving(getClassPath(notation), false);
         }
         SelfResolvingDependency dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation), fileCollectionInternal);
         SelfResolvingDependency alreadyPresent = internCache.putIfAbsent(notation, dependency);

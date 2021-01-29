@@ -43,16 +43,18 @@ public class UnpackingVisitor {
     private final PathToFileResolver resolver;
     private final Factory<PatternSet> patternSetFactory;
     private final boolean includeBuildable;
+    private final boolean allowAbsentProviders;
 
     public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory) {
-        this(visitor, resolver, patternSetFactory, true);
+        this(visitor, resolver, patternSetFactory, true, false);
     }
 
-    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, boolean includeBuildable) {
+    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, boolean includeBuildable, boolean allowAbsentProviders) {
         this.visitor = visitor;
         this.resolver = resolver;
         this.patternSetFactory = patternSetFactory;
         this.includeBuildable = includeBuildable;
+        this.allowAbsentProviders = allowAbsentProviders;
     }
 
     public void add(@Nullable Object element) {
@@ -68,7 +70,7 @@ public class UnpackingVisitor {
         if (element instanceof ProviderInternal) {
             // ProviderInternal is-a TaskDependencyContainer, so check first
             ProviderInternal<?> provider = (ProviderInternal<?>) element;
-            visitor.accept(new ProviderBackedFileCollection(provider, resolver, patternSetFactory));
+            visitor.accept(new ProviderBackedFileCollection(provider, resolver, patternSetFactory, allowAbsentProviders));
             return;
         }
         if (includeBuildable && (element instanceof Buildable || element instanceof TaskDependencyContainer)) {
@@ -157,7 +159,7 @@ public class UnpackingVisitor {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            new UnpackingVisitor(visitor, resolver, patternSetFactory, false).add(element);
+            new UnpackingVisitor(visitor, resolver, patternSetFactory, false, false).add(element);
         }
     }
 }
