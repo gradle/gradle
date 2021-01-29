@@ -34,7 +34,7 @@ tasks.register<UpdateBranchStatus>("updateBranchStatus")
 
 tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment.set(" Generated - Update by running `./gradlew updateAgpVersions`")
-    minimumSupportedMinor.set("3.4")
+    minimumSupportedMinor.set("4.0")
     propertiesFile.set(layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
 }
 
