@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
@@ -352,9 +351,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
-                throw new InvalidUserCodeException("Injecting the input artifact of a transform as a File isn't allowed. Declare the input artifact as Provider<FileSystemLocation> instead.");
-            }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (artifactTransformDependencies != null) {
                 builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, artifactTransformDependencies::getFiles));

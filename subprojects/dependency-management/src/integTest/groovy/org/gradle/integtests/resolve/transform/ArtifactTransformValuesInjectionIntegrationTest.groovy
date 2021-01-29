@@ -103,54 +103,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
     }
 
-    def "fails if trying to use a File as an input of a transform"() {
-        settingsFile << """
-            include 'a', 'b', 'c'
-        """
-        setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        parameters {
-                            extension = 'green'
-                        }
-                    }
-                }
-            }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
-            abstract class MakeGreen implements TransformAction<Parameters> {
-                interface Parameters extends TransformParameters {
-                    @Input
-                    String getExtension()
-                    void setExtension(String value)
-                }
-
-                @InputArtifact
-                abstract File getInputFile()
-
-                void transform(TransformOutputs outputs) {
-                    File input = inputFile // triggers validation
-                }
-            }
-"""
-
-        when:
-        fails ":a:resolve"
-
-        then:
-        failure.assertHasCause("Injecting the input artifact of a transform as a File isn't allowed. Declare the input artifact as Provider<FileSystemLocation> instead.")
-    }
-
     @Unroll
     def "transform can receive parameter of type #type"() {
         settingsFile << """
@@ -919,10 +871,15 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
-        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
+        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
-        propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
+        propertyType << [
+            File,
+            FileCollection,
+            new TypeToken<Provider<File>>() {}.getType(),
+            new TypeToken<Provider<String>>() {}.getType()
+        ]
     }
 
     @Unroll
