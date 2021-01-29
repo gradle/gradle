@@ -113,7 +113,8 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                         }
                     });
                 } catch (Exception e) {
-                    if (historyMaintained) { // We would try to snapshots the inputs anyway, no need to suppress the exception
+                    if (historyMaintained) {
+                        // We would try to snapshots the inputs anyway, no need to suppress the exception
                         throw e;
                     } else {
                         validationContext.visitPropertyProblem(
