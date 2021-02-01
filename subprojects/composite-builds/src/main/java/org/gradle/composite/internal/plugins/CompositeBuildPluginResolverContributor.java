@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal.plugins;
 
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -38,8 +39,8 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
 
     private final PluginResolver resolver;
 
-    public CompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
-        this.resolver = new CompositeBuildPluginResolver(buildRegistry, consumingBuild);
+    public CompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildState consumingBuild, BuildIncluder buildIncluder) {
+        this.resolver = new CompositeBuildPluginResolver(buildRegistry, consumingBuild, buildIncluder);
     }
 
     @Override
@@ -51,16 +52,23 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
 
         private final BuildStateRegistry buildRegistry;
         private final BuildState consumingBuild;
+        private final BuildIncluder buildIncluder;
 
         private final Map<PluginId, PluginResolution> results = new HashMap<>();
 
-        private CompositeBuildPluginResolver(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
+        private CompositeBuildPluginResolver(BuildStateRegistry buildRegistry, BuildState consumingBuild, BuildIncluder buildIncluder) {
             this.buildRegistry = buildRegistry;
             this.consumingBuild = consumingBuild;
+            this.buildIncluder = buildIncluder;
         }
 
         @Override
         public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+            PluginResolution earlyResolution = resolveFromIncludedPluginBuilds(pluginRequest.getId());
+            if (earlyResolution != null) {
+                result.found(SOURCE_DESCRIPTION, earlyResolution);
+            }
+
             if (buildRegistry.getIncludedBuilds().isEmpty()) {
                 return;
             }
@@ -80,11 +88,18 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
                 }
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {
-                    // TODO: once we are ready to publicize build logic build inclusion via pluginManagement {}
-                    /*DeprecationLogger.deprecateAction("Including builds that contribute Gradle plugins outside of pluginManagement {} block in settings file")
-                        .willBeRemovedInGradle8()
-                        .withUpgradeGuideSection(6, "included_builds_contributing_plugins")
-                        .nagUser();*/
+                    return pluginResolution.get();
+                }
+            }
+            return null;
+        }
+
+        private PluginResolution resolveFromIncludedPluginBuilds(PluginId requestedPluginId) {
+            for (IncludedBuildState build : buildIncluder.includeRegisteredPluginBuilds()) {
+                buildRegistry.ensureConfigured(build);
+
+                Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));
+                if (pluginResolution.isPresent()) {
                     return pluginResolution.get();
                 }
             }
