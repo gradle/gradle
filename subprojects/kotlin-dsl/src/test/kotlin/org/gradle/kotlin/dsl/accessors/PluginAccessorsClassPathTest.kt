@@ -36,7 +36,6 @@ import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
-import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItems
