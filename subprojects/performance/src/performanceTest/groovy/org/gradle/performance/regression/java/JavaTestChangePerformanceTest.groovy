@@ -35,7 +35,7 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.warmUpRuns = 2
         runner.runs = 6
         runner.tasksToRun = ['test']
-        runner.targetVersions = ["7.0-20210122131800+0000"]
+        runner.targetVersions = ["7.0-20210129203255+0000"]
         // Pre-4.0 versions run into memory problems with this test
         runner.minimumBaseVersion = "4.0"
         runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
