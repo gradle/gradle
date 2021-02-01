@@ -284,6 +284,11 @@ public class ProviderConnection {
             if (operationParameters.getGradleUserHomeDir() != null) {
                 layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
             }
+            @SuppressWarnings("deprecation")
+            Boolean searchUpwards = operationParameters.isSearchUpwards();
+            if (searchUpwards != null) {
+                layout.setSearchUpwards(searchUpwards);
+            }
             layout.setProjectDir(operationParameters.getProjectDir());
         });
 
