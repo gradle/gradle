@@ -37,6 +37,18 @@ class BuildSrcLocationIntegrationTest extends AbstractIntegrationSpec {
         executed(":buildSrc:compileGroovy")
     }
 
+    def "buildSrc without settings file can execute standalone"() {
+        given:
+        def buildSrc = file("buildSrc")
+        buildSrc.file("build.gradle") << ''
+
+        when:
+        executer.usingProjectDirectory(buildSrc)
+
+        then:
+        succeeds("help")
+    }
+
     def "empty buildSrc directory is ignored"() {
         file("buildSrc").createDir()
 

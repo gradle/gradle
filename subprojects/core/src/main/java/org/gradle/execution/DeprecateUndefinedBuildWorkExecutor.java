@@ -16,15 +16,13 @@
 
 package org.gradle.execution;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.TextResource;
 
 import java.util.Collection;
-
-import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
+import static org.gradle.api.internal.StartParameterInternal.useLocationAsProjectRoot;
 
 public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
     private final BuildWorkExecutor delegate;
@@ -35,7 +33,7 @@ public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
 
     @Override
     public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
-        if (isUndefinedBuild(gradle) && !wasInitTaskRequested(gradle.getStartParameter())) {
+        if (!useLocationAsProjectRoot(gradle.getRootProject().getRootDir(), gradle.getStartParameter().getTaskNames()) && isUndefinedBuild(gradle)) {
             DeprecationLogger.deprecateAction("Executing Gradle tasks as part of an undefined build")
                 .willBecomeAnErrorInGradle7()
                 .withUpgradeGuideSection(5, "executing_gradle_without_a_settings_file_has_been_deprecated")
@@ -45,18 +43,10 @@ public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
     }
 
     private static boolean isUndefinedBuild(GradleInternal gradle) {
-        return !isBuildSrcExecution(gradle) && !gradle.getRootProject().getBuildFile().exists() && isUndefinedResource(gradle.getSettings().getSettingsScript().getResource());
+        return !gradle.getRootProject().getBuildFile().exists() && isUndefinedResource(gradle.getSettings().getSettingsScript().getResource());
     }
 
     private static boolean isUndefinedResource(TextResource settingsScript) {
         return settingsScript instanceof EmptyFileTextResource && settingsScript.getFile() == null;
-    }
-
-    private static boolean wasInitTaskRequested(StartParameter startParameter) {
-        return startParameter.getTaskNames().contains("init");
-    }
-
-    private static boolean isBuildSrcExecution(GradleInternal gradle) {
-        return gradle.getRootProject().getName().equals(BUILD_SRC) && gradle.getParent() != null;
     }
 }
