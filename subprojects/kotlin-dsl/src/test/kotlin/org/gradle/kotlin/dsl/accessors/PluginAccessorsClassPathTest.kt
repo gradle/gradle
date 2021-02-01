@@ -30,7 +30,6 @@ import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 
-import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.kotlin.dsl.support.zipTo
 
