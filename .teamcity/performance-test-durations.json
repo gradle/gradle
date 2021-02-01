@@ -1,4 +1,19 @@
 [ {
+  "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean assembleDebug with clean transforms cache",
+  "durations" : [ {
+    "testProject" : "largeAndroidBuild",
+    "linux" : 2406000
+  }, {
+    "testProject" : "santaTrackerAndroidBuild",
+    "linux" : 3659000
+  } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean phthalic:assembleDebug with clean transforms cache",
+    "durations" : [ {
+        "testProject" : "largeAndroidBuild",
+        "linux" : 1775000
+    } ]
+}, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.abi change",
   "durations" : [ {
     "testProject" : "santaTrackerAndroidBuild",
@@ -33,21 +48,6 @@
   }, {
     "testProject" : "largeAndroidBuild",
     "linux" : 229000
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest.clean assembleDebug with clean transforms cache",
-  "durations" : [ {
-    "testProject" : "largeAndroidBuild",
-    "linux" : 2406000
-  }, {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 3659000
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest.clean phthalic:assembleDebug with clean transforms cache",
-  "durations" : [ {
-    "testProject" : "largeAndroidBuild",
-    "linux" : 1775000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest.get IDE model for Android Studio",

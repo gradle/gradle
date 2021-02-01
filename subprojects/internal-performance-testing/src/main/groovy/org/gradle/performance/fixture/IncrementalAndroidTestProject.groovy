@@ -16,14 +16,12 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToSourceFileMutator
 
 class IncrementalAndroidTestProject extends AndroidTestProject implements IncrementalTestProject {
 
-    private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
     private static final String ENABLE_AGP_IDE_MODE_ARG = "-Pandroid.injected.invoked.from.ide=true"
 
     static final SANTA_TRACKER_KOTLIN = new IncrementalAndroidTestProject(
@@ -53,14 +51,6 @@ class IncrementalAndroidTestProject extends AndroidTestProject implements Increm
         builder.invocation {
             args.add(ENABLE_AGP_IDE_MODE_ARG)
         }
-    }
-
-    static void configureForLatestAgpVersionOfMinor(CrossVersionPerformanceTestRunner runner, String lowerBound) {
-        runner.args.add("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
-    }
-
-    static void configureForLatestAgpVersionOfMinor(GradleBuildExperimentSpec.GradleBuilder builder, String lowerBound) {
-        builder.invocation.args("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
     }
 
     @Override

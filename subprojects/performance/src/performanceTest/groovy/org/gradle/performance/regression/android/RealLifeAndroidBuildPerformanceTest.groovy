@@ -16,16 +16,35 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
+import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.ScenarioContext
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
+import static org.gradle.performance.annotations.ScenarioType.PER_DAY
+import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
+class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+
+    def setup() {
+        runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
+        runner.targetVersions = ["7.0-20210122131800+0000"]
+        AndroidTestProject.useStableAgpVersion(runner)
+        // AGP 4.1 requires 6.5+
+        // forUseAtConfigurationTime API used in this scenario
+        runner.minimumBaseVersion = "6.5"
+    }
+
     @Unroll
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = "run help"),
@@ -42,11 +61,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         runner.runs = runs
         applyEnterprisePlugin()
 
-        and:
-        if (testProject instanceof IncrementalAndroidTestProject) {
-            IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
-        }
-
         when:
         def result = runner.run()
 
@@ -60,6 +74,40 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         'clean phthalic:assembleDebug' | 2          | 8
     }
 
+    @RunFor([
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = "clean phthalic.*")
+    ])
+    @Unroll
+    def "clean #tasks with clean transforms cache"() {
+        given:
+        def testProject = androidTestProject
+        boolean isLargeProject = androidTestProject == LARGE_ANDROID_BUILD
+        if (isLargeProject) {
+            runner.warmUpRuns = 2
+            runner.runs = 8
+        }
+
+        testProject.configure(runner)
+        runner.tasksToRun = tasks.split(' ')
+        runner.args.add('-Dorg.gradle.parallel=true')
+        runner.cleanTasks = ["clean"]
+        runner.useDaemon = false
+        runner.addBuildMutator { invocationSettings ->
+            new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        applyEnterprisePlugin()
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        tasks << ['assembleDebug', 'phthalic:assembleDebug']
+    }
+
     @RunFor(
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild"])
     )
@@ -67,7 +115,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         given:
         def testProject = androidTestProject as IncrementalAndroidTestProject
         testProject.configureForAbiChange(runner)
-        IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
@@ -85,7 +132,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         given:
         def testProject = androidTestProject as IncrementalAndroidTestProject
         testProject.configureForNonAbiChange(runner)
-        IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
@@ -94,5 +140,23 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+    }
+
+    void applyEnterprisePlugin() {
+        runner.addBuildMutator { invocationSettings ->
+            new BuildMutator() {
+                @Override
+                void beforeScenario(ScenarioContext context) {
+                    ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(new File(invocationSettings.projectDir, "settings.gradle"))
+                }
+            }
+        }
+    }
+
+    AndroidTestProject getAndroidTestProject() {
+        // We assume here already, since the test may try to cast the returned test project to `IncrementalAndroidTestProject`,
+        // which fails when the test project is non-incremental.
+        runner.assumeShouldRun()
+        AndroidTestProject.projectFor(runner.testProject)
     }
 }
