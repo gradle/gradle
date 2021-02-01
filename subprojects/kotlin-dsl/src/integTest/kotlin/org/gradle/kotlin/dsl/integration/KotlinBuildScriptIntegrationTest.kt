@@ -248,7 +248,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-            """.replaceIndent()
+            """.trimIndent()
         )
 
         assertThat(

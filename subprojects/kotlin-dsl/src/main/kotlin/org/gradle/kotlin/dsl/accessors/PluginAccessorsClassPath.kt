@@ -307,7 +307,7 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
         """
         import ${PluginDependenciesSpec::class.qualifiedName}
         import ${PluginDependencySpec::class.qualifiedName}
-        """.replaceIndent()
+        """.trimIndent()
     )
 
     defaultPackageTypesIn(accessors).forEach {
