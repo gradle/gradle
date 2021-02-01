@@ -576,7 +576,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             buildFailureOutput().normaliseLineSeparators(),
-            containsString(
+            containsMultiLineString(
                 """
                 FAILURE: Build failed with an exception.
 
@@ -590,7 +590,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                           ^ Unresolved reference: foo
 
                 1 error
-                """.replaceIndent()
+                """
             )
         )
     }

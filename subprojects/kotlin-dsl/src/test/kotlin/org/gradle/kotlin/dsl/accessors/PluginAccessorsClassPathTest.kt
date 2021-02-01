@@ -99,7 +99,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
 
         // then:
         assertThat(
-            srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readText().normaliseLineSeparators(),
+            srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readText(),
             allOf(
                 containsString("import MyPlugin"),
                 containsMultiLineString(
