@@ -33,7 +33,7 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
     }
     params {
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
-        param("env.JAVA_HOME", os.buildJavaHome())
+        param("env.JAVA_HOME", os.javaHomeForGradle())
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("env.JPROFILER_HOME", os.jprofilerHome)
         param("performance.db.username", "tcagent")
@@ -43,7 +43,10 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
 fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters" }",
     "-PperformanceBaselines=$baselines",
-    """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
+    "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
+    "-PtestJavaVendor=${os.perfTestJavaVendor}",
+    "-Porg.gradle.java.installations.auto-download=false",
+    os.javaInstallationLocations()
 ) + listOf(
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",

@@ -481,11 +481,11 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.building-swift-*.sample"
         }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
-        if (buildJvms.testJvm.get().javaVersion.java9Compatible) {
+        if (javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.*.building-groovy-*.sample"
         }
         // Build Android only with Java 8
-        if (buildJvms.testJvm.get().javaVersion.java9Compatible) {
+        if (javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-apps_*_buildTask.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
         }
@@ -493,13 +493,13 @@ tasks.named("docsTest") { task ->
         excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*_sanityCheck.sample"
 
         // Do not execute Java Module tests on JVM < 9
-        if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
-            excludeTestsMatching 'org.gradle.docs.samples.*.java-modules-*.sample'
+        if (!javaVersion.java9Compatible) {
+            excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
         }
 
         // Do not execute JaCoCo tests on JDK >= 15 until JaCoCo we use starts supporting newer JDKs
-        if (buildJvms.testJvm.get().javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
             excludeTestsMatching 'org.gradle.docs.samples.*.jvm-multi-project-with-code-coverage_*_testTask.sample'
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-jacoco-application_*_jacocoApp.sample'
         }

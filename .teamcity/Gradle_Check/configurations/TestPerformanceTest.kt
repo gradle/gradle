@@ -50,7 +50,8 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             "performance:${testProject}PerformanceAdHocTest",
             tests.map { """--tests "$it"""" }.joinToString(" "),
             """--warmups 2 --runs 2 --checks none""",
-            """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
+            "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
+            "-PtestJavaVendor=${os.perfTestJavaVendor}"
         ))
     }
 
