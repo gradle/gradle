@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.internal.provider.AbsentProviderHandling
+
 class LocalStateFixture {
     static String defineTaskWithLocalState(boolean useRuntimeApi, localStateFile = 'file("local-state.json")') {
         def action = """
@@ -26,7 +28,7 @@ class LocalStateFixture {
                 assert !localStateFile.exists()
             }
             new File("build/output.txt").text = "Output"
-            localStateFile = org.gradle.util.DeferredUtil.unpack(true, localStateFile)
+            localStateFile = org.gradle.util.DeferredUtil.unpack(${AbsentProviderHandling.name}.ALLOW_ABSENT, localStateFile)
             if (localStateFile != null) {
                 localStateFile.text = "['Some internal state']"
             }

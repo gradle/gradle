@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
@@ -556,7 +557,7 @@ public class SigningExtension {
     }
 
     private Object force(Object maybeCallable) {
-        return DeferredUtil.unpack(false, maybeCallable);
+        return DeferredUtil.unpack(AbsentProviderHandling.REQUIRE_PRESENT, maybeCallable);
     }
 
     private static class DefaultDerivedArtifactFile implements PublicationInternal.DerivedArtifact {

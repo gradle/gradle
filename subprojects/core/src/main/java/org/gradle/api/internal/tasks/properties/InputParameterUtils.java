@@ -20,6 +20,7 @@ import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
@@ -37,7 +38,7 @@ public class InputParameterUtils {
 
     @Nullable
     public static Object prepareInputParameterValue(@Nullable Object value) {
-        Object unpacked = DeferredUtil.unpack(true, value);
+        Object unpacked = DeferredUtil.unpack(AbsentProviderHandling.ALLOW_ABSENT, value);
         return finalizeValue(unpacked);
     }
 

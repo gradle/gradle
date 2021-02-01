@@ -22,6 +22,7 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.provider.AbsentProviderHandling
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
@@ -265,7 +266,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
         property.run {
             when (this) {
                 is RegisteredProperty.InputFile -> {
-                    val finalValue = DeferredUtil.unpack(true, propertyValue)
+                    val finalValue = DeferredUtil.unpack(AbsentProviderHandling.ALLOW_ABSENT, propertyValue)
                     writeInputProperty(propertyName, finalValue)
                     writeBoolean(optional)
                     writeBoolean(true)
@@ -287,7 +288,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
     val outputProperties = collectRegisteredOutputsOf(task)
     writeCollection(outputProperties) { property ->
         property.run {
-            val finalValue = DeferredUtil.unpack(true, propertyValue)
+            val finalValue = DeferredUtil.unpack(AbsentProviderHandling.ALLOW_ABSENT, propertyValue)
             writeOutputProperty(propertyName, finalValue)
             writeBoolean(optional)
             writeEnum(filePropertyType)
