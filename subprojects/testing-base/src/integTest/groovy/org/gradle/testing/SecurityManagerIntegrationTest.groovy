@@ -16,10 +16,12 @@
 
 package org.gradle.testing
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.util.GradleVersion
+import spock.lang.IgnoreIf
 
 import static org.gradle.util.Matchers.containsText
 import static org.gradle.util.Matchers.matchesRegexp
@@ -66,6 +68,7 @@ public class SecurityManagerTest {
         failure.assertThatCause(containsText("Please refer to the test execution section in the User Manual at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#sec:test_execution"))
     }
 
+    @IgnoreIf({ JavaVersion.current() == JavaVersion.VERSION_1_8})
     @IntegrationTestTimeout(120)
     def "should not hang when running with security manager debug flag"() {
         given:
@@ -112,7 +115,7 @@ public class SecurityManagerTest {
 }
 '''
         expect:
-        run('test',  "-Djava.security.debug=access,failure")
+        run('test')
         def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('SecurityManagerTest')
 

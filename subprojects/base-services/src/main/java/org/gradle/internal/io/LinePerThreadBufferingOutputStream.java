@@ -157,52 +157,88 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
 
     @Override
     public void println() {
-        getStream().println();
+        getStream().print(lineSeparator);
     }
 
     @Override
     public void println(boolean x) {
-        getStream().println(x);
+        PrintStream stream = getStream();
+        synchronized (this) {
+            stream.print(x);
+            stream.print(lineSeparator);
+        }
     }
 
     @Override
     public void println(char x) {
-        getStream().println(x);
+        PrintStream stream = getStream();
+        synchronized (this) {
+            stream.print(x);
+            stream.print(lineSeparator);
+        }
     }
 
     @Override
     public void println(char[] x) {
-        getStream().println(x);
+        PrintStream stream = getStream();
+        synchronized (this) {
+            stream.print(x);
+            stream.print(lineSeparator);
+        }
     }
 
     @Override
     public void println(double x) {
-        getStream().println(x);
+        PrintStream stream = getStream();
+        synchronized (this) {
+            stream.print(x);
+            stream.print(lineSeparator);
+        }
     }
 
     @Override
     public void println(float x) {
-        getStream().println(x);
+        PrintStream stream = getStream();
+        synchronized (this) {
+            stream.print(x);
+            stream.print(lineSeparator);
+        }
     }
 
     @Override
     public void println(int x) {
-        getStream().println(x);
+        PrintStream stream = getStream();
+        synchronized (this) {
+            stream.print(x);
+            stream.print(lineSeparator);
+        }
     }
 
     @Override
     public void println(long x) {
-        getStream().println(x);
+        PrintStream stream = getStream();
+        synchronized (this) {
+            stream.print(x);
+            stream.print(lineSeparator);
+        }
     }
 
     @Override
     public void println(Object x) {
-        getStream().println(x);
+        PrintStream stream = getStream();
+        synchronized (this) {
+            stream.print(x);
+            stream.print(lineSeparator);
+        }
     }
 
     @Override
     public void println(String x) {
-        getStream().println(x);
+        PrintStream stream = getStream();
+        synchronized (this) {
+            stream.print(x);
+            stream.print(lineSeparator);
+        }
     }
 
     @Override
