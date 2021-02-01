@@ -189,7 +189,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     deps.each {
                         assert it.selected.id.version == '1.5'
                         assert it.selected.selectionReason.selectedByRule
-                        assert it.selected.selectionReason.description == 'selected by rule'
+                        assert it.selected.selectionReason.toString() == 'selected by rule'
                     }
                 }
             }
@@ -904,9 +904,9 @@ conf
             task check {
                 doLast {
                     def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                    assert modules.find { it.id.module == 'foo' }.selectionReason.description == 'because I am in control'
-                    assert modules.find { it.id.module == 'bar' }.selectionReason.description == 'why not?'
-                    assert modules.find { it.id.module == 'baz' }.selectionReason.description == 'selected by rule'
+                    assert modules.find { it.id.module == 'foo' }.selectionReason.toString() == 'because I am in control'
+                    assert modules.find { it.id.module == 'bar' }.selectionReason.toString() == 'why not?'
+                    assert modules.find { it.id.module == 'baz' }.selectionReason.toString() == 'selected by rule'
                 }
             }
         """

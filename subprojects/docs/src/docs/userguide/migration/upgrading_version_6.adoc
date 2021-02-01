@@ -183,6 +183,11 @@ The `ImmutableFileCollection` type has been removed.
 Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...- factory method instead.
 A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--.
 
+==== Removal of `ComponentSelectionReason.getDescription`
+
+The method `ComponentSelectionReason.getDescription` has been removed.
+It is replaced by `ComponentSelectionReason.getDescriptions` which returns a list of `ComponentSelectionDescriptor`, each having a `getDescription`.
+
 ==== Removal of domain object collection constructors
 
 The following deprecated constructors were removed:

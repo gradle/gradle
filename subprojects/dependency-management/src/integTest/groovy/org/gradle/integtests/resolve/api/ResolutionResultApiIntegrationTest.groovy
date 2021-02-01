@@ -61,10 +61,10 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
                     def result = configurations.conf.incoming.resolutionResult
                     result.allComponents {
                         if(it.id instanceof ModuleComponentIdentifier) {
-                            println it.id.module + ":" + it.id.version + " " + it.selectionReason.description
+                            println it.id.module + ":" + it.id.version + " " + it.selectionReason
                         }
                         else if(it.id instanceof ProjectComponentIdentifier) {
-                            println it.moduleVersion.name + ":" + it.moduleVersion.version + " " + it.selectionReason.description
+                            println it.moduleVersion.name + ":" + it.moduleVersion.version + " " + it.selectionReason
                         }
                     }
                 }
@@ -142,7 +142,7 @@ baz:1.0 requested
     def "resolution result API gives access to dependency reasons in case of conflict and selection by rule"() {
         given:
         mavenRepo.with {
-            def leaf1 = module('org.test', 'leaf', '1.0').publish()
+            module('org.test', 'leaf', '1.0').publish()
             def leaf2 = module('org.test', 'leaf', '1.1').publish()
             module('org.test', 'a', '1.0')
                 .dependsOn('org.test', 'leaf', '0.9')

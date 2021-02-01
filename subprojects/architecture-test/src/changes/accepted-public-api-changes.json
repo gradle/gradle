@@ -1618,6 +1618,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.result.ComponentSelectionReason",
+            "member": "Method org.gradle.api.artifacts.result.ComponentSelectionReason.getDescription()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.JavaCompile",
             "member": "Method org.gradle.api.tasks.compile.JavaCompile.getSources()",
             "acceptation": "Deprecated method was removed",

@@ -457,7 +457,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
             task check {
                 doLast {
                     def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                    assert modules.find { it.id.module == 'b' }.selectionReason.description == "$expected"
+                    assert modules.find { it.id.module == 'b' }.selectionReason.toString() == "$expected"
                 }
             }
         """

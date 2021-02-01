@@ -74,14 +74,6 @@ public interface ComponentSelectionReason {
     boolean isConstrained();
 
     /**
-     * Returns a human-consumable description of this selection reason.
-     *
-     * @deprecated Use {@link #getDescriptions()} instead
-     */
-    @Deprecated
-    String getDescription();
-
-    /**
      * Returns a list of descriptions of the causes that led to the selection of this component.
      *
      * @return the list of descriptions.
