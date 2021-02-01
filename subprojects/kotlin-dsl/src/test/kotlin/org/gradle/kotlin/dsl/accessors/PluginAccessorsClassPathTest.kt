@@ -36,10 +36,12 @@ import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
+import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.instanceOf
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -97,9 +99,11 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
         }
 
         // then:
+        val generatedAccessors = String(srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readBytes())
         assertThat(
-            String(srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readBytes()),
+            generatedAccessors,
             allOf(
+                not(containsString("\r")),
                 containsString("import MyPlugin"),
                 containsMultiLineString(
                     """
