@@ -316,8 +316,10 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
     }
 
     accessors.runEach {
-        newLine()
-        newLine()
+
+        // Keep accessors separated by an empty line
+        write("\n\n")
+
         val extendedType = extension.receiverType.sourceName
         val pluginsRef = pluginDependenciesSpecOf(extendedType)
         when (this) {
