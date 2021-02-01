@@ -42,11 +42,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         runner.runs = runs
         applyEnterprisePlugin()
 
-        and:
-        if (testProject instanceof IncrementalAndroidTestProject) {
-            IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
-        }
-
         when:
         def result = runner.run()
 
@@ -67,7 +62,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         given:
         def testProject = androidTestProject as IncrementalAndroidTestProject
         testProject.configureForAbiChange(runner)
-        IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
@@ -85,7 +79,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         given:
         def testProject = androidTestProject as IncrementalAndroidTestProject
         testProject.configureForNonAbiChange(runner)
-        IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 

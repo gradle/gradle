@@ -23,7 +23,6 @@ import org.gradle.performance.android.SyncAction
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
-import org.gradle.performance.fixture.IncrementalAndroidTestProject
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -38,9 +37,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPer
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)
-        if (testProject instanceof IncrementalAndroidTestProject) {
-            IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, AbstractRealLifeAndroidBuildPerformanceTest.SANTA_AGP_TARGET_VERSION)
-        }
+        AndroidTestProject.useStableAgpVersion(runner)
         runner.warmUpRuns = 40
         runner.runs = 40
         runner.minimumBaseVersion = "6.5"

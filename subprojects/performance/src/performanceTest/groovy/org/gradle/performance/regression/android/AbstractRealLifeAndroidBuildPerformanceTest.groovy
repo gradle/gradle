@@ -24,11 +24,11 @@ import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
 
 class AbstractRealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    static final String SANTA_AGP_TARGET_VERSION = "4.1.2"
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         runner.targetVersions = ["7.0-20210122131800+0000"]
+        AndroidTestProject.useStableAgpVersion(runner)
         // AGP 3.6 requires 5.6.1+
         // forUseAtConfigurationTime API used in this senario
         runner.minimumBaseVersion = "6.5"

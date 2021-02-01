@@ -26,8 +26,8 @@ import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixtu
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.fixture.IncrementalTestProject
 import org.gradle.performance.fixture.TestProjects
 import org.gradle.profiler.BuildMutator
@@ -46,7 +46,6 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
     @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild", "santaTrackerAndroidJavaBuild"])
 )
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
-    private static final String AGP_TARGET_VERSION = "4.2"
     private static final String KOTLIN_TARGET_VERSION = new KotlinGradlePluginVersions().latests.last()
     private static final String BASELINE_VERSION = "6.8-milestone-1"
 
@@ -166,7 +165,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     @Override
     protected void defaultSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
         builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
-        IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(builder, AGP_TARGET_VERSION)
+        AndroidTestProject.useLatestAgpVersion(builder)
         builder.invocation.args(
             "--no-build-cache",
             "--no-scan",

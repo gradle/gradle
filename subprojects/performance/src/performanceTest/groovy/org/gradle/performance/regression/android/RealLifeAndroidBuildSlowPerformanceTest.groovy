@@ -18,7 +18,6 @@ package org.gradle.performance.regression.android
 
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import spock.lang.Unroll
@@ -52,11 +51,6 @@ class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBui
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
         applyEnterprisePlugin()
-
-        and:
-        if (testProject instanceof IncrementalAndroidTestProject) {
-            IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
-        }
 
         when:
         def result = runner.run()
