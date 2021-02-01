@@ -251,7 +251,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             generatedSourceCode,
-            allOf(extensions.map { containsString(it.normaliseLineSeparators().trimIndent()) })
+            allOf(extensions.map { containsString(it.trimIndent()) })
         )
 
         assertThat(
