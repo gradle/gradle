@@ -17,10 +17,10 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
-import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
 
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
@@ -56,7 +56,7 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
 
         assertThat(
             outputFile("plugins-only.gradle.kts").readText(),
-            equalToMultiLineString(
+            equalTo(
                 """
                 ${"// this comment will be removed".replacedBySpaces()}
                 plugins {
@@ -83,7 +83,7 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
 
         assertThat(
             outputFile("buildscript-and-plugins.gradle.kts").readText(),
-            equalToMultiLineString(
+            equalTo(
                 """
                 ${"buildscript {}".replacedBySpaces()}
                 plugins { java }"""
