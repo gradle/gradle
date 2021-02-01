@@ -32,8 +32,10 @@ inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
  *
  * Always using the same line separator on all systems to allow for reproducible outputs.
  */
-fun Appendable.appendReproducibleNewLine(value: CharSequence = ""): Appendable =
-    append(value).append("\n")
+fun Appendable.appendReproducibleNewLine(value: CharSequence = ""): Appendable {
+    require("\r" !in value)
+    return append(value).append("\n")
+}
 
 
 internal
