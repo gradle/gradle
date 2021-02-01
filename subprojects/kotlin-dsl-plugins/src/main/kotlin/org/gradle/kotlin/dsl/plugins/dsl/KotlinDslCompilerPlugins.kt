@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.TaskInternal
+import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -48,8 +50,14 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                         languageVersion = "1.4"
                         freeCompilerArgs += KotlinDslPluginSupport.kotlinCompilerArgs
                     }
+                    it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf("-XXLanguage:+DisableCompatibilityModeForNewInference")))
                 }
             }
         }
+    }
+
+    private
+    fun KotlinCompile.setWarningRewriter(rewriter: ContextAwareTaskLogger.MessageRewriter) {
+        (this as TaskInternal).setLoggerMessageRewriter(rewriter)
     }
 }
