@@ -48,6 +48,12 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static final String KOTLIN_TARGET_VERSION = new KotlinGradlePluginVersions().latests.last()
     private static final String BASELINE_VERSION = "6.8-milestone-1"
+    private static final Map<String, Set<Optimization>> OPTIMIZATIONS = [
+        "no optimizations": EnumSet.noneOf(Optimization),
+        "FS watching": EnumSet.of(Optimization.WATCH_FS),
+        "configuration caching": EnumSet.of(Optimization.CONFIGURATION_CACHING),
+        "all optimizations": EnumSet.allOf(Optimization)
+    ]
 
     def setup() {
         runner.testGroup = "incremental android changes"
@@ -55,9 +61,9 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
 
     def "faster non-abi change (build comparison)"() {
         given:
-        buildSpecForSupportedOptimizations(testProject) {
+        buildSpecForOptimizations({
             testProject.configureForNonAbiChange(delegate)
-        }
+        })
 
         when:
         def results = runner.run()
@@ -67,9 +73,9 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
 
     def "faster abi change (build comparison)"() {
         given:
-        buildSpecForSupportedOptimizations(testProject) {
+        buildSpecForOptimizations({
             testProject.configureForAbiChange(delegate)
-        }
+        })
 
         when:
         def results = runner.run()
@@ -138,8 +144,8 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         TestProjects.projectFor(runner.testProject) as IncrementalTestProject
     }
 
-    private void buildSpecForSupportedOptimizations(IncrementalTestProject testProject, @DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {
-        supportedOptimizations(testProject).each { name, Set<Optimization> enabledOptimizations ->
+    private void buildSpecForOptimizations(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {
+        OPTIMIZATIONS.each { name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
                 invocation.args(*enabledOptimizations*.arguments.flatten())
                 displayName(name)
@@ -150,16 +156,6 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
                 clonedClosure.call()
             }
         }
-    }
-
-    private static Map<String, Set<Optimization>> supportedOptimizations(IncrementalTestProject testProject) {
-        // Kotlin is not supported for configuration caching
-        return [
-            "no optimizations": EnumSet.noneOf(Optimization),
-            "FS watching": EnumSet.of(Optimization.WATCH_FS),
-            "configuration caching": EnumSet.of(Optimization.CONFIGURATION_CACHING),
-            "all optimizations": EnumSet.allOf(Optimization)
-        ]
     }
 
     @Override
