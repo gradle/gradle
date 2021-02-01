@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
@@ -99,7 +100,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public FileCollection files(Object... paths) {
-        return fileCollectionFactory.resolving(paths, false);
+        return fileCollectionFactory.resolving(AbsentProviderHandling.REQUIRE_PRESENT, paths);
     }
 
     /**

@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -225,7 +226,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
                 DefaultSourceDirectorySet nested = (DefaultSourceDirectorySet) path;
                 result.addAll(nested.getSourceTrees());
             } else {
-                for (File srcDir : fileCollectionFactory.resolving(path, false)) {
+                for (File srcDir : fileCollectionFactory.resolving(AbsentProviderHandling.REQUIRE_PRESENT, path)) {
                     if (srcDir.exists() && !srcDir.isDirectory()) {
                         throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
                     }
@@ -242,7 +243,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
             if (path instanceof SourceDirectorySet) {
                 context.add(((SourceDirectorySet) path).getBuildDependencies());
             } else {
-                context.add(fileCollectionFactory.resolving(path, false));
+                context.add(fileCollectionFactory.resolving(AbsentProviderHandling.REQUIRE_PRESENT, path));
             }
         }
     }

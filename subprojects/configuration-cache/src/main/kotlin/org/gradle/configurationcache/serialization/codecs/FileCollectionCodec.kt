@@ -88,8 +88,7 @@ class FileCollectionCodec(
                             is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
                             else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                         }
-                    },
-                    false
+                    }
                 )
             } else {
                 fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))

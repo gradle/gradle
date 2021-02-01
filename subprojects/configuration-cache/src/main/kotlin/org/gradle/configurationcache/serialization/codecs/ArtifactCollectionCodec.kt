@@ -67,8 +67,7 @@ class ArtifactCollectionCodec(
                     is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
-            },
-            false
+            }
         )
         val failures = readList().uncheckedCast<List<Throwable>>()
         return FixedArtifactCollection(files, elements, failures, artifactSetConverter)

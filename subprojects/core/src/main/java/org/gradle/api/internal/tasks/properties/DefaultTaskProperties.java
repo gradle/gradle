@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
@@ -235,7 +236,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         public FileCollection getFiles() {
-            return fileCollectionFactory.resolving(beanName + " local state", localState, true);
+            return fileCollectionFactory.resolving(beanName + " local state", AbsentProviderHandling.ALLOW_ABSENT, localState);
         }
     }
 
@@ -255,7 +256,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         public FileCollection getFiles() {
-            return fileCollectionFactory.resolving(beanName + " destroy files", destroyables, true);
+            return fileCollectionFactory.resolving(beanName + " destroy files", AbsentProviderHandling.ALLOW_ABSENT, destroyables);
         }
     }
 

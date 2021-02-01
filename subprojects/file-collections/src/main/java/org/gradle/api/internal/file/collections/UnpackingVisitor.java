@@ -23,6 +23,7 @@ import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.AbstractOpaqueFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -43,18 +44,18 @@ public class UnpackingVisitor {
     private final PathToFileResolver resolver;
     private final Factory<PatternSet> patternSetFactory;
     private final boolean includeBuildable;
-    private final boolean allowAbsentProviders;
+    private final AbsentProviderHandling absentProviderHandling;
 
     public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory) {
-        this(visitor, resolver, patternSetFactory, true, false);
+        this(visitor, resolver, patternSetFactory, AbsentProviderHandling.REQUIRE_PRESENT, true);
     }
 
-    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, boolean includeBuildable, boolean allowAbsentProviders) {
+    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, AbsentProviderHandling absentProviderHandling, boolean includeBuildable) {
         this.visitor = visitor;
         this.resolver = resolver;
         this.patternSetFactory = patternSetFactory;
+        this.absentProviderHandling = absentProviderHandling;
         this.includeBuildable = includeBuildable;
-        this.allowAbsentProviders = allowAbsentProviders;
     }
 
     public void add(@Nullable Object element) {
@@ -70,7 +71,7 @@ public class UnpackingVisitor {
         if (element instanceof ProviderInternal) {
             // ProviderInternal is-a TaskDependencyContainer, so check first
             ProviderInternal<?> provider = (ProviderInternal<?>) element;
-            visitor.accept(new ProviderBackedFileCollection(provider, resolver, patternSetFactory, allowAbsentProviders));
+            visitor.accept(new ProviderBackedFileCollection(provider, resolver, patternSetFactory, absentProviderHandling));
             return;
         }
         if (includeBuildable && (element instanceof Buildable || element instanceof TaskDependencyContainer)) {
@@ -159,7 +160,7 @@ public class UnpackingVisitor {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            new UnpackingVisitor(visitor, resolver, patternSetFactory, false, false).add(element);
+            new UnpackingVisitor(visitor, resolver, patternSetFactory, AbsentProviderHandling.REQUIRE_PRESENT, false).add(element);
         }
     }
 }

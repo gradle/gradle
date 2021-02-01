@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
 import java.util.Collections;
@@ -52,6 +53,6 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
 
     @Override
     public FileCollection getRegisteredFiles() {
-        return fileCollectionFactory.resolving("localState", registeredPaths, false);
+        return fileCollectionFactory.resolving("localState", AbsentProviderHandling.REQUIRE_PRESENT, registeredPaths);
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -97,14 +98,32 @@ public interface FileCollectionFactory {
      *
      * <p>The collection is live and resolves the files on each query.
      */
-    FileCollectionInternal resolving(String displayName, Object sources, boolean allowAbsentProviders);
+    default FileCollectionInternal resolving(String displayName, Object sources) {
+        return resolving(displayName, AbsentProviderHandling.REQUIRE_PRESENT, sources);
+    }
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
      * <p>The collection is live and resolves the files on each query.
      */
-    FileCollectionInternal resolving(Object sources, boolean allowAbsentProviders);
+    FileCollectionInternal resolving(String displayName, AbsentProviderHandling absentProviderHandling, Object sources);
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     *
+     * <p>The collection is live and resolves the files on each query.
+     */
+    default FileCollectionInternal resolving(Object sources) {
+        return resolving(AbsentProviderHandling.REQUIRE_PRESENT, sources);
+    }
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     *
+     * <p>The collection is live and resolves the files on each query.
+     */
+    FileCollectionInternal resolving(AbsentProviderHandling absentProviderHandling, Object sources);
 
     /**
      * Creates an empty {@link ConfigurableFileCollection} instance.

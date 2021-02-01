@@ -115,7 +115,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.classpath(jar1)
 
         when:
-        builder.setClasspath(fileCollectionFactory.resolving(jar2, false))
+        builder.setClasspath(fileCollectionFactory.resolving(jar2))
 
         then:
         !builder.classpath.contains(jar1)
@@ -132,7 +132,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.classpath(jar1)
 
         when:
-        builder.setClasspath(fileCollectionFactory.resolving([jar2, builder.getClasspath()], false))
+        builder.setClasspath(fileCollectionFactory.resolving([jar2, builder.getClasspath()]))
 
         then:
         builder.commandLine.contains("$jar2$File.pathSeparator$jar1".toString())

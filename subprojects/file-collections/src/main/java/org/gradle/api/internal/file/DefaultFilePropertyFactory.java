@@ -114,7 +114,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public FileTree getAsFileTree() {
-            return fileCollectionFactory.resolving(this, false).getAsFileTree();
+            return fileCollectionFactory.resolving(this).getAsFileTree();
         }
 
         @Override
@@ -134,7 +134,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public FileCollection files(Object... paths) {
-            return fileCollectionFactory.withResolver(fileResolver).resolving(paths, false);
+            return fileCollectionFactory.withResolver(fileResolver).resolving(paths);
         }
     }
 
@@ -329,7 +329,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public FileTree getAsFileTree() {
-            return fileCollectionFactory.resolving(this, false).getAsFileTree();
+            return fileCollectionFactory.resolving(this).getAsFileTree();
         }
 
         @Override
@@ -371,7 +371,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public FileCollection files(Object... paths) {
-            return fileCollectionFactory.withResolver(resolver).resolving(paths, false);
+            return fileCollectionFactory.withResolver(resolver).resolving(paths);
         }
 
     }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -25,19 +26,18 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class ProviderBackedFileCollection extends CompositeFileCollection {
     private final ProviderInternal<?> provider;
     private final PathToFileResolver resolver;
-    private final boolean allowAbsentProviders;
+    private final AbsentProviderHandling absentProviderHandling;
 
-    public ProviderBackedFileCollection(ProviderInternal<?> provider, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, boolean allowAbsentProviders) {
+    public ProviderBackedFileCollection(ProviderInternal<?> provider, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, AbsentProviderHandling absentProviderHandling) {
         super(patternSetFactory);
         this.provider = provider;
         this.resolver = resolver;
-        this.allowAbsentProviders = allowAbsentProviders;
+        this.absentProviderHandling = absentProviderHandling;
     }
 
     @Override
@@ -53,19 +53,14 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
         } else {
             // Producer is unknown, so unpack the value
             UnpackingVisitor unpackingVisitor = new UnpackingVisitor(context::add, resolver, patternSetFactory);
-            unpackingVisitor.add(getProviderValue());
+            unpackingVisitor.add(absentProviderHandling.getValue(provider));
         }
     }
 
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         UnpackingVisitor unpackingVisitor = new UnpackingVisitor(visitor, resolver, patternSetFactory);
-        unpackingVisitor.add(getProviderValue());
-    }
-
-    @Nullable
-    private Object getProviderValue() {
-        return allowAbsentProviders ? provider.getOrNull() : provider.get();
+        unpackingVisitor.add(absentProviderHandling.getValue(provider));
     }
 
     public ProviderInternal<?> getProvider() {
