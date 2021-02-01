@@ -33,7 +33,9 @@ inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
  * Always using the same line separator on all systems to allow for reproducible outputs.
  */
 fun Appendable.appendReproducibleNewLine(value: CharSequence = ""): Appendable {
-    require("\r" !in value)
+    require('\r' !in value) {
+        "Unexpected line ending in string."
+    }
     return append(value).append("\n")
 }
 
