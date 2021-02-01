@@ -82,7 +82,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         expect:
         fails('check')
-        failureCauseContains('specified for property \'configDirectory\' does not exist.')
+        failureDescriptionContains('specified for property \'configDirectory\' does not exist.')
     }
 
     @ToBeImplemented

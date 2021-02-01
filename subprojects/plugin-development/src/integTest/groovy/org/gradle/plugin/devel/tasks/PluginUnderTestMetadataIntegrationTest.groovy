@@ -42,7 +42,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         fails TASK_NAME
 
         then:
-        failure.assertHasCause("No value has been specified for property 'outputDirectory'.")
+        failureDescriptionContains("No value has been specified for property 'outputDirectory'.")
     }
 
     def "implementation-classpath entry in metadata is empty if there is no classpath"() {

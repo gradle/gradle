@@ -85,7 +85,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
                 break
         }
         expectedFailures.forEach { error ->
-            failureHasCause(error)
+            failureDescriptionContains(error)
         }
     }
 

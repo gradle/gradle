@@ -381,7 +381,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         fails("compileGroovy")
-        failure.assertHasCause("File '${file('groovycompilerconfig.groovy')}' specified for property 'groovyOptions.configurationScript' does not exist.")
+        failureDescriptionContains("File '${file('groovycompilerconfig.groovy')}' specified for property 'groovyOptions.configurationScript' does not exist.")
     }
 
     def "failsBecauseOfInvalidConfigFile"() {

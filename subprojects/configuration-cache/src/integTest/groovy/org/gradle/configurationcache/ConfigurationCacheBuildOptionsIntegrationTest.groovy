@@ -135,14 +135,14 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCacheFails "printString"
 
         then:
-        failureCauseContains "No value has been specified for property 'string'."
+        failureDescriptionContains "No value has been specified for property 'string'."
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails "printString"
 
         then:
-        failureCauseContains "No value has been specified for property 'string'."
+        failureDescriptionContains "No value has been specified for property 'string'."
         configurationCache.assertStateLoaded()
 
         where:
