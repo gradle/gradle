@@ -4,7 +4,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
@@ -300,12 +299,12 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         assertThat(
             build("test", "-q", "-I", initScript.absolutePath).output.trim(),
-            equalToMultiLineString(
+            equalTo(
                 """
                 INIT: foo.txt
                 SETTINGS: foo.txt
                 PROJECT: foo.txt
-                """
+                """.trimIndent()
             )
         )
     }
