@@ -323,6 +323,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.artifacts.ModuleDependency.isEndorsingStrictVersions
         - org.gradle.api.artifacts.ComponentMetadataDetails.maybeAddVariant
     - [Repositories](userguide/declaring_repositories.html#declaring-repositories)
+        - org.gradle.api.artifacts.dsl.RepositoryHandler.exclusiveContent
+        - org.gradle.api.artifacts.repositories.ExclusiveContentRepository
+        - org.gradle.api.artifacts.repositories.InclusiveRepositoryContentDescriptor
         - org.gradle.api.artifacts.repositories.IvyArtifactRepository.getMetadataSources
         - org.gradle.api.artifacts.repositories.IvyArtifactRepository.MetadataSources.isGradleMetadataEnabled
         - org.gradle.api.artifacts.repositories.IvyArtifactRepository.MetadataSources.isIvyDescriptorEnabled
@@ -418,7 +421,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.SourceSetOutput.getGeneratedSourcesDirs()
         - org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()
         - org.gradle.api.tasks.compile.CompileOptions.getRelease()
-        - org.gradle.api.tasks.compile.JavaCompile.getStableSources
+        - org.gradle.api.tasks.compile.JavaCompile.getStableSources()
+        - org.gradle.api.tasks.compile.JavaCompile.getSourceClassesMappingFile()
         - org.gradle.api.tasks.compile.JavaCompile.compile(org.gradle.work.InputChanges)
     - Java Module System
         - org.gradle.api.jvm.ModularitySpec

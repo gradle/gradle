@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -288,7 +287,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      * @since 6.5
      */
     @LocalState
-    @Incubating
     protected File getSourceClassesMappingFile() {
         if (sourceClassesMappingFile == null) {
             File tmpDir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());

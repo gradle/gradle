@@ -17,7 +17,6 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.ExclusiveContentRepository;
@@ -336,6 +335,5 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @since 6.2
      */
-    @Incubating
     void exclusiveContent(Action<? super ExclusiveContentRepository> action);
 }
