@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
+import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.vfs.VirtualFileSystem
 
@@ -60,10 +61,10 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
         then:
         def ex = thrown WorkValidationException
-        ex.message == "A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType')."
-        ex.causes.size() == 1
-        ex.causes[0].message == "Type '$Object.simpleName': Validation error."
-
+        WorkValidationExceptionChecker.check(ex) {
+            hasMessage """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
+  - Type '$Object.simpleName': Validation error."""
+        }
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
             validationContext.forType(JobType, true).visitTypeProblem(ERROR, Object, "Validation error")
         }
@@ -76,10 +77,13 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
         then:
         def ex = thrown WorkValidationException
-        ex.message == "Some problems were found with the configuration of job ':test' (types 'ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType')."
-        ex.causes.size() == 2
-        ex.causes[0].message == "Type '$Object.simpleName': Validation error #1."
-        ex.causes[1].message == "Type '$Object.simpleName': Validation error #2."
+        WorkValidationExceptionChecker.check(ex) {
+            hasMessage """Some problems were found with the configuration of job ':test' (types 'ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType').
+  - Type '$Object.simpleName': Validation error #1.
+  - Type '$Object.simpleName': Validation error #2."""
+            hasProblem "Type '$Object.simpleName': Validation error #1."
+            hasProblem "Type '$Object.simpleName': Validation error #2."
+        }
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
             validationContext.forType(JobType, true).visitTypeProblem(ERROR, Object, "Validation error #1")
@@ -123,9 +127,10 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
         then:
         def ex = thrown WorkValidationException
-        ex.message == "A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType')."
-        ex.causes.size() == 1
-        ex.causes[0].message == "Type '$Object.simpleName': Validation error."
+        WorkValidationExceptionChecker.check(ex) {
+            hasMessage """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
+  - Type '$Object.simpleName': Validation error."""
+        }
         0 * _
     }
 

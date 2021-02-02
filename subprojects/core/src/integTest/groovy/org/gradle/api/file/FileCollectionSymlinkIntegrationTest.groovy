@@ -374,7 +374,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails 'brokenInput'
         then:
-        failure.assertHasCause("${inputName} '${brokenInputFile}' specified for property 'brokenInputFile' does not exist.")
+        failureDescriptionContains("${inputName} '${brokenInputFile}' specified for property 'brokenInputFile' does not exist.")
 
         where:
         inputName   | inputType

@@ -784,7 +784,7 @@ class SomeTask extends DefaultTask {
 
         then:
         failure.assertHasDescription("A problem was found with the configuration of task ':consumer' (type 'ConsumerTask').")
-        failure.assertHasCause("No value has been specified for property 'bean.inputFile'.")
+        failureDescriptionContains("No value has been specified for property 'bean.inputFile'.")
         failure.assertTasksExecuted(':consumer')
     }
 }
