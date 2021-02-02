@@ -30,7 +30,6 @@ import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 
-import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.kotlin.dsl.support.zipTo
 
@@ -41,6 +40,7 @@ import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.instanceOf
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -98,9 +98,11 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
         }
 
         // then:
+        val generatedAccessors = String(srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readBytes())
         assertThat(
-            srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readText().normaliseLineSeparators(),
+            generatedAccessors,
             allOf(
+                not(containsString("\r")),
                 containsString("import MyPlugin"),
                 containsMultiLineString(
                     """

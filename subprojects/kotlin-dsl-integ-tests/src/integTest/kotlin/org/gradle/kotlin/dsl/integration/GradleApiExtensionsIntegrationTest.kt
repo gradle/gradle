@@ -24,7 +24,6 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -251,7 +250,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             generatedSourceCode,
-            allOf(extensions.map { containsString(it.normaliseLineSeparators().trimIndent()) })
+            allOf(extensions.map { containsString(it.trimIndent()) })
         )
 
         assertThat(

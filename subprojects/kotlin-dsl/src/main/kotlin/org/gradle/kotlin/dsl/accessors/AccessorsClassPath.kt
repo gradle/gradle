@@ -210,12 +210,12 @@ typealias AccessorFormat = (String) -> String
 object AccessorFormats {
 
     val default: AccessorFormat = { accessor ->
-        accessor.replaceIndent()
+        accessor.trimIndent()
     }
 
     val `internal`: AccessorFormat = { accessor ->
         accessor
-            .replaceIndent()
+            .trimIndent()
             .let { valFunOrClass.matcher(it) }
             .replaceAll("internal\n$1 ")
     }
