@@ -39,4 +39,5 @@ configureIde(TestType.INTEGRATION)
 createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATION) {
     // This test task runs only multi-version tests and is intended to be used in the late pipeline to sweep up versions not previously tested
     systemProperty("spock.configuration", "MultiVersionTestSpockConfig.groovy")
+    (options as JUnitPlatformOptions).includeEngines("spock")
 }
