@@ -41,6 +41,12 @@ class WorkValidationExceptionChecker {
         problems = error.problems as Set
     }
 
+    void messageContains(String expected) {
+        String actualMessage = normaliseLineSeparators(error.message.trim())
+        String expectedMessage = normaliseLineSeparators(expected.trim())
+        assert actualMessage.contains(expectedMessage)
+    }
+
     void hasMessage(String expected) {
         String actualError = normaliseLineSeparators(error.message.trim())
         String expectedError = normaliseLineSeparators(expected.trim())
