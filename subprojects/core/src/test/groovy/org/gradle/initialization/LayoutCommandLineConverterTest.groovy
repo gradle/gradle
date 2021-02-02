@@ -42,23 +42,12 @@ class LayoutCommandLineConverterTest extends Specification {
         convert().currentDir == canonicalize(SystemProperties.instance.getCurrentDir())
         convert().projectDir == null
         convert().gradleUserHomeDir == canonicalize(BuildLayoutParameters.DEFAULT_GRADLE_USER_HOME)
-        convert().searchUpwards
     }
 
     def "converts"() {
         expect:
         convert("-p", "foo").projectDir.name == "foo"
         convert("-g", "bar").gradleUserHomeDir.name == "bar"
-    }
-
-    def "doesn't search upwards when building buildSrc"() {
-        expect:
-        !convert("-p", "buildSrc").searchUpwards
-    }
-
-    def "doesn't search upwards when running init task"() {
-        expect:
-        !convert("init").searchUpwards
     }
 
     def "converts relatively to the target dir"() {

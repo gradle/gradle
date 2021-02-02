@@ -16,7 +16,6 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.StartParameter;
-import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -34,21 +33,9 @@ public class BuildLayoutConfiguration {
 
     public BuildLayoutConfiguration(StartParameter startParameter) {
         currentDir = startParameter.getCurrentDir();
-        searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwards() && !isInitTaskRequested(startParameter);
+        searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwards();
         settingsFile = startParameter.getSettingsFile();
         useEmptySettings = ((StartParameterInternal)startParameter).isUseEmptySettings();
-    }
-
-    private boolean isInitTaskRequested(StartParameter startParameter) {
-        if (startParameter.getTaskNames().contains("init")) {
-            return true;
-        }
-        for (TaskExecutionRequest request : startParameter.getTaskRequests()) {
-            if (request.getArgs().contains("init")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public File getCurrentDir() {
