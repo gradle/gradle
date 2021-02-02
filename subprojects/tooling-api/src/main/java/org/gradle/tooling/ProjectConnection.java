@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 import java.io.Closeable;
 import java.nio.file.Path;
 import java.util.List;
@@ -165,10 +163,13 @@ public interface ProjectConnection extends Closeable {
      * <p>The daemons will use this information to update the retained file system state.
      *
      * <p>The method should be invoked on every change done by the external process.
-     * The process shouldn't notify Gradle about changes detected by using file watchers,
-     * since Gradle already will be using its own file watcher.
      * For example, an IDE should notify Gradle when the user saves a changed file, or
      * after some refactoring finished.
+     * This will guarantee that Gradle picks up changes when trigerring a build, even
+     * if the file system is too slow to notify file watchers.
+     *
+     * The caller shouldn't notify Gradle about changes detected by using other file
+     * watchers, since Gradle already will be using its own file watcher.
      *
      * <p>The paths which are passed in need to be absolute, canonicalized paths.
      * For a delete, the deleted path should be passed.
@@ -188,7 +189,6 @@ public interface ProjectConnection extends Closeable {
      * @throws GradleConnectionException On some other failure using the connection.
      * @since 6.1
      */
-    @Incubating
     void notifyDaemonsAboutChangedPaths(List<Path> changedPaths);
 
     /**
