@@ -934,7 +934,7 @@ class TestCapability implements Capability {
     }
 
     @ToBeFixedForConfigurationCache
-    def 'can skip the build identifier'() {
+    def 'can add the build identifier'() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -957,7 +957,7 @@ class TestCapability implements Capability {
                 publications {
                     ivy(IvyPublication) {
                         from comp
-                        withoutBuildIdentifier()
+                        withBuildIdentifier()
                     }
                 }
             }
@@ -969,6 +969,6 @@ class TestCapability implements Capability {
         then:
         def module = ivyRepo.module('group', 'root', '1.0')
         module.assertPublished()
-        module.parsedModuleMetadata.createdBy.buildId == null
+        module.parsedModuleMetadata.createdBy.buildId != null
     }
 }

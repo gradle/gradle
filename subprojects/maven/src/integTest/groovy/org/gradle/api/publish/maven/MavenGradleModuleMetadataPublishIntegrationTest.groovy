@@ -873,7 +873,7 @@ class TestCapability implements Capability {
         variant.dependencyConstraints[0].rejectsVersion == []
     }
 
-    def 'can skip the build identifier'() {
+    def 'can add the build identifier'() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
@@ -894,7 +894,7 @@ class TestCapability implements Capability {
                 publications {
                     maven(MavenPublication) {
                         from comp
-                        withoutBuildIdentifier()
+                        withBuildIdentifier()
                     }
                 }
             }
@@ -906,6 +906,6 @@ class TestCapability implements Capability {
         then:
         def module = mavenRepo.module('group', 'root', '1.0')
         module.assertPublished()
-        module.parsedModuleMetadata.createdBy.buildId == null
+        module.parsedModuleMetadata.createdBy.buildId != null
     }
 }
