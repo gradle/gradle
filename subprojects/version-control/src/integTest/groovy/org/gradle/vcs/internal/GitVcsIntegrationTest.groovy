@@ -19,6 +19,7 @@ package org.gradle.vcs.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
@@ -485,6 +486,41 @@ The following types/formats are supported:
         then:
         gitCheckout.file('deeperDep/foo').text == "bar"
         gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "baz"
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "do not consider source dependencies with plugin injection undefined builds"() {
+        given:
+        depProject.settingsFile.delete()
+        depProject.buildFile.delete()
+        repo.commit('initial commit')
+
+        def pluginBuilder = new PluginBuilder(file("plugin"))
+        pluginBuilder.addSettingsPlugin """
+            settings.gradle.allprojects {
+                apply plugin: 'java-library'
+                group = 'org.test'
+                version = '1.0'
+            }
+        """, "org.gradle.test.MyPlugin", "MyPlugin"
+        pluginBuilder.prepareToExecute()
+
+        settingsFile << """
+            includeBuild("plugin")
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                            plugins { id("org.gradle.test.MyPlugin") }
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds('assemble')
     }
 
     // TODO: Use HTTP hosting for git repo

@@ -17,6 +17,8 @@
 package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.TextResource;
@@ -43,6 +45,11 @@ public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
     }
 
     private static boolean isUndefinedBuild(GradleInternal gradle) {
+        BuildState buildState = gradle.getOwner();
+        if (buildState instanceof IncludedBuildState && ((IncludedBuildState) buildState).hasInjectedSettingsPlugins()) {
+            // this included build may be completely configured through injected plugins
+            return false;
+        }
         return !gradle.getRootProject().getBuildFile().exists() && isUndefinedResource(gradle.getSettings().getSettingsScript().getResource());
     }
 
