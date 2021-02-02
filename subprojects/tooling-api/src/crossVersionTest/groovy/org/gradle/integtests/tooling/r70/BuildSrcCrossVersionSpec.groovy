@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r26
+package org.gradle.integtests.tooling.r70
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 
+@TargetGradleVersion('>=7.0')
 class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
 
     def "buildSrc without settings file can execute standalone"() {
