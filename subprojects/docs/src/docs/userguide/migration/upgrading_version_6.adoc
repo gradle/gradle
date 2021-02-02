@@ -42,6 +42,11 @@ Some plugins will break with this new version of Gradle, for example because the
 The `getGeneratedSourceDirectories()` and `getGeneratedTestDirectories()` methods are removed from the `IdeaContentRoot` interface.
 Clients should replace these invocations with `getSourceDirectories()` and `getTestDirectories()` and use the `isGenerated()` method on the returned instances.
 
+=== Gradle Module Metadata is now reproducible by default
+
+The `buildId` field will not be populated by default to ensure that the produced metadata file remains unchanged when no build inputs are changed.
+Users can still opt in to have this unique identifier part of the produced metadata if they want to, see <<publishing_gradle_module_metadata.adoc#sub:gmm-reproducible,the documentation>>.
+
 === Potential breaking changes
 
 ==== Removal of `compile` and `runtime` configurations

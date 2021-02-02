@@ -53,15 +53,15 @@ import static org.gradle.util.AttributeTestUtil.attributes
 
 class GradleModuleMetadataWriterTest extends Specification {
 
-    VersionConstraint requires(String version) {
+    static VersionConstraint requires(String version) {
         DefaultImmutableVersionConstraint.of(DefaultMutableVersionConstraint.withVersion(version))
     }
 
-    VersionConstraint strictly(String version) {
+    static VersionConstraint strictly(String version) {
         DefaultImmutableVersionConstraint.of(DefaultMutableVersionConstraint.withStrictVersion(version))
     }
 
-    VersionConstraint prefersAndRejects(String version, List<String> rejects) {
+    static VersionConstraint prefersAndRejects(String version, List<String> rejects) {
         DefaultImmutableVersionConstraint.of(version, "", "", rejects)
     }
 
@@ -92,10 +92,10 @@ class GradleModuleMetadataWriterTest extends Specification {
         ex.message.contains("This publication must publish at least one variant")
     }
 
-    def "writes file for component with attributes"() {
+    def "writes file for component with attributes (with build id: #withBuildId)"() {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
-        def publication = publication(component, id)
+        def publication = publication(component, id, null, withBuildId)
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
@@ -106,6 +106,11 @@ class GradleModuleMetadataWriterTest extends Specification {
         when:
         publication.attributes >> attributes(status: 'release', 'test': 'value')
         writeTo(writer, publication, [publication])
+        def buildIdContent = ""
+        if (withBuildId) {
+            buildIdContent = """,
+      "buildId": "${buildId}\""""
+        }
 
         then:
         writer.toString() == """{
@@ -121,8 +126,7 @@ class GradleModuleMetadataWriterTest extends Specification {
   },
   "createdBy": {
     "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
+      "version": "${GradleVersion.current().version}"$buildIdContent
     }
   },
   "variants": [
@@ -135,6 +139,8 @@ class GradleModuleMetadataWriterTest extends Specification {
   ]
 }
 """
+        where:
+        withBuildId << [true, false]
     }
 
     def "writes file for component with variants with files"() {
@@ -184,8 +190,7 @@ class GradleModuleMetadataWriterTest extends Specification {
   },
   "createdBy": {
     "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
+      "version": "${GradleVersion.current().version}"
     }
   },
   "variants": [
@@ -319,8 +324,7 @@ class GradleModuleMetadataWriterTest extends Specification {
   },
   "createdBy": {
     "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
+      "version": "${GradleVersion.current().version}"
     }
   },
   "variants": [
@@ -499,8 +503,7 @@ class GradleModuleMetadataWriterTest extends Specification {
   },
   "createdBy": {
     "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
+      "version": "${GradleVersion.current().version}"
     }
   },
   "variants": [
@@ -596,8 +599,7 @@ class GradleModuleMetadataWriterTest extends Specification {
   },
   "createdBy": {
     "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
+      "version": "${GradleVersion.current().version}"
     }
   },
   "variants": [
@@ -669,8 +671,7 @@ class GradleModuleMetadataWriterTest extends Specification {
   },
   "createdBy": {
     "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
+      "version": "${GradleVersion.current().version}"
     }
   },
   "variants": [
@@ -742,8 +743,7 @@ class GradleModuleMetadataWriterTest extends Specification {
   },
   "createdBy": {
     "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
+      "version": "${GradleVersion.current().version}"
     }
   },
   "variants": [
@@ -802,8 +802,7 @@ class GradleModuleMetadataWriterTest extends Specification {
   },
   "createdBy": {
     "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
+      "version": "${GradleVersion.current().version}"
     }
   },
   "variants": [
@@ -1057,8 +1056,7 @@ class GradleModuleMetadataWriterTest extends Specification {
   },
   "createdBy": {
     "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
+      "version": "${GradleVersion.current().version}"
     }
   },
   "variants": [
@@ -1130,12 +1128,12 @@ class GradleModuleMetadataWriterTest extends Specification {
 """
     }
 
-    def publication(SoftwareComponentInternal component, ModuleVersionIdentifier coords, VersionMappingStrategyInternal mappingStrategyInternal = null) {
+    def publication(SoftwareComponentInternal component, ModuleVersionIdentifier coords, VersionMappingStrategyInternal mappingStrategyInternal = null, boolean withBuildId = false) {
         def publication = Stub(PublicationInternal)
         publication.component >> component
         publication.coordinates >> coords
         publication.versionMappingStrategy >> mappingStrategyInternal
-        publication.isPublishBuildId() >> true
+        publication.isPublishBuildId() >> withBuildId
         return publication
     }
 
@@ -1148,7 +1146,7 @@ class GradleModuleMetadataWriterTest extends Specification {
             this.name = name
             this.uri = uri
         }
-        String name;
-        String uri;
+        String name
+        String uri
     }
 }

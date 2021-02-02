@@ -138,7 +138,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
     private boolean silenceAllPublicationWarnings;
-    private boolean withBuildIdentifier = true;
+    private boolean withBuildIdentifier = false;
 
     @Inject
     public DefaultIvyPublication(
