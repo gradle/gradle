@@ -18,12 +18,12 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
+import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.vfs.VirtualFileSystem
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
-import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
@@ -61,9 +61,10 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
         then:
         def ex = thrown WorkValidationException
-        normaliseLineSeparators(ex.message) == """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
+        WorkValidationExceptionChecker.check(ex) {
+            hasMessage """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
   - Type '$Object.simpleName': Validation error."""
-
+        }
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
             validationContext.forType(JobType, true).visitTypeProblem(ERROR, Object, "Validation error")
         }
@@ -76,9 +77,13 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
         then:
         def ex = thrown WorkValidationException
-        normaliseLineSeparators(ex.message) == """Some problems were found with the configuration of job ':test' (types 'ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType').
+        WorkValidationExceptionChecker.check(ex) {
+            hasMessage """Some problems were found with the configuration of job ':test' (types 'ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType').
   - Type '$Object.simpleName': Validation error #1.
   - Type '$Object.simpleName': Validation error #2."""
+            hasProblem "Type '$Object.simpleName': Validation error #1."
+            hasProblem "Type '$Object.simpleName': Validation error #2."
+        }
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
             validationContext.forType(JobType, true).visitTypeProblem(ERROR, Object, "Validation error #1")
@@ -122,8 +127,10 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
         then:
         def ex = thrown WorkValidationException
-        normaliseLineSeparators(ex.message) == """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
+        WorkValidationExceptionChecker.check(ex) {
+            hasMessage """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
   - Type '$Object.simpleName': Validation error."""
+        }
         0 * _
     }
 

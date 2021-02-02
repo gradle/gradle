@@ -31,7 +31,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.execution.WorkValidationException;
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
 import org.gradle.workers.WorkerExecutor;
 
@@ -80,7 +79,10 @@ public abstract class ValidatePlugins extends DefaultTask {
                         getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"),
                         toMessageList(problemMessages));
                 } else {
-                    throw new WorkValidationException(buildValidationErrorMessage(problemMessages));
+                    throw WorkValidationException.forProblems(problemMessages)
+                        .withSummary(helper -> "Plugin validation failed with " + helper.size() + helper.pluralize(" problem"))
+                        .getWithExplanation(String.format("See %s for more information on how to annotate task properties.",
+                            getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")));
                 }
             } else {
                 getLogger().warn("Plugin validation finished with warnings:{}",
@@ -95,20 +97,6 @@ public abstract class ValidatePlugins extends DefaultTask {
             builder.append(String.format("%n  - %s", problemMessage));
         }
         return builder;
-    }
-
-    private String buildValidationErrorMessage(List<String> problemMessages) {
-        TreeFormatter tf = new TreeFormatter();
-        int size = problemMessages.size();
-        tf.node("Plugin validation failed with " + size + " problem" + (size > 1 ? "s" : ""));
-        tf.startChildren();
-        for (String message : problemMessages) {
-            tf.node(message);
-        }
-        tf.endChildren();
-        tf.node(String.format("See %s for more information on how to annotate task properties.",
-            getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")));
-        return tf.toString();
     }
 
     /**
