@@ -54,7 +54,7 @@ import org.gradle.execution.CompositeAwareTaskSelector;
 import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
 import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
-import org.gradle.execution.DeprecateUndefinedBuildWorkExecutor;
+import org.gradle.execution.UndefinedBuildWorkExecutor;
 import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ExcludedTaskFilteringBuildConfigurationAction;
 import org.gradle.execution.IncludedBuildLifecycleBuildWorkExecutor;
@@ -84,6 +84,7 @@ import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -144,14 +145,14 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {
+    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor, ProjectCacheDir projectCacheDir) {
         return new BuildOperationFiringBuildWorkerExecutor(
-            new DeprecateUndefinedBuildWorkExecutor(
+            new UndefinedBuildWorkExecutor(
                 new IncludedBuildLifecycleBuildWorkExecutor(
                     new DefaultBuildWorkExecutor(
                         asList(new DryRunBuildExecutionAction(textOutputFactory),
                             new SelectedTaskExecutionAction())),
-                    includedBuildControllers)),
+                    includedBuildControllers), projectCacheDir),
             buildOperationExecutor);
     }
 

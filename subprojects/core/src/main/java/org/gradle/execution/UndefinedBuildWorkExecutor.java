@@ -16,30 +16,34 @@
 
 package org.gradle.execution;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.TextResource;
 
 import java.util.Collection;
 import static org.gradle.api.internal.StartParameterInternal.useLocationAsProjectRoot;
 
-public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
+public class UndefinedBuildWorkExecutor implements BuildWorkExecutor {
     private final BuildWorkExecutor delegate;
+    private final ProjectCacheDir projectCacheDir;
 
-    public DeprecateUndefinedBuildWorkExecutor(BuildWorkExecutor delegate) {
+    public UndefinedBuildWorkExecutor(BuildWorkExecutor delegate, ProjectCacheDir projectCacheDir) {
         this.delegate = delegate;
+        this.projectCacheDir = projectCacheDir;
     }
 
     @Override
     public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
         if (!useLocationAsProjectRoot(gradle.getRootProject().getRootDir(), gradle.getStartParameter().getTaskNames()) && isUndefinedBuild(gradle)) {
-            DeprecationLogger.deprecateAction("Executing Gradle tasks as part of an undefined build")
-                .willBecomeAnErrorInGradle7()
-                .withUpgradeGuideSection(5, "executing_gradle_without_a_settings_file_has_been_deprecated")
-                .nagUser();
+            projectCacheDir.delete();
+            throw new InvalidUserCodeException(
+                "Executing Gradle tasks as part of an undefined build is not supported. " +
+                "Make sure that you are executing Gradle from a folder within your Gradle project. " +
+                "Your project should have a 'settings.gradle(.kts)' file in the root folder.");
         }
         delegate.execute(gradle, failures);
     }
