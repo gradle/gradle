@@ -36,17 +36,17 @@ class DefaultVersionComparatorTest extends Specification {
         compare(larger, larger) == 0
 
         where:
-        smaller | larger
-        "1.0"   | "2.0"
-        "1.0"   | "1.1"
-        "1.2"   | "1.10"
-        "1.0.1" | "1.1.0"
-        "1.2"   | "1.2.3"
-        "12"    | "12.2.3"
-        "12"    | "13"
-        "1.0-1" | "1.0-2"
-        "1.0-1" | "1.0.2"
-        "1.0-1" | "1+0_2"
+        smaller  | larger
+        "1.0"    | "2.0"
+        "1.0"    | "1.1"
+        "1.2"    | "1.10"
+        "1.0.1"  | "1.1.0"
+        "1.2"    | "1.2.3"
+        "12"     | "12.2.3"
+        "12"     | "13"
+        "1.0-1"  | "1.0-2"
+        "1.0-1"  | "1.0.2"
+        "1.0-1"  | "1+0_2"
         "2.11.4" | "2.11.4+4"
     }
 
@@ -291,9 +291,9 @@ class DefaultVersionComparatorTest extends Specification {
         compare(larger, larger) == 0
 
         where:
-        smaller | larger
-        "1.0-final"   | "1.0-release"
-        "1.0-final"   | "1.0-ga"
-        "1.0-ga"   | "1.0-release"
+        smaller     | larger
+        "1.0-final" | "1.0-release"
+        "1.0-final" | "1.0-ga"
+        "1.0-ga"    | "1.0-release"
     }
 }
