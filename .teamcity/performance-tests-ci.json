@@ -161,6 +161,27 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean assembleDebug with clean transforms cache",
+    "groups" : [ {
+      "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "santaTrackerAndroidBuild",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean phthalic:assembleDebug with clean transforms cache",
+    "groups" : [ {
+      "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.non-abi change",
     "groups" : [ {
       "testProject" : "santaTrackerAndroidBuild",
@@ -195,27 +216,6 @@
       "testProject" : "largeAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest.clean assembleDebug with clean transforms cache",
-    "groups" : [ {
-      "testProject" : "largeAndroidBuild",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest.clean phthalic:assembleDebug with clean transforms cache",
-    "groups" : [ {
-      "testProject" : "largeAndroidBuild",
-      "coverage" : {
-        "per_day" : [ "linux" ]
       }
     } ]
   }, {
@@ -781,32 +781,6 @@
       "testProject" : "largeMonolithicJavaProject",
       "coverage" : {
         "per_day" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for Eclipse",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
       }
     } ]
   }, {

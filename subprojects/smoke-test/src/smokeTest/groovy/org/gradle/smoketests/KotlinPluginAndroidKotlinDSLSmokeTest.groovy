@@ -18,10 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -36,7 +34,7 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = [KotlinPluginSmokeTest.NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [KotlinPluginSmokeTest.NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example-kotlin-dsl (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:
         AndroidHome.assertIsSet()
@@ -53,7 +51,7 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage') as DefaultGradleRunner
+        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage')
         def result = useAgpVersion(androidPluginVersion, runner).build()
 
         then:
@@ -63,11 +61,6 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
                 && androidPluginVersion == TestedVersions.androidGradle.latest()) {
             // TODO: re-enable once the Kotlin plugin fixes how it extends configurations
             // expectNoDeprecationWarnings(result)
-        }
-
-        cleanup:
-        if (runner) {
-            DaemonLogsAnalyzer.newAnalyzer(new File(runner.testKitDirProvider.getDir(), ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
         }
 
         where:

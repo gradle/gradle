@@ -14,7 +14,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
 
     params {
         param("env.ANDROID_HOME", LINUX.androidHome)
-        param("env.JAVA_HOME", LINUX.buildJavaHome())
+        param("env.JAVA_HOME", LINUX.javaHomeForGradle())
     }
 
     features {
@@ -27,6 +27,9 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
         ":smoke-test:$task",
         timeout = 120,
         notQuick = true,
-        extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=%linux.${testJava.version.name}.${testJava.vendor.name}.64bit%"
+        extraParameters = buildScanTag("SmokeTests") +
+            " -PtestJavaVersion=${testJava.version.major}" +
+            " -PtestJavaVendor=${testJava.vendor.name}" +
+            " -Porg.gradle.java.installations.auto-download=false"
     )
 })

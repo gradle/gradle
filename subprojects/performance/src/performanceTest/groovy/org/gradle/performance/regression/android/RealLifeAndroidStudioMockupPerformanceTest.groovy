@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.android.GetModel
 import org.gradle.performance.android.SyncAction
@@ -33,8 +34,10 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPer
 
     def "get IDE model for Android Studio"() {
         given:
+        runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)
+        AndroidTestProject.useStableAgpVersion(runner)
         runner.warmUpRuns = 40
         runner.runs = 40
         runner.minimumBaseVersion = "6.5"

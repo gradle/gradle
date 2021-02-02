@@ -37,4 +37,17 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
 
         build("help")
     }
+
+    @Test
+    fun `can configure ext extension`() {
+        withBuildScript(
+            """
+            ext {
+                set("foo", "bar")
+            }
+            """
+        )
+
+        build("help")
+    }
 }

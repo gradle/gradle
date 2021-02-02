@@ -16,11 +16,15 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 
 import javax.annotation.Nullable
 
 class AndroidTestProject implements TestProject {
 
+    private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
+    private static final String AGP_STABLE_TARGET_VERSION = "4.1"
+    private static final String AGP_LATEST_TARGET_VERSION = "4.2"
     public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild'
     )
@@ -52,6 +56,30 @@ class AndroidTestProject implements TestProject {
 
     @Override
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
+    }
+
+    static void useStableAgpVersion(CrossVersionPerformanceTestRunner runner) {
+        configureForLatestAgpVersionOfMinor(runner, AGP_STABLE_TARGET_VERSION)
+    }
+
+    static void useStableAgpVersion(GradleBuildExperimentSpec.GradleBuilder builder) {
+        configureForLatestAgpVersionOfMinor(builder, AGP_STABLE_TARGET_VERSION)
+    }
+
+    static void useLatestAgpVersion(CrossVersionPerformanceTestRunner runner) {
+        configureForLatestAgpVersionOfMinor(runner, AGP_LATEST_TARGET_VERSION)
+    }
+
+    static void useLatestAgpVersion(GradleBuildExperimentSpec.GradleBuilder builder) {
+        configureForLatestAgpVersionOfMinor(builder, AGP_LATEST_TARGET_VERSION)
+    }
+
+    static void configureForLatestAgpVersionOfMinor(CrossVersionPerformanceTestRunner runner, String lowerBound) {
+        runner.args.add("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
+    }
+
+    static void configureForLatestAgpVersionOfMinor(GradleBuildExperimentSpec.GradleBuilder builder, String lowerBound) {
+        builder.invocation.args("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
     }
 
     @Override

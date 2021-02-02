@@ -40,11 +40,6 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
         garbageCollector = version
         executer.withBuildJvmOpts(garbageCollector.configuration.jvmArgs.split(" "))
         executer.withEnvironmentVars(JAVA_TOOL_OPTIONS: "-D${DefaultGarbageCollectionMonitor.DISABLE_POLLING_SYSTEM_PROPERTY}=true -D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true")
-        buildFile << """
-            ${injectionImports}
-
-            task injectEvents()
-        """
     }
 
     def "expires daemon when heap leaks slowly"() {
@@ -70,7 +65,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
         fails "injectEvents"
 
         then:
-        failure.assertHasDescription("Gradle build daemon has been stopped: JVM garbage collector thrashing and after running out of JVM heap space")
+        failure.assertHasDescription("Gradle build daemon has been stopped: JVM garbage collector thrashing and after running out of JVM memory")
 
         and:
         daemons.daemon.stops()
@@ -110,7 +105,6 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     def "expires daemon when metaspace leaks"() {
         given:
-        configureGarbageCollectionHeapEventsFor(256, 512, 0, garbageCollector.monitoringStrategy.gcRateThreshold + 0.2)
         configureGarbageCollectionNonHeapEventsFor(256, 512, 35, 0)
 
         when:
@@ -147,7 +141,6 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     def "does not expire daemon when leak does not consume metaspace threshold"() {
         given:
-        configureGarbageCollectionHeapEventsFor(256, 512, 0, garbageCollector.monitoringStrategy.gcRateThreshold + 0.2)
         configureGarbageCollectionNonHeapEventsFor(256, 512, 5, 0)
 
         when:
@@ -168,8 +161,12 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     void configureGarbageCollectionEvents(String type, long initial, long max, leakRate, gcRate) {
         def events = eventsFor(initial, max, leakRate, gcRate)
         buildFile << """
-            injectEvents.doLast {
-                ${eventInjectionConfiguration(type, events, initial, max)}
+            ${injectionImports}
+
+            task injectEvents {
+                doLast {
+                    ${eventInjectionConfiguration(type, events, initial, max)}
+                }
             }
         """
     }

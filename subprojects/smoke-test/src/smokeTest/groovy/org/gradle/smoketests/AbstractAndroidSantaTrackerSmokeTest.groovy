@@ -29,7 +29,7 @@ import org.junit.Rule
 
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
-    protected static final List<String> TESTED_AGP_VERSIONS = AGP_VERSIONS.getLatestsFromMinorPlusNightly("3.6")
+    protected static final Iterable<String> TESTED_AGP_VERSIONS = TestedVersions.androidGradle.versions
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())

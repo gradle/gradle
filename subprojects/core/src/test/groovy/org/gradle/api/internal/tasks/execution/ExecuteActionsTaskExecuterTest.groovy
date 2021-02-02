@@ -80,10 +80,8 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.work.AsyncWorkTracker
-
 import spock.lang.Specification
 
-import java.util.function.Consumer
 import java.util.function.Supplier
 
 import static java.util.Collections.emptyList
@@ -203,7 +201,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
         executionContext.getTaskProperties() >> taskProperties
         executionContext.getValidationContext() >> validationContext
-        executionContext.getValidationAction() >> { { c -> } as Consumer }
+        executionContext.getValidationAction() >> { { historyMaintained, c -> } as TaskExecutionContext.ValidationAction }
         executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }

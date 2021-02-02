@@ -12,7 +12,7 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
     description = "Static code analysis, checkstyle, release notes verification, etc."
 
     params {
-        param("env.JAVA_HOME", LINUX.buildJavaHome())
+        param("env.JAVA_HOME", LINUX.javaHomeForGradle())
     }
 
     features {
@@ -24,7 +24,7 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
             model,
             this,
             "sanityCheck",
-            extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")}"
+            extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")} " + "-Porg.gradle.java.installations.auto-download=false"
     )
 }) {
     companion object {

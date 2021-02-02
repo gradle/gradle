@@ -51,7 +51,6 @@ import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
-import org.gradle.plugin.use.resolve.internal.FallbackPluginResolverContributor;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy;
@@ -94,9 +93,8 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
                                                           ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver,
                                                           PluginDependencyResolutionServices dependencyResolutionServices,
                                                           List<PluginResolverContributor> pluginResolverContributors,
-                                                          List<FallbackPluginResolverContributor> fallbackPluginResolverContributors,
                                                           VersionSelectorScheme versionSelectorScheme) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, pluginResolverContributors, fallbackPluginResolverContributors, versionSelectorScheme);
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, pluginResolverContributors, versionSelectorScheme);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginDependencyResolutionServices dependencyResolutionServices,

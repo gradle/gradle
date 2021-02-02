@@ -98,6 +98,17 @@ NOTE: Due to the project size, the initial import can take a while and IntelliJ 
 
 IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult.  You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
 
+### Java Toolchain
+
+The build leverages the built-in [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests.
+Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
+
+If you want to explicitly run tests with a different Java version:
+Specify either a Gradle or System property `testJavaVersion` with the major version of the JDK you want the tests to run with (e.g. `-PtestJavaVersion=14`).
+
+If some JDKs on your machine are not automatically detected, you can use the [toolchain mechanisms](https://docs.gradle.org/current/userguide/toolchains.html#sec:custom_loc) to let Gradle know about
+specific JDK installations.
+
 ### Code Change Guidelines
 
 All code contributions should contain the following:

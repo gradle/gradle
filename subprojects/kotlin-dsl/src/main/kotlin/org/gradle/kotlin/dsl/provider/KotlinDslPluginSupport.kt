@@ -23,5 +23,6 @@ object KotlinDslPluginSupport {
         get() = listOf(
             "-java-parameters",
             "-Xjsr305=strict",
+            "-XXLanguage:+DisableCompatibilityModeForNewInference",
         )
 }

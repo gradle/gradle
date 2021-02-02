@@ -20,7 +20,9 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle-private/issues/3283")
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -350,6 +352,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     attributes { it.attribute(artifactType, 'size') }
                 }.artifacts
                 inputs.files(artifacts.artifactFiles)
+                outputs.upToDateWhen { false }
 
                 doLast {
                     println artifacts.artifactFiles.collect { it.name }

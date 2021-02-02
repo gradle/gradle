@@ -47,7 +47,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_4_0_ITERATION_MATCHER)
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"(
         String agpVersion, boolean ide
     ) {
@@ -83,7 +83,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                 expectDeprecationWarnings(
                         result,
                         "Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. " +
-                                "This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead. " +
+                                "This is scheduled to be removed in Gradle 8.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead. " +
                                 "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_gradle_types.html#domainobjectset for more details.",
                         "The WorkerExecutor.submit() method has been deprecated. " +
                                 "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +

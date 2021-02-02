@@ -71,6 +71,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-api-version", "1.4",
         "-jvm-target", "1.8",
         "-Xjsr305=strict",
+        "-XXLanguage:+DisableCompatibilityModeForNewInference",
     ]
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")

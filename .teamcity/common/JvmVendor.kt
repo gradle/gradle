@@ -17,5 +17,5 @@
 package common
 
 enum class JvmVendor {
-    oracle, ibm, openjdk
+    oracle, openjdk
 }

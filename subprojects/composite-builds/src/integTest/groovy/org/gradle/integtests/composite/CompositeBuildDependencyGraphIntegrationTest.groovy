@@ -742,6 +742,7 @@ afterEvaluate {
 
             task buildOutputs {
                 inputs.files configurations.buildInputs
+                outputs.upToDateWhen { false }
                 doLast {
                     configurations.buildInputs.each { }
                 }

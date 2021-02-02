@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.util.TextUtil;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -64,7 +65,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 localTaskNode,
                 localTaskNode.getTaskProperties(),
                 localTaskNode.getValidationContext(),
-                typeValidationContext -> detectMissingDependencies(localTaskNode, typeValidationContext)
+                (historyMaintained, typeValidationContext) -> detectMissingDependencies(localTaskNode, historyMaintained, typeValidationContext)
             );
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
@@ -75,7 +76,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         }
     }
 
-    private void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
+    private void detectMissingDependencies(LocalTaskNode node, boolean historyMaintained, TypeValidationContext validationContext) {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
@@ -84,31 +85,46 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
-            .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
-                @Override
-                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                    contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
-                }
+            .forEach(spec -> {
+                try {
+                    spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
+                        @Override
+                        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                            contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
+                        }
 
-                @Override
-                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    fileTree.forEach(location -> taskInputs.add(location.getAbsolutePath()));
-                }
+                        @Override
+                        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                            fileTree.forEach(location -> taskInputs.add(location.getAbsolutePath()));
+                        }
 
-                @Override
-                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                    if (patterns.isEmpty()) {
-                        taskInputs.add(root.getAbsolutePath());
+                        @Override
+                        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                            if (patterns.isEmpty()) {
+                                taskInputs.add(root.getAbsolutePath());
+                            } else {
+                                filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
+                            }
+                        }
+
+                        @Override
+                        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                            taskInputs.add(file.getAbsolutePath());
+                        }
+                    });
+                } catch (Exception e) {
+                    if (historyMaintained) {
+                        // We would later try to snapshot the inputs anyway, no need to suppress the exception
+                        throw e;
                     } else {
-                        filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
+                        validationContext.visitPropertyProblem(
+                            TypeValidationContext.Severity.WARNING,
+                            spec.getPropertyName(),
+                            String.format("cannot be resolved:%n%s%nConsider using Task.dependsOn instead of an input file collection", TextUtil.indent(e.getMessage(), "  "))
+                        );
                     }
                 }
-
-                @Override
-                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    taskInputs.add(file.getAbsolutePath());
-                }
-            }));
+            });
         inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
         for (String locationConsumedByThisTask : taskInputs) {
             outputHierarchy.getNodesAccessing(locationConsumedByThisTask).stream()

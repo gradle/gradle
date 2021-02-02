@@ -48,7 +48,6 @@ abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
-    protected static final String AGP_3_ITERATION_MATCHER = ".*agp=3\\..*"
     protected static final String AGP_4_0_ITERATION_MATCHER = ".*agp=4\\.0\\..*"
     protected static final String AGP_4_1_ITERATION_MATCHER = ".*agp=4\\.1\\..*"
     protected static final String AGP_4_2_ITERATION_MATCHER = ".*agp=4\\.2\\..*"
@@ -79,7 +78,7 @@ abstract class AbstractSmokeTest extends Specification {
         static shadow = Versions.of("4.0.4", "5.2.0", "6.0.0", "6.1.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
-        static asciidoctor = Versions.of("2.3.0", "3.0.0", "3.3.0")
+        static asciidoctor = Versions.of("3.3.0")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
         static spotbugs = "4.6.0"
@@ -99,7 +98,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.3"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
+        static androidGradle = Versions.of(*AGP_VERSIONS.getLatestsFromMinorPlusNightly("4.0"))
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of(*KOTLIN_VERSIONS.latests.findAll {
@@ -261,7 +260,6 @@ abstract class AbstractSmokeTest extends Specification {
 
     private static List<String> outputParameters() {
         return [
-            '--stacktrace',
             '--warning-mode=all',
             "-D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=false" as String,
         ]

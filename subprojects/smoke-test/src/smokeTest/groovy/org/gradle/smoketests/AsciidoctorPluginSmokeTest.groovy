@@ -17,61 +17,12 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.GradleVersion
-import org.gradle.util.VersionNumber
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
-
-    final VersionNumber version3 = VersionNumber.parse("3.0.0")
-
-    @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def 'asciidoctor legacy plugin'() {
-        given:
-        buildFile << """
-            buildscript {
-                ${jcenterRepository()}
-                dependencies {
-                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.11"
-                }
-            }
-
-            apply plugin: 'org.asciidoctor.gradle.asciidoctor'
-            """.stripIndent()
-
-        file('src/docs/asciidoc/test.adoc') << """
-            = Line Break Doc Title
-            :hardbreaks:
-
-            Rubies are red,
-            Topazes are blue.
-            """.stripIndent()
-
-        when:
-        def result = runner('asciidoc').build()
-
-        then:
-        file('build/asciidoc').isDirectory()
-
-        expectDeprecationWarnings(result,
-            "Type 'AsciidoctorTask': non-property method 'asGemPath()' should not be annotated with: @Optional, @InputDirectory. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'logDocuments' has redundant getters: 'getLogDocuments()' and 'isLogDocuments()'. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'separateOutputDirs' has redundant getters: 'getSeparateOutputDirs()' and 'isSeparateOutputDirs()'. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-        )
-    }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
     @Unroll
@@ -80,7 +31,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         given:
         buildFile << """
             plugins {
-                id '${pluginIdForVersion(version)}' version '${version}'
+                id 'org.asciidoctor.jvm.convert' version '${version}'
             }
 
             repositories {
@@ -97,67 +48,60 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        def result = runner('asciidoc').build()
+        runner('asciidoc').build()
 
         then:
-        if (VersionNumber.parse(version) >= version3) {
-            file('build/docs/asciidoc').isDirectory()
-        } else {
-            file('build/asciidoc').isDirectory()
-            expectDeprecationWarnings(result,
-                "You are using one or more deprecated Asciidoctor task or plugins. These will be removed in a future release. To help you migrate we have compiled some tips for you based upon your current usage:",
-                "  - 'org.asciidoctor.convert' is deprecated. When you have time please switch over to 'org.asciidoctor.jvm.convert'.",
-                "Property 'logDocuments' is annotated with @Optional that is not allowed for @Console properties. " +
-                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                    "Execution optimizations are disabled due to the failed validation. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            )
-        }
+        file('build/docs/asciidoc').isDirectory()
 
         where:
         version << TestedVersions.asciidoctor
     }
 
-    private String pluginIdForVersion(String version) {
-        // asciidoctor changed plugin ids after 3.0
-        if (VersionNumber.parse(version) >= version3) {
-            "org.asciidoctor.jvm.convert"
-        } else {
-            "org.asciidoctor.convert"
-        }
-    }
-
     @Override
     Map<String, Versions> getPluginsToValidate() {
-        TestedVersions.asciidoctor.collectEntries([:]) {
-            [pluginIdForVersion(it), Versions.of(it)]
+        TestedVersions.asciidoctor.collectEntries([:]) { version ->
+            [
+                "org.asciidoctor.decktape",
+                "org.asciidoctor.editorconfig",
+                "org.asciidoctor.js.convert",
+                "org.asciidoctor.jvm.convert",
+                "org.asciidoctor.jvm.epub",
+                "org.asciidoctor.jvm.gems",
+                "org.asciidoctor.jvm.leanpub",
+                "org.asciidoctor.jvm.leanpub.dropbox-copy",
+                "org.asciidoctor.jvm.pdf",
+                "org.asciidoctor.jvm.revealjs",
+            ].collectEntries { plugin ->
+                [(plugin): Versions.of(version)]
+            }
         }
     }
 
     @Override
     void configureValidation(String pluginId, String version) {
         validatePlugins {
-            onPlugin(pluginId) {
-                if (VersionNumber.parse(version) < version3) {
+
+            if (pluginId == "org.asciidoctor.jvm.pdf") {
+                onPlugin(pluginId) {
                     failsWith([
-                        "Type 'AbstractAsciidoctorTask': field 'LAST_GRADLE_WITH_CLASSPATH_LEAKAGE' without corresponding getter has been annotated with @Internal.": WARNING,
-                        "Type 'AbstractAsciidoctorTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
-                        "Type 'AbstractAsciidoctorTask': property 'baseDirConfigured' is not annotated with an input or output annotation.": WARNING,
-                        "Type 'AsciidoctorCompatibilityTask': non-property method 'asGemPath()' should not be annotated with: @Optional, @InputDirectory.": WARNING,
-                        "Type 'AsciidoctorCompatibilityTask': property 'logDocuments' is annotated with @Optional that is not allowed for @Console properties.": WARNING,
-                        "Type 'AsciidoctorPdfTask': property 'baseDirConfigured' is not annotated with an input or output annotation.": WARNING,
-                        "Type 'AsciidoctorTask': property 'baseDirConfigured' is not annotated with an input or output annotation.": WARNING,
-                        "Type 'AsciidoctorTask': property 'logDocuments' is annotated with @Optional that is not allowed for @Console properties.": WARNING
+                        "Type 'AsciidoctorPdfTask': property 'fontsDir' is not annotated with an input or output annotation.": WARNING
                     ])
-                } else {
+                }
+            } else if (pluginId == "org.asciidoctor.decktape") {
+                onPlugins([pluginId, "org.asciidoctor.gradle.slides.export.decktape.AsciidoctorDeckTapeBasePlugin"]) {
+                    failsWith([
+                        "Type 'AbstractExportBaseTask': property 'outputDir' is annotated with @PathSensitive that is not allowed for @OutputDirectory properties.": WARNING,
+                        "Type 'DeckTapeTask': property 'outputDir' is annotated with @PathSensitive that is not allowed for @OutputDirectory properties.": WARNING,
+                    ])
+                }
+            } else {
+                onPlugin(pluginId) {
                     passes()
                 }
             }
 
-            onPlugin('org_asciidoctor_gradle_base_AsciidoctorBasePlugin') {
-                if (VersionNumber.parse(version) < version3) {
-                    passes()
-                } else {
+            if (pluginId.startsWith("org.asciidoctor.jvm")) {
+                onPlugin('org.asciidoctor.gradle.base.AsciidoctorBasePlugin') {
                     failsWith([
                         "Type 'AbstractAsciidoctorBaseTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
                         "Type 'AbstractAsciidoctorBaseTask': non-property method 'attributes()' should not be annotated with: @Input.": WARNING,
@@ -166,14 +110,36 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                         "Type 'SlidesToExportAware': property 'profile' is not annotated with an input or output annotation.": WARNING
                     ])
                 }
-            }
 
-            onPlugin('org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin') {
-                if (VersionNumber.parse(version) < version3) {
-                    skip()
-                } else {
+                onPlugin('org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin') {
                     passes()
                 }
+
+                if (["org.asciidoctor.jvm.gems", "org.asciidoctor.jvm.revealjs"].contains(pluginId)) {
+                    onPlugin('com.github.jrubygradle.api.core.JRubyCorePlugin') {
+                        failsWith([
+                            "Type 'AbstractJRubyPrepare': non-property method 'dependencies()' should not be annotated with: @Optional.": WARNING,
+                            "Type 'AbstractJRubyPrepare': non-property method 'gemsAsFileCollection()' should not be annotated with: @InputFiles.": WARNING,
+                        ])
+                    }
+                }
+
+                if (pluginId == "org.asciidoctor.jvm.revealjs") {
+                    onPlugin("org.asciidoctor.gradle.jvm.gems.AsciidoctorGemSupportPlugin") {
+                        passes()
+                    }
+                    onPlugin("org.asciidoctor.gradle.jvm.slides.AsciidoctorRevealJSBasePlugin") {
+                        passes()
+                    }
+                }
+
+                if (pluginId == "org.asciidoctor.jvm.leanpub.dropbox-copy") {
+                    onPlugin("org.asciidoctor.gradle.jvm.leanpub.AsciidoctorJLeanpubPlugin") {
+                        passes()
+                    }
+                }
+            } else {
+                alwaysPasses()
             }
         }
     }

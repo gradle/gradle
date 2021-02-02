@@ -64,6 +64,7 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(listOf(
             "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+            "SHOW_TOOLCHAINS",
             "GRADLE_RUNNER",
             "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
@@ -82,6 +83,7 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(listOf(
             "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+            "SHOW_TOOLCHAINS",
             "GRADLE_RUNNER",
             "KILL_PROCESSES_STARTED_BY_GRADLE",
             "CHECK_CLEAN_M2"
@@ -102,20 +104,21 @@ class ApplyDefaultConfigurationTest {
         assertEquals(listOf(
             "ATTACH_FILE_LEAK_DETECTOR",
             "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+            "SHOW_TOOLCHAINS",
             "GRADLE_RUNNER",
             "SET_BUILD_SUCCESS_ENV",
             "DUMP_OPEN_FILES_ON_FAILURE",
             "KILL_PROCESSES_STARTED_BY_GRADLE",
             "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
-        verifyGradleRunnerParams(extraParameters, expectedDaemonParam)
+        verifyGradleRunnerParams(extraParameters, expectedDaemonParam, Os.WINDOWS)
     }
 
     private
-    fun verifyGradleRunnerParams(extraParameters: String, expectedDaemonParam: String) {
+    fun verifyGradleRunnerParams(extraParameters: String, expectedDaemonParam: String, os: Os = Os.LINUX) {
         assertEquals(BuildStep.ExecutionMode.DEFAULT, getGradleStep("GRADLE_RUNNER").executionMode)
 
-        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters), getGradleStep("GRADLE_RUNNER").gradleParams)
+        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters, os), getGradleStep("GRADLE_RUNNER").gradleParams)
         assertEquals("clean myTask", getGradleStep("GRADLE_RUNNER").tasks)
     }
 
@@ -123,6 +126,10 @@ class ApplyDefaultConfigurationTest {
     fun getGradleStep(stepName: String) = steps.items.find { it.name == stepName }!! as GradleBuildStep
 
     private
-    fun expectedRunnerParam(daemon: String = "--daemon", extraParameters: String = "") =
-        "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -s $daemon --continue $extraParameters -PteamCityBuildId=%teamcity.build.id% \"-Dscan.tag.Check\" \"-Dscan.tag.\""
+    fun expectedRunnerParam(daemon: String = "--daemon", extraParameters: String = "", os: Os = Os.LINUX): String {
+        val linuxPaths = "-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java9.oracle.64bit%,%linux.java10.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java12.openjdk.64bit%,%linux.java13.openjdk.64bit%,%linux.java14.openjdk.64bit%,%linux.java15.openjdk.64bit%,%linux.java16.openjdk.64bit%"
+        val windowsPaths = "-Porg.gradle.java.installations.paths=%windows.java8.oracle.64bit%,%windows.java9.oracle.64bit%,%windows.java10.oracle.64bit%,%windows.java11.openjdk.64bit%,%windows.java12.openjdk.64bit%,%windows.java13.openjdk.64bit%,%windows.java14.openjdk.64bit%,%windows.java15.openjdk.64bit%,%windows.java16.openjdk.64bit%"
+        val expectedInstallationPaths = if (os == Os.WINDOWS) windowsPaths else linuxPaths
+        return "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -s $daemon --continue $extraParameters -PteamCityBuildId=%teamcity.build.id% \"-Dscan.tag.Check\" \"-Dscan.tag.\" \"$expectedInstallationPaths\" -Porg.gradle.java.installations.auto-download=false"
+    }
 }

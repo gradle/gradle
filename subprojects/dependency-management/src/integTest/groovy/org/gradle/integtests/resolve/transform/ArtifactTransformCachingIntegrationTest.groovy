@@ -1668,6 +1668,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 @Console
                 final Property<String> identifier = project.objects.property(String)
 
+                Resolve() {
+                    outputs.upToDateWhen { false }
+                }
+
                 @Optional
                 @InputFiles
                 FileCollection getArtifactFiles() {

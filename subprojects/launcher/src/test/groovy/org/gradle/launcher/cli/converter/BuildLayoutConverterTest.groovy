@@ -89,11 +89,13 @@ class BuildLayoutConverterTest extends Specification {
         def parameters = convert(["--gradle-user-home", "dir"]) {
             gradleUserHomeDir = new File("ignore-me")
             projectDir = dir
+            searchUpwards = true
         }
 
         then:
         parameters.gradleUserHomeDir == dir
         parameters.projectDir == dir
+        parameters.searchUpwards
     }
 
     BuildLayoutParameters convert(List<String> args, @DelegatesTo(BuildLayoutParameters) Closure overrides = {}) {
@@ -110,6 +112,7 @@ class BuildLayoutConverterTest extends Specification {
         assert startParameters.gradleUserHomeDir == parameters.gradleUserHomeDir
         assert startParameters.currentDir == parameters.currentDir
         assert startParameters.projectDir == parameters.projectDir
+        assert startParameters.searchUpwards == parameters.searchUpwards
 
         return parameters
     }

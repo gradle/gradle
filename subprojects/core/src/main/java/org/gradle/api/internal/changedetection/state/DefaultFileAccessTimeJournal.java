@@ -53,7 +53,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // lock on demand
             .open();
         store = cache.createCache(PersistentIndexedCacheParameters.of(FILE_ACCESS_CACHE_NAME, FILE_SERIALIZER, LONG_SERIALIZER)
-            .withCacheDecorator(cacheDecoratorFactory.decorator(1000, true)));
+            .withCacheDecorator(cacheDecoratorFactory.decorator(10000, true)));
         inceptionTimestamp = loadOrPersistInceptionTimestamp();
     }
 

@@ -85,13 +85,27 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
 
     steps {
         gradleWrapper {
-            name = "GRADLE_RUNNER"
-            tasks = "clean $gradleTasks"
+            name = "SHOW_TOOLCHAINS"
+            tasks = "javaToolchains"
             gradleParams = (
                 buildToolGradleParameters(daemon) +
                     listOf(extraParameters) +
                     "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { buildScanTag(it) }
+                    buildScanTags.map { buildScanTag(it) } +
+                    os.javaInstallationLocations() +
+                    "-Porg.gradle.java.installations.auto-download=false"
+                ).joinToString(separator = " ")
+        }
+        gradleWrapper {
+            name = "GRADLE_RUNNER"
+            tasks = "clean $gradleTasks"
+            gradleParams = (
+                    buildToolGradleParameters(daemon) +
+                    listOf(extraParameters) +
+                    "-PteamCityBuildId=%teamcity.build.id%" +
+                    buildScanTags.map { buildScanTag(it) } +
+                    os.javaInstallationLocations() +
+                    "-Porg.gradle.java.installations.auto-download=false"
                 ).joinToString(separator = " ")
         }
     }
