@@ -1,4 +1,3 @@
-import gradlebuild.integrationtests.getIncludeCategories
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
 plugins {
@@ -45,6 +44,4 @@ classycle {
 
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
-    // TestKit multi version tests are not using JUnit categories
-    getIncludeCategories().clear()
 }

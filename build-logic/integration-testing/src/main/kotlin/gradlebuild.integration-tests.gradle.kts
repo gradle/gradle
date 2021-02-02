@@ -20,7 +20,6 @@ import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTasks
 import gradlebuild.integrationtests.createTestTask
-import gradlebuild.integrationtests.includeCategories
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 
 plugins {
@@ -39,5 +38,5 @@ configureIde(TestType.INTEGRATION)
 
 createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATION) {
     // This test task runs only multi-version tests and is intended to be used in the late pipeline to sweep up versions not previously tested
-    includeCategories("org.gradle.integtests.fixtures.ContextualMultiVersionTest")
+    systemProperty("spock.configuration", "MultiVersionTestSpockConfig.groovy")
 }

@@ -186,33 +186,6 @@ fun Project.configureIde(testType: TestType) {
 }
 
 
-fun Test.getIncludeCategories(): MutableSet<String> {
-    return if (options is JUnitOptions) {
-        (options as JUnitOptions).includeCategories
-    } else {
-        (options as JUnitPlatformOptions).includeTags
-    }
-}
-
-
-fun Test.includeCategories(vararg categories: String) {
-    if (options is JUnitOptions) {
-        (options as JUnitOptions).includeCategories(*categories)
-    } else {
-        (options as JUnitPlatformOptions).includeTags(*categories)
-    }
-}
-
-
-fun Test.excludeCategories(vararg categories: String) {
-    if (options is JUnitOptions) {
-        (options as JUnitOptions).excludeCategories(*categories)
-    } else {
-        (options as JUnitPlatformOptions).excludeTags(*categories)
-    }
-}
-
-
 private
 fun Project.bucket(name: String, description: String) = configurations.create(name) {
     isVisible = false
