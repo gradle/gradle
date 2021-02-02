@@ -20,20 +20,20 @@ import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-public enum AbsentProviderHandling {
+public enum ProviderResolutionStrategy {
     ALLOW_ABSENT {
         @Override
-        public <T> T getValue(Provider<T> provider) {
+        public <T> T resolve(Provider<T> provider) {
             return provider.getOrNull();
         }
     },
     REQUIRE_PRESENT {
         @Override
-        public <T> T getValue(Provider<T> provider) {
+        public <T> T resolve(Provider<T> provider) {
             return provider.get();
         }
     };
 
     @Nullable
-    public abstract <T> T getValue(Provider<T> provider);
+    public abstract <T> T resolve(Provider<T> provider);
 }

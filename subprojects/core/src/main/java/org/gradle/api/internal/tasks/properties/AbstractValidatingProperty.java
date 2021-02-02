@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.provider.AbsentProviderHandling;
+import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.util.DeferredUtil;
 
@@ -37,7 +37,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
 
     @Override
     public void validate(TaskValidationContext context) {
-        Object unpacked = DeferredUtil.unpack(AbsentProviderHandling.ALLOW_ABSENT, value.call());
+        Object unpacked = DeferredUtil.unpack(ProviderResolutionStrategy.ALLOW_ABSENT, value.call());
         if (unpacked == null) {
             if (!optional) {
                 context.visitPropertyProblem(ERROR, String.format("No value has been specified for property '%s'", propertyName));

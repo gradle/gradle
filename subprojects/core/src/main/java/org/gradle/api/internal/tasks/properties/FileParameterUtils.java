@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.provider.AbsentProviderHandling;
+import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.FileNormalizer;
@@ -95,9 +95,9 @@ public class FileParameterUtils {
      */
     public static FileCollectionInternal resolveInputFileValue(FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
         if (inputFilePropertyType == InputFilePropertyType.DIRECTORY) {
-            return fileCollectionFactory.resolving(AbsentProviderHandling.ALLOW_ABSENT, path).getAsFileTree();
+            return fileCollectionFactory.resolving(ProviderResolutionStrategy.ALLOW_ABSENT, path).getAsFileTree();
         } else {
-            return fileCollectionFactory.resolving(AbsentProviderHandling.ALLOW_ABSENT, path);
+            return fileCollectionFactory.resolving(ProviderResolutionStrategy.ALLOW_ABSENT, path);
         }
     }
 
@@ -122,7 +122,7 @@ public class FileParameterUtils {
         if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
             resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileCollectionFactory, consumer);
         } else {
-            FileCollectionInternal outputFiles = fileCollectionFactory.resolving(AbsentProviderHandling.REQUIRE_PRESENT, unpackedValue);
+            FileCollectionInternal outputFiles = fileCollectionFactory.resolving(ProviderResolutionStrategy.REQUIRE_PRESENT, unpackedValue);
             DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFiles, filePropertyType.getOutputType());
             consumer.accept(filePropertySpec);
         }
@@ -136,11 +136,11 @@ public class FileParameterUtils {
                     throw new IllegalArgumentException(String.format("Mapped output property '%s' has null key", propertyName));
                 }
                 String id = key.toString();
-                FileCollectionInternal outputFiles = fileCollectionFactory.resolving(AbsentProviderHandling.REQUIRE_PRESENT, entry.getValue());
+                FileCollectionInternal outputFiles = fileCollectionFactory.resolving(ProviderResolutionStrategy.REQUIRE_PRESENT, entry.getValue());
                 consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, outputFiles, outputType));
             }
         } else {
-            FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(AbsentProviderHandling.REQUIRE_PRESENT, unpackedValue);
+            FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(ProviderResolutionStrategy.REQUIRE_PRESENT, unpackedValue);
             AtomicInteger index = new AtomicInteger(0);
             outputFileCollection.visitStructure(new FileCollectionStructureVisitor() {
                 @Override

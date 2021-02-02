@@ -17,7 +17,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
-import org.gradle.api.internal.provider.AbsentProviderHandling;
+import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -89,7 +89,7 @@ public abstract class AbstractFileResolver implements FileResolver {
     protected abstract File doResolve(Object path);
 
     protected URI convertObjectToURI(Object path) {
-        Object object = DeferredUtil.unpack(AbsentProviderHandling.REQUIRE_PRESENT, path);
+        Object object = DeferredUtil.unpack(ProviderResolutionStrategy.REQUIRE_PRESENT, path);
         Object converted = fileNotationParser.parseNotation(object);
         if (converted instanceof File) {
             return resolve(converted).toURI();
@@ -99,7 +99,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     @Nullable
     protected File convertObjectToFile(Object path) {
-        Object object = DeferredUtil.unpack(AbsentProviderHandling.REQUIRE_PRESENT, path);
+        Object object = DeferredUtil.unpack(ProviderResolutionStrategy.REQUIRE_PRESENT, path);
         if (object == null) {
             return null;
         }

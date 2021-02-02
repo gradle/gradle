@@ -33,8 +33,8 @@ import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.UnpackingVisitor;
-import org.gradle.api.internal.provider.AbsentProviderHandling;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
@@ -132,22 +132,22 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollectionInternal resolving(String displayName, AbsentProviderHandling absentProviderHandling, Object sources) {
+    public FileCollectionInternal resolving(String displayName, ProviderResolutionStrategy providerResolutionStrategy, Object sources) {
         if (sources.getClass().isArray() && Array.getLength(sources) == 0) {
             return empty(displayName);
         }
-        return new ResolvingFileCollection(displayName, fileResolver, patternSetFactory, absentProviderHandling, sources);
+        return new ResolvingFileCollection(displayName, fileResolver, patternSetFactory, providerResolutionStrategy, sources);
     }
 
     @Override
-    public FileCollectionInternal resolving(AbsentProviderHandling absentProviderHandling, Object sources) {
+    public FileCollectionInternal resolving(ProviderResolutionStrategy providerResolutionStrategy, Object sources) {
         if (sources instanceof FileCollectionInternal) {
             return (FileCollectionInternal) sources;
         }
         if (sources.getClass().isArray() && Array.getLength(sources) == 0) {
             return empty();
         }
-        return resolving(DEFAULT_COLLECTION_DISPLAY_NAME, absentProviderHandling, sources);
+        return resolving(DEFAULT_COLLECTION_DISPLAY_NAME, providerResolutionStrategy, sources);
     }
 
     @Override
@@ -294,14 +294,14 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         private final String displayName;
         private final PathToFileResolver resolver;
         private final Object source;
-        private final AbsentProviderHandling absentProviderHandling;
+        private final ProviderResolutionStrategy providerResolutionStrategy;
 
-        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, AbsentProviderHandling absentProviderHandling, Object source) {
+        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, Object source) {
             super(patternSetFactory);
             this.displayName = displayName;
             this.resolver = resolver;
             this.source = source;
-            this.absentProviderHandling = absentProviderHandling;
+            this.providerResolutionStrategy = providerResolutionStrategy;
         }
 
         @Override
@@ -311,7 +311,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, patternSetFactory, absentProviderHandling, true);
+            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, patternSetFactory, providerResolutionStrategy, true);
             nested.add(source);
         }
 

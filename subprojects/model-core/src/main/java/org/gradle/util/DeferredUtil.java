@@ -16,7 +16,7 @@
 
 package org.gradle.util;
 
-import org.gradle.api.internal.provider.AbsentProviderHandling;
+import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 
@@ -32,13 +32,13 @@ public class DeferredUtil {
      * then unpacks the remaining Provider or Factory.
      */
     @Nullable
-    public static Object unpack(AbsentProviderHandling absentProviderHandling, @Nullable Object deferred) {
+    public static Object unpack(ProviderResolutionStrategy providerResolutionStrategy, @Nullable Object deferred) {
         if (deferred == null) {
             return null;
         }
         Object value = unpackNestableDeferred(deferred);
         if (value instanceof Provider) {
-            return absentProviderHandling.getValue((Provider<?>) value);
+            return providerResolutionStrategy.resolve((Provider<?>) value);
         }
         if (value instanceof Factory) {
             return ((Factory<?>) value).create();

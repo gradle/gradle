@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.provider.AbsentProviderHandling;
+import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
@@ -112,7 +112,7 @@ public class WriteProperties extends DefaultTask {
             deferredProperties.put(name, new Callable<String>() {
                 @Override
                 public String call() throws Exception {
-                    Object futureValue = DeferredUtil.unpack(AbsentProviderHandling.REQUIRE_PRESENT, value);
+                    Object futureValue = DeferredUtil.unpack(ProviderResolutionStrategy.REQUIRE_PRESENT, value);
                     checkForNullValue(name, futureValue);
                     return String.valueOf(futureValue);
                 }
