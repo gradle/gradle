@@ -20,10 +20,13 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.steps.ValidateStep;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -32,6 +35,11 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkValidationWarningRecorder.class);
 
     private final AtomicInteger workWithFailuresCount = new AtomicInteger();
+    private final BuildOperationProgressEventEmitter progressEventEmitter;
+
+    public DefaultWorkValidationWarningRecorder(BuildOperationProgressEventEmitter progressEventEmitter) {
+        this.progressEventEmitter = progressEventEmitter;
+    }
 
     @Override
     public void recordValidationWarnings(UnitOfWork work, Collection<String> warnings) {
@@ -47,6 +55,14 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
             .willBeRemovedInGradle7()
             .withUserManual("more_about_tasks", "sec:up_to_date_checks")
             .nagUser());
+
+        //noinspection Convert2Lambda
+        progressEventEmitter.emitNowIfCurrent(new DisableOptimizationsForWorkUnitBuildOperationProgressDetails() {
+            @Override
+            public List<String> getMessages() {
+                return new ArrayList<>(warnings);
+            }
+        });
     }
 
     @Override

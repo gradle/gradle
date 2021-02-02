@@ -319,7 +319,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultOverlappingOutputDetector();
     }
 
-    DefaultWorkValidationWarningRecorder createValidationWarningReporter() {
-        return new DefaultWorkValidationWarningRecorder();
+    DefaultWorkValidationWarningRecorder createValidationWarningReporter(BuildOperationProgressEventEmitter progressEventEmitter) {
+        return new DefaultWorkValidationWarningRecorder(progressEventEmitter);
     }
 }
