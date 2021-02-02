@@ -30,9 +30,27 @@ public class DeferredUtil {
     /**
      * Successively unpacks a deferred value until it is resolved to null or something other than Callable (including Groovy Closure) or Kotlin lambda
      * then unpacks the remaining Provider or Factory.
+     *
+     * Fails when the Provider is not present.
      */
     @Nullable
-    public static Object unpack(ProviderResolutionStrategy providerResolutionStrategy, @Nullable Object deferred) {
+    public static Object unpack(@Nullable Object deferred) {
+        return unpack(ProviderResolutionStrategy.REQUIRE_PRESENT, deferred);
+    }
+
+    /**
+     * Successively unpacks a deferred value until it is resolved to null or something other than Callable (including Groovy Closure) or Kotlin lambda
+     * then unpacks the remaining Provider or Factory.
+     *
+     * Returns null when the provider is not present.
+     */
+    @Nullable
+    public static Object unpackIfPresent(@Nullable Object deferred) {
+        return unpack(ProviderResolutionStrategy.ALLOW_ABSENT, deferred);
+    }
+
+    @Nullable
+    private static Object unpack(ProviderResolutionStrategy providerResolutionStrategy, @Nullable Object deferred) {
         if (deferred == null) {
             return null;
         }
