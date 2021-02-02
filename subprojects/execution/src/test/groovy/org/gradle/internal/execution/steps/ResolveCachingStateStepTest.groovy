@@ -51,7 +51,7 @@ class ResolveCachingStateStepTest extends StepSpec<BeforeExecutionContext> {
         _ * context.beforeExecutionState >> Optional.empty()
         _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationContext)
         1 * delegate.execute(work, { CachingContext context ->
-            context.cachingState.disabledReasons*.category == [CachingDisabledReasonCategory.VALIDATION_FAILURE]
+            context.cachingState.disabledReasons*.category == [CachingDisabledReasonCategory.UNSAFE_IMPLEMENTATION_OR_CONFIGURATION]
             context.cachingState.disabledReasons*.message == ["Validation failed"]
         })
     }

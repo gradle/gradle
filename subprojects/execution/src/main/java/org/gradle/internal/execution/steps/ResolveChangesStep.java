@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
     private static final String NO_HISTORY = "No history is available.";
-    private static final String VALIDATION_FAILED = "Validation failed.";
+    private static final String UNSAFE_FOR_REUSING_OUTPUTS = "Implementation or configuration is unsafe for reusing outputs.";
 
     private final ExecutionStateChangeDetector changeDetector;
 
@@ -68,7 +68,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 beforeExecutionState
                     .map(beforeExecution -> context.getAfterPreviousExecutionState()
                         .map(afterPreviousExecution -> context.getValidationProblems()
-                            .map(__ -> rebuildChanges(work, beforeExecution, VALIDATION_FAILED))
+                            .map(__ -> rebuildChanges(work, beforeExecution, UNSAFE_FOR_REUSING_OUTPUTS))
                             .orElseGet(() ->
                                 changeDetector.detectChanges(
                                     afterPreviousExecution,

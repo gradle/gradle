@@ -71,7 +71,7 @@ public enum TaskOutputCachingDisabledReasonCategory {
      * </ul>
      */
     NON_CACHEABLE_TASK_IMPLEMENTATION,
-    
+
     /**
      * One of the task actions is not cacheable. Reasons for non-cacheable task action:
      * <ul>
@@ -88,5 +88,13 @@ public enum TaskOutputCachingDisabledReasonCategory {
      *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>
      * </ul>
      */
-    NON_CACHEABLE_INPUTS
+    NON_CACHEABLE_INPUTS,
+
+    /**
+     * A generic catch-all for problems with the implementation or configuration of the work that prevents it being cached.
+     *
+     * For example, its declaration has invalid annotation combinations or it consumes the output of another
+     * work unit without declaring a dependency.
+     */
+    UNSAFE_IMPLEMENTATION_OR_CONFIGURATION
 }

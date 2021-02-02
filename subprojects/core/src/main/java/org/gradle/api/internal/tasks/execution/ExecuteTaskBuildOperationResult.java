@@ -102,10 +102,8 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
                 return TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
             case OVERLAPPING_OUTPUTS:
                 return TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS;
-            case VALIDATION_FAILURE:
-                // TODO Introduce new category or reuse an existing one
-                //noinspection DuplicateBranchesInSwitch
-                return TaskOutputCachingDisabledReasonCategory.UNKNOWN;
+            case UNSAFE_IMPLEMENTATION_OR_CONFIGURATION:
+                return TaskOutputCachingDisabledReasonCategory.UNSAFE_IMPLEMENTATION_OR_CONFIGURATION;
             case NON_CACHEABLE_IMPLEMENTATION:
                 return TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_IMPLEMENTATION;
             case NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION:

@@ -58,9 +58,12 @@ public enum CachingDisabledReasonCategory {
     OVERLAPPING_OUTPUTS,
 
     /**
-     * The work has failed validation.
+     * A generic catch-all for problems with the implementation or configuration of the work that prevents it being cached.
+     *
+     * For example, its declaration has invalid annotation combinations or it consumes the output of another
+     * work unit without declaring a dependency.
      */
-    VALIDATION_FAILURE,
+    UNSAFE_IMPLEMENTATION_OR_CONFIGURATION,
 
     /**
      * The work's implementation is not cacheable.
