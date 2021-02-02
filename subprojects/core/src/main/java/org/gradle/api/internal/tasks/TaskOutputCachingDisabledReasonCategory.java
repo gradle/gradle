@@ -71,7 +71,7 @@ public enum TaskOutputCachingDisabledReasonCategory {
      * </ul>
      */
     NON_CACHEABLE_TASK_IMPLEMENTATION,
-    
+
     /**
      * One of the task actions is not cacheable. Reasons for non-cacheable task action:
      * <ul>
@@ -88,5 +88,11 @@ public enum TaskOutputCachingDisabledReasonCategory {
      *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>
      * </ul>
      */
-    NON_CACHEABLE_INPUTS
+    NON_CACHEABLE_INPUTS,
+
+    /**
+     * The task failed validation.
+     */
+    VALIDATION_FAILURE
+
 }
