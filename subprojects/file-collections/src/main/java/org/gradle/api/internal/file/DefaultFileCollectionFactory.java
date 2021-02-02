@@ -132,7 +132,16 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollectionInternal resolving(String displayName, ProviderResolutionStrategy providerResolutionStrategy, Object sources) {
+    public FileCollectionInternal resolving(String displayName, Object sources) {
+        return resolving(displayName, ProviderResolutionStrategy.REQUIRE_PRESENT, sources);
+    }
+
+    @Override
+    public FileCollectionInternal resolvingIfPresent(String displayName, Object sources) {
+        return resolving(displayName, ProviderResolutionStrategy.ALLOW_ABSENT, sources);
+    }
+
+    private FileCollectionInternal resolving(String displayName, ProviderResolutionStrategy providerResolutionStrategy, Object sources) {
         if (sources.getClass().isArray() && Array.getLength(sources) == 0) {
             return empty(displayName);
         }
@@ -140,7 +149,16 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollectionInternal resolving(ProviderResolutionStrategy providerResolutionStrategy, Object sources) {
+    public FileCollectionInternal resolving(Object sources) {
+        return resolving(ProviderResolutionStrategy.REQUIRE_PRESENT, sources);
+    }
+
+    @Override
+    public FileCollectionInternal resolvingIfPresent(Object sources) {
+        return resolving(ProviderResolutionStrategy.ALLOW_ABSENT, sources);
+    }
+
+    private FileCollectionInternal resolving(ProviderResolutionStrategy providerResolutionStrategy, Object sources) {
         if (sources instanceof FileCollectionInternal) {
             return (FileCollectionInternal) sources;
         }

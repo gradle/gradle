@@ -76,7 +76,7 @@ public class DeferredUtil {
     }
 
     @Nullable
-    public static Object unpackNestableDeferred(Object deferred) {
+    public static Object unpackNestableDeferred(@Nullable Object deferred) {
         Object current = deferred;
         while (isNestableDeferred(current)) {
             if (current instanceof Callable) {

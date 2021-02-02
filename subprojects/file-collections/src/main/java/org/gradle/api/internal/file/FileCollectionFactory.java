@@ -22,7 +22,6 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -97,33 +96,37 @@ public interface FileCollectionFactory {
      * Creates a {@link FileCollection} with the given files as content.
      *
      * <p>The collection is live and resolves the files on each query.
+     *
+     * <p>The collection fails to resolve if it contains providers which are not present.
      */
-    default FileCollectionInternal resolving(String displayName, Object sources) {
-        return resolving(displayName, ProviderResolutionStrategy.REQUIRE_PRESENT, sources);
-    }
+    FileCollectionInternal resolving(String displayName, Object sources);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
      * <p>The collection is live and resolves the files on each query.
+     *
+     * <p>The collection ignores providers which are not present.
      */
-    FileCollectionInternal resolving(String displayName, ProviderResolutionStrategy providerResolutionStrategy, Object sources);
+    FileCollectionInternal resolvingIfPresent(String displayName, Object sources);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
      * <p>The collection is live and resolves the files on each query.
+     *
+     * <p>The collection fails to resolve if it contains providers which are not present.
      */
-    default FileCollectionInternal resolving(Object sources) {
-        return resolving(ProviderResolutionStrategy.REQUIRE_PRESENT, sources);
-    }
+    FileCollectionInternal resolving(Object sources);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
      * <p>The collection is live and resolves the files on each query.
+     *
+     * <p>The collection ignores providers which are not present.
      */
-    FileCollectionInternal resolving(ProviderResolutionStrategy providerResolutionStrategy, Object sources);
+    FileCollectionInternal resolvingIfPresent(Object sources);
 
     /**
      * Creates an empty {@link ConfigurableFileCollection} instance.
