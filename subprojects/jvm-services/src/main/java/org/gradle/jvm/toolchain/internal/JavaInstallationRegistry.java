@@ -40,18 +40,18 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
-public class SharedJavaInstallationRegistry {
+public class JavaInstallationRegistry {
     private final BuildOperationExecutor executor;
     private final Supplier<Set<InstallationLocation>> installations;
     private final Logger logger;
     private final OperatingSystem os;
 
     @Inject
-    public SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, BuildOperationExecutor executor, OperatingSystem os) {
-        this(suppliers, Logging.getLogger(SharedJavaInstallationRegistry.class), executor, os);
+    public JavaInstallationRegistry(List<InstallationSupplier> suppliers, BuildOperationExecutor executor, OperatingSystem os) {
+        this(suppliers, Logging.getLogger(JavaInstallationRegistry.class), executor, os);
     }
 
-    private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor, OperatingSystem os) {
+    private JavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor, OperatingSystem os) {
         this.logger = logger;
         this.executor = executor;
         this.installations = Suppliers.memoize(() -> collectInBuildOperation(suppliers));
@@ -59,8 +59,8 @@ public class SharedJavaInstallationRegistry {
     }
 
     @VisibleForTesting
-    static SharedJavaInstallationRegistry withLogger(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor) {
-        return new SharedJavaInstallationRegistry(suppliers, logger, executor, OperatingSystem.current());
+    static JavaInstallationRegistry withLogger(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor) {
+        return new JavaInstallationRegistry(suppliers, logger, executor, OperatingSystem.current());
     }
 
     private Set<InstallationLocation> collectInBuildOperation(List<InstallationSupplier> suppliers) {

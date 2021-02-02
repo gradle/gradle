@@ -311,7 +311,7 @@ class JavaToolchainQueryServiceTest extends Specification {
                 installations.collect { new InstallationLocation(new File("/path/${it}").absoluteFile, "test") } as Set
             }
         }
-        def registry = new SharedJavaInstallationRegistry([supplier], new TestBuildOperationExecutor(), OperatingSystem.current()) {
+        def registry = new JavaInstallationRegistry([supplier], new TestBuildOperationExecutor(), OperatingSystem.current()) {
             boolean installationExists(InstallationLocation installationLocation) {
                 return true
             }
