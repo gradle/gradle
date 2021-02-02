@@ -15,14 +15,13 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -32,46 +31,44 @@ import static org.hamcrest.CoreMatchers.containsString
  * These tests should be migrated to live with the rest of the coverage over time.
  */
 @FluidDependenciesResolveTest
-class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
+class ArtifactDependenciesIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    @Before
-    void setup() {
+    def setup() {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @Test
     void canHaveConfigurationHierarchy() {
-        File buildFile = testFile("projectWithConfigurationHierarchy.gradle");
-        usingBuildFile(buildFile).run();
+        expect:
+        File buildFile = file("projectWithConfigurationHierarchy.gradle")
+        usingBuildFile(buildFile).run()
     }
 
-    @Test
     @ToBeFixedForConfigurationCache
     void dependencyReportWithConflicts() {
-
-        File buildFile = testFile("projectWithConflicts.gradle");
-        usingBuildFile(buildFile).run();
-        usingBuildFile(buildFile).withDependencyList().run();
+        expect:
+        File buildFile = file("projectWithConflicts.gradle")
+        usingBuildFile(buildFile).run()
+        usingBuildFile(buildFile).withDependencyList().run()
     }
 
-    @Test
     void canHaveCycleInDependencyGraph() throws IOException {
-        File buildFile = testFile("projectWithCyclesInDependencyGraph.gradle");
-        usingBuildFile(buildFile).run();
+        expect:
+        File buildFile = file("projectWithCyclesInDependencyGraph.gradle")
+        usingBuildFile(buildFile).run()
     }
 
-    @Test
     void canUseDynamicVersions() throws IOException {
-        File buildFile = testFile("projectWithDynamicVersions.gradle");
-        usingBuildFile(buildFile).run();
+        expect:
+        File buildFile = file("projectWithDynamicVersions.gradle")
+        usingBuildFile(buildFile).run()
     }
 
-    @Test
     void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
-        testFile('settings.gradle') << 'include "a", "b"'
-        testFile('build.gradle') << """
+        expect:
+        file('settings.gradle') << 'include "a", "b"'
+        file('build.gradle') << """
 subprojects {
     configurations {
         compile
@@ -99,9 +96,9 @@ project(':b') {
         result.assertHasCause('Cannot resolve external dependency org.gradle.test:external1:1.0 because no repositories are defined.')
     }
 
-    @Test
     void resolutionFailsForMissingArtifact() {
-        testFile('build.gradle') << """
+        given:
+        file('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
 }
@@ -124,25 +121,29 @@ task listMissingClassifier { doLast { configurations.missingClassifier.each { } 
         inTestDirectory().withTasks('listJar').run()
 
         def result = inTestDirectory().withTasks('listMissingExt').runWithFailure()
+
         result.assertHasCause("""Could not find lib-1.0.zip (org.gradle.test:lib:1.0).
 Searched in the following locations:
     ${module.artifactFile(type: 'zip').toURL()}""")
 
+        when:
         result = inTestDirectory().withTasks('listMissingClassifier').runWithFailure()
+
+        then:
         result.assertHasCause("""Could not find lib-1.0-classifier1.jar (org.gradle.test:lib:1.0).
 Searched in the following locations:
     ${module.artifactFile(classifier: 'classifier1').toURL()}""")
     }
 
-    @Test
     @Issue("GRADLE-1342")
     void resolutionDoesNotUseCachedArtifactFromDifferentRepository() {
+        expect:
         def repo1 = maven('repo1')
         repo1.module('org.gradle.test', 'external1', '1.0').publish()
         def repo2 = maven('repo2')
 
-        testFile('settings.gradle') << 'include "a", "b"'
-        testFile('build.gradle') << """
+        file('settings.gradle') << 'include "a", "b"'
+        file('build.gradle') << """
 subprojects {
     configurations {
         compile
@@ -172,8 +173,8 @@ project(':b') {
         result.assertThatCause(containsString('Could not find org.gradle.test:external1:1.0.'))
     }
 
-    @Test
     void artifactFilesPreserveFixedOrder() {
+        expect:
         repo.module('org', 'leaf1').publish()
         repo.module('org', 'leaf2').publish()
         repo.module('org', 'leaf3').publish()
@@ -184,7 +185,7 @@ project(':b') {
 
         repo.module('org', 'top').dependsOnModules("middle1", "middle2").publish()
 
-        testFile('build.gradle') << """
+        file('build.gradle') << """
             repositories {
                 maven { url '${repo.uri}' }
             }
@@ -204,15 +205,15 @@ project(':b') {
         executer.withTasks("test").run()
     }
 
-    @Test
     void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
+        expect:
         def module = repo.module('org.gradle.test', 'lib', '1.0')
         module.artifact(type: 'zip')
         module.artifact(classifier: 'classifier')
         module.publish()
         repo.module('org.gradle.test', 'dist', '1.0').hasType('zip').publish()
 
-        testFile('build.gradle') << """
+        file('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
 }
@@ -253,16 +254,16 @@ task test {
         inTestDirectory().withTasks('test').run()
     }
 
-    @Test
     @Issue("GRADLE-1567")
     void resolutionDifferentiatesBetweenArtifactsThatDifferOnlyInClassifier() {
+        expect:
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'classifier1')
         module.artifact(classifier: 'classifier2')
         module.publish()
 
-        testFile('settings.gradle') << 'include "a", "b", "c"'
-        testFile('build.gradle') << """
+        file('settings.gradle') << 'include "a", "b", "c"'
+        file('build.gradle') << """
 subprojects {
     repositories {
         maven { url '${repo.uri}' }
@@ -299,16 +300,16 @@ project(':b') {
         inTestDirectory().withTasks('b:test').run()
     }
 
-    @Test
     @Issue("GRADLE-739")
     void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
+        expect:
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'baseClassifier')
         module.artifact(classifier: 'extendedClassifier')
         module.publish()
         repo.module('org.gradle.test', 'other', '1.0').publish()
 
-        testFile('build.gradle') << """
+        file('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
 }
@@ -354,9 +355,9 @@ task test {
         inTestDirectory().withTasks('test').run()
     }
 
-    @Test
     @Issue("GRADLE-739")
     void canUseClassifiersCombinedWithArtifactWithNonStandardPackaging() {
+        expect:
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(type: 'txt')
         module.artifact(classifier: 'baseClassifier', type: 'jar')
@@ -365,7 +366,7 @@ task test {
         module.publish()
         repo.module('org.gradle.test', 'other', '1.0').publish()
 
-        testFile('build.gradle') << """
+        file('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
 }
@@ -399,16 +400,16 @@ task test {
         inTestDirectory().withTasks('test').run()
     }
 
-    @Test
     @Issue("GRADLE-739")
     void configurationCanContainMultipleArtifactsThatOnlyDifferByType() {
+        expect:
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(type: 'zip')
         module.artifact(classifier: 'classifier')
         module.artifact(classifier: 'classifier', type: 'bin')
         module.publish()
 
-        testFile('build.gradle') << """
+        file('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
 }
@@ -439,8 +440,8 @@ task test {
         inTestDirectory().withTasks('test').run()
     }
 
-    @Test
     void nonTransitiveDependenciesAreNotRetrieved() {
+        expect:
         repo.module('org.gradle.test', 'one', '1.0').publish()
         repo.module('org.gradle.test', 'two', '1.0').publish()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
@@ -448,7 +449,7 @@ task test {
         module.artifact(classifier: 'classifier')
         module.publish()
 
-        testFile('build.gradle') << """
+        file('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
 }
@@ -484,14 +485,14 @@ task test {
         inTestDirectory().withTasks('test').run()
     }
 
-    @Test
     void "configuration transitive = false overrides dependency transitive flag"() {
+        expect:
         repo.module('org.gradle.test', 'one', '1.0').publish()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.dependsOn('org.gradle.test', 'one', '1.0')
         module.publish()
 
-        testFile('build.gradle') << """
+        file('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
 }
@@ -516,13 +517,13 @@ task test {
      * Originally, we were aliasing dependency descriptors that were identical. This caused alias errors when we subsequently modified one of these descriptors.
      */
 
-    @Test
     void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
+        expect:
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'withClassifier')
         module.publish()
 
-        testFile('build.gradle') << """
+        file('build.gradle') << """
 repositories {
     maven { url '${repo.uri}' }
 }
@@ -549,9 +550,9 @@ task test {
         inTestDirectory().withTasks('test').run()
     }
 
-    @Test
     void projectCanDependOnItself() {
-        TestFile buildFile = testFile("build.gradle");
+        expect:
+        TestFile buildFile = file("build.gradle")
         buildFile << '''
             configurations { compile; create('default') }
             dependencies { compile project(':') }
@@ -569,7 +570,15 @@ task test {
     }
 
     def getRepo() {
-        return maven(testFile('repo'))
+        return maven(file('repo'))
+    }
+
+    private GradleExecuter usingBuildFile(File file) {
+        return executer.usingBuildScript(file)
+    }
+
+    private GradleExecuter inTestDirectory() {
+        return inDirectory(testDirectory)
     }
 }
 
