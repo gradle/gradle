@@ -18,13 +18,11 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.util.VersionNumber
-import org.junit.experimental.categories.Category
 
 /**
  * See {@link org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor} for information on running these tests.
  */
 @MultiVersionTest
-@Category(ContextualMultiVersionTest.class)
 abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
     static def version
 

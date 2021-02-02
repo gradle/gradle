@@ -17,19 +17,16 @@
 package org.gradle.launcher.daemon.server.health.gc
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ContextualMultiVersionTest
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
-import org.junit.experimental.categories.Category
 
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE
 
-@Category(ContextualMultiVersionTest.class)
 @TargetCoverage({ garbageCollectors })
 @MultiVersionTest
 class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
