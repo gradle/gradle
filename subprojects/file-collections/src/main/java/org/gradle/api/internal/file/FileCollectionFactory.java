@@ -108,7 +108,7 @@ public interface FileCollectionFactory {
      *
      * <p>The collection ignores providers which are not present.
      */
-    FileCollectionInternal resolvingIfPresent(String displayName, Object sources);
+    FileCollectionInternal resolvingLeniently(String displayName, Object sources);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
@@ -126,7 +126,7 @@ public interface FileCollectionFactory {
      *
      * <p>The collection ignores providers which are not present.
      */
-    FileCollectionInternal resolvingIfPresent(Object sources);
+    FileCollectionInternal resolvingLeniently(Object sources);
 
     /**
      * Creates an empty {@link ConfigurableFileCollection} instance.

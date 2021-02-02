@@ -45,7 +45,7 @@ public class DeferredUtil {
      * Returns null when the provider is not present.
      */
     @Nullable
-    public static Object unpackIfPresent(@Nullable Object deferred) {
+    public static Object unpackOrNull(@Nullable Object deferred) {
         return unpack(ProviderResolutionStrategy.ALLOW_ABSENT, deferred);
     }
 

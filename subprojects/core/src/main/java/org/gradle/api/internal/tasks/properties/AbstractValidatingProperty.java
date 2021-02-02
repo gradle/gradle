@@ -36,7 +36,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
 
     @Override
     public void validate(TaskValidationContext context) {
-        Object unpacked = DeferredUtil.unpackIfPresent(value.call());
+        Object unpacked = DeferredUtil.unpackOrNull(value.call());
         if (unpacked == null) {
             if (!optional) {
                 context.visitPropertyProblem(ERROR, String.format("No value has been specified for property '%s'", propertyName));

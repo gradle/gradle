@@ -137,7 +137,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollectionInternal resolvingIfPresent(String displayName, Object sources) {
+    public FileCollectionInternal resolvingLeniently(String displayName, Object sources) {
         return resolving(displayName, ProviderResolutionStrategy.ALLOW_ABSENT, sources);
     }
 
@@ -154,7 +154,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollectionInternal resolvingIfPresent(Object sources) {
+    public FileCollectionInternal resolvingLeniently(Object sources) {
         return resolving(ProviderResolutionStrategy.ALLOW_ABSENT, sources);
     }
 
