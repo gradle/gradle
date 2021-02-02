@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
+package org.gradle.integtests.fixtures.compatibility;
 
-runner {
-    include {
-        annotation MultiVersionTestCategory
-    }
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Inherited
+public @interface MultiVersionTestCategory {
 }
-

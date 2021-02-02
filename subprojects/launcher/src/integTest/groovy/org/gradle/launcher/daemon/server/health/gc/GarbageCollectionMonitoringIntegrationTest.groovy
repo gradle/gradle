@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
+import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
@@ -29,6 +30,7 @@ import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WI
 
 @TargetCoverage({ garbageCollectors })
 @MultiVersionTest
+@MultiVersionTestCategory
 class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     static def version
     GarbageCollectorUnderTest garbageCollector
