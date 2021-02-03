@@ -158,6 +158,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
+    public boolean hasInjectedSettingsPlugins() {
+        return !buildDefinition.getInjectedPluginRequests().isEmpty();
+    }
+
+    @Override
     public SettingsInternal loadSettings() {
         return gradleLauncher.getLoadedSettings();
     }
