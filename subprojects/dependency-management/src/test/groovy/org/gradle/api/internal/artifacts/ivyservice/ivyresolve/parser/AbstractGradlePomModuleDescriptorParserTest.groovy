@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -48,7 +47,7 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     final FileResourceRepository fileRepository = TestFiles.fileRepository()
-    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser()), moduleIdentifierFactory, fileRepository, mavenMetadataFactory)
+    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser()), moduleIdentifierFactory, fileRepository, mavenMetadataFactory)
     final parseContext = Mock(DescriptorParseContext)
     TestFile pomFile
     MutableMavenModuleResolveMetadata metadata

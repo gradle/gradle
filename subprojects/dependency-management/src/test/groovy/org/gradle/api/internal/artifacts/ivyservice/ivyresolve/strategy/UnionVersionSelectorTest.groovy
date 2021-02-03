@@ -18,12 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.FeaturePreviews
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class UnionVersionSelectorTest extends Specification {
-    private final VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser())
+    private final VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser())
     private final VersionParser parser = new VersionParser()
     private final List<VersionSelector> members = []
     private final UnionVersionSelector union = new UnionVersionSelector(members)

@@ -208,7 +208,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private ModuleConflictHandler createModuleConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
         ConflictResolution conflictResolution = resolutionStrategy.getConflictResolution();
         ModuleConflictResolver<ComponentState> conflictResolver =
-            new ConflictResolverFactory(versionComparator, versionParser, featurePreviews).createConflictResolver(conflictResolution);
+            new ConflictResolverFactory(versionComparator, versionParser).createConflictResolver(conflictResolution);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
     }
 

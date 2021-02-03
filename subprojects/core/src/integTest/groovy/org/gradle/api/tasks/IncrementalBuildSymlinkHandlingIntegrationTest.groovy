@@ -133,7 +133,7 @@ task work {
         expect:
         fails("work")
         failure.assertHasDescription("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
-        failure.assertHasCause("File '$link' specified for property '\$1' does not exist.")
+        failureDescriptionContains("File '$link' specified for property '\$1' does not exist.")
     }
 
     def "can replace input file with symlink to file with same content"() {

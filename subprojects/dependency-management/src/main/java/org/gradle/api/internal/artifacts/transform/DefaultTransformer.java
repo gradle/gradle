@@ -356,7 +356,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                 DeprecationLogger
                     .deprecate("Injecting the input artifact of a transform as a File")
                     .withAdvice("Declare the input artifact as Provider<FileSystemLocation> instead.")
-                    .willBeRemovedInGradle7()
+                    .willBecomeAnErrorInGradle8()
                     .withUserManual("artifact_transforms", "sec:implementing-artifact-transforms")
                     .nagUser();
                 return inputFileProvider.get().getAsFile();

@@ -42,6 +42,11 @@ Some plugins will break with this new version of Gradle, for example because the
 The `getGeneratedSourceDirectories()` and `getGeneratedTestDirectories()` methods are removed from the `IdeaContentRoot` interface.
 Clients should replace these invocations with `getSourceDirectories()` and `getTestDirectories()` and use the `isGenerated()` method on the returned instances.
 
+=== Gradle Module Metadata is now reproducible by default
+
+The `buildId` field will not be populated by default to ensure that the produced metadata file remains unchanged when no build inputs are changed.
+Users can still opt in to have this unique identifier part of the produced metadata if they want to, see <<publishing_gradle_module_metadata.adoc#sub:gmm-reproducible,the documentation>>.
+
 === Potential breaking changes
 
 ==== Removal of `compile` and `runtime` configurations
@@ -74,6 +79,14 @@ You should migrate to the `maven-publish` or `ivy-publish` plugin instead.
 Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for publishing on Maven repositories.
 Please refer to the <<publishing_ivy.adoc#publishing_ivy, documentation of the Ivy Publish plugin>> for publishing on Ivy repositories.
 
+==== Changes in dependency version sorting
+
+In the context of dependency version sorting, a `-SNAPSHOT` version is now considered to be right before a final release but after any `-RC` version.
+More special version suffixes are also taken into account.
+This brings the Gradle algorithm closer to the Maven one for well-known version suffixes.
+
+Have a look at <<single_versions.adoc#single-version-declarations,the documentation>> for all the rules Gradle applies.
+
 ==== Removal of Play Framework plugins
 
 The deprecated Play plugins have been removed.
@@ -96,6 +109,14 @@ If you used these plugins despite their experimental nature, you may find suitab
 ==== Configuring the layout of an Ivy repository
 
 The `layout` method taking a configuration block has been removed and is replaced by link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:patternLayout(org.gradle.api.Action)[patternLayout].
+
+==== Executing undefined builds is now an error
+
+A Gradle build is defined by a `settings.gradle(.kts)` file in the current or parent directory.
+Without a settings file, a Gradle build is undefined.
+Executing Gradle in such a directory is now an error.
+
+Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
 
 ==== Removal of `ProjectLayout#configurableFiles`
 
@@ -174,6 +195,11 @@ The following deprecated constructors were removed:
 ==== Removal of arbitrary local cache configuration
 
 The local build cache configuration now needs to be done via the link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-.
+
+==== Removal of DefaultVersionSelectorScheme constructor
+
+This internal API was used in plugins, amongst other the https://github.com/nebula-plugins[Nebula plugins], and was deprecated in the Gradle 5.x timeline and is now removed.
+Latest plugins version should no longer reference it.
 
 === Deprecations
 

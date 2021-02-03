@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dependencies
 
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.InverseVersionSelector
@@ -26,7 +25,7 @@ import spock.lang.Unroll
 
 class DefaultResolvedVersionConstraintTest extends Specification {
     private final VersionParser versionParser = new VersionParser()
-    private final DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(new FeaturePreviews()), versionParser)
+    private final DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser)
 
     @Unroll
     def "computes the complement of strict version #strictVersion"() {

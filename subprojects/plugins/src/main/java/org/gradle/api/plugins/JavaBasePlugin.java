@@ -50,7 +50,6 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
@@ -102,13 +101,11 @@ public class JavaBasePlugin implements Plugin<Project> {
         ArtifactTypeDefinition.DIRECTORY_TYPE
     );
 
-    private final JavaInstallationRegistry javaInstallationRegistry;
     private final boolean javaClasspathPackaging;
     private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public JavaBasePlugin(JavaInstallationRegistry javaInstallationRegistry, JvmEcosystemUtilities jvmPluginServices) {
-        this.javaInstallationRegistry = javaInstallationRegistry;
+    public JavaBasePlugin(JvmEcosystemUtilities jvmPluginServices) {
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
     }
@@ -138,7 +135,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, sourceSets, toolchainSpec);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices, toolchainSpec);
-        project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
         project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaConvention;
     }

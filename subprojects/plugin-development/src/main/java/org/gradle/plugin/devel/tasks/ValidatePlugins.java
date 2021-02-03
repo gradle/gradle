@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -39,7 +38,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -81,9 +79,10 @@ public abstract class ValidatePlugins extends DefaultTask {
                         getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"),
                         toMessageList(problemMessages));
                 } else {
-                    throw new WorkValidationException(String.format("Plugin validation failed. See %s for more information on how to annotate task properties.",
-                        getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")),
-                        toExceptionList(problemMessages));
+                    throw WorkValidationException.forProblems(problemMessages)
+                        .withSummary(helper -> "Plugin validation failed with " + helper.size() + helper.pluralize(" problem"))
+                        .getWithExplanation(String.format("See %s for more information on how to annotate task properties.",
+                            getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")));
                 }
             } else {
                 getLogger().warn("Plugin validation finished with warnings:{}",
@@ -98,12 +97,6 @@ public abstract class ValidatePlugins extends DefaultTask {
             builder.append(String.format("%n  - %s", problemMessage));
         }
         return builder;
-    }
-
-    private static List<InvalidUserDataException> toExceptionList(List<String> problemMessages) {
-        return problemMessages.stream()
-            .map(InvalidUserDataException::new)
-            .collect(Collectors.toList());
     }
 
     /**

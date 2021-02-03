@@ -25,12 +25,8 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
-
-import org.gradle.kotlin.dsl.support.normaliseLineSeparators
-
 import java.io.File
 
 
@@ -97,7 +93,7 @@ fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
             }
         }
 
-        """.normaliseLineSeparators().replaceIndent().trim() + "\n"
+        """.trimIndent().trim() + "\n"
     )
 }
 

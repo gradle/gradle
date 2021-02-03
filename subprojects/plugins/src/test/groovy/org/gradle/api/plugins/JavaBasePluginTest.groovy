@@ -34,7 +34,7 @@ import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.jvm.Jvm
-import org.gradle.jvm.toolchain.JavaInstallationRegistry
+
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -63,7 +63,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.convention.plugins.java instanceof JavaPluginConvention
         project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
         project.extensions.java instanceof JavaPluginExtension
-        project.extensions.javaInstalls instanceof JavaInstallationRegistry
     }
 
     def "sourceSets extension is exposed as SourceSetContainer"() {

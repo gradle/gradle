@@ -27,12 +27,13 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     def undefinedBuildDirectory = Files.createTempDirectory("gradle").toFile()
 
     def setup() {
-        executer.inDirectory(testDirectory)
         assertNoDefinedBuild(testDirectory)
+        executer.inDirectory(testDirectory)
         executer.ignoreMissingSettingsFile()
     }
 
     private static void assertNoDefinedBuild(TestFile testDirectory) {
+        testDirectory.file(".gradle").assertDoesNotExist()
         def currentDirectory = testDirectory
         for (; ;) {
             currentDirectory.file(settingsFileName).assertDoesNotExist()
@@ -45,12 +46,15 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "shows deprecation warning when executing #task task in undefined build"() {
-        expect:
-        executer.expectDocumentedDeprecationWarning("Executing Gradle tasks as part of an undefined build has been deprecated. This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#executing_gradle_without_a_settings_file_has_been_deprecated")
-        succeeds(task) // should fail for all tasks in Gradle 7.0
-        // In Gradle 7.0, we should test the .gradle folder is not created
+    def "fails when attempting to execute #task task in undefined build"() {
+        when:
+        fails(task)
+
+        then:
+        file(".gradle").assertDoesNotExist()
+        failure.assertHasDescription "Executing Gradle tasks as part of an undefined build is not supported. " +
+            "Make sure that you are executing Gradle from a folder within your Gradle project. " +
+            "Your project should have a 'settings.gradle(.kts)' file in the root folder."
 
         where:
         task << [ProjectInternal.HELP_TASK, ProjectInternal.TASKS_TASK]

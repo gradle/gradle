@@ -24,7 +24,6 @@ import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.testing.TestType
 import gradlebuild.testing.services.BuildBucketProvider
-
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -35,9 +34,6 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.testing.Test
-import org.gradle.api.tasks.testing.junit.JUnitOptions
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
@@ -182,33 +178,6 @@ fun Project.configureIde(testType: TestType) {
                 testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
             }
         }
-    }
-}
-
-
-fun Test.getIncludeCategories(): MutableSet<String> {
-    return if (options is JUnitOptions) {
-        (options as JUnitOptions).includeCategories
-    } else {
-        (options as JUnitPlatformOptions).includeTags
-    }
-}
-
-
-fun Test.includeCategories(vararg categories: String) {
-    if (options is JUnitOptions) {
-        (options as JUnitOptions).includeCategories(*categories)
-    } else {
-        (options as JUnitPlatformOptions).includeTags(*categories)
-    }
-}
-
-
-fun Test.excludeCategories(vararg categories: String) {
-    if (options is JUnitOptions) {
-        (options as JUnitOptions).excludeCategories(*categories)
-    } else {
-        (options as JUnitPlatformOptions).excludeTags(*categories)
     }
 }
 

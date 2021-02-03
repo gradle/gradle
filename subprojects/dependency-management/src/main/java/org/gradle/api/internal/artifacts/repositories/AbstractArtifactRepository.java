@@ -117,7 +117,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
     @Override
     public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return new DefaultRepositoryContentDescriptor(this::getDisplayName, featurePreviews);
+        return new DefaultRepositoryContentDescriptor(this::getDisplayName);
     }
 
     @Override

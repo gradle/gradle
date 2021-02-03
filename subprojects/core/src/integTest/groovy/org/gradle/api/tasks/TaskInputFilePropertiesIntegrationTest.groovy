@@ -78,7 +78,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failure.assertHasCause("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
+        failureDescriptionContains("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
 
         where:
         method | targetType
@@ -112,7 +112,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "customTask"
         failure.assertHasDescription("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
-        failure.assertHasCause("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
+        failureDescriptionContains("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
 
         where:
         annotation     | targetType
@@ -196,6 +196,6 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails "foo"
 
         then:
-        failureCauseContains("No value has been specified for property 'bar'.")
+        failureDescriptionContains("No value has been specified for property 'bar'.")
     }
 }

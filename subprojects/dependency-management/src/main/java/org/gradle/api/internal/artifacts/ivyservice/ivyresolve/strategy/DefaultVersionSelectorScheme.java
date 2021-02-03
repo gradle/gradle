@@ -16,32 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.api.internal.FeaturePreviews;
-
 public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
-    private final FeaturePreviews featurePreviews;
-    private boolean smartExcludeOnUpperBound;
-
-    /**
-     * This constructor is here to maintain backwards compatibility with the nebula plugins
-     * and should be removed as soon as possible.
-     *
-     * See https://github.com/nebula-plugins/nebula-gradle-interop/issues/5
-     */
-    @Deprecated
-    public DefaultVersionSelectorScheme(VersionComparator versionComparator) {
-        this(versionComparator, new VersionParser(), null);
-    }
 
     public DefaultVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
-        this(versionComparator, versionParser, null);
-    }
-    public DefaultVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser, FeaturePreviews featurePreviews) {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
-        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -62,7 +43,7 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     }
 
     private VersionSelector maybeCreateRangeSelector(String selectorString) {
-        VersionRangeSelector rangeSelector = new VersionRangeSelector(selectorString, versionComparator.asVersionComparator(), versionParser, smartExcludeOnUpperBound);
+        VersionRangeSelector rangeSelector = new VersionRangeSelector(selectorString, versionComparator.asVersionComparator(), versionParser);
         if (isSingleVersionRange(rangeSelector)) {
             // it's a single version range, like [1.0] or [1.0, 1.0]
             return new ExactVersionSelector(rangeSelector.getUpperBound());
@@ -87,9 +68,4 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
         return new InverseVersionSelector(selector);
     }
 
-    public void configure() {
-        if (featurePreviews != null && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_ORDERING_V2)) {
-            smartExcludeOnUpperBound = true;
-        }
-    }
 }

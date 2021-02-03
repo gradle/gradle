@@ -367,14 +367,14 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.language.java.artifact.JavadocArtifact
 - IDE
     - Eclipse plugin
-      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublication()
-      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublication(FileReference)
-      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationSourcePath()
-      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationSourcePath(FileReference)
-      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationJavadocPath()
-      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationJavadocPath(FileReference)
-      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getBuildDependencies()
-      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.buildDependencies(Object...)
+        - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublication()
+        - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublication(FileReference)
+        - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationSourcePath()
+        - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationSourcePath(FileReference)
+        - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationJavadocPath()
+        - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationJavadocPath(FileReference)
+        - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getBuildDependencies()
+        - org.gradle.plugins.ide.eclipse.model.ProjectDependency.buildDependencies(Object...)
 - Tooling API
     - Eclipse models
         - org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary
@@ -390,13 +390,14 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.Destination
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
-    - Miscellaneous
-        - org.gradle.tooling.events.OperationCompletionListener
-        - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
     - Debugging
         - org.gradle.tooling.TestLauncher.withTaskAndTestClasses(String, Iterable)
         - org.gradle.tooling.TestLauncher.withTaskAndTestMethods(String, String, Iterable)
         - org.gradle.tooling.TestLauncher.debugTestsOn(int)
+    - Miscellaneous
+        - org.gradle.tooling.events.OperationCompletionListener
+        - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
+        - org.gradle.tooling.ProjectConnection.notifyDaemonsAboutChangedPaths
 - Java Ecosystem
     - Antlr plugin
         - org.gradle.api.plugins.antlr.AntlrTask.getStableSources

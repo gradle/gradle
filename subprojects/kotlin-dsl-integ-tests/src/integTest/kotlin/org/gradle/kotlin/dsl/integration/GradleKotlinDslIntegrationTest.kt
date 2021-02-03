@@ -576,7 +576,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             buildFailureOutput().normaliseLineSeparators(),
-            containsString(
+            containsMultiLineString(
                 """
                 FAILURE: Build failed with an exception.
 
@@ -590,7 +590,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                           ^ Unresolved reference: foo
 
                 1 error
-                """.replaceIndent()
+                """
             )
         )
     }
@@ -602,7 +602,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             buildFailureOutput().normaliseLineSeparators(),
-            containsString(
+            containsMultiLineString(
                 """
                 * What went wrong:
                 Script compilation errors:
@@ -615,7 +615,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                               public val PluginDependenciesSpec.publishing: PluginDependencySpec defined in org.gradle.kotlin.dsl
 
                 2 errors
-                """.replaceIndent()
+                """
             )
         )
     }
@@ -627,7 +627,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         assertThat(
             buildFailureOutput().normaliseLineSeparators(),
             allOf(
-                containsString(
+                containsMultiLineString(
                     """
                     FAILURE: Build failed with an exception.
 
@@ -637,7 +637,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     * What went wrong:
                     Script compilation errors:
 
-                    """.replaceIndent()
+                    """
                 ),
 
                 containsString(

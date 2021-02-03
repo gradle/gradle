@@ -203,7 +203,7 @@ You now have the project setup to build a ${language.raw} ${componentType.raw} w
 
 == Review the project files
 
-The `settings.gradle(.kts)` file has two active line:
+The `settings.gradle(.kts)` file has two interesting lines:
 
 ====
 include::sample[dir="groovy",files="settings.gradle[]"]

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -47,7 +46,7 @@ import spock.lang.Unroll
 
 class DefaultVersionedComponentChooserTest extends Specification {
     def versionParser = new VersionParser()
-    def versionComparator = new DefaultVersionComparator(new FeaturePreviews())
+    def versionComparator = new DefaultVersionComparator()
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, versionParser)
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
     def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())

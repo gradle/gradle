@@ -884,6 +884,33 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
     }
 
+    def "snapshot wins over rc"() {
+        given:
+        def projectA = publishModule("group", "projectA", "1.0-SNAPSHOT")
+        publishModule("group", "projectA", "1.0-RC1")
+
+        buildFile << """
+dependencies {
+    compile "group:projectA:1.0-SNAPSHOT"
+    compile "group:projectA:1.0-RC1"
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        expectModuleServed(projectA)
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-1.0-SNAPSHOT.jar")
+    }
+
     def "applies conflict resolution when unique snapshot is referenced by timestamp"() {
         given:
         def projectA = publishModule("group", "projectA", "1.0-SNAPSHOT")
@@ -901,7 +928,11 @@ task retrieve(type: Sync) {
 """
 
         when:
-        expectModuleServed(projectA)
+        projectA.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            projectA.moduleMetadata.expectGet()
+        }
+        projectA.artifact.expectGet()
 
         and:
         run 'retrieve'

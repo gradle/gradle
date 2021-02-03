@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics.internal.insight
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
@@ -36,7 +35,7 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 
 class DependencyResultSorterSpec extends Specification {
     def versionParser = new VersionParser()
-    def versionComparator = new DefaultVersionComparator(new FeaturePreviews())
+    def versionComparator = new DefaultVersionComparator()
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, versionParser)
 
     static VersionConstraint v(String version) {

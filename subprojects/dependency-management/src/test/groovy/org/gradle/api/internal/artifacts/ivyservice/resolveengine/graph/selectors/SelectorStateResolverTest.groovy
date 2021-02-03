@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -70,9 +69,8 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCEN
 class SelectorStateResolverTest extends Specification {
     private final TestComponentResolutionState root = new TestComponentResolutionState(DefaultModuleVersionIdentifier.newId("other", "root", "1"))
     private final componentIdResolver = new TestDependencyToComponentIdResolver()
-    private final FeaturePreviews featurePreviews = new FeaturePreviews()
-    private final DefaultVersionComparator versionComparator = new DefaultVersionComparator(featurePreviews)
-    private final conflictResolver = new ConflictResolverFactory(versionComparator, new VersionParser(), featurePreviews).createConflictResolver(ConflictResolution.latest)
+    private final DefaultVersionComparator versionComparator = new DefaultVersionComparator()
+    private final conflictResolver = new ConflictResolverFactory(versionComparator, new VersionParser()).createConflictResolver(ConflictResolution.latest)
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
     private final ResolveOptimizations resolveOptimizations = new ResolveOptimizations()

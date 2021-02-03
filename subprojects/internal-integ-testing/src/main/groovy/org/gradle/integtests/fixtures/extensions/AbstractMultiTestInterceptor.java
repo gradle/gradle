@@ -22,19 +22,21 @@ import org.spockframework.mock.runtime.MockController;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInvocation;
+import org.spockframework.runtime.extension.MethodInvocation;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.IterationInfo;
 import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * A base class for those test runners which execute a test multiple times.
+ * A base class for those test interceptors which execute a test multiple times.
  */
 public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterceptor {
     protected final Class<?> target;
@@ -69,39 +71,9 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         }
 
         if (feature.isParameterized()) {
-            feature.getIterationInterceptors().add(0, new MultiVersionIterationInterceptor() {
-                @Override
-                public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
-                    interceptFeatureExecution(invocation);
-                }
-
-                @Override
-                void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
-                    currentExecution.assertCanExecute();
-                    currentExecution.before(invocation);
-                    // TODO: there is still some clash between Spock's JUnit rule interceptor and our cleanup interceptor
-                    // that causes @Rule fields to be initialized with before() and torn down with after() twice.
-                    // A particularly nasty side effect of this was that the HttpServerFixture allocates the ports twice,
-                    // but releases them only once. This is worked-around on the HttpServerFixture for now to not start the
-                    // server if it is already started. To sanity-check this, run ForcingPlatformAlignmentTest from dependency-management
-                    // - it will cause the port exhaustion.
-                    Iterator<IMethodInterceptor> iterator = invocation.getMethod().getInterceptors().iterator();
-                    iterator.next(); // This interceptor should be the first - skip it
-                    if (iterator.hasNext()) {
-                        iterator.next().intercept(invocation);
-                    } else {
-                        invocation.proceed();
-                    }
-                    currentExecution.after();
-                }
-            });
+            feature.getIterationInterceptors().add(0, new ParameterizedFeatureMultiVersionInterceptor());
         } else {
-            IMethodInterceptor interceptor = new MultiVersionIterationInterceptor() {
-                @Override
-                void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
-                    invocation.proceed();
-                }
-            };
+            IMethodInterceptor interceptor = new NonParameterizedFeatureMultiVersionInterceptor();
             feature.addInterceptor(interceptor);
             feature.addIterationInterceptor(interceptor);
         }
@@ -111,53 +83,6 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     public void interceptInitializerMethod(IMethodInvocation invocation) throws Throwable {
         this.initInvocation = invocation;
         initInvocation.proceed();
-    }
-
-    abstract class MultiVersionIterationInterceptor extends AbstractMethodInterceptor {
-        private Execution currentExecution;
-
-        @Override
-        public void interceptFeatureExecution(IMethodInvocation invocation) throws Throwable {
-            IterationExceptionInterceptor iterationExceptionInterceptor = new IterationExceptionInterceptor();
-            invocation.getFeature().getFeatureMethod().addInterceptor(iterationExceptionInterceptor);
-
-            TestDetails testDetails = new TestDetails(invocation.getFeature());
-
-            for (Execution execution : executions) {
-                if (!execution.isTestEnabled(testDetails)) {
-                    continue;
-                }
-                // Spock 2 does not treat a test repeatedly invoked from an interceptor as a new test iteration
-                // Until we can solve this in a better way, the printout below indicates the start of an iteration with a different configuration
-                if (executions.size() > 1) {
-                    System.out.println("\nRUNNING ITERATION [" + execution.getDisplayName() + "]\n");
-                }
-                if (AbstractIntegrationSpec.class.isAssignableFrom(target)) {
-                    ((AbstractIntegrationSpec) invocation.getInstance()).resetExecuter();
-                }
-                if (initInvocation != null) { // null happens when a test class contains only features with 'where' clause
-                    initInvocation.proceed();
-                }
-                currentExecution = execution;
-                interceptIteration(invocation, currentExecution);
-                // When the current iteration fails, we abort the following executions, which is far from ideal
-                // This, however, makes it evident which iteration failed in this loop
-                if (!runAllExecutions || iterationExceptionInterceptor.hasThrown) {
-                    break;
-                }
-                ((MockController) ((SpecInternals) invocation.getInstance()).getSpecificationContext().getMockController()).enterScope();
-            }
-        }
-
-        @Override
-        public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
-            currentExecution.assertCanExecute();
-            currentExecution.before(invocation);
-            invocation.proceed();
-            currentExecution.after();
-        }
-
-        abstract void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable;
     }
 
     protected abstract void createExecutions();
@@ -256,6 +181,87 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
                 hasThrown = true;
                 throw t;
             }
+        }
+    }
+
+    private abstract class MultiVersionIterationInterceptor extends AbstractMethodInterceptor {
+        private Execution currentExecution;
+
+        @Override
+        public void interceptFeatureExecution(IMethodInvocation invocation) throws Throwable {
+            IterationExceptionInterceptor iterationExceptionInterceptor = new IterationExceptionInterceptor();
+            invocation.getFeature().getFeatureMethod().addInterceptor(iterationExceptionInterceptor);
+
+            TestDetails testDetails = new TestDetails(invocation.getFeature());
+
+            for (Execution execution : executions) {
+                if (!execution.isTestEnabled(testDetails)) {
+                    continue;
+                }
+                // Spock 2 does not treat a test repeatedly invoked from an interceptor as a new test iteration
+                // Until we can solve this in a better way, the printout below indicates the start of an iteration with a different configuration
+                if (executions.size() > 1) {
+                    System.out.println("\nRUNNING ITERATION [" + execution.getDisplayName() + "]\n");
+                }
+                if (AbstractIntegrationSpec.class.isAssignableFrom(target)) {
+                    ((AbstractIntegrationSpec) invocation.getInstance()).resetExecuter();
+                }
+                if (initInvocation != null) { // null happens when a test class contains only features with 'where' clause
+                    initInvocation.proceed();
+                }
+                currentExecution = execution;
+                interceptIteration(invocation, currentExecution);
+                // When the current iteration fails, we abort the following executions, which is far from ideal
+                // This, however, makes it evident which iteration failed in this loop
+                if (!runAllExecutions || iterationExceptionInterceptor.hasThrown) {
+                    break;
+                }
+                ((MockController) ((SpecInternals) invocation.getInstance()).getSpecificationContext().getMockController()).enterScope();
+            }
+        }
+
+        @Override
+        public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
+            currentExecution.assertCanExecute();
+            currentExecution.before(invocation);
+            invocation.proceed();
+            currentExecution.after();
+        }
+
+        abstract void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable;
+    }
+
+    private class NonParameterizedFeatureMultiVersionInterceptor extends MultiVersionIterationInterceptor {
+        @Override
+        void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
+            invocation.proceed();
+        }
+    }
+
+    private class ParameterizedFeatureMultiVersionInterceptor extends MultiVersionIterationInterceptor {
+        @Override
+        public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
+            interceptFeatureExecution(invocation);
+        }
+
+        @Override
+        void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
+            currentExecution.assertCanExecute();
+            currentExecution.before(invocation);
+            resetInterceptors(invocation);
+            invocation.proceed();
+            currentExecution.after();
+        }
+
+        private void resetInterceptors(IMethodInvocation invocation) throws NoSuchFieldException, IllegalAccessException {
+            Iterator<IMethodInterceptor> iterator = invocation.getMethod().getInterceptors().iterator();
+            IMethodInterceptor thisInterceptor = iterator.next(); // This interceptor should be the first - skip it
+            assert this.getClass().isInstance(thisInterceptor);
+            assert invocation instanceof MethodInvocation;
+
+            Field interceptorsField = MethodInvocation.class.getDeclaredField("interceptors");
+            interceptorsField.setAccessible(true);
+            interceptorsField.set(invocation, iterator);
         }
     }
 

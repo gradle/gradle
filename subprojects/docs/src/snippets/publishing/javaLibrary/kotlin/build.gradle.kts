@@ -42,16 +42,16 @@ tasks.withType<GenerateMavenPom>().configureEach {
 }
 // end::configure-generate-task[]
 
-// tag::disable-build-id[]
+// tag::enable-build-id[]
 publishing {
     publications {
         create<MavenPublication>("main") {
             from(components["java"])
-            withoutBuildIdentifier()
+            withBuildIdentifier()
         }
     }
 }
-// end::disable-build-id[]
+// end::enable-build-id[]
 
 // tag::disable_validation[]
 tasks.withType<GenerateModuleMetadata> {

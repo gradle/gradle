@@ -16,23 +16,21 @@
 
 package org.gradle.nativeplatform.fixtures
 
-
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ContextualMultiVersionTest
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Time
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.experimental.categories.Category
 
 /**
  * Runs a test separately for each installed tool chain.
  */
 @NativeToolchainTest
-@Category(ContextualMultiVersionTest.class)
+@MultiVersionTestCategory
 abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     static AvailableToolChains.InstalledToolChain toolChain
     File initScript

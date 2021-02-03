@@ -50,6 +50,6 @@ public class DefaultHttpHeaderCredentials implements HttpHeaderCredentials {
 
     @Override
     public String toString() {
-        return String.format("Credentials [header: %s: %s]", name, value);
+        return String.format("Credentials [header: %s]", name);
     }
 }

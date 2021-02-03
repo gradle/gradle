@@ -670,7 +670,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         fails('jar')
 
         then:
-        failureCauseContains('No value has been specified for property \'archiveFile\'.')
+        failureDescriptionContains('No value has been specified for property \'archiveFile\'.')
     }
 
     def "can use Provider values in manifest attribute"() {

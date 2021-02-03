@@ -106,19 +106,19 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec {
             class CustomTask extends DefaultTask {
                 @InputFile File srcFile
                 @OutputFile File destFile
-                
+
                 @TaskAction
                 void action() {}
             }
-            
+
             task custom(type: CustomTask)
         '''
         expect:
         fails "custom"
 
-        failure.assertHasDescription("Some problems were found with the configuration of task ':custom' (type 'CustomTask').")
-        failure.assertHasCause("No value has been specified for property 'srcFile'.")
-        failure.assertHasCause("No value has been specified for property 'destFile'.")
+        failureDescriptionContains("Some problems were found with the configuration of task ':custom' (type 'CustomTask').")
+        failureDescriptionContains("No value has been specified for property 'srcFile'.")
+        failureDescriptionContains("No value has been specified for property 'destFile'.")
     }
 
     def reportsUnknownTask() {

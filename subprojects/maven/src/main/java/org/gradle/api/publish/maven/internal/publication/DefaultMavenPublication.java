@@ -163,7 +163,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
     private boolean silenceAllPublicationWarnings;
-    private boolean withBuildIdentifier = true;
+    private boolean withBuildIdentifier = false;
 
     @Inject
     public DefaultMavenPublication(

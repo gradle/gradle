@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal.insight
 
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
@@ -43,7 +42,7 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 
 class DependencyInsightReporterSpec extends Specification {
     def versionParser = new VersionParser()
-    def versionComparator = new DefaultVersionComparator(new FeaturePreviews())
+    def versionComparator = new DefaultVersionComparator()
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, versionParser)
 
     @Subject

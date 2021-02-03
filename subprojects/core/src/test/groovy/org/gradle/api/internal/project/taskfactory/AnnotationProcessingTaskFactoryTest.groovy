@@ -35,6 +35,7 @@ import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.WorkValidationException
+import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
@@ -922,8 +923,12 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     private static void validateException(TaskInternal task, WorkValidationException exception, String... causes) {
         def expectedMessage = causes.length > 1 ? "Some problems were found with the configuration of $task" : "A problem was found with the configuration of $task"
-        assert exception.message.contains(expectedMessage)
-        assert exception.causes.collect({ it.message }) as Set == causes as Set
+        WorkValidationExceptionChecker.check(exception) {
+            messageContains(expectedMessage)
+            causes.each { cause ->
+                hasProblem(cause)
+            }
+        }
     }
 
     private Map<String, Object> inputProperties(TaskInternal task) {

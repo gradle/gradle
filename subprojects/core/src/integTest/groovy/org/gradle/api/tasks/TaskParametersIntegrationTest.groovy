@@ -564,7 +564,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failure.assertHasCause("No value has been specified for property 'input'.")
+        failureDescriptionContains("No value has been specified for property 'input'.")
     }
 
     def "optional null input properties registered via TaskInputs.property are allowed"() {
@@ -589,7 +589,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failure.assertHasCause("No value has been specified for property 'input'.")
+        failureDescriptionContains("No value has been specified for property 'input'.")
 
         where:
         method << ["file", "files", "dir"]
@@ -621,7 +621,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failure.assertHasCause("No value has been specified for property 'output'.")
+        failureDescriptionContains("No value has been specified for property 'output'.")
 
         where:
         method << ["file", "files", "dir", "dirs"]
@@ -654,7 +654,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failure.assertHasCause("$type '${file("missing")}' specified for property 'input' does not exist.")
+        failureDescriptionContains("$type '${file("missing")}' specified for property 'input' does not exist.")
 
         where:
         method | type
@@ -676,7 +676,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failure.assertHasCause("${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type.")
+        failureDescriptionContains("${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type.")
 
         where:
         method | path             | type
@@ -697,7 +697,7 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failure.assertHasCause(message.replace("<PATH>", file(path).absolutePath))
+        failureDescriptionContains(message.replace("<PATH>", file(path).absolutePath))
 
         where:
         method  | path              | message

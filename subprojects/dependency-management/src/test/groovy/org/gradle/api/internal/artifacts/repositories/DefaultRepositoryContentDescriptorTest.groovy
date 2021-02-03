@@ -212,7 +212,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
     def "can exclude or include whole groups using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
-        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
+        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
 
         given:
         descriptor."exclude$method"(expr)
@@ -232,7 +232,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
 
         when:
-        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
+        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
         descriptor."include$method"(expr)
         action = descriptor.toContentFilter()
         details.moduleId >> fooMod
@@ -261,7 +261,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
     def "can exclude or include whole modules using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
-        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
+        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
 
         given:
         descriptor."exclude$method"(group, expr)
@@ -281,7 +281,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
 
         when:
-        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
+        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
         descriptor."include$method"(group, expr)
         action = descriptor.toContentFilter()
         details.moduleId >> fooMod
@@ -310,7 +310,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
     def "can exclude or include specific versions using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
-        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
+        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
 
         given:
         descriptor."exclude$method"(group, module, expr)
@@ -330,7 +330,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
 
         when:
-        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
+        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"})
         descriptor."include$method"(group, module, expr)
         action = descriptor.toContentFilter()
         details.moduleId >> fooMod
@@ -365,7 +365,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
     def "cannot update repository content filter after resolution happens"() {
         given:
-        def descriptor = new DefaultRepositoryContentDescriptor({ "repoName" }, new FeaturePreviews())
+        def descriptor = new DefaultRepositoryContentDescriptor({ "repoName" })
         descriptor.toContentFilter()
 
         when:

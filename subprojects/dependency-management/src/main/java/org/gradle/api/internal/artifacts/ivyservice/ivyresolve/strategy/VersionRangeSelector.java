@@ -107,15 +107,10 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
     private final boolean lowerInclusive;
     private final Version lowerBoundVersion;
     private final Comparator<Version> comparator;
-    private final boolean smartExcludeUpperBound;
 
     public VersionRangeSelector(String selector, Comparator<Version> comparator, VersionParser versionParser) {
-        this(selector, comparator, versionParser, false);
-    }
-    public VersionRangeSelector(String selector, Comparator<Version> comparator, VersionParser versionParser, boolean smartExcludeUpperBound) {
         super(versionParser, selector);
         this.comparator = comparator;
-        this.smartExcludeUpperBound = smartExcludeUpperBound;
 
         Matcher matcher;
         matcher = FINITE_RANGE.matcher(selector);
@@ -188,11 +183,7 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         } else {
             // For non inclusive upper bound, we also check that the prefix does not match
             if (result <= -1) {
-                if (smartExcludeUpperBound) {
-                    return !version1.toString().startsWith(version2.toString());
-                } else {
-                    return true;
-                }
+                return !version1.toString().startsWith(version2.toString());
             } else {
                 return false;
             }

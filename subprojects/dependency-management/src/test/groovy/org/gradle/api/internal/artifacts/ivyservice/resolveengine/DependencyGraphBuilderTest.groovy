@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -118,7 +117,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def moduleConflictHandler = new DefaultConflictHandler(conflictResolver, moduleReplacements)
     def capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler()
-    def versionComparator = new DefaultVersionComparator(new FeaturePreviews())
+    def versionComparator = new DefaultVersionComparator()
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
 
     DependencyGraphBuilder builder

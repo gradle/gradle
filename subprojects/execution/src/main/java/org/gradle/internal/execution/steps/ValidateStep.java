@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -71,19 +70,16 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
 
         if (!errors.isEmpty()) {
             ImmutableSortedSet<String> uniqueSortedErrors = ImmutableSortedSet.copyOf(errors);
-            throw new WorkValidationException(
-                String.format("%s found with the configuration of %s (%s).",
-                    uniqueSortedErrors.size() == 1
-                        ? "A problem was"
-                        : "Some problems were",
-                    work.getDisplayName(),
-                    describeTypesChecked(validationContext.getValidatedTypes())
-                ),
-                uniqueSortedErrors.stream()
-                    .limit(5)
-                    .map(InvalidUserDataException::new)
-                    .collect(Collectors.toList())
-            );
+            throw WorkValidationException.forProblems(uniqueSortedErrors)
+                .limitTo(5)
+                .withSummary(helper ->
+                    String.format("%s found with the configuration of %s (%s).",
+                        helper.size() == 1
+                            ? "A problem was"
+                            : "Some problems were",
+                        work.getDisplayName(),
+                        describeTypesChecked(validationContext.getValidatedTypes()))
+                ).get();
         }
 
         if (!warnings.isEmpty()) {

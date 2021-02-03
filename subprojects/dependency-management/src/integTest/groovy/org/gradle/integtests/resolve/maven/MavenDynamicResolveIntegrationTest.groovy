@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
@@ -464,8 +463,6 @@ Searched in the following locations:
         repo.module('group', 'projectA', '1.5-RC1').publish().allowAll()
 
         buildFile << createBuildFile(repo.uri)
-
-        FeaturePreviewsFixture.enableUpdatedVersionSorting(settingsFile)
 
         when:
         succeeds 'retrieve'

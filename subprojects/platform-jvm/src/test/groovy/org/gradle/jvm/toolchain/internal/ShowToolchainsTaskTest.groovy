@@ -36,7 +36,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         detector = Mock(JvmMetadataDetector)
         output = new TestStyledTextOutput()
 
-        task.installationRegistry = Mock(SharedJavaInstallationRegistry)
+        task.installationRegistry = Mock(JavaInstallationRegistry)
         task.metadataDetector = detector
         task.providerFactory = createProviderFactory(true, true)
         task.outputFactory = Mock(StyledTextOutputFactory) {
@@ -210,7 +210,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         def providerFactory
 
         @Override
-        protected SharedJavaInstallationRegistry getInstallationRegistry() {
+        protected JavaInstallationRegistry getInstallationRegistry() {
             installationRegistry
         }
 
