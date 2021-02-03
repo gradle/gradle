@@ -119,6 +119,38 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change",
+    "groups" : [ {
+      "testProject" : "santaTrackerAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change with configuration caching",
+    "groups" : [ {
+      "testProject" : "santaTrackerAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change",
+    "groups" : [ {
+      "testProject" : "santaTrackerAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change with configuration caching",
+    "groups" : [ {
+      "testProject" : "santaTrackerAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.faster abi change (build comparison)",
     "groups" : [ {
       "testProject" : "santaTrackerAndroidBuild",
@@ -153,14 +185,6 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.abi change",
-    "groups" : [ {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean assembleDebug with clean transforms cache",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
@@ -179,14 +203,6 @@
       "testProject" : "largeAndroidBuild",
       "coverage" : {
         "per_day" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.non-abi change",
-    "groups" : [ {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
       }
     } ]
   }, {
@@ -381,58 +397,6 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for abi change with file system watching",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for abi change with file system watching and configuration caching",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for non-abi change with file system watching",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for non-abi change with file system watching and configuration caching",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest.eclipse",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
@@ -611,29 +575,6 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaABIChangePerformanceTest.assemble for abi change",
-    "groups" : [ {
-      "testProject" : "largeGroovyMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicGroovyProject",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.regression.java.JavaCleanAssemblePerformanceTest.clean assemble",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
@@ -784,7 +725,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaNonABIChangePerformanceTest.assemble for non-abi change",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.assemble for abi change",
     "groups" : [ {
       "testProject" : "largeGroovyMultiProject",
       "coverage" : {
@@ -793,7 +734,38 @@
     }, {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    }, {
+      "testProject" : "largeMonolithicGroovyProject",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeMonolithicJavaProject",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.assemble for abi change with configuration caching",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.assemble for non-abi change",
+    "groups" : [ {
+      "testProject" : "largeGroovyMultiProject",
+      "coverage" : {
         "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
       }
     }, {
       "testProject" : "largeMonolithicGroovyProject",
@@ -802,6 +774,74 @@
       }
     }, {
       "testProject" : "largeMonolithicJavaProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.assemble for non-abi change with configuration caching",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.test for non-abi change",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeMonolithicJavaProject",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "mediumJavaMultiProjectWithTestNG",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.up-to-date assemble (parallel false)",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeMonolithicJavaProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.up-to-date assemble (parallel true)",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.up-to-date assemble with local build cache enabled (parallel false)",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeMonolithicJavaProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.up-to-date assemble with local build cache enabled (parallel true)",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }
@@ -828,66 +868,6 @@
       }
     }, {
       "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.java.JavaTestChangePerformanceTest.test for non-abi change",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "mediumJavaMultiProjectWithTestNG",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel false)",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble with local build cache enabled (parallel false)",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble with local build cache enabled (parallel true)",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }
