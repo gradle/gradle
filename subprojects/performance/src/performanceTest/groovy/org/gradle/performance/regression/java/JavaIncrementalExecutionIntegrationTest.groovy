@@ -17,6 +17,7 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
@@ -27,49 +28,67 @@ import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
+import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
+@LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerformanceTest {
     JavaTestProject testProject
     boolean isGroovyProject
 
     def setup() {
         runner.targetVersions = ["7.0-20210122131800+0000"]
+        runner.useToolingApi = true
         testProject = JavaTestProject.projectFor(runner.testProject)
         isGroovyProject = testProject.name().contains("GROOVY")
         if (isGroovyProject) {
             runner.minimumBaseVersion = '5.0'
         }
+        if (OperatingSystem.current().windows) {
+            // Reduce the number of iterations on Windows, since the test takes 3 times as long (10s vs 3s).
+            runner.warmUpRuns = 5
+            runner.runs = 20
+        } else {
+            runner.warmUpRuns = 10
+            runner.runs = 40
+        }
     }
 
     @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX],
-            testProjects = ["largeJavaMultiProject", "largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"])
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"], iterationMatcher = "assemble for non-abi change"),
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["largeJavaMultiProject"])
     ])
-    def "assemble for non-abi change"() {
+    def "assemble for non-abi change#configurationCaching"() {
         given:
         runner.tasksToRun = ['assemble']
         runner.addBuildMutator {
             def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
             return isGroovyProject ? new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
         }
+        enableConfigurationCaching(configurationCachingEnabled)
 
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        configurationCachingEnabled << [true, false]
+        configurationCaching = configurationCachingEnabled ? " with configuration caching" : ""
     }
 
     @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeGroovyMultiProject"]),
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeMonolithicGroovyProject", "largeMonolithicJavaProject"])
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeGroovyMultiProject"], iterationMatcher = "assemble for abi change"),
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["largeJavaMultiProject"]),
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeMonolithicGroovyProject", "largeMonolithicJavaProject"], iterationMatcher = "assemble for abi change")
     ])
-    def "assemble for abi change"() {
+    def "assemble for abi change#configurationCaching"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
         runner.tasksToRun = ['assemble']
@@ -77,12 +96,17 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerfor
             def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
             return isGroovyProject ? new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
         }
+        enableConfigurationCaching(configurationCachingEnabled)
 
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        configurationCachingEnabled << [true, false]
+        configurationCaching = configurationCachingEnabled ? " with configuration caching" : ""
     }
 
     @RunFor(
@@ -145,5 +169,9 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerfor
 
         where:
         parallel << [true, false]
+    }
+
+    private boolean enableConfigurationCaching(boolean configurationCachingEnabled) {
+        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME}=${configurationCachingEnabled}")
     }
 }

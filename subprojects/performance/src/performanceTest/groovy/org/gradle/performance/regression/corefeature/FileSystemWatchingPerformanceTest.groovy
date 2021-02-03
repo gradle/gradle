@@ -35,7 +35,7 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @Unroll
 @RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["santaTrackerAndroidBuild", "largeJavaMultiProject"])
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["santaTrackerAndroidBuild"])
 )
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceTest {
