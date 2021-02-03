@@ -1,7 +1,10 @@
 ---
 name: 'Internal: `execution` team issue'
-about: 'Report a problem about execution'
-labels: '@execution, from:member'
+about: Report a problem about execution
+title: ''
+labels: "@execution, from:member"
+assignees: ''
+
 ---
 
 <!--- TODO -->

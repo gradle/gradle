@@ -1,7 +1,10 @@
 ---
-name: 'Regression'
-about: 'Report a problem about something that used to work'
-labels: 'a:regression, from:contributor'
+name: Regression
+about: Report a problem about something that used to work
+title: ''
+labels: a:regression, from:contributor
+assignees: ''
+
 ---
 
 <!--- 

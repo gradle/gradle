@@ -1,7 +1,10 @@
 ---
-name: 'Sample Use Case'
-about: 'Suggest a use case that could be demonstrated by a sample in our documentation.'
-labels: 'a:sample, from:contributor'
+name: Sample Use Case
+about: Suggest a use case that could be demonstrated by a sample in our documentation.
+title: ''
+labels: a:sample, from:contributor
+assignees: ''
+
 ---
 
 <!--- 

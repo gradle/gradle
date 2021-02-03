@@ -1,7 +1,10 @@
 ---
-name: 'Bug report'
-about: 'Create a report to help us improve'
-labels: 'a:bug, from:contributor'
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: a:bug, from:contributor
+assignees: ''
+
 ---
 
 <!--- 

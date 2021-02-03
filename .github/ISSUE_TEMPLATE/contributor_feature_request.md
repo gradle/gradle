@@ -1,7 +1,10 @@
 ---
-name: 'Feature request'
-about: 'Suggest an idea for this project'
-labels: 'a:feature, from:contributor'
+name: Feature request
+about: Suggest an idea for this project
+title: ''
+labels: a:feature, from:contributor
+assignees: ''
+
 ---
 
 <!--- 
