@@ -88,6 +88,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         index();
     }
 
+    protected boolean avoidConfigurationInDynamicMemberLookup() {
+        return false;
+    }
+
     protected void index() {
         for (T t : getStore()) {
             index.put(namer.determineName(t), t);
@@ -517,6 +521,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public boolean hasProperty(String name) {
+            if (avoidConfigurationInDynamicMemberLookup()) {
+                return getNames().contains(name);
+            }
             return findByName(name) != null;
         }
 
@@ -539,7 +546,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
-                return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
+                Closure<T> argument = Cast.uncheckedNonnullCast(arguments[0]);
+                if (avoidConfigurationInDynamicMemberLookup()) {
+                    return DynamicInvokeResult.found(named(name, ConfigureUtil.configureUsing(argument)));
+                } else {
+                    return DynamicInvokeResult.found(ConfigureUtil.configure(argument, getByName(name)));
+                }
             }
             return DynamicInvokeResult.notFound();
         }

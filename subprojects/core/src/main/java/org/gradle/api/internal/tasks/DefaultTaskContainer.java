@@ -112,6 +112,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
+    protected boolean avoidConfiguration() {
+        return true;
+    }
+
     @Override
     public Task create(Map<String, ?> options) {
         assertMutable("create(Map<String, ?>)");
