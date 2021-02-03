@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.codegen
 
+import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
@@ -32,12 +33,10 @@ internal
 fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
     file.bufferedWriter().use {
         it.apply {
-            write(fileHeader)
-            write("\n")
-            pluginIdExtensionDeclarationsFor(gradleJars).forEach {
+            appendReproducibleNewLine(fileHeader)
+            pluginIdExtensionDeclarationsFor(gradleJars).forEach { extension ->
                 write("\n")
-                write(it)
-                write("\n")
+                appendReproducibleNewLine(extension)
             }
         }
     }
@@ -60,7 +59,7 @@ fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
              */
             inline val $extendedType.`$memberName`: $extensionType
                 get() = id("$pluginId")
-            """.replaceIndent()
+            """.trimIndent()
         }
 }
 

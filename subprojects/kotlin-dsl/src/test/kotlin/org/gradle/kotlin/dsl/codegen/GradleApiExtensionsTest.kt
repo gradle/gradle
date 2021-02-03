@@ -31,7 +31,7 @@ import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType
 import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
-import org.gradle.kotlin.dsl.support.normaliseLineSeparators
+
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.containsString
@@ -331,7 +331,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
         println(generatedSourceCode)
 
         expectedExtensions.forEach { expectedExtension ->
-            assertThat(generatedSourceCode, containsString(expectedExtension.normaliseLineSeparators().trimIndent()))
+            assertThat(generatedSourceCode, containsString(expectedExtension.trimIndent()))
         }
     }
 
