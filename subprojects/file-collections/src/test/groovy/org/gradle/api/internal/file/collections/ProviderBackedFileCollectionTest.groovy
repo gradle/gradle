@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ProviderResolutionStrategy
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Factory
@@ -29,7 +30,7 @@ class ProviderBackedFileCollectionTest extends Specification {
     def provider = Mock(ProviderInternal)
     def resolver = Mock(PathToFileResolver)
     def patternSetFactory = Mock(Factory)
-    def fileCollection = new ProviderBackedFileCollection(provider, resolver, patternSetFactory)
+    def fileCollection = new ProviderBackedFileCollection(provider, resolver, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT)
 
     def "resolves task dependencies for provider with known producer"() {
         def task = Stub(Task)

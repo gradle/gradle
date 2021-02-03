@@ -37,7 +37,7 @@ public class InputParameterUtils {
 
     @Nullable
     public static Object prepareInputParameterValue(@Nullable Object value) {
-        Object unpacked = DeferredUtil.unpack(value);
+        Object unpacked = DeferredUtil.unpackOrNull(value);
         return finalizeValue(unpacked);
     }
 

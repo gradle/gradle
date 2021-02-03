@@ -265,7 +265,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
         property.run {
             when (this) {
                 is RegisteredProperty.InputFile -> {
-                    val finalValue = DeferredUtil.unpack(propertyValue)
+                    val finalValue = DeferredUtil.unpackOrNull(propertyValue)
                     writeInputProperty(propertyName, finalValue)
                     writeBoolean(optional)
                     writeBoolean(true)
@@ -287,7 +287,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
     val outputProperties = collectRegisteredOutputsOf(task)
     writeCollection(outputProperties) { property ->
         property.run {
-            val finalValue = DeferredUtil.unpack(propertyValue)
+            val finalValue = DeferredUtil.unpackOrNull(propertyValue)
             writeOutputProperty(propertyName, finalValue)
             writeBoolean(optional)
             writeEnum(filePropertyType)

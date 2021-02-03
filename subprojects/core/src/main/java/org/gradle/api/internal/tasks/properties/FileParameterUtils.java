@@ -93,11 +93,10 @@ public class FileParameterUtils {
      * The value is the file tree rooted at the provided path for an input directory, and the provided path otherwise.
      */
     public static FileCollectionInternal resolveInputFileValue(FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
-        if (inputFilePropertyType == InputFilePropertyType.DIRECTORY) {
-            return fileCollectionFactory.resolving(path).getAsFileTree();
-        } else {
-            return fileCollectionFactory.resolving(path);
-        }
+        FileCollectionInternal fileCollection = fileCollectionFactory.resolvingLeniently(path);
+        return inputFilePropertyType == InputFilePropertyType.DIRECTORY
+            ? fileCollection.getAsFileTree()
+            : fileCollection;
     }
 
     /**
@@ -118,6 +117,7 @@ public class FileParameterUtils {
         if (unpackedValue == null) {
             return;
         }
+        // From here on, we already unpacked providers, so we can fail if any of the file collections contains a provider which is not present.
         if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
             resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileCollectionFactory, consumer);
         } else {

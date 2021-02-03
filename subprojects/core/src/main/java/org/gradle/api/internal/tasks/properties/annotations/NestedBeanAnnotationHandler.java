@@ -75,7 +75,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     private static Object unpackProvider(@Nullable Object value) {
         // Only unpack one level of Providers, since Provider<Provider<>> is not supported - we don't need two levels of laziness.
         if (value instanceof Provider) {
-            return ((Provider<?>) value).get();
+            return ((Provider<?>) value).getOrNull();
         }
         return value;
     }

@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.AbstractOpaqueFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
@@ -43,15 +44,17 @@ public class UnpackingVisitor {
     private final PathToFileResolver resolver;
     private final Factory<PatternSet> patternSetFactory;
     private final boolean includeBuildable;
+    private final ProviderResolutionStrategy providerResolutionStrategy;
 
     public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory) {
-        this(visitor, resolver, patternSetFactory, true);
+        this(visitor, resolver, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT, true);
     }
 
-    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, boolean includeBuildable) {
+    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, boolean includeBuildable) {
         this.visitor = visitor;
         this.resolver = resolver;
         this.patternSetFactory = patternSetFactory;
+        this.providerResolutionStrategy = providerResolutionStrategy;
         this.includeBuildable = includeBuildable;
     }
 
@@ -68,7 +71,7 @@ public class UnpackingVisitor {
         if (element instanceof ProviderInternal) {
             // ProviderInternal is-a TaskDependencyContainer, so check first
             ProviderInternal<?> provider = (ProviderInternal<?>) element;
-            visitor.accept(new ProviderBackedFileCollection(provider, resolver, patternSetFactory));
+            visitor.accept(new ProviderBackedFileCollection(provider, resolver, patternSetFactory, providerResolutionStrategy));
             return;
         }
         if (includeBuildable && (element instanceof Buildable || element instanceof TaskDependencyContainer)) {
@@ -157,7 +160,7 @@ public class UnpackingVisitor {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            new UnpackingVisitor(visitor, resolver, patternSetFactory, false).add(element);
+            new UnpackingVisitor(visitor, resolver, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT, false).add(element);
         }
     }
 }

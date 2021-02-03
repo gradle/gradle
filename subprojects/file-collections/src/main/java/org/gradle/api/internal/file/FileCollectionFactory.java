@@ -96,6 +96,8 @@ public interface FileCollectionFactory {
      * Creates a {@link FileCollection} with the given files as content.
      *
      * <p>The collection is live and resolves the files on each query.
+     *
+     * <p>The collection fails to resolve if it contains providers which are not present.
      */
     FileCollectionInternal resolving(String displayName, Object sources);
 
@@ -103,8 +105,28 @@ public interface FileCollectionFactory {
      * Creates a {@link FileCollection} with the given files as content.
      *
      * <p>The collection is live and resolves the files on each query.
+     *
+     * <p>The collection ignores providers which are not present.
+     */
+    FileCollectionInternal resolvingLeniently(String displayName, Object sources);
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     *
+     * <p>The collection is live and resolves the files on each query.
+     *
+     * <p>The collection fails to resolve if it contains providers which are not present.
      */
     FileCollectionInternal resolving(Object sources);
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     *
+     * <p>The collection is live and resolves the files on each query.
+     *
+     * <p>The collection ignores providers which are not present.
+     */
+    FileCollectionInternal resolvingLeniently(Object sources);
 
     /**
      * Creates an empty {@link ConfigurableFileCollection} instance.

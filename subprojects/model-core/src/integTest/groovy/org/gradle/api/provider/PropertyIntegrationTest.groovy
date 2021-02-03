@@ -678,4 +678,87 @@ project.extensions.create("some", SomeExtension)
         then:
         succeeds()
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/13932")
+    def "does not resolve mapped property at configuration time"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                def action() {
+                    def outputFile = output.get().asFile
+                    outputFile.write("some text")
+                }
+            }
+
+            abstract class Consumer extends DefaultTask {
+                @InputFiles
+                abstract ListProperty<RegularFile> getInputFiles()
+                @TaskAction
+                def action() {
+                    inputFiles.get().each {
+                        println("action! on " + it)
+                    }
+                }
+            }
+
+            def producer = tasks.register("producer", Producer) {
+                output = layout.projectDirectory.file("foo.txt")
+            }
+            tasks.register("consumer", Consumer) {
+                def filtered = files(producer.map { it.output }).elements.map {
+                    it.collect { it.asFile }
+                        .findAll { it.isFile() }
+                        .collect { layout.projectDirectory.file(it.absolutePath) }
+                }
+                inputFiles.set(filtered)
+            }
+        """
+
+        when:
+        run 'consumer'
+        then:
+        executedAndNotSkipped(":producer", ":consumer")
+    }
+
+    def "can depend on the output file collection containing an optional output file"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                def action() {
+                    if (output.present) {
+                        def outputFile = output.get().asFile
+                        outputFile.write("some text")
+                    }
+                }
+            }
+
+            abstract class Consumer extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getInputFiles()
+                @TaskAction
+                def action() {
+                    inputFiles.each {
+                        println("action! on " + it)
+                    }
+                }
+            }
+
+            def producer = tasks.register("producer", Producer)
+            tasks.register("consumer", Consumer) {
+                inputFiles.from(producer)
+            }
+        """
+
+        when:
+        run "consumer"
+        then:
+        executedAndNotSkipped(":producer", ":consumer")
+    }
 }
