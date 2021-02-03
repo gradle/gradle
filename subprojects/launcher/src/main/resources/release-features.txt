@@ -1,1 +1,2 @@
+ - Please note this is a milestone release
  - File system watching enabled by default

@@ -1,19 +1,19 @@
-The Gradle team is excited to announce Gradle @version@.
+This release is a 7.0 milestone. This is a preview of what Gradle 7.0 may look like.
 
-This release features [1](), [2](), ... [n](), and more.
+Milestone releases are unstable like nightly releases, but we are releasing it to gather early feedback on potential changes in Gradle 7.0. 
+
+If you run into problems with this milestone, please [report your feedback on GitHub](https://github.com/gradle/gradle/issues/new?assignees=&labels=a%3Ainvestigation%2C+affects-version%3A7.0&template=feedback-for-7-0.md&title=).
+
+Some features in this milestone may not make it to the first release candidate and future milestones may introduce new features. 
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
--->
 
 [Martin d'Anjou](https://github.com/martinda),
 [Till Krullmann](https://github.com/tkrullmann),
 [Andreas Axelsson](https://github.com/judgeaxl),
 [Pedro Tôrres](https://github.com/t0rr3sp3dr0),
 [Stefan Oehme](https://github.com/oehme),
-[Niels Doucet](https://github.com/NielsDoucet)
+[Niels Doucet](https://github.com/NielsDoucet).
 
 ## Upgrade Instructions
 
@@ -21,7 +21,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+See the [Gradle upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
@@ -42,6 +42,15 @@ File system watching and configuration caching is enabled for the comparison.
 
 You can find the performance test project [here](https://github.com/gradle/santa-tracker-performance).
 
+## Ignore empty `buildSrc` project
+
+In earlier Gradle versions, the mere presence of a `buildSrc` directory was enough to trigger Gradle to execute all `buildSrc` tasks and to add the resulting `buildSrc.jar` to the buildscript class path.
+Gradle will now ignore an empty `buildSrc` directory, and will only generate a `buildSrc.jar` if build files and/or source files are detected.
+
+This has two benefits when an empty `buildSrc` directory is detected:
+- `:buildSrc:*` tasks will not be needlessly executed.
+- The empty `buildSrc.jar` will not be added to the buildscript class path, avoiding cache misses that this can cause.
+
 ## Build reliability improvements
 
 Gradle employs a number of optimizations to ensure that builds are executed as fast as possible.
@@ -61,7 +70,7 @@ For more information see the [user manual on input and output validation](usergu
 
 ## Plugin development improvements
 
-### Included plugin builds
+### Using included builds for local plugins 
 
 Developing plugins as part of a composite build was so far only possible for project plugins.
 Settings plugins always had to be developed in isolation and published to a binary repository.
@@ -90,17 +99,6 @@ includeBuild("../project-with-plugin-and-library")
 ```
 This distinction reflects what Gradle offers for repository declarations - 
 repositories are specified separately for plugin dependencies and for production dependencies.
-
-## General improvements
-
-### Ignore empty `buildSrc` project
-
-In earlier Gradle versions, the mere presence of a `buildSrc` directory was enough to trigger Gradle to execute all `buildSrc` tasks and to add the resulting `buildSrc.jar` to the buildscript class path.
-Gradle will now ignore an empty `buildSrc` directory, and will only generate a `buildSrc.jar` if build files and/or source files are detected.
-
-This has two benefits when an empty `buildSrc` directory is detected:
-- `:buildSrc:*` tasks will not be needlessly executed.
-- The empty `buildSrc.jar` will not be added to the buildscript class path, avoiding cache misses that this can cause.
 
 <!-- 
 
@@ -517,10 +515,6 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - org.gradle.plugin.devel.tasks.ValidatePlugins
 
 - org.gradle.api.distribution.Distribution.getDistributionBaseName()
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
