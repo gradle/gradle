@@ -34,22 +34,28 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerformanceTest {
+    JavaTestProject testProject
+    boolean isGroovyProject
+
+    def setup() {
+        runner.targetVersions = ["7.0-20210122131800+0000"]
+        testProject = JavaTestProject.projectFor(runner.testProject)
+        isGroovyProject = testProject.name().contains("GROOVY")
+        if (isGroovyProject) {
+            runner.minimumBaseVersion = '5.0'
+        }
+    }
+
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX],
             testProjects = ["largeJavaMultiProject", "largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"])
     ])
     def "assemble for non-abi change"() {
         given:
-        def testProject = JavaTestProject.projectFor(runner.testProject)
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["7.0-20210122131800+0000"]
-        boolean isGroovyProject = testProject.name().contains("GROOVY")
         runner.addBuildMutator {
             def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
             return isGroovyProject ? new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
-        }
-        if (isGroovyProject) {
-            runner.minimumBaseVersion = '5.0'
         }
 
         when:
@@ -67,14 +73,9 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerfor
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
         runner.tasksToRun = ['assemble']
-        boolean isGroovyProject = testProject.name().contains("GROOVY")
         runner.addBuildMutator {
             def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
             return isGroovyProject ? new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
-        }
-        runner.targetVersions = ["7.0-20210122131800+0000"]
-        if (isGroovyProject) {
-            runner.minimumBaseVersion = '5.0'
         }
 
         when:
@@ -93,7 +94,6 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerfor
         runner.warmUpRuns = 2
         runner.runs = 6
         runner.tasksToRun = ['test']
-        runner.targetVersions = ["7.0-20210122131800+0000"]
         // Pre-4.0 versions run into memory problems with this test
         runner.minimumBaseVersion = "4.0"
         runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
@@ -112,7 +112,6 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerfor
     def "up-to-date assemble (parallel #parallel)"() {
         given:
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["7.0-20210122131800+0000"]
         runner.args += ["-Dorg.gradle.parallel=$parallel"]
 
         when:
@@ -132,7 +131,6 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerfor
     def "up-to-date assemble with local build cache enabled (parallel #parallel)"() {
         given:
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["7.0-20210122131800+0000"]
         runner.minimumBaseVersion = "3.5"
         runner.args += ["-Dorg.gradle.parallel=$parallel", "-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
         runner.addBuildMutator { invocationSettings ->
