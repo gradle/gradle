@@ -193,14 +193,16 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     private void configureConfigurations(final Project project) {
-
+        // Currently 'deploy' and 'earlib' are both _resolvable_ and _consumable_.
+        // In the future, it would be good to split these so that the attributes can differ.
+        // Then 'jvmPluginServices.configureAsRuntimeClasspath()' may be used to configure the resolving configurations.
         ConfigurationContainer configurations = project.getConfigurations();
         Configuration moduleConfiguration = configurations.create(DEPLOY_CONFIGURATION_NAME).setVisible(false)
             .setTransitive(false).setDescription("Classpath for deployable modules, not transitive.");
-        jvmPluginServices.configureAsRuntimeClasspath(moduleConfiguration);
+        jvmPluginServices.configureAttributes(moduleConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());
         Configuration earlibConfiguration = configurations.create(EARLIB_CONFIGURATION_NAME).setVisible(false)
             .setDescription("Classpath for module dependencies.");
-        jvmPluginServices.configureAsRuntimeClasspath(earlibConfiguration);
+        jvmPluginServices.configureAttributes(earlibConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
             .extendsFrom(moduleConfiguration, earlibConfiguration);
     }

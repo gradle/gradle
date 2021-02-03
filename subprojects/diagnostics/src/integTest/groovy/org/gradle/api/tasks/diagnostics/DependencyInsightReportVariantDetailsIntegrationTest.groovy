@@ -60,6 +60,9 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
       org.gradle.dependency.bundling = external
       $expectedAttributes
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+
+      Requested attributes not found in the selected variant:
+         org.gradle.jvm.environment     = standard-jvm
    ]
 
 project :$expectedProject
@@ -113,6 +116,7 @@ project :$expectedProject
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
+         org.gradle.jvm.environment     = standard-jvm
          org.gradle.blah                = something
          org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]

@@ -30,6 +30,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -37,7 +38,9 @@ import org.gradle.api.internal.attributes.DescribableAttributesSchema;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class JavaEcosystemSupport {
 
@@ -51,6 +54,7 @@ public abstract class JavaEcosystemSupport {
         configureLibraryElements(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
+        configureTargetEnvironment(attributesSchema);
         configureConsumerDescriptors((DescribableAttributesSchema) attributesSchema);
     }
 
@@ -70,6 +74,12 @@ public abstract class JavaEcosystemSupport {
         AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         targetPlatformSchema.getCompatibilityRules().ordered(Ordering.natural());
         targetPlatformSchema.getDisambiguationRules().pickLast(Ordering.natural());
+    }
+
+    private static void configureTargetEnvironment(AttributesSchema attributesSchema) {
+        AttributeMatchingStrategy<TargetJvmEnvironment> targetEnvironmentSchema = attributesSchema.attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
+        targetEnvironmentSchema.getCompatibilityRules().add(TargetJvmEnvironmentCompatibilityRules.class);
+        targetEnvironmentSchema.getDisambiguationRules().add(TargetJvmEnvironmentDisambiguationRules.class);
     }
 
     private static void configureBundling(AttributesSchema attributesSchema) {
@@ -227,6 +237,30 @@ public abstract class JavaEcosystemSupport {
                 if (LibraryElements.JAR.equals(producerValueName)) {
                     details.compatible();
                     return;
+                }
+            }
+        }
+    }
+
+    public static class TargetJvmEnvironmentCompatibilityRules implements AttributeCompatibilityRule<TargetJvmEnvironment>, ReusableAction {
+
+        @Override
+        public void execute(CompatibilityCheckDetails<TargetJvmEnvironment> details) {
+            details.compatible();
+        }
+    }
+
+    public static class TargetJvmEnvironmentDisambiguationRules implements AttributeDisambiguationRule<TargetJvmEnvironment>, ReusableAction {
+
+        @Override
+        public void execute(MultipleCandidatesDetails<TargetJvmEnvironment> details) {
+            List<TargetJvmEnvironment> exactMatches = details.getCandidateValues().stream().filter(c -> c == details.getConsumerValue()).collect(Collectors.toList());
+            if (exactMatches.size() == 1) {
+                details.closestMatch(exactMatches.get(0));
+            } else {
+                List<TargetJvmEnvironment> standardJvm = details.getCandidateValues().stream().filter(c -> TargetJvmEnvironment.STANDARD_JVM.equals(c.getName())).collect(Collectors.toList());
+                if (standardJvm.size() == 1) {
+                    details.closestMatch(standardJvm.get(0));
                 }
             }
         }
