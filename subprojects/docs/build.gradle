@@ -74,7 +74,7 @@ asciidoctorj {
 }
 
 tasks.withType(AsciidoctorTask).configureEach { task ->
-    if (task.name == "userguideSinglePage") {
+    if (task.name == "userguideSinglePagePdf") {
         task.asciidoctorj.docExtensions(
             project.getDependencies().create("org.gradle:docs-asciidoctor-extensions-base:0.10.0"),
         )

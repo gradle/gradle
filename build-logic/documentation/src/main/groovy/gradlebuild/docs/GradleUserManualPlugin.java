@@ -210,36 +210,20 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.into(flattenedAsciidocDirectory);
         });
 
-        TaskProvider<AsciidoctorTask> userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask.class, task -> {
-            task.setGroup("documentation");
-            task.setDescription("Generates single-page user manual.");
-            task.dependsOn(extension.getUserManual().getStagedDocumentation());
-            task.onlyIf(t -> !extension.getQuickFeedback().get());
+        TaskProvider<AsciidoctorTask> userguideSinglePageHtml = tasks.register("userguideSinglePageHtml", AsciidoctorTask.class, task -> {
+            task.setDescription("Generates HTML single-page user manual.");
+            configureForUserGuideSinglePage(task, extension, project);
+            task.outputOptions(options -> options.setBackends(singletonList("html5")));
+            // TODO: This breaks the provider
+            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-html").get().getAsFile());
+        });
 
-            task.sources(patternSet -> patternSet.include("userguide_single.adoc"));
-
+        TaskProvider<AsciidoctorTask> userguideSinglePagePdf = tasks.register("userguideSinglePagePdf", AsciidoctorTask.class, task -> {
+            task.setDescription("Generates PDF single-page user manual.");
+            configureForUserGuideSinglePage(task, extension, project);
             task.outputOptions(options -> options.setBackends(singletonList("pdf")));
-
             // TODO: This breaks the provider
-            task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
-
-            // TODO: This breaks the provider
-            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single").get().getAsFile());
-
-            Map<String, Object> attributes = new HashMap<>();
-            attributes.put("source-highlighter", "coderay");
-            attributes.put("toc", "macro");
-            attributes.put("toclevels", 2);
-
-            // TODO: This breaks if version is changed later
-            attributes.put("groovyDslPath", "https://docs.gradle.org/" + project.getVersion() + "/dsl");
-            attributes.put("javadocPath", "https://docs.gradle.org/" + project.getVersion() + "/javadoc");
-            attributes.put("samplesPath", "https://docs.gradle.org/" + project.getVersion() + "/samples");
-            attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
-            // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-            // TODO: This breaks the provider
-            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
-            task.attributes(attributes);
+            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-pdf").get().getAsFile());
         });
 
         TaskProvider<AsciidoctorTask> userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask.class, task -> {
@@ -279,7 +263,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setGroup("documentation");
             task.setDescription("Stages rendered user manual documentation.");
 
-            task.from(userguideSinglePage);
+            task.from(userguideSinglePageHtml);
+            task.from(userguideSinglePagePdf);
             task.from(userguideMultiPage);
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
             // TODO: Eliminate this duplication with the flatten task
@@ -300,6 +285,32 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             userManual.getStagedDocumentation().convention(userguideFlattenSources.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
             userManual.getRenderedDocumentation().from(userguide);
         });
+    }
+
+    private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
+        task.setGroup("documentation");
+        task.dependsOn(extension.getUserManual().getStagedDocumentation());
+        task.onlyIf(t -> !extension.getQuickFeedback().get());
+
+        task.sources(patternSet -> patternSet.include("userguide_single.adoc"));
+
+        // TODO: This breaks the provider
+        task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
+
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("source-highlighter", "coderay");
+        attributes.put("toc", "macro");
+        attributes.put("toclevels", 2);
+
+        // TODO: This breaks if version is changed later
+        attributes.put("groovyDslPath", "https://docs.gradle.org/" + project.getVersion() + "/dsl");
+        attributes.put("javadocPath", "https://docs.gradle.org/" + project.getVersion() + "/javadoc");
+        attributes.put("samplesPath", "https://docs.gradle.org/" + project.getVersion() + "/samples");
+        attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
+        // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
+        // TODO: This breaks the provider
+        attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
+        task.attributes(attributes);
     }
 
     private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
