@@ -57,7 +57,7 @@ dependencies {
     codenarc("gradlebuild:code-quality-rules") {
         because("Provides the IntegrationTestFixturesRule implementation")
     }
-    codenarc("org.codenarc:CodeNarc:1.5")
+    codenarc("org.codenarc:CodeNarc:2.0.0")
     codenarc(embeddedKotlin("stdlib"))
 
     classycle("classycle:classycle:1.4.2@jar")

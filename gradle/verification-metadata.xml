@@ -29,6 +29,10 @@
             <trusting group="org.apache.commons"/>
             <trusting group="commons-io"/>
          </trusted-key>
+         <trusted-key id="851264c36365d4ff9427625f38362fd5cfa2668b">
+            <trusting group="org.codenarc"/>
+            <trusting group="org.gmetrics"/>
+         </trusted-key>
          <trusted-key id="314fe82e5a4c5377bca2edec5208812e1e4a6db0">
             <trusting group="com.gradle"/>
             <trusting group="org.gradle"/>
