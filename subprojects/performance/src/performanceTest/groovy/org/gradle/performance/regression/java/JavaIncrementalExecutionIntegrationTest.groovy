@@ -42,8 +42,8 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecuti
 
     def setup() {
         runner.targetVersions = ["7.0-20210122131800+0000"]
-        testProject = JavaTestProject.projectFor(runner.testProject)
-        isGroovyProject = testProject.name().contains("GROOVY")
+        testProject = JavaTestProject.findProjectFor(runner.testProject)
+        isGroovyProject = testProject?.name()?.contains("GROOVY")
         if (isGroovyProject) {
             runner.minimumBaseVersion = '5.0'
         }

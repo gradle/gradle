@@ -64,7 +64,7 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         configurationCaching = configurationCachingEnabled ? " with configuration caching" : ""
     }
 
-    def "non-abi change"() {
+    def "non-abi change#configurationCaching"() {
         given:
         testProject.configureForNonAbiChange(runner)
         enableConfigurationCaching(configurationCachingEnabled)
