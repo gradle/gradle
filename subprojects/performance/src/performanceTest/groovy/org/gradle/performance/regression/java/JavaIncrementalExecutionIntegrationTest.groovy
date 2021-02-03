@@ -17,13 +17,12 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
+import org.gradle.performance.regression.corefeature.AbstractIncrementalExecutionPerformanceTest
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
@@ -37,25 +36,16 @@ import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
-class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerformanceTest {
+class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecutionPerformanceTest {
     JavaTestProject testProject
     boolean isGroovyProject
 
     def setup() {
         runner.targetVersions = ["7.0-20210122131800+0000"]
-        runner.useToolingApi = true
         testProject = JavaTestProject.projectFor(runner.testProject)
         isGroovyProject = testProject.name().contains("GROOVY")
         if (isGroovyProject) {
             runner.minimumBaseVersion = '5.0'
-        }
-        if (OperatingSystem.current().windows) {
-            // Reduce the number of iterations on Windows, since the test takes 3 times as long (10s vs 3s).
-            runner.warmUpRuns = 5
-            runner.runs = 20
-        } else {
-            runner.warmUpRuns = 10
-            runner.runs = 40
         }
     }
 
@@ -169,9 +159,5 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerfor
 
         where:
         parallel << [true, false]
-    }
-
-    private boolean enableConfigurationCaching(boolean configurationCachingEnabled) {
-        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME}=${configurationCachingEnabled}")
     }
 }
