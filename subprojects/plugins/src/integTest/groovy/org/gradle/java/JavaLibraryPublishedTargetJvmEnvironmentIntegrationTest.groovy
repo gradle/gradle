@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
 
+// These test cases are motivated by the Guava use case: https://github.com/google/guava/pull/3683
 class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
     MavenModule module
