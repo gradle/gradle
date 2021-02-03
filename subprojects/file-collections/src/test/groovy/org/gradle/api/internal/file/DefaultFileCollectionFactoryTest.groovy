@@ -25,6 +25,7 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
+import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDependencyFactory
@@ -336,6 +337,32 @@ class DefaultFileCollectionFactoryTest extends Specification {
         'Path'      | tmpDir.file('abc').toPath()
         'URI'       | tmpDir.file('abc').toURI()
         'URL'       | tmpDir.file('abc').toURI().toURL()
+    }
+
+    def 'fails on resolving absent Provider#description in file collection'() {
+        def collection = factory.resolving(provider)
+
+        when:
+        collection.files
+        then:
+        thrown(MissingValueException)
+
+        where:
+        description    | provider
+        ''             | Providers.notDefined()
+        ' in Callable' | { -> Providers.notDefined() }
+    }
+
+    def 'ignores absent Provider#description when resolving leniently'() {
+        def collection = factory.resolvingLeniently(provider)
+
+        expect:
+        collection.files.empty
+
+        where:
+        description    | provider
+        ''             | Providers.notDefined()
+        ' in Callable' | { -> Providers.notDefined() }
     }
 
     private FileCollection fileCollectionOf(final File... files) {
