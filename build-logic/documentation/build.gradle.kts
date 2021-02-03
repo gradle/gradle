@@ -14,7 +14,7 @@ dependencies {
     }
     implementation("com.vladsch.flexmark:flexmark-all")
     implementation("commons-lang:commons-lang")
-    implementation("org.asciidoctor:asciidoctor-gradle-plugin")
+    implementation("org.asciidoctor:asciidoctor-gradle-jvm")
     implementation("org.asciidoctor:asciidoctorj")
     implementation("org.asciidoctor:asciidoctorj-pdf")
 }

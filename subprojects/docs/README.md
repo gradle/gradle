@@ -49,15 +49,15 @@ To generate the user manual and see your changes, run:
 This will generate:
 
  - A multi-page HTML manual in `build/working/usermanual/render-multi/` for each chapter. There is a 1-1 mapping from `.adoc` file to `.html` file.
- - A single-page HTML manual at `build/working/usermanual/render-single/userguide_single.html`
- - A PDF at `build/working/usermanual/render-single/userguide_single.pdf`
+ - A single-page HTML manual at `build/working/usermanual/render-single-html/userguide_single.html`
+ - A PDF at `build/working/usermanual/render-single-pdf/userguide_single.pdf`
 
 Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
 with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.
 
 If you just need to see a change to one of the userguide sections, try:
 
-    ./gradlew :docs:userguide -x :docs:userguideSinglePage
+    ./gradlew :docs:userguide -x :docs:userguideSinglePageHtml -x :docs:userguideSinglePagePdf
 
 ### Authoring with AsciiDoc
 
