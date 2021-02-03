@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import spock.lang.Unroll
@@ -24,7 +23,7 @@ import spock.lang.Unroll
 class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 
     def setup() {
-        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser(), true)
+        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator(), new VersionParser())
     }
 
     @Unroll
@@ -59,7 +58,6 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
         selected '1.1'
     }
 
-    // This documents the existing behavior, not necessarily what we want to do
     def "can select a release version over unqualified"() {
         given:
         prefer('1.0-beta-1').release()
@@ -72,17 +70,16 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
         selected '1.0-beta-1'
     }
 
-    def "does not select a release version over unqualified"() {
-        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser(), false)
+    def "can select qualified release over unqualified"() {
         given:
-        prefer('1.0-beta-1').release()
-        prefer('1.0-beta-2')
+        prefer('2.11.4+4').release()
+        prefer('2.11.4')
 
         when:
         resolveConflicts()
 
         then:
-        selected '1.0-beta-2'
+        selected '2.11.4+4'
     }
 
 }

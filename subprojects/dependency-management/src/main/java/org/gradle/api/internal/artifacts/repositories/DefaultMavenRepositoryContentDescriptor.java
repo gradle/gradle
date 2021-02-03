@@ -27,7 +27,7 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
     private boolean releases = true;
 
     public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier, FeaturePreviews featurePreviews) {
-        super(repositoryNameSupplier, featurePreviews);
+        super(repositoryNameSupplier);
     }
 
     @Override

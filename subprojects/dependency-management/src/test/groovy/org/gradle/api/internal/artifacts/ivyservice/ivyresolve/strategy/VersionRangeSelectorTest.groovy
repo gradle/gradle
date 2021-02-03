@@ -17,11 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.FeaturePreviews
 
 class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
-
-    def featurePreviews = new FeaturePreviews()
 
     def "all handled selectors are dynamic"() {
         expect:
@@ -38,8 +35,6 @@ class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
     }
 
     def "excluded upper bound corner cases"() {
-        given:
-        featurePreviews.enableFeature(FeaturePreviews.Feature.VERSION_ORDERING_V2)
         expect:
         !accept("[1.0,2.0)", "2.0-final")
         !accept("[1.0,2.0)", "2.0-dev")
@@ -89,7 +84,6 @@ class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
 
         accept("[1.0-dev-1,2.0[", "1.0")
         accept("[1.0,2.0-rc-2[", "2.0-rc-1")
-        accept("[1.0,2.0[", "2.0-final")
 
         accept("]1.0-dev-1,2.0]", "1.0")
         accept("]1.0-rc-2,2.0]", "1.0-rc-3")
@@ -107,6 +101,7 @@ class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
         !accept("[1.0,2.0[", "0.99")
         !accept("[1.0,2.0[", "2.0")
         !accept("[1.0,2.0[", "42")
+        !accept("[1.0,2.0[", "2.0-final")
 
         !accept("]1.0,2.0]", "1.0")
         !accept("]1.0,2.0]", "2.0.1")
@@ -176,6 +171,6 @@ class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
 
     @Override
     VersionSelector getSelector(String selector) {
-        return new VersionRangeSelector(selector, new DefaultVersionComparator(featurePreviews).asVersionComparator(), new VersionParser(), featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_ORDERING_V2))
+        return new VersionRangeSelector(selector, new DefaultVersionComparator().asVersionComparator(), new VersionParser())
     }
 }

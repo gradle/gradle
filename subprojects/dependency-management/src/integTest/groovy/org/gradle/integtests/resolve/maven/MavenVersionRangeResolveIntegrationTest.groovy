@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -191,7 +190,6 @@ dependencies {
         settingsFile << """
 rootProject.name = "testrange"
 """
-        FeaturePreviewsFixture.enableUpdatedVersionSorting(settingsFile)
         buildFile << """
 repositories {
     maven {

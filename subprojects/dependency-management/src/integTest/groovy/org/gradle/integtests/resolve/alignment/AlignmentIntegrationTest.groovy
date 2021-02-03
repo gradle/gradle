@@ -1248,7 +1248,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
             def VERSIONED_COMPARATOR = new DefaultVersionComparator()
             def VERSION_COMPARATOR = VERSIONED_COMPARATOR.asVersionComparator()
-            def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR)
+            def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR, new VersionParser())
 
             configurations.all {
                 resolutionStrategy.dependencySubstitution.all {
