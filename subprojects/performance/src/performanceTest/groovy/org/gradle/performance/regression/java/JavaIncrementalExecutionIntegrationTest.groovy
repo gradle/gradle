@@ -1,0 +1,151 @@
+/*
+ * Copyright 2021 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.performance.regression.java
+
+import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
+import org.gradle.performance.fixture.JavaTestProject
+import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
+import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
+import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.gradle.profiler.mutations.ClearBuildCacheMutator
+
+import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
+import static org.gradle.performance.annotations.ScenarioType.PER_DAY
+import static org.gradle.performance.results.OperatingSystem.LINUX
+import static org.gradle.performance.results.OperatingSystem.WINDOWS
+
+class JavaIncrementalExecutionIntegrationTest extends AbstractCrossVersionPerformanceTest {
+    @RunFor([
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX],
+            testProjects = ["largeJavaMultiProject", "largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"])
+    ])
+    def "assemble for non-abi change"() {
+        given:
+        def testProject = JavaTestProject.projectFor(runner.testProject)
+        runner.tasksToRun = ['assemble']
+        runner.targetVersions = ["7.0-20210122131800+0000"]
+        boolean isGroovyProject = testProject.name().contains("GROOVY")
+        runner.addBuildMutator {
+            def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
+            return isGroovyProject ? new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
+        }
+        if (isGroovyProject) {
+            runner.minimumBaseVersion = '5.0'
+        }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
+
+    @RunFor([
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeGroovyMultiProject"]),
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeMonolithicGroovyProject", "largeMonolithicJavaProject"])
+    ])
+    def "assemble for abi change"() {
+        given:
+        def testProject = JavaTestProject.projectFor(runner.testProject)
+        runner.tasksToRun = ['assemble']
+        boolean isGroovyProject = testProject.name().contains("GROOVY")
+        runner.addBuildMutator {
+            def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
+            return isGroovyProject ? new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
+        }
+        runner.targetVersions = ["7.0-20210122131800+0000"]
+        if (isGroovyProject) {
+            runner.minimumBaseVersion = '5.0'
+        }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
+
+    @RunFor(
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "mediumJavaMultiProjectWithTestNG", "largeMonolithicJavaProject"])
+    )
+    def "test for non-abi change"() {
+        given:
+        def testProject = JavaTestProject.projectFor(runner.testProject)
+        runner.warmUpRuns = 2
+        runner.runs = 6
+        runner.tasksToRun = ['test']
+        runner.targetVersions = ["7.0-20210122131800+0000"]
+        // Pre-4.0 versions run into memory problems with this test
+        runner.minimumBaseVersion = "4.0"
+        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
+
+    @RunFor([
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS], testProjects = ["largeJavaMultiProject"], iterationMatcher = '.*parallel true.*'),
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
+    ])
+    def "up-to-date assemble (parallel #parallel)"() {
+        given:
+        runner.tasksToRun = ['assemble']
+        runner.targetVersions = ["7.0-20210122131800+0000"]
+        runner.args += ["-Dorg.gradle.parallel=$parallel"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        parallel << [true, false]
+    }
+
+    @RunFor([
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"], iterationMatcher = '.*parallel true.*'),
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
+    ])
+    def "up-to-date assemble with local build cache enabled (parallel #parallel)"() {
+        given:
+        runner.tasksToRun = ['assemble']
+        runner.targetVersions = ["7.0-20210122131800+0000"]
+        runner.minimumBaseVersion = "3.5"
+        runner.args += ["-Dorg.gradle.parallel=$parallel", "-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
+        runner.addBuildMutator { invocationSettings ->
+            new ClearBuildCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.SCENARIO)
+        }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        parallel << [true, false]
+    }
+}
