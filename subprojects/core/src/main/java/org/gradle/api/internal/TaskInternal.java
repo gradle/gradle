@@ -27,7 +27,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.StandardOutputCapture;
-import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
@@ -89,11 +88,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     TaskIdentity<?> getTaskIdentity();
-
-    /**
-     * Sets the log message rewriter for this task's logger.
-     */
-    void setLoggerMessageRewriter(ContextAwareTaskLogger.MessageRewriter messageRewriter);
 
     @Internal
     Set<Provider<? extends BuildService<?>>> getRequiredServices();
