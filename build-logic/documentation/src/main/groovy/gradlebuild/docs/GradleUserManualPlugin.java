@@ -18,8 +18,7 @@ package gradlebuild.docs;
 
 import gradlebuild.docs.dsl.source.GenerateApiMapping;
 import gradlebuild.docs.dsl.source.GenerateDefaultImports;
-import groovy.lang.Closure;
-import org.asciidoctor.gradle.AsciidoctorTask;
+import org.asciidoctor.gradle.jvm.AsciidoctorTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
@@ -34,15 +33,16 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 
 public class GradleUserManualPlugin implements Plugin<Project> {
     @Override
@@ -96,7 +96,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
         sourceSets.getByName("main", main ->
-            main.getOutput().dir(Collections.singletonMap("builtBy", Arrays.asList(apiMapping, defaultImports)), generatedDirectory));
+            main.getOutput().dir(singletonMap("builtBy", asList(apiMapping, defaultImports)), generatedDirectory)
+        );
 
         extension.getUserManual().getResources().from(apiMapping);
         extension.getUserManual().getResources().from(defaultImports);
@@ -110,8 +111,10 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 return;
             }
 
-            task.setSeparateOutputDirs(false);
-            task.backends("html5");
+            task.outputOptions(options -> {
+                options.setSeparateOutputDirs(false);
+                options.setBackends(singletonList("html5"));
+            });
 
             // TODO: Break the paths assumed here
             TaskInputs inputs = task.getInputs();
@@ -213,13 +216,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.dependsOn(extension.getUserManual().getStagedDocumentation());
             task.onlyIf(t -> !extension.getQuickFeedback().get());
 
-            task.sources(new Closure(null) {
-                public Object doCall(Object ignore) {
-                    ((PatternSet) this.getDelegate()).include("userguide_single.adoc");
-                    return null;
-                }
-            });
-            task.backends("pdf");
+            task.sources(patternSet -> patternSet.include("userguide_single.adoc"));
+
+            task.outputOptions(options -> options.setBackends(singletonList("pdf")));
 
             // TODO: This breaks the provider
             task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
@@ -248,15 +247,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setDescription("Generates multi-page user manual.");
             task.dependsOn(extension.getUserManual().getStagedDocumentation());
 
-            task.sources(new Closure(null) {
-                public Object doCall(Object ignore) {
-                    ((PatternSet) this.getDelegate()).include("**/*.adoc");
-                    ((PatternSet) this.getDelegate()).exclude("javaProject*Layout.adoc");
-                    ((PatternSet) this.getDelegate()).exclude("userguide_single.adoc");
-                    ((PatternSet) this.getDelegate()).exclude("snippets/**/*.adoc");
-                    return null;
-                }
+            task.sources(patternSet -> {
+                patternSet.include("**/*.adoc");
+                patternSet.exclude("javaProject*Layout.adoc");
+                patternSet.exclude("userguide_single.adoc");
+                patternSet.exclude("snippets/**/*.adoc");
             });
+
             // TODO: This breaks the provider
             task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
             // TODO: This breaks the provider

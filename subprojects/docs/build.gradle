@@ -1,4 +1,5 @@
 import gradlebuild.integrationtests.model.GradleDistribution
+import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.samples.internal.tasks.InstallSample
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
@@ -7,7 +8,7 @@ import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
 plugins {
     id 'gradlebuild.internal.java'
     // TODO: Apply asciidoctor in documentation plugin instead.
-    id 'org.asciidoctor.convert'
+    id 'org.asciidoctor.jvm.convert'
     id 'gradlebuild.documentation'
     id 'gradlebuild.generate-samples'
 }
@@ -33,10 +34,6 @@ configurations {
 dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly project(":distributions-full")
-
-    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.4.0"
-    // TODO: Why isn't this using the output instead?
-    asciidoctor project.files("src/main/resources")
 
     userGuideTask 'xalan:xalan:2.7.1'
     userGuideTask 'xerces:xercesImpl:2.11.0'
@@ -72,8 +69,21 @@ configurations.docsTestRuntimeClasspath {
 }
 
 asciidoctorj {
-    version = '1.5.8.1'
-    noDefaultRepositories = true
+    version = '2.4.2'
+    modules.pdf.version '1.5.4'
+}
+
+tasks.withType(AsciidoctorTask).configureEach { task ->
+    if (task.name == "userguideSinglePage") {
+        task.asciidoctorj.docExtensions(
+            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions-base:0.10.0"),
+        )
+    } else {
+        task.asciidoctorj.docExtensions(
+            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions:0.10.0"),
+            project.getDependencies().create(project.files("src/main/resources"))
+        )
+    }
 }
 
 gradleDocumentation {
