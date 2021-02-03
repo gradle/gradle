@@ -267,16 +267,31 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
     }
 
+    @SuppressWarnings("deprecation")
     private class CustomCompilationUnit extends CompilationUnit {
         public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
-            this.verifier = new Verifier() {
-                @Override
-                public void visitClass(ClassNode node) {
-                    customVerifier.execute(node);
-                    super.visitClass(node);
-                }
-            };
+            try {
+                final Field classgen = CompilationUnit.class.getDeclaredField("classgen");
+                classgen.setAccessible(true);
+                final IPrimaryClassNodeOperation realClassgen = (IPrimaryClassNodeOperation) classgen.get(this);
+                classgen.set(this, new PrimaryClassNodeOperation() {
+
+                    @Override
+                    public boolean needSortedInput() {
+                        return realClassgen.needSortedInput();
+                    }
+
+                    @Override
+                    public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
+                        customVerifier.execute(classNode);
+                        realClassgen.call(source, context, classNode);
+                    }
+                });
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
             this.resolveVisitor = new GradleResolveVisitor(this, simpleNameToFQN);
         }
     }
