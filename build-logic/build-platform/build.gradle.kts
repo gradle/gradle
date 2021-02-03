@@ -47,7 +47,7 @@ dependencies {
         api("org.asciidoctor:asciidoctorj:2.4.2")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.3")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
-        api("org.codenarc:CodeNarc:1.5")
+        api("org.codenarc:CodeNarc:2.0.0")
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.23.0-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.2.0")
