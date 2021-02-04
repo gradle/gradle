@@ -68,11 +68,11 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(AntlrPlugin)
 
         then:
-        def main = project.tasks.generateGrammarSource
+        def main = project.tasks.generateGrammarSource.get()
         main instanceof AntlrTask
         project.tasks.compileJava.taskDependencies.getDependencies(null).contains(main)
 
-        def test = project.tasks.generateTestGrammarSource
+        def test = project.tasks.generateTestGrammarSource.get()
         test instanceof AntlrTask
         project.tasks.compileTestJava.taskDependencies.getDependencies(null).contains(test)
 
@@ -80,7 +80,7 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         project.sourceSets.create('custom')
 
         then:
-        def custom = project.tasks.generateCustomGrammarSource
+        def custom = project.tasks.generateCustomGrammarSource.get()
         custom instanceof AntlrTask
         project.tasks.compileCustomJava.taskDependencies.getDependencies(null).contains(custom)
     }

@@ -79,7 +79,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-                c.generatedBy tasks.generateCSources
+                c.generatedBy tasks.generateCSources.get()
             }
         }
     }
@@ -108,7 +108,7 @@ model {
     components { comp ->
         headersOnly(NativeLibrarySpec) {
             sources {
-                c.generatedBy tasks.generateCSources
+                c.generatedBy tasks.generateCSources.get()
             }
         }
         main(NativeExecutableSpec) {
@@ -141,7 +141,7 @@ model {
         main(NativeExecutableSpec) {
             sources {
                 generatedC(CSourceSet) {
-                    generatedBy tasks.generateCSources
+                    generatedBy tasks.generateCSources.get()
                 }
                 c.lib sources.generatedC
             }
@@ -176,7 +176,7 @@ model {
         hello(NativeLibrarySpec) {
             sources {
                 c {
-                    generatedBy tasks.generateCSources
+                    generatedBy tasks.generateCSources.get()
                 }
             }
         }
@@ -214,7 +214,7 @@ model {
         hello(NativeLibrarySpec) {
             sources {
                 c {
-                    generatedBy tasks.generateCSources
+                    generatedBy tasks.generateCSources.get()
                 }
             }
         }
@@ -247,7 +247,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-                cpp.generatedBy tasks.generateCppSources
+                cpp.generatedBy tasks.generateCppSources.get()
             }
         }
     }
@@ -283,7 +283,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-                asm.generatedBy tasks.generateAsmSources
+                asm.generatedBy tasks.generateAsmSources.get()
             }
         }
     }
@@ -318,7 +318,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-                rc.generatedBy tasks.generateRcSources
+                rc.generatedBy tasks.generateRcSources.get()
             }
         }
     }
@@ -341,7 +341,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-                c.generatedBy tasks.generateSources
+                c.generatedBy tasks.generateSources.get()
             }
         }
     }
@@ -407,7 +407,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-                c.generatedBy tasks.lateConfiguredGenerator
+                c.generatedBy tasks.lateConfiguredGenerator.get()
             }
         }
     }
@@ -440,7 +440,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-                c.generatedBy tasks.generateCSources
+                c.generatedBy tasks.generateCSources.get()
             }
         }
     }

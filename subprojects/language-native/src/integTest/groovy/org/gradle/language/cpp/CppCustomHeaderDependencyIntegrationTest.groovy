@@ -137,7 +137,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
             publishing {
                 publications {
                     headers(${repoType.capitalize()}Publication) {
-                        artifact zipHeaders
+                        artifact zipHeaders.get()
                         ${group(repoType)} = "org.gradle.test"
                         ${version(repoType)} = "1.0"
                     }

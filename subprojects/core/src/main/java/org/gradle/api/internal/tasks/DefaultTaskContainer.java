@@ -48,8 +48,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.metaobject.BeanDynamicObject;
-import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -661,49 +659,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
     }
 
-    public class TaskProviderBeanDynamicObject<I extends Task> extends BeanDynamicObject {
-        private final TaskCreatingProvider<I> taskProvider;
-
-        public TaskProviderBeanDynamicObject(TaskCreatingProvider<I> bean) {
-            super(bean);
-            taskProvider = bean;
-        }
-
-        private DynamicObject taskDynamicObject() {
-            return ((DefaultTask) taskProvider.get()).getAsDynamicObject();
-        }
-
-        @Override
-        public DynamicInvokeResult tryGetProperty(String name) {
-            DynamicInvokeResult result = super.tryGetProperty(name);
-            if (!result.isFound()) {
-                return taskDynamicObject().tryGetProperty(name);
-            } else {
-                return result;
-            }
-        }
-
-        @Override
-        public DynamicInvokeResult trySetProperty(String name, Object value) {
-            DynamicInvokeResult result = super.trySetProperty(name, value);
-            if (!result.isFound()) {
-                return taskDynamicObject().trySetProperty(name, value);
-            } else {
-                return result;
-            }
-        }
-
-        @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
-            DynamicInvokeResult result = super.tryInvokeMethod(name, arguments);
-            if (!result.isFound()) {
-                return taskDynamicObject().tryInvokeMethod(name, arguments);
-            } else {
-                return result;
-            }
-        }
-    }
-
     // Cannot be private due to reflective instantiation
     public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I>, DynamicObjectAware {
         private final TaskIdentity<I> identity;
@@ -720,9 +675,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public DynamicObject getAsDynamicObject() {
             if (dynamicObject == null) {
-                dynamicObject = new TaskProviderBeanDynamicObject<>(this);
+                dynamicObject = new TaskProviderBeanDynamicObject<I>(this);
             }
             return dynamicObject;
+        }
+
+        public void call(Action<? super I> action) {
+            configure(action);
         }
 
         public ImmutableActionSet<I> getOnCreateActions() {

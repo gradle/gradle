@@ -34,7 +34,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
             signing {
                 ${signingConfiguration()}
-                sign jar
+                sign jar.get()
             }
         """
 
@@ -63,7 +63,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
             signing {
                 ${signingConfiguration()}
-                sign jar, javadocJar, sourcesJar
+                sign jar.get(), javadocJar.get(), sourcesJar.get()
             }
         """
 
@@ -94,7 +94,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             ${keyInfo.addAsPropertiesScript()}
             signing {
                 ${signingConfiguration()}
-                sign(jar)
+                sign(jar.get())
             }
         """
 
@@ -134,7 +134,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             ${keyInfo.addAsPropertiesScript()}
             signing {
                 ${signingConfiguration()}
-                sign(jar)
+                sign(jar.get())
             }
         """
 
@@ -274,7 +274,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         buildFile << """
             signing {
                 ${signingConfiguration()}
-                sign clean
+                sign clean.get()
             }
         """
 
@@ -293,7 +293,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
             signing {
                 ${signingConfiguration()}
-                sign jar
+                sign jar.get()
             }
 
             jar {
@@ -320,7 +320,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             ${getKeyInfo("subkey").addAsPropertiesScript()}
 
             signing {
-                sign jar
+                sign jar.get()
             }
         """
 

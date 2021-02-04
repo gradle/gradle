@@ -208,7 +208,7 @@ assert 'overridden value' == global
             javaTask.custom = 'another value'
             groovyTask.custom = 'another value'
             assert !project.hasProperty('custom')
-            assert defaultTask.hasProperty('custom')
+            assert defaultTask.get().hasProperty('custom')
             assert defaultTask.custom == 'another value'
             assert javaTask.custom == 'another value'
             assert groovyTask.custom == 'another value'
@@ -624,8 +624,8 @@ task print(type: MyTask) {
     def failsWhenGettingUnknownPropertyOnTask() {
         buildFile """
             task p
-            assert !tasks.p.hasProperty("p1")
-            println tasks.p.p1
+            assert !tasks.p.get().hasProperty("p1")
+            println tasks.p.get().p1
         """
 
         expect:
@@ -698,8 +698,8 @@ task print(type: MyTask) {
     def failsWhenSettingUnknownPropertyOnTask() {
         buildFile """
             task p
-            assert !tasks.p.hasProperty("p1")
-            tasks.p.p1 = 1
+            assert !tasks.p.get().hasProperty("p1")
+            tasks.p.get().p1 = 1
         """
 
         expect:
@@ -742,7 +742,7 @@ task print(type: MyTask) {
     def failsWhenInvokingUnknownMethodOnDecoratedObject() {
         buildFile """
             task p
-            tasks.p.unknown(12, "things")
+            tasks.p.get().unknown(12, "things")
         """
 
         expect:

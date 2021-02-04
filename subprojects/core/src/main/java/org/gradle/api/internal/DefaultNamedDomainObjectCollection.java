@@ -529,9 +529,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public DynamicInvokeResult tryGetProperty(String name) {
-            if (avoidConfigurationInDynamicMemberLookup()) {
-                return !getNames().contains(name) ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(named(name));
+            if (avoidConfigurationInDynamicMemberLookup() && getNames().contains(name)) {
+                return DynamicInvokeResult.found(named(name));
             }
+            // even if we do avoidConfigurationInDynamicMemberLookup(), we need to fall back to 'findByName()', as rules applied on tasks might create additional elements
             T t = findByName(name);
             return t == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(t);
         }

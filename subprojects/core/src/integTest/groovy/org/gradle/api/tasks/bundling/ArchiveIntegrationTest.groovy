@@ -666,7 +666,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             }
             task explodedZip(type: Copy) {
                 into 'build/exploded'
-                with zip
+                with zip.get()
             }
             task copyFromRootSpec(type: Copy) {
                 into 'build/copy'

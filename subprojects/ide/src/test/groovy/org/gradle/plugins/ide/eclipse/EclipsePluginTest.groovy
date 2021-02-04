@@ -37,7 +37,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.tasks.findByPath(':eclipseClasspath') == null
-        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject.get())
         checkEclipseProjectTask([], [])
     }
 
@@ -47,8 +47,8 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         project.apply(plugin: 'java-base')
         project.evaluate()
         then:
-        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
-        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject.get())
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath.get())
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([])
         checkEclipseJdt()
@@ -69,8 +69,8 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         project.evaluate()
 
         then:
-        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
-        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject.get())
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath.get())
         checkEclipseProjectTask([new BuildCommand('org.scala-ide.sdt.core.scalabuilder')],
                 ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([], scalaIdeContainer)
@@ -89,8 +89,8 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         project.evaluate()
 
         then:
-        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
-        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject.get())
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath.get())
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.groovy.core.groovyNature',
                 'org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([])
@@ -141,9 +141,9 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
     }
 
     private void checkEclipseProjectTask(List buildCommands, List natures) {
-        GenerateEclipseProject eclipseProjectTask = project.eclipseProject
+        GenerateEclipseProject eclipseProjectTask = project.eclipseProject.get()
         assert eclipseProjectTask instanceof GenerateEclipseProject
-        assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseProjectTask)
+        assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse.get()).contains(eclipseProjectTask)
         assert eclipseProjectTask.outputFile == project.file('.project')
 
         assert project.eclipse.project.buildCommands == buildCommands
@@ -152,12 +152,12 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
 
     private void checkEclipseClasspath(def configurations, def additionalContainers = []) {
         def classpath = project.eclipse.classpath
-        def classpathTask = project.tasks.eclipseClasspath
+        def classpathTask = project.tasks.eclipseClasspath.get()
 
         assert classpathTask instanceof GenerateEclipseClasspath
         assert classpathTask.classpath == classpath
         assert classpathTask.outputFile == project.file('.classpath')
-        assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(classpathTask)
+        assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse.get()).contains(classpathTask)
 
         assert classpath.sourceSets == project.sourceSets
         assert classpath.plusConfigurations == configurations
@@ -168,14 +168,14 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
     }
 
     private void checkEclipseJdt() {
-        GenerateEclipseJdt eclipseJdt = project.eclipseJdt
-        assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseJdt)
+        GenerateEclipseJdt eclipseJdt = project.eclipseJdt.get()
+        assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse.get()).contains(eclipseJdt)
         assert eclipseJdt.outputFile == project.file('.settings/org.eclipse.jdt.core.prefs')
     }
 
     void assertThatCleanEclipseDependsOn(Project project, Task dependsOnTask) {
         assert dependsOnTask instanceof Delete
-        assert project.cleanEclipse.taskDependencies.getDependencies(project.cleanEclipse).contains(dependsOnTask)
+        assert project.cleanEclipse.taskDependencies.getDependencies(project.cleanEclipse.get()).contains(dependsOnTask)
     }
 }
 

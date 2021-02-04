@@ -75,7 +75,7 @@ class CppApplicationPluginTest extends Specification {
         project.evaluate()
 
         then:
-        def compileDebugCpp = project.tasks.compileDebugCpp
+        def compileDebugCpp = project.tasks.compileDebugCpp.get()
         compileDebugCpp instanceof CppCompile
         compileDebugCpp.includes.files.first() == project.file("src/main/headers")
         compileDebugCpp.source.files == [src] as Set
@@ -83,17 +83,17 @@ class CppApplicationPluginTest extends Specification {
         compileDebugCpp.debuggable
         !compileDebugCpp.optimized
 
-        def linkDebug = project.tasks.linkDebug
+        def linkDebug = project.tasks.linkDebug.get()
         linkDebug instanceof LinkExecutable
         linkDebug.linkedFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
         linkDebug.debuggable
 
-        def installDebug = project.tasks.installDebug
+        def installDebug = project.tasks.installDebug.get()
         installDebug instanceof InstallExecutable
         installDebug.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
         installDebug.runScriptFile.get().getAsFile().name == OperatingSystem.current().getScriptName("testApp")
 
-        def compileReleaseCpp = project.tasks.compileReleaseCpp
+        def compileReleaseCpp = project.tasks.compileReleaseCpp.get()
         compileReleaseCpp instanceof CppCompile
         compileReleaseCpp.includes.files.first() == project.file("src/main/headers")
         compileReleaseCpp.source.files == [src] as Set
@@ -101,12 +101,12 @@ class CppApplicationPluginTest extends Specification {
         compileReleaseCpp.debuggable
         compileReleaseCpp.optimized
 
-        def linkRelease = project.tasks.linkRelease
+        def linkRelease = project.tasks.linkRelease.get()
         linkRelease instanceof LinkExecutable
         linkRelease.linkedFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("testApp"))
         linkRelease.debuggable
 
-        def installRelease = project.tasks.installRelease
+        def installRelease = project.tasks.installRelease.get()
         installRelease instanceof InstallExecutable
         installRelease.installDirectory.get().asFile == projectDir.file("build/install/main/release")
         installRelease.runScriptFile.get().getAsFile().name == OperatingSystem.current().getScriptName("testApp")

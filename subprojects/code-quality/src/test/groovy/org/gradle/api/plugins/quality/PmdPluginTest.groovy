@@ -168,8 +168,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         hasCustomizedSettings("pmdMain", project.sourceSets.main)
         hasCustomizedSettings("pmdTest", project.sourceSets.test)
         hasCustomizedSettings("pmdOther", project.sourceSets.other)
-        that(project.check, dependsOn(hasItem('pmdMain')))
-        that(project.check, dependsOn(not(hasItems('pmdTest', 'pmdOther'))))
+        that(project.check.get(), dependsOn(hasItem('pmdMain')))
+        that(project.check.get(), dependsOn(not(hasItems('pmdTest', 'pmdOther'))))
     }
 
     private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {

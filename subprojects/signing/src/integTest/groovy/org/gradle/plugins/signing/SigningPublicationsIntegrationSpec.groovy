@@ -132,14 +132,14 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             ${keyInfo.addAsPropertiesScript()}
 
             task customJar(type:Jar) {
-                with jar
+                with jar.get()
                 archiveClassifier = 'custom'
             }
 
             publishing {
                 publications {
                     custom(MavenPublication) {
-                        artifact customJar
+                        artifact customJar.get()
                     }
                 }
             }
@@ -329,7 +329,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                     ivyJava(IvyPublication) {
                         from components.java
                         module '$artifactId'
-                        artifact(sourceJar) {
+                        artifact(sourceJar.get()) {
                             type "source"
                             conf "compile"
                         }

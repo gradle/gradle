@@ -35,7 +35,7 @@ class WrapperPluginSpec extends Specification {
         project.pluginManager.apply WrapperPlugin
 
         then:
-        project.tasks.wrapper instanceof Wrapper
+        project.tasks.wrapper.get() instanceof Wrapper
         project.tasks.wrapper.group == "Build Setup"
     }
 }

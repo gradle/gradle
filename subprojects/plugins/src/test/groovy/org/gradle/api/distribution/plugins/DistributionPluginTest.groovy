@@ -56,7 +56,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(DistributionPlugin)
 
         then:
-        def task = project.tasks.distZip
+        def task = project.tasks.distZip.get()
         task instanceof Zip
         task.archivePath == project.file("build/distributions/test-project.zip")
     }
@@ -67,7 +67,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         project.distributions.create('custom')
 
         then:
-        def task = project.tasks.customDistZip
+        def task = project.tasks.customDistZip.get()
         task instanceof Zip
         task.archivePath == project.file("build/distributions/test-project-custom.zip")
     }
@@ -77,7 +77,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(DistributionPlugin)
 
         then:
-        def task = project.tasks.distTar
+        def task = project.tasks.distTar.get()
         task instanceof Tar
         task.archivePath == project.file("build/distributions/test-project.tar")
     }
@@ -88,7 +88,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         project.distributions.create('custom')
 
         then:
-        def task = project.tasks.customDistTar
+        def task = project.tasks.customDistTar.get()
         task instanceof Tar
         task.archivePath == project.file("build/distributions/test-project-custom.tar")
     }
@@ -99,7 +99,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         project.distributions.create('custom')
 
         then:
-        def task = project.tasks.assembleCustomDist
+        def task = project.tasks.assembleCustomDist.get()
         task instanceof DefaultTask
         task TaskDependencyMatchers.dependsOn ("customDistZip","customDistTar")
     }
@@ -121,7 +121,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(DistributionPlugin)
 
         then:
-        def task = project.installDist
+        def task = project.installDist.get()
         task instanceof Sync
         task.destinationDir == project.file("build/install/test-project")
     }
@@ -132,7 +132,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         project.distributions.create('custom')
 
         then:
-        def task = project.installCustomDist
+        def task = project.installCustomDist.get()
         task instanceof Sync
         task.destinationDir == project.file("build/install/test-project-custom")
     }

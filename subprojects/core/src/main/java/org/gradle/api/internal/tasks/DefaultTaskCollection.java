@@ -19,12 +19,14 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.plugins.DslObject;
@@ -36,6 +38,9 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.ModelPath;
 
@@ -197,14 +202,67 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     // Cannot be private due to reflective instantiation
-    public class ExistingTaskProvider<I extends T> extends ExistingNamedDomainObjectProvider<I> implements TaskProvider<I> {
+    public class ExistingTaskProvider<I extends T> extends ExistingNamedDomainObjectProvider<I> implements TaskProvider<I>, DynamicObjectAware {
+        private TaskProviderBeanDynamicObject<I> dynamicObject;
+
         public ExistingTaskProvider(String name, Class<I> type) {
             super(name, type);
         }
 
         @Override
+        public DynamicObject getAsDynamicObject() {
+            if (dynamicObject == null) {
+                dynamicObject = new TaskProviderBeanDynamicObject<I>(this);
+            }
+            return dynamicObject;
+        }
+
+        @Override
         public ValueProducer getProducer() {
             return ValueProducer.taskState(get());
+        }
+    }
+
+    public class TaskProviderBeanDynamicObject<I extends Task> extends BeanDynamicObject {
+        private final TaskProvider<I> taskProvider;
+
+        public TaskProviderBeanDynamicObject(TaskProvider<I> bean) {
+            super(bean);
+            taskProvider = bean;
+        }
+
+        private DynamicObject taskDynamicObject() {
+            return ((DefaultTask) taskProvider.get()).getAsDynamicObject();
+        }
+
+        @Override
+        public DynamicInvokeResult tryGetProperty(String name) {
+            DynamicInvokeResult result = super.tryGetProperty(name);
+            if (!result.isFound()) {
+                return taskDynamicObject().tryGetProperty(name);
+            } else {
+                return result;
+            }
+        }
+
+        @Override
+        public DynamicInvokeResult trySetProperty(String name, Object value) {
+            DynamicInvokeResult result = super.trySetProperty(name, value);
+            if (!result.isFound()) {
+                return taskDynamicObject().trySetProperty(name, value);
+            } else {
+                return result;
+            }
+        }
+
+        @Override
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+            DynamicInvokeResult result = super.tryInvokeMethod(name, arguments);
+            if (!result.isFound()) {
+                return taskDynamicObject().tryInvokeMethod(name, arguments);
+            } else {
+                return result;
+            }
         }
     }
 }

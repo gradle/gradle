@@ -29,7 +29,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         when:
         buildFile << """
             signing {
-                sign jar
+                sign jar.get()
             }
         """
 

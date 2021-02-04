@@ -90,7 +90,7 @@ class ProjectBuilderTest extends Specification {
         project.apply plugin: CustomPlugin
 
         then:
-        project.tasks.hello instanceof DefaultTask
+        project.tasks.hello.get() instanceof DefaultTask
     }
 
     def canApplyACustomPluginById() {
@@ -99,7 +99,7 @@ class ProjectBuilderTest extends Specification {
         project.apply plugin: 'custom-plugin'
 
         then:
-        project.tasks.hello instanceof DefaultTask
+        project.tasks.hello.get() instanceof DefaultTask
     }
 
     def canApplyACustomPluginByType() {
@@ -108,7 +108,7 @@ class ProjectBuilderTest extends Specification {
         project.pluginManager.apply(CustomPlugin)
 
         then:
-        project.tasks.hello instanceof DefaultTask
+        project.tasks.hello.get() instanceof DefaultTask
     }
 
     def canCreateAndExecuteACustomTask() {
@@ -128,7 +128,7 @@ class ProjectBuilderTest extends Specification {
         project.apply from: resources.getResource('ProjectBuilderTest.gradle')
 
         then:
-        project.tasks.hello instanceof DefaultTask
+        project.tasks.hello.get() instanceof DefaultTask
     }
 
     def "Can trigger afterEvaluate programmatically"() {

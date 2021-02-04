@@ -35,7 +35,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                     artifact "customFile.txt"
                     artifact customDocsTask.outputFile
                     artifact regularFileTask.outputFile
-                    artifact customJar
+                    artifact customJar.get()
                     artifact provider { file("customFile.foo") }
                     artifact provider { "customFile.bar" }
                 }
@@ -103,7 +103,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                         name "regular"
                         extension "txt"
                     }
-                    artifact(customJar) {
+                    artifact(customJar.get()) {
                         extension "war"
                         type "web-archive"
                         conf "*"
@@ -152,7 +152,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                     artifact source: "customFile.txt", name: "customFile", classifier: "classified", conf: "foo,bar"
                     artifact source: customDocsTask.outputFile, name: "docs", extension: "htm", builtBy: customDocsTask
                     artifact source: regularFileTask.outputFile, name: "regular", extension: "txt"
-                    artifact source: customJar, extension: "war", type: "web-archive", conf: "*"
+                    artifact source: customJar.get(), extension: "war", type: "web-archive", conf: "*"
                 }
             }
 """)
@@ -188,7 +188,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
             publications {
                 ivy(IvyPublication) {
                     from components.java
-                    artifacts = ["customFile.txt", customDocsTask.outputFile, customJar]
+                    artifacts = ["customFile.txt", customDocsTask.outputFile, customJar.get()]
                 }
             }
 """, """
@@ -219,7 +219,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                     }
                     artifact source: "customFile.txt", name: "customFile"
                     artifact source: customDocsTask.outputFile, name: "docs", builtBy: customDocsTask
-                    artifact source: customJar
+                    artifact source: customJar.get()
                 }
             }
 """, """
@@ -277,7 +277,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    artifact source: customJar, classifier: "classy"
+                    artifact source: customJar.get(), classifier: "classy"
                 }
             }
 """)
@@ -400,7 +400,7 @@ The following types/formats are supported:
         given:
         createBuildScripts("""
             publications.create("ivyCustom", IvyPublication) {
-                artifact customJar
+                artifact customJar.get()
             }
         """, "version = 2.0")
         when:

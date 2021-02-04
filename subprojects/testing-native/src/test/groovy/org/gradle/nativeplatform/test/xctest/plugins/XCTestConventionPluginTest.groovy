@@ -135,24 +135,24 @@ class XCTestConventionPluginTest extends Specification {
         project.evaluate()
 
         then:
-        def compileSwift = project.tasks.compileTestSwift
+        def compileSwift = project.tasks.compileTestSwift.get()
         compileSwift instanceof SwiftCompile
         compileSwift.source.files == [src] as Set
         compileSwift.objectFileDir.get().asFile == projectDir.file("build/obj/test")
         compileSwift.debuggable
         !compileSwift.optimized
 
-        def link = project.tasks.linkTest
+        def link = project.tasks.linkTest.get()
         link instanceof LinkMachOBundle
         link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
         link.debuggable
 
-        def install = project.tasks.installTest
+        def install = project.tasks.installTest.get()
         install instanceof InstallXCTestBundle
         install.installDirectory.get().asFile == project.file("build/install/test")
         install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("TestAppTest")
 
-        def test = project.tasks.xcTest
+        def test = project.tasks.xcTest.get()
         test instanceof XCTest
         test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }
@@ -167,24 +167,24 @@ class XCTestConventionPluginTest extends Specification {
         project.evaluate()
 
         then:
-        def compileSwift = project.tasks.compileTestSwift
+        def compileSwift = project.tasks.compileTestSwift.get()
         compileSwift instanceof SwiftCompile
         compileSwift.source.files == [src] as Set
         compileSwift.objectFileDir.get().asFile == projectDir.file("build/obj/test")
         compileSwift.debuggable
         !compileSwift.optimized
 
-        def link = project.tasks.linkTest
+        def link = project.tasks.linkTest.get()
         link instanceof LinkExecutable
         link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
         link.debuggable
 
-        def install = project.tasks.installTest
+        def install = project.tasks.installTest.get()
         install instanceof InstallExecutable
         install.installDirectory.get().asFile == project.file("build/install/test")
         install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("TestAppTest")
 
-        def test = project.tasks.xcTest
+        def test = project.tasks.xcTest.get()
         test instanceof XCTest
         test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }

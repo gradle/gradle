@@ -14,7 +14,7 @@ model {
         main(NativeExecutableSpec) {
             sources {
                 idlOutput(CSourceSet) {
-                    generatedBy tasks.idl
+                    generatedBy tasks.idl.get()
                 }
                 c.lib sources.idlOutput
             }

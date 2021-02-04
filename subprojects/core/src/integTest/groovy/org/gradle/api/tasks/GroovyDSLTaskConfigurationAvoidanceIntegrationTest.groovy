@@ -55,6 +55,17 @@ class GroovyDSLTaskConfigurationAvoidanceIntegrationTest extends AbstractIntegra
         outputContains('help task created')
     }
 
+    def "can access task property through provider if task was already created"() {
+        buildFile << """
+            tasks.help.get() // realize the task
+            tasks.help.taskPath = 'projects'
+        """
+
+        expect:
+        succeeds('projects')
+        outputContains('help task created')
+    }
+
     def "task is not eagerly created when a detail of the provider is accessed"() {
         buildFile << """
             tasks.help.name
@@ -63,6 +74,29 @@ class GroovyDSLTaskConfigurationAvoidanceIntegrationTest extends AbstractIntegra
         expect:
         succeeds('projects')
         outputDoesNotContain('help task created')
+    }
+
+    def "task provider can be stored and used"() {
+        buildFile << """
+            def helpTaskProvider = tasks.help
+            assert helpTaskProvider instanceof TaskProvider
+            helpTaskProvider {
+                println("help task configured")
+            }
+        """
+
+        when:
+        succeeds('projects')
+
+        then:
+        outputDoesNotContain('help task created')
+        outputDoesNotContain('help task configured')
+
+        and:
+        succeeds('help')
+
+        then:
+        outputContains('help task created\nhelp task configured')
     }
 
 }

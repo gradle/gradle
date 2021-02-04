@@ -32,7 +32,7 @@ class SigningConfigurationsWithGpgCmdIntegrationSpec extends SigningConfiguratio
             ${keyInfo.addAsPropertiesScript()}
             signing {
                 useGpgCmd()
-                sign(jar)
+                sign(jar.get())
                 signatories = new ${GnupgSignatoryProvider.name}()
             }
         """

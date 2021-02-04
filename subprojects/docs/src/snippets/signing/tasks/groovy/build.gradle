@@ -14,6 +14,6 @@ task stuffZip(type: Zip) {
 }
 
 signing {
-    sign stuffZip
+    sign stuffZip.get()
 }
 // end::sign-task[]

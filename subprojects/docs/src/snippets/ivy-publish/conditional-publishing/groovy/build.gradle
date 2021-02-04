@@ -19,7 +19,7 @@ publishing {
         }
         binaryAndSources(IvyPublication) {
             from components.java
-            artifact sourcesJar
+            artifact sourcesJar.get()
         }
     }
     repositories {

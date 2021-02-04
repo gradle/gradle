@@ -53,8 +53,8 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         wtpPlugin.apply(project)
 
         then:
-        project.tasks.eclipse.taskDependencies.getDependencies(null).contains(project.eclipseWtp)
-        project.tasks.cleanEclipse.taskDependencies.getDependencies(null).contains(project.cleanEclipseWtp)
+        project.tasks.eclipse.taskDependencies.getDependencies(null).contains(project.eclipseWtp.get())
+        project.tasks.cleanEclipse.taskDependencies.getDependencies(null).contains(project.cleanEclipseWtp.get())
     }
 
     def applyToJavaProject_shouldHaveWebProjectAndClasspathTask() {
@@ -64,7 +64,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         wtpPlugin.apply(project)
 
         then:
-        [project.tasks.cleanEclipseWtpComponent, project.tasks.cleanEclipseWtpFacet].each {
+        [project.tasks.cleanEclipseWtpComponent.get(), project.tasks.cleanEclipseWtpFacet.get()].each {
             assert project.tasks.cleanEclipseWtp.dependsOn*.get().contains(it)
         }
         checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath])
@@ -82,7 +82,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         project.sourceCompatibility = 1.7
 
         then:
-        [project.tasks.cleanEclipseWtpComponent, project.tasks.cleanEclipseWtpFacet].each {
+        [project.tasks.cleanEclipseWtpComponent.get(), project.tasks.cleanEclipseWtpFacet.get()].each {
             assert project.tasks.cleanEclipseWtp.dependsOn*.get().contains(it)
         }
         checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath])
@@ -120,7 +120,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         project.apply(plugin: 'eclipse-wtp')
 
         then:
-        [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
+        [project.cleanEclipseWtpComponent.get(), project.cleanEclipseWtpFacet.get()].each {
             assert project.tasks.cleanEclipseWtp.dependsOn*.get().contains(it)
         }
 
@@ -140,7 +140,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         project.sourceCompatibility = 1.8
 
         then:
-        [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
+        [project.cleanEclipseWtpComponent.get(), project.cleanEclipseWtpFacet.get()].each {
             assert project.tasks.cleanEclipseWtp.dependsOn*.get().contains(it)
         }
 
@@ -213,7 +213,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
+        [project.cleanEclipseWtpComponent.get(), project.cleanEclipseWtpFacet.get()].each {
             assert project.cleanEclipseWtp.dependsOn*.get().contains(it)
         }
 
@@ -303,10 +303,10 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
 
     private void checkEclipseWtpFacet(def expectedFacets) {
         def wtp = project.eclipse.wtp.facet
-        def eclipseWtpFacet = project.eclipseWtpFacet
+        def eclipseWtpFacet = project.eclipseWtpFacet.get()
         assert eclipseWtpFacet instanceof GenerateEclipseWtpFacet
         assert eclipseWtpFacet.facet == wtp
-        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp).contains(eclipseWtpFacet)
+        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp.get()).contains(eclipseWtpFacet)
         assert eclipseWtpFacet.inputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtpFacet.outputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert wtp.facets.sort() == expectedFacets.sort()
@@ -344,9 +344,9 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
 
     private def checkAndGetEclipseWtpComponent() {
         def wtp = project.eclipse.wtp.component
-        def eclipseWtpComponent = project.eclipseWtpComponent
+        def eclipseWtpComponent = project.eclipseWtpComponent.get()
         assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
-        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp).contains(eclipseWtpComponent)
+        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp.get()).contains(eclipseWtpComponent)
         assert eclipseWtpComponent.component == wtp
         assert eclipseWtpComponent.inputFile == project.file('.settings/org.eclipse.wst.common.component')
         assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')

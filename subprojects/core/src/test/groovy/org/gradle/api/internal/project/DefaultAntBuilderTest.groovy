@@ -106,17 +106,17 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         ant.importBuild(buildFile)
 
         then:
-        def task = project.tasks.target1
+        def task = project.tasks.target1.get()
         task instanceof AntTarget
         task.target.name == 'target1'
 
         and:
-        def task2 = project.tasks.target2
+        def task2 = project.tasks.target2.get()
         task2 instanceof AntTarget
         task2.target.name == 'target2'
 
         and:
-        def task3 = project.tasks.target3
+        def task3 = project.tasks.target3.get()
         task3 instanceof AntTarget
         task3.target.name == 'target3'
     }
@@ -192,7 +192,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        def task = project.tasks.'a-target1'
+        def task = project.tasks.'a-target1'.get()
         task instanceof AntTarget
         task.target.name == 'target1'
         task.taskDependencies.getDependencies(task).name.sort() == ["a-target2", "a-target3"]

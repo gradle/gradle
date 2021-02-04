@@ -28,17 +28,17 @@ class SigningTasksSpec extends SigningProjectSpec {
 
         when:
         signing {
-            sign jar
-            sign sourcesJar, javadocJar
+            sign jar.get()
+            sign sourcesJar.get(), javadocJar.get()
         }
 
         then:
         def signingTasks = [signJar, signSourcesJar, signJavadocJar]
 
         and:
-        jar in signJar.dependsOn
-        sourcesJar in signSourcesJar.dependsOn
-        javadocJar in signJavadocJar.dependsOn
+        jar.get() in signJar.dependsOn
+        sourcesJar.get() in signSourcesJar.dependsOn
+        javadocJar.get() in signJavadocJar.dependsOn
 
         and:
         signingTasks.every { it.singleSignature in configurations.signatures.artifacts }
@@ -52,13 +52,13 @@ class SigningTasksSpec extends SigningProjectSpec {
         useJavadocAndSourceJars()
 
         when:
-        def signJarTask = signing.sign(jar).first()
+        def signJarTask = signing.sign(jar.get()).first()
 
         then:
         signJarTask.name == "signJar"
 
         when:
-        def (signSourcesJarTask, signJavadocJarTask) = signing.sign(sourcesJar, javadocJar)
+        def (signSourcesJarTask, signJavadocJarTask) = signing.sign(sourcesJar.get(), javadocJar.get())
 
         then:
         [signSourcesJarTask, signJavadocJarTask]*.name == ["signSourcesJar", "signJavadocJar"]
@@ -72,7 +72,7 @@ class SigningTasksSpec extends SigningProjectSpec {
         createJarTaskOutputFile('jar')
 
         when:
-        Sign signTask = signing.sign(jar).first()
+        Sign signTask = signing.sign(jar.get()).first()
 
         then:
         def libsDir = jar.outputs.files.singleFile.parentFile
@@ -86,7 +86,7 @@ class SigningTasksSpec extends SigningProjectSpec {
         addSigningProperties()
 
         when:
-        Sign signTask = signing.sign(jar).first()
+        Sign signTask = signing.sign(jar.get()).first()
         jar.enabled = false
 
         then:
@@ -101,7 +101,7 @@ class SigningTasksSpec extends SigningProjectSpec {
         createJarTaskOutputFile('jar')
 
         when:
-        Sign signTask = signing.sign(jar).first()
+        Sign signTask = signing.sign(jar.get()).first()
         signTask.sign('', jar.outputs.files.singleFile) // add jar task output again, this time directly as File
 
         then:
@@ -116,7 +116,7 @@ class SigningTasksSpec extends SigningProjectSpec {
 
         when:
         signing {
-            sign jar, sourcesJar
+            sign jar.get(), sourcesJar.get()
         }
 
         then:

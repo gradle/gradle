@@ -125,7 +125,7 @@ class CppLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
-        def compileDebugCpp = project.tasks.compileDebugCpp
+        def compileDebugCpp = project.tasks.compileDebugCpp.get()
         compileDebugCpp instanceof CppCompile
         compileDebugCpp.includes.files.take(2) as List == [publicHeaders, privateHeaders]
         compileDebugCpp.source.files as List == [src]
@@ -133,12 +133,12 @@ class CppLibraryPluginTest extends Specification {
         compileDebugCpp.debuggable
         !compileDebugCpp.optimized
 
-        def linkDebug = project.tasks.linkDebug
+        def linkDebug = project.tasks.linkDebug.get()
         linkDebug instanceof LinkSharedLibrary
         linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkDebug.debuggable
 
-        def compileReleaseCpp = project.tasks.compileReleaseCpp
+        def compileReleaseCpp = project.tasks.compileReleaseCpp.get()
         compileReleaseCpp instanceof CppCompile
         compileReleaseCpp.includes.files.take(2) as List == [publicHeaders, privateHeaders]
         compileReleaseCpp.source.files as List == [src]
@@ -146,7 +146,7 @@ class CppLibraryPluginTest extends Specification {
         compileReleaseCpp.debuggable
         compileReleaseCpp.optimized
 
-        def linkRelease = project.tasks.linkRelease
+        def linkRelease = project.tasks.linkRelease.get()
         linkRelease instanceof LinkSharedLibrary
         linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkRelease.debuggable
@@ -162,50 +162,50 @@ class CppLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
-        def compileDebug = project.tasks.compileDebugSharedCpp
+        def compileDebug = project.tasks.compileDebugSharedCpp.get()
         compileDebug instanceof CppCompile
         compileDebug.source.files == [src] as Set
         compileDebug.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug/shared")
         compileDebug.debuggable
         !compileDebug.optimized
 
-        def linkDebug = project.tasks.linkDebugShared
+        def linkDebug = project.tasks.linkDebugShared.get()
         linkDebug instanceof LinkSharedLibrary
         linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkDebug.debuggable
 
-        def compileRelease = project.tasks.compileReleaseSharedCpp
+        def compileRelease = project.tasks.compileReleaseSharedCpp.get()
         compileRelease instanceof CppCompile
         compileRelease.source.files == [src] as Set
         compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release/shared")
         compileRelease.debuggable
         compileRelease.optimized
 
-        def linkRelease = project.tasks.linkReleaseShared
+        def linkRelease = project.tasks.linkReleaseShared.get()
         linkRelease instanceof LinkSharedLibrary
         linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkRelease.debuggable
 
         and:
-        def compileDebugStatic = project.tasks.compileDebugStaticCpp
+        def compileDebugStatic = project.tasks.compileDebugStaticCpp.get()
         compileDebugStatic instanceof CppCompile
         compileDebugStatic.source.files == [src] as Set
         compileDebugStatic.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug/static")
         compileDebugStatic.debuggable
         !compileDebugStatic.optimized
 
-        def createDebugStatic = project.tasks.createDebugStatic
+        def createDebugStatic = project.tasks.createDebugStatic.get()
         createDebugStatic instanceof CreateStaticLibrary
         createDebugStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + OperatingSystem.current().getStaticLibraryName("testLib"))
 
-        def compileReleaseStatic = project.tasks.compileReleaseStaticCpp
+        def compileReleaseStatic = project.tasks.compileReleaseStaticCpp.get()
         compileReleaseStatic instanceof CppCompile
         compileReleaseStatic.source.files == [src] as Set
         compileReleaseStatic.objectFileDir.get().asFile == projectDir.file("build/obj/main/release/static")
         compileReleaseStatic.debuggable
         compileReleaseStatic.optimized
 
-        def createReleaseStatic = project.tasks.createReleaseStatic
+        def createReleaseStatic = project.tasks.createReleaseStatic.get()
         createReleaseStatic instanceof CreateStaticLibrary
         createReleaseStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + OperatingSystem.current().getStaticLibraryName("testLib"))
     }
@@ -224,25 +224,25 @@ class CppLibraryPluginTest extends Specification {
         project.tasks.withType(LinkSharedLibrary).empty
 
         and:
-        def compileDebug = project.tasks.compileDebugCpp
+        def compileDebug = project.tasks.compileDebugCpp.get()
         compileDebug instanceof CppCompile
         compileDebug.source.files == [src] as Set
         compileDebug.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
         compileDebug.debuggable
         !compileDebug.optimized
 
-        def createDebug = project.tasks.createDebug
+        def createDebug = project.tasks.createDebug.get()
         createDebug instanceof CreateStaticLibrary
         createDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getStaticLibraryName("testLib"))
 
-        def compileRelease = project.tasks.compileReleaseCpp
+        def compileRelease = project.tasks.compileReleaseCpp.get()
         compileRelease instanceof CppCompile
         compileRelease.source.files == [src] as Set
         compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
         compileRelease.debuggable
         compileRelease.optimized
 
-        def createRelease = project.tasks.createRelease
+        def createRelease = project.tasks.createRelease.get()
         createRelease instanceof CreateStaticLibrary
         createRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getStaticLibraryName("testLib"))
     }
@@ -298,7 +298,7 @@ class CppLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
-        def zip = project.tasks.cppHeaders
+        def zip = project.tasks.cppHeaders.get()
         zip instanceof Zip
     }
 

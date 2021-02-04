@@ -218,7 +218,7 @@ public class ThingTest {
                 csv.enabled false
                 html.destination file("\${buildDir}/reports/jacoco/integ")
             }
-            executionData test
+            executionData test.get()
         }
         """.stripIndent()
 

@@ -168,10 +168,10 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
             publishing {
                 publications {
                     pluginMaven(MavenPublication) {
-                        artifact sourceJar
+                        artifact sourceJar.get()
                     }
                     pluginIvy(IvyPublication) {
-                        artifact sourceJar
+                        artifact sourceJar.get()
                     }
                 }
             }

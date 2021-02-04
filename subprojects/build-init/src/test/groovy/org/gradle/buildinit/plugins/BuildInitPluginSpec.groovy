@@ -29,8 +29,8 @@ class BuildInitPluginSpec extends AbstractProjectBuilderSpec {
         and:
         project.evaluate()
         then:
-        project.tasks.wrapper instanceof Wrapper
-        TaskDependencyMatchers.dependsOn("wrapper").matches(project.tasks.init)
+        project.tasks.wrapper.get() instanceof Wrapper
+        TaskDependencyMatchers.dependsOn("wrapper").matches(project.tasks.init.get())
     }
 
     def "no wrapper task configured if build file already exists"() {

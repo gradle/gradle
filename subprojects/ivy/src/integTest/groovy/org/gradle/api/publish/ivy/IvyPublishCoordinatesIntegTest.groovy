@@ -107,7 +107,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
                                 extend "compile"
                             }
                         }
-                        artifact(apiJar) {
+                        artifact(apiJar.get()) {
                             conf "compile,runtime"
                         }
                     }
@@ -173,7 +173,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
                         from components.java
                     }
                     other(IvyPublication) {
-                        artifact(otherJar)
+                        artifact(otherJar.get())
                     }
                 }
             }

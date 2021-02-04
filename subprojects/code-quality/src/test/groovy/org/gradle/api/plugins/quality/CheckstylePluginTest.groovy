@@ -145,8 +145,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         hasCustomizedSettings("checkstyleMain", project.sourceSets.main)
         hasCustomizedSettings("checkstyleTest", project.sourceSets.test)
         hasCustomizedSettings("checkstyleOther", project.sourceSets.other)
-        that(project.check, dependsOn(hasItem('checkstyleMain')))
-        that(project.check, dependsOn(not(hasItems('checkstyleTest', 'checkstyleOther'))))
+        that(project.check.get(), dependsOn(hasItem('checkstyleMain')))
+        that(project.check.get(), dependsOn(not(hasItems('checkstyleTest', 'checkstyleOther'))))
     }
 
     private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {

@@ -53,7 +53,7 @@ class SigningPublicationsSpec extends SigningProjectSpec {
         tasks.findByName('signAnotherPublication') != null
 
         and:
-        signTasks == [signMavenPublication, signAnotherPublication]
+        signTasks == [signMavenPublication.get(), signAnotherPublication.get()]
     }
 
     def "publication removed from container after signing is specified"() {

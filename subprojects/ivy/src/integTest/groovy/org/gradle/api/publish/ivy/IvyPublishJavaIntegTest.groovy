@@ -187,7 +187,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        artifact(sourceJar) {
+                        artifact(sourceJar.get()) {
                             classifier "source"
                             type "sources"
                             conf "runtime"
@@ -1156,7 +1156,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         publishing {
             publications {
                 java(IvyPublication) {
-                    artifact jar
+                    artifact jar.get()
                 }
             }
         }

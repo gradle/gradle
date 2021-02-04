@@ -171,7 +171,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             // Eager
             tasks.create("task2", SomeTask) {
                 println "Configure ${path}"
-                dependsOn task1
+                dependsOn task1.get() // without 'get()' this would not eageryl create the task
             }
             tasks.create("other")
         '''

@@ -2088,7 +2088,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             task copy(type: Copy) {
                 from 'src'
                 into 'dest'
-                with tasks.war
+                with tasks.war.get()
             }
         '''.stripIndent()
 

@@ -58,7 +58,7 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def testExecutable = binaries.testExecutable
-        with(project.tasks.linkTestExecutable) {
+        with(project.tasks.linkTestExecutable.get()) {
             it instanceof LinkExecutable
             it == testExecutable.tasks.link
             it.toolChain.get() == testExecutable.toolChain
@@ -67,11 +67,11 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
         }
 
         and:
-        def lifecycleTask = project.tasks.testExecutable
+        def lifecycleTask = project.tasks.testExecutable.get()
         lifecycleTask TaskDependencyMatchers.dependsOn("linkTestExecutable")
 
         and:
-        project.tasks.installTestExecutable instanceof InstallExecutable
+        project.tasks.installTestExecutable.get() instanceof InstallExecutable
     }
 
     def "creates link task and static archive task for library"() {
@@ -88,7 +88,7 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def sharedLibraryBinary = binaries.testSharedLibrary
-        with(project.tasks.linkTestSharedLibrary) {
+        with(project.tasks.linkTestSharedLibrary.get()) {
             it instanceof LinkSharedLibrary
             it == sharedLibraryBinary.tasks.link
             it.toolChain.get() == sharedLibraryBinary.toolChain
@@ -97,12 +97,12 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
         }
 
         and:
-        def sharedLibTask = project.tasks.testSharedLibrary
+        def sharedLibTask = project.tasks.testSharedLibrary.get()
         sharedLibTask TaskDependencyMatchers.dependsOn("linkTestSharedLibrary")
 
         and:
         def staticLibraryBinary = binaries.testStaticLibrary
-        with(project.tasks.createTestStaticLibrary) {
+        with(project.tasks.createTestStaticLibrary.get()) {
             it instanceof CreateStaticLibrary
             it == staticLibraryBinary.tasks.createStaticLib
             it.toolChain.get() == staticLibraryBinary.toolChain
@@ -111,7 +111,7 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
         }
 
         and:
-        def staticLibTask = project.tasks.testStaticLibrary
+        def staticLibTask = project.tasks.testStaticLibrary.get()
         staticLibTask TaskDependencyMatchers.dependsOn("createTestStaticLibrary")
     }
 }

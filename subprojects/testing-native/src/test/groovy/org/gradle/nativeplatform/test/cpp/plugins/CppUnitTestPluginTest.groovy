@@ -109,19 +109,19 @@ class CppUnitTestPluginTest extends Specification {
         project.evaluate()
 
         then:
-        def compileCpp = project.tasks.compileTestCpp
+        def compileCpp = project.tasks.compileTestCpp.get()
         compileCpp instanceof CppCompile
         compileCpp.source.files == [src] as Set
         compileCpp.objectFileDir.get().asFile == projectDir.file("build/obj/test")
         compileCpp.debuggable
         !compileCpp.optimized
 
-        def link = project.tasks.linkTest
+        def link = project.tasks.linkTest.get()
         link instanceof LinkExecutable
         link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("someAppTest"))
         link.debuggable
 
-        def install = project.tasks.installTest
+        def install = project.tasks.installTest.get()
         install instanceof InstallExecutable
         install.installDirectory.get().asFile == project.file("build/install/test")
         install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("someAppTest")

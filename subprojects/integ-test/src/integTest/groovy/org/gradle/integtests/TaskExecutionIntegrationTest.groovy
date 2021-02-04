@@ -39,9 +39,9 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             assert notified
             assert gradle.taskGraph.hasTask(task)
             assert gradle.taskGraph.hasTask(':a')
-            assert gradle.taskGraph.hasTask(a)
+            assert gradle.taskGraph.hasTask(a.get())
             assert gradle.taskGraph.hasTask(':b')
-            assert gradle.taskGraph.hasTask(b)
+            assert gradle.taskGraph.hasTask(b.get())
             assert gradle.taskGraph.allTasks.contains(task)
             assert gradle.taskGraph.allTasks.contains(tasks.getByName('b'))
         }
@@ -49,11 +49,11 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     task b
     gradle.taskGraph.whenReady { graph ->
         assert graph.hasTask(':a')
-        assert graph.hasTask(a)
+        assert graph.hasTask(a.get())
         assert graph.hasTask(':b')
-        assert graph.hasTask(b)
-        assert graph.allTasks.contains(a)
-        assert graph.allTasks.contains(b)
+        assert graph.hasTask(b.get())
+        assert graph.allTasks.contains(a.get())
+        assert graph.allTasks.contains(b.get())
         notified = true
     }
 """
@@ -75,7 +75,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
     task b {
         doLast {
-            assert a == project.executedA
+            assert a.get() == project.executedA
             assert gradle.taskGraph.hasTask(':a')
         }
     }

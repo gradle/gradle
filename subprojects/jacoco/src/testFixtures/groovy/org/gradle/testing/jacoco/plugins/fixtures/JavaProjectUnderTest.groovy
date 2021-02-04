@@ -72,12 +72,12 @@ class JavaProjectUnderTest {
             }
 
             task jacocoIntegrationTestReport(type: JacocoReport) {
-                executionData integrationTest
+                executionData integrationTest.get()
                 sourceSets sourceSets.main
             }
 
             task jacocoIntegrationTestCoverageVerification(type: JacocoCoverageVerification) {
-                executionData integrationTest
+                executionData integrationTest.get()
                 sourceSets sourceSets.main
             }
         """

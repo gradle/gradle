@@ -65,8 +65,8 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
 
         then:
-        assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaProject)
-        GenerateIdeaProject ideaProjectTask = project.ideaProject
+        assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaProject.get())
+        GenerateIdeaProject ideaProjectTask = project.ideaProject.get()
         ideaProjectTask instanceof GenerateIdeaProject
         ideaProjectTask.outputFile == new File(project.projectDir, project.name + ".ipr")
         ideaProjectTask.ideaProject.modules == [project.idea.module, childProject.idea.module, anotherChildProject.idea.module]
@@ -99,9 +99,9 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
 
         then:
-        project.ideaWorkspace instanceof GenerateIdeaWorkspace
-        assert project.cleanIdeaWorkspace instanceof Delete
-        assert !project.cleanIdea.taskDependencies.getDependencies(project.cleanIdea).contains(project.cleanIdeaWorkspace)
+        project.ideaWorkspace.get() instanceof GenerateIdeaWorkspace
+        assert project.cleanIdeaWorkspace.get() instanceof Delete
+        assert !project.cleanIdea.taskDependencies.getDependencies(project.cleanIdea.get()).contains(project.cleanIdeaWorkspace.get())
 
 
         childProject.tasks.findByName('ideaWorkspace') == null
@@ -148,8 +148,8 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
 
         then:
-        project.cleanIdea instanceof Task
-        childProject.cleanIdea instanceof Task
+        project.cleanIdea.get() instanceof Task
+        childProject.cleanIdea.get() instanceof Task
     }
 
      def "adds single entry libraries from source sets"() {
@@ -180,9 +180,9 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         childProject.pluginManager.apply(ScalaPlugin)
 
         then:
-        def parentIdeaProject = project.tasks.ideaProject
-        def parentIdeaModule = project.tasks.ideaModule
-        def childIdeaModule = childProject.tasks.ideaModule
+        def parentIdeaProject = project.tasks.ideaProject.get()
+        def parentIdeaModule = project.tasks.ideaModule.get()
+        def childIdeaModule = childProject.tasks.ideaModule.get()
 
         childIdeaModule.taskDependencies.getDependencies(childIdeaModule).contains(parentIdeaProject)
         !parentIdeaModule.taskDependencies.getDependencies(parentIdeaModule).contains(parentIdeaProject)
@@ -218,15 +218,15 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
     }
 
     private void assertThatIdeaModuleIsProperlyConfigured(Project project) {
-        GenerateIdeaModule ideaModuleTask = project.ideaModule
+        GenerateIdeaModule ideaModuleTask = project.ideaModule.get()
         assert ideaModuleTask instanceof GenerateIdeaModule
         assert ideaModuleTask.outputFile == new File(project.projectDir, project.name + ".iml")
-        assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaModule)
+        assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaModule.get())
     }
 
     private void assertThatCleanIdeaDependsOnDeleteTask(Project project, Task dependsOnTask) {
         assert dependsOnTask instanceof Delete
-        assert project.cleanIdea.taskDependencies.getDependencies(project.cleanIdea).contains(dependsOnTask)
+        assert project.cleanIdea.taskDependencies.getDependencies(project.cleanIdea.get()).contains(dependsOnTask)
     }
 
     private applyPluginToProjects() {

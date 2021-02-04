@@ -174,15 +174,15 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
 
-        def processResources = project.tasks.processResources
+        def processResources = project.tasks.processResources.get()
         processResources.description == "Processes main resources."
         processResources instanceof Copy
 
-        def compileJava = project.tasks.compileJava
+        def compileJava = project.tasks.compileJava.get()
         compileJava.description == "Compiles main Java source."
         compileJava instanceof JavaCompile
 
-        def classes = project.tasks.classes
+        def classes = project.tasks.classes.get()
         classes.description == "Assembles main classes."
         TaskDependencyMatchers.dependsOn('processResources', 'compileJava').matches(classes)
     }

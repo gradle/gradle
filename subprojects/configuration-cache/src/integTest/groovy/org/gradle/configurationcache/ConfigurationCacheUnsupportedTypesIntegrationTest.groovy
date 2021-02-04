@@ -187,7 +187,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultSettings                       | Settings                       | "project.gradle.settings"
         DefaultProject                        | Project                        | "project"
         DefaultTaskContainer                  | TaskContainer                  | "project.tasks"
-        DefaultTask                           | Task                           | "project.tasks.other"
+        DefaultTask                           | Task                           | "project.tasks.other.get()"
         DefaultSourceSetContainer             | SourceSetContainer             | "project.sourceSets"
         DefaultSourceSet                      | SourceSet                      | "project.sourceSets['main']"
         // Dependency Resolution Types

@@ -28,8 +28,8 @@ distributions {
 publishing {
     publications {
         myDistribution(IvyPublication) {
-            artifact distZip
-            artifact customDistTar
+            artifact distZip.get()
+            artifact customDistTar.get()
         }
     }
 }

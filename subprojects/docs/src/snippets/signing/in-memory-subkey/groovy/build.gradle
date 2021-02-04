@@ -13,6 +13,6 @@ signing {
     def signingKey = findProperty("signingKey")
     def signingPassword = findProperty("signingPassword")
     useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-    sign stuffZip
+    sign stuffZip.get()
 }
 // end::signing[]

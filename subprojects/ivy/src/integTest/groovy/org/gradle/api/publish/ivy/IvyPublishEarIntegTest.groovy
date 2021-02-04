@@ -55,7 +55,7 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
                                 extend "master"
                             }
                         }
-                        artifact source: ear, conf: "master"
+                        artifact source: ear.get(), conf: "master"
                     }
                 }
             }

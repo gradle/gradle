@@ -189,13 +189,13 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
             implementation internalProject
         }
 
-        def task = project.tasks.compileJava
+        def task = project.tasks.compileJava.get()
 
         then:
         task.taskDependencies.getDependencies(task)*.path as Set == [":common:$producingTask", ":tools:$producingTask"] as Set<String>
 
         when:
-        task = commonProject.tasks.compileJava
+        task = commonProject.tasks.compileJava.get()
 
         then:
         task.taskDependencies.getDependencies(task)*.path as Set == [":tools:$producingTask", ":internal:$producingTask"] as Set<String>
