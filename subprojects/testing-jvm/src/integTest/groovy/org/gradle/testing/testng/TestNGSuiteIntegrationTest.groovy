@@ -41,7 +41,7 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
                 println "Property from task again: $name"
               }
             }
-            tasks.test // realize the task
+            tasks.test.get() // realize the task
         '''
 
         when:

@@ -30,6 +30,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
@@ -47,6 +48,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -112,7 +115,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    protected boolean avoidConfiguration() {
+    protected boolean avoidConfigurationInDynamicMemberLookup() {
         return true;
     }
 
@@ -658,16 +661,68 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
     }
 
+    public class TaskProviderBeanDynamicObject<I extends Task> extends BeanDynamicObject {
+        private final TaskCreatingProvider<I> taskProvider;
+
+        public TaskProviderBeanDynamicObject(TaskCreatingProvider<I> bean) {
+            super(bean);
+            taskProvider = bean;
+        }
+
+        private DynamicObject taskDynamicObject() {
+            return ((DefaultTask) taskProvider.get()).getAsDynamicObject();
+        }
+
+        @Override
+        public DynamicInvokeResult tryGetProperty(String name) {
+            DynamicInvokeResult result = super.tryGetProperty(name);
+            if (!result.isFound()) {
+                return taskDynamicObject().tryGetProperty(name);
+            } else {
+                return result;
+            }
+        }
+
+        @Override
+        public DynamicInvokeResult trySetProperty(String name, Object value) {
+            DynamicInvokeResult result = super.trySetProperty(name, value);
+            if (!result.isFound()) {
+                return taskDynamicObject().trySetProperty(name, value);
+            } else {
+                return result;
+            }
+        }
+
+        @Override
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+            DynamicInvokeResult result = super.tryInvokeMethod(name, arguments);
+            if (!result.isFound()) {
+                return taskDynamicObject().tryInvokeMethod(name, arguments);
+            } else {
+                return result;
+            }
+        }
+    }
+
     // Cannot be private due to reflective instantiation
-    public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I> {
+    public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I>, DynamicObjectAware {
         private final TaskIdentity<I> identity;
         private Object[] constructorArgs;
+        private TaskProviderBeanDynamicObject<I> dynamicObject;
 
         public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
             super(identity.name, identity.type, configureAction);
             this.identity = identity;
             this.constructorArgs = constructorArgs;
             statistics.lazyTask();
+        }
+
+        @Override
+        public DynamicObject getAsDynamicObject() {
+            if (dynamicObject == null) {
+                dynamicObject = new TaskProviderBeanDynamicObject<>(this);
+            }
+            return dynamicObject;
         }
 
         public ImmutableActionSet<I> getOnCreateActions() {

@@ -529,6 +529,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public DynamicInvokeResult tryGetProperty(String name) {
+            if (avoidConfigurationInDynamicMemberLookup()) {
+                return !getNames().contains(name) ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(named(name));
+            }
             T t = findByName(name);
             return t == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(t);
         }

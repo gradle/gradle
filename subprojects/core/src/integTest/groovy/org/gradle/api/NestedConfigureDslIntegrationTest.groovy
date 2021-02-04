@@ -106,7 +106,7 @@ tasks.help {
         prop = "value 3"
     }
 }
-tasks.help // realize the task
+tasks.help.get() // realize the task
 assert prop == "value 3"
 """
 
@@ -304,7 +304,7 @@ tasks.configure {
         }
     }
 }
-tasks.help // realize the task
+tasks.help.get() = "help" // realize the task
 assert prop == "value 4"
 """
 
