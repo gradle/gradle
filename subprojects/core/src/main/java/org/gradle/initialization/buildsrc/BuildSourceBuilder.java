@@ -81,11 +81,7 @@ public class BuildSourceBuilder {
             return ClassPath.EMPTY;
         }
 
-        final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
-        buildSrcStartParameter.setCurrentDir(buildSrcDir);
-        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
-        buildSrcStartParameter.doNotSearchUpwards();
-        buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
+        final StartParameterInternal buildSrcStartParameter = buildSrcStartParameterFor(buildSrcDir, containingBuildParameters);
         final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
             buildSrcStartParameter,
             BUILD_SRC,
@@ -122,6 +118,15 @@ public class BuildSourceBuilder {
         });
     }
 
+    private StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameter containingBuildParameters) {
+        final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
+        buildSrcStartParameter.setCurrentDir(buildSrcDir);
+        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
+        buildSrcStartParameter.doNotSearchUpwards();
+        buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
+        return buildSrcStartParameter;
+    }
+
     @SuppressWarnings("try")
     private ClassPath buildBuildSrc(final BuildDefinition buildDefinition, ClassLoaderScope parentClassLoaderScope) {
         StandAloneNestedBuild nestedBuild = buildRegistry.addBuildSrcNestedBuild(buildDefinition, currentBuild);
@@ -129,11 +134,18 @@ public class BuildSourceBuilder {
             // Expose any contributions from the parent's settings
             buildController.getGradle().setClassLoaderScope(parentClassLoaderScope);
 
-            File lockTarget = new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc");
-            try (FileLock ignored = fileLockManager.lock(lockTarget, LOCK_OPTIONS, "buildSrc build lock")) {
+            try (FileLock ignored = buildSrcBuildLockFor(buildDefinition)) {
                 return new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory, cachedClasspathTransformer).create();
             }
         });
+    }
+
+    private FileLock buildSrcBuildLockFor(BuildDefinition buildDefinition) {
+        return fileLockManager.lock(
+            new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc"),
+            LOCK_OPTIONS,
+            "buildSrc build lock"
+        );
     }
 
     private static final LockOptions LOCK_OPTIONS = mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation();
