@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,5 @@
  */
 
 plugins {
-    id("gradlebuild.buildscan") // Reporting: Add more data through custom tags to build scans
-    id("gradlebuild.ide") // Local development: Tweak IDEA import
-    id("gradlebuild.dependency-analysis") // Auditing dependencies to find unused libraries
+    id("com.autonomousapps.dependency-analysis")
 }
