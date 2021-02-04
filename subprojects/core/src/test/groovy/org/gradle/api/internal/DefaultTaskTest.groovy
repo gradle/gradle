@@ -547,7 +547,7 @@ class DefaultTaskTest extends AbstractTaskTest {
         def rewriter = Mock(ContextAwareTaskLogger.MessageRewriter)
 
         when:
-        task.setLoggerMessageRewriter(rewriter)
+        task.logger.setMessageRewriter(rewriter)
         task.logger.warn("test")
 
         then:

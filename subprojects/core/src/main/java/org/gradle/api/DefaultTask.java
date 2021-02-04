@@ -235,11 +235,6 @@ public class DefaultTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void setLoggerMessageRewriter(ContextAwareTaskLogger.MessageRewriter messageRewriter) {
-        logger.setMessageRewriter(messageRewriter);
-    }
-
-    @Override
     public List<Action<? super Task>> getActions() {
         if (observableActionList == null) {
             observableActionList = new ObservableActionWrapperList(getTaskActions());

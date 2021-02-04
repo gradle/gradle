@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.TaskInternal
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
@@ -58,6 +57,6 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 
     private
     fun KotlinCompile.setWarningRewriter(rewriter: ContextAwareTaskLogger.MessageRewriter) {
-        (this as TaskInternal).setLoggerMessageRewriter(rewriter)
+        (logger as ContextAwareTaskLogger).setMessageRewriter(rewriter)
     }
 }
