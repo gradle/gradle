@@ -49,6 +49,10 @@ Users can still opt in to have this unique identifier part of the produced metad
 
 === Potential breaking changes
 
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.30].
+
 ==== Removal of `compile` and `runtime` configurations
 
 Since its inception, Gradle provided the `compile` and `runtime` configurations to declare dependencies.
