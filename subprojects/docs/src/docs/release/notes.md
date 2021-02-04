@@ -23,6 +23,7 @@ We would like to thank the following community contributors for their contributi
 [Thad House](https://github.com/ThadHouse),
 [knittl](https://github.com/knittl),
 [hywelbennett](https://github.com/hywelbennett),
+[wboult](https://github.com/wboult),
 [Gregorios Leach](https://github.com/simtel12).
 
 ## Upgrade instructions
