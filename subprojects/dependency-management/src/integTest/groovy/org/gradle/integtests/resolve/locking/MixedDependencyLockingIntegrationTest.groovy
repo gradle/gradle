@@ -172,6 +172,6 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'lockedConf', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'], false)
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'])
     }
 }

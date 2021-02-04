@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
@@ -57,8 +56,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT;
-
 public class DefaultDependencyLockingProvider implements DependencyLockingProvider {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
@@ -71,7 +68,6 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final LockEntryFilter updateLockEntryFilter;
     private final DomainObjectContext context;
     private final DependencySubstitutionRules dependencySubstitutionRules;
-    private final boolean uniqueLockStateEnabled;
     private final Property<LockMode> lockMode;
     private final RegularFileProperty lockFile;
     private final ListProperty<String> ignoredDependencies;
@@ -80,7 +76,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private LockEntryFilter compoundLockEntryFilter;
     private LockEntryFilter ignoredEntryFilter;
 
-    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, FeaturePreviews featurePreviews, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileResourceListener listener) {
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileResourceListener listener) {
         this.context = context;
         this.dependencySubstitutionRules = dependencySubstitutionRules;
         this.writeLocks = startParameter.isWriteDependencyLocks();
@@ -90,7 +86,6 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         updateLockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate, "Update lock", true);
-        uniqueLockStateEnabled = featurePreviews.isFeatureEnabled(ONE_LOCKFILE_PER_PROJECT);
         lockMode = propertyFactory.property(LockMode.class);
         lockMode.convention(LockMode.DEFAULT);
         lockFile = filePropertyFactory.newFileProperty();
@@ -107,11 +102,9 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     @Override
     public DependencyLockingState loadLockState(String configurationName) {
         recordUsage();
-        if (uniqueLockStateEnabled) {
-            loadLockState();
-        }
+        loadLockState();
         if (!writeLocks || partialUpdate) {
-            List<String> lockedModules = findLockedModules(configurationName, uniqueLockStateEnabled);
+            List<String> lockedModules = findLockedModules(configurationName);
             if (lockedModules == null && lockMode.get() == LockMode.STRICT) {
                 throw new MissingLockStateException(context.identityPath(configurationName).toString());
             }
@@ -150,11 +143,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Nullable
-    private List<String> findLockedModules(String configurationName, boolean uniqueLockStateEnabled) {
-        List<String> result = null;
-        if (uniqueLockStateEnabled) {
-            result = allLockState.get(configurationName);
-        }
+    private List<String> findLockedModules(String configurationName) {
+        List<String> result = allLockState.get(configurationName);
         if (result == null) {
             result = lockFileReaderWriter.readLockFile(configurationName);
         }
@@ -205,22 +195,13 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                 LOGGER.warn("Dependency lock state for configuration '{}' contains changing modules: {}. This means that dependencies content may still change over time. See {} for details.",
                     context.identityPath(configurationName), getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationFor("dependency_locking"));
             }
-            if (uniqueLockStateEnabled) {
-                allLockState.put(configurationName, modulesOrdered);
-            } else {
-                lockFileReaderWriter.writeLockFile(configurationName, modulesOrdered);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Persisted dependency lock state for configuration '{}', state is: {}", context.identityPath(configurationName), modulesOrdered);
-                } else {
-                    LOGGER.lifecycle("Persisted dependency lock state for configuration '{}'", context.identityPath(configurationName));
-                }
-            }
+            allLockState.put(configurationName, modulesOrdered);
         }
     }
 
     @Override
     public void buildFinished() {
-        if (uniqueLockStateEnabled && uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
+        if (uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
             lockFileReaderWriter.writeUniqueLockfile(allLockState);
             if (context.isScript()) {
                 LOGGER.lifecycle("Persisted dependency lock state for buildscript of project '{}'", context.getProjectPath());

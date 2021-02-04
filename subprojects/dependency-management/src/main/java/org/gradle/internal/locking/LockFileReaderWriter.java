@@ -74,30 +74,6 @@ public class LockFileReaderWriter {
         LOGGER.debug("Lockfiles root: {}", lockFilesRoot);
     }
 
-    public void writeLockFile(String configurationName, List<String> resolvedModules) {
-        checkValidRoot(configurationName);
-
-        makeLockfilesRoot();
-        List<String> content = new ArrayList<>(50);
-        content.addAll(LOCKFILE_HEADER_LIST);
-        content.addAll(resolvedModules);
-        try {
-            Files.write(lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX), content, CHARSET);
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to write lock file", e);
-        }
-    }
-
-    private void makeLockfilesRoot() {
-        if (!Files.exists(lockFilesRoot)) {
-            try {
-                Files.createDirectories(lockFilesRoot);
-            } catch (IOException e) {
-                throw new RuntimeException("Issue creating dependency-lock directory", e);
-            }
-        }
-    }
-
     @Nullable
     public List<String> readLockFile(String configurationName) {
         checkValidRoot(configurationName);

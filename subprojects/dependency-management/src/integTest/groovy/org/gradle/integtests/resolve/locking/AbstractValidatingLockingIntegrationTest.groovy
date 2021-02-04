@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.locking
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
@@ -28,9 +27,6 @@ abstract class AbstractValidatingLockingIntegrationTest extends AbstractLockingI
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -76,9 +72,6 @@ dependencies {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -122,9 +115,6 @@ dependencies {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -165,9 +155,7 @@ dependencies {
     def 'fails when lock file does not contain entry for module in resolution result (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
+
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -208,9 +196,6 @@ dependencies {
     def 'fails when resolution result is empty and lock file contains entries (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -246,9 +231,6 @@ configurations {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -295,9 +277,6 @@ dependencies {
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -344,9 +323,6 @@ dependencies {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -384,9 +360,7 @@ dependencies {
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
+
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()

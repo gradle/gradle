@@ -17,9 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
 
 class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrationTest {
 
@@ -29,13 +27,9 @@ class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrat
     }
 
     @ToBeFixedForConfigurationCache
-    @Unroll
     def 'succeeds without lock file present and does not create one'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -60,13 +54,9 @@ dependencies {
         succeeds 'dependencies'
 
         then:
-        lockfileFixture.expectLockStateMissing('unlockedConf', unique)
-
-        where:
-        unique << [true, false]
+        lockfileFixture.expectLockStateMissing('unlockedConf')
     }
 
-    @Unroll
     def "version selector combinations are resolved equally for locked and unlocked configurations"() {
         ['foo', 'foz', 'bar', 'baz'].each { artifact ->
             mavenRepo.module('org', artifact, '1.0').publish()
@@ -75,9 +65,6 @@ dependencies {
             mavenRepo.module('org', artifact, '2.0').publish()
         }
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 repositories {
     maven {
@@ -113,22 +100,15 @@ task check {
 
         expect:
         succeeds 'check'
-
-        where:
-        unique << [true, false]
     }
 
     @ToBeFixedForConfigurationCache
-    @Unroll
     def 'writes a new lock file if update done without lockfile present'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
 
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -154,18 +134,11 @@ dependencies {
         succeeds 'dependencies', '--update-locks', 'org:foo'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'], unique)
-
-        where:
-        unique << [true, false]
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'])
     }
 
     @ToBeFixedForConfigurationCache
-    @Unroll
     def 'does not write an empty lock file for an empty configuration if not requested'() {
-        if (unique) {
-            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
-        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -185,10 +158,7 @@ configurations {
         succeeds 'dependencies'
 
         then:
-        lockfileFixture.expectLockStateMissing('lockedConf', unique)
-
-        where:
-        unique << [true, false]
+        lockfileFixture.expectLockStateMissing('lockedConf')
     }
 
     def 'attempting to change lock mode after a configuration has been resolved is invalid'() {
@@ -231,7 +201,6 @@ task doIt {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
 
-        FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()

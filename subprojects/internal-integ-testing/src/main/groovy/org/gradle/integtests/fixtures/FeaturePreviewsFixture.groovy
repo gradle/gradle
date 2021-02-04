@@ -24,12 +24,6 @@ enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
 """
     }
 
-    static void enableOneLockfilePerProject(File settings) {
-        settings << """
-enableFeaturePreview('ONE_LOCKFILE_PER_PROJECT')
-"""
-    }
-
     static void enableTypeSafeProjectAccessors(File settings) {
         settings << """
             enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')
