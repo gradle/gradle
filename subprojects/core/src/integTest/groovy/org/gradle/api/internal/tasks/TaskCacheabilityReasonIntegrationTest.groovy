@@ -34,6 +34,7 @@ import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCateg
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.UNKNOWN
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.VALIDATION_FAILURE
 
 class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
@@ -309,6 +310,36 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         failure.assertHasCause("boom")
         then:
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
+    }
+
+    def "cacheability for task with disabled optimizations is FAILED_VALIDATION"() {
+        when:
+        executer.noDeprecationChecks()
+        buildFile """
+            task producer {
+                def outputFile = file("out.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = "produced"
+                }
+            }
+
+            task consumer {
+                def inputFile = file("out.txt")
+                def outputFile = file("consumerOutput.txt")
+                inputs.files(inputFile)
+                outputs.file(outputFile)
+                outputs.cacheIf { true }
+                doLast {
+                    outputFile.text = "consumed"
+                }
+            }
+        """
+
+        then:
+        withBuildCache().succeeds("producer", "consumer")
+        assertCachingDisabledFor VALIDATION_FAILURE, "Validation failed", ":consumer"
     }
 
     private void assertCachingDisabledFor(@Nullable TaskOutputCachingDisabledReasonCategory category, @Nullable String message, @Nullable String taskPath = null) {
