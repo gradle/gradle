@@ -18,13 +18,9 @@ package org.gradle.smoketests
 
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.internal.reflect.TypeValidationContext
-import org.gradle.plugin.devel.tasks.TaskValidationReportFixture
 
 @SelfType(AbstractSmokeTest)
-abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest {
-
-    private AllPluginsValidation allPlugins = new AllPluginsValidation()
+abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest implements WithPluginValidation {
 
     abstract Map<String, Versions> getPluginsToValidate()
 
@@ -34,21 +30,6 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest {
 
     String getBuildScriptConfigurationForValidation() {
         ""
-    }
-
-    void configureValidation(String testedPluginId, String version) {
-        allPlugins.alwaysPasses = true
-    }
-
-    void validatePlugins(@DelegatesTo(value = AllPluginsValidation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        spec.delegate = allPlugins
-        spec.resolveStrategy = Closure.DELEGATE_FIRST
-        spec()
-    }
-
-    protected void performValidation(String pluginId, String version) {
-        configureValidation(pluginId, version)
-        allPlugins.performValidation()
     }
 
     private List<List<String>> iterations() {
@@ -88,100 +69,13 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest {
         (id, version) = iterations
     }
 
-    class AllPluginsValidation {
-        final List<PluginValidation> validations = []
-        boolean alwaysPasses
-
-        void alwaysPasses() {
-            alwaysPasses = true
-        }
-
-        void onPlugin(String id, @DelegatesTo(value = PluginValidation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-            def validation = new PluginValidation(id)
-            validations << validation
-            spec.delegate = validation
-            spec.resolveStrategy = Closure.DELEGATE_FIRST
-            spec()
-        }
-
-        void onPlugins(List<String> someIds, @DelegatesTo(value = PluginValidation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-            someIds.each {
-                onPlugin(it, spec)
-            }
-        }
-
-        private void performValidation() {
-            def failsValidation = validations.any { !it.messages.isEmpty() }
-            def validation = runner("validateExternalPlugins", "--continue")
-            def result
-            if (failsValidation) {
-                result = validation.buildAndFail()
-            } else {
-                result = validation.build()
-            }
-            def allPluginIds = result.tasks
-                .findAll { it.path.startsWith(':validatePluginWithId_') }
-                .collect { it.path - ':validatePluginWithId_' } as Set
-            validations.each {
-                it.verify()
-                if (!it.tested) {
-                    throw new IllegalStateException("Incomplete specification for plugin '$it.pluginId': you must verify that validation either fails or passes")
-                }
-            }
-            def notValidated = (allPluginIds - validations*.reportId).collect { it.replace('_', '.') }
-            if (notValidated && !alwaysPasses) {
-                throw new IllegalStateException("The following plugins were validated but you didn't explicitly check the validation outcome: ${notValidated}")
-            }
-        }
+    void configureValidation(String testedPluginId, String version) {
+        allPlugins.alwaysPasses = true
     }
 
-    class PluginValidation {
-        private final String pluginId
-        private final File reportFile
-
-        private Map<String, TypeValidationContext.Severity> messages = [:]
-
-        boolean skipped
-        boolean tested
-
-        PluginValidation(String id) {
-            this.pluginId = id
-            this.reportFile = file("build/reports/plugins/validation-report-for-${reportId}.txt")
-        }
-
-        String getReportId() {
-            pluginId.replace('.', '_')
-        }
-
-        private void verify() {
-            tested = true
-            if (skipped) {
-                return
-            }
-            assert reportFile.exists()
-            def report = new TaskValidationReportFixture(reportFile)
-            report.verify(messages)
-        }
-
-        /**
-         * Allows skipping validation, for example when a plugin
-         * is only available for some versions of the plugin under
-         * test
-         */
-        void skip() {
-            skipped = true
-        }
-
-        void passes() {
-            messages = [:]
-        }
-
-        void failsWith(Map<String, TypeValidationContext.Severity> messages) {
-            this.messages = messages
-        }
-
-        void failsWith(String singleMessage, TypeValidationContext.Severity severity) {
-            failsWith([(singleMessage): severity])
-        }
+    void performValidation(String pluginId, String version) {
+        configureValidation(pluginId, version)
+        allPlugins.performValidation()
     }
+
 }
