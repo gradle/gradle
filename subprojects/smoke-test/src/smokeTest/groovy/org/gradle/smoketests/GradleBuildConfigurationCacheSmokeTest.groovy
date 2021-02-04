@@ -16,24 +16,14 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
-import org.gradle.api.specs.Spec
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-
-import java.text.SimpleDateFormat
 
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.

@@ -72,9 +72,9 @@ trait WithPluginValidation {
             }
         }
 
-        protected void performValidation() {
+        protected void performValidation(List<String> extraParameters = []) {
             def failsValidation = validations.any { !it.messages.isEmpty() }
-            def validation = owner.runner("validateExternalPlugins", "--continue")
+            def validation = owner.runner(["validateExternalPlugins", "--continue", *extraParameters] as String[])
             def result
             if (failsValidation) {
                 result = validation.buildAndFail()

@@ -23,8 +23,12 @@
  * This should be limited to validation or tasks which are independent
  * of the kind of project we're building.
  */
+val enableValidation = providers.systemProperty("org.gradle.internal.validate.external.plugins")
+    .forUseAtConfigurationTime()
 
 gradle.beforeProject {
-    // Add external plugin validation
-    pluginManager.apply("validate-external-gradle-plugin")
+    if (enableValidation.map(String::toBoolean).orElse(false).get()) {
+        // Add external plugin validation only for smoke tests of the Gradle build itself
+        pluginManager.apply("validate-external-gradle-plugin")
+    }
 }

@@ -95,7 +95,9 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
     }
 
     void validatePlugins() {
-        allPlugins.performValidation()
+        allPlugins.performValidation([
+            "-Dorg.gradle.internal.validate.external.plugins=true"
+        ])
     }
 
     void inProject(String projectPath, @DelegatesTo(value = ProjectValidation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
