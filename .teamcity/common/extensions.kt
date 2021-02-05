@@ -76,6 +76,8 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, vcsRoot
         build/errorLogs/** => $failedTestArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
+        build/reports/dependency-verification/** => dependency-verification-reports
+        build-logic-commons/code-quality/build/distributions/code-quality-compile-classpath.zip => debugging
     """.trimIndent()
 
     vcs {
