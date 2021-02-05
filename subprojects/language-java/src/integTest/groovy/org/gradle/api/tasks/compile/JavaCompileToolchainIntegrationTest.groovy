@@ -25,6 +25,8 @@ import org.gradle.util.Requires
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+import static org.junit.Assume.assumeNotNull
+
 class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Unroll
@@ -337,11 +339,50 @@ public class Foo {
         outputContains("task.targetCompatibility = $targetOut")
 
         where:
-        source  | target    | sourceOut | targetOut
-        '9'     | '10'      | '1.9'     | '1.10'
-        '9'     | 'none'    | '1.9'     | '11'
-        'none'  | 'none'    | '11'      | '11'
+        source | target | sourceOut | targetOut
+        '9'    | '10'   | '1.9'     | '1.10'
+        '9'    | 'none' | '1.9'     | '11'
+        'none' | 'none' | '11'      | '11'
 
+    }
+
+    def "can compile Java using different JDKs"() {
+        def jdk = AvailableJavaHomes.getJdk(javaVersion)
+        assumeNotNull(jdk)
+
+        buildFile << """
+            plugins {
+                id("java")
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        runWithToolchainConfigured(jdk)
+
+        then:
+        outputDoesNotContain("Compiling with Java command line compiler")
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
+        javaClassFile("Foo.class").exists()
+
+        where:
+        javaVersion << [
+            JavaVersion.VERSION_1_8,
+            JavaVersion.VERSION_1_9,
+            JavaVersion.VERSION_11,
+            JavaVersion.VERSION_12,
+            JavaVersion.VERSION_13,
+            JavaVersion.VERSION_14,
+            JavaVersion.VERSION_15,
+            JavaVersion.VERSION_16
+        ]
     }
 
     def runWithToolchainConfigured(Jvm jvm) {
