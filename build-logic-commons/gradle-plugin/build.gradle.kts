@@ -7,8 +7,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-kotlinDslPluginOptions.experimentalWarning.set(false)
-
 dependencies {
     implementation(project(":code-quality"))
 
