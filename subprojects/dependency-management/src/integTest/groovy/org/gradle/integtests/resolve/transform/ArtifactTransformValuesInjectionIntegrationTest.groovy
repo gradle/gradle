@@ -971,7 +971,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         executer.expectDocumentedDeprecationWarning("Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled due to the failed validation. " +
+            "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
 
         expect:
@@ -999,11 +999,11 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         executer.expectDocumentedDeprecationWarning("Type 'Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled due to the failed validation. " +
+            "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
         executer.expectDocumentedDeprecationWarning("Type 'Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled due to the failed validation. " +
+            "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
 
         expect:

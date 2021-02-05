@@ -37,13 +37,13 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     public void recordValidationWarnings(UnitOfWork work, Collection<String> warnings) {
         workWithFailuresCount.incrementAndGet();
         Set<String> uniqueSortedWarnings = ImmutableSortedSet.copyOf(warnings);
-        LOGGER.warn("Validation failed for {}, disabling optimizations:{}",
+        LOGGER.warn("Execution optimizations have been disabled for {} to ensure correctness due to the following reasons:{}",
             work.getDisplayName(),
             uniqueSortedWarnings.stream()
                 .map(warning -> "\n  - " + warning)
                 .collect(Collectors.joining()));
         uniqueSortedWarnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
-            .withContext("Execution optimizations are disabled due to the failed validation.")
+            .withContext("Execution optimizations are disabled to ensure correctness.")
             .willBeRemovedInGradle7()
             .withUserManual("more_about_tasks", "sec:up_to_date_checks")
             .nagUser());
@@ -53,7 +53,11 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     public void reportWorkValidationWarningsAtEndOfBuild() {
         int workWithFailures = workWithFailuresCount.getAndSet(0);
         if (workWithFailures > 0) {
-            LOGGER.warn("\nExecution optimizations have been disabled for {} invalid unit(s) of work during the build. Consult deprecation warnings for more information.", workWithFailures);
+            LOGGER.warn(
+                "\nExecution optimizations have been disabled for {} invalid unit(s) of work during this build to ensure correctness." +
+                "\nPlease consult deprecation warnings for more details.",
+                workWithFailures
+            );
         }
     }
 }

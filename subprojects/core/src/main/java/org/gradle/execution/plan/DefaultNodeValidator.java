@@ -34,7 +34,7 @@ public class DefaultNodeValidator implements NodeValidator {
             taskNode.getTaskProperties().validateType(taskValidationContext);
             ImmutableCollection<String> problems = validationContext.getProblems().values();
             problems.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
-                .withContext("Execution optimizations are disabled due to the failed validation.")
+                .withContext("Execution optimizations are disabled to ensure correctness.")
                 .willBeRemovedInGradle7()
                 .withUserManual("more_about_tasks", "sec:up_to_date_checks")
                 .nagUser());
