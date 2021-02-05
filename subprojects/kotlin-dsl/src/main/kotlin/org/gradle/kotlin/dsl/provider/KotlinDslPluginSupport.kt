@@ -22,6 +22,7 @@ object KotlinDslPluginSupport {
     val kotlinCompilerArgs: List<String>
         get() = listOf(
             "-java-parameters",
+            "-Xjvm-default=all",
             "-Xjsr305=strict",
             "-XXLanguage:+DisableCompatibilityModeForNewInference",
         )
