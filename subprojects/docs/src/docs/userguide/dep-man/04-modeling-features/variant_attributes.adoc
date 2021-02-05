@@ -71,6 +71,11 @@ In addition to the ecosystem independent attributes defined above, the JVM ecosy
 | Indicates the JVM version compatibility.
 | Integer using the version after the `1.` for Java 1.4 and before, the major version for Java 5 and beyond.
 | Defaults to the JVM version used by Gradle, lower is compatible with higher, prefers highest compatible.
+
+| link:{javadocPath}/org/gradle/api/attributes/java/TargetJvmEnvironment.html#TARGET_JVM_ENVIRONMENT_ATTRIBUTE[`org.gradle.jvm.environment`]
+| Indicates that a variant is optimized for a certain JVM environment.
+| Common values are `standard-jvm` and `android`. Other values are allowed.
+| The attribute is used to prefer one variant over another if multiple are available, but in general all values are compatible. The default is `standard-jvm`.
 |===
 
 The JVM ecosystem also contains a number of compatibility and disambiguation rules over the different attributes.

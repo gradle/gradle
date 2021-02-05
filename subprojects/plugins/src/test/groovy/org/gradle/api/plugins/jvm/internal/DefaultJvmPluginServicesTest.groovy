@@ -27,6 +27,7 @@ import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.HasConfigurableAttributes
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -42,6 +43,7 @@ import static org.gradle.api.attributes.Category.*
 import static org.gradle.api.attributes.DocsType.DOCS_TYPE_ATTRIBUTE
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
 import static org.gradle.api.attributes.Usage.*
+import static org.gradle.api.attributes.java.TargetJvmEnvironment.*
 import static org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
 import static org.gradle.util.AttributeTestUtil.named
 
@@ -70,7 +72,8 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
-            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL)
+            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
         ]
 
         when:
@@ -82,6 +85,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
             (TARGET_JVM_VERSION_ATTRIBUTE): 8
         ]
     }
@@ -100,7 +104,8 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
-            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR),
+            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
         ]
     }
 
@@ -294,6 +299,19 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
             (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED),
             (TARGET_JVM_VERSION_ATTRIBUTE): 15
+        ]
+
+        when:
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.preferStandardJVM()
+        }
+
+        then:
+        attrs.asMap() == [
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+            (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED),
+            (TARGET_JVM_VERSION_ATTRIBUTE): 15,
+            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
         ]
     }
 
