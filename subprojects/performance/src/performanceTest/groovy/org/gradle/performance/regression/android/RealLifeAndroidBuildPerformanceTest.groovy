@@ -17,14 +17,10 @@
 package org.gradle.performance.regression.android
 
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
-import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
-import org.gradle.performance.fixture.IncrementalAndroidTestProject
-import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import spock.lang.Unroll
@@ -34,7 +30,7 @@ import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
@@ -47,9 +43,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     @Unroll
     @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = "run help"),
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = ".*phthalic.*")
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "run help"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*")
     ])
     def "run #tasks"() {
         given:
@@ -75,8 +71,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     @RunFor([
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = "clean phthalic.*")
+        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
+        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "clean phthalic.*")
     ])
     @Unroll
     def "clean #tasks with clean transforms cache"() {
@@ -106,57 +102,5 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         where:
         tasks << ['assembleDebug', 'phthalic:assembleDebug']
-    }
-
-    @RunFor(
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild"])
-    )
-    def "abi change"() {
-        given:
-        def testProject = androidTestProject as IncrementalAndroidTestProject
-        testProject.configureForAbiChange(runner)
-        runner.args.add('-Dorg.gradle.parallel=true')
-        applyEnterprisePlugin()
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-    }
-
-    @RunFor(
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild"])
-    )
-    def "non-abi change"() {
-        given:
-        def testProject = androidTestProject as IncrementalAndroidTestProject
-        testProject.configureForNonAbiChange(runner)
-        runner.args.add('-Dorg.gradle.parallel=true')
-        applyEnterprisePlugin()
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-    }
-
-    void applyEnterprisePlugin() {
-        runner.addBuildMutator { invocationSettings ->
-            new BuildMutator() {
-                @Override
-                void beforeScenario(ScenarioContext context) {
-                    ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(new File(invocationSettings.projectDir, "settings.gradle"))
-                }
-            }
-        }
-    }
-
-    AndroidTestProject getAndroidTestProject() {
-        // We assume here already, since the test may try to cast the returned test project to `IncrementalAndroidTestProject`,
-        // which fails when the test project is non-incremental.
-        runner.assumeShouldRun()
-        AndroidTestProject.projectFor(runner.testProject)
     }
 }
