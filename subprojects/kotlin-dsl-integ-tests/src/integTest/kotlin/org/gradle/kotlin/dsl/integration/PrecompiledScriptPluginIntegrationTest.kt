@@ -1,6 +1,8 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.codehaus.groovy.runtime.StringGroovyMethods
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -259,6 +261,115 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    fun `accessors are available after registering plugin`() {
+        withSettings(
+            """
+            $defaultSettingsScript
+
+            include("consumer", "producer")
+            """
+        )
+
+        withBuildScript(
+            """
+            plugins {
+                `java-library`
+            }
+
+            allprojects {
+                $repositoriesBlock
+            }
+
+            dependencies {
+                api(project(":consumer"))
+            }
+            """
+        )
+
+        withFolders {
+
+            "consumer" {
+                withFile(
+                    "build.gradle.kts",
+                    """
+                    plugins {
+                        id("org.gradle.kotlin.kotlin-dsl")
+                    }
+
+                    // Forces dependencies to be visible as jars
+                    // so we get plugin spec accessors
+                    ${forceJarsOnCompileClasspath()}
+
+                    dependencies {
+                        implementation(project(":producer"))
+                    }
+                    """
+                )
+
+                withFile(
+                    "src/main/kotlin/consumer-plugin.gradle.kts",
+                    """
+                    plugins { `producer-plugin` }
+                    """
+                )
+            }
+
+            "producer" {
+                withFile(
+                    "build.gradle",
+                    """
+                    plugins {
+                        id("java-library")
+                        id("java-gradle-plugin")
+                    }
+                    """
+                )
+                withFile(
+                    "src/main/java/producer/ProducerPlugin.java",
+                    """
+                    package producer;
+                    public class ProducerPlugin implements ${nameOf<Plugin<*>>()}<${nameOf<Project>()}> {
+                       @Override public void apply(${nameOf<Project>()} target) {}
+                    }
+                    """
+                )
+            }
+        }
+
+        buildAndFail("assemble").run {
+            // Accessor is not available on the first run as the plugin hasn't been registered.
+            assertTaskExecuted(
+                ":consumer:generateExternalPluginSpecBuilders"
+            )
+        }
+
+        existing("producer/build.gradle").run {
+            appendText(
+                """
+                gradlePlugin {
+                    plugins {
+                        producer {
+                            id = 'producer-plugin'
+                            implementationClass = 'producer.ProducerPlugin'
+                        }
+                    }
+                }
+                """
+            )
+        }
+
+        // Accessor becomes available after registering the plugin.
+        build("assemble").run {
+            assertTaskExecuted(
+                ":consumer:generateExternalPluginSpecBuilders"
+            )
+        }
+    }
+
+    private
+    inline fun <reified T> nameOf() = T::class.qualifiedName
+
+    @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after renaming precompiled script plugin from project dependency`() {
 
@@ -297,20 +408,11 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                         id("org.gradle.kotlin.kotlin-dsl")
                     }
 
-                    configurations {
-                        compileClasspath {
-                            attributes {
-                                // Forces dependencies to be visible as jars
-                                // to reproduce the failure that happens in forkingIntegTest.
-                                // Incidentally, this also allows us to write `stable-producer-plugin`
-                                // in the plugins block below instead of id("stable-producer-plugin").
-                                attribute(
-                                    LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                                    objects.named(LibraryElements.JAR)
-                                )
-                            }
-                        }
-                    }
+                    // Forces dependencies to be visible as jars
+                    // to reproduce the failure that happens in forkingIntegTest.
+                    // Incidentally, this also allows us to write `stable-producer-plugin`
+                    // in the plugins block below instead of id("stable-producer-plugin").
+                    ${forceJarsOnCompileClasspath()}
 
                     dependencies {
                         implementation(project(":producer"))
@@ -359,6 +461,20 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             )
         }
     }
+
+    private
+    fun forceJarsOnCompileClasspath() = """
+        configurations {
+            compileClasspath {
+                attributes {
+                    attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objects.named(LibraryElements.JAR)
+                    )
+                }
+            }
+        }
+    """
 
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
