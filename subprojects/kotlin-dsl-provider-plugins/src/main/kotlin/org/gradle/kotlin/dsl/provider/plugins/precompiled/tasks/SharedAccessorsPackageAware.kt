@@ -18,17 +18,15 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
-import org.gradle.internal.classloader.ClasspathHasher
-import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import javax.inject.Inject
 
 
 interface ClassPathAware {
+
     @get:InputFiles
     @get:Classpath
     val classPathFiles: ConfigurableFileCollection
@@ -38,7 +36,7 @@ interface ClassPathAware {
 interface SharedAccessorsPackageAware : ClassPathAware {
 
     @get:Inject
-    val classpathHasher: ClasspathHasher
+    val classPathFingerprinter: ClasspathFingerprinter
 }
 
 
@@ -51,9 +49,9 @@ fun <T> T.implicitImportsForPrecompiledScriptPlugins(
 
 internal
 val <T> T.sharedAccessorsPackage: String where T : Task, T : SharedAccessorsPackageAware
-    get() = "gradle.kotlin.dsl.plugins._${classpathHasher.hashOf(classPathFiles)}"
+    get() = "gradle.kotlin.dsl.plugins._$classPathFingerprintHash"
 
 
 private
-fun ClasspathHasher.hashOf(classPath: FileCollection): HashCode =
-    hash(DefaultClassPath.of(classPath))
+val <T> T.classPathFingerprintHash where T : SharedAccessorsPackageAware
+    get() = classPathFingerprinter.fingerprint(classPathFiles).hash
