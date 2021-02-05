@@ -19,5 +19,5 @@ package common
 enum class JvmCategory(val vendor: JvmVendor, val version: JvmVersion) {
     MIN_VERSION(JvmVendor.oracle, JvmVersion.java8),
     MAX_VERSION(JvmVendor.oracle, JvmVersion.java15),
-    EXPERIMENTAL_VERSION(JvmVendor.openjdk, JvmVersion.java16)
+    EXPERIMENTAL_VERSION(JvmVendor.oracle, JvmVersion.java16)
 }
