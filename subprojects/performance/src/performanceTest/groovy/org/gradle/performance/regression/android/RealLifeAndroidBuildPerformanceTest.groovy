@@ -43,9 +43,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     @Unroll
     @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = "run help"),
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = ".*phthalic.*")
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "run help"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*")
     ])
     def "run #tasks"() {
         given:
@@ -71,8 +71,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     @RunFor([
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = "clean phthalic.*")
+        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
+        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "clean phthalic.*")
     ])
     @Unroll
     def "clean #tasks with clean transforms cache"() {

@@ -31,7 +31,7 @@ import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["santaTrackerAndroidBuild"])
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "santaTrackerAndroidBuild")
 )
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExecutionPerformanceTest implements AndroidPerformanceTestFixture {

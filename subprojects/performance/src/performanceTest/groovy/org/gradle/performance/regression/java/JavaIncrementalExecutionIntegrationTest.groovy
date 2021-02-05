@@ -50,8 +50,8 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecuti
     }
 
     @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"], iterationMatcher = "assemble for non-abi change"),
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["largeJavaMultiProject"])
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"], iterationMatcher = "assemble for non-abi change"),
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "largeJavaMultiProject")
     ])
     def "assemble for non-abi change#configurationCaching"() {
         given:
@@ -74,9 +74,9 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecuti
     }
 
     @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeGroovyMultiProject"], iterationMatcher = "assemble for abi change"),
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["largeJavaMultiProject"]),
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeMonolithicGroovyProject", "largeMonolithicJavaProject"], iterationMatcher = "assemble for abi change")
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeGroovyMultiProject"], iterationMatcher = "assemble for abi change"),
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "largeJavaMultiProject"),
+        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeMonolithicGroovyProject", "largeMonolithicJavaProject"], iterationMatcher = "assemble for abi change")
     ])
     def "assemble for abi change#configurationCaching"() {
         given:
@@ -100,7 +100,7 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecuti
     }
 
     @RunFor(
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "mediumJavaMultiProjectWithTestNG", "largeMonolithicJavaProject"])
+        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeJavaMultiProject", "mediumJavaMultiProjectWithTestNG", "largeMonolithicJavaProject"])
     )
     def "test for non-abi change"() {
         given:
@@ -120,8 +120,8 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecuti
     }
 
     @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS], testProjects = ["largeJavaMultiProject"], iterationMatcher = '.*parallel true.*'),
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS], testProjects = "largeJavaMultiProject", iterationMatcher = '.*parallel true.*'),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
     ])
     def "up-to-date assemble (parallel #parallel)"() {
         given:
@@ -139,8 +139,8 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecuti
     }
 
     @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"], iterationMatcher = '.*parallel true.*'),
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeJavaMultiProject", iterationMatcher = '.*parallel true.*'),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
     ])
     def "up-to-date assemble with local build cache enabled (parallel #parallel)"() {
         given:
