@@ -38,9 +38,8 @@ import org.gradle.api.internal.attributes.DescribableAttributesSchema;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public abstract class JavaEcosystemSupport {
 
@@ -254,14 +253,12 @@ public abstract class JavaEcosystemSupport {
 
         @Override
         public void execute(MultipleCandidatesDetails<TargetJvmEnvironment> details) {
-            List<TargetJvmEnvironment> exactMatches = details.getCandidateValues().stream().filter(c -> c == details.getConsumerValue()).collect(Collectors.toList());
-            if (exactMatches.size() == 1) {
-                details.closestMatch(exactMatches.get(0));
+            TargetJvmEnvironment consumerValue = details.getConsumerValue();
+            if (consumerValue != null && details.getCandidateValues().contains(consumerValue)) {
+                details.closestMatch(consumerValue); // exact match
             } else {
-                List<TargetJvmEnvironment> standardJvm = details.getCandidateValues().stream().filter(c -> TargetJvmEnvironment.STANDARD_JVM.equals(c.getName())).collect(Collectors.toList());
-                if (standardJvm.size() == 1) {
-                    details.closestMatch(standardJvm.get(0));
-                }
+                Optional<TargetJvmEnvironment> standardJvm = details.getCandidateValues().stream().filter(c -> TargetJvmEnvironment.STANDARD_JVM.equals(c.getName())).findFirst();
+                standardJvm.ifPresent(details::closestMatch);
             }
         }
     }
