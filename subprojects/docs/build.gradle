@@ -532,6 +532,7 @@ tasks.named("docsTest") { task ->
         excludeTestsMatching '*java-modules-multi-project-with-integration-tests_kotlin_testTask*'
         excludeTestsMatching '*structuring-software-projects*'
     }
+    project.getBucketProvider().get().bucketProvider.configureTest(task, "docsTest")
 }
 
 // Publications for the docs subproject:
