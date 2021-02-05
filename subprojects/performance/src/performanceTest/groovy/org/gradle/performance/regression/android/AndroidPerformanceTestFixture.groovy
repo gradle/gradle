@@ -17,39 +17,16 @@
 package org.gradle.performance.regression.android
 
 import groovy.transform.SelfType
-import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.AndroidTestProject
-import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.ScenarioContext
 
 @SelfType(AbstractCrossVersionPerformanceTest)
 trait AndroidPerformanceTestFixture {
-
-    void applyEnterprisePlugin() {
-        runner.addBuildMutator { invocationSettings ->
-            new ApplyGradleEnterprisePluginMutator(invocationSettings.projectDir)
-        }
-    }
 
     AndroidTestProject getAndroidTestProject() {
         // We assume here already, since the test may try to cast the returned test project to `IncrementalAndroidTestProject`,
         // which fails when the test project is non-incremental.
         runner.assumeShouldRun()
         AndroidTestProject.projectFor(runner.testProject)
-    }
-}
-
-class ApplyGradleEnterprisePluginMutator implements BuildMutator {
-
-    private final File projectDir
-
-    ApplyGradleEnterprisePluginMutator(File projectDir) {
-        this.projectDir = projectDir
-    }
-
-    @Override
-    void beforeScenario(ScenarioContext context) {
-        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(new File(projectDir, "settings.gradle"))
     }
 }
