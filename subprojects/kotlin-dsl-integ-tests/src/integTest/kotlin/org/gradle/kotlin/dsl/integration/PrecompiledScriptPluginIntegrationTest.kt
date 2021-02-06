@@ -261,6 +261,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after registering plugin`() {
         withSettings(
             """
