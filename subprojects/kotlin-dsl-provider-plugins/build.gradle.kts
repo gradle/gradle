@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":plugins"))
     implementation(project(":plugin-development"))
+    implementation(project(":snapshots"))
     implementation(project(":tooling-api"))
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
