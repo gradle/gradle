@@ -19,9 +19,15 @@ package promotion
 import common.Branch
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
-abstract class PublishRelease(task: String, requiredConfirmationCode: String, branch: String = "release", init: PublishRelease.() -> Unit = {}) : PublishGradleDistribution(
-    versionSettingsBranch = Branch.Release,
-    promotedBranch = branch,
+abstract class PublishRelease(
+    task: String,
+    requiredConfirmationCode: String,
+    versionSettingsBranch: Branch = Branch.Release,
+    promotedBranch: String = "release",
+    init: PublishRelease.() -> Unit = {}
+) : PublishGradleDistribution(
+    versionSettingsBranch = versionSettingsBranch,
+    promotedBranch = promotedBranch,
     task = task,
     triggerName = "ReadyforRelease",
     gitUserEmail = "%gitUserEmail%",
@@ -59,20 +65,38 @@ abstract class PublishRelease(task: String, requiredConfirmationCode: String, br
     }
 }
 
-object PublishFinalRelease : PublishRelease(task = "promoteFinalRelease", requiredConfirmationCode = "final", init = {
-    id("Gradle_Promotion_FinalRelease")
-    name = "Release - Final"
-    description = "Promotes the latest successful change on 'release' as a new release"
-})
+class PublishFinalRelease(branch: Branch) : PublishRelease(
+    versionSettingsBranch = branch,
+    promotedBranch = branch.name.toLowerCase(),
+    task = "promoteFinalRelease",
+    requiredConfirmationCode = "final",
+    init = {
+        id("Gradle_Promotion_FinalRelease")
+        name = "Release - Final"
+        description = "Promotes the latest successful change on 'release' as a new release"
+    }
+)
 
-object PublishReleaseCandidate : PublishRelease(task = "promoteRc", requiredConfirmationCode = "rc", init = {
-    id("Promotion_ReleaseCandidate")
-    name = "Release - Release Candidate"
-    description = "Promotes the latest successful change on 'release' as a new release candidate"
-})
+class PublishReleaseCandidate(branch: Branch) : PublishRelease(
+    versionSettingsBranch = branch,
+    promotedBranch = branch.name.toLowerCase(),
+    task = "promoteRc",
+    requiredConfirmationCode = "rc",
+    init = {
+        id("Promotion_ReleaseCandidate")
+        name = "Release - Release Candidate"
+        description = "Promotes the latest successful change on 'release' as a new release candidate"
+    }
+)
 
-object PublishMilestone : PublishRelease(task = "promoteMilestone", requiredConfirmationCode = "milestone", init = {
-    id("Promotion_Milestone")
-    name = "Release - Milestone"
-    description = "Promotes the latest successful change on 'release' as a new milestone"
-})
+class PublishMilestone(branch: Branch) : PublishRelease(
+    versionSettingsBranch = branch,
+    promotedBranch = branch.name.toLowerCase(),
+    task = "promoteMilestone",
+    requiredConfirmationCode = "milestone",
+    init = {
+        id("Promotion_Milestone")
+        name = "Release - Milestone"
+        description = "Promotes the latest successful change on 'release' as a new milestone"
+    }
+)
