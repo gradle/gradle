@@ -10,18 +10,15 @@ class PromotionProject(branch: Branch) : Project({
     buildType(SanityCheck)
     buildType(PublishNightlySnapshot(branch))
     buildType(PublishNightlySnapshotFromQuickFeedback(branch))
-    when (branch) {
-        Branch.Master -> {
-            buildType(PublishBranchSnapshotFromQuickFeedback)
-            buildType(StartReleaseCycle)
-            buildType(StartReleaseCycleTest)
-            buildType(PublishMilestone)
-        }
-        Branch.Release -> {
-            buildType(PublishReleaseCandidate)
-            buildType(PublishFinalRelease)
-        }
+    if (branch == Branch.Master) {
+        buildType(PublishBranchSnapshotFromQuickFeedback)
+        buildType(StartReleaseCycle)
+        buildType(StartReleaseCycleTest)
     }
+
+    buildType(PublishMilestone(branch))
+    buildType(PublishReleaseCandidate(branch))
+    buildType(PublishFinalRelease(branch))
 
     params {
         password("env.ORG_GRADLE_PROJECT_gradleS3SecretKey", "%gradleS3SecretKey%")

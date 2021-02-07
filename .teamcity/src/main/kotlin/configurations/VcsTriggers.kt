@@ -16,6 +16,8 @@
 
 package configurations
 
+import common.Branch
+
 val triggerExcludes = """
         -:.idea
         -:.github
@@ -24,9 +26,8 @@ val triggerExcludes = """
         -:subprojects/docs/src/docs/release
     """.trimIndent()
 
-val masterReleaseBranchFilter = """
-    +:master
-    +:release
+fun branchFilter(branch: Branch) = """
+    +:$branch
 """.trimIndent()
 
 val allBranchesFilter = """

@@ -38,7 +38,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
             quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
             quietPeriod = 90
             triggerRules = triggerExcludes
-            branchFilter = masterReleaseBranchFilter
+            branchFilter = branchFilter(model.branch)
         }
     } else if (stage.trigger != Trigger.never) {
         triggers.schedule {
@@ -56,7 +56,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
             triggerBuild = always()
             withPendingChangesOnly = true
             param("revisionRule", "lastFinished")
-            param("branchFilter", masterReleaseBranchFilter)
+            branchFilter = branchFilter(model.branch)
         }
     }
 
