@@ -8,8 +8,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 object GradleAllBranches : GitVcsRoot({
     name = "Gradle All Branches"
     url = "https://github.com/gradle/gradle.git"
-    branch = "master"
-    branchSpec = "+:refs/heads/*"
+    branch = "%defaultBranchName%"
+    branchSpec = """+:refs/heads/*
++:refs/(pull/*/head)"""
     agentGitPath = "%env.TEAMCITY_GIT_PATH%"
     useMirrors = false
 })
