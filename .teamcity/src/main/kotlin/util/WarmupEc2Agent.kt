@@ -7,14 +7,14 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.Requirement
 import jetbrains.buildServer.configs.kotlin.v2019_2.RequirementType
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.freeDiskSpace
-import vcsroots.gradleMaster
+import vcsroots.gradleMasterVersionedSettings
 import vcsroots.useAbsoluteVcs
 
 object WarmupEc2Agent : BuildType({
     name = "Warmup EC2 Agent"
     id("Util_WarmupEc2Agent")
 
-    vcs.useAbsoluteVcs(gradleMaster)
+    vcs.useAbsoluteVcs(gradleMasterVersionedSettings)
 
     features {
         freeDiskSpace {
