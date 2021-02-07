@@ -34,7 +34,7 @@ object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistribution(
         val triggerName = this.triggerName
 
         params {
-            param("branch.qualifier", "%dep.Gradle_Check_Stage_${triggerName}_Trigger.teamcity.build.branch%")
+            param("branch.qualifier", "%dep.Gradle_Master_Check_Stage_${triggerName}_Trigger.teamcity.build.branch%")
             text(
                 "branch.to.promote",
                 "%branch.qualifier%",

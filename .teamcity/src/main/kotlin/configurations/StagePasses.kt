@@ -23,7 +23,7 @@ import model.Trigger
 import projects.StageProject
 
 class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) : BaseGradleBuildType(model, init = {
-    id = AbsoluteId(stageTriggerUuid(model, stage))
+    id = stageTriggerId(model, stage)
     name = stage.stageName.stageName + " (Trigger)"
 
     applyDefaultSettings()
@@ -103,8 +103,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         snapshotDependencies(stageProject.functionalTests)
     }
 })
-
-fun stageTriggerUuid(model: CIBuildModel, stage: Stage) = "${model.projectId}_Stage_${stage.stageName.uuid}_Trigger"
 
 fun stageTriggerId(model: CIBuildModel, stage: Stage) = stageTriggerId(model, stage.stageName)
 
