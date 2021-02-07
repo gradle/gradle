@@ -60,7 +60,7 @@ fun BuildFeatures.triggeredOnPullRequests() {
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
-        vcsRootExtId = "GradleMaster"
+        vcsRootExtId = "Gradle_Branches_GradlePersonalBranches"
         publisher = github {
             githubUrl = "https://api.github.com"
             authType = personalToken {
