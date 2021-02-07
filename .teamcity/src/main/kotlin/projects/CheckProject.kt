@@ -8,7 +8,6 @@ import model.CIBuildModel
 import model.FunctionalTestBucketProvider
 import model.Stage
 import model.StatisticsBasedPerformanceTestBucketProvider
-import vcsroots.GradleAllBranches
 import java.io.File
 
 class CheckProject(
@@ -18,8 +17,6 @@ class CheckProject(
     id = AbsoluteId(model.projectId)
     name = "Check"
     val performanceTestBucketProvider = StatisticsBasedPerformanceTestBucketProvider(model, File("performance-test-durations.json"), File("performance-tests-ci.json"))
-
-    vcsRoot(GradleAllBranches)
 
     params {
         param("credentialsStorageType", "credentialsJSON")
