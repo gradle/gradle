@@ -16,10 +16,12 @@
 
 package promotion
 
+import common.Branch
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
 abstract class PublishRelease(task: String, requiredConfirmationCode: String, branch: String = "release", init: PublishRelease.() -> Unit = {}) : PublishGradleDistribution(
-    branch = branch,
+    versionSettingsBranch = Branch.Release,
+    promotedBranch = branch,
     task = task,
     triggerName = "ReadyforRelease",
     gitUserEmail = "%gitUserEmail%",

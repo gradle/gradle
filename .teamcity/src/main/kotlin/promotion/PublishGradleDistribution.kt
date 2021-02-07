@@ -22,7 +22,10 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import vcsroots.gradlePromotionMaster
 
 abstract class PublishGradleDistribution(
-    branch: String,
+    // The branch where the build pipeline comes from, usually Master/Release
+    versionSettingsBranch: Branch,
+    // The branch to be promoted
+    promotedBranch: String,
     task: String,
     val triggerName: String,
     gitUserName: String = "bot-teamcity",
@@ -49,8 +52,8 @@ abstract class PublishGradleDistribution(
             }
         }
         dependencies {
-            artifacts(AbsoluteId("Gradle_Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
-                buildRule = lastSuccessful(branch)
+            artifacts(AbsoluteId("Gradle_${versionSettingsBranch.name}_Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
+                buildRule = lastSuccessful(promotedBranch)
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-build-receipt/"
             }
