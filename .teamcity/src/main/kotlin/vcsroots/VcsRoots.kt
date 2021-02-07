@@ -3,8 +3,16 @@ package vcsroots
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2019_2.VcsSettings
+import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 
-val gradlePersonalBranches = "Gradle_Branches_GradlePersonalBranches"
+object GradleAllBranches : GitVcsRoot({
+    name = "Gradle All Branches"
+    url = "https://github.com/gradle/gradle.git"
+    branchSpec = "+:refs/heads/*"
+    agentGitPath = "%env.TEAMCITY_GIT_PATH%"
+    useMirrors = false
+})
+
 val gradleMasterVersionedSettings = "GradleMaster"
 val gradleReleaseVersionedSettings = "GradleRelease"
 val gradlePromotionMaster = "Gradle_GradlePromoteMaster"
