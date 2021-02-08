@@ -354,7 +354,6 @@ public class Foo {
             plugins {
                 id("java")
             }
-
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
