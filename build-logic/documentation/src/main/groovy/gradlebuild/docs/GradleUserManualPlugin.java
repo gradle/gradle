@@ -188,10 +188,19 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.eachFile(fcd -> fcd.setRelativePath(RelativePath.parse(true, fcd.getName())));
             });
 
-            task.from(extension.getUserManual().getSnippets(), sub -> sub.into("snippets"));
+            // From the snippets and the samples, filter out files generated if the build contained was ever executed
+            task.from(extension.getUserManual().getSnippets(), sub -> {
+                sub.into("snippets");
+                sub.exclude("**/.gradle/**");
+                sub.exclude("**/build/**");
+                sub.setIncludeEmptyDirs(false);
+            });
             task.from(extension.getUserManual().getSamples(), sub -> {
                 sub.into("samples");
                 sub.exclude("**/*.adoc");
+                sub.exclude("**/.gradle/**");
+                sub.exclude("**/build/**");
+                sub.setIncludeEmptyDirs(false);
             });
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
