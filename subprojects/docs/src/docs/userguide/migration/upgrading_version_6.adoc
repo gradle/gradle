@@ -181,7 +181,7 @@ The `ValidateTaskProperties` task has been removed and replaced by the link:{jav
 
 The `ImmutableFileCollection` type has been removed.
 Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...-[factory method] instead.
-A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project].
+A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.layout].
 
 ==== Removal of domain object collection constructors
 
@@ -194,7 +194,7 @@ The following deprecated constructors were removed:
 
 ==== Removal of arbitrary local cache configuration
 
-The local build cache configuration now needs to be done via the link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-[BuildCacheConfiguration].
+The local build cache configuration now needs to be done via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-[BuildCacheConfiguration.local()].
 
 ==== Removal of DefaultVersionSelectorScheme constructor
 
