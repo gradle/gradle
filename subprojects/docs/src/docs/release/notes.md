@@ -27,7 +27,9 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
-## Performance improvements
+## Performance improvements for incremental development
+
+This release contains further improvements for incremental development &mdash; the part of the software development process where you make frequent small changes.
 
 <a name="file-system-watching"></a>
 ### File system watching is enabled by default
@@ -43,10 +45,9 @@ This feature is now enabled on all supported platforms.
 
 Read more about this feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-file-system-watching)!
 
-### Incremental development performance
+### Android performance improvements
 
-This release contains further improvements for incremental development &mdash; the part of the software development process where you make frequent small changes.
-These performance improvements are more pronounced for Android builds.
+This release contains performance improvements for doing incremental development on Android builds.
 
 For example, `assembleDebug` for a non-abi change on the Santa Tracker Android project improved by 15% compared to Gradle 6.7:
 
