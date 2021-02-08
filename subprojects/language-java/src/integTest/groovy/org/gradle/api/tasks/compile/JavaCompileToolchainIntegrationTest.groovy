@@ -380,7 +380,8 @@ public class Foo {
             JavaVersion.VERSION_13,
             JavaVersion.VERSION_14,
             JavaVersion.VERSION_15,
-            JavaVersion.VERSION_16
+            JavaVersion.VERSION_16,
+            JavaVersion.VERSION_17
         ]
     }
 
