@@ -2,7 +2,6 @@ package projects
 
 import common.failedTestArtifactDestination
 import configurations.StagePasses
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
 import model.FunctionalTestBucketProvider
@@ -14,7 +13,7 @@ class CheckProject(
     model: CIBuildModel,
     functionalTestBucketProvider: FunctionalTestBucketProvider
 ) : Project({
-    id = AbsoluteId(model.projectId)
+    id("Check")
     name = "Check"
     val performanceTestBucketProvider = StatisticsBasedPerformanceTestBucketProvider(model, File("performance-test-durations.json"), File("performance-tests-ci.json"))
 

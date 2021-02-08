@@ -1,7 +1,5 @@
 import jetbrains.buildServer.configs.kotlin.v2019_2.project
 import jetbrains.buildServer.configs.kotlin.v2019_2.version
-import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import common.Branch
 import projects.GradleBuildToolRootProject
 
@@ -39,11 +37,4 @@ Release (buildTypeId: Gradle_Release)
          |----- WarmupEc2Agent
          |----- AdHocPerformanceTest
  */
-val branch = Branch.current()
-val parentProjectId = "Gradle"
-
-DslContext.parentProjectId = AbsoluteId(parentProjectId)
-DslContext.projectId = AbsoluteId("${parentProjectId}_${branch.name}")
-DslContext.projectName = branch.name
-
-project(GradleBuildToolRootProject(branch))
+project(GradleBuildToolRootProject(Branch.current()))

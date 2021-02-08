@@ -73,10 +73,6 @@ class CIConfigIntegrationTests {
         val stagePassConfigs = rootProject.buildTypes
         stagePassConfigs.forEach {
             val stageNumber = stagePassConfigs.indexOf(it) + 1
-            println(it.id)
-            it.dependencies.items.forEach {
-                println("--> " + it.buildTypeId)
-            }
             if (stageNumber <= model.stages.size) {
                 val stage = model.stages[stageNumber - 1]
                 val prevStage = if (stageNumber > 1) model.stages[stageNumber - 2] else null

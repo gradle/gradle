@@ -10,8 +10,8 @@ class PromotionProject(branch: Branch) : Project({
     buildType(SanityCheck)
     buildType(PublishNightlySnapshot(branch))
     buildType(PublishNightlySnapshotFromQuickFeedback(branch))
+    buildType(PublishBranchSnapshotFromQuickFeedback)
     if (branch == Branch.Master) {
-        buildType(PublishBranchSnapshotFromQuickFeedback)
         buildType(StartReleaseCycle)
         buildType(StartReleaseCycleTest)
     }

@@ -71,7 +71,7 @@ class PublishFinalRelease(branch: Branch) : PublishRelease(
     task = "promoteFinalRelease",
     requiredConfirmationCode = "final",
     init = {
-        id("Gradle_Promotion_FinalRelease")
+        id("Promotion_FinalRelease")
         name = "Release - Final"
         description = "Promotes the latest successful change on 'release' as a new release"
     }

@@ -2,9 +2,9 @@ package common
 
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 
-enum class Branch(val buildTypeId: String) {
-    Master("Master_Check"),
-    Release("Release_Check");
+enum class Branch {
+    Master,
+    Release;
 
     companion object {
         fun current(): Branch {
