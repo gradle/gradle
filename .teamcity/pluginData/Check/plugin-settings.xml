@@ -14,7 +14,13 @@
         <state type="buildFailed" enabled="true" />
         <state type="buildFinished" enabled="true" />
       </states>
-      <build-types enabled-for-all="true" enabled-for-subprojects="true" />
+      <build-types enabled-for-all="false" enabled-for-subprojects="false">
+        <build-type id="bt270451" />
+        <build-type id="bt270450" />
+        <build-type id="bt269712" />
+        <build-type id="bt269758" />
+        <build-type id="bt270452" />
+      </build-types>
     </webhook>
   </webhooks>
 </settings>
