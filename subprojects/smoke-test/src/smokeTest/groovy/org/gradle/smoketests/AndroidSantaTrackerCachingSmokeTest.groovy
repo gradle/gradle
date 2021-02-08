@@ -29,7 +29,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
-    def "can cache Santa Tracker Kotlin Android application (agp=#agpVersion)"() {
+    def "can cache Santa Tracker Android application (agp=#agpVersion)"() {
 
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
