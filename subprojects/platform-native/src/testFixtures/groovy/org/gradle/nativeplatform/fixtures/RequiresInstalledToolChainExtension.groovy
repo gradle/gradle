@@ -15,11 +15,12 @@
  */
 package org.gradle.nativeplatform.fixtures
 
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
+
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
 
-class RequiresInstalledToolChainExtension extends AbstractAnnotationDrivenExtension<RequiresInstalledToolChain> {
+class RequiresInstalledToolChainExtension implements IAnnotationDrivenExtension<RequiresInstalledToolChain> {
     @Override
     void visitSpecAnnotation(RequiresInstalledToolChain annotation, SpecInfo spec) {
         final available = isToolChainAvailable(annotation)

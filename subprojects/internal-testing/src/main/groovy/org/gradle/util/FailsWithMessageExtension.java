@@ -18,12 +18,12 @@ package org.gradle.util;
 import junit.framework.ComparisonFailure;
 import org.spockframework.runtime.ConditionFailedWithExceptionError;
 import org.spockframework.runtime.WrongExceptionThrownError;
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension;
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension;
 import org.spockframework.runtime.extension.IMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInvocation;
 import org.spockframework.runtime.model.FeatureInfo;
 
-public class FailsWithMessageExtension extends AbstractAnnotationDrivenExtension<FailsWithMessage> {
+public class FailsWithMessageExtension implements IAnnotationDrivenExtension<FailsWithMessage> {
     @Override
     public void visitFeatureAnnotation(FailsWithMessage annotation, FeatureInfo feature) {
         feature.getFeatureMethod().addInterceptor(new FailsWithMessageInterceptor(annotation));
