@@ -27,7 +27,7 @@ val triggerExcludes = """
     """.trimIndent()
 
 fun branchFilter(branch: Branch) = """
-    +:$branch
+    +:${branch.name.toLowerCase()}
 """.trimIndent()
 
 val allBranchesFilter = """
