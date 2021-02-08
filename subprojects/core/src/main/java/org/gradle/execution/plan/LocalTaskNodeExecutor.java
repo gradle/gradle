@@ -80,7 +80,12 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
-                .forEach(consumerWithoutDependency -> collectValidationProblem(node, consumerWithoutDependency, validationContext));
+                .forEach(consumerWithoutDependency -> collectValidationProblem(
+                    node,
+                    consumerWithoutDependency,
+                    validationContext,
+                    outputPath)
+                );
         }
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
@@ -129,14 +134,19 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String locationConsumedByThisTask : taskInputs) {
             outputHierarchy.getNodesAccessing(locationConsumedByThisTask).stream()
                 .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
-                .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
+                .forEach(producerWithoutDependency -> collectValidationProblem(
+                    producerWithoutDependency,
+                    node,
+                    validationContext,
+                    locationConsumedByThisTask)
+                );
         }
         for (FilteredTree filteredFileTreeInput : filteredFileTreeTaskInputs) {
             Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
             inputHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
             outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec).stream()
                 .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
-                .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
+                .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext, filteredFileTreeInput.getRoot()));
         }
     }
 
@@ -180,11 +190,18 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         return true;
     }
 
-    private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext) {
+    private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         TypeValidationContext.Severity severity = TypeValidationContext.Severity.WARNING;
         validationContext.visitPropertyProblem(
             severity,
-            String.format("Task '%s' uses the output of task '%s', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '%s' as an input). This can lead to incorrect results being produced, depending on what order the tasks are executed", consumer, producer, producer)
+            String.format("Task '%s' uses the output of task '%s', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '%s' as an input). "
+                + "The location which is an input/output is '%s'. "
+                + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
+                consumer,
+                producer,
+                producer,
+                consumerProducerPath
+            )
         );
     }
 

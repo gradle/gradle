@@ -108,8 +108,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         }
         // Generate external jar with entries in alphabetical order
         def externalJar = file('build/libs/external.jar')
-        expectMissingDependencyDeprecation(":alphabetic", ":a:compileJava")
-        expectMissingDependencyDeprecation(":alphabetic", ":a:javadoc")
+        expectMissingDependencyDeprecation(":alphabetic", ":a:compileJava", file("build/libs/external.jar"))
+        expectMissingDependencyDeprecation(":alphabetic", ":a:javadoc", file("build/libs/external.jar"))
         succeeds("alphabetic", ":a:javadoc")
         new ZipTestFixture(externalJar).hasDescendantsInOrder('META-INF/MANIFEST.MF', 'a', 'b', 'c', 'd')
 
@@ -156,8 +156,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
             file("external/$it").touch()
         }
         // Generate external jar with entries with a current timestamp
-        expectMissingDependencyDeprecation(":currentTime", ":a:compileJava")
-        expectMissingDependencyDeprecation(":currentTime", ":a:javadoc")
+        expectMissingDependencyDeprecation(":currentTime", ":a:compileJava", file("build/libs/external.jar"))
+        expectMissingDependencyDeprecation(":currentTime", ":a:javadoc", file("build/libs/external.jar"))
         succeeds("currentTime", ":a:javadoc")
         def oldHash = externalJar.md5Hash
         when:
@@ -199,8 +199,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         duplicate.text = "duplicate"
 
         // Generate external jar with entries with a duplicate 'a' file
-        expectMissingDependencyDeprecation(":duplicate", ":a:compileJava")
-        expectMissingDependencyDeprecation(":duplicate", ":a:javadoc")
+        expectMissingDependencyDeprecation(":duplicate", ":a:compileJava", file("build/libs/external.jar"))
+        expectMissingDependencyDeprecation(":duplicate", ":a:javadoc", file("build/libs/external.jar"))
         succeeds("duplicate", ":a:javadoc")
         def oldHash = externalJar.md5Hash
 
@@ -259,9 +259,10 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         !file("a/build/docs/javadoc/AA.html").isFile()
     }
 
-    void expectMissingDependencyDeprecation(String producer, String consumer) {
+    void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
         executer.expectDocumentedDeprecationWarning(
             "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
+                "The location which is an input/output is '${producedConsumedLocation.absolutePath}'. " +
                 "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled due to the failed validation. " +

@@ -58,7 +58,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         executer.inDirectory(dslDir)
 
         when:
-        def result = succeeds('retrieveRuntimeDependencies')
+        succeeds('retrieveRuntimeDependencies')
 
         then: "The JARs are copied to the destination directory"
         dslDir.file('build/libs/our-custom.jar').isFile()
@@ -78,8 +78,8 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
         when:
         // FIXME: Infer dependencies for zipTree(Provider<>)
-        expectMissingDependencyDeprecation(":javadocJarArchive", ":unpackJavadocs")
-        def result = succeeds('javadocJar', 'unpackJavadocs')
+        expectMissingDependencyDeprecation(":javadocJarArchive", ":unpackJavadocs", dslDir.file("build/libs/ant-file-deps-sample-javadoc.jar"))
+        succeeds('javadocJar', 'unpackJavadocs')
 
         then: "The HTML Javadoc files are unpacked to the 'dist' directory"
         dslDir.file('build/dist/org/example/app/HelloApp.html').isFile()
@@ -88,9 +88,10 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    void expectMissingDependencyDeprecation(String producer, String consumer) {
+    void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
         executer.expectDocumentedDeprecationWarning(
             "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
+                "The location which is an input/output is '${producedConsumedLocation.absolutePath}'. " +
                 "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled due to the failed validation. " +

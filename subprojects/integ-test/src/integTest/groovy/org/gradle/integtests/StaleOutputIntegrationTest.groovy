@@ -469,8 +469,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        expectMissingDependencyDeprecation(":restore", ":backup")
-        expectMissingDependencyDeprecation(":backup", ":restore")
+        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
+        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
         run 'backup', 'restore'
 
         then:
@@ -487,8 +487,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         //
         // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
         invalidateBuildOutputCleanupState()
-        expectMissingDependencyDeprecation(":restore", ":backup")
-        expectMissingDependencyDeprecation(":backup", ":restore")
+        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
+        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
         run 'backup', 'restore', '--info'
 
         then:
@@ -732,9 +732,10 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void expectMissingDependencyDeprecation(String producer, String consumer) {
+    void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
         executer.expectDocumentedDeprecationWarning(
             "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
+                "The location which is an input/output is '${producedConsumedLocation.absolutePath}'. " +
                 "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled due to the failed validation. " +
