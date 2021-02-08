@@ -44,8 +44,8 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         DaemonLogsAnalyzer.newAnalyzer(homeDir.file(ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
     }
 
-    protected void setupCopyOfSantaTracker(TestFile targetDir, String flavour, String agpVersion = null) {
-        copyRemoteProject("santaTracker${flavour.capitalize()}", targetDir)
+    protected void setupCopyOfSantaTracker(TestFile targetDir) {
+        copyRemoteProject("santaTracker", targetDir)
         ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(targetDir.file("settings.gradle"))
     }
 

@@ -157,21 +157,11 @@
       "coverage" : {
         "per_week" : [ "linux" ]
       }
-    }, {
-      "testProject" : "santaTrackerAndroidJavaBuild",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
     } ]
   }, {
     "testId" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.faster non-abi change (build comparison)",
     "groups" : [ {
       "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidJavaBuild",
       "coverage" : {
         "per_week" : [ "linux" ]
       }

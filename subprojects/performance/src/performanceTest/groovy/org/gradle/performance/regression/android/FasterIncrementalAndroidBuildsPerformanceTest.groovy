@@ -43,7 +43,7 @@ import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @RunFor(
-    @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild", "santaTrackerAndroidJavaBuild"])
+    @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild"])
 )
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static final String KOTLIN_TARGET_VERSION = new KotlinGradlePluginVersions().latests.last()

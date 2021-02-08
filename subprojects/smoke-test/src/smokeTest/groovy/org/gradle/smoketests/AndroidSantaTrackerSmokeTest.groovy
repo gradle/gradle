@@ -40,7 +40,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         and:
         def checkoutDir = temporaryFolder.createDir("checkout")
-        setupCopyOfSantaTracker(checkoutDir, 'Java', agpVersion)
+        setupCopyOfSantaTracker(checkoutDir)
 
         when:
         def result = buildLocation(checkoutDir, agpVersion)
@@ -74,7 +74,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         and:
         def checkoutDir = temporaryFolder.createDir("checkout")
-        setupCopyOfSantaTracker(checkoutDir, 'Java', agpVersion)
+        setupCopyOfSantaTracker(checkoutDir)
         def buildContext = new DefaultScenarioContext(UUID.randomUUID(), "nonAbiChange").withBuild(Phase.MEASURE, 0)
 
         and:
@@ -106,14 +106,14 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
-    def "can lint Santa-Tracker #flavour (agp=#agpVersion)"() {
+    def "can lint Santa-Tracker (agp=#agpVersion)"() {
 
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
 
         and:
         def checkoutDir = temporaryFolder.createDir("checkout")
-        setupCopyOfSantaTracker(checkoutDir, flavour, agpVersion)
+        setupCopyOfSantaTracker(checkoutDir)
 
         when:
         def result = runnerForLocation(checkoutDir, agpVersion, "lintDebug").buildAndFail()
@@ -131,6 +131,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        [agpVersion, flavour] << [TESTED_AGP_VERSIONS, ['Java', 'Kotlin']].combinations()
+        agpVersion << TESTED_AGP_VERSIONS
     }
 }
