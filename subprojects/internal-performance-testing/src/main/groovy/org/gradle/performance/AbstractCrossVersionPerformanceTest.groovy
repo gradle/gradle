@@ -19,6 +19,7 @@ package org.gradle.performance
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.annotations.AllFeaturesShouldBeAnnotated
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
@@ -26,6 +27,8 @@ import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.GradleProfilerReporter
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.ScenarioContext
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -71,10 +74,30 @@ class AbstractCrossVersionPerformanceTest extends Specification {
         runner
     }
 
+    void applyEnterprisePlugin() {
+        runner.addBuildMutator { invocationSettings ->
+            new ApplyGradleEnterprisePluginMutator(invocationSettings.projectDir)
+        }
+    }
+
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
             RESULTS_STORE.close()
         }
+    }
+}
+
+class ApplyGradleEnterprisePluginMutator implements BuildMutator {
+
+    private final File projectDir
+
+    ApplyGradleEnterprisePluginMutator(File projectDir) {
+        this.projectDir = projectDir
+    }
+
+    @Override
+    void beforeScenario(ScenarioContext context) {
+        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(new File(projectDir, "settings.gradle"))
     }
 }

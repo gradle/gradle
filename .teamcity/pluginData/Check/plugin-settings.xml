@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+  <webhooks enabled="true">
+    <webhook url="http://dev12.gradle.org:3003/teamcity" enabled="true" format="tailoredjson" template="none">
+      <states>
+        <state type="buildStarted" enabled="true" />
+        <state type="responsibilityChanged" enabled="true" />
+        <state type="changesLoaded" enabled="false" />
+        <state type="beforeBuildFinish" enabled="false" />
+        <state type="buildBroken" enabled="false" />
+        <state type="buildFixed" enabled="false" />
+        <state type="buildInterrupted" enabled="true" />
+        <state type="buildSuccessful" enabled="true" />
+        <state type="buildFailed" enabled="true" />
+        <state type="buildFinished" enabled="true" />
+      </states>
+      <build-types enabled-for-all="false" enabled-for-subprojects="false">
+        <build-type id="bt270451" />
+        <build-type id="bt270450" />
+        <build-type id="bt269712" />
+        <build-type id="bt269758" />
+        <build-type id="bt270452" />
+      </build-types>
+    </webhook>
+  </webhooks>
+</settings>
+

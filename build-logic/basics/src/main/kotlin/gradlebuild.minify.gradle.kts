@@ -27,8 +27,21 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
  */
 val keepPatterns = mapOf(
     "fastutil" to setOf(
+        // For Java compilation incremental analysis
         "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
-        "it.unimi.dsi.fastutil.ints.IntSets"
+        "it.unimi.dsi.fastutil.ints.IntSets",
+        // For the embedded Kotlin compiler
+        "it.unimi.dsi.fastutil.ints.Int2ObjectMap",
+        "it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap",
+        "it.unimi.dsi.fastutil.objects.Object2IntMap",
+        "it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap",
+        "it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap",
+        "it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap",
+        "it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap",
+        "it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet",
+        "it.unimi.dsi.fastutil.objects.ObjectOpenHashSet",
+        "it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap",
+        "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
     )
 )
 plugins.withId("java-base") {

@@ -40,6 +40,7 @@ tasks {
         dependsOn(checkKotlinCompilerEmbeddableDependencies)
         excludes.set(
             listOf(
+                "it/unimi/dsi/fastutil/**",
                 "META-INF/services/javax.annotation.processing.Processor",
                 "META-INF/native/**/*jansi.*"
             )

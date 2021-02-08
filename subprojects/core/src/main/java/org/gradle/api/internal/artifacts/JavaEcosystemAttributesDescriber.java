@@ -24,6 +24,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -40,6 +41,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
         Bundling.BUNDLING_ATTRIBUTE,
         TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+        TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
         DocsType.DOCS_TYPE_ATTRIBUTE,
         ProjectInternal.STATUS_ATTRIBUTE
     );
@@ -56,6 +58,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         Object usage = attr(attributes, Usage.USAGE_ATTRIBUTE);
         Object le = attr(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
         Object bundling = attr(attributes, Bundling.BUNDLING_ATTRIBUTE);
+        Object targetJvmEnvironment = attr(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
         Object targetJvm = attr(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         Object docsType = attr(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
         Object status = attr(attributes, ProjectInternal.STATUS_ATTRIBUTE);
@@ -89,6 +92,10 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         if (le != null) {
             sb.append(", ");
             describeLibraryElements(le, sb);
+        }
+        if (targetJvmEnvironment != null) {
+            sb.append(", preferably optimized for ");
+            describeTargetJvmEnvironment(targetJvmEnvironment, sb);
         }
         if (bundling != null) {
             sb.append(", and ");
@@ -130,6 +137,10 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
             sb.append("its usage (required ");
             describeUsage(consumerValue, sb);
             sb.append(")");
+        } else if (TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.equals(attribute)) {
+            sb.append("its target Java environment (preferred optimized for ");
+            describeTargetJvmEnvironment(consumerValue, sb);
+            sb.append(")");
         } else if (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.equals(attribute)) {
             sb.append("its target Java version (required compatibility with ");
             describeTargetJvm(consumerValue, sb);
@@ -154,7 +165,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
             sb.append("its status (required ");
             describeStatus(consumerValue, sb);
             sb.append(")");
-        }else {
+        } else {
             return null;
         }
         return sb.toString();
@@ -252,6 +263,20 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
 
     private static void describeTargetJvm(Object targetJvm, StringBuilder sb) {
         sb.append("Java ").append(targetJvm);
+    }
+
+    private static void describeTargetJvmEnvironment(Object targetJvmEnvironment, StringBuilder sb) {
+        String name = toName(targetJvmEnvironment);
+        switch (name) {
+            case TargetJvmEnvironment.STANDARD_JVM:
+                sb.append("standard JVMs");
+                break;
+            case TargetJvmEnvironment.ANDROID:
+                sb.append("Android");
+                break;
+            default:
+                sb.append(name);
+        }
     }
 
     private static void describeCategory(Object category, StringBuilder sb) {

@@ -90,4 +90,9 @@ interface JvmEcosystemAttributesDetails {
      * @param version the Java version
      */
     JvmEcosystemAttributesDetails withTargetJvmVersion(int version);
+
+    /**
+     * Expresses that variants which are optimized for standard JVMs should be preferred.
+     */
+    JvmEcosystemAttributesDetails preferStandardJVM();
 }
