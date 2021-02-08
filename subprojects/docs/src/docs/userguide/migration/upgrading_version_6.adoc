@@ -49,6 +49,10 @@ Users can still opt in to have this unique identifier part of the produced metad
 
 === Potential breaking changes
 
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.30].
+
 ==== Removal of `compile` and `runtime` configurations
 
 Since its inception, Gradle provided the `compile` and `runtime` configurations to declare dependencies.
@@ -182,6 +186,11 @@ The `ValidateTaskProperties` task has been removed and replaced by the link:{jav
 The `ImmutableFileCollection` type has been removed.
 Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...-[factory method] instead.
 A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.layout].
+
+==== Removal of `ComponentSelectionReason.getDescription`
+
+The method `ComponentSelectionReason.getDescription` has been removed.
+It is replaced by `ComponentSelectionReason.getDescriptions` which returns a list of `ComponentSelectionDescriptor`, each having a `getDescription`.
 
 ==== Removal of domain object collection constructors
 

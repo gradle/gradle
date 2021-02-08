@@ -109,15 +109,8 @@ public class ComponentSelectionReasons {
             return hasCause(ComponentSelectionCause.COMPOSITE_BUILD);
         }
 
-        @Override
-        @SuppressWarnings("deprecation")
-        public String getDescription() {
-            // for backwards compatibility, we use the last added description
-            return descriptions.getLast().toString();
-        }
-
         public String toString() {
-            return getDescription();
+            return descriptions.getLast().toString();
         }
 
         @Override

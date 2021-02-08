@@ -68,6 +68,11 @@ One of the potential problems now flagged is a task that consumes the output pro
 Gradle now detects the missing dependency between the consumer and the producer and emits a warning in that case.
 For more information see the [user manual on input and output validation](userguide/more_about_tasks.html#sec:task_input_output_validation). 
 
+### Improved support for libraries with standard JVM and Android variants
+
+The Java plugins now recognizes the [`org.gradle.jvm.environment` attribute](userguide/variant_attributes.html#sub:jvm_default_attributes) during dependency resolution.
+This allows libraries to clearly distinguish variants optimized for `standard-jvm` and `android`.
+
 ## Plugin development improvements
 
 ### Using included builds for local plugins 

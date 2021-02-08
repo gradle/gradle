@@ -56,11 +56,15 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but:
+        failure.assertHasCause('''No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
   - Variant 'apiElements' capability test:producer:unspecified declares an API of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
+      - Other compatible attribute:
+          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
   - Variant 'runtimeElements' capability test:producer:unspecified declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6''')
+      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
+      - Other compatible attribute:
+          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)''')
     }
 
     @Unroll
@@ -137,11 +141,15 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but:
+        failure.assertHasCause("""No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
   - Variant 'apiElements' capability test:producer:unspecified declares an API of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
+      - Other compatible attribute:
+          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
   - Variant 'runtimeElements' capability test:producer:unspecified declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6""")
+      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
+      - Other compatible attribute:
+          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)""")
 
         when:
         buildFile << """

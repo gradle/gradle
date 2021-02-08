@@ -98,5 +98,5 @@ fun webpackFile(fileName: String) =
 
 tasks.named<KtlintCheckTask>("ktlintKotlinScriptCheck") {
     // Only check the build files, not all *.kts files in the project
-    setSource(files("build.gradle.kts", "settings.gradle.kts"))
+    setIncludes(listOf("*.gradle.kts"))
 }

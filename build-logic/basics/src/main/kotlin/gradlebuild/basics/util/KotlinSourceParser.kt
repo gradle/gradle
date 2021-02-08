@@ -36,8 +36,8 @@ import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.utils.Jsr305State
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.utils.JavaTypeEnhancementState
 import org.jetbrains.kotlin.utils.PathUtil
 
 
@@ -112,7 +112,9 @@ class KotlinSourceParser {
             LanguageVersionSettingsImpl(
                 languageVersion = LanguageVersion.KOTLIN_1_4,
                 apiVersion = ApiVersion.KOTLIN_1_4,
-                analysisFlags = mapOf(JvmAnalysisFlags.jsr305 to Jsr305State.STRICT)
+                analysisFlags = mapOf(
+                    JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState.STRICT
+                )
             )
         )
 
