@@ -1,6 +1,7 @@
 import org.gradle.api.internal.FeaturePreviews
 
 pluginManagement {
+    includeBuild("build-logic-settings")
     repositories {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
@@ -11,6 +12,7 @@ pluginManagement {
 plugins {
     id("com.gradle.enterprise").version("3.5.2")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
+    id("gradlebuild.base.allprojects")
 }
 
 includeBuild("build-logic-commons")
