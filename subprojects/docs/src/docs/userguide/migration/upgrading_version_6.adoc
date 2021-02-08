@@ -120,6 +120,11 @@ A Gradle build is defined by a `settings.gradle(.kts)` file in the current or pa
 Without a settings file, a Gradle build is undefined.
 Executing Gradle in such a directory is now an error.
 
+==== Calling Project.afterEvaluate() after project evaluation is now an error
+
+Gradle 6.x warns users about the wrong behavior and ignores the target action in this scenario.
+Starting from 7.0 the same case will produce an error. Plugins and build scripts should be adjusted to call `afterEvaluate` only at configuration time.
+
 Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
 
 ==== Removal of `ProjectLayout#configurableFiles`
