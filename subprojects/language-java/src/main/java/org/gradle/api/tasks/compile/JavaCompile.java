@@ -78,7 +78,6 @@ import org.gradle.work.InputChanges;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -255,7 +254,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private Provider<JavaCompiler> getCompilerTool() {
         JavaToolchainSpec explicitToolchain = determineExplicitToolchain();
-        if (explicitToolchain == null) {
+        if(explicitToolchain == null) {
             if(javaCompiler.isPresent()) {
                 return this.javaCompiler;
             } else {
@@ -308,6 +307,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
+        boolean toolchainCompatibleWithJava8 = isToolchainCompatibleWithJava8();
 
         final DefaultJavaCompileSpec spec = createBaseSpec();
 
@@ -323,7 +323,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         configureCompatibilityOptions(spec);
         spec.setSourcesRoots(sourcesRoots);
 
-        if (!isToolchainCompatibleWithJava8()) {
+        if (!toolchainCompatibleWithJava8) {
             spec.getCompileOptions().setHeaderOutputDirectory(null);
         }
         return spec;
@@ -331,10 +331,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private boolean isToolchainCompatibleWithJava8() {
         return getCompilerTool().get().getMetadata().getLanguageVersion().canCompileOrRun(8);
-    }
-
-    private boolean isToolchainCompatibleWithJava16() {
-        return getCompilerTool().get().getMetadata().getLanguageVersion().canCompileOrRun(16);
     }
 
     @Input
@@ -353,10 +349,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private void applyToolchain(ForkOptions forkOptions) {
         final JavaInstallationMetadata metadata = getToolchain();
         forkOptions.setJavaHome(metadata.getInstallationPath().getAsFile());
-        if (isToolchainCompatibleWithJava16()) {
-            // used by the incremental compiler plugin, see org.gradle.internal.compiler.java.ClassNameCollector
-            forkOptions.getJvmArgs().addAll(Arrays.asList("--add-opens", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED"));
-        }
     }
 
     @Nullable

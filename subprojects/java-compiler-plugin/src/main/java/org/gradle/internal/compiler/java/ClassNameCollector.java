@@ -17,10 +17,10 @@ package org.gradle.internal.compiler.java;
 
 import com.sun.source.util.TaskEvent;
 import com.sun.source.util.TaskListener;
-import com.sun.tools.javac.code.Symbol;
 
-import javax.lang.model.element.Name;
+import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.util.Collection;
@@ -34,9 +34,11 @@ public class ClassNameCollector implements TaskListener {
     private final Map<File, Optional<String>> relativePaths = new HashMap<>();
     private final Map<String, Collection<String>> mapping = new HashMap<>();
     private final Function<File, Optional<String>> relativize;
+    private final Elements elements;
 
-    public ClassNameCollector(Function<File, Optional<String>> relativize) {
+    public ClassNameCollector(Function<File, Optional<String>> relativize, Elements elements) {
         this.relativize = relativize;
+        this.elements = elements;
     }
 
     public Map<String, Collection<String>> getMapping() {
@@ -69,13 +71,7 @@ public class ClassNameCollector implements TaskListener {
         Optional<String> relativePath = findRelativePath(sourceFile);
         if (relativePath.isPresent()) {
             String key = relativePath.get();
-            TypeElement typeElement = e.getTypeElement();
-            Name name = typeElement.getQualifiedName();
-            if (typeElement instanceof Symbol.TypeSymbol) {
-                Symbol.TypeSymbol symbol = (Symbol.TypeSymbol) typeElement;
-                name = symbol.flatName();
-            }
-            String symbol = normalizeName(name);
+            String symbol = normalizeName(e.getTypeElement());
             registerMapping(key, symbol);
         }
     }
@@ -93,10 +89,12 @@ public class ClassNameCollector implements TaskListener {
         return relativePaths.computeIfAbsent(asSourceFile, relativize);
     }
 
-    private static String normalizeName(Name name) {
-        String symbol = name.toString();
+    private String normalizeName(TypeElement typeElement) {
+        String symbol = typeElement.getQualifiedName().toString();
         if (symbol.endsWith("module-info")) {
             symbol = "module-info";
+        } else if (typeElement.getNestingKind() == NestingKind.MEMBER) {
+            symbol = elements.getBinaryName(typeElement).toString();
         }
         return symbol;
     }
@@ -110,11 +108,7 @@ public class ClassNameCollector implements TaskListener {
     }
 
     public void registerMapping(String key, String symbol) {
-        Collection<String> symbols = mapping.get(key);
-        if (symbols == null) {
-            symbols = new TreeSet<String>();
-            mapping.put(key, symbols);
-        }
+        Collection<String> symbols = mapping.computeIfAbsent(key, k -> new TreeSet<>());
         symbols.add(symbol);
     }
 

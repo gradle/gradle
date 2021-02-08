@@ -68,7 +68,7 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
     @Override
     public Boolean call() {
         if (delegate instanceof JavacTask) {
-            ClassNameCollector collector = new ClassNameCollector(relativize);
+            ClassNameCollector collector = new ClassNameCollector(relativize, ((JavacTask) delegate).getElements());
             ((JavacTask) delegate).addTaskListener(collector);
             try {
                 return delegate.call();
