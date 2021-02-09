@@ -1,6 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.v2019_2.project
 import jetbrains.buildServer.configs.kotlin.v2019_2.version
-import common.Branch
+import common.VersionedSettingsBranch
 import projects.GradleBuildToolRootProject
 
 version = "2020.2"
@@ -37,4 +37,4 @@ Release (buildTypeId: Gradle_Release)
          |----- WarmupEc2Agent
          |----- AdHocPerformanceTest
  */
-project(GradleBuildToolRootProject(Branch.current()))
+project(GradleBuildToolRootProject(VersionedSettingsBranch.fromDslContext()))

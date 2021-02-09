@@ -1,6 +1,6 @@
 package projects
 
-import common.Branch
+import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
 import model.JsonBasedGradleSubprojectProvider
@@ -10,7 +10,7 @@ import util.UtilPerformanceProject
 import util.UtilProject
 import java.io.File
 
-class GradleBuildToolRootProject(branch: Branch) : Project({
+class GradleBuildToolRootProject(branch: VersionedSettingsBranch) : Project({
     val model = CIBuildModel(
         projectId = "Check",
         branch = branch,

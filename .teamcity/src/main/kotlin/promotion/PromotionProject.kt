@@ -1,9 +1,9 @@
 package promotion
 
-import common.Branch
+import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 
-class PromotionProject(branch: Branch) : Project({
+class PromotionProject(branch: VersionedSettingsBranch) : Project({
     id("Promotion")
     name = "Promotion"
 
@@ -11,7 +11,7 @@ class PromotionProject(branch: Branch) : Project({
     buildType(PublishNightlySnapshot(branch))
     buildType(PublishNightlySnapshotFromQuickFeedback(branch))
     buildType(PublishBranchSnapshotFromQuickFeedback)
-    if (branch == Branch.Master) {
+    if (branch.branchName == "master") {
         buildType(StartReleaseCycle)
         buildType(StartReleaseCycleTest)
     }

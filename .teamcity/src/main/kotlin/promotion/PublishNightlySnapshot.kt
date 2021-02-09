@@ -16,19 +16,19 @@
 
 package promotion
 
-import common.Branch
+import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
-class PublishNightlySnapshot(branch: Branch) : PublishGradleDistribution(
+class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistribution(
     versionSettingsBranch = branch,
-    promotedBranch = branch.name.toLowerCase(),
+    promotedBranch = branch.branchName,
     task = branch.promoteNightlyTaskName(),
     triggerName = "ReadyforNightly"
 ) {
     init {
-        id("Promotion_${branch.name}Nightly")
+        id("Promotion_${branch.asBuildTypeId()}Nightly")
         name = "Nightly Snapshot"
-        description = "Promotes the latest successful changes on '${branch.name.toLowerCase()}' from Ready for Nightly as a new nightly snapshot"
+        description = "Promotes the latest successful changes on '${branch.branchName}' from Ready for Nightly as a new nightly snapshot"
 
         triggers {
             schedule {
@@ -43,8 +43,8 @@ class PublishNightlySnapshot(branch: Branch) : PublishGradleDistribution(
 }
 
 // Avoid two jobs running at the same time and causing troubles
-private fun Branch.triggeredHour() = when (this) {
-    Branch.Master -> 0
-    Branch.Release -> 1
-    else -> throw IllegalArgumentException("Unsupported branch: $this")
+private fun VersionedSettingsBranch.triggeredHour() = when (this.branchName) {
+    "master" -> 0
+    "release" -> 1
+    else -> 0
 }

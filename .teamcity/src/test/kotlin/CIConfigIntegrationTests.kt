@@ -1,4 +1,4 @@
-import common.Branch
+import common.VersionedSettingsBranch
 import model.CROSS_VERSION_BUCKETS
 import model.FunctionalTestBucketProvider
 import model.JsonBasedGradleSubprojectProvider
@@ -31,7 +31,7 @@ class CIConfigIntegrationTests {
     private val subprojectProvider = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     private val model = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = Branch.Master,
+        branch = VersionedSettingsBranch.MASTER,
         buildScanTags = listOf("Check"),
         subprojects = subprojectProvider
     )

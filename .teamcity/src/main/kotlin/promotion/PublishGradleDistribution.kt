@@ -16,14 +16,14 @@
 
 package promotion
 
-import common.Branch
+import common.VersionedSettingsBranch
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
 abstract class PublishGradleDistribution(
     // The branch where the build pipeline comes from, usually Master/Release
-    versionSettingsBranch: Branch,
+    versionSettingsBranch: VersionedSettingsBranch,
     // The branch to be promoted
     promotedBranch: String,
     task: String,
@@ -61,4 +61,4 @@ abstract class PublishGradleDistribution(
     }
 }
 
-fun Branch.promoteNightlyTaskName(): String = "promote${if (this == Branch.Master) "" else name}Nightly"
+fun VersionedSettingsBranch.promoteNightlyTaskName(): String = "promote${if (this == VersionedSettingsBranch.MASTER) "" else asBuildTypeId()}Nightly"
