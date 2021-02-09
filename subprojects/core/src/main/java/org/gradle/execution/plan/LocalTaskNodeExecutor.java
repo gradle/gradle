@@ -34,6 +34,7 @@ import org.gradle.util.TextUtil;
 
 import java.io.File;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -80,6 +81,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
+                .filter(LocalTaskNodeExecutor::isEnabled)
                 .forEach(consumerWithoutDependency -> collectValidationProblem(node, consumerWithoutDependency, validationContext));
         }
         Set<String> taskInputs = new LinkedHashSet<>();
@@ -127,17 +129,28 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             });
         inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
         for (String locationConsumedByThisTask : taskInputs) {
-            outputHierarchy.getNodesAccessing(locationConsumedByThisTask).stream()
-                .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
-                .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
+            collectValidationProblemsForConsumer(node, validationContext, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
         }
         for (FilteredTree filteredFileTreeInput : filteredFileTreeTaskInputs) {
             Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
             inputHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
-            outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec).stream()
-                .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
-                .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
+            collectValidationProblemsForConsumer(node, validationContext, outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec));
         }
+    }
+
+    private void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, Collection<Node> producers) {
+        producers.stream()
+            .filter(producerNode -> hasNoSpecifiedOrder(producerNode, consumer))
+            .filter(LocalTaskNodeExecutor::isEnabled)
+            .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, consumer, validationContext));
+    }
+
+    private static boolean isEnabled(Node node) {
+        if (node instanceof LocalTaskNode) {
+            TaskInternal task = ((LocalTaskNode) node).getTask();
+            return task.getOnlyIf().isSatisfiedBy(task);
+        }
+        return false;
     }
 
     // In a perfect world, the consumer should depend on the producer.
