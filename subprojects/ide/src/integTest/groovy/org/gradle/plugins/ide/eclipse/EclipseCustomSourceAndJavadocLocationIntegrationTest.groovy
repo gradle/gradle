@@ -29,7 +29,7 @@ class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclip
             apply plugin: 'java'
             apply plugin: 'eclipse'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'com.google.guava:guava:18.0'

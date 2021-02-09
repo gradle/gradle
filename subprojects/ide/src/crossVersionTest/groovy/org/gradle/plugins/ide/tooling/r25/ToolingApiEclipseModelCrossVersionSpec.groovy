@@ -35,7 +35,7 @@ rootProject.name = 'root'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-${jcenterRepository()}
+${mavenCentralRepository()}
 
 configurations {
     provided

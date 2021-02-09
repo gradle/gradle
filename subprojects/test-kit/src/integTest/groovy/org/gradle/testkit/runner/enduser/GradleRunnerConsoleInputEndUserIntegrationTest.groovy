@@ -37,7 +37,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
                 }
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
         """
     }
 

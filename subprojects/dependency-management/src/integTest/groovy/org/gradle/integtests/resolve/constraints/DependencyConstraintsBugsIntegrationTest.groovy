@@ -32,7 +32,7 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
                 id 'java-library'
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation(platform("io.micronaut:micronaut-bom:2.0.1"))

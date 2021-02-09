@@ -36,7 +36,7 @@ class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationS
         settingsFile << 'rootProject.name = "root"'
         buildFile << """
             plugins { id "java" }
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation localGroovy()
                 testImplementation "junit:junit:4.13"
@@ -114,7 +114,7 @@ class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationS
         ["a", "b"].collect { file(it) }.each { TestFile build ->
             build.file("build.gradle") << """
                 plugins { id "java" }
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
                 dependencies {
                     testImplementation localGroovy()
                     testImplementation "junit:junit:4.13"

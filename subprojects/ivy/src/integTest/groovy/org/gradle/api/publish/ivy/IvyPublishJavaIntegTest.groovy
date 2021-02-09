@@ -616,7 +616,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "commons-collections:commons-collections"
@@ -682,7 +682,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "commons-collections:commons-collections:3.2.+"
@@ -745,7 +745,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "commons-collections:commons-collections:${requestedVersion}"
@@ -814,7 +814,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "commons-collections:commons-collections:3.2.2"

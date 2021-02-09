@@ -77,7 +77,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 `kotlin-dsl`
             }
 
-            ${RepoScriptBlockUtil.jcenterRepository(GradleDsl.KOTLIN)}
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 implementation(kotlin("gradle-plugin", "$kotlinVersion"))
@@ -99,9 +99,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 `my-plugin`
             }
 
-            repositories {
-                jcenter()
-            }
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 implementation(kotlin("stdlib"))

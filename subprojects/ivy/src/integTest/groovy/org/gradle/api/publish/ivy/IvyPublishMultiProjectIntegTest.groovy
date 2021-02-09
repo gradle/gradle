@@ -254,7 +254,7 @@ allprojects {
 project(':project1') {
     apply plugin: 'java'
 
-    ${jcenterRepository()}
+    ${mavenCentralRepository()}
 
     dependencies {
         implementation 'commons-logging:commons-logging:1.2'

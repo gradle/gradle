@@ -34,7 +34,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "commons-collections:commons-collections:1.+"

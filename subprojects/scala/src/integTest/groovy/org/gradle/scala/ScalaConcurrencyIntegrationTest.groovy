@@ -39,9 +39,7 @@ class ScalaConcurrencyIntegrationTest extends AbstractIntegrationSpec {
                 tasks.withType(AbstractScalaCompile) {
                     options.fork = true
                 }
-                repositories {
-                    ${jcenterRepository()}
-                }
+                ${mavenCentralRepository()}
                 plugins.withId("scala") {
                     dependencies {
                         implementation 'org.scala-lang:scala-library:2.13.3'

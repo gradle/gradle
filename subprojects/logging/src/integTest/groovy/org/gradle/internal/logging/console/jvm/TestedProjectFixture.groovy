@@ -42,7 +42,7 @@ class TestedProjectFixture {
         """
             apply plugin: 'java'
 
-            ${RepoScriptBlockUtil.jcenterRepository()}
+            ${RepoScriptBlockUtil.mavenCentralRepository()}
 
             dependencies {
                 testImplementation '${testDependency}'

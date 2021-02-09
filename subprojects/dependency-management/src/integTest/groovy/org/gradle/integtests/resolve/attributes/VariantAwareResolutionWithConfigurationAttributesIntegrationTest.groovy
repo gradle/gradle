@@ -272,7 +272,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
 
     private static File withExternalDependencies(File buildFile, String dependenciesBlock) {
         buildFile << """
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies {
                 $dependenciesBlock
             }

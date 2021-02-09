@@ -253,7 +253,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         buildFile << """
             apply plugin: 'java'
 
-             ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
@@ -289,7 +289,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         buildFile << """
             apply plugin: 'java'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
@@ -325,7 +325,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         buildFile << """
             apply plugin: 'java'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'

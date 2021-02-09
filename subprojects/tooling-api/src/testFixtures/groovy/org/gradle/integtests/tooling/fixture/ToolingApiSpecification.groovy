@@ -315,10 +315,6 @@ abstract class ToolingApiSpecification extends Specification {
         GradleVersion.version(targetDist.version.baseVersion.version)
     }
 
-    protected static String jcenterRepository() {
-        RepoScriptBlockUtil.jcenterRepository()
-    }
-
     protected static String mavenCentralRepository() {
         RepoScriptBlockUtil.mavenCentralRepository()
     }

@@ -34,7 +34,7 @@ class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec
 
            sourceCompatibility = 1.6
 
-           ${jcenterRepository()}
+           ${mavenCentralRepository()}
 
            dependencies {
                implementation 'com.google.guava:guava:18.0'

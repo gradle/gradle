@@ -16,10 +16,6 @@
 
 package org.gradle.configurationcache
 
-
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
-
-
 class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "build on Groovy project with JUnit tests"() {
@@ -30,7 +26,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         buildFile << """
             plugins { id 'groovy' }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation(localGroovy())
