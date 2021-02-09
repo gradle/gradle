@@ -1,7 +1,6 @@
 package configurations
 
 import common.Os
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.Stage
@@ -22,7 +21,7 @@ class FunctionalTest(
 ) : BaseGradleBuildType(model, stage = stage, init = {
     this.name = name
     this.description = description
-    this.id = AbsoluteId(id)
+    this.id(id)
     val testTasks = getTestTaskName(testCoverage, stage, subprojects)
     val buildScanTags = listOf("FunctionalTest")
     val buildScanValues = mapOf(

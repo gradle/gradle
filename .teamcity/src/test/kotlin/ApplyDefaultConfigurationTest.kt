@@ -1,4 +1,4 @@
-import common.Branch
+import common.VersionedSettingsBranch
 import model.JsonBasedGradleSubprojectProvider
 import common.Os
 import configurations.BaseGradleBuildType
@@ -48,7 +48,7 @@ class ApplyDefaultConfigurationTest {
     private
     val buildModel = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = Branch.Master,
+        branch = VersionedSettingsBranch.MASTER,
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     )

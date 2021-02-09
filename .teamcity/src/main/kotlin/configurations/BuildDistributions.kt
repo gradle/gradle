@@ -1,12 +1,11 @@
 package configurations
 
 import common.Os.LINUX
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import model.CIBuildModel
 import model.Stage
 
 class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
-    id = AbsoluteId("${model.projectId}_BuildDistributions")
+    id("${model.projectId}_BuildDistributions")
     name = "Build Distributions"
     description = "Creation and verification of the distribution and documentation"
 

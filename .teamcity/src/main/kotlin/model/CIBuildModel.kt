@@ -1,6 +1,6 @@
 package model
 
-import common.Branch
+import common.VersionedSettingsBranch
 import common.JvmCategory
 import common.JvmVendor
 import common.JvmVersion
@@ -28,7 +28,7 @@ enum class StageNames(override val stageName: String, override val description: 
 }
 
 data class CIBuildModel(
-    val branch: Branch,
+    val branch: VersionedSettingsBranch,
     val projectId: String,
     val publishStatusToGitHub: Boolean = true,
     val buildScanTags: List<String> = emptyList(),
