@@ -15,11 +15,12 @@
  */
 package org.gradle.util
 
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
-import org.spockframework.runtime.model.SpecInfo
-import org.spockframework.runtime.model.FeatureInfo
 
-class TestPreconditionExtension extends AbstractAnnotationDrivenExtension<Requires> {
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
+import org.spockframework.runtime.model.FeatureInfo
+import org.spockframework.runtime.model.SpecInfo
+
+class TestPreconditionExtension implements IAnnotationDrivenExtension<Requires> {
     @Override
     void visitSpecAnnotation(Requires annotation, SpecInfo spec) {
         spec.skipped |= unsatisfied(annotation)
