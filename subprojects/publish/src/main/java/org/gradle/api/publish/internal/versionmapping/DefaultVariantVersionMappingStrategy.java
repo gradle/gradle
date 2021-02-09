@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 
+import java.util.Collections;
 import java.util.Set;
 
 public class DefaultVariantVersionMappingStrategy implements VariantVersionMappingStrategyInternal {
@@ -98,7 +99,7 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
                     if (selected != null) {
                         if (selected.getId() instanceof ProjectComponentIdentifier) {
                             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) selected.getId();
-                            return projectResolver.resolve(ModuleVersionIdentifier.class, projectRegistry.getProject(projectId.getProjectPath()));
+                            return projectResolver.resolve(ModuleVersionIdentifier.class, projectRegistry.getProject(projectId.getProjectPath()), Collections.emptyList());
                         }
                         return selected.getModuleVersion();
                     }
