@@ -18,7 +18,6 @@ package org.gradle.internal.compiler.java;
 import com.sun.source.util.TaskEvent;
 import com.sun.source.util.TaskListener;
 
-import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.JavaFileObject;
@@ -93,7 +92,7 @@ public class ClassNameCollector implements TaskListener {
         String symbol = typeElement.getQualifiedName().toString();
         if (symbol.endsWith("module-info")) {
             symbol = "module-info";
-        } else if (typeElement.getNestingKind() == NestingKind.MEMBER) {
+        } else if (typeElement.getNestingKind().isNested()) {
             symbol = elements.getBinaryName(typeElement).toString();
         }
         return symbol;
