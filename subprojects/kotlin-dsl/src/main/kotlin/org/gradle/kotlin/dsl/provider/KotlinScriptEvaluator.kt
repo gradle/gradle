@@ -34,7 +34,6 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
@@ -328,17 +327,8 @@ class CompileKotlinScript(
     private val fileCollectionFactory: FileCollectionFactory
 ) : UnitOfWork {
 
-    override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
-        return when {
-            System.getProperty(kotlinDslBuildCacheSystemProperty, null) == "false" -> Optional.of(
-                CachingDisabledReason(
-                    CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED,
-                    "$kotlinDslBuildCacheSystemProperty == false"
-                )
-            )
-            else -> Optional.empty()
-        }
-    }
+    override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> =
+        Optional.empty()
 
     override fun visitInputs(
         visitor: UnitOfWork.InputVisitor
@@ -408,7 +398,3 @@ class CompileKotlinScript(
         }
     }
 }
-
-
-private
-const val kotlinDslBuildCacheSystemProperty = "org.gradle.kotlin.dsl.caching.buildcache"
