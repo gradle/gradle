@@ -354,12 +354,12 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun projectSchemaBuildStartParameterFor(projectDir: File): ProjectSchemaBuildStartParameter =
-        services.get<StartParameter>().run {
-            require(this is StartParameterInternal)
+        services.get<StartParameter>().let { startParameter ->
+            require(startParameter is StartParameterInternal)
             ProjectSchemaBuildStartParameter(
                 BuildLayoutParameters(
-                    gradleHomeDir,
-                    gradleUserHomeDir,
+                    startParameter.gradleHomeDir,
+                    startParameter.gradleUserHomeDir,
                     projectDir,
                     projectDir
                 )
