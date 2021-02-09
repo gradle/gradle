@@ -64,6 +64,89 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
     @Test
     @ToBeFixedForConfigurationCache
+    fun `init scripts are not re-evaluated when generating accessors`() {
+        // given:
+        withFolders {
+            // an empty precompiled script plugin
+            "producer/src/main/kotlin" {
+                withFile(
+                    "producer.plugin.gradle.kts",
+                    ""
+                )
+            }
+            // a consumer of the empty precompiled script plugin
+            "consumer/src/main/kotlin" {
+                withFile(
+                    "consumer.plugin.gradle.kts",
+                    """
+                        plugins { id("producer.plugin") }
+                    """
+                )
+            }
+        }
+        withDefaultSettings().appendText(
+            """
+                include("producer", "consumer")
+            """
+        )
+        withKotlinDslPlugin().appendText(
+            """
+                subprojects {
+                    apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+                    $repositoriesBlock
+                }
+                project(":consumer") {
+                    dependencies {
+                        implementation(project(":producer"))
+                    }
+                }
+            """
+        )
+
+        // and: a bunch of init scripts
+        val initScriptLog = file("initscript.log")
+
+        val gradleUserHome = newDir("gradle-user-home")
+
+        // <user-home>/init.gradle
+        gradleUserHome.resolve("init.gradle").apply {
+            writeText("file('${initScriptLog.normalisedPath}') << '<init>'")
+        }
+        // <user-home>/init.d/init.gradle
+        gradleUserHome.resolve("init.d/init.gradle").apply {
+            parentFile.mkdirs()
+            writeText("file('${initScriptLog.normalisedPath}') << '<init.d>'")
+        }
+        // -I init.gradle
+        val initScript = withFile(
+            "init.gradle",
+            "file('${initScriptLog.normalisedPath}') << '<command-line>'"
+        )
+
+        // when: precompiled script plugin accessors are generated
+        buildWithGradleUserHome(
+            gradleUserHome,
+            "generatePrecompiledScriptPluginAccessors",
+            "-I",
+            initScript.absolutePath
+        ).apply {
+            // then: the init scripts are executed only once
+            assertThat(
+                initScriptLog.text,
+                equalTo("<command-line><init><init.d>")
+            )
+        }
+    }
+
+    private
+    fun buildWithGradleUserHome(gradleUserHomeDir: File, vararg arguments: String) =
+        gradleExecuterFor(arguments)
+            .withGradleUserHomeDir(gradleUserHomeDir)
+            .withOwnUserHomeServices()
+            .run()
+
+    @Test
+    @ToBeFixedForConfigurationCache
     fun `cannot use type-safe accessors for extensions contributed in afterEvaluate`() {
         withFolders {
             "producer/src/main/kotlin" {

@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
+import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -37,10 +38,10 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.groovy.scripts.TextResourceScriptSource
+import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedRootBuild
-import org.gradle.internal.build.NestedRootBuildRunner.createStartParameterForNewBuild
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -318,12 +319,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun projectSchemaFor(plugins: PluginRequests): Try<TypedProjectSchema> {
         val buildLogicClassPath = buildLogicClassPath()
-        val startParameter = createStartParameterForNewBuild(services).apply {
-            require(this is StartParameterInternal)
-            projectDir = uniqueTempDirectory()
-            useEmptySettings()
-        }
-        return createNestedRootBuild("$path:${startParameter.projectDir?.name}", startParameter, services).run { controller ->
+        val projectDir = uniqueTempDirectory()
+        val startParameter = projectSchemaBuildStartParameterFor(projectDir)
+        return createNestedRootBuild("$path:${projectDir.name}", startParameter, services).run { controller ->
             require(controller is GradleBuildController)
             controller.doBuild {
                 Try.ofFailable {
@@ -352,6 +350,38 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                 }
             }
         }
+    }
+
+    private
+    fun projectSchemaBuildStartParameterFor(projectDir: File): ProjectSchemaBuildStartParameter =
+        services.get<StartParameter>().run {
+            require(this is StartParameterInternal)
+            ProjectSchemaBuildStartParameter(
+                BuildLayoutParameters(
+                    gradleHomeDir,
+                    gradleUserHomeDir,
+                    projectDir,
+                    projectDir
+                )
+            )
+        }
+
+    /**
+     * A [StartParameter] subclass that provides no init scripts.
+     */
+    private
+    class ProjectSchemaBuildStartParameter(buildLayout: BuildLayoutParameters) : StartParameterInternal(buildLayout) {
+
+        init {
+            // Dry run in case a callback tries to access the task graph.
+            isDryRun = true
+            doNotSearchUpwards()
+            useEmptySettings()
+        }
+
+        override fun getAllInitScripts(): List<File> = emptyList()
+        override fun newInstance(): StartParameter = throw UnsupportedOperationException()
+        override fun newBuild(): StartParameter = throw UnsupportedOperationException()
     }
 
     private
