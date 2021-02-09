@@ -333,6 +333,110 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasNoChildren(subBeforeEvaluated, subOtherScriptAppId)
     }
 
+    def 'afterEvaluate listeners are attributed to the correct registrant'() {
+        given:
+        def addGradleListeners = { String source ->
+            """
+            gradle.afterProject({
+                println "gradle.afterProject(Action) from $source"
+            } as Action)
+            gradle.afterProject {
+                println "gradle.afterProject(Closure(0)) from $source"
+            }
+            gradle.afterProject { passedProject ->
+                println "gradle.afterProject(Closure(1)) from $source"
+            }
+            gradle.afterProject { passedProject, projectState ->
+                println "gradle.afterProject(Closure(2)) from $source"
+            }
+            gradle.addListener(new ProjectEvaluationListener() {
+                void beforeEvaluate(Project p) {
+                }
+                void afterEvaluate(Project p, ProjectState s) {
+                    println "gradle.addListener(ProjectEvaluationListener) from $source"
+                }
+            })
+            gradle.addProjectEvaluationListener(new ProjectEvaluationListener() {
+                void beforeEvaluate(Project p) {
+                }
+                void afterEvaluate(Project p, ProjectState s) {
+                    println "gradle.addProjectEvaluationListener(ProjectEvaluationListener) from $source"
+                }
+            })
+        """
+        }
+        def expectedGradleOps = [
+            expectedOp('Gradle.afterProject', 'gradle.afterProject(Action)'),
+            expectedOp('Gradle.afterProject', 'gradle.afterProject(Closure(0))'),
+            expectedOp('Gradle.afterProject', 'gradle.afterProject(Closure(1))'),
+            expectedOp('Gradle.afterProject', 'gradle.afterProject(Closure(2))'),
+            expectedOp('Gradle.addListener', 'gradle.addListener(ProjectEvaluationListener)'),
+            expectedOp('Gradle.addProjectEvaluationListener', 'gradle.addProjectEvaluationListener(ProjectEvaluationListener)')
+        ]
+        def addProjectListeners = { String source, String target = null ->
+            """
+            project${target == null ? '' : "('$target')"}.afterEvaluate({
+                println "project.afterEvaluate(Action) from $source"
+            } as Action)
+            project.afterEvaluate {
+                println "project.afterEvaluate(Closure) from $source"
+            }
+            """
+        }
+        def expectedProjectOps = [
+            expectedOp('Project.afterEvaluate', 'project.afterEvaluate(Action)'),
+            expectedOp('Project.afterEvaluate', 'project.afterEvaluate(Closure)')
+        ]
+
+        and:
+        scriptFile << addProjectListeners("other script")
+
+        initFile << addGradleListeners('init')
+
+        includeSub()
+        settingsFile << addGradleListeners('settings')
+        applyInlinePlugin(settingsFile, 'Settings', addGradleListeners('settings plugin'))
+
+        buildFile << addGradleListeners('root project script')
+        buildFile << addProjectListeners('root project script', ':')
+        applyInlinePlugin(buildFile, 'Project', addProjectListeners('root project plugin'))
+        applyScript(buildFile, scriptFile)
+
+        subBuildFile << addGradleListeners('sub project script')
+        subBuildFile << addProjectListeners('sub project script', ':sub')
+        applyInlinePlugin(subBuildFile, 'Project', addProjectListeners('sub project plugin'))
+        applyScript(subBuildFile, scriptFile)
+
+        when:
+        run()
+
+        then:
+        def rootAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':' })
+        verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, expectedGradleOps.size() * 4 + expectedProjectOps.size() * 3)
+        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(rootAfterEvaluated, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(rootAfterEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOps)
+        verifyHasChildren(rootAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOps + expectedProjectOps)
+        verifyHasChildren(rootAfterEvaluated, rootProjectPluginAppId, 'root project plugin', expectedProjectOps)
+        verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOps)
+        verifyHasNoChildren(rootAfterEvaluated, subProjectScriptAppId) // executed too late to catch any afterProject/afterEvaluate callbacks for earlier evaluated project
+        verifyHasNoChildren(rootAfterEvaluated, subProjectPluginAppId) // we don't cross configure the plugin
+        verifyHasNoChildren(rootAfterEvaluated, subOtherScriptAppId) // we don't cross configure the script
+
+        and:
+        def subAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':sub' })
+        verifyExpectedNumberOfExecuteListenerChildren(subAfterEvaluated, expectedGradleOps.size() * 5 + expectedProjectOps.size() * 3)
+        verifyHasChildren(subAfterEvaluated, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(subAfterEvaluated, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(subAfterEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOps)
+        verifyHasChildren(subAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOps)
+        verifyHasNoChildren(subAfterEvaluated, rootProjectPluginAppId) // we don't cross configure the plugin
+        verifyHasNoChildren(subAfterEvaluated, rootOtherScriptAppId) // we don't cross configure the plugin
+        verifyHasChildren(subAfterEvaluated, subProjectScriptAppId, 'sub project script', expectedGradleOps + expectedProjectOps)
+        verifyHasChildren(subAfterEvaluated, subProjectPluginAppId, 'sub project plugin', expectedProjectOps)
+        verifyHasChildren(subAfterEvaluated, subOtherScriptAppId, 'other script', expectedProjectOps)
+    }
+
     def 'nested afterEvaluate listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
