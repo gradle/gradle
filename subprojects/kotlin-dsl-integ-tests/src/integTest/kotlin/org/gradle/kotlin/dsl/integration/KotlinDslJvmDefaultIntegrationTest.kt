@@ -17,11 +17,84 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
+import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
 class KotlinDslJvmDefaultIntegrationTest : AbstractPluginIntegrationTest() {
+
+    @Test
+    fun `kotlin-dsl scripts can call and override java default methods`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/java/some/Some.java",
+            """
+            package some;
+            public interface Some {
+                default void something() {
+                    System.out.println("original");
+                }
+            }
+            """
+        )
+        withFile(
+            "buildSrc/src/main/kotlin/some-plugin.gradle.kts",
+            """
+            import some.Some
+
+            class SomePrecompiledScript : Some
+
+            class SomeOverriddenPrecompiledScript : Some {
+                override fun something() {
+                    println("precompiled overridden")
+                }
+            }
+
+            SomePrecompiledScript().something()
+            SomeOverriddenPrecompiledScript().something()
+            """
+        )
+        withBuildScript(
+            """
+            import some.Some
+
+            plugins {
+                `some-plugin`
+            }
+
+            class SomeBuildScript : Some
+
+            class SomeOverriddenBuildScript : Some {
+                override fun something() {
+                    println("script overridden")
+                }
+            }
+
+            tasks.register("test") {
+                doLast {
+                    SomeBuildScript().something()
+                    SomeOverriddenBuildScript().something()
+                }
+            }
+            """
+        )
+
+        build("test", "-q").apply {
+            assertThat(
+                output,
+                containsMultiLineString(
+                    """
+                    original
+                    precompiled overridden
+                    original
+                    script overridden
+                    """
+                )
+            )
+        }
+    }
 
     @Test
     fun `kotlin-dsl java and groovy consumers can use kotlin interface default methods directly`() {
