@@ -33,8 +33,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
-import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -64,7 +62,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import java.io.File
-import java.util.Optional
 
 
 interface KotlinScriptEvaluator {
@@ -326,9 +323,6 @@ class CompileKotlinScript(
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory
 ) : UnitOfWork {
-
-    override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> =
-        Optional.empty()
 
     override fun visitInputs(
         visitor: UnitOfWork.InputVisitor
