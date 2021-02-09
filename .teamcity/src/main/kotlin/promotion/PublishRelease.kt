@@ -22,11 +22,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 abstract class PublishRelease(
     task: String,
     requiredConfirmationCode: String,
-    versionSettingsBranch: VersionedSettingsBranch = VersionedSettingsBranch.RELEASE,
-    promotedBranch: String = "release",
+    promotedBranch: String,
     init: PublishRelease.() -> Unit = {}
 ) : PublishGradleDistribution(
-    versionSettingsBranch = versionSettingsBranch,
     promotedBranch = promotedBranch,
     task = task,
     triggerName = "ReadyforRelease",
@@ -66,7 +64,6 @@ abstract class PublishRelease(
 }
 
 class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
-    versionSettingsBranch = branch,
     promotedBranch = branch.branchName,
     task = "promoteFinalRelease",
     requiredConfirmationCode = "final",
@@ -78,7 +75,6 @@ class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
 )
 
 class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
-    versionSettingsBranch = branch,
     promotedBranch = branch.branchName,
     task = "promoteRc",
     requiredConfirmationCode = "rc",
@@ -90,7 +86,6 @@ class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
 )
 
 class PublishMilestone(branch: VersionedSettingsBranch) : PublishRelease(
-    versionSettingsBranch = branch,
     promotedBranch = branch.branchName,
     task = "promoteMilestone",
     requiredConfirmationCode = "milestone",
