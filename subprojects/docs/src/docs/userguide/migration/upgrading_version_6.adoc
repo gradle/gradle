@@ -179,13 +179,13 @@ If this is causing issues in cases you manually configure the module path, or us
 
 ==== Removal of `ValidateTaskProperties`
 
-The `ValidateTaskProperties` task has been removed and replaced by the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html task.
+The `ValidateTaskProperties` task has been removed and replaced by the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] task.
 
 ==== Removal of `ImmutableFileCollection`
 
 The `ImmutableFileCollection` type has been removed.
-Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...- factory method instead.
-A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--.
+Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...-[factory method] instead.
+A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.layout].
 
 ==== Removal of `ComponentSelectionReason.getDescription`
 
@@ -203,7 +203,7 @@ The following deprecated constructors were removed:
 
 ==== Removal of arbitrary local cache configuration
 
-The local build cache configuration now needs to be done via the link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-.
+The local build cache configuration now needs to be done via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-[BuildCacheConfiguration.local()].
 
 ==== Removal of DefaultVersionSelectorScheme constructor
 

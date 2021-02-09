@@ -16,13 +16,13 @@
 
 package promotion
 
-import common.Branch
+import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
 abstract class PublishRelease(
     task: String,
     requiredConfirmationCode: String,
-    versionSettingsBranch: Branch = Branch.Release,
+    versionSettingsBranch: VersionedSettingsBranch = VersionedSettingsBranch.RELEASE,
     promotedBranch: String = "release",
     init: PublishRelease.() -> Unit = {}
 ) : PublishGradleDistribution(
@@ -65,21 +65,21 @@ abstract class PublishRelease(
     }
 }
 
-class PublishFinalRelease(branch: Branch) : PublishRelease(
+class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
     versionSettingsBranch = branch,
-    promotedBranch = branch.name.toLowerCase(),
+    promotedBranch = branch.branchName,
     task = "promoteFinalRelease",
     requiredConfirmationCode = "final",
     init = {
-        id("Gradle_Promotion_FinalRelease")
+        id("Promotion_FinalRelease")
         name = "Release - Final"
         description = "Promotes the latest successful change on 'release' as a new release"
     }
 )
 
-class PublishReleaseCandidate(branch: Branch) : PublishRelease(
+class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
     versionSettingsBranch = branch,
-    promotedBranch = branch.name.toLowerCase(),
+    promotedBranch = branch.branchName,
     task = "promoteRc",
     requiredConfirmationCode = "rc",
     init = {
@@ -89,9 +89,9 @@ class PublishReleaseCandidate(branch: Branch) : PublishRelease(
     }
 )
 
-class PublishMilestone(branch: Branch) : PublishRelease(
+class PublishMilestone(branch: VersionedSettingsBranch) : PublishRelease(
     versionSettingsBranch = branch,
-    promotedBranch = branch.name.toLowerCase(),
+    promotedBranch = branch.branchName,
     task = "promoteMilestone",
     requiredConfirmationCode = "milestone",
     init = {

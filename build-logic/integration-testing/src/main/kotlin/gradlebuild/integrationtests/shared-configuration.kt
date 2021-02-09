@@ -119,17 +119,19 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 }
 
 
+fun Project.getBucketProvider() = gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
+    parameters.includeTestClasses.set(project.stringPropertyOrEmpty("includeTestClasses"))
+    parameters.excludeTestClasses.set(project.stringPropertyOrEmpty("excludeTestClasses"))
+    parameters.onlyTestGradleVersion.set(project.stringPropertyOrEmpty("onlyTestGradleVersion"))
+    parameters.repoRoot.set(repoRoot())
+}
+
+
 internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
     tasks.register<IntegrationTest>(name) {
         val integTest = project.the<IntegrationTestExtension>()
-        val buildBucketProvider = gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
-            parameters.includeTestClasses.set(project.stringPropertyOrEmpty("includeTestClasses"))
-            parameters.excludeTestClasses.set(project.stringPropertyOrEmpty("excludeTestClasses"))
-            parameters.onlyTestGradleVersion.set(project.stringPropertyOrEmpty("onlyTestGradleVersion"))
-            parameters.repoRoot.set(repoRoot())
-        }
-        buildBucketProvider.get().bucketProvider.configureTest(this, sourceSet, testType)
+        project.getBucketProvider().get().bucketProvider.configureTest(this, sourceSet.name)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()

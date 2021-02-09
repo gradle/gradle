@@ -16,13 +16,10 @@
 
 package gradlebuild.testing.services
 
-import gradlebuild.testing.TestType
-
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.testing.Test
 import org.gradle.util.GradleVersion
 import java.io.StringReader
@@ -72,7 +69,7 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
 
 
     interface BuildBucketProvider {
-        fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType)
+        fun configureTest(testTask: Test, sourceSetName: String)
     }
 
     // -PonlyTestGradleVersion=4.0-5.0
@@ -81,7 +78,7 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
         val startVersionInclusive = onlyTestGradleVersion.substringBefore("-")
         val endVersionExclusive = onlyTestGradleVersion.substringAfter("-")
 
-        override fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType) {
+        override fun configureTest(testTask: Test, sourceSetName: String) {
             val currentVersionUnderTest = extractTestTaskGradleVersion(testTask.name)
             currentVersionUnderTest?.apply {
                 testTask.enabled = currentVersionEnabled(currentVersionUnderTest)
@@ -100,9 +97,9 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
     }
 
     class IncludeTestClassProvider(private val includeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
-        override fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType) {
+        override fun configureTest(testTask: Test, sourceSetName: String) {
             testTask.filter.isFailOnNoMatchingTests = false
-            val classesForSourceSet = includeTestClasses[sourceSet.name]
+            val classesForSourceSet = includeTestClasses[sourceSetName]
             if (classesForSourceSet == null) {
                 // No classes included, disable
                 testTask.enabled = false
@@ -113,14 +110,14 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
     }
 
     class ExcludeTestClassProvider(private val excludeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
-        override fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType) {
+        override fun configureTest(testTask: Test, sourceSetName: String) {
             testTask.filter.isFailOnNoMatchingTests = false
-            excludeTestClasses[sourceSet.name]?.apply { testTask.filter.excludePatterns.addAll(this) }
+            excludeTestClasses[sourceSetName]?.apply { testTask.filter.excludePatterns.addAll(this) }
         }
     }
 
     class NoOpTestClassProvider : BuildBucketProvider {
-        override fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType) {
+        override fun configureTest(testTask: Test, sourceSetName: String) {
         }
     }
 }

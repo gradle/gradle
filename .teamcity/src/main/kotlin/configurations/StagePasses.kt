@@ -4,11 +4,11 @@ import common.Os.LINUX
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.gradleWrapper
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.SnapshotDependency
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.ScheduleTrigger
@@ -23,7 +23,7 @@ import model.Trigger
 import projects.StageProject
 
 class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) : BaseGradleBuildType(model, init = {
-    id = stageTriggerId(model, stage)
+    id(stageTriggerId(model, stage))
     name = stage.stageName.stageName + " (Trigger)"
 
     applyDefaultSettings()
@@ -86,7 +86,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
 
     dependencies {
         if (!stage.runsIndependent && prevStage != null) {
-            dependency(stageTriggerId(model, prevStage)) {
+            dependency(RelativeId(stageTriggerId(model, prevStage))) {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
@@ -106,7 +106,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
 
 fun stageTriggerId(model: CIBuildModel, stage: Stage) = stageTriggerId(model, stage.stageName)
 
-fun stageTriggerId(model: CIBuildModel, stageName: StageName) = AbsoluteId("${model.projectId}_Stage_${stageName.id}_Trigger")
+fun stageTriggerId(model: CIBuildModel, stageName: StageName) = "${model.projectId}_Stage_${stageName.id}_Trigger"
 
 fun <T : BuildType> Dependencies.snapshotDependencies(buildTypes: Iterable<T>, snapshotConfig: SnapshotDependency.(T) -> Unit = {}) {
     buildTypes.forEach { buildType ->

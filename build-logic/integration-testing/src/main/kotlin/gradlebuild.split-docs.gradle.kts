@@ -14,23 +14,9 @@
  * limitations under the License.
  */
 
-package configurations
+import gradlebuild.integrationtests.getBucketProvider
+import org.gradle.api.tasks.testing.Test
 
-import common.VersionedSettingsBranch
-
-val triggerExcludes = """
-        -:.idea
-        -:.github
-        -:.teamcity
-        -:.teamcityTest
-        -:subprojects/docs/src/docs/release
-    """.trimIndent()
-
-fun branchFilter(branch: VersionedSettingsBranch) = """
-    +:${branch.branchName}
-""".trimIndent()
-
-val allBranchesFilter = """
-    +:*
-    -:<default>
-""".trimIndent()
+tasks.named<Test>("docsTest") {
+    getBucketProvider().get().bucketProvider.configureTest(this, "docsTest")
+}

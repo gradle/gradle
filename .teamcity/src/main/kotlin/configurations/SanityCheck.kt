@@ -1,12 +1,11 @@
 package configurations
 
 import common.Os.LINUX
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import model.CIBuildModel
 import model.Stage
 
 class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, usesParentBuildCache = true, init = {
-    id = AbsoluteId(buildTypeId(model))
+    id(buildTypeId(model))
     name = "Sanity Check"
     description = "Static code analysis, checkstyle, release notes verification, etc."
 
