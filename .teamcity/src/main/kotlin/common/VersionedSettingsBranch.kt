@@ -3,11 +3,9 @@ package common
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 
 data class VersionedSettingsBranch(val branchName: String) {
-    fun asBuildTypeId() = branchName.capitalize()
 
     companion object {
         val MASTER = VersionedSettingsBranch("master")
-        val RELEASE = VersionedSettingsBranch("release")
 
         fun fromDslContext(): VersionedSettingsBranch {
             val branch = DslContext.getParameter("Branch")
