@@ -19,13 +19,14 @@ package org.gradle.integtests
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
 
 @Unroll
-class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
+class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
 
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
     def 'stale output file is removed after input source directory is emptied.'() {
@@ -730,15 +731,5 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         """.stripIndent()
         }
-    }
-
-    void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
-        executer.expectDocumentedDeprecationWarning(
-            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
-                "The location which is an input/output is '${producedConsumedLocation.absolutePath}'. " +
-                "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
     }
 }

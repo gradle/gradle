@@ -17,6 +17,7 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -24,7 +25,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
-class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
+class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
     def setup() {
         settingsFile << "include 'a', 'b'"
         buildFile << '''
@@ -257,15 +258,5 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":a:javadoc")
         file("a/build/docs/javadoc/A.html").isFile()
         !file("a/build/docs/javadoc/AA.html").isFile()
-    }
-
-    void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
-        executer.expectDocumentedDeprecationWarning(
-            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
-                "The location which is an input/output is '${producedConsumedLocation.absolutePath}'. " +
-                "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
     }
 }

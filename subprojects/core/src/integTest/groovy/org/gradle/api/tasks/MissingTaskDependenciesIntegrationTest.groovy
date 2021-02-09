@@ -17,10 +17,11 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import spock.lang.Unroll
 
 @Unroll
-class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
 
     def "detects missing dependency between two tasks (#description)"() {
         buildFile << """
@@ -311,15 +312,5 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 - A URI or URL instance.
                 - A TextResource instance.
             Consider using Task.dependsOn instead of an input file collection.""".stripIndent())
-    }
-
-    void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
-        executer.expectDocumentedDeprecationWarning(
-            "Gradle detected a problem with the following location: '${producedConsumedLocation.absolutePath}'. " +
-                "Task '${consumer}' uses this output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
-                "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
     }
 }
