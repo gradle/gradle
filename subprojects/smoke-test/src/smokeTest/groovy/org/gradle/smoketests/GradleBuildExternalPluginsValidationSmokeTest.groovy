@@ -62,7 +62,8 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin',
                 'org.asciidoctor.jvm.convert',
                 'com.gradle.plugin-publish',
-                'kotlin'
+                'kotlin',
+                'com.autonomousapps.dependency-analysis'
             ]
         }
         inProject(":") {

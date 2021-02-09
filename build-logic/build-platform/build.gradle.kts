@@ -25,6 +25,7 @@ dependencies {
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.6.0")
         api("com.diffplug.spotless:spotless-plugin-gradle:5.7.0")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:0.70.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
