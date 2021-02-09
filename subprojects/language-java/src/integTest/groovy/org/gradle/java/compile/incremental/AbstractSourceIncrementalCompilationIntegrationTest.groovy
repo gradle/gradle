@@ -45,6 +45,60 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses 'B', 'C'
     }
 
+    class LibWithAnonymousClasses {
+        void writeToProject() {
+            source """
+                interface SomeInterface {
+                    int foo();
+                }
+            """
+            source """
+                class Anonymous1 {
+                    SomeInterface getAnonymous() {
+                        return new SomeInterface() {
+                            public int foo() {
+                                return 0;
+                            }
+                        };
+                    }
+                }
+            """
+            source """
+                class Anonymous2 {
+                    SomeInterface getAnonymous() {
+                        return new SomeInterface() {
+                            public int foo() {
+                                return 1;
+                            }
+                        };
+                    }
+                }
+            """
+            source """
+                class Consumer {
+                    void consume() {
+                        System.out.println(new Anonymous1().getAnonymous().foo());
+                        System.out.println(new Anonymous2().getAnonymous().foo());
+                    }
+                }
+            """
+        }
+
+        void modifyAnonymousImplementation() {
+            source """
+                class Anonymous2 {
+                    SomeInterface getAnonymous() {
+                        return new SomeInterface() {
+                            public int foo() {
+                                return 42;
+                            }
+                        };
+                    }
+                }
+            """
+        }
+    }
+
     class IncrementalLib {
         void writeToProject() {
             source 'class AccessedFromPackagePrivateField {}'
@@ -208,6 +262,20 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
 
         then:
         outputs.recompiledClasses 'AccessedFromPrivateClass', 'SomeClass', 'SomeClass$Foo'
+    }
+
+    def "change to anonymous inner class recompiles enclosing class and consumer"() {
+        def componentUnderTest = new LibWithAnonymousClasses()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.modifyAnonymousImplementation()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'Anonymous2', 'Anonymous2$1', 'Consumer'
     }
 
     def "detects deletion of an isolated source class with an inner class"() {
