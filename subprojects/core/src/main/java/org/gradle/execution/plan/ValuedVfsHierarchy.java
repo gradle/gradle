@@ -168,7 +168,7 @@ public final class ValuedVfsHierarchy<T> {
                 child.getValues(),
                 () -> childPath
             );
-            child.visitAllChildren((grandChildren, relativePath) -> childConsumer.accept(grandChildren, () -> childPath + "/" + relativePath));
+            child.visitAllChildren((grandChildren, relativePath) -> childConsumer.accept(grandChildren, () -> childPath + "/" + relativePath.get()));
         });
     }
 
