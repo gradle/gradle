@@ -17,8 +17,6 @@
 import gradlebuild.integrationtests.getBucketProvider
 import org.gradle.api.tasks.testing.Test
 
-afterEvaluate {
-    tasks.named<Test>("docsTest") {
-        getBucketProvider().get().bucketProvider.configureTest(this, "docsTest")
-    }
+tasks.named<Test>("docsTest") {
+    getBucketProvider().get().bucketProvider.configureTest(this, "docsTest")
 }
