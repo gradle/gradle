@@ -52,7 +52,7 @@ abstract class PublishGradleDistribution(
             }
         }
         dependencies {
-            artifacts(RelativeId("Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
+            artifacts(RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
                 buildRule = lastSuccessful(promotedBranch)
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-build-receipt/"
