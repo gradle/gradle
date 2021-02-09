@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.processors
 
+import org.apache.commons.io.IOUtils
 import org.gradle.api.internal.tasks.testing.JULRedirector
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.SystemProperties
@@ -50,7 +51,7 @@ class JULRedirectorTest extends Specification {
 
     public static class JULCustomInit {
         JULCustomInit() {
-            LogManager.getLogManager().readConfiguration(org.apache.commons.io.IOUtils.toInputStream(
+            LogManager.getLogManager().readConfiguration(IOUtils.toInputStream(
                 'handlers = java.util.logging.ConsoleHandler' + EOL +
                 '.level = FINEST' + EOL +
                 'java.util.logging.ConsoleHandler.formatter = ' + DummyFormatter.class.name + EOL +

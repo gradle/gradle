@@ -18,7 +18,6 @@ dependencies {
     implementation(project(":testing-base"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)

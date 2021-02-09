@@ -10,6 +10,5 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
 
-    implementation(libs.junit)
     implementation(libs.junitPlatform)
 }

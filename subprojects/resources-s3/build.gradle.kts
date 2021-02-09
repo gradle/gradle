@@ -11,17 +11,18 @@ dependencies {
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.nativePlatform)
     implementation(libs.awsS3Core)
     implementation(libs.awsS3S3)
-    implementation(libs.awsS3Kms)
-    implementation(libs.awsS3Sts)
+    implementation(libs.awsS3Kms) {
+        because("Loaded by the AWS libraries with reflection when present")
+    }
+    implementation(libs.awsS3Sts) {
+        because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
+    }
     implementation(libs.jaxb)
     implementation(libs.jacksonCore)
-    implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
     implementation(libs.commonsHttpclient)
-    implementation(libs.joda)
     implementation(libs.commonsLang)
 
     testImplementation(testFixtures(project(":core")))

@@ -29,7 +29,6 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.commonsIo)
     implementation(libs.inject)
 
     testFixturesApi(project(":base-services")) {
@@ -45,6 +44,7 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
     testImplementation(project(":base-services-groovy"))
+    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":version-control")))
     testImplementation(testFixtures(project(":platform-native")))

@@ -27,12 +27,9 @@ dependencies {
         because("We need it for BuildOutputCleanupRegistry")
     }
 
-    implementation(libs.slf4jApi)
     implementation(libs.groovy)
     implementation(libs.ant)
-    implementation(libs.asm)
     implementation(libs.guava)
-    implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.inject)
 
@@ -43,6 +40,7 @@ dependencies {
         because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
     }
     testImplementation(libs.jsoup)
+    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":resources-http")))

@@ -17,13 +17,16 @@ dependencies {
     implementation(project(":wrapper"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.inject)
     implementation(libs.plexusContainer)
-    implementation(libs.maven3Compat)
-    implementation(libs.maven3PluginApi)
+    implementation(libs.maven3Compat) {
+        because("maven sub-components are loaded via reflection internally")
+    }
+    implementation(libs.maven3PluginApi) {
+        because("maven sub-components are loaded via reflection internally")
+    }
 
     testImplementation(project(":cli"))
     testImplementation(project(":base-services-groovy"))

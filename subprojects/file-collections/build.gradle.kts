@@ -15,8 +15,6 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
-    implementation(libs.inject)
 
     testImplementation(project(":process-services"))
     testImplementation(project(":resources"))
