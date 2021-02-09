@@ -18,7 +18,6 @@ package configurations
 
 import common.Os
 import common.applyDefaultSettings
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.ReuseBuilds
 import model.CIBuildModel
 import model.PerformanceTestProjectSpec
@@ -26,7 +25,7 @@ import model.PerformanceTestType
 import projects.PerformanceTestProject
 
 class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(model, init = {
-    id = AbsoluteId("${performanceTestProject.id}_Trigger")
+    id("${performanceTestProject.spec.asConfigurationId(model)}_Trigger")
     val performanceTestSpec = performanceTestProject.spec
     name = performanceTestProject.name + " (Trigger)"
 

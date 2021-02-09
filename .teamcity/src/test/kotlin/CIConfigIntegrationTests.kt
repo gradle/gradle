@@ -1,4 +1,4 @@
-import common.Branch
+import common.VersionedSettingsBranch
 import model.CROSS_VERSION_BUCKETS
 import model.FunctionalTestBucketProvider
 import model.JsonBasedGradleSubprojectProvider
@@ -31,7 +31,7 @@ class CIConfigIntegrationTests {
     private val subprojectProvider = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     private val model = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = Branch.Master,
+        branch = VersionedSettingsBranch.MASTER,
         buildScanTags = listOf("Check"),
         subprojects = subprojectProvider
     )
@@ -73,10 +73,6 @@ class CIConfigIntegrationTests {
         val stagePassConfigs = rootProject.buildTypes
         stagePassConfigs.forEach {
             val stageNumber = stagePassConfigs.indexOf(it) + 1
-            println(it.id)
-            it.dependencies.items.forEach {
-                println("--> " + it.buildTypeId)
-            }
             if (stageNumber <= model.stages.size) {
                 val stage = model.stages[stageNumber - 1]
                 val prevStage = if (stageNumber > 1) model.stages[stageNumber - 2] else null

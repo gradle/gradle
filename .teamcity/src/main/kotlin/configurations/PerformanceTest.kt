@@ -26,7 +26,6 @@ import common.killGradleProcessesStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.PerformanceTestBuildSpec
@@ -47,7 +46,7 @@ class PerformanceTest(
     model,
     stage = stage,
     init = {
-        this.id = AbsoluteId(performanceTestBuildSpec.asConfigurationId(model, "bucket${bucketIndex + 1}"))
+        this.id(performanceTestBuildSpec.asConfigurationId(model, "bucket${bucketIndex + 1}"))
         this.name = "$description${if (performanceTestBuildSpec.withoutDependencies) " (without dependencies)" else ""}"
         val type = performanceTestBuildSpec.type
         val os = performanceTestBuildSpec.os

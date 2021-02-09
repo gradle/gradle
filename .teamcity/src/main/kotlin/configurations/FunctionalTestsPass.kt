@@ -17,12 +17,11 @@
 package configurations
 
 import common.applyDefaultSettings
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import model.CIBuildModel
 import projects.FunctionalTestProject
 
 class FunctionalTestsPass(model: CIBuildModel, functionalTestProject: FunctionalTestProject) : BaseGradleBuildType(model, init = {
-    id = AbsoluteId("${functionalTestProject.id}_Trigger")
+    id("${functionalTestProject.testConfig.asId(model)}_Trigger")
     name = functionalTestProject.name + " (Trigger)"
 
     applyDefaultSettings()

@@ -7,11 +7,11 @@ import configurations.PerformanceTest
 import configurations.PerformanceTestsPass
 import configurations.SanityCheck
 import configurations.buildReportTab
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import model.CIBuildModel
 import model.FlameGraphGeneration
 import model.FunctionalTestBucketProvider
@@ -22,7 +22,7 @@ import model.Stage
 import model.TestType
 
 class StageProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalTestBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
-    this.id = AbsoluteId("${model.projectId}_Stage_${stage.stageName.id}")
+    this.id("${model.projectId}_Stage_${stage.stageName.id}")
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 }) {
@@ -65,7 +65,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
                     }
                 }
                 if (!(stage.functionalTestsDependOnSpecificBuilds && stage.specificBuilds.contains(SpecificBuild.SanityCheck)) && stage.dependsOnSanityCheck) {
-                    functionalTestProject.addDependencyForAllBuildTypes(AbsoluteId(SanityCheck.buildTypeId(model)))
+                    functionalTestProject.addDependencyForAllBuildTypes(RelativeId(SanityCheck.buildTypeId(model)))
                 }
                 functionalTestProject
             }
@@ -78,8 +78,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         val deferredTestsForThisStage = functionalTestBucketProvider.createDeferredFunctionalTestsFor(stage)
         if (deferredTestsForThisStage.isNotEmpty()) {
             val deferredTestsProject = Project {
-                uuid = "${rootProjectUuid}_deferred_tests"
-                id = AbsoluteId(uuid)
+                id = RelativeId("deferred_tests")
                 name = "Test coverage deferred from Quick Feedback and Ready for Merge"
                 deferredTestsForThisStage.forEach(this::buildType)
             }

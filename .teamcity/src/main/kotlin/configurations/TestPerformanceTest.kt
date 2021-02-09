@@ -22,7 +22,6 @@ import common.buildToolGradleParameters
 import common.checkCleanM2
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
@@ -54,7 +53,7 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
         ))
     }
 
-    id = AbsoluteId("${model.projectId}_TestPerformanceTest")
+    id("${model.projectId}_TestPerformanceTest")
     name = "Test performance test tasks - Java8 Linux"
     description = "Tries to run an adhoc performance test without a database connection to verify this is still working"
 
@@ -67,11 +66,13 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = os.killAllGradleProcesses
         }
-        adHocPerformanceTest(listOf(
-            "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
-            "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
-            "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks"
-        ))
+        adHocPerformanceTest(
+            listOf(
+                "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+                "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
+                "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks"
+            )
+        )
 
         checkCleanM2(os)
     }

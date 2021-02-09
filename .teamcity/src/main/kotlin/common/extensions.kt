@@ -26,6 +26,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.Requirements
 import jetbrains.buildServer.configs.kotlin.v2019_2.VcsSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
@@ -133,16 +134,16 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         if (isContinue) "--continue" else ""
     )
 
-fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_CompileAll") {
+fun Dependencies.compileAllDependency(compileAllId: String) {
     // Compile All has to succeed before anything else is started
-    dependency(AbsoluteId(compileAllId)) {
+    dependency(RelativeId(compileAllId)) {
         snapshot {
             onDependencyFailure = FailureAction.CANCEL
             onDependencyCancel = FailureAction.CANCEL
         }
     }
     // Get the build receipt from sanity check to reuse the timestamp
-    artifacts(AbsoluteId(compileAllId)) {
+    artifacts(RelativeId(compileAllId)) {
         id = "ARTIFACT_DEPENDENCY_$compileAllId"
         cleanDestination = true
         artifactRules = "build-receipt.properties => incoming-distributions"
