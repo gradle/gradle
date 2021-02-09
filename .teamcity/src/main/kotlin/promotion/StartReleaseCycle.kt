@@ -17,8 +17,8 @@
 package promotion
 
 import common.gradleWrapper
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
 object StartReleaseCycle : BasePromotionBuildType(vcsRootId = gradlePromotionMaster) {
@@ -48,7 +48,7 @@ object StartReleaseCycle : BasePromotionBuildType(vcsRootId = gradlePromotionMas
         }
 
         dependencies {
-            artifacts(AbsoluteId("Gradle_Check_Stage_ReadyforNightly_Trigger")) {
+            artifacts(RelativeId("Check_Stage_ReadyforNightly_Trigger")) {
                 buildRule = lastSuccessful("master")
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-build-receipt/"

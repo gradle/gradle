@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import common.Branch
+import common.VersionedSettingsBranch
 import configurations.PerformanceTest
 import model.JsonBasedGradleSubprojectProvider
 import model.PerformanceTestCoverage
@@ -39,7 +39,7 @@ class PerformanceTestBuildTypeTest {
     private
     val buildModel = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = Branch.Master,
+        branch = VersionedSettingsBranch.MASTER,
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     )

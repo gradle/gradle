@@ -12,6 +12,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.ProjectFeatures
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.pullRequests
@@ -222,7 +223,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
     if (notQuick) {
         // wait for quick feedback phase to finish successfully
         buildType.dependencies {
-            dependency(stageTriggerId(model, StageNames.QUICK_FEEDBACK_LINUX_ONLY)) {
+            dependency(RelativeId(stageTriggerId(model, StageNames.QUICK_FEEDBACK_LINUX_ONLY))) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL

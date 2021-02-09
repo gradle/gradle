@@ -16,7 +16,7 @@
 
 package configurations
 
-import common.Branch
+import common.VersionedSettingsBranch
 
 val triggerExcludes = """
         -:.idea
@@ -26,8 +26,8 @@ val triggerExcludes = """
         -:subprojects/docs/src/docs/release
     """.trimIndent()
 
-fun branchFilter(branch: Branch) = """
-    +:${branch.name.toLowerCase()}
+fun branchFilter(branch: VersionedSettingsBranch) = """
+    +:${branch.branchName}
 """.trimIndent()
 
 val allBranchesFilter = """
