@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.LibraryElements;
@@ -394,6 +395,7 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureConfigurations(Project project, JavaPluginConvention convention) {
         ConfigurationContainer configurations = project.getConfigurations();
 
+        Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
         Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
@@ -414,6 +416,7 @@ public class JavaPlugin implements Plugin<Project> {
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")
                 .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
+        defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
 
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
