@@ -21,9 +21,11 @@ import org.gradle.profiler.DefaultScenarioContext
 import org.gradle.profiler.Phase
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Ignore
 class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
     // TODO:configuration-cache remove once fixed upstream
