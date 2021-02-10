@@ -22,8 +22,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
 abstract class PublishGradleDistribution(
-    // The branch where the build pipeline comes from, usually Master/Release
-    versionSettingsBranch: VersionedSettingsBranch,
     // The branch to be promoted
     promotedBranch: String,
     task: String,
@@ -61,4 +59,7 @@ abstract class PublishGradleDistribution(
     }
 }
 
-fun VersionedSettingsBranch.promoteNightlyTaskName(): String = "promote${if (this == VersionedSettingsBranch.MASTER) "" else asBuildTypeId()}Nightly"
+fun VersionedSettingsBranch.promoteNightlyTaskName(): String = when (this) {
+    VersionedSettingsBranch.MASTER -> "promoteNightly"
+    else -> "promoteReleaseNightly"
+}
