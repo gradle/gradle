@@ -16,10 +16,6 @@
 
 package org.gradle.kotlin.dsl.caching
 
-import org.gradle.kotlin.dsl.caching.fixtures.CachedScript
-import org.gradle.kotlin.dsl.caching.fixtures.cachedBuildFile
-import org.gradle.kotlin.dsl.caching.fixtures.cachedSettingsFile
-import org.gradle.kotlin.dsl.caching.fixtures.compilationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.containsString
@@ -55,84 +51,6 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
         build("--scan", "--build-cache", "-Dscan.dump").apply {
             assertThat(output, containsString("Build scan written to"))
-        }
-    }
-
-    @Test
-    fun `build cache integration can be disabled via system property`() {
-
-        val buildCacheDir = existing("build-cache")
-
-        val expectedOutput = "***42***"
-
-        fun cloneProject(): Pair<CachedScript.WholeFile, CachedScript.WholeFile> {
-
-            val settingsFile =
-                withLocalBuildCacheSettings(buildCacheDir)
-
-            val buildFile = withBuildScript(
-                """
-                    plugins {
-                        java // force the generation of accessors
-                    }
-
-                    println("$expectedOutput")
-                """
-            )
-
-            return cachedSettingsFile(settingsFile, hasBody = true) to cachedBuildFile(buildFile, hasBody = true)
-        }
-
-        withProjectRoot(newDir("clone-a")) {
-
-            val (settingsFile, buildFile) = cloneProject()
-
-            // Cache miss with a fresh Gradle home, script cache will be pushed to build cache
-            executer.withGradleUserHomeDir(newDir("guh-1"))
-            buildForCacheInspection("--build-cache").apply {
-
-                compilationCache {
-                    misses(settingsFile)
-                    misses(buildFile)
-                }
-
-                assertThat(output, containsString(expectedOutput))
-            }
-        }
-
-        withProjectRoot(newDir("clone-b")) {
-
-            val (settingsFile, buildFile) = cloneProject()
-
-            // Cache hit from build cache
-            executer.withGradleUserHomeDir(newDir("guh-2"))
-            buildForCacheInspection("--build-cache").apply {
-
-                compilationCache {
-                    misses(settingsFile)
-                    hits(buildFile)
-                }
-
-                assertThat(output, containsString(expectedOutput))
-            }
-
-            // Cache miss without build cache integration (disabled via system property)
-            executer.withGradleUserHomeDir(
-                newDir("guh-3").apply {
-                    resolve("gradle.properties").writeText(
-                        "systemProp.org.gradle.kotlin.dsl.caching.buildcache=false"
-                    )
-                }
-            )
-            buildForCacheInspection("--build-cache").apply {
-
-                compilationCache {
-                    misses(settingsFile)
-                    misses(buildFile)
-                }
-
-                assertThat(output, containsString(expectedOutput))
-            }
         }
     }
 
