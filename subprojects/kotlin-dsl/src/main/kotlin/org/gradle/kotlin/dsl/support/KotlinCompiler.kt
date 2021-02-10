@@ -50,6 +50,8 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
+import org.jetbrains.kotlin.config.JvmAnalysisFlags
+import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
@@ -341,7 +343,8 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     languageVersion = LanguageVersion.KOTLIN_1_4,
     apiVersion = ApiVersion.KOTLIN_1_4,
     analysisFlags = mapOf(
-        AnalysisFlags.skipMetadataVersionCheck to true
+        AnalysisFlags.skipMetadataVersionCheck to true,
+        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
     ),
     specificFeatures = mapOf(
         LanguageFeature.DisableCompatibilityModeForNewInference to LanguageFeature.State.ENABLED

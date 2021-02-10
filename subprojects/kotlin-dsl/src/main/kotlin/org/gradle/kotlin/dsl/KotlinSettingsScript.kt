@@ -70,6 +70,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-language-version", "1.4",
         "-api-version", "1.4",
         "-jvm-target", "1.8",
+        "-Xjvm-default=all",
         "-Xjsr305=strict",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
     ]
