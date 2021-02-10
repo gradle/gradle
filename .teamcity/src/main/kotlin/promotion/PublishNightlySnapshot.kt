@@ -20,13 +20,12 @@ import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
 class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistribution(
-    versionSettingsBranch = branch,
     promotedBranch = branch.branchName,
     task = branch.promoteNightlyTaskName(),
     triggerName = "ReadyforNightly"
 ) {
     init {
-        id("Promotion_${branch.asBuildTypeId()}Nightly")
+        id("Promotion_Nightly")
         name = "Nightly Snapshot"
         description = "Promotes the latest successful changes on '${branch.branchName}' from Ready for Nightly as a new nightly snapshot"
 

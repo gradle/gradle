@@ -17,12 +17,12 @@
 package org.gradle.util
 
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.SpecInfo
 
-class UsesNativeServicesExtension extends AbstractAnnotationDrivenExtension<UsesNativeServices> {
+class UsesNativeServicesExtension implements IAnnotationDrivenExtension<UsesNativeServices> {
     @Override
     void visitSpecAnnotation(UsesNativeServices annotation, SpecInfo spec) {
         spec.addSharedInitializerInterceptor(new NativeServicesInitializationInterceptor())

@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.fixtures.timeout;
 
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension;
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.MethodInfo;
 import org.spockframework.runtime.model.SpecInfo;
 
-public class IntegrationTestTimeoutExtension extends AbstractAnnotationDrivenExtension<IntegrationTestTimeout> {
+public class IntegrationTestTimeoutExtension implements IAnnotationDrivenExtension<IntegrationTestTimeout> {
     @Override
     public void visitSpecAnnotation(IntegrationTestTimeout timeout, SpecInfo spec) {
         for (FeatureInfo feature : spec.getFeatures()) {

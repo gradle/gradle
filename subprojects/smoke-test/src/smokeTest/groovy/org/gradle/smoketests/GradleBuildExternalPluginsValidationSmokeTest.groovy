@@ -96,7 +96,8 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
 
     void validatePlugins() {
         allPlugins.performValidation([
-            "-Dorg.gradle.internal.validate.external.plugins=true"
+            "-Dorg.gradle.internal.validate.external.plugins=true",
+            "--no-parallel" // make sure we have consistent execution ordering as we skip cached tasks
         ])
     }
 

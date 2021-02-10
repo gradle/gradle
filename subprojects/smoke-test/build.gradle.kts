@@ -53,16 +53,10 @@ tasks {
      */
     val santaGitUri = "https://github.com/gradle/santa-tracker-android.git"
 
-    val santaTrackerKotlin by registering(RemoteProject::class) {
+    val santaTracker by registering(RemoteProject::class) {
         remoteUri.set(santaGitUri)
-        // Pinned from branch agp-3.6.0
-        ref.set("d23314d967e0eb025a12d28c98ddda2af235a513")
-    }
-
-    val santaTrackerJava by registering(RemoteProject::class) {
-        remoteUri.set(santaGitUri)
-        // Pinned from branch agp-3.6.0-java
-        ref.set("d8543e51ac5a4803a8ac57f0639229736f11e0a8")
+        // Pinned from branch main
+        ref.set("6083ad6ff49a7dabd780e46aa024c7c38a9f2191")
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
@@ -70,8 +64,7 @@ tasks {
         ref.set(moduleIdentity.gradleBuildCommitId)
     }
 
-    val santaProjects = arrayOf(santaTrackerKotlin, santaTrackerJava)
-    val remoteProjects = santaProjects + gradleBuildCurrent
+    val remoteProjects = arrayOf(santaTracker, gradleBuildCurrent)
 
     if (BuildEnvironment.isCiServer) {
         remoteProjects.forEach { remoteProject ->
@@ -102,7 +95,7 @@ tasks {
 
     register<SmokeTest>("smokeTest") {
         description = "Runs Smoke tests"
-        configureForSmokeTest(*santaProjects)
+        configureForSmokeTest(santaTracker)
         useJUnitPlatform {
             filter {
                 excludeTestsMatching(gradleBuildTestPattern)
@@ -112,7 +105,7 @@ tasks {
 
     register<SmokeTest>("configCacheSmokeTest") {
         description = "Runs Smoke tests with the configuration cache"
-        configureForSmokeTest(*santaProjects)
+        configureForSmokeTest(santaTracker)
         systemProperty("org.gradle.integtest.executer", "configCache")
         useJUnitPlatform {
             filter {

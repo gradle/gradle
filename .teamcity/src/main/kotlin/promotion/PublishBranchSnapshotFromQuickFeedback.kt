@@ -16,12 +16,10 @@
 
 package promotion
 
-import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import vcsroots.gradlePromotionBranches
 
 object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistribution(
-    versionSettingsBranch = VersionedSettingsBranch.MASTER,
     promotedBranch = "%branch.to.promote%",
     triggerName = "QuickFeedback",
     task = "promoteSnapshot",
