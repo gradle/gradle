@@ -20,8 +20,8 @@ import groovy.transform.CompileStatic
 import org.gradle.performance.fixture.PerformanceTestScenarioDefinition
 import org.gradle.performance.results.OperatingSystem
 import org.junit.Assume
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.extension.ExtensionAnnotation
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
@@ -78,7 +78,7 @@ enum ScenarioType {
 }
 
 @CompileStatic
-class RunForExtension extends AbstractAnnotationDrivenExtension<RunFor> {
+class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
     private static final String SCENARIO_JSON_PROPERTY_NAME = "org.gradle.performance.scenario.json"
     private static final File SCENARIO_DEFINITION_FILE = System.getProperty(SCENARIO_JSON_PROPERTY_NAME) == null
         ? null : new File(System.getProperty(SCENARIO_JSON_PROPERTY_NAME))

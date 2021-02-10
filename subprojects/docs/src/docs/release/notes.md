@@ -30,7 +30,24 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 ## Performance improvements for incremental development
 
 This release contains further improvements for incremental development &mdash; the part of the software development process where you make frequent small changes.
-These performance improvements are more pronounced for Android builds.
+
+<a name="file-system-watching"></a>
+### File system watching is enabled by default
+
+In an [incremental build](userguide/more_about_tasks.html#sec:up_to_date_checks), input and output files are checked to determine what needs to be rebuilt.
+This feature typically saves a lot of time; however, it adds some I/O overhead, which can be noticeable in large projects when not much has changed since the previous build.
+
+In Gradle 6.7 we've introduced _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)_ as an opt-in production-ready feature.
+When enabled, it allows Gradle to keep what it has learned about the file system in memory during and between builds instead of polling the file system on each build.
+This significantly reduces the amount of disk I/O needed to determine what has changed since the previous build.
+
+This feature is now enabled on all supported platforms.
+
+Read more about this feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-file-system-watching)!
+
+### Android performance improvements
+
+This release contains performance improvements for doing incremental development on Android builds.
 
 For example, `assembleDebug` for a non-abi change on the Santa Tracker Android project improved by 15% compared to Gradle 6.7:
 

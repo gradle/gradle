@@ -774,18 +774,12 @@
   "durations" : [ {
     "testProject" : "santaTrackerAndroidBuild",
     "linux" : 875000
-  }, {
-    "testProject" : "santaTrackerAndroidJavaBuild",
-    "linux" : 483000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.faster non-abi change (build comparison)",
   "durations" : [ {
     "testProject" : "santaTrackerAndroidBuild",
     "linux" : 481000
-  }, {
-    "testProject" : "santaTrackerAndroidJavaBuild",
-    "linux" : 438000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.file system watching baseline non-abi change (build comparison)",

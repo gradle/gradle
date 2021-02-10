@@ -17,8 +17,8 @@
 package org.gradle.performance.annotations
 
 import groovy.transform.CompileStatic
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.extension.ExtensionAnnotation
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.SpecInfo
 import spock.lang.Ignore
 
@@ -49,7 +49,7 @@ import java.lang.annotation.Target
 }
 
 @CompileStatic
-class AllFeaturesShouldBeAnnotatedByRunForExtension extends AbstractAnnotationDrivenExtension<AllFeaturesShouldBeAnnotated> {
+class AllFeaturesShouldBeAnnotatedByRunForExtension implements IAnnotationDrivenExtension<AllFeaturesShouldBeAnnotated> {
     @Override
     void visitSpecAnnotation(AllFeaturesShouldBeAnnotated runFor, SpecInfo spec) {
         while (spec.subSpec != null) {
