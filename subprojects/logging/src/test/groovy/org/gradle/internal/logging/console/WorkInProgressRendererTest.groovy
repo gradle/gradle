@@ -102,6 +102,60 @@ class WorkInProgressRendererTest extends OutputSpecification {
         0 * _
     }
 
+    def "test completing children of offscreen parents"() {
+        // This test confirms that when a child task is completed for a
+        // parent task that is currently offscreen, that we don't accumulate
+        // additional copies of that pending parent task to show later
+        when:
+        // start 1 and 2
+        renderer.onOutput(start(id: 1, status: ":one"))
+        renderer.onOutput(start(id: 2, status: ":two"))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        // task 3 should not be shown because there should not be enough space for it
+        progressArea.display == ["> :one"]
+
+        and:
+        // start a child for 2 while it's offscreen, and complete that child
+        renderer.onOutput(start(id: 3, parentId: 2, status: ":two:one"))
+        renderer.onOutput(updateNow())
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+        // start a second child for 2 while it's offscreen, and complete that child too
+        renderer.onOutput(start(id: 4, parentId: 2, status: ":two:two"))
+        renderer.onOutput(updateNow())
+        renderer.onOutput(complete(4))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        and:
+        // note that task 2 is still not shown
+        progressArea.display == ["> :one"]
+
+        then:
+        // task 1 completes
+        renderer.onOutput(complete(1))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        and:
+        // task 2 should appear because there should be enough space for it now
+        progressArea.display == ["> :two"]
+
+        then:
+        // task 2 completes
+        renderer.onOutput(complete(2))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        // there should be no more copies of task 2 claiming to be running
+        progressArea.display == ["> IDLE"]
+    }
+
+
     private ConsoleStub.TestableBuildProgressTextArea getProgressArea() {
         console.buildProgressArea as ConsoleStub.TestableBuildProgressTextArea
     }

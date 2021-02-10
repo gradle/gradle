@@ -107,9 +107,10 @@ public class WorkInProgressRenderer implements OutputEventListener {
             return;
         }
 
-        // Reuse parent label if possible
+        // Don't show the parent operation while a child is visible
+        // Instead, reuse the parent label, if any, for the child
         if (operation.getParent() != null) {
-            detach(operation.getParent().getOperationId());
+            unshow(operation.getParent());
         }
 
         // No more unused label? Try to resize.
@@ -132,13 +133,13 @@ public class WorkInProgressRenderer implements OutputEventListener {
         operationIdToAssignedLabels.put(operation.getOperationId(), association);
     }
 
+    // Declares that we're not following updates from this ProgressOperation anymore
     private void detach(ProgressOperation operation) {
         if (!isRenderable(operation)) {
             return;
         }
 
-        detach(operation.getOperationId());
-        unassignedProgressOperations.remove(operation);
+        unshow(operation);
 
         if (operation.getParent() != null && isRenderable(operation.getParent())) {
             attach(operation.getParent());
@@ -147,11 +148,16 @@ public class WorkInProgressRenderer implements OutputEventListener {
         }
     }
 
-    private void detach(OperationIdentifier operationId) {
+    // Declares that we are stopping showing updates from this ProgressOperation.
+    // We might be completely done following this ProgressOperation, or
+    // we might simply be waiting for its children to complete.
+    private void unshow(ProgressOperation operation) {
+        OperationIdentifier operationId = operation.getOperationId();
         AssociationLabel association = operationIdToAssignedLabels.remove(operationId);
         if (association != null) {
             unusedProgressLabels.push(association.label);
         }
+        unassignedProgressOperations.remove(operation);
     }
 
     // Any ProgressOperation in the parent chain has a message, the operation is considered renderable.
