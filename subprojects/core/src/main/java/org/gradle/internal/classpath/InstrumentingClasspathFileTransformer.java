@@ -100,7 +100,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private void instrument(File source, File dest) {
-        classpathBuilder.jar(dest, builder -> {
+        classpathBuilder.nonReplacingJar(dest, builder -> {
             try {
                 visitEntries(source, builder);
             } catch (FileException e) {
