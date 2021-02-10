@@ -59,6 +59,11 @@ abstract class PublishRelease(
                 allowEmpty = true
             )
         }
+
+        cleanup {
+            history(days = 180)
+        }
+
         this.init()
     }
 }
