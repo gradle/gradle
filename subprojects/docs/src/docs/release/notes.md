@@ -13,6 +13,7 @@ We would like to thank the following community members for their contributions t
 [Andreas Axelsson](https://github.com/judgeaxl),
 [Pedro Tôrres](https://github.com/t0rr3sp3dr0),
 [Stefan Oehme](https://github.com/oehme),
+[Jeff](https://github.com/mathjeff),
 [Niels Doucet](https://github.com/NielsDoucet).
 
 ## Upgrade Instructions
