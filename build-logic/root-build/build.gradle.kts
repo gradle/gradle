@@ -14,4 +14,5 @@ dependencies {
         exclude(group = "org.codehaus.groovy", module = "groovy-xml")
         because("The plugin implementation requires it to be on the root project classpath")
     }
+    implementation("com.autonomousapps:dependency-analysis-gradle-plugin")
 }
