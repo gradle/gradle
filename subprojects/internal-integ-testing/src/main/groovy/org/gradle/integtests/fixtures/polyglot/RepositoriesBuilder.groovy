@@ -36,15 +36,6 @@ class RepositoriesBuilder extends MultiSectionHandler implements SectionBuilder 
         }
     }
 
-    void jcenter() {
-        sections << new SectionBuilder() {
-            @Override
-            String generateSection(GradleDsl dsl) {
-                RepoScriptBlockUtil.jcenterRepositoryDefinition(dsl)
-            }
-        }
-    }
-
     void maven(URI uri) {
         sections << new GenericSection({ """maven { url "$uri" }""" }, { """maven { setUrl("$uri") }""" })
     }
