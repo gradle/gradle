@@ -409,9 +409,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         file("build.gradle") << """
             apply plugin: 'java'
 
-            repositories {
-                ${jcenterRepository()}
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'junit:junit:4.10'
             }

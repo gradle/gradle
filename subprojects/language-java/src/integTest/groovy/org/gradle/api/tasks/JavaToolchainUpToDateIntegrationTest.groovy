@@ -78,7 +78,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest
         buildFile << """
             apply plugin: "java"
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'junit:junit:4.13'
             }

@@ -98,7 +98,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         return """
             apply plugin: 'scala'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "org.scala-lang:scala-library:${scalaVersion}"

@@ -1436,7 +1436,7 @@ The following variants were also considered but didn't match the requested attri
             }
 
             project(':a') {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
 
                 configurations {
                     _compileFreeDebug.attributes { $freeDebug }
@@ -1470,7 +1470,7 @@ The following variants were also considered but didn't match the requested attri
                 }
             }
             project(':c') {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
                 configurations {
                     foo.attributes { $freeDebug }
                     bar.attributes { $freeRelease }

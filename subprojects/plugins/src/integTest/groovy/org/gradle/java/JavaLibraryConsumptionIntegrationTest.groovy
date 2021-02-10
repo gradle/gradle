@@ -25,7 +25,7 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             apply plugin: 'java-library'
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies {
                 implementation 'io.reactivex:rxnetty:0.4.4'
             }
@@ -63,7 +63,7 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies {
                 consumer "org.junit.jupiter:junit-jupiter-api:5.6.0"
             }

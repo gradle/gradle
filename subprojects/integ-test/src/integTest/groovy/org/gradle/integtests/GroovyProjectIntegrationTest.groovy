@@ -50,9 +50,7 @@ dependencies {
         settingsFile << """
 rootProject.name = 'groovyCompilation'
 dependencyResolutionManagement {
-    repositories {
-        ${jcenterRepository()}
-    }
+    ${mavenCentralRepository()}
 }
 """
         and:

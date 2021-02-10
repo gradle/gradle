@@ -38,7 +38,7 @@ class Antlr4RelocationIntegrationTest extends AbstractProjectRelocationIntegrati
         projectDir.file("build.gradle") << """
             apply plugin: "antlr"
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 antlr 'org.antlr:antlr4:4.3'

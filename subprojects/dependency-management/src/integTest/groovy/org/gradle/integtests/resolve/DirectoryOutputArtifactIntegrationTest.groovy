@@ -223,7 +223,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         file('settings.gradle') << "include 'a', 'b'"
         file('a/build.gradle') << """
 
-        ${jcenterRepository()}
+        ${mavenCentralRepository()}
 
         apply plugin: 'java'
 
@@ -246,7 +246,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
         apply plugin: 'java'
 
-        ${jcenterRepository()}
+        ${mavenCentralRepository()}
 
         configurations {
             compile_output {

@@ -34,7 +34,7 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
             }
 
             repositories {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
                 maven { url '${buildContext.localRepository.toURI().toURL()}' }
             }
 

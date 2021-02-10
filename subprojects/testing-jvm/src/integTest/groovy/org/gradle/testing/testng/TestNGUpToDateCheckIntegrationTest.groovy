@@ -58,7 +58,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             apply plugin: "java"
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies { testImplementation "org.testng:testng:${TestNGCoverage.NEWEST}" }
             test {
                 useTestNG {
@@ -101,7 +101,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             apply plugin: "java"
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies { testImplementation "org.testng:testng:${TestNGCoverage.NEWEST}" }
             test {
                 useTestNG {
