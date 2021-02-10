@@ -336,20 +336,20 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 builtBy(prepareBuild)
             }
 
-            task generateA {
+            task consumesResultOfPrepareBuildAndGeneratesAInSameDirectory {
                 inputs.files(sources)
                 outputs.file("app/src/generatedA.txt")
                 doLast {}
             }
 
-            task generateB {
+            task consumesResultOfPrepareBuildAndGeneratesBInSameDirectory {
                 inputs.files(sources)
                 outputs.file("app/src/generatedB.txt")
                 doLast {}
             }
 
             task assemble {
-                dependsOn(generateA, generateB)
+                dependsOn(consumesResultOfPrepareBuildAndGeneratesAInSameDirectory, consumesResultOfPrepareBuildAndGeneratesBInSameDirectory)
             }
         """
 
