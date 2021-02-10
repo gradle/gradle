@@ -36,7 +36,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 id 'com.github.johnrengelman.shadow' version '$version'
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'commons-collections:commons-collections:3.2.2'
