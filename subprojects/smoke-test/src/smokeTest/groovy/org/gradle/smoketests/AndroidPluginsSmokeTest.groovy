@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
-import spock.lang.Unroll
-
 
 /**
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
@@ -46,11 +44,8 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         return 100
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = AGP_4_0_ITERATION_MATCHER)
-    def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"(
-        String agpVersion, boolean ide
-    ) {
+    def "android library and application APK assembly"(String agpVersion, boolean ide) {
 
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
@@ -215,8 +210,23 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
         file('build.gradle') << buildscript(agpVersion) << """
             subprojects {
-                ${mavenCentralRepository()}
                 ${googleRepository()}
+                ${mavenCentralRepository()}
+
+        /*
+        jcenter() requried for AGP versions 4.* because:
+        > Could not resolve all files for configuration ':android-kotlin-library:lintClassPath'.
+           > Could not find org.jetbrains.trove4j:trove4j:20160824.
+             Searched in the following locations:
+               - https://dl.google.com/dl/android/maven2/org/jetbrains/trove4j/trove4j/20160824/trove4j-20160824.pom
+               - https://repo.maven.apache.org/maven2/org/jetbrains/trove4j/trove4j/20160824/trove4j-20160824.pom
+             Required by:
+                 project :android-kotlin-library > com.android.tools.lint:lint-gradle:27.0.2 > com.android.tools:sdk-common:27.0.2
+                 project :android-kotlin-library > com.android.tools.lint:lint-gradle:27.0.2 > com.android.tools.external.com-intellij:intellij-core:27.0.2
+
+         Newer versions of this library are available in Maven Central: https://search.maven.org/artifact/org.jetbrains.intellij.deps/trove4j
+         */
+                ${jcenterRepository()}
             }
         """
 
@@ -259,6 +269,20 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             buildscript {
                 ${mavenCentralRepository()}
                 ${googleRepository()}
+        /*
+        jcenter() requried for AGP versions 4.* because:
+        > Could not resolve all files for configuration ':android-kotlin-library:lintClassPath'.
+           > Could not find org.jetbrains.trove4j:trove4j:20160824.
+             Searched in the following locations:
+               - https://dl.google.com/dl/android/maven2/org/jetbrains/trove4j/trove4j/20160824/trove4j-20160824.pom
+               - https://repo.maven.apache.org/maven2/org/jetbrains/trove4j/trove4j/20160824/trove4j-20160824.pom
+             Required by:
+                 project :android-kotlin-library > com.android.tools.lint:lint-gradle:27.0.2 > com.android.tools:sdk-common:27.0.2
+                 project :android-kotlin-library > com.android.tools.lint:lint-gradle:27.0.2 > com.android.tools.external.com-intellij:intellij-core:27.0.2
+
+         Newer versions of this library are available in Maven Central: https://search.maven.org/artifact/org.jetbrains.intellij.deps/trove4j
+         */
+                ${jcenterRepository()}
 
                 dependencies {
                     classpath 'com.android.tools.build:gradle:${pluginVersion}'
