@@ -114,7 +114,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         and:
         buildFile << """
             apply plugin: 'java'
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies { testImplementation 'junit:junit:4.13' }
             test {
                 maxParallelForks = $maxParallelForks
@@ -140,7 +140,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             allprojects {
                 apply plugin: 'java'
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
             }
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -181,7 +181,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def "re-runs tests when resources are renamed"() {
         buildFile << """
             apply plugin: 'java'
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -247,7 +247,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             apply plugin: 'java'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
             }
@@ -307,7 +307,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """
             apply plugin: 'java'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'

@@ -182,7 +182,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 api "org.springframework:spring-core:2.5.6"
@@ -248,7 +248,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 api "org.springframework:spring-core:1.2.9"
@@ -335,7 +335,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 constraints {
@@ -410,7 +410,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "commons-collections:commons-collections"
@@ -464,7 +464,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         given:
         createBuildScripts("""
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "commons-collections:commons-collections:$version"

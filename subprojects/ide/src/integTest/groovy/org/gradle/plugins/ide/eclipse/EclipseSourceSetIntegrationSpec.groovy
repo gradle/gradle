@@ -32,7 +32,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
             apply plugin: 'java'
             apply plugin: 'eclipse'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'com.google.guava:guava:18.0'
@@ -77,7 +77,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
             apply plugin: 'java'
             apply plugin: 'eclipse'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'com.google.guava:guava:18.0'
@@ -202,7 +202,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
             apply plugin: 'java'
             apply plugin: 'eclipse'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             sourceSets {
                 integTest

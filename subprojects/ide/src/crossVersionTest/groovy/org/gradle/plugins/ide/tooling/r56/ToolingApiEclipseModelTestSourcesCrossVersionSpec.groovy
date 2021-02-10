@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.tooling.r56
 
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -35,7 +35,7 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
                 id 'java-library'
             }
 
-            ${RepoScriptBlockUtil.jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'com.google.guava:guava:21.0'
@@ -90,7 +90,7 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
                     }
                 }
 
-                ${RepoScriptBlockUtil.jcenterRepository()}
+                ${mavenCentralRepository()}
             }
             project(':a') {
                 dependencies {
