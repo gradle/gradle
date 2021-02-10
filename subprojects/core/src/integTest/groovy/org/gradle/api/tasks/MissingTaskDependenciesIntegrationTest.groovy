@@ -221,6 +221,44 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("producer", "consumer")
     }
 
+    def "does not report missing dependencies when #disabledTask is disabled"() {
+        buildFile << """
+            task producer {
+                def outputFile = file("build/output.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = "produced"
+                }
+            }
+
+            task consumer {
+                def inputFile = file("build/output.txt")
+                def outputFile = file("consumerOutput.txt")
+                inputs.files(inputFile)
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = "consumed"
+                }
+            }
+
+            ${disabledTask}.enabled = false
+        """
+
+        when:
+        run(":producer", ":consumer")
+        then:
+        executed(":producer", ":consumer")
+
+        when:
+        run(":consumer", ":producer")
+        then:
+        executed(":producer", ":consumer")
+
+        where:
+        disabledTask << ["consumer", "producer"]
+    }
+
     def "takes filters for inputs into account when detecting missing dependencies"() {
         file("src/main/java/MyClass.java").createFile()
         buildFile << """
