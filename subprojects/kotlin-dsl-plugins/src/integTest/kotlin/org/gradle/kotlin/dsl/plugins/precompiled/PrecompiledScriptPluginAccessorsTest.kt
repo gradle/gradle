@@ -64,22 +64,24 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
     @Test
     @ToBeFixedForConfigurationCache
-    fun `init scripts are not re-evaluated when generating accessors`() {
+    fun `settings and init scripts are not evaluated when generating accessors`() {
         // given:
+        val evaluationLog = file("evaluation.log")
         withFolders {
-            // an empty precompiled script plugin
+            // a precompiled script plugin contributing an extension
             "producer/src/main/kotlin" {
                 withFile(
                     "producer.plugin.gradle.kts",
-                    ""
+                    """extensions.add("answer", 42)"""
                 )
             }
-            // a consumer of the empty precompiled script plugin
+            // a consumer of the precompiled script plugin extension
             "consumer/src/main/kotlin" {
                 withFile(
                     "consumer.plugin.gradle.kts",
                     """
                         plugins { id("producer.plugin") }
+                        println(answer)
                     """
                 )
             }
@@ -87,6 +89,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         withDefaultSettings().appendText(
             """
                 include("producer", "consumer")
+                file("${evaluationLog.normalisedPath}").appendText("<settings>")
             """
         )
         withKotlinDslPlugin().appendText(
@@ -104,23 +107,27 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         )
 
         // and: a bunch of init scripts
-        val initScriptLog = file("initscript.log")
+        fun initScript(file: File, label: String) = file.apply {
+            parentFile.mkdirs()
+            writeText("file('${evaluationLog.normalisedPath}') << '$label'")
+        }
 
         val gradleUserHome = newDir("gradle-user-home")
 
         // <user-home>/init.gradle
-        gradleUserHome.resolve("init.gradle").apply {
-            writeText("file('${initScriptLog.normalisedPath}') << '<init>'")
-        }
+        initScript(
+            gradleUserHome.resolve("init.gradle"),
+            "<init>"
+        )
         // <user-home>/init.d/init.gradle
-        gradleUserHome.resolve("init.d/init.gradle").apply {
-            parentFile.mkdirs()
-            writeText("file('${initScriptLog.normalisedPath}') << '<init.d>'")
-        }
+        initScript(
+            gradleUserHome.resolve("init.d/init.gradle"),
+            "<init.d>"
+        )
         // -I init.gradle
-        val initScript = withFile(
-            "init.gradle",
-            "file('${initScriptLog.normalisedPath}') << '<command-line>'"
+        val initScript = initScript(
+            file("init.gradle"),
+            "<command-line>"
         )
 
         // when: precompiled script plugin accessors are generated
@@ -130,10 +137,10 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             "-I",
             initScript.absolutePath
         ).apply {
-            // then: the init scripts are executed only once
+            // then: the settings and init scripts are only evaluated once by the outer build
             assertThat(
-                initScriptLog.text,
-                equalTo("<command-line><init><init.d>")
+                evaluationLog.text,
+                equalTo("<command-line><init><init.d><settings>")
             )
         }
     }
