@@ -157,7 +157,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
             try {
                 if (!Arrays.equals(command.getToken(), token)) {
                     throw new BadlyFormedRequestException(String.format("Unexpected authentication token in command %s received from %s, expected: %s, incoming: %s.",
-                        command, connection, Arrays.toString(token), Arrays.toString(token)));
+                        command, connection, Arrays.toString(token), Arrays.toString(command.getToken())));
                 }
                 commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl);
             } catch (Throwable e) {
