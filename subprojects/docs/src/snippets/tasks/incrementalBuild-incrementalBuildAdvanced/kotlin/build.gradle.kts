@@ -10,7 +10,7 @@ plugins {
 // end::failed-inferred-task-dep[]
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {

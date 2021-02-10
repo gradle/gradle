@@ -6,7 +6,7 @@ repositories {
     maven {
         setUrl(uri("../repo"))
     }
-    jcenter()
+    mavenCentral()
 }
 
 // tag::consumer[]

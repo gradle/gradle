@@ -6,7 +6,7 @@ group = "org.sample"
 version = "1.0"
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {

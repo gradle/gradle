@@ -10,7 +10,7 @@ java {
 version = "1.2.1"
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {

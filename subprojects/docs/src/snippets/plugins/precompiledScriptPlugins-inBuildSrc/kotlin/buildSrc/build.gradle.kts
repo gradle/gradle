@@ -4,6 +4,6 @@ plugins {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 // end::apply[]

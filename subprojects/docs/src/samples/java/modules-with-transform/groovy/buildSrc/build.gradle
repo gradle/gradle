@@ -7,7 +7,7 @@ dependencies {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 gradlePlugin {
