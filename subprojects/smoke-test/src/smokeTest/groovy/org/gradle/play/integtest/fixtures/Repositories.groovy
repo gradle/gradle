@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 class Repositories {
     public static final String PLAY_REPOSITORIES = """
         repositories {
-            ${RepoScriptBlockUtil.jcenterRepositoryDefinition()}
+            ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
             ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
             ${RepoScriptBlockUtil.lightbendIvyRepositoryDefinition()}
         }

@@ -10,7 +10,7 @@ subprojects {
 
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 
     group = "example"
