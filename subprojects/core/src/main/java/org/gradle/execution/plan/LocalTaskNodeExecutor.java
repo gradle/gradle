@@ -194,9 +194,9 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         TypeValidationContext.Severity severity = TypeValidationContext.Severity.WARNING;
         validationContext.visitPropertyProblem(
             severity,
-            String.format("Gradle detected a problem with the following location: '%s'. " +
-                    "Task '%s' uses this output of task '%s', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '%s' as an input). "
-                + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
+            String.format("Gradle detected a problem with the following location: '%s'. "
+                    + "Task '%s' uses this output of task '%s' without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '%s' as an input). "
+                    + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
                 consumerProducerPath,
                 consumer,
                 producer,
