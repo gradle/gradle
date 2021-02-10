@@ -134,6 +134,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSing
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=locking-explicit]"]
 ====
 
+[[migrate_single_lockfile]]
 === Migrating from the lockfile per configuration format
 
 If your project uses the legacy lock file format of a file per locked configuration, follow these instructions to migrate to the new format:

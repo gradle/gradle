@@ -42,6 +42,15 @@ Some plugins will break with this new version of Gradle, for example because the
 The `getGeneratedSourceDirectories()` and `getGeneratedTestDirectories()` methods are removed from the `IdeaContentRoot` interface.
 Clients should replace these invocations with `getSourceDirectories()` and `getTestDirectories()` and use the `isGenerated()` method on the returned instances.
 
+=== Dependency locking now defaults to a single file per project
+
+The format of the dependency lockfile has been changed and as a consequence there is only one file per project instead of one file per configuration per project.
+This change only affects _writing_ lock files.
+Gradle remains capable of _loading_ lock state saved in the older format.
+
+Head over to <<dependency_locking.adoc#migrate_single_lockfile,the documentation>> to learn how to migrate to the new format.
+The migration can be performed per configuration and does not have to be done in a single step.
+
 === Gradle Module Metadata is now reproducible by default
 
 The `buildId` field will not be populated by default to ensure that the produced metadata file remains unchanged when no build inputs are changed.
