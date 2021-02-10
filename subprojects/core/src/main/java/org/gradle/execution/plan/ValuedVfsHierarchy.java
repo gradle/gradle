@@ -70,7 +70,10 @@ public final class ValuedVfsHierarchy<T> {
                     child.getValues(),
                     () -> childPathFromAncestor.substring(location.length() + 1));
                 child.visitAllChildren((nodes, relativePath) ->
-                    visitor.visitChildren(nodes, () -> childPathFromAncestor.substring(location.length() + 1) + "/" + relativePath.get()));
+                    visitor.visitChildren(nodes, () -> joinRelativePaths(
+                        childPathFromAncestor.substring(location.length() + 1),
+                        relativePath.get())
+                    ));
                 return "";
             }
 
@@ -168,11 +171,18 @@ public final class ValuedVfsHierarchy<T> {
                 child.getValues(),
                 () -> childPath
             );
-            child.visitAllChildren((grandChildren, relativePath) -> childConsumer.accept(grandChildren, () -> childPath + "/" + relativePath.get()));
+            child.visitAllChildren((grandChildren, relativePath) -> childConsumer.accept(grandChildren, () -> joinRelativePaths(
+                childPath,
+                relativePath.get())
+            ));
         });
     }
 
     private ChildMap<ValuedVfsHierarchy<T>> getChildren() {
         return children;
+    }
+
+    private static String joinRelativePaths(String first, String second) {
+        return first + "/" + second;
     }
 }
