@@ -18,23 +18,16 @@ package org.gradle.util
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.LineBufferingOutputStream
 import org.gradle.internal.io.TextStream
+import spock.lang.Shared
 import spock.lang.Specification
 
 class LineBufferingOutputStreamTest extends Specification {
     private TextStream action = Mock(TextStream)
-    private String eol
-
-    def setup() {
-        eol = SystemProperties.getInstance().getLineSeparator()
-    }
-
-    def cleanup() {
-        System.setProperty("line.separator", eol)
-    }
+    @Shared String eol = SystemProperties.getInstance().getLineSeparator()
 
     def logsEachLineAsASeparateLogMessage() {
         when:
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, eol, 8)
         outputStream.write(TextUtil.toPlatformLineSeparators("line 1\nline 2\n").getBytes())
 
         then:
@@ -44,8 +37,8 @@ class LineBufferingOutputStreamTest extends Specification {
 
     def buffersTextUntilEndOfLineReached() {
         when:
-        System.setProperty("line.separator", "-")
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        final String separator = "-"
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, separator, 8)
         outputStream.write("line ".getBytes())
         outputStream.write("1-line 2".getBytes())
 
@@ -61,8 +54,8 @@ class LineBufferingOutputStreamTest extends Specification {
 
     def logsEmptyLines() {
         when:
-        System.setProperty("line.separator", "-")
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        final String separator = "-"
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, separator, 8)
 
         outputStream.write("--".getBytes())
 
@@ -72,8 +65,8 @@ class LineBufferingOutputStreamTest extends Specification {
 
     def handlesSingleCharacterLineSeparator() {
         when:
-        System.setProperty("line.separator", "-")
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        final String separator = "-"
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, separator, 8)
 
         outputStream.write(String.format("line 1-line 2-").getBytes())
 
@@ -84,8 +77,7 @@ class LineBufferingOutputStreamTest extends Specification {
 
     def handlesMultiCharacterLineSeparator() {
         final String separator = "\r\n"
-        System.setProperty("line.separator", separator)
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, separator, 8)
 
         when:
         outputStream.write(("line 1" + separator + "line 2" + separator).getBytes())
@@ -97,8 +89,8 @@ class LineBufferingOutputStreamTest extends Specification {
 
     def logsLineWhichIsLongerThanInitialBufferLength() {
         when:
-        System.setProperty("line.separator", "-")
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        final String separator = "-"
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, separator, 8)
         outputStream.write("a line longer than 8 bytes long-".getBytes())
         outputStream.write("line 2".getBytes())
         outputStream.flush()
@@ -110,7 +102,7 @@ class LineBufferingOutputStreamTest extends Specification {
 
     def logsPartialLineOnFlush() {
         given:
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, eol, 8)
         outputStream.write("line 1".getBytes())
 
         when:
@@ -121,7 +113,7 @@ class LineBufferingOutputStreamTest extends Specification {
     }
 
     def logsNothingOnCloseWhenNothingHasBeenWrittenToStream() {
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, eol, 8)
 
         when:
         outputStream.close()
@@ -132,8 +124,8 @@ class LineBufferingOutputStreamTest extends Specification {
     }
 
     def logsNothingOnCloseWhenCompleteLineHasBeenWrittenToStream() {
-        System.setProperty("line.separator", "-")
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        final String separator = "-"
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, separator, 8)
 
         when:
         outputStream.write("line 1-".getBytes())
@@ -145,7 +137,7 @@ class LineBufferingOutputStreamTest extends Specification {
     }
 
     def logsPartialLineOnClose()  {
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, eol, 8)
 
         when:
         outputStream.write("line 1".getBytes())
@@ -157,7 +149,7 @@ class LineBufferingOutputStreamTest extends Specification {
     }
 
     def cannotWriteAfterClose() {
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8)
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, eol, 8)
 
         when:
         outputStream.close()
@@ -174,7 +166,7 @@ class LineBufferingOutputStreamTest extends Specification {
 
     def splitsLongLines() {
         when:
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8, 13)
+        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, eol, 8, 13)
         outputStream.write("12345678901234567890123456789".getBytes())
         outputStream.close()
 
