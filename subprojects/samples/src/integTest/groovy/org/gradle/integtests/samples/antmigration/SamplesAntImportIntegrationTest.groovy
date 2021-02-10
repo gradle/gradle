@@ -17,13 +17,14 @@
 package org.gradle.integtests.samples.antmigration
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 import spock.lang.Unroll
 
-class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
+class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest implements MissingTaskDependenciesFixture {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
@@ -58,7 +59,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         executer.inDirectory(dslDir)
 
         when:
-        def result = succeeds('retrieveRuntimeDependencies')
+        succeeds('retrieveRuntimeDependencies')
 
         then: "The JARs are copied to the destination directory"
         dslDir.file('build/libs/our-custom.jar').isFile()
@@ -78,23 +79,14 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
         when:
         // FIXME: Infer dependencies for zipTree(Provider<>)
-        expectMissingDependencyDeprecation(":javadocJarArchive", ":unpackJavadocs")
-        def result = succeeds('javadocJar', 'unpackJavadocs')
+        expectMissingDependencyDeprecation(":javadocJarArchive", ":unpackJavadocs", dslDir.file("build/libs/ant-file-deps-sample-javadoc.jar"))
+        succeeds('javadocJar', 'unpackJavadocs')
 
         then: "The HTML Javadoc files are unpacked to the 'dist' directory"
         dslDir.file('build/dist/org/example/app/HelloApp.html').isFile()
 
         where:
         dsl << ['groovy', 'kotlin']
-    }
-
-    void expectMissingDependencyDeprecation(String producer, String consumer) {
-        executer.expectDocumentedDeprecationWarning(
-            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
-                "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
     }
 
     @Unroll

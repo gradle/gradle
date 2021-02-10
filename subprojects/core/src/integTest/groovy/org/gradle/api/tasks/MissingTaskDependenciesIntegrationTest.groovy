@@ -17,16 +17,17 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import spock.lang.Unroll
 
 @Unroll
-class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
 
     def "detects missing dependency between two tasks (#description)"() {
         buildFile << """
             task producer {
                 def outputFile = file("${producedLocation}")
-                outputs.${producerOutput}
+                outputs.${outputType}(${producerOutput == null ? 'outputFile' : "'${producerOutput}'"})
                 doLast {
                     outputFile.parentFile.mkdirs()
                     outputFile.text = "produced"
@@ -45,20 +46,20 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        expectMissingDependencyDeprecation(":producer", ":consumer")
+        expectMissingDependencyDeprecation(":producer", ":consumer", file(consumedLocation))
         then:
         succeeds("producer", "consumer")
 
         when:
-        expectMissingDependencyDeprecation(":producer", ":consumer")
+        expectMissingDependencyDeprecation(":producer", ":consumer", file(producerOutput ?: producedLocation))
         then:
         succeeds("consumer", "producer")
 
         where:
-        description            | producerOutput     | producedLocation           | consumedLocation
-        "same location"        | "file(outputFile)" | "output.txt"               | "output.txt"
-        "consuming ancestor"   | "file(outputFile)" | "build/dir/sub/output.txt" | "build/dir"
-        "consuming descendant" | "dir('build/dir')" | "build/dir/sub/output.txt" | "build/dir/sub/output.txt"
+        description            | producerOutput | outputType | producedLocation           | consumedLocation
+        "same location"        | null           | "file"     | "output.txt"               | "output.txt"
+        "consuming ancestor"   | null           | "file"     | "build/dir/sub/output.txt" | "build/dir"
+        "consuming descendant" | 'build/dir'    | "dir"      | "build/dir/sub/output.txt" | "build/dir/sub/output.txt"
     }
 
     def "ignores missing dependency if there is an #relation relation in the other direction"() {
@@ -193,7 +194,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        expectMissingDependencyDeprecation(":producer", ":consumer")
+        expectMissingDependencyDeprecation(":producer", ":consumer", file("output.txt"))
         succeeds("producer", "consumer")
     }
 
@@ -217,7 +218,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        expectMissingDependencyDeprecation(":producer", ":consumer")
+        expectMissingDependencyDeprecation(":producer", ":consumer", file("output.txt"))
         succeeds("producer", "consumer")
     }
 
@@ -308,13 +309,13 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        expectMissingDependencyDeprecation(":producer", ":consumer")
+        expectMissingDependencyDeprecation(":producer", ":consumer", testDirectory)
         run("producer", "consumer")
         then:
         executedAndNotSkipped(":producer", ":consumer")
 
         when:
-        expectMissingDependencyDeprecation(":producer", ":consumer")
+        expectMissingDependencyDeprecation(":producer", ":consumer", file("build/problematic/output.txt"))
         run("consumer", "producer")
         then:
         executed(":producer", ":consumer")
@@ -349,14 +350,5 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 - A URI or URL instance.
                 - A TextResource instance.
             Consider using Task.dependsOn instead of an input file collection.""".stripIndent())
-    }
-
-    void expectMissingDependencyDeprecation(String producer, String consumer) {
-        executer.expectDocumentedDeprecationWarning(
-            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
-                "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
     }
 }
