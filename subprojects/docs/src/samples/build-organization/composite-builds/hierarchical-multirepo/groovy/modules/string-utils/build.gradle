@@ -15,7 +15,7 @@ repositories {
         name 'localrepo'
         url file("../../../local-repo")
     }
-    jcenter()
+    mavenCentral()
 }
 
 publishing {

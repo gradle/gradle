@@ -1,6 +1,6 @@
 // tag::multiple-repositories[]
 repositories {
-    jcenter()
+    mavenCentral()
     maven {
         url = uri("https://maven.springframework.org/release")
     }

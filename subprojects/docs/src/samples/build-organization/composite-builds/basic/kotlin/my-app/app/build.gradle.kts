@@ -17,5 +17,5 @@ dependencies {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
