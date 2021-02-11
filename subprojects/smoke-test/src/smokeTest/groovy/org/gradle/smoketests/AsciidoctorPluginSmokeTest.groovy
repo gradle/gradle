@@ -34,9 +34,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 id 'org.asciidoctor.jvm.convert' version '${version}'
             }
 
-            repositories {
-                ${jcenterRepository()}
-            }
+            ${mavenCentralRepository()}
         """
 
         file('src/docs/asciidoc/test.adoc') << """

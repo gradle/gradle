@@ -21,14 +21,14 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-android-extensions:$kotlinVersion")
     }
     repositories {
-        jcenter()
+        mavenCentral()
         google()
     }
 }
 
 allprojects {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
     }
 }
