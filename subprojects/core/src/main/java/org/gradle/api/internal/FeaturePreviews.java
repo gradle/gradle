@@ -26,7 +26,6 @@ public class FeaturePreviews {
      * A feature that is no longer relevant will have the {@code active} flag set to {@code false}.
      */
     public enum Feature {
-        GRADLE_METADATA(false),
         GROOVY_COMPILATION_AVOIDANCE(true),
         ONE_LOCKFILE_PER_PROJECT(false),
         VERSION_ORDERING_V2(false),
