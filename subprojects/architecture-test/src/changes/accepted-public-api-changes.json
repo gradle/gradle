@@ -1640,6 +1640,12 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Constructor org.gradle.StartParameter(org.gradle.initialization.BuildLayoutParameters)",
+            "acceptation": "Constructor required so subclasses can better control initialization.",
+            "changes": []
         }
     ]
 }

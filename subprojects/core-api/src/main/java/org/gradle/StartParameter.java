@@ -185,7 +185,14 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
      */
     public StartParameter() {
-        BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
+        this(new BuildLayoutParameters());
+    }
+
+    /**
+     * Creates a {@code StartParameter} initialized from the given {@link BuildLayoutParameters}.
+     * @since 7.0
+     */
+    protected StartParameter(BuildLayoutParameters layoutParameters) {
         gradleHomeDir = layoutParameters.getGradleInstallationHomeDir();
         currentDir = layoutParameters.getCurrentDir();
         projectDir = layoutParameters.getProjectDir();

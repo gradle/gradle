@@ -118,7 +118,7 @@ public class PackageListGenerator extends DefaultTask {
                     @Override
                     public void doExecute(String s) throws Exception {
                         bufferedWriter.write(s);
-                        bufferedWriter.newLine();
+                        bufferedWriter.write('\n');
                     }
                 });
             }
