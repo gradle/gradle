@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
-
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
@@ -78,67 +76,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     void configureValidation(String pluginId, String version) {
         validatePlugins {
-
-            if (pluginId == "org.asciidoctor.jvm.pdf") {
-                onPlugin(pluginId) {
-                    failsWith([
-                        "Type 'AsciidoctorPdfTask': property 'fontsDir' is not annotated with an input or output annotation.": WARNING
-                    ])
-                }
-            } else if (pluginId == "org.asciidoctor.decktape") {
-                onPlugins([pluginId, "org.asciidoctor.gradle.slides.export.decktape.AsciidoctorDeckTapeBasePlugin"]) {
-                    failsWith([
-                        "Type 'AbstractExportBaseTask': property 'outputDir' is annotated with @PathSensitive that is not allowed for @OutputDirectory properties.": WARNING,
-                        "Type 'DeckTapeTask': property 'outputDir' is annotated with @PathSensitive that is not allowed for @OutputDirectory properties.": WARNING,
-                    ])
-                }
-            } else {
-                onPlugin(pluginId) {
-                    passes()
-                }
-            }
-
-            if (pluginId.startsWith("org.asciidoctor.jvm")) {
-                onPlugin('org.asciidoctor.gradle.base.AsciidoctorBasePlugin') {
-                    failsWith([
-                        "Type 'AbstractAsciidoctorBaseTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
-                        "Type 'AbstractAsciidoctorBaseTask': non-property method 'attributes()' should not be annotated with: @Input.": WARNING,
-                        "Type 'AbstractAsciidoctorBaseTask': non-property method 'getDefaultResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
-                        "Type 'AbstractAsciidoctorBaseTask': non-property method 'getResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
-                        "Type 'SlidesToExportAware': property 'profile' is not annotated with an input or output annotation.": WARNING
-                    ])
-                }
-
-                onPlugin('org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin') {
-                    passes()
-                }
-
-                if (["org.asciidoctor.jvm.gems", "org.asciidoctor.jvm.revealjs"].contains(pluginId)) {
-                    onPlugin('com.github.jrubygradle.api.core.JRubyCorePlugin') {
-                        failsWith([
-                            "Type 'AbstractJRubyPrepare': non-property method 'dependencies()' should not be annotated with: @Optional.": WARNING,
-                            "Type 'AbstractJRubyPrepare': non-property method 'gemsAsFileCollection()' should not be annotated with: @InputFiles.": WARNING,
-                        ])
-                    }
-                }
-
-                if (pluginId == "org.asciidoctor.jvm.revealjs") {
-                    onPlugin("org.asciidoctor.gradle.jvm.gems.AsciidoctorGemSupportPlugin") {
-                        passes()
-                    }
-                    onPlugin("org.asciidoctor.gradle.jvm.slides.AsciidoctorRevealJSBasePlugin") {
-                        passes()
-                    }
-                }
-
-                if (pluginId == "org.asciidoctor.jvm.leanpub.dropbox-copy") {
-                    onPlugin("org.asciidoctor.gradle.jvm.leanpub.AsciidoctorJLeanpubPlugin") {
-                        passes()
-                    }
-                }
-            } else {
-                alwaysPasses()
-            }
+            alwaysPasses()
         }
     }
 }
