@@ -43,7 +43,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
                 id "java"
                 ${dependencyManagementPlugin}
             }
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             ${bomDeclaration}
 

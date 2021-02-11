@@ -1,6 +1,6 @@
 // tag::dependency-declaration[]
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 configurations {

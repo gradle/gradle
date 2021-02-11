@@ -36,7 +36,7 @@ class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 id 'com.github.spotbugs' version '${TestedVersions.spotbugs}'
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             tasks.withType(SpotBugsTask) {
                 reports.create("html")

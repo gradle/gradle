@@ -1,7 +1,7 @@
 plugins { id 'base' }
 
 repositories {
-    jcenter() // <1>
+    mavenCentral() // <1>
 }
 
 configurations.create('codec') { // <2>

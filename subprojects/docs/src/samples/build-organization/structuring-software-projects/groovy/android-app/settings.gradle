@@ -13,7 +13,6 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         google()
-        jcenter()
     }
 }
 includeBuild('../user-feature')

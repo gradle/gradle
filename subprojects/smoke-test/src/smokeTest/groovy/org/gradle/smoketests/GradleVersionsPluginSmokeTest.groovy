@@ -33,7 +33,7 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             subprojects {
                 apply plugin: 'java'
 
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
             }
             project(":sub1") {
                 dependencies {

@@ -36,7 +36,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
                 id "nebula.dependency-recommender" version "${TestedVersions.nebulaDependencyRecommender}"
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencyRecommendations {
                 mavenBom module: 'netflix:platform:latest.release'
@@ -83,7 +83,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
         given:
         buildFile << """
             buildscript {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
             }
 
             plugins {
@@ -103,7 +103,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
         def result = runner('autoLintGradle').build()
 
         then:
-        int numOfRepoBlockLines = 14 + jcenterRepository().readLines().size()
+        int numOfRepoBlockLines = 14 + mavenCentralRepository().readLines().size()
         result.output.contains("parentheses are unnecessary for dependencies")
         result.output.contains("warning   dependency-parentheses")
         result.output.contains("build.gradle:$numOfRepoBlockLines")
@@ -145,7 +145,7 @@ testImplementation('junit:junit:4.7')""")
                 id 'nebula.dependency-lock' version '$version'
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 api 'org.apache.commons:commons-math3:3.6.1'
@@ -223,7 +223,7 @@ testImplementation('junit:junit:4.7')""")
                 id 'nebula.resolution-rules' version '${TestedVersions.nebulaResolutionRules}'
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 resolutionRules files('rules.json')

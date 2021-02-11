@@ -15,7 +15,7 @@ repositories {
         name = "localrepo"
         url = uri(file("../../../local-repo"))
     }
-    jcenter()
+    mavenCentral()
 }
 
 
