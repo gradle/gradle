@@ -103,6 +103,6 @@ class JavaConventionPluginTest : PluginTest() {
         val result = runTask("build")
 
         assertEquals(TaskOutcome.SUCCESS, result.task(":build")?.outcome)
-        assertTrue(result.output.contains("warning: [deprecation] deprecatedMethod() in Foo has been deprecated"))
+        assertTrue(result.output.contains("warning: [deprecation] deprecatedMethod()"))
     }
 }

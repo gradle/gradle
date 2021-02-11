@@ -186,4 +186,167 @@ public class Other {}
         outputs.recompiledFqn("foo.Other") // should be foo.A and foo.Other
     }
 
+    def "change to anonymous inner class recompiles enclosing class and consumer"() {
+        def componentUnderTest = new LibWithAnonymousClasses()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.modifyAnonymousImplementation()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'Anonymous2', 'Anonymous2$1', 'Consumer'
+    }
+
+    def "change to method-local class recompiles enclosing class and consumer"() {
+        def componentUnderTest = new LibWithAnonymousClasses()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.modifyMethodLocalImplementation()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'MethodLocal2', 'MethodLocal2$1Bar', 'Consumer'
+    }
+
+    def "change to lambda recompiles enclosing class and consumer"() {
+        def componentUnderTest = new LibWithAnonymousClasses()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.modifyLambdaImplementation()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'Lambda2', 'Consumer'
+    }
+
+    class LibWithAnonymousClasses {
+        void writeToProject() {
+            source """
+                interface SomeInterface {
+                    int foo();
+                }
+            """
+            source """
+                class Anonymous1 {
+                    SomeInterface getAnonymous() {
+                        return new SomeInterface() {
+                            public int foo() {
+                                return 0;
+                            }
+                        };
+                    }
+                }
+            """
+            source """
+                class Anonymous2 {
+                    SomeInterface getAnonymous() {
+                        return new SomeInterface() {
+                            public int foo() {
+                                return 1;
+                            }
+                        };
+                    }
+                }
+            """
+            source """
+                class MethodLocal1 {
+                    SomeInterface getAnonymous() {
+                        class Foo implements SomeInterface {
+                            public int foo() {
+                                return 2;
+                            }
+                        }
+                        return new Foo();
+                    }
+                }
+            """
+            source """
+                class MethodLocal2 {
+                    SomeInterface getAnonymous() {
+                        class Bar implements SomeInterface {
+                            public int foo() {
+                                return 2;
+                            }
+                        }
+                        return new Bar();
+                    }
+                }
+            """
+            source """
+                class Lambda1 {
+                    SomeInterface getAnonymous() {
+                        return () -> 4;
+                    }
+                }
+            """
+            source """
+                class Lambda2 {
+                    SomeInterface getAnonymous() {
+                        return () -> 5;
+                    }
+                }
+            """
+            source """
+                class Consumer {
+                    void consume() {
+                        System.out.println(new Anonymous1().getAnonymous().foo());
+                        System.out.println(new Anonymous2().getAnonymous().foo());
+                        System.out.println(new MethodLocal1().getAnonymous().foo());
+                        System.out.println(new MethodLocal2().getAnonymous().foo());
+                        System.out.println(new Lambda1().getAnonymous().foo());
+                        System.out.println(new Lambda2().getAnonymous().foo());
+                    }
+                }
+            """
+        }
+
+        void modifyAnonymousImplementation() {
+            source """
+                class Anonymous2 {
+                    SomeInterface getAnonymous() {
+                        return new SomeInterface() {
+                            public int foo() {
+                                return 42;
+                            }
+                        };
+                    }
+                }
+            """
+        }
+
+        void modifyMethodLocalImplementation() {
+            source """
+                class MethodLocal2 {
+                    SomeInterface getAnonymous() {
+                        class Bar implements SomeInterface {
+                            public int foo() {
+                                return 42;
+                            }
+                        }
+                        return new Bar();
+                    }
+                }
+            """
+        }
+
+        void modifyLambdaImplementation() {
+            source """
+                class Lambda2 {
+                    SomeInterface getAnonymous() {
+                        return () -> 42;
+                    }
+                }
+            """
+        }
+    }
+
 }
