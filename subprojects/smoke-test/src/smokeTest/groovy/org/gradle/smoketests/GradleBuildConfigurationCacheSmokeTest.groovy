@@ -41,7 +41,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
             // todo broken by kotlin upgrade
             // ":distributions-full:binDistributionZip",
             ":tooling-api:publishLocalPublicationToLocalRepository",
-            // ":configuration-cache:embeddedIntegTest", "--tests=org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
+            ":configuration-cache:embeddedIntegTest", "--tests=org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
         ]
 
         when:
@@ -57,7 +57,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.output.count("Reusing configuration cache") == 1
         // result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
         result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
-        // result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
 
         when:
         run(["clean"])
@@ -69,12 +69,10 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.output.count("Reusing configuration cache") == 1
         result.output.contains("Starting build in new daemon")
 
-        /*
         and:
-        file("subprojects/distributions-full/build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
+//        file("subprojects/distributions-full/build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
         result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
         assertTestClassExecutedIn("subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheIntegrationTest")
-        */
     }
 
     private TestExecutionResult assertTestClassExecutedIn(String subProjectDir, String testClass) {
