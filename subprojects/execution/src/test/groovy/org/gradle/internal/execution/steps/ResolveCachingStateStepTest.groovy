@@ -52,7 +52,7 @@ class ResolveCachingStateStepTest extends StepSpec<BeforeExecutionContext> {
         _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationContext)
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.disabledReasons*.category == [CachingDisabledReasonCategory.VALIDATION_FAILURE]
-            context.cachingState.disabledReasons*.message == ["Caching has been disabled to ensure correctness due to validation failures. Please consult deprecation warnings for more details."]
+            context.cachingState.disabledReasons*.message == ["Caching has been disabled due to validation failures to ensure correctness. Please consult deprecation warnings for more details."]
         })
     }
 

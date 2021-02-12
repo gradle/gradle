@@ -1332,7 +1332,7 @@ task generate(type: TransformerTask) {
         run 'myTask', "--info"
         then:
         executedAndNotSkipped(":myTask")
-        outputContains("Change tracking has been disabled to ensure correctness due to validation failures. Please consult deprecation warnings for more details.")
+        outputContains("Change tracking has been disabled due to validation failures to ensure correctness. Please consult deprecation warnings for more details.")
     }
 
     @ToBeImplemented("Private getters should be ignored")
@@ -1435,13 +1435,13 @@ task generate(type: TransformerTask) {
         run "custom", "--info"
         then:
         executedAndNotSkipped ":custom"
-        outputContains("Change tracking has been disabled to ensure correctness due to validation failures. Please consult deprecation warnings for more details.")
+        outputContains("Change tracking has been disabled due to validation failures to ensure correctness. Please consult deprecation warnings for more details.")
 
         when:
         inputFile.text = "changed"
         run "custom", "--info"
         then:
         executedAndNotSkipped ":custom"
-        outputContains("Change tracking has been disabled to ensure correctness due to validation failures. Please consult deprecation warnings for more details.")
+        outputContains("Change tracking has been disabled due to validation failures to ensure correctness. Please consult deprecation warnings for more details.")
     }
 }

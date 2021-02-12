@@ -108,7 +108,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
-            assert changes.allChangeMessages == ImmutableList.of("Change tracking has been disabled to ensure correctness due to validation failures. Please consult deprecation warnings for more details.")
+            assert changes.allChangeMessages == ImmutableList.of("Change tracking has been disabled due to validation failures to ensure correctness. Please consult deprecation warnings for more details.")
             return delegateResult
         }
         _ * context.rebuildReason >> Optional.empty()

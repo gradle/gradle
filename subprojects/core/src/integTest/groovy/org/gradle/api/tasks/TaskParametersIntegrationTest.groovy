@@ -509,7 +509,7 @@ task someTask(type: SomeTask) {
         then:
         executedAndNotSkipped(":someTask")
         if (expectedValidationProblem) {
-            outputContains("Change tracking has been disabled to ensure correctness due to validation failures. Please consult deprecation warnings for more details.")
+            outputContains("Change tracking has been disabled due to validation failures to ensure correctness. Please consult deprecation warnings for more details.")
         } else {
             outputContains("Value of input property 'v' has changed for task ':someTask'")
         }
