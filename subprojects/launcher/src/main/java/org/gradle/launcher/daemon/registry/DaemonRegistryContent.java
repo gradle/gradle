@@ -29,7 +29,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class DaemonRegistryContent implements Serializable {
     private final List<DaemonStopEvent> stopEvents;
 
     public DaemonRegistryContent() {
-        infosMap = new HashMap<Address, DaemonInfo>();
+        infosMap = new LinkedHashMap<Address, DaemonInfo>();
         stopEvents = new ArrayList<DaemonStopEvent>();
     }
 
@@ -133,7 +133,7 @@ public class DaemonRegistryContent implements Serializable {
         }
 
         private Map<Address, DaemonInfo> readInfosMap(Decoder decoder, List<Address> addresses) throws Exception {
-            Map<Address, DaemonInfo> infosMap = new HashMap<Address, DaemonInfo>(addresses.size());
+            Map<Address, DaemonInfo> infosMap = new LinkedHashMap<Address, DaemonInfo>(addresses.size());
             DaemonInfo.Serializer daemonInfoSerializer = new DaemonInfo.Serializer(addresses);
             for (Address address : addresses) {
                 infosMap.put(address, daemonInfoSerializer.read(decoder));
