@@ -288,7 +288,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         then:
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
-        result.executionReasons == ["Validation failed."]
+        result.executionReasons == ["Change tracking has been disabled to ensure correctness due to validation failures. Please consult deprecation warnings for more details."]
     }
 
     def "out of date when output file removed"() {

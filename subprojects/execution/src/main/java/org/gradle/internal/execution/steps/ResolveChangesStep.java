@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
     private static final String NO_HISTORY = "No history is available.";
-    private static final String VALIDATION_FAILED = "Validation failed.";
+    private static final String VALIDATION_FAILED = "Change tracking has been disabled to ensure correctness due to validation failures. Please consult deprecation warnings for more details.";
 
     private final ExecutionStateChangeDetector changeDetector;
 
