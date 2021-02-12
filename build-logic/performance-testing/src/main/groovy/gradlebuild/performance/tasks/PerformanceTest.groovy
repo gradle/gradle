@@ -237,7 +237,7 @@ abstract class PerformanceTest extends DistributionTest {
         this.channel = channel
     }
 
-    @Option(option = "profiler", description = "Allows configuring a profiler to use. The same options as for Gradle profilers --profiler command line option are available")
+    @Option(option = "profiler", description = "Allows configuring a profiler to use. The same options as for Gradle profilers --profiler command line option are available and 'none' to disable profiling")
     @Optional
     @Input
     abstract Property<String> getProfiler()
@@ -319,7 +319,7 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel)
             addSystemPropertyIfExist(result, "org.gradle.performance.debugArtifactsDirectory", getDebugArtifactsDirectory())
 
-            if (profiler.isPresent()) {
+            if (profiler.isPresent() && profiler.get() != "none") {
                 File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames")
                 addSystemPropertyIfExist(result, "org.gradle.performance.flameGraphTargetDir", artifactsDirectory.getAbsolutePath())
                 addSystemPropertyIfExist(result, "org.gradle.performance.profiler", profiler.get())
