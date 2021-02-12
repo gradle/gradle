@@ -947,7 +947,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         outputContains("""
             |Caching disabled for task ':invalid' because:
-            |  Validation failed
+            |  Caching has been disabled to ensure correctness due to validation failures. Please consult deprecation warnings for more details.
         """.stripMargin())
         executedAndNotSkipped(":invalid")
         listCacheFiles().isEmpty()
