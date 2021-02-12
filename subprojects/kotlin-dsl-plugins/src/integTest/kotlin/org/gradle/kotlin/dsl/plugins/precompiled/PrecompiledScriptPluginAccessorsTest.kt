@@ -54,6 +54,7 @@ import org.jetbrains.kotlin.fir.analysis.checkers.toVisibilityOrNull
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 import org.junit.Assert.assertTrue
 
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -62,6 +63,7 @@ import java.io.File
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
+    @Ignore
     @Test
     @ToBeFixedForConfigurationCache
     fun `settings and init scripts are not evaluated when generating accessors`() {

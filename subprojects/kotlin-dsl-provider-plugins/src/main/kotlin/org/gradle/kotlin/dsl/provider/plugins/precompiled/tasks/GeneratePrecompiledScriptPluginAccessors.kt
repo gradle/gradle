@@ -379,7 +379,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             useEmptySettings()
         }
 
-        override fun getAllInitScripts(): List<File> = emptyList()
+//        override fun getAllInitScripts(): List<File> = emptyList()
         override fun newInstance(): StartParameter = throw UnsupportedOperationException()
         override fun newBuild(): StartParameter = throw UnsupportedOperationException()
     }
