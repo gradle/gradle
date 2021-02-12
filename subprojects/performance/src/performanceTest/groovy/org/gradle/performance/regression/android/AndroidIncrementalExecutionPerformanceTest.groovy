@@ -62,7 +62,7 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
 
         where:
         configurationCachingEnabled << [true, false]
-        configurationCaching = configurationCachingEnabled ? " with configuration caching" : ""
+        configurationCaching = configurationCachingMessage(configurationCachingEnabled)
     }
 
     def "non-abi change#configurationCaching"() {
@@ -78,6 +78,21 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
 
         where:
         configurationCachingEnabled << [true, false]
-        configurationCaching = configurationCachingEnabled ? " with configuration caching" : ""
+        configurationCaching = configurationCachingMessage(configurationCachingEnabled)
+    }
+
+    def "up-to-date#configurationCaching"() {
+        given:
+        enableConfigurationCaching(configurationCachingEnabled)
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        configurationCachingEnabled << [true, false]
+        configurationCaching = configurationCachingMessage(configurationCachingEnabled)
     }
 }
