@@ -88,4 +88,30 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         task.configuration.name == 'foo'
         task.showSinglePathToDependency == true
     }
+
+    def "configuration could be specified by camelCase shortcut"() {
+        given:
+        project.configurations.create("confAlpha")
+        def confB = project.configurations.create("confBravo")
+
+        when:
+        task.configuration = "coB"
+        task.dependencySpec = { true } as Spec
+
+        then:
+        task.configuration == confB
+    }
+
+    def "ambiguous configuration selection by camelCase shortcut fails"() {
+        given:
+        project.configurations.create("confAlpha")
+        project.configurations.create("confAlfa")
+
+        when:
+        task.configuration = "coA"
+        task.dependencySpec = { true } as Spec
+
+        then:
+        thrown InvalidUserDataException
+    }
 }

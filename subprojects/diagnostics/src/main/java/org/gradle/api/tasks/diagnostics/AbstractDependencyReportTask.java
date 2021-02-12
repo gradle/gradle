@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
@@ -96,7 +97,7 @@ public abstract class AbstractDependencyReportTask extends ProjectBasedReportTas
      */
     @Option(option = "configuration", description = "The configuration to generate the report for.")
     public void setConfiguration(String configurationName) {
-        this.configurations = Collections.singleton(getTaskConfigurations().getByName(configurationName));
+        this.configurations = Collections.singleton(ConfigurationFinder.find(getTaskConfigurations(), configurationName));
     }
 
     private Set<Configuration> getNonDeprecatedTaskConfigurations() {
