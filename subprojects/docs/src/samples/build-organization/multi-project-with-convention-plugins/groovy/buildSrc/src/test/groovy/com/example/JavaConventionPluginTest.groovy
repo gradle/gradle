@@ -106,6 +106,6 @@ class JavaConventionPluginTest extends PluginTest {
 
         then:
         result.task(":build").outcome == TaskOutcome.SUCCESS
-        result.output.contains('warning: [deprecation] deprecatedMethod() in Foo has been deprecated')
+        result.output.contains('warning: [deprecation] deprecatedMethod()')
     }
 }

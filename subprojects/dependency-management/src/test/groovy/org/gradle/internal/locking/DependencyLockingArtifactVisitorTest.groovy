@@ -56,7 +56,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         1 * rootNode.metadata >> metadata
         1 * metadata.dependencyLockingState >> lockState
         1 * lockState.mustValidateLockState() >> true
-        1 * lockState.lockedDependencies >> Collections.emptySet()
+        1 * lockState.lockedDependencies >> emptySet()
         0 * _
     }
 

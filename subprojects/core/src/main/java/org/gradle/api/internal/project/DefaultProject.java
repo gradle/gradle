@@ -23,6 +23,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -1015,7 +1016,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void afterEvaluate(Action<? super Project> action) {
         assertMutatingMethodAllowed("afterEvaluate(Action)");
-        maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated("afterEvaluate(Action)");
+        failAfterProjectIsEvaluated("afterEvaluate(Action)");
         evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
@@ -1028,22 +1029,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void afterEvaluate(Closure closure) {
         assertMutatingMethodAllowed("afterEvaluate(Closure)");
-        maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated("afterEvaluate(Closure)");
+        failAfterProjectIsEvaluated("afterEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
-    private void maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated(String methodPrototype) {
+    private void failAfterProjectIsEvaluated(String methodPrototype) {
         if (!state.isUnconfigured() && !state.isConfiguring()) {
-            DeprecationLogger.deprecateInvocation("Project." + methodPrototype + " when the project is already evaluated")
-                .withAdvice(getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated())
-                .willBecomeAnErrorInGradle7()
-                .withUpgradeGuideSection(5, "calling_project_afterevaluate_on_an_evaluated_project_has_been_deprecated")
-                .nagUser();
+            throw new InvalidUserCodeException("Cannot run Project." + methodPrototype + " when the project is already evaluated.");
         }
-    }
-
-    private static String getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated() {
-        return "The configuration given is ignored because the project has already been evaluated. To apply this configuration, remove afterEvaluate.";
     }
 
     @Override

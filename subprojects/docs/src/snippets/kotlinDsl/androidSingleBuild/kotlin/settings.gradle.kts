@@ -19,6 +19,6 @@ rootProject.name = "android-single-build"
 gradle.allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 }

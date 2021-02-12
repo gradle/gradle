@@ -25,6 +25,8 @@ import org.gradle.util.Requires
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+import static org.junit.Assume.assumeNotNull
+
 class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Unroll
@@ -337,11 +339,110 @@ public class Foo {
         outputContains("task.targetCompatibility = $targetOut")
 
         where:
-        source  | target    | sourceOut | targetOut
-        '9'     | '10'      | '1.9'     | '1.10'
-        '9'     | 'none'    | '1.9'     | '11'
-        'none'  | 'none'    | '11'      | '11'
+        source | target | sourceOut | targetOut
+        '9'    | '10'   | '1.9'     | '1.10'
+        '9'    | 'none' | '1.9'     | '11'
+        'none' | 'none' | '11'      | '11'
 
+    }
+
+    def "can compile Java using different JDKs"() {
+        def jdk = AvailableJavaHomes.getJdk(javaVersion)
+        assumeNotNull(jdk)
+
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        runWithToolchainConfigured(jdk)
+
+        then:
+        outputDoesNotContain("Compiling with Java command line compiler")
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
+        javaClassFile("Foo.class").exists()
+
+        where:
+        javaVersion << [
+            JavaVersion.VERSION_1_8,
+            JavaVersion.VERSION_1_9,
+            JavaVersion.VERSION_11,
+            JavaVersion.VERSION_12,
+            JavaVersion.VERSION_13,
+            JavaVersion.VERSION_14,
+            JavaVersion.VERSION_15,
+            JavaVersion.VERSION_16,
+            JavaVersion.VERSION_17
+        ]
+    }
+
+    /*
+    This test covers the case where in Java8 the class name becomes fully qualified in the deprecation message which is
+    somehow caused by invoking javacTask.getElements() in the IncrementalCompileTask of the incremental compiler plugin.
+     */
+    def "Java deprecation messages with different JDKs"() {
+        def jdk = AvailableJavaHomes.getJdk(javaVersion)
+        assumeNotNull(jdk)
+
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+            tasks.withType(JavaCompile).configureEach {
+                options.compilerArgs << "-Xlint:deprecation"
+            }
+        """
+
+        file("src/main/java/com/example/Foo.java") << """
+            package com.example;
+            public class Foo {
+                @Deprecated
+                public void foo() {}
+            }
+        """
+        def fileWithDeprecation = file("src/main/java/com/example/Bar.java") << """
+            package com.example;
+            public class Bar {
+                public void bar() {
+                    new Foo().foo();
+                }
+            }
+        """
+
+        executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage");
+
+        when:
+        runWithToolchainConfigured(jdk)
+
+        then:
+        outputDoesNotContain("Compiling with Java command line compiler")
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
+        javaClassFile("com/example/Foo.class").exists()
+        javaClassFile("com/example/Bar.class").exists()
+
+        where:
+        javaVersion             | deprecationMessage
+        JavaVersion.VERSION_1_8 | "[deprecation] foo() in com.example.Foo has been deprecated"
+        JavaVersion.VERSION_11  | "[deprecation] foo() in Foo has been deprecated"
+        JavaVersion.VERSION_13  | "[deprecation] foo() in Foo has been deprecated"
+        JavaVersion.VERSION_14  | "[deprecation] foo() in Foo has been deprecated"
+        JavaVersion.VERSION_15  | "[deprecation] foo() in Foo has been deprecated"
+        JavaVersion.VERSION_16  | "[deprecation] foo() in Foo has been deprecated"
+        JavaVersion.VERSION_17  | "[deprecation] foo() in Foo has been deprecated"
     }
 
     def runWithToolchainConfigured(Jvm jvm) {

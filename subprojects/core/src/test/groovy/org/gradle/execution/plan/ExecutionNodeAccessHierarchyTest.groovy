@@ -101,18 +101,20 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         def node4 = Mock(Node)
         def node5 = Mock(Node)
         def node6 = Mock(Node)
+        def node7 = Mock(Node)
 
         hierarchy.recordNodeAccessingLocations(rootNode, [root.absolutePath])
         hierarchy.recordNodeAccessingLocations(node1, [root.file("location").absolutePath])
         hierarchy.recordNodeAccessingLocations(node2, [root.file("sub/location").absolutePath])
         hierarchy.recordNodeAccessingLocations(node3, [root.file("third/within").absolutePath])
-        hierarchy.recordNodeAccessingLocations(node4, [root.file("included/within").absolutePath])
+        hierarchy.recordNodeAccessingLocations(node4, [root.file("included/without").absolutePath])
+        hierarchy.recordNodeAccessingLocations(node7, [root.file("included/within").absolutePath])
         hierarchy.recordNodeAccessingLocations(node5, [root.file("excluded/within").absolutePath])
         hierarchy.recordNodeAccessingLocations(node6, [temporaryFolder.createDir("other").file("third").absolutePath])
 
         expect:
         nodesRelatedTo(root, "*/within") == ([rootNode, node1, node3, node4, node5] as Set)
-        nodesRelatedTo(root, "included/*") == ([rootNode, node4] as Set)
+        nodesRelatedTo(root, "included/*") == ([rootNode, node4, node7] as Set)
         nodesRelatedTo(root, "included/within") == ([rootNode, node4] as Set)
     }
 

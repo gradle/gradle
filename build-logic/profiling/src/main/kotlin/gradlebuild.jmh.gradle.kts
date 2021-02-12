@@ -26,7 +26,7 @@ configurations {
             extendsFrom(it)
         }
     }
-    jmhRuntime {
+    jmhRuntimeClasspath {
         attributes {
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
         }

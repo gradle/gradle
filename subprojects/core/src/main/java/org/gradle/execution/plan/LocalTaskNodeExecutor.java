@@ -82,7 +82,12 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
                 .filter(LocalTaskNodeExecutor::isEnabled)
-                .forEach(consumerWithoutDependency -> collectValidationProblem(node, consumerWithoutDependency, validationContext));
+                .forEach(consumerWithoutDependency -> collectValidationProblem(
+                    node,
+                    consumerWithoutDependency,
+                    validationContext,
+                    outputPath)
+                );
         }
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
@@ -129,20 +134,30 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             });
         inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
         for (String locationConsumedByThisTask : taskInputs) {
-            collectValidationProblemsForConsumer(node, validationContext, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
+            collectValidationProblemsForConsumer(node, validationContext, locationConsumedByThisTask, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
         }
         for (FilteredTree filteredFileTreeInput : filteredFileTreeTaskInputs) {
             Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
             inputHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
-            collectValidationProblemsForConsumer(node, validationContext, outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec));
+            collectValidationProblemsForConsumer(
+                node,
+                validationContext,
+                filteredFileTreeInput.getRoot(),
+                outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec)
+            );
         }
     }
 
-    private void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, Collection<Node> producers) {
+    private void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
         producers.stream()
             .filter(producerNode -> hasNoSpecifiedOrder(producerNode, consumer))
             .filter(LocalTaskNodeExecutor::isEnabled)
-            .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, consumer, validationContext));
+            .forEach(producerWithoutDependency -> collectValidationProblem(
+                producerWithoutDependency,
+                consumer,
+                validationContext,
+                locationConsumedByThisTask
+            ));
     }
 
     private static boolean isEnabled(Node node) {
@@ -193,11 +208,18 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         return true;
     }
 
-    private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext) {
+    private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         TypeValidationContext.Severity severity = TypeValidationContext.Severity.WARNING;
         validationContext.visitPropertyProblem(
             severity,
-            String.format("Task '%s' uses the output of task '%s', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '%s' as an input). This can lead to incorrect results being produced, depending on what order the tasks are executed", consumer, producer, producer)
+            String.format("Gradle detected a problem with the following location: '%s'. "
+                    + "Task '%s' uses this output of task '%s' without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '%s' as an input). "
+                    + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
+                consumerProducerPath,
+                consumer,
+                producer,
+                producer
+            )
         );
     }
 

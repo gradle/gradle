@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.file.FilePropertyFactory
@@ -56,7 +55,6 @@ class DefaultDependencyLockingProviderTest extends Specification {
     DomainObjectContext context = Mock()
     DependencySubstitutionRules dependencySubstitutionRules = Mock()
     FileResourceListener listener = Mock()
-    FeaturePreviews featurePreviews = new FeaturePreviews()
     PropertyFactory propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
     FilePropertyFactory filePropertyFactory = TestFiles.filePropertyFactory()
 
@@ -73,27 +71,10 @@ class DefaultDependencyLockingProviderTest extends Specification {
         provider = newProvider()
     }
 
-    def 'can persist resolved modules as lockfile'() {
-        given:
-        startParameter.isWriteDependencyLocks() >> true
-        provider = newProvider()
-        def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
-
-        when:
-        provider.persistResolvedDependencies('conf', modules, emptySet())
-
-        then:
-        lockDir.file('conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
-org:bar:1.3
-org:foo:1.0
-""".denormalize()
-    }
-
     def 'can persist resolved modules as unique lockfile'() {
         given:
         tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << "empty=conf"
         startParameter.isWriteDependencyLocks() >> true
-        featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
         provider = newProvider()
         def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
         provider.loadLockState('conf')
@@ -114,10 +95,6 @@ empty=
     @Unroll
     def 'can load lockfile as strict constraints (Unique: #unique)'() {
         given:
-        if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
-            provider = newProvider()
-        }
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
 
         when:
@@ -128,6 +105,9 @@ empty=
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('org', 'bar'), '1.3'), newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')] as Set
 
         1 * listener.fileObserved(_)
+        if (!unique) {
+            1 * listener.fileObserved(_)
+        }
 
         where:
         unique << [true, false]
@@ -139,9 +119,6 @@ empty=
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:foo']
-        if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
-        }
         provider = newProvider()
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
 
@@ -162,9 +139,6 @@ empty=
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:*']
-        if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
-        }
         provider = newProvider()
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
 
@@ -185,9 +159,6 @@ empty=
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org.*:foo']
-        if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
-        }
         provider = newProvider()
         writeLockFile(['org.bar:foo:1.3', 'com:foo:1.0'], unique)
 
@@ -213,9 +184,6 @@ empty=
                 ds.useTarget(null)
             }
         }
-        if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
-        }
         provider = newProvider()
         writeLockFile(['org:bar:1.1', 'org:foo:1.1'], unique)
 
@@ -232,10 +200,6 @@ empty=
     @Unroll
     def 'fails with invalid content in lock file (Unique: #unique)'() {
         given:
-        if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
-        }
-        provider = newProvider()
         writeLockFile(["invalid"], unique)
 
         when:
@@ -258,10 +222,6 @@ empty=
     @Unroll
     def 'fails with missing lockfile in strict mode (Unique: #unique)'() {
         given:
-        if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
-        }
-        provider = newProvider()
         provider.getLockMode().set(LockMode.STRICT)
 
         when:
@@ -282,8 +242,6 @@ empty=
 org:foo:1.0=conf
 empty=
 """
-        featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
-        provider = newProvider()
         provider.ignoredDependencies.add(notation)
 
         when:
@@ -302,7 +260,7 @@ empty=
     }
 
     private DefaultDependencyLockingProvider newProvider() {
-        new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews, propertyFactory, filePropertyFactory, listener)
+        new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, propertyFactory, filePropertyFactory, listener)
     }
 
     def writeLockFile(List<String> modules, boolean unique = true, String configuration = 'conf') {

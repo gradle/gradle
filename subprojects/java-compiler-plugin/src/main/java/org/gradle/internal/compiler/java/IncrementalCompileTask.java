@@ -40,14 +40,18 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
     private final Function<File, Optional<String>> relativize;
     private final Consumer<Map<String, Collection<String>>> onComplete;
-    private final JavaCompiler.CompilationTask delegate;
+    private final JavacTask delegate;
 
     public IncrementalCompileTask(JavaCompiler.CompilationTask delegate,
                                   Function<File, Optional<String>> relativize,
                                   Consumer<Map<String, Collection<String>>> onComplete) {
         this.relativize = relativize;
         this.onComplete = onComplete;
-        this.delegate = delegate;
+        if (delegate instanceof JavacTask) {
+            this.delegate = (JavacTask) delegate;
+        } else {
+            throw new UnsupportedOperationException("Unexpected Java compile task : " + delegate.getClass().getName());
+        }
     }
 
     @Override
@@ -67,16 +71,12 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
     @Override
     public Boolean call() {
-        if (delegate instanceof JavacTask) {
-            ClassNameCollector collector = new ClassNameCollector(relativize);
-            ((JavacTask) delegate).addTaskListener(collector);
-            try {
-                return delegate.call();
-            } finally {
-                onComplete.accept(collector.getMapping());
-            }
-        } else {
-            throw new UnsupportedOperationException("Unexpected Java compile task : " + delegate.getClass().getName());
+        ClassNameCollector collector = new ClassNameCollector(relativize, delegate.getElements());
+        delegate.addTaskListener(collector);
+        try {
+            return delegate.call();
+        } finally {
+            onComplete.accept(collector.getMapping());
         }
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.streams
 
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.LineBufferingOutputStream
 import org.gradle.internal.io.TextStream
 import spock.lang.Issue
@@ -46,7 +47,8 @@ class ExecOutputHandleRunnerTest extends Specification {
         def text2 = "\u0151" + ("a" * 5)
         def text = text1 + text2
         def action = Mock(TextStream)
-        def output = new LineBufferingOutputStream(action)
+        def lineSeparator = SystemProperties.instance.lineSeparator
+        def output = new LineBufferingOutputStream(action, lineSeparator)
         def input = new ByteArrayInputStream(text.getBytes("utf-8"))
         def runner = new ExecOutputHandleRunner("test", input, output, bufferLength, new CountDownLatch(1))
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.watch.vfs.WatchMode;
 
@@ -43,6 +44,13 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheQuiet;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
+
+    public StartParameterInternal() {
+    }
+
+    protected StartParameterInternal(BuildLayoutParameters layoutParameters) {
+        super(layoutParameters);
+    }
 
     @Override
     public StartParameter newInstance() {

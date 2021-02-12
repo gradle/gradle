@@ -56,7 +56,7 @@ dependencies {
 
         then:
         failureHasCause("Locking strict mode: Configuration ':lockedConf' is locked but does not have lock state.")
-        lockfileFixture.expectLockStateMissing('unlockedConf', false)
+        lockfileFixture.expectLockStateMissing('unlockedConf')
     }
 
     @ToBeFixedForConfigurationCache
@@ -93,7 +93,7 @@ dependencies {
 
         then:
         failureHasCause("Locking strict mode: Configuration ':lockedConf' is locked but does not have lock state.")
-        lockfileFixture.expectLockStateMissing('unlockedConf', false)
+        lockfileFixture.expectLockStateMissing('unlockedConf')
     }
 
     @ToBeFixedForConfigurationCache

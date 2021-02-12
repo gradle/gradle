@@ -1,7 +1,7 @@
 plugins { id("base") }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 val codec = configurations.create("codec") {

@@ -474,15 +474,11 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         // Maven local does not support dynamic versions
     }
 
-    @Unroll
     def "invalidates configuration cache when dependency lock file changes"() {
         server.start()
         def v3 = remoteRepo.module("thing", "lib", "1.3").publish()
 
         taskTypeLogsInputFileCollectionContent()
-        settingsFile << """
-            ${settingsConfig}
-        """
         buildFile << """
             configurations {
                 implementation {
@@ -539,8 +535,8 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         then:
         configurationCache.assertStateStored()
-        def filePath = lockFile.replace('/', File.separator)
-        outputContains("Calculating task graph as configuration cache cannot be reused because file '${filePath}' has changed.")
+        def lockFile = 'gradle.lockfile'
+        outputContains("Calculating task graph as configuration cache cannot be reused because file '${lockFile}' has changed.")
         outputContains("result = [lib-1.4.jar]")
 
         when:
@@ -556,13 +552,8 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because file '${filePath}' has changed.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because file '${lockFile}' has changed.")
         outputContains("result = [lib-1.4.jar]")
-
-        where:
-        lockFile                                          | settingsConfig
-        'gradle/dependency-locks/implementation.lockfile' | ''
-        'gradle.lockfile'                                 | "enableFeaturePreview('ONE_LOCKFILE_PER_PROJECT')"
     }
 
     abstract class FileRepoSetup {

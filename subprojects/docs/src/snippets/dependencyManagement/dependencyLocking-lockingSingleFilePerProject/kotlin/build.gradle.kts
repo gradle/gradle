@@ -20,17 +20,21 @@ dependencyLocking {
 // end::ignore-dependencies[]
 
 // tag::locking-explicit[]
+// tag::locking-single[]
 configurations {
     compileClasspath {
         resolutionStrategy.activateDependencyLocking()
     }
+// end::locking-single[]
     runtimeClasspath {
         resolutionStrategy.activateDependencyLocking()
     }
     annotationProcessor {
         resolutionStrategy.activateDependencyLocking()
     }
+// tag::locking-single[]
 }
+// end::locking-single[]
 
 dependencies {
     implementation("org.springframework:spring-beans:[5.0,6.0)")

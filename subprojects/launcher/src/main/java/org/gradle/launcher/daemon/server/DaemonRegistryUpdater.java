@@ -27,7 +27,6 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 
-import java.util.Arrays;
 import java.util.Date;
 
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
@@ -48,7 +47,7 @@ class DaemonRegistryUpdater implements Stoppable {
     }
 
     public void onStartActivity() {
-        LOGGER.info("Marking the daemon as busy, address: {}, token: {}", connectorAddress, Arrays.toString(token));
+        LOGGER.info("Marking the daemon as busy, address: {}", connectorAddress);
         try {
             daemonRegistry.markState(connectorAddress, Busy);
         } catch (DaemonRegistry.EmptyRegistryException e) {

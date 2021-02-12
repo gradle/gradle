@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
+import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
@@ -113,7 +114,8 @@ class KotlinSourceParser {
                 languageVersion = LanguageVersion.KOTLIN_1_4,
                 apiVersion = ApiVersion.KOTLIN_1_4,
                 analysisFlags = mapOf(
-                    JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState.STRICT
+                    JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState.STRICT,
+                    JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE
                 )
             )
         )
