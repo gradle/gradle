@@ -50,6 +50,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
 
         when:
         run("build")
@@ -72,6 +73,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
 
         when:
         run("build")

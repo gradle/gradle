@@ -53,6 +53,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
         buildFileSeparatesImplementationAndApi(dslFixture)
 
@@ -79,6 +80,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
         buildFileSeparatesImplementationAndApi(dslFixture, 'org.spockframework')
 
@@ -103,6 +105,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
         buildFileSeparatesImplementationAndApi(dslFixture, 'org.testng')
 
@@ -127,6 +130,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
         buildFileSeparatesImplementationAndApi(dslFixture, 'org.junit.jupiter')
 
@@ -151,6 +155,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl as BuildInitDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
 
         when:
         run("build")
@@ -181,6 +186,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
 
         when:
         run("build")

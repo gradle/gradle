@@ -22,6 +22,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
+
 abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     final def targetDir = testDirectory.createDir("some-thing")
     final def subprojectDir = subprojectName() ? targetDir.file(subprojectName()) : targetDir
@@ -53,10 +57,18 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         targetDir.file(".gitignore").assertIsFile()
         targetDir.file(".gitattributes").assertIsFile()
     }
+
     protected void commonJvmFilesGenerated(BuildInitDsl scriptDsl) {
         commonFilesGenerated(scriptDsl)
         subprojectDir.file("src/main/resources").assertIsDir()
         subprojectDir.file("src/test/resources").assertIsDir()
+    }
+
+    protected void mavenCentralRepositoryDeclared(BuildInitDsl scriptDsl) {
+        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, containsString("mavenCentral()"))
+        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, containsString("Use Maven Central for resolving dependencies."))
+        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, not(containsString("jcenter()")))
+        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, not(containsString("Use JCenter for resolving dependencies.")))
     }
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {

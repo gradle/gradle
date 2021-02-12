@@ -38,6 +38,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
 
         when:
         run("build")
@@ -60,6 +61,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
 
         when:
         run("build")
@@ -82,6 +84,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
 
         when:
         run("build")

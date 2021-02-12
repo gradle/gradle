@@ -51,6 +51,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        mavenCentralRepositoryDeclared(scriptDsl)
 
         when:
         run("build")
