@@ -247,11 +247,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 patternSet.exclude("snippets/**/*.adoc");
             });
 
-            task.clearSecondarySources();
-            task.secondarySources(patternSet -> {
-                patternSet.include("doesNotExist.not");
-            });
-
             // TODO: This breaks the provider
             task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
             // TODO: This breaks the provider
