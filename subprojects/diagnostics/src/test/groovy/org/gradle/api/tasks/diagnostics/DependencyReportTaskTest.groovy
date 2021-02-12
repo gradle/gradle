@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
@@ -84,5 +85,29 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         task.configurations == [bConf] as Set
+    }
+
+    def "configuration to render could be specified by camelCase shortcut"() {
+        given:
+        project.configurations.create("confAlpha")
+        def confB = project.configurations.create("confBravo")
+
+        when:
+        task.configuration = "coB"
+
+        then:
+        task.configurations == [confB] as Set
+    }
+
+    def "ambiguous configuration selection by camelCase shortcut fails"() {
+        given:
+        project.configurations.create("confAlpha")
+        project.configurations.create("confAlfa")
+
+        when:
+        task.configuration = "coA"
+
+        then:
+        thrown InvalidUserDataException
     }
 }

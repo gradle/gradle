@@ -49,6 +49,8 @@ For example, to show dependencies that would be on the test runtime classpath in
 gradle -q dependencies --configuration testRuntimeClasspath
 ----
 
+TIP: You can use _camelCase_ shortcut to select configuration like `tRC` instead of `testRuntimeClasspath` if that shortcut points to unique configuration.
+
 TIP: To see a list of all the pre-defined configurations added by the `java` plugin, see <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the documentation for the Java Plugin>>.
 
 .Declaring the JGit dependency with a custom configuration
@@ -103,7 +105,7 @@ Indicates which dependency to focus on.
 It can be a complete `group:name`, or part of it.
 If multiple dependencies match, they are all printed in the report.
 `--configuration <name>` (mandatory)::
-Indicates which configuration to resolve for showing the dpendency information.
+Indicates which configuration to resolve for showing the dependency information (_camelCase_ also supported like in `dependencies` task).
 Note that the <<java_plugin#java_plugin, Java plugin>> wires a convention with the value `compileClasspath`, making the parameter optional.
 `--singlepath` (optional)::
 Indicates to render only a single path to the dependency.
