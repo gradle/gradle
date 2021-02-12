@@ -117,7 +117,7 @@ The “`java-application`” build type is not inferable. It must be explicitly 
 It has the following features:
 
 * Uses the “`application`” plugin to produce a command-line application implemented in Java
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses https://junit.org/junit4/[JUnit 4] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
@@ -137,7 +137,7 @@ The “`java-library`” build type is not inferable. It must be explicitly spec
 It has the following features:
 
 * Uses the “`java`” plugin to produce a library implemented in Java
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses https://junit.org/junit4/[JUnit 4] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
@@ -157,7 +157,7 @@ The “`java-gradle-plugin`” build type is not inferable. It must be explicitl
 It has the following features:
 
 * Uses the “`java-gradle-plugin`” plugin to produce a Gradle plugin implemented in Java
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses https://junit.org/junit4/[JUnit 4] and TestKit for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
@@ -171,7 +171,7 @@ The “`kotlin-application`” build type is not inferable. It must be explicitl
 It has the following features:
 
 * Uses the “`org.jetbrains.kotlin.jvm`” and “`application`“ plugins to produce a command-line application implemented in Kotlin
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses Kotlin 1.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
 * Has directories in the conventional locations for source code
@@ -186,7 +186,7 @@ The “`kotlin-library`” build type is not inferable. It must be explicitly sp
 It has the following features:
 
 * Uses the “`org.jetbrains.kotlin.jvm`” plugin to produce a library implemented in Kotlin
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses Kotlin 1.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
 * Has directories in the conventional locations for source code
@@ -201,7 +201,7 @@ The “`kotlin-gradle-plugin`” build type is not inferable. It must be explici
 It has the following features:
 
 * Uses the “`java-gradle-plugin`” and “`org.jetbrains.kotlin.jvm`” plugins to produce a Gradle plugin implemented in Kotlin
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses Kotlin 1.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] and TestKit for testing
 * Has directories in the conventional locations for source code
@@ -215,7 +215,7 @@ The “`scala-application`” build type is not inferable. It must be explicitly
 It has the following features:
 
 * Uses the “`scala`” plugin to produce an application implemented in Scala
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses Scala 2.13
 * Uses http://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
@@ -229,7 +229,7 @@ The “`scala-library`” build type is not inferable. It must be explicitly spe
 It has the following features:
 
 * Uses the “`scala`” plugin to produce a library implemented in Scala
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses Scala 2.13
 * Uses http://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
@@ -243,7 +243,7 @@ The “`groovy-library`” build type is not inferable. It must be explicitly sp
 It has the following features:
 
 * Uses the “`groovy`” plugin to produce a library implemented in Groovy
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses Groovy 2.x
 * Uses http://spockframework.org[Spock testing framework] for testing
 * Has directories in the conventional locations for source code
@@ -258,7 +258,7 @@ The “`groovy-application`” build type is not inferable. It must be explicitl
 It has the following features:
 
 * Uses the “`application`” and “`groovy`” plugins to produce a command-line application implemented in Groovy
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses Groovy 2.x
 * Uses http://spockframework.org[Spock testing framework] for testing
 * Has directories in the conventional locations for source code
@@ -273,7 +273,7 @@ The “`groovy-gradle-plugin`” build type is not inferable. It must be explici
 It has the following features:
 
 * Uses the “`java-gradle-plugin`” and “`groovy`” plugins to produce a Gradle plugin implemented in Groovy
-* Uses the “`jcenter`” dependency repository
+* Uses the “`mavenCentral`” dependency repository
 * Uses Groovy 2.x
 * Uses http://spockframework.org[Spock testing framework] and TestKit for testing
 * Has directories in the conventional locations for source code
