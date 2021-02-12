@@ -59,6 +59,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'org.jlleitschuh.gradle.ktlint.KtlintIdeaPlugin',
                 'org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolverPlugin',
                 'org.jetbrains.kotlin.js',
+                'org.asciidoctor.gradle.base.AsciidoctorBasePlugin',
                 'org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin',
                 'org.asciidoctor.jvm.convert',
                 'com.gradle.plugin-publish',
@@ -71,17 +72,6 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 failsWith([
                     "Type 'BuildIdeArtifact': property 'artifact' is not annotated with an input or output annotation.": WARNING,
                     "Type 'BuildIdeArtifact': property 'outputDirectory' is not annotated with an input or output annotation.": WARNING
-                ])
-            }
-        }
-        inProject(":docs") {
-            onPlugin('org.asciidoctor.gradle.base.AsciidoctorBasePlugin') {
-                failsWith([
-                    "Type 'AbstractAsciidoctorBaseTask': field 'configuredOutputOptions' without corresponding getter has been annotated with @Nested.": WARNING,
-                    "Type 'AbstractAsciidoctorBaseTask': non-property method 'attributes()' should not be annotated with: @Input.": WARNING,
-                    "Type 'AbstractAsciidoctorBaseTask': non-property method 'getDefaultResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
-                    "Type 'AbstractAsciidoctorBaseTask': non-property method 'getResourceCopySpec()' should not be annotated with: @Internal.": WARNING,
-                    "Type 'SlidesToExportAware': property 'profile' is not annotated with an input or output annotation.": WARNING
                 ])
             }
         }
