@@ -56,19 +56,13 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         dslFixture.assertGradleFilesGenerated()
         targetDir.file(".gitignore").assertIsFile()
         targetDir.file(".gitattributes").assertIsFile()
+        mavenCentralRepositoryDeclared(scriptDsl)
     }
 
     protected void commonJvmFilesGenerated(BuildInitDsl scriptDsl) {
         commonFilesGenerated(scriptDsl)
         subprojectDir.file("src/main/resources").assertIsDir()
         subprojectDir.file("src/test/resources").assertIsDir()
-    }
-
-    protected void mavenCentralRepositoryDeclared(BuildInitDsl scriptDsl) {
-        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, containsString("mavenCentral()"))
-        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, containsString("Use Maven Central for resolving dependencies."))
-        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, not(containsString("jcenter()")))
-        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, not(containsString("Use JCenter for resolving dependencies.")))
     }
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
@@ -90,4 +84,12 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         <packaging>jar</packaging>
       </project>"""
     }
+
+    private void mavenCentralRepositoryDeclared(BuildInitDsl scriptDsl) {
+        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, containsString("mavenCentral()"))
+        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, containsString("Use Maven Central for resolving dependencies."))
+        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, not(containsString("jcenter()")))
+        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, not(containsString("Use JCenter for resolving dependencies.")))
+    }
+
 }
