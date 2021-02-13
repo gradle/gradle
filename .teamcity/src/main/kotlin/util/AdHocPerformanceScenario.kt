@@ -12,6 +12,7 @@ import common.removeSubstDirOnWindows
 import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
 
 abstract class AdHocPerformanceScenario(os: Os) : BuildType({
     val id = "Util_Performance_AdHocPerformanceScenario${os.asName()}"
@@ -47,14 +48,13 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
             allowEmpty = false,
             description = "Which performance test to run. Should be the fully qualified class name dot (unrolled) method name. E.g. org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)"
         )
-        val profilerDescription = "Command line option for the performance test task to enable profiling. For example `--profiler jfr` and `--profiler async-profiler`."
         when (os) {
             Os.WINDOWS -> {
-                text("profiler", "--profiler jprofiler", description = profilerDescription)
+                profilerParam("jprofiler")
                 param("env.JPROFILER_HOME", "C:\\Program Files\\jprofiler\\jprofiler11.1.4")
             }
             else -> {
-                text("profiler", "--profiler jfr", description = profilerDescription)
+                profilerParam("jfr")
                 param("env.FG_HOME_DIR", "/opt/FlameGraph")
                 param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
                 param("env.HP_HOME_DIR", "/opt/honest-profiler")
@@ -76,7 +76,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                 performanceTestCommandLine(
                     "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
                     "%baselines%",
-                    """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %profiler% %additional.gradle.parameters%""",
+                    """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% --profiler %profiler% %additional.gradle.parameters%""",
                     os
                 ) +
                     buildToolGradleParameters(isContinue = false)
@@ -86,6 +86,17 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
         checkCleanM2(os)
     }
 })
+
+private
+fun ParametrizedWithType.profilerParam(defaultProfiler: String) {
+    text(
+        "profiler",
+        defaultProfiler,
+        display = ParameterDisplay.PROMPT,
+        allowEmpty = false,
+        description = "Command line option for the performance test task to enable profiling. For example `jfr` and `async-profiler`. Use `none` for benchmarking only."
+    )
+}
 
 object AdHocPerformanceScenarioLinux : AdHocPerformanceScenario(Os.LINUX)
 object AdHocPerformanceScenarioWindows : AdHocPerformanceScenario(Os.WINDOWS)
