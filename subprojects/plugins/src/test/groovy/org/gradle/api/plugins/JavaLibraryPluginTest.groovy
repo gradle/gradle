@@ -161,7 +161,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
 
         then:
-        defaultConfig.extendsFrom == toSet()
+        defaultConfig.extendsFrom == toSet(runtimeElements)
     }
 
     @Unroll
