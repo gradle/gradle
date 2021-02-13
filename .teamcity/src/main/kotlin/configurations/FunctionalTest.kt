@@ -12,7 +12,7 @@ class FunctionalTest(
     id: String,
     name: String,
     description: String,
-    testCoverage: TestCoverage,
+    val testCoverage: TestCoverage,
     stage: Stage,
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
@@ -22,7 +22,7 @@ class FunctionalTest(
     this.name = name
     this.description = description
     this.id(id)
-    val testTasks = getTestTaskName(testCoverage, stage, subprojects)
+    val testTasks = getTestTaskName(testCoverage, subprojects)
     val buildScanTags = listOf("FunctionalTest")
     val buildScanValues = mapOf(
         "coverageOs" to testCoverage.os.name.toLowerCase(),
@@ -82,7 +82,7 @@ class FunctionalTest(
 
 fun enableExperimentalTestDistribution(testCoverage: TestCoverage, subprojects: List<String>) = testCoverage.os == Os.LINUX && (subprojects == listOf("core") || subprojects == listOf("dependency-management"))
 
-fun getTestTaskName(testCoverage: TestCoverage, stage: Stage, subprojects: List<String>): String {
+fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): String {
     val testTaskName = "${testCoverage.testType.name}Test"
     return when {
         testCoverage.testDistribution -> {
