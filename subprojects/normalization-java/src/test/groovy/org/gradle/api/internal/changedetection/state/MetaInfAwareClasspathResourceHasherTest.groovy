@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hasher
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -387,6 +388,18 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
 
         and:
         hash3 == hash4
+    }
+
+    def "delegate configuration is added to hasher"() {
+        def configurationHasher = Mock(Hasher)
+        def delegate = Mock(ResourceHasher)
+        useDelegate(delegate)
+
+        when:
+        hasher.appendConfigurationToHasher(configurationHasher)
+
+        then:
+        1 * delegate.appendConfigurationToHasher(configurationHasher)
     }
 
     void populateAttributes(Attributes attributes, Map<String, Object> attributesMap) {
