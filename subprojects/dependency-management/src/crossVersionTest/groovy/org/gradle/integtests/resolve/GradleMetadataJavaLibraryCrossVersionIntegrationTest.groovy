@@ -31,7 +31,9 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
-            enableFeaturePreview('GRADLE_METADATA')
+            if (org.gradle.util.GradleVersion.current().nextMajor == '6.0') {
+                enableFeaturePreview('GRADLE_METADATA')
+            }
             include 'consumer'
             include 'producer'
         """
