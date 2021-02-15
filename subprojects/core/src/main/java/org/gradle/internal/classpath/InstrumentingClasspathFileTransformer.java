@@ -38,7 +38,6 @@ import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
@@ -94,13 +93,14 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             transform(source, transformed);
         } catch (GradleException e) {
             if (e.getCause() instanceof FileAlreadyExistsException) {
-                // Mostly harmless race-condition, a concurrent writer has already started writing to the file.
+                // A concurrent writer has already started writing to the file.
                 // We run identical transforms concurrently and we can sometimes finish two transforms at the same
                 // time in a way that Files.move (see [ClasspathBuilder.nonReplacingJar]) will see [transformed] created before
                 // the move is done.
                 // Just wait until the transformed file is ready for consumption.
                 LOGGER.debug("Instrumented classpath file '{}' already exists.", destFileName, e);
                 waitForReceiptOf(destFileName, receipt);
+                return transformed;
             } else {
                 throw e;
             }
@@ -121,11 +121,16 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
     }
 
-    private boolean waitFor(File receipt) {
+    /**
+     * Waits up to 5 seconds for the given file to appear.
+     *
+     * @return true when the file appears before the timeout, false otherwise.
+     */
+    private boolean waitFor(File file) {
         try {
             return ExponentialBackoff
                 .of(5, TimeUnit.SECONDS, 50, TimeUnit.MILLISECONDS)
-                .retryUntil(() -> receipt.isFile() ? receipt : null) == receipt;
+                .retryUntil(() -> file.isFile() ? file : null) != null;
         } catch (InterruptedException | IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
