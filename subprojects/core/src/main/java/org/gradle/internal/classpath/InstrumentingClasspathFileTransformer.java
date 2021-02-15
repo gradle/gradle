@@ -23,11 +23,13 @@ import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.internal.Pair;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
@@ -36,12 +38,17 @@ import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.format;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
+    private static final int CACHE_FORMAT = 1;
 
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
@@ -52,33 +59,73 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.transform = transform;
+        this.configHash = configHashFor(transform);
+    }
+
+    private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
+        hasher.putInt(CACHE_FORMAT);
         transform.applyConfigurationTo(hasher);
-        configHash = hasher.hash();
+        return hasher.hash();
     }
 
     @Override
     public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
-        String name = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
-        HashCode fileHash = hashOf(sourceSnapshot);
-        String destFileName = fileHash.toString() + '/' + name;
+        String name = sourceSnapshot.getType() == FileType.Directory
+            ? source.getName() + ".jar"
+            : source.getName();
+        String destFileName = hashOf(sourceSnapshot).toString() + '/' + name;
+        return transformIfNeeded(source, cacheDir, destFileName);
+    }
+
+    private File transformIfNeeded(File source, File cacheDir, String destFileName) {
+        File receipt = new File(cacheDir, destFileName + ".receipt");
         File transformed = new File(cacheDir, destFileName);
-        if (!transformed.isFile()) {
-            try {
-                transform(source, transformed);
-            } catch (GradleException e) {
-                if (e.getCause() instanceof FileAlreadyExistsException) {
-                    // Mostly harmless race-condition, a concurrent writer has already started writing to the file.
-                    // We run identical transforms concurrently and we can sometimes finish two transforms at the same
-                    // time in a way that Files.move (see [ClasspathBuilder.jar]) will see [transformed] created before
-                    // the move is done.
-                    LOGGER.debug("Instrumented classpath file '{}' already exists.", destFileName, e);
-                } else {
-                    throw e;
-                }
+        if (receipt.isFile()) {
+            return transformed;
+        }
+        if (transformed.isFile()) {
+            // A concurrent writer has already started writing to the file.
+            // Just wait until the transformed file is ready for consumption.
+            waitFor(receipt);
+            return transformed;
+        }
+        try {
+            transform(source, transformed);
+        } catch (GradleException e) {
+            if (e.getCause() instanceof FileAlreadyExistsException) {
+                // Mostly harmless race-condition, a concurrent writer has already started writing to the file.
+                // We run identical transforms concurrently and we can sometimes finish two transforms at the same
+                // time in a way that Files.move (see [ClasspathBuilder.nonReplacingJar]) will see [transformed] created before
+                // the move is done.
+                // Just wait until the transformed file is ready for consumption.
+                LOGGER.debug("Instrumented classpath file '{}' already exists.", destFileName, e);
+                waitFor(receipt);
+            } else {
+                throw e;
             }
         }
+        try {
+            receipt.createNewFile();
+        } catch (IOException e) {
+            LOGGER.debug("Failed to create receipt for instrumented classpath file '{}'.", destFileName, e);
+        }
         return transformed;
+    }
+
+    private void waitFor(File receipt) {
+        try {
+            @Nullable final File found = ExponentialBackoff
+                .of(5, TimeUnit.SECONDS, 50, TimeUnit.MILLISECONDS)
+                .retryUntil(() -> receipt.isFile() ? receipt : null);
+            if (found != receipt) {
+                throw new IllegalStateException(
+                    format("Timeout waiting for instrumented classpath file receipt: '{}'", receipt.getName())
+                );
+            }
+        } catch (InterruptedException | IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot) {
@@ -86,8 +133,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         hasher.putHash(configHash);
         // TODO - apply runtime classpath normalization?
         hasher.putHash(sourceSnapshot.getHash());
-        HashCode fileHash = hasher.hash();
-        return fileHash;
+        return hasher.hash();
     }
 
     private void transform(File source, File dest) {
