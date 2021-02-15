@@ -36,7 +36,7 @@ In order to operate, the link:{groovyDslPath}/org.gradle.nativeplatform.test.tas
 
  * Where to find the built test executable (property: link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html#org.gradle.nativeplatform.test.tasks.RunTestExecutable:executable[RunTestExecutable.getExecutable()])
 
-When you’re using the <<cpp_unit_test_plugin.adoc#,{cpp} Unit Test Plugin>> you will automatically get the following:
+When you’re using the <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,{cpp} Unit Test Plugin>> you will automatically get the following:
 
  * A dedicated link:{groovyDslPath}/org.gradle.nativeplatform.test.cpp.CppTestSuite.html[unitTest] extension for configuring test component and its variants
  * A `run` task of type link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html[RunTestExecutable] that runs the test executable

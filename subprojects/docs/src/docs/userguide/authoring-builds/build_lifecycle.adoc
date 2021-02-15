@@ -65,7 +65,7 @@ For a build script, the property access and method calls are delegated to a proj
 
 How does Gradle know whether to do a single or multi-project build?
 If you trigger a multi-project build from a directory with a `settings.gradle` file, Gradle uses it to configure the build.
-Gradle also allows you to execute the build from within any subproject taking part in the build.footnote:[Gradle supports partial multi-project builds (see <<intro_multi_project_builds.adoc#,Executing Multi-Project Builds>>).]
+Gradle also allows you to execute the build from within any subproject taking part in the build.footnote:[Gradle supports partial multi-project builds (see <<intro_multi_project_builds.adoc#intro_multi_project_builds,Executing Multi-Project Builds>>).]
 If you execute Gradle from within a project with no `settings.gradle` file, Gradle looks for a `settings.gradle` file in the following way:
 
 * It looks for `settings.gradle` in parent directories.

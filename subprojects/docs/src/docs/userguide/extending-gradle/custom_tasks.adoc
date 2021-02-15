@@ -449,7 +449,7 @@ The Worker API provides a mechanism for doing exactly this. It allows for safe, 
 
 [NOTE]
 ====
-A step-by-step description of converting a normal task action to use the worker API can be found in the section on <<worker_api.adoc#,developing parallel tasks>>.
+A step-by-step description of converting a normal task action to use the worker API can be found in the section on <<worker_api.adoc#tasks_parallel_worker,developing parallel tasks>>.
 ====
 
 In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and the parameters for the unit of work.
@@ -560,4 +560,4 @@ It's often a good approach to package custom task types in a custom Gradle plugi
 The plugin can provide useful defaults and conventions for the task type, and provides a convenient way to use the task type from a build script or another plugin.
 Please see <<custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>> for more details.
 
-Gradle provides a number of features that are helpful when developing Gradle types, including tasks. Please see <<custom_gradle_types.adoc#,Developing Custom Gradle Types>> for more details.
+Gradle provides a number of features that are helpful when developing Gradle types, including tasks. Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details.

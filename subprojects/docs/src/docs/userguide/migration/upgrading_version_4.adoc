@@ -15,23 +15,30 @@
 [[upgrading_version_4]]
 = Upgrading your build from Gradle 4.x to 5.0
 
-This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3 to 5.0, you will also need to apply the changes since 4.4, 4.5, etc up to 5.0.
+This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0.
+In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from.
+For example, if you're upgrading from Gradle 4.3 to 5.0, you will also need to apply the changes since 4.4, 4.5, etc up to 5.0.
 
 TIP: If you are using Gradle for Android, you need to move to version 3.3 or higher of both the Android Gradle Plugin and Android Studio.
 
 == For all users
 
- . If you are not already on the latest 4.10.x release, read the sections <<#changes_4.10,below>> for help upgrading your project to the latest 4.10.x release. We recommend upgrading to the latest 4.10.x release to get the most useful warnings and deprecations information before moving to 5.0. Avoid upgrading Gradle and migrating to Kotlin DSL at the same time in order to ease troubleshooting in case of potential issues.
- . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan. If there are no warnings, the Deprecations tab will not appear.
+ . If you are not already on the latest 4.10.x release, read the sections <<#changes_4.10,below>> for help upgrading your project to the latest 4.10.x release.
+We recommend upgrading to the latest 4.10.x release to get the most useful warnings and deprecations information before moving to 5.0.
+Avoid upgrading Gradle and migrating to Kotlin DSL at the same time in order to ease troubleshooting in case of potential issues.
+ . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
+If there are no warnings, the Deprecations tab will not appear.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
-This is so that you can see any deprecation warnings that apply to your build. Gradle 5.x will generate (potentially less obvious) errors if you try to upgrade directly to it.
+This is so that you can see any deprecation warnings that apply to your build.
+Gradle 5.x will generate (potentially less obvious) errors if you try to upgrade directly to it.
 +
 Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
 . Update your plugins.
 +
-Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
+Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed.
+The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
 +
 In particular, you will need to use at least a 2.x version of the https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow[*Shadow Plugin*].
 . Run `gradle wrapper --gradle-version 5.0` to update the project to 5.0
@@ -68,7 +75,8 @@ If you are not already on version 4.10, skip down to the section that applies to
 
 === Potential breaking changes
 
-The changes in this section have the potential to break your build, but the vast majority have been deprecated for quite some time and few builds will be affected by a large number of them. We strongly recommend upgrading to Gradle 4.10 first to get a report on what deprecations affect your build.
+The changes in this section have the potential to break your build, but the vast majority have been deprecated for quite some time and few builds will be affected by a large number of them.
+We strongly recommend upgrading to Gradle 4.10 first to get a report on what deprecations affect your build.
 
 The following breaking changes are not from deprecations, but the result of changes in behavior:
 
@@ -76,9 +84,10 @@ The following breaking changes are not from deprecations, but the result of chan
  * The evaluation of the `publishing {}` block is no longer deferred until needed but behaves like any other block.
    Please use `afterEvaluate {}` if you need to defer evaluation.
  * The link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[`Javadoc`] and link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html[`Groovydoc`] tasks now delete the destination dir for the documentation before executing. This has been added to remove stale output files from the last task execution.
- * The <<java_library_distribution_plugin.adoc#, Java Library Distribution Plugin>> is now based on the <<java_library_plugin.adoc#, Java Library Plugin>> instead of the <<java_plugin.adoc#, Java Plugin>>.
+ * The <<java_library_distribution_plugin.adoc#java_library_distribution_plugin, Java Library Distribution Plugin>> is now based on the <<java_library_plugin.adoc#java_library_plugin, Java Library Plugin>> instead of the <<java_plugin.adoc#java_plugin, Java Plugin>>.
 +
-While it applies the Java Plugin, it behaves slightly different (e.g. it adds the `api` configuration). Thus, make sure to check whether your build behaves as expected after upgrading.
+While it applies the Java Plugin, it behaves slightly different (e.g. it adds the `api` configuration).
+Thus, make sure to check whether your build behaves as expected after upgrading.
  * The `html` property on `CheckstyleReport` and `FindBugsReport` now returns a link:{groovyDslPath}/org.gradle.api.reporting.CustomizableHtmlReport.html[`CustomizableHtmlReport`] instance that is easier to configure from statically typed languages like Java and Kotlin.
  * The <<#rel5.0:configuration_avoidance, Configuration Avoidance API>> has been updated to prevent the creation and configuration of tasks that are never used.
  * The <<#rel5.0:default_memory_settings,default memory settings>> for the command-line client, the Gradle daemon, and all workers including compilers and test executors, have been greatly reduced.
@@ -208,7 +217,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
  * There have been several potentially breaking changes in Kotlin DSL — see the _Breaking changes_ section of https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3[that project's release notes].
  * You can no longer use any of the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:beforeEvaluate(org.gradle.api.Action)[Project.beforeEvaluate()] or link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] methods with lazy task configuration, for example inside a link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.register()] block.
  * <<#rel4.10:aws_s3_permissions,Publishing to AWS S3 requires new permissions>>.
- * Both link:{javadocPath}/org/gradle/plugin/devel/tasks/PluginUnderTestMetadata.html[PluginUnderTestMetadata] and link:{javadocPath}/org/gradle/plugin/devel/tasks/GeneratePluginDescriptors.html[GeneratePluginDescriptors] — classes used by the <<java_gradle_plugin#,Java Gradle Plugin Development Plugin>> — have been updated to use the Provider API.
+ * Both link:{javadocPath}/org/gradle/plugin/devel/tasks/PluginUnderTestMetadata.html[PluginUnderTestMetadata] and link:{javadocPath}/org/gradle/plugin/devel/tasks/GeneratePluginDescriptors.html[GeneratePluginDescriptors] — classes used by the <<java_gradle_plugin#java_gradle_plugin,Java Gradle Plugin Development Plugin>> — have been updated to use the Provider API.
 +
 Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set()] method to modify their values rather than using standard property assignment syntax, unless you are doing so in a Groovy build script. Standard property assignment still works in that one case.
 
@@ -229,7 +238,7 @@ Use https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Gro
  * <<#rel4.8:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
  * <<#rel4.8:deferred_configuration,Use deferred configuration with the publishing plugins>>
  * <<#rel4.8:configure_internal_tasks,Configure existing `wrapper` and `init` tasks>> rather than defining your own
- * Consider migrating to the built-in <<dependency_locking#,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
+ * Consider migrating to the built-in <<dependency_locking#dependency-locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
 
 
 === Potential breaking changes
@@ -289,7 +298,7 @@ They should be added to the `annotationProcessor` configuration instead. If you 
 == Upgrading from 4.4 and earlier
 
  * Make sure you have a _settings.gradle_ file: it avoids a performance penalty and allows you to set the root project's name.
- * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#,composite builds>>) and instead uses the root build's configuration for all the builds.
+ * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#composite_builds,composite builds>>) and instead uses the root build's configuration for all the builds.
 
 === Potential breaking changes
 
@@ -598,15 +607,15 @@ pluginManagement {
 [[rel5.0:java_library_distribution_plugin]]
 === Java Library Distribution Plugin utilizes Java Library Plugin
 
-The <<java_library_distribution_plugin.adoc#,Java Library Distribution Plugin>> is now based on the
-<<java_library_plugin.adoc#, Java Library Plugin>> instead of the <<java_plugin.adoc#, Java Plugin>>.
+The <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution Plugin>> is now based on the
+<<java_library_plugin.adoc#java_library_plugin, Java Library Plugin>> instead of the <<java_plugin.adoc#java_plugin, Java Plugin>>.
 
 Additionally, the default distribution created by the plugin will contain all artifacts of the `runtimeClasspath` configuration instead of the deprecated `runtime` configuration.
 
 [[rel5.0:configuration_avoidance]]
 === Configuration Avoidance API disallows common configuration errors
 
-The <<task_configuration_avoidance.adoc#, configuration avoidance API>> introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
+The <<task_configuration_avoidance.adoc#task_configuration_avoidance, configuration avoidance API>> introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
 
 With the existing API, this example adds two tasks (`foo` and `bar`):
 

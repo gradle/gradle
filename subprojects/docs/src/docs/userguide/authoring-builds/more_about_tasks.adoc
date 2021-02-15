@@ -61,7 +61,7 @@ We have already seen how to define tasks using strings for task names in <<tutor
 
 [NOTE]
 ====
-The task configuration APIs are described in more detail in the <<task_configuration_avoidance#,task configuration avoidance chapter>>.
+The task configuration APIs are described in more detail in the <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance chapter>>.
 ====
 
 .Defining tasks using strings for task names
@@ -85,7 +85,7 @@ include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/kotlin",file
 ====
 If you look at the API of the _tasks_ container you may notice that there are additional methods to _create_ tasks.
 The use of these methods is discouraged and will be deprecated in future versions.
-These methods only exist for backward compatibility as they were introduced before <<task_configuration_avoidance#,task configuration avoidance>> was added to Gradle.
+These methods only exist for backward compatibility as they were introduced before <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>> was added to Gradle.
 ====
 
 [[sec:locating_tasks]]
@@ -95,7 +95,7 @@ You often need to locate the tasks that you have defined in the build file, for 
 There are a number of ways of doing this. Firstly, just like with defining tasks there are language specific syntaxes for the Groovy and Kotlin DSL:
 
 In general, tasks are available through the `tasks` collection.
-You should use of the methods that return a _task provider_ – `register()` or `named()` – to make sure you do not break <<task_configuration_avoidance#,task configuration avoidance>>.
+You should use of the methods that return a _task provider_ – `register()` or `named()` – to make sure you do not break <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>>.
 
 .Accessing tasks via tasks collection
 ====
@@ -115,8 +115,8 @@ include::sample[dir="snippets/tasks/accessUsingType/kotlin",files="build.gradle.
 [WARNING]
 ====
 The following shows how to access a task by path.
-This is not a recommended practice anymore as it breaks <<task_configuration_avoidance#,task configuration avoidance>> and project isolation.
-Dependencies between projects <<declaring_dependencies_between_subprojects.adoc#,should be declared as dependencies>>.
+This is not a recommended practice anymore as it breaks <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>> and project isolation.
+Dependencies between projects <<declaring_dependencies_between_subprojects.adoc#declaring_dependencies_between_subprojects,should be declared as dependencies>>.
 ====
 
 You can access tasks from any project using the task's path using the `tasks.getByPath()` method.
@@ -214,7 +214,7 @@ include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/kotlin",
 
 [NOTE]
 ====
-It's recommended to use the <<task_configuration_avoidance.adoc#,Task Configuration Avoidance>> APIs to improve configuration time.
+It's recommended to use the <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>> APIs to improve configuration time.
 ====
 
 In all circumstances, the values passed as constructor arguments must be non-null.

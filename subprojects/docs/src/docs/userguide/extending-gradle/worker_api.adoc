@@ -1,3 +1,4 @@
+[[tasks_parallel_worker]]
 = Developing Parallel Tasks using the Worker API
 
 The Worker API provides the ability to break up the execution of a task action into discrete units of work and then to execute that work concurrently and asynchronously.
@@ -5,7 +6,7 @@ This allows Gradle to fully utilize the resources available and complete builds 
 This section will walk you through the process of converting an existing custom task to use the Worker API.
 
 This section assumes that you understand the basics of writing Gradle custom tasks.
-For more information on that topic, consult the <<custom_tasks.adoc#,section on custom tasks>>.
+For more information on that topic, consult the <<custom_tasks.adoc#custom_tasks,section on custom tasks>>.
 
 You'll start by creating a custom task class that generates MD5 hashes for a configurable set of files.
 Then, you'll convert this custom task to use the Worker API.

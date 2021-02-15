@@ -27,19 +27,19 @@ What exactly the `xcode` plugin generates depends on which other plugins are use
 | None
 | Generates minimal solution file.
 
-| <<cpp_application_plugin.adoc#,{cpp} Application>>
+| <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application>>
 | Adds a target representing the {cpp} application to the project file.
 
-| <<cpp_library_plugin.adoc#,{cpp} Library>>
+| <<cpp_library_plugin.adoc#cpp_library_plugin,{cpp} Library>>
 | Adds a target for each specified linkage representing the shared and/or static library to the project file.
 
-| <<swift_application_plugin.adoc#,Swift Application>>
+| <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
 | Adds a target representing the Swift application to the project file.
 
-| <<swift_library_plugin.adoc#,Swift Library>>
+| <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
 | Adds a target for each specified linkage representing the shared and/or static library to the project file.
 
-| <<xctest_plugin.adoc#,XCTest>>
+| <<xctest_plugin.adoc#xctest_plugin,XCTest>>
 | Adds a target representing the XCTest bundle to the project file.
 | The tested target is also configured to enable a seamless workflow from the IDE.
 |===

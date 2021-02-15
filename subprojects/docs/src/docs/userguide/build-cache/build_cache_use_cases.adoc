@@ -1,3 +1,4 @@
+[[use_cases_cache]]
 = Use cases for the build cache
 
 This section covers the different use cases for Gradle’s build cache, from local-only development to caching task outputs across large teams.
