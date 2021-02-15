@@ -23,7 +23,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
 
 /**
- * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
+ * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
  *
  * https://developer.android.com/studio/releases/build-tools.html
  * https://developer.android.com/studio/releases/gradle-plugin.html

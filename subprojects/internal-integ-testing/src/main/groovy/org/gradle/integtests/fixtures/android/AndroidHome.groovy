@@ -23,7 +23,7 @@ import static org.junit.Assume.assumeThat
 
 class AndroidHome {
 
-    static final String ENV_VARIABLE_NAME = "ANDROID_HOME"
+    private static final String ENV_VARIABLE_NAME = "ANDROID_SDK_ROOT"
 
     static void assumeIsSet() {
         assumeThat(NO_ENV_MESSAGE, System.getenv(ENV_VARIABLE_NAME), notNullValue())
@@ -34,8 +34,8 @@ class AndroidHome {
     }
 
     private static final String NO_ENV_MESSAGE = """
-        In order to run these tests the ANDROID_HOME directory must be set.
-        It is not necessary to install the whole android SDK via Android Studio - it is enough if there is a ${'$'}ANDROID_HOME/licenses/android-sdk-license containing the license keys from an Android Studio installation.
+        In order to run these tests the ANDROID_SDK_ROOT directory must be set.
+        It is not necessary to install the whole android SDK via Android Studio - it is enough if there is a ${'$'}ANDROID_SDK_ROOT/licenses/android-sdk-license containing the license keys from an Android Studio installation.
         The Gradle Android plugin will then download the SDK by itself, see https://developer.android.com/studio/intro/update.html#download-with-gradle
     """.stripIndent()
 
