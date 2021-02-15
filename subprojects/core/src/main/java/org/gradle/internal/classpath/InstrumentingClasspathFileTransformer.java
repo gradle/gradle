@@ -87,7 +87,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         if (transformed.isFile()) {
             // A concurrent writer has already started writing to the file.
             // Just wait until the transformed file is ready for consumption.
-            waitFor(receipt);
+            waitForReceiptOf(destFileName, receipt);
             return transformed;
         }
         try {
@@ -100,7 +100,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 // the move is done.
                 // Just wait until the transformed file is ready for consumption.
                 LOGGER.debug("Instrumented classpath file '{}' already exists.", destFileName, e);
-                waitFor(receipt);
+                waitForReceiptOf(destFileName, receipt);
             } else {
                 throw e;
             }
@@ -113,16 +113,19 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         return transformed;
     }
 
-    private void waitFor(File receipt) {
+    private void waitForReceiptOf(String destFileName, File receipt) {
+        if (!waitFor(receipt)) {
+            throw new IllegalStateException(
+                format("Timeout waiting for instrumented classpath file: '%s'.", destFileName)
+            );
+        }
+    }
+
+    private boolean waitFor(File receipt) {
         try {
-            @Nullable final File found = ExponentialBackoff
+            return ExponentialBackoff
                 .of(5, TimeUnit.SECONDS, 50, TimeUnit.MILLISECONDS)
-                .retryUntil(() -> receipt.isFile() ? receipt : null);
-            if (found != receipt) {
-                throw new IllegalStateException(
-                    format("Timeout waiting for instrumented classpath file receipt: '{}'", receipt.getName())
-                );
-            }
+                .retryUntil(() -> receipt.isFile() ? receipt : null) == receipt;
         } catch (InterruptedException | IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
