@@ -69,11 +69,28 @@ public class ExecutionNodeAccessHierarchy {
             @Override
             public void visitChildren(Iterable<NodeAccess> values, Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
-                if (filter.isSatisfiedBy(new ReadOnlyFileTreeElement(new File(location + "/" + relativePathFromLocation), relativePathFromLocation, stat))) {
+                if (relativePathMatchesSpec(filter, new File(location, relativePathFromLocation), relativePathFromLocation)) {
                     values.forEach(this::addNode);
                 }
             }
         });
+    }
+
+    private boolean relativePathMatchesSpec(Spec<FileTreeElement> filter, File element, String relativePathString) {
+        boolean elementIsFile = element.isFile();
+        RelativePath relativePath = RelativePath.parse(elementIsFile, relativePathString);
+        if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(element, relativePath, stat))) {
+            return false;
+        }
+        // All parent paths need to match the spec as well, since this is how we implement the file system walking for file tree.
+        File parentFile = element.getParentFile();
+        RelativePath parentRelativePath = relativePath.getParent();
+        for (; parentRelativePath != null && parentRelativePath != RelativePath.EMPTY_ROOT; parentRelativePath = parentRelativePath.getParent(), parentFile = parentFile.getParentFile()) {
+            if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(parentFile, parentRelativePath, stat))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -179,19 +196,17 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public boolean accessesChild(VfsRelativePath childPath) {
-            return spec.isSatisfiedBy(new ReadOnlyFileTreeElement(new File(childPath.getAbsolutePath()), childPath.getAsString(), stat));
+            return relativePathMatchesSpec(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
         }
     }
 
     private static class ReadOnlyFileTreeElement implements FileTreeElement {
         private final File file;
-        private final boolean isFile;
-        private final String relativePath;
+        private final RelativePath relativePath;
         private final Stat stat;
 
-        public ReadOnlyFileTreeElement(File file, String relativePath, Stat stat) {
+        public ReadOnlyFileTreeElement(File file, RelativePath relativePath, Stat stat) {
             this.file = file;
-            this.isFile = file.isFile();
             this.relativePath = relativePath;
             this.stat = stat;
         }
@@ -203,7 +218,7 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public boolean isDirectory() {
-            return !isFile;
+            return file.isDirectory();
         }
 
         @Override
@@ -242,12 +257,12 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public String getPath() {
-            return relativePath;
+            return relativePath.getPathString();
         }
 
         @Override
         public RelativePath getRelativePath() {
-            return RelativePath.parse(isFile, relativePath);
+            return relativePath;
         }
 
         @Override

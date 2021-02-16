@@ -359,6 +359,47 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped(":assemble")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/16061")
+    def "excludes part of paths works with missing dependency detection"() {
+        file("src/main/java/my/JavaClass.java").text = """
+            package my;
+
+            public class JavaClass {}
+        """
+
+        buildFile """
+            task produceInBuild {
+                def outputFile = file("build/app/foo.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = "output"
+                }
+            }
+
+            task showSources {
+                def sources = fileTree(projectDir) {
+                    exclude "build"
+                    exclude ".gradle"
+                    exclude "build.gradle"
+                    exclude "settings.gradle"
+                }
+                inputs.files(sources)
+                doLast {
+                    sources.each {
+                        println it.name
+                        assert it.name == "JavaClass.java"
+                    }
+                }
+            }
+        """
+
+        when:
+        run("produceInBuild", "showSources")
+        then:
+        outputContains("JavaClass.java")
+        executedAndNotSkipped(":produceInBuild", ":showSources")
+    }
+
     def "emits a deprecation warning when an input file collection can't be resolved"() {
         buildFile """
             task "broken" {
