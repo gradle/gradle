@@ -775,7 +775,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         0 * fileResolver._
     }
 
-    def ignoresChangesToPathsAfterQueriedWhenImplicitlyFinalized() {
+    def throwsExceptionWhenChangesToPathsAfterQueriedWhenImplicitlyFinalized() {
         given:
         def file1 = new File('a')
         def file2 = new File('b')
@@ -794,16 +794,16 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.setFrom('some', 'more')
 
         then:
-        collection.files as List == [file1, file2]
+        thrown IllegalStateException
 
         when:
         collection.setFrom(['some', 'more'])
 
         then:
-        collection.files as List == [file1, file2]
+        thrown IllegalStateException
     }
 
-    def ignoresAdditionsToPathsAfterQueriedWhenImplicitlyFinalized() {
+    def throwsExceptionWhenAdditionsToPathsAfterQueriedWhenImplicitlyFinalized() {
         given:
         def file1 = new File('a')
         def file2 = new File('b')
@@ -822,10 +822,10 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from('some', 'more')
 
         then:
-        collection.files as List == [file1, file2]
+        thrown IllegalStateException
     }
 
-    def ignoresMutationsOfFromSetAfterQueriedWhenImplicitlyFinalized() {
+    def throwsExceptionWhenMutationsOfFromSetAfterQueriedWhenImplicitlyFinalized() {
         given:
         def file1 = new File('a')
         def file2 = new File('b')
@@ -844,25 +844,25 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from.clear()
 
         then:
-        collection.files as List == [file1, file2]
+        thrown IllegalStateException
 
         when:
         collection.from.add('c')
 
         then:
-        collection.files as List == [file1, file2]
+        thrown IllegalStateException
 
         when:
         collection.from.remove('a')
 
         then:
-        collection.files as List == [file1, file2]
+        thrown IllegalStateException
 
         when:
         collection.from.iterator().remove()
 
         then:
-        collection.files as List == [file1, file2]
+        thrown IllegalStateException
     }
 
     def resolvesPathToFileWhenQueriedAfterFinalizeOnRead() {
