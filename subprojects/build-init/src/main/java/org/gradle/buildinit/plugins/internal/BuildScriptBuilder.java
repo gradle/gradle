@@ -889,8 +889,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void jcenter(@Nullable String comment) {
-            add(new MethodInvocation(comment, new MethodInvocationExpression("jcenter")));
+        public void mavenCentral(@Nullable String comment) {
+            add(new MethodInvocation(comment, new MethodInvocationExpression("mavenCentral")));
         }
 
         @Override
