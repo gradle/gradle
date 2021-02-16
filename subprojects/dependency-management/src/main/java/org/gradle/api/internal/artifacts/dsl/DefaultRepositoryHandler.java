@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -106,14 +107,26 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, action);
     }
 
+    @Deprecated
     @Override
     public MavenArtifactRepository jcenter() {
+        deprecateJCenter("jcenter()", "mavenCentral()");
         return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME);
     }
 
+    @Deprecated
     @Override
     public MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action) {
+        deprecateJCenter("jcenter(Action<MavenArtifactRepository>)", "mavenCentral(Action<MavenArtifactRepository>");
         return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME, action);
+    }
+
+    private void deprecateJCenter(String method, String replacement) {
+        DeprecationLogger.deprecateMethod(RepositoryHandler.class, method)
+            .withAdvice("JCenter will be soon shut down. Use " + replacement + " instead.")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(6, "jcenter_deprecation")
+            .nagUser();
     }
 
     @Override

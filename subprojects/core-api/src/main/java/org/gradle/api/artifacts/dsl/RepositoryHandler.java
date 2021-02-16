@@ -119,7 +119,9 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param action a configuration action
      * @return the added repository
+     * @deprecated Use {@link #mavenCentral(Action)} instead
      */
+    @Deprecated
     MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action);
 
     /**
@@ -137,7 +139,9 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @return the added resolver
      * @see #jcenter(Action)
+     * @deprecated Use {@link #mavenCentral()} instead
      */
+    @Deprecated
     MavenArtifactRepository jcenter();
 
     /**
