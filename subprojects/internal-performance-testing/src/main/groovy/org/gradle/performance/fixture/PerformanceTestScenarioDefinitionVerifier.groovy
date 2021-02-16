@@ -39,7 +39,8 @@ class PerformanceTestScenarioDefinitionVerifier {
                 }
             }
             throw new IllegalStateException("""
-Scenario JSON file verification fails at index ${firstDifferentElementIndex}, please see ${oldFile.getAbsolutePath()} and ${newFile.getAbsolutePath()} for details
+Scenario JSON file verification fails at index ${firstDifferentElementIndex}. To update the scenario file run the 'performance:writePerformanceScenarioDefinitions' task.
+Please see ${oldFile.getAbsolutePath()} and ${newFile.getAbsolutePath()} for details
 Old: ${firstDifferentElementIndex < oldJson.performanceTests.size() ? oldJson.performanceTests[firstDifferentElementIndex] : ""}
 New: ${firstDifferentElementIndex < newJson.performanceTests.size() ? newJson.performanceTests[firstDifferentElementIndex] : ""}
 """)
