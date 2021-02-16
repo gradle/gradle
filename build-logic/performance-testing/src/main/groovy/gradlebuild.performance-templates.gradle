@@ -406,17 +406,18 @@ performanceTest.registerTestProject("uberMobileApp", RemoteProject) {
     subdirectory = 'mobile_app1'
     // Pinned from PR https://github.com/uber-common/android-build-eval/pull/17
     ref = '18ff193198010064e43e9244edde91ab54c2da70'
-    def fileSystemOperations = objects.newInstance(InjectFileSystemOperations).fileSystemOperations
-    doLast {
-        fileSystemOperations.delete {
-            delete(new File(outputDirectory, ".okbuck"))
-        }
-    }
+    doLast(objects.newInstance(DeleteOkBuckDirectory))
 }
 
-interface InjectFileSystemOperations {
+abstract class DeleteOkBuckDirectory implements Action<RemoteProject> {
     @Inject
-    FileSystemOperations getFileSystemOperations()
+    abstract FileSystemOperations getFileSystemOperations()
+
+    void execute(RemoteProject remoteProject) {
+        fileSystemOperations.delete {
+            delete(new File(remoteProject.outputDirectory, ".okbuck"))
+        }
+    }
 }
 
 private void setMaxWorkers(File projectDirectory, int maxWorkers) {
