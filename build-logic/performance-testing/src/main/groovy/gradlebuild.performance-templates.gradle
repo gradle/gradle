@@ -406,12 +406,17 @@ performanceTest.registerTestProject("uberMobileApp", RemoteProject) {
     subdirectory = 'mobile_app1'
     // Pinned from PR https://github.com/uber-common/android-build-eval/pull/17
     ref = '18ff193198010064e43e9244edde91ab54c2da70'
-    def fileSystemOperations = gradle.services.get(FileSystemOperations)
+    def fileSystemOperations = objects.newInstance(InjectFileSystemOperations).fileSystemOperations
     doLast {
         fileSystemOperations.delete {
             delete(new File(outputDirectory, ".okbuck"))
         }
     }
+}
+
+interface InjectFileSystemOperations {
+    @Inject
+    FileSystemOperations getFileSystemOperations()
 }
 
 private void setMaxWorkers(File projectDirectory, int maxWorkers) {
