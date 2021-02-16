@@ -86,10 +86,14 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     private void mavenCentralRepositoryDeclared(BuildInitDsl scriptDsl) {
-        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, containsString("mavenCentral()"))
-        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, containsString("Use Maven Central for resolving dependencies."))
-        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, not(containsString("jcenter()")))
-        assertThat(subprojectDir.file(scriptDsl.fileNameFor("build")).text, not(containsString("Use JCenter for resolving dependencies.")))
+        def scriptFile = subprojectDir.file(scriptDsl.fileNameFor("build"))
+        def scriptText = scriptFile.exists() ? scriptFile.text : ""
+        if (scriptText.contains("repositories")) {
+            assertThat(scriptText, containsString("mavenCentral()"))
+            assertThat(scriptText, containsString("Use Maven Central for resolving dependencies."))
+            assertThat(scriptText, not(containsString("jcenter()")))
+            assertThat(scriptText, not(containsString("Use JCenter for resolving dependencies.")))
+        }
     }
 
 }
