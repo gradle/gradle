@@ -938,7 +938,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         executer.beforeExecute {
             executer.expectDocumentedDeprecationWarning("Property 'input' has @Input annotation used on property of type 'File'. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
+                "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
         }
 
@@ -947,7 +947,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         outputContains("""
             |Caching disabled for task ':invalid' because:
-            |  Validation failed
+            |  Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.
         """.stripMargin())
         executedAndNotSkipped(":invalid")
         listCacheFiles().isEmpty()

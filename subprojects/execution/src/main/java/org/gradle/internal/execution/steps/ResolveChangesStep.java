@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
     private static final String NO_HISTORY = "No history is available.";
-    private static final String VALIDATION_FAILED = "Validation failed.";
+    private static final String VALIDATION_FAILED = "Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.";
 
     private final ExecutionStateChangeDetector changeDetector;
 

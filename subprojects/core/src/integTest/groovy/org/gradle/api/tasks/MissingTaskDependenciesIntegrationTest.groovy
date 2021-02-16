@@ -370,12 +370,17 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
             }
         """
         when:
-        executer.expectDocumentedDeprecationWarning("Consider using Task.dependsOn instead of an input file collection. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        executer.expectDocumentedDeprecationWarning(
+            "Consider using Task.dependsOn instead of an input file collection. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled to ensure correctness. " +
+                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+        )
         run "broken"
         then:
         executedAndNotSkipped ":broken"
         outputContains("""
-            Validation failed for task ':broken', disabling optimizations:
+            Execution optimizations have been disabled for task ':broken' to ensure correctness due to the following reasons:
               - Property 'invalidInputFileCollection' cannot be resolved:
               Cannot convert the provided notation to a File or URI: 5.
               The following types/formats are supported:

@@ -1287,7 +1287,7 @@ task generate(type: TransformerTask) {
         executer.beforeExecute {
             executer.expectDocumentedDeprecationWarning("Property 'myPrivateInput' is private and annotated with @Input. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
+                "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
         }
 
@@ -1332,7 +1332,7 @@ task generate(type: TransformerTask) {
         run 'myTask', "--info"
         then:
         executedAndNotSkipped(":myTask")
-        outputContains("Validation failed.")
+        outputContains("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
     }
 
     @ToBeImplemented("Private getters should be ignored")
@@ -1396,7 +1396,7 @@ task generate(type: TransformerTask) {
         executer.beforeExecute {
             executer.expectDocumentedDeprecationWarning("Property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled due to the failed validation. " +
+                "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
         }
 
@@ -1435,13 +1435,13 @@ task generate(type: TransformerTask) {
         run "custom", "--info"
         then:
         executedAndNotSkipped ":custom"
-        outputContains("Validation failed.")
+        outputContains("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
 
         when:
         inputFile.text = "changed"
         run "custom", "--info"
         then:
         executedAndNotSkipped ":custom"
-        outputContains("Validation failed.")
+        outputContains("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
     }
 }

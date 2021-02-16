@@ -339,7 +339,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         withBuildCache().succeeds("producer", "consumer")
-        assertCachingDisabledFor VALIDATION_FAILURE, "Validation failed", ":consumer"
+        assertCachingDisabledFor VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.", ":consumer"
     }
 
     private void assertCachingDisabledFor(@Nullable TaskOutputCachingDisabledReasonCategory category, @Nullable String message, @Nullable String taskPath = null) {
