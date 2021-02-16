@@ -23,11 +23,13 @@ import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.internal.Pair;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
@@ -39,9 +41,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.format;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
+    private static final int CACHE_FORMAT = 1;
 
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
@@ -57,6 +63,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
 
     private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
+        hasher.putInt(CACHE_FORMAT);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
     }
@@ -71,8 +78,15 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private File transformIfNeeded(File source, File cacheDir, String destFileName) {
+        File receipt = new File(cacheDir, destFileName + ".receipt");
         File transformed = new File(cacheDir, destFileName);
+        if (receipt.isFile()) {
+            return transformed;
+        }
         if (transformed.isFile()) {
+            // A concurrent writer has already started writing to the file.
+            // Just wait until the transformed file is ready for consumption.
+            waitForReceiptOf(destFileName, receipt);
             return transformed;
         }
         try {
@@ -85,11 +99,41 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 // the move is done.
                 // Just wait until the transformed file is ready for consumption.
                 LOGGER.debug("Instrumented classpath file '{}' already exists.", destFileName, e);
+                waitForReceiptOf(destFileName, receipt);
+                return transformed;
             } else {
                 throw e;
             }
         }
+        try {
+            receipt.createNewFile();
+        } catch (IOException e) {
+            LOGGER.debug("Failed to create receipt for instrumented classpath file '{}'.", destFileName, e);
+        }
         return transformed;
+    }
+
+    private void waitForReceiptOf(String destFileName, File receipt) {
+        if (!waitFor(receipt)) {
+            throw new IllegalStateException(
+                format("Timeout waiting for instrumented classpath file: '%s'.", destFileName)
+            );
+        }
+    }
+
+    /**
+     * Waits up to 60 seconds for the given file to appear.
+     *
+     * @return true when the file appears before the timeout, false otherwise.
+     */
+    private boolean waitFor(File file) {
+        try {
+            return ExponentialBackoff
+                .of(60, TimeUnit.SECONDS)
+                .retryUntil(() -> file.isFile() ? file : null) != null;
+        } catch (InterruptedException | IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot) {
