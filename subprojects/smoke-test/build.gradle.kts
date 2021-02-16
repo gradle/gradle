@@ -86,6 +86,7 @@ tasks {
         classpath = smokeTestSourceSet.runtimeClasspath
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
         inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
+        inputs.property("androidSdkRootIsSet", System.getenv("ANDROID_SDK_ROOT") != null)
         inputs.files(remoteProjects.map { it.map { it.outputDirectory } })
             .withPropertyName("remoteProjectsSource")
             .withPathSensitivity(PathSensitivity.RELATIVE)
