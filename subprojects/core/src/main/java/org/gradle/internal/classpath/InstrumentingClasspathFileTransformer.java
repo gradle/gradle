@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
@@ -91,7 +90,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
         try {
             transform(source, transformed);
-        } catch (GradleException e) {
+        } catch (RuntimeException e) {
             if (e.getCause() instanceof FileAlreadyExistsException) {
                 // A concurrent writer has already started writing to the file.
                 // We run identical transforms concurrently and we can sometimes finish two transforms at the same
