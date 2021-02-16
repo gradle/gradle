@@ -30,6 +30,12 @@ class IncrementalAndroidTestProject extends AndroidTestProject implements Increm
         taskToRunForChange: ':santa-tracker:assembleDebug'
     )
 
+    static final UBER_MOBILE_APP = new IncrementalAndroidTestProject(
+        templateName: 'uberMobileApp',
+        pathToChange: 'leafModuleAvg/src/main/java/leafModuleAvgpackageJava0/Foo0.java',
+        taskToRunForChange: ':rootModule:assembleDebug'
+    )
+
     String pathToChange
     String taskToRunForChange
 

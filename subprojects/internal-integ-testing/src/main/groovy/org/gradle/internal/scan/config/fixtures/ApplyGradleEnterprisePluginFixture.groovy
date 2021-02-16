@@ -29,7 +29,13 @@ class ApplyGradleEnterprisePluginFixture {
     """
 
     static void applyEnterprisePlugin(File settingsFile) {
-        prefixFile(settingsFile, APPLY_ENTERPRISE_PLUGIN)
+        def settingsText = settingsFile.text
+        def matcher = settingsText =~ /id[ (]["']com.gradle.enterprise["'][)]? version[ (]["'](.*)["'][)]?/
+        if (matcher.find()) {
+            settingsFile.text = settingsText.substring(0, matcher.start(1)) + AutoAppliedGradleEnterprisePlugin.VERSION + settingsText.substring(matcher.end(1))
+        } else {
+            prefixFile(settingsFile, APPLY_ENTERPRISE_PLUGIN)
+        }
     }
 
     private static void prefixFile(File settingsFile, String... prefixes) {

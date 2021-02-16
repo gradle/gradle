@@ -15,9 +15,9 @@
  */
 
 import gradlebuild.performance.generator.tasks.*
+import org.gradle.api.file.FileSystemOperations
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
-
 
 // === Gradle Build ===
 performanceTest.registerTestProject("gradleBuildCurrent", RemoteProject) {
@@ -398,6 +398,19 @@ performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {
     ref = '6083ad6ff49a7dabd780e46aa024c7c38a9f2191'
     doLast {
         addGoogleServicesJson(outputDirectory)
+    }
+}
+
+performanceTest.registerTestProject("uberMobileApp", RemoteProject) {
+    remoteUri = 'https://github.com/gradle/android-build-eval.git'
+    subdirectory = 'mobile_app1'
+    // Pinned from PR https://github.com/uber-common/android-build-eval/pull/17
+    ref = '18ff193198010064e43e9244edde91ab54c2da70'
+    def fileSystemOperations = gradle.services.get(FileSystemOperations)
+    doLast {
+        fileSystemOperations.delete {
+            delete(new File(outputDirectory, ".okbuck"))
+        }
     }
 }
 

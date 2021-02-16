@@ -70,7 +70,7 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecuti
 
         where:
         configurationCachingEnabled << [true, false]
-        configurationCaching = configurationCachingEnabled ? " with configuration caching" : ""
+        configurationCaching = configurationCachingMessage(configurationCachingEnabled)
     }
 
     @RunFor([
@@ -96,7 +96,7 @@ class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecuti
 
         where:
         configurationCachingEnabled << [true, false]
-        configurationCaching = configurationCachingEnabled ? " with configuration caching" : ""
+        configurationCaching = configurationCachingMessage(configurationCachingEnabled)
     }
 
     @RunFor(
