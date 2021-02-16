@@ -39,7 +39,7 @@ A task represents some atomic piece of work which a build performs.
 This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 
 Typically, tasks are provided by <<plugins.adoc#sec:plugins_block,applying a plugin>> so that you do not have to define them yourself.
-Still, to give you an idea of what a taks is, we will look at defining some simple tasks in a build with one project in this chapter.
+Still, to give you an idea of what a task is, we will look at defining some simple tasks in a build with one project in this chapter.
 
 [[sec:hello_world]]
 == Hello world
