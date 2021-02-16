@@ -211,7 +211,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         } else if (disallowChanges) {
             throw new IllegalStateException("The value for " + displayNameForThisCollection() + " cannot be changed.");
         } else if (state == State.Final) {
-            throw new IllegalStateException("Changing the value for a FileCollection with a final value");
+            throw new IllegalStateException("The value for " + displayNameForThisCollection() + " is final and cannot be changed.");
         }
     }
 
