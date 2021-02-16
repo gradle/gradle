@@ -15,7 +15,8 @@ We would like to thank the following community members for their contributions t
 [Stefan Oehme](https://github.com/oehme),
 [Jeff](https://github.com/mathjeff),
 [Rene Groeschke](https://github.com/breskeby),
-[Niels Doucet](https://github.com/NielsDoucet).
+[Niels Doucet](https://github.com/NielsDoucet),
+[Ståle Undheim](https://github.com/staale).
 
 ## Upgrade Instructions
 
@@ -69,6 +70,11 @@ Gradle will now ignore an empty `buildSrc` directory, and will only generate a `
 This has two benefits when an empty `buildSrc` directory is detected:
 - `:buildSrc:*` tasks will not be needlessly executed.
 - The empty `buildSrc.jar` will not be added to the buildscript class path, avoiding cache misses that this can cause.
+
+## Using dynamic versions in the plugins block
+
+Until now, the `plugins { }` block only supported fixed versions for community plugins.
+All [version string notations Gradle supports](userguide/single_versions.html) are now accepted, including `+` or `latest.release`.
 
 ## Build reliability improvements
 
