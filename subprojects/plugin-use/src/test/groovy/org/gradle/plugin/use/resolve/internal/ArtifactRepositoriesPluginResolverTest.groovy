@@ -84,11 +84,11 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
         1 * result.found(SOURCE_NAME, _)
     }
 
-    def "fail pluginRequests with dynamic versions"() {
+    def "accept pluginRequests with dynamic versions"() {
         when:
         resolver.resolve(request("plugin", "latest.revision"), result)
 
         then:
-        1 * result.notFound(SOURCE_NAME, "dynamic plugin versions are not supported")
+        1 * result.found(SOURCE_NAME, _)
     }
 }
