@@ -102,8 +102,8 @@ class RepoScriptBlockUtil {
         """
     }
 
-    static void configureJcenter(RepositoryHandler repositories) {
-        MirroredRepository.JCENTER.configure(repositories)
+    static void configureMavenCentral(RepositoryHandler repositories) {
+        MirroredRepository.MAVEN_CENTRAL.configure(repositories)
     }
 
     static String mavenCentralRepository(GradleDsl dsl = GROOVY) {
@@ -120,15 +120,6 @@ class RepoScriptBlockUtil {
                 ${googleRepositoryDefinition(dsl)}
             }
         """
-    }
-
-    static String mavenCentralRepositoryMirrorUrl() {
-        def url = MirroredRepository.MAVEN_CENTRAL.mirrorUrl
-        if (url.endsWith('/')) {
-            url
-        } else {
-            url + '/'
-        }
     }
 
     static String kotlinxRepositoryDefinition(GradleDsl dsl = GROOVY) {

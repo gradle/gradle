@@ -180,8 +180,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         buildFile << """
             allprojects {
                 apply plugin: 'java'
-                repositories { jcenter() }
-                task resolve { doLast { configurations.compileClasspath. resolve() } }
+                ${mavenCentralRepoBlock()}
+                task resolve { doLast { configurations.compileClasspath.resolve() } }
             }
         """
 
