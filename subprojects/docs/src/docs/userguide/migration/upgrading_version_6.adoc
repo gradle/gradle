@@ -56,6 +56,11 @@ The migration can be performed per configuration and does not have to be done in
 The `buildId` field will not be populated by default to ensure that the produced metadata file remains unchanged when no build inputs are changed.
 Users can still opt in to have this unique identifier part of the produced metadata if they want to, see <<publishing_gradle_module_metadata.adoc#sub:gmm-reproducible,the documentation>>.
 
+=== `jcenter()` convenience method is now deprecated
+
+JFrog recently link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[announced] the decommission of JCenter.
+Gradle emits a warning message when `jcenter()` is used in the repository configuration.
+
 === Potential breaking changes
 
 ==== Updates to bundled Gradle dependencies
