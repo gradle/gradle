@@ -71,7 +71,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.globalCacheLocations = globalCacheLocations;
         this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
-        this.executor = executorFactory.create("jar transforms");
+        this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
     }
 
     @Override

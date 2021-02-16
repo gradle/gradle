@@ -111,6 +111,11 @@ public class GFileUtils {
         }
     }
 
+    /**
+     * If the destination file exists, then this method will overwrite it.
+     *
+     * @see FileUtils#copyFile(File, File)
+     */
     public static void copyFile(File source, File destination) {
         try {
             FileUtils.copyFile(source, destination);
