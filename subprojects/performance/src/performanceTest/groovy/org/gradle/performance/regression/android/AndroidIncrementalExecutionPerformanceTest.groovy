@@ -81,8 +81,9 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         configurationCaching = configurationCachingMessage(configurationCachingEnabled)
     }
 
-    def "up-to-date#configurationCaching"() {
+    def "up-to-date assembleDebug#configurationCaching"() {
         given:
+        runner.tasksToRun = [testProject.taskToRunForChange]
         enableConfigurationCaching(configurationCachingEnabled)
 
         when:
