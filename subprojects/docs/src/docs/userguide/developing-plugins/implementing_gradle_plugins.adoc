@@ -339,7 +339,7 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files
 First, we declare a separate _source set_, and a _feature variant_ based on that, for our Gradle7 plugin variant.
 We need to do some specific wiring to turn the feature into a proper Gradle plugin variant:
 
-<1> Assign the <<component_capabilities.adoc#declaring_additional_capabilities_for_a_local_component,implicit capability that corresponds to the components GAV>> to the variant.
+<1> Assign the <<component_capabilities.adoc#,implicit capability that corresponds to the components GAV>> to the variant.
 <2> Assign the <<variant_attributes.adoc#sub:gradle_plugins_default_attributes,Gradle API version attribute>> to all <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. This information is used by Gradle to determine which variant to select during plugin resolution.
 <3> Configure the `processGradle7Resources` task to make sure the plugin descriptor file is added to the Gradle7 variant Jar.
 <4> Add a dependency to the `gradleApi()` for our new variant so that the API is visible during compilation time.
