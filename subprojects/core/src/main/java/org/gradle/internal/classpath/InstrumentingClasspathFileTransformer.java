@@ -47,7 +47,7 @@ import static java.lang.String.format;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final int CACHE_FORMAT = 1;
+    private static final int CACHE_FORMAT = 2;
 
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
