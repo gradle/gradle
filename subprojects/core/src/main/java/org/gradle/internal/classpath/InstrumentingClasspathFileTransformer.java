@@ -82,12 +82,6 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         if (receipt.isFile()) {
             return transformed;
         }
-        if (transformed.isFile()) {
-            // A concurrent writer has already started writing to the file.
-            // Just wait until the transformed file is ready for consumption.
-            waitForReceiptOf(destFileName, receipt);
-            return transformed;
-        }
         try {
             transform(source, transformed);
         } catch (RuntimeException e) {
