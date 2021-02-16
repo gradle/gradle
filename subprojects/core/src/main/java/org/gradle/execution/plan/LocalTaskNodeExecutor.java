@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
@@ -189,23 +190,33 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         // Do a breadth first search for any dependency
         Deque<Node> queue = new ArrayDeque<>();
         Set<Node> seenNodes = new HashSet<>();
-        consumer.getHardSuccessors().forEach(successor -> {
-            if (seenNodes.add(successor)) {
-                queue.add(successor);
-            }
-        });
+        consumer.getHardSuccessors().forEach(successor ->
+            findHardTaskSuccessors(successor, taskSuccessor -> {
+                if (seenNodes.add(taskSuccessor)) {
+                    queue.add(taskSuccessor);
+                }
+            }));
         while (!queue.isEmpty()) {
             Node dependency = queue.removeFirst();
             if (dependency == producer) {
                 return false;
             }
-            dependency.getHardSuccessors().forEach(node -> {
-                if (seenNodes.add(node)) {
-                    queue.add(node);
-                }
-            });
+            dependency.getHardSuccessors().forEach(successor ->
+                findHardTaskSuccessors(successor, taskSuccessor -> {
+                    if (seenNodes.add(taskSuccessor)) {
+                        queue.add(taskSuccessor);
+                    }
+                }));
         }
         return true;
+    }
+
+    private static void findHardTaskSuccessors(Node node, Consumer<LocalTaskNode> taskNodeConsumer) {
+        if (node instanceof LocalTaskNode) {
+            taskNodeConsumer.accept((LocalTaskNode) node);
+        } else {
+            node.getHardSuccessors().forEach(successor -> findHardTaskSuccessors(successor, taskNodeConsumer));
+        }
     }
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
