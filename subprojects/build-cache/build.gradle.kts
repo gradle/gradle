@@ -17,7 +17,6 @@ dependencies {
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commonsIo)
     implementation(libs.inject)
 
     jmhImplementation(platform(project(":distributions-dependencies")))
@@ -26,6 +25,7 @@ dependencies {
     jmhImplementation(libs.aircompressor)
     jmhImplementation(libs.snappy)
     jmhImplementation(libs.jtar)
+    jmhImplementation(libs.commonsIo)
 
     testImplementation(project(":model-core"))
     testImplementation(project(":file-collections"))

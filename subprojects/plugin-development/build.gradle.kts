@@ -26,9 +26,7 @@ dependencies {
     implementation(project(":model-groovy"))
     implementation(project(":resources"))
 
-    implementation(libs.slf4jApi)
     implementation(libs.groovy)
-    implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)

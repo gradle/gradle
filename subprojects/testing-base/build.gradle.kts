@@ -22,12 +22,12 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.commonsIo)
     implementation(libs.kryo)
     implementation(libs.inject)
     implementation(libs.ant) // only used for DateUtils
 
     testImplementation(project(":file-collections"))
+    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":platform-base")))
