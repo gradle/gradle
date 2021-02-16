@@ -122,14 +122,14 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     /**
-     * Waits up to 5 seconds for the given file to appear.
+     * Waits up to 30 seconds for the given file to appear.
      *
      * @return true when the file appears before the timeout, false otherwise.
      */
     private boolean waitFor(File file) {
         try {
             return ExponentialBackoff
-                .of(5, TimeUnit.SECONDS, 50, TimeUnit.MILLISECONDS)
+                .of(30, TimeUnit.SECONDS)
                 .retryUntil(() -> file.isFile() ? file : null) != null;
         } catch (InterruptedException | IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
