@@ -23,6 +23,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildTypeSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
@@ -92,7 +93,9 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, vcsRoot
     }
 
     failureConditions {
-        executionTimeoutMin = timeout
+        if (this@applyDefaultSettings.type != BuildTypeSettings.Type.COMPOSITE) {
+            executionTimeoutMin = timeout
+        }
         testFailure = false
         add {
             failOnText {
