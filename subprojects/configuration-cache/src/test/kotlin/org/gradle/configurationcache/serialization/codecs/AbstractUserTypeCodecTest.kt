@@ -175,6 +175,7 @@ abstract class AbstractUserTypeCodecTest {
         fileOperations = mock(),
         fileFactory = mock(),
         includedTaskGraph = mock(),
-        buildStateRegistry = mock()
+        buildStateRegistry = mock(),
+        documentationRegistry = mock()
     )
 }

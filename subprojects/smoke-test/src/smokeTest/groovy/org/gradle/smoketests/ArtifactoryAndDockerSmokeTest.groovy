@@ -19,7 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.Requires
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.util.TestPrecondition.HAS_DOCKER
 
 // Works on MacOS, but let's test on linux only where we know docker is available

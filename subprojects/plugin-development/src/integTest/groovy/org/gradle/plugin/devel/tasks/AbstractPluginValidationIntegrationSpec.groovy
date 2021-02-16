@@ -37,14 +37,14 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.TypeValidationContext
+import org.gradle.internal.reflect.validation.Severity
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import javax.inject.Inject
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -234,9 +234,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(true, [
-            "Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
+            "Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.": ERROR,
             "Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types.": ERROR,
-            "Type 'MyTask.Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
+            "Type 'MyTask.Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.": ERROR,
         ])
     }
 
@@ -786,7 +786,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract void assertValidationSucceeds()
 
-    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, TypeValidationContext.Severity> messages)
+    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, Severity> messages)
 
     abstract TestFile source(String path)
 

@@ -38,7 +38,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.reflect.TypeValidationContext
+import org.gradle.internal.reflect.validation.TypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices

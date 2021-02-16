@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures
 
 import org.gradle.api.Task
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
@@ -47,6 +48,8 @@ import spock.lang.Specification
 @CleanupTestDirectory
 @UsesNativeServices
 abstract class AbstractProjectBuilderSpec extends Specification {
+    protected final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
+
     // Naming the field "temporaryFolder" since that is the default field intercepted by the
     // @CleanupTestDirectory annotation.
     @Rule
@@ -67,7 +70,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         def taskExecutionContext = new DefaultTaskExecutionContext(
             null,
             DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
-            new DefaultWorkValidationContext(),
+            new DefaultWorkValidationContext(documentationRegistry),
             { historyMaintained, context -> }
         )
         executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)

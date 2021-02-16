@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     api(project(":core-api"))
+    api("me.champeau.jdoctor:jdoctor-core:1.0")
 
     implementation(project(":base-services"))
     implementation(project(":logging"))

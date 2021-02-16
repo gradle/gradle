@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 public class DefaultNodeValidator implements NodeValidator {
     @Override

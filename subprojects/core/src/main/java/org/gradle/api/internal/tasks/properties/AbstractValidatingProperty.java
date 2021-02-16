@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.util.DeferredUtil;
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public abstract class AbstractValidatingProperty implements ValidatingProperty {
     private final String propertyName;

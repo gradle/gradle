@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.impl;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionHandler;
@@ -29,9 +30,11 @@ import org.gradle.internal.execution.steps.ExecutionRequestContext;
 import java.util.Optional;
 
 public class DefaultExecutionEngine implements ExecutionEngine {
+    private final DocumentationRegistry documentationRegistry;
     private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep;
 
-    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep) {
+    public DefaultExecutionEngine(DocumentationRegistry documentationRegistry, DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep) {
+        this.documentationRegistry = documentationRegistry;
         this.executeStep = executeStep;
     }
 
@@ -44,7 +47,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             private ExecutionRequestContext createExecutionRequestContext() {
                 WorkValidationContext validationContext = this.validationContext != null
                     ? this.validationContext
-                    : new DefaultWorkValidationContext();
+                    : new DefaultWorkValidationContext(documentationRegistry);
                 return new ExecutionRequestContext() {
                     @Override
                     public Optional<String> getRebuildReason() {

@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
@@ -48,7 +49,7 @@ public class TaskNodeFactory {
         TaskNode node = nodes.get(task);
         if (node == null) {
             if (task.getProject().getGradle() == thisBuild) {
-                node = new LocalTaskNode((TaskInternal) task);
+                node = new LocalTaskNode((TaskInternal) task, thisBuild.getServices().get(DocumentationRegistry.class));
             } else {
                 node = TaskInAnotherBuild.of((TaskInternal) task, currentBuildId, taskGraph);
             }

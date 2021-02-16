@@ -26,7 +26,7 @@ import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.reflect.TypeValidationContext.Severity;
+import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;

@@ -15,6 +15,7 @@ plugins {
     id("gradlebuild.base.allprojects")
 }
 
+includeBuild("../jdoctor")
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
 

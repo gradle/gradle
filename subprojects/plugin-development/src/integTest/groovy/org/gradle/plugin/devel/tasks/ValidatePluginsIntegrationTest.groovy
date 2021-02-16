@@ -18,12 +18,12 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
-import org.gradle.internal.reflect.TypeValidationContext
+import org.gradle.internal.reflect.validation.Severity
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.hamcrest.Matchers.containsString
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
@@ -52,7 +52,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     @Override
-    void assertValidationFailsWith(boolean expectDeprecationsForErrors, Map<String, TypeValidationContext.Severity> messages) {
+    void assertValidationFailsWith(boolean expectDeprecationsForErrors, Map<String, Severity> messages) {
         fails "validatePlugins"
         def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.txt"))
         report.verify(messages)

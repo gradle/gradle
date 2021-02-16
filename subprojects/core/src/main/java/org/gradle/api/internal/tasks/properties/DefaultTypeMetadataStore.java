@@ -30,8 +30,8 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.internal.reflect.TypeValidationContext;
-import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -46,8 +46,8 @@ import java.util.function.Function;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
+import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;

@@ -16,54 +16,80 @@
 
 package org.gradle.internal.reflect;
 
+import org.gradle.api.Action;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.reflect.validation.DefaultPropertyValidationProblemBuilder;
+import org.gradle.internal.reflect.validation.DefaultTypeValidationProblemBuilder;
+import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
+import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeProblemBuilder;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 
 abstract public class MessageFormattingTypeValidationContext implements TypeValidationContext {
+    private final DocumentationRegistry documentationRegistry;
     private final Class<?> rootType;
 
-    public MessageFormattingTypeValidationContext(@Nullable Class<?> rootType) {
+    public MessageFormattingTypeValidationContext(DocumentationRegistry documentationRegistry,
+                                                  @Nullable Class<?> rootType) {
+        this.documentationRegistry = documentationRegistry;
         this.rootType = rootType;
     }
 
     @Override
-    public void visitTypeProblem(Severity severity, Class<?> type, String message) {
-        @SuppressWarnings("StringBufferReplaceableByString")
-        StringBuilder builder = new StringBuilder();
-        builder.append("Type '");
-        builder.append(ModelType.of(type).getDisplayName());
-        builder.append("': ");
-        builder.append(message);
-        builder.append('.');
-        recordProblem(severity, builder.toString());
+    public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {
+        DefaultTypeValidationProblemBuilder builder = new DefaultTypeValidationProblemBuilder(documentationRegistry);
+        problemSpec.execute(builder);
+        recordProblem(builder.build());
     }
 
     @Override
-    public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
-        StringBuilder builder = new StringBuilder();
-        if (rootType != null) {
-            builder.append("Type '");
-            builder.append(ModelType.of(rootType).getDisplayName());
-            builder.append("': ");
-        }
-        if (property != null) {
-            if (rootType == null) {
-                builder.append("Property '");
-            } else {
-                builder.append("property '");
-            }
-            if (parentProperty != null) {
-                builder.append(parentProperty);
-                builder.append('.');
-            }
-            builder.append(property);
-            builder.append("' ");
-        }
-        builder.append(message);
-        builder.append('.');
-        recordProblem(severity, builder.toString());
+    public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {
+        DefaultPropertyValidationProblemBuilder builder = new DefaultPropertyValidationProblemBuilder(documentationRegistry);
+        problemSpec.execute(builder);
+        recordProblem(builder.build());
     }
 
-    abstract protected void recordProblem(Severity severity, String message);
+
+    @Override
+    public void visitTypeProblem(Severity kind, Class<?> type, String message) {
+        visitTypeProblem(problem -> problem.reportAs(kind)
+            .forType(type)
+            .withDescription(message));
+    }
+
+    @Override
+    public void visitPropertyProblem(Severity kind, @Nullable String parentProperty, @Nullable String property, String message) {
+        visitPropertyProblem(problem -> problem.reportAs(kind)
+            .forProperty(parentProperty, property)
+            .withDescription(() -> {
+                StringBuilder builder = new StringBuilder();
+                if (rootType != null) {
+                    builder.append("Type '");
+                    builder.append(ModelType.of(rootType).getDisplayName());
+                    builder.append("': ");
+                }
+                if (property != null) {
+                    if (rootType == null) {
+                        builder.append("Property '");
+                    } else {
+                        builder.append("property '");
+                    }
+                    if (parentProperty != null) {
+                        builder.append(parentProperty);
+                        builder.append('.');
+                    }
+                    builder.append(property);
+                    builder.append("' ");
+                }
+                builder.append(message);
+                builder.append('.');
+                return builder.toString();
+            }));
+    }
+
+    abstract protected void recordProblem(TypeValidationProblem problem);
 }

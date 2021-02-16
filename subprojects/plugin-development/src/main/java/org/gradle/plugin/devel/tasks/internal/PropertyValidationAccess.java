@@ -34,7 +34,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
