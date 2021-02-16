@@ -317,9 +317,9 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 === Example: Testing a custom plugin
 
 [source.multi-language-sample,java]
-.src/test/java/org/gradle/GreetingPluginTest.java
+.src/test/java/org/example/GreetingPluginTest.java
 ----
-include::{snippetsPath}/plugins/customPlugin/groovy/plugin/src/test/java/org/gradle/GreetingPluginTest.java[tag=test-plugin]
+include::{snippetsPath}/plugins/customPlugin/groovy/plugin/src/test/java/org/example/GreetingPluginTest.java[tag=test-plugin]
 ----
 
 == More details

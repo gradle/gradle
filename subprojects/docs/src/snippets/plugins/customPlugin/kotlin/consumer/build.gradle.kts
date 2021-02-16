@@ -1,9 +1,9 @@
 // tag::use-plugin[]
 plugins {
-    id("org.samples.greeting") version "1.0-SNAPSHOT"
+    id("org.example.greeting") version "1.0-SNAPSHOT"
 }
 // end::use-plugin[]
 
-tasks.register<org.gradle.GreetingTask>("greeting") {
+tasks.register<org.example.GreetingTask>("greeting") {
     greeting = "howdy!"
 }

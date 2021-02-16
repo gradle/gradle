@@ -55,7 +55,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
                     }
                 }
             }
-            tasks.named("process\${gradle7.name.capitalize()}Resources") {
+            tasks.named(gradle7.processResourcesTaskName) {
                 def copyPluginDescriptors = rootSpec.addChild()
                 copyPluginDescriptors.into('META-INF/gradle-plugins')
                 copyPluginDescriptors.from(tasks.pluginDescriptors)
@@ -63,7 +63,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             // ==
 
             dependencies {
-                gradle7CompileOnly(gradleApi()) // We should be able to access differnt Gradle API versions
+                gradle7CompileOnly(gradleApi()) // We should be able to access different Gradle API versions
                 gradle7CompileOnly(localGroovy())
             }
 

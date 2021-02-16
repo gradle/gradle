@@ -14,8 +14,8 @@ version = "1.0-SNAPSHOT"
 gradlePlugin {
     plugins {
         create("simplePlugin") {
-            id = "org.samples.greeting"
-            implementationClass = "org.gradle.GreetingPlugin"
+            id = "org.example.greeting"
+            implementationClass = "org.example.GreetingPlugin"
         }
     }
 }
