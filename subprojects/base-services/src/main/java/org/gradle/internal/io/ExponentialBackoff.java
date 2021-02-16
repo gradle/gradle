@@ -35,6 +35,10 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
     private final int timeoutMs;
     private CountdownTimer timer;
 
+    public static ExponentialBackoff<Signal> of(int amount, TimeUnit unit) {
+        return of(amount, unit, Signal.SLEEP);
+    }
+
     public static <T extends Signal> ExponentialBackoff<T> of(int amount, TimeUnit unit, T signal) {
         return new ExponentialBackoff<T>((int) TimeUnit.MILLISECONDS.convert(amount, unit), signal, SLOT_TIME);
     }
@@ -100,6 +104,7 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
                 return false;
             }
         };
+
         boolean await(long period) throws InterruptedException;
     }
 }
