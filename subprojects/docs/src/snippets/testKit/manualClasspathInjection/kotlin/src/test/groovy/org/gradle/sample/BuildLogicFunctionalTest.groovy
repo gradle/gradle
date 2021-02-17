@@ -1,15 +1,14 @@
 package org.gradle.sample
 
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.io.TempDir
 import spock.lang.Specification
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildLogicFunctionalTest extends Specification {
 
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir final File testProjectDir
     File settingsFile
     File buildFile
     // tag::functional-test-classpath-setup[]
@@ -17,8 +16,8 @@ class BuildLogicFunctionalTest extends Specification {
     List<File> pluginClasspath
 
     def setup() {
-        settingsFile = testProjectDir.newFile('settings.gradle')
-        buildFile = testProjectDir.newFile('build.gradle')
+        settingsFile = new File(testProjectDir, 'settings.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
 
         def pluginClasspathResource = getClass().classLoader.findResource("plugin-classpath.txt")
         if (pluginClasspathResource == null) {
@@ -39,7 +38,7 @@ class BuildLogicFunctionalTest extends Specification {
 
         when:
         def result = GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .withArguments('helloWorld')
             .withPluginClasspath(pluginClasspath)
             .build()
@@ -69,7 +68,7 @@ class BuildLogicFunctionalTest extends Specification {
 
         when:
         def result = GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .withArguments('helloWorld')
             .withGradleVersion("2.7")
             .build()
