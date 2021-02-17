@@ -41,6 +41,9 @@ dependencies {
     integTestImplementation(testFixtures(project(":diagnostics")))
     integTestImplementation(testFixtures(project(":platform-native")))
     integTestImplementation(libs.jgit)
+    integTestImplementation(libs.javaParser) {
+        because("The Groovy compiler inspects the dependencies at compile time")
+    }
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
