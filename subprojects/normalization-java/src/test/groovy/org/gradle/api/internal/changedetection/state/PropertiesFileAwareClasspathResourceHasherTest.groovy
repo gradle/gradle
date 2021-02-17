@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
 import com.google.common.io.ByteStreams
 import org.gradle.api.internal.file.archive.ZipEntry
+import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -255,6 +256,17 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         SnapshotContext.ZIP_ENTRY     | "key"    | 'keyWithBadEscapeSequence\\uxxxx=some value'
         SnapshotContext.FILE_SNAPSHOT | "value"  | 'someKey=a value with bad escape sequence \\uxxxx'
         SnapshotContext.FILE_SNAPSHOT | "key"    | 'keyWithBadEscapeSequence\\uxxxx=some value'
+    }
+
+    def "delegate configuration is added to hasher"() {
+        def configurationHasher = Mock(Hasher)
+        delegate = Mock(ResourceHasher)
+
+        when:
+        filteredHasher.appendConfigurationToHasher(configurationHasher)
+
+        then:
+        1 * delegate.appendConfigurationToHasher(configurationHasher)
     }
 
     enum SnapshotContext {
