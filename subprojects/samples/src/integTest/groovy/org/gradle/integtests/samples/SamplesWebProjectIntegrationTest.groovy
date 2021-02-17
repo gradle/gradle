@@ -32,7 +32,7 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
 
     def "can build war"() {
         when:
-        sample sample
+        super.sample sample
         succeeds('clean', 'assemble')
 
         then:
