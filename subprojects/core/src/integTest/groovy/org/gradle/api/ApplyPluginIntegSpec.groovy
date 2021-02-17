@@ -18,11 +18,9 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
-import spock.lang.FailsWith
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -40,7 +38,6 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2358")
-    @FailsWith(UnexpectedBuildFailure)
     def "can reference plugin by id in unit test"() {
 
         given:
@@ -181,7 +178,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             ${basicBuildScript()}
 
             dependencies {
-                testImplementation ('org.spockframework:spock-core:1.0-groovy-2.4') {
+                testImplementation ('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
                     exclude module: 'groovy-all'
                 }
             }
