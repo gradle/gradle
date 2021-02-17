@@ -90,7 +90,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
     }
 
     List<SourceFile> librarySources = [
-        sourceFile("cpp", "hello.cpp", """
+        new SourceFile("cpp", "hello.cpp", """
             #include "common.h"
 
             #ifdef FRENCH
@@ -107,7 +107,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
                 #endif
             }
         """),
-        sourceFile("cpp", "sum.cpp", """
+        new SourceFile("cpp", "sum.cpp", """
             #include "common.h"
 
             int DLL_FUNC sum(int a, int b) {
@@ -117,7 +117,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
     ]
 
     List<SourceFile> alternateLibrarySources = [
-        sourceFile("cpp", "hello.cpp", """
+        new SourceFile("cpp", "hello.cpp", """
             #include "common.h"
 
             void DLL_FUNC Greeter::sayHello() {
@@ -129,7 +129,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
                 return 1000;
             }
         """),
-        sourceFile("cpp", "sum.cpp", """
+        new SourceFile("cpp", "sum.cpp", """
             #include "common.h"
 
             int DLL_FUNC sum(int a, int b) {
