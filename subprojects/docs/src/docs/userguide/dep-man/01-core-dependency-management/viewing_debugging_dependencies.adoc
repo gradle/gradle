@@ -207,6 +207,7 @@ For example:
 * A task from one project directly resolves a configuration in another project.
 * A task specifies a configuration from another project as an input file collection.
 * A build script for a project resolves a configuration in another project during evaluation.
+* Project configurations are resolved from project settings
 
 If your build has an unsafe access deprecation warning, it needs to be fixed.
 It's a symptom of these bad practices and can cause strange and indeterminate errors.
