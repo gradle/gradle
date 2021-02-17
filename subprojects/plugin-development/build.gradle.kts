@@ -37,6 +37,7 @@ dependencies {
 
     integTestImplementation(project(":base-services-groovy"))
     integTestImplementation(libs.jetbrainsAnnotations)
+    integTestImplementation(libs.groovyTest)
 
     integTestLocalRepository(project(":tooling-api")) {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
