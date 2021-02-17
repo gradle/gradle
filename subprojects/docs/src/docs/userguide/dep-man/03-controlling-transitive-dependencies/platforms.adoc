@@ -28,7 +28,8 @@ In this context, `libs` is a catalog and `groovy` represents a dependency availa
 
 Adding a dependency using the `libs.someLib` notation works exactly like if you had hardcoded the group, artifact and version directly in the build script.
 
-WARNING: A dependency catalog doesn't enforce the version of a dependency: like a regular dependency notation, it declares the requested version or a <<rich_versions.adoc#rich-version-constraints,rich version>>. That version is not necessarily the version that is selected during <<dependency_resolution#,conflict resolution>>.
+WARNING: A dependency catalog doesn't enforce the version of a dependency: like a regular dependency notation, it declares the requested version or a <<rich_versions.adoc#rich-version-constraints,rich version>>.
+That version is not necessarily the version that is selected during <<dependency_resolution#understanding_dependency_resolution,conflict resolution>>.
 
 [[sub:version-catalog-declaration]]
 === Declaring a version catalog

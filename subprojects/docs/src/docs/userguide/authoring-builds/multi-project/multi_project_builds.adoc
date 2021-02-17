@@ -18,7 +18,7 @@ If you are building a software of a certain size with Gradle, you have two basic
 First, this chapter describes how to structure your software project using a Gradle multi-project.
 In this documentation, we consider this to be a single _software component_ which is structured internally.
 Second, you may regard your software as a _software product_ that is composed of multiple _software components_ where each component is represented by a separate Gradle build.
-This is described in detail in the chapter on <<structuring_software_products.adoc#,structuring software products with Gradle>>
+This is described in detail in the chapter on <<structuring_software_products.adoc#structure_large_projects,structuring software products with Gradle>>
 
 [[sec:creating_multi_project_builds]]
 == Creating a multi-project build
@@ -57,7 +57,7 @@ This is a structure of a multi-project build that contains a single subproject c
 ====
 
 This is the recommended project structure for starting any Gradle project.
-The <<build_init_plugin#,build init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject.
+The <<build_init_plugin#build_init_plugin,build init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject.
 
 Note that the root project does not have a Gradle build file, only a settings file that defines the subprojects to include.
 ====
@@ -73,7 +73,7 @@ We can view the structure of a multi-project build by running the `gradle projec
 include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
 ----
 
-Let's say the `app` subproject is a Java application by applying the <<application_plugin#,application plugin>> and configuring the main class:
+Let's say the `app` subproject is a Java application by applying the <<application_plugin#application_plugin,application plugin>> and configuring the main class:
 ====
 include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
@@ -84,7 +84,7 @@ include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java
 ----
 ====
 
-We can then run the application by executing the `run` task from the <<application_plugin#,application plugin>>.
+We can then run the application by executing the `run` task from the <<application_plugin#application_plugin,application plugin>>.
 ----
 > gradle -q run
 include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
@@ -139,8 +139,8 @@ Gradle will then look for the build file for the new subproject in the `lib/` su
 ====
 
 
-Next, will explore how build logic can be <<sharing_build_logic_between_subprojects#,shared between subprojects>>
-and how subprojects can <<declaring_dependencies_between_subprojects#,depend on one another>>.
+Next, will explore how build logic can be <<sharing_build_logic_between_subprojects#sharing_build_logic_between_subprojects,shared between subprojects>>
+and how subprojects can <<declaring_dependencies_between_subprojects#declaring_dependencies_between_subprojects,depend on one another>>.
 
 == Naming recommendations
 

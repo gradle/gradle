@@ -1,3 +1,4 @@
+[[implemention_plugins]]
 = Implementing Gradle plugins
 
 Writing plugin code is a routine activity for advanced build authors.
@@ -14,7 +15,7 @@ This section assumes you have:
 == Using the Plugin Development plugin for writing plugins
 
 Setting up a Gradle plugin project should require as little boilerplate code as possible.
-The <<java_gradle_plugin.adoc#,Java Gradle Plugin Development plugin>> provides aid in this concern.
+The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> provides aid in this concern.
 To get started add the following code to your _build.gradle_ file:
 
 ====
@@ -29,7 +30,7 @@ Every plugin project should apply this plugin.
 [[writing-and-using-custom-task-types]]
 == Prefer writing and using custom task types
 
-Gradle tasks can be defined as ad-hoc tasks, simple task definitions of type `DefaultTask` with one or many actions, or as <<custom_tasks.adoc#,enhanced tasks>>, the ones that use a custom task type and expose its configurability with the help of properties.
+Gradle tasks can be defined as ad-hoc tasks, simple task definitions of type `DefaultTask` with one or many actions, or as <<custom_tasks.adoc#custom_tasks,enhanced tasks>>, the ones that use a custom task type and expose its configurability with the help of properties.
 Generally speaking, custom tasks provide the means for reusability, maintainability, configurability and testability.
 The same principles hold true when providing tasks as part of plugins.
 Always prefer custom task types over ad-hoc tasks.
@@ -263,7 +264,7 @@ Optimally, the plugin implementation doesn’t need to ask the user for the coor
 
 Let’s have a look at an example.
 You wrote a plugin that downloads files containing data for further processing.
-The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#,assigning those external dependencies with dependency coordinates>>.
+The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#declaring-dependencies,assigning those external dependencies with dependency coordinates>>.
 
 .DataProcessingPlugin.java
 [source,java]

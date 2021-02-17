@@ -36,9 +36,9 @@ Or in other words, a subproject's _type_ tells us what traits the project has.
 
 Gradle's recommended way of organizing build logic is to use its plugin system.
 A plugin should define the _type_ of a subproject.
-In fact, <<plugin_reference#,Gradle core plugins>> are modeled in the same way - for example, the <<java_plugin#,Java Plugin>> configures a generic `java` project,
-while <<java_library_plugin#,Java Library Plugin>> internally applies the <<java_plugin#,Java Plugin>> and configures aspects specific to a Java library in addition.
-Similarly, the <<application_plugin#,Application Plugin>> applies and configures the <<java_plugin#,Java Plugin>> and the <<distribution_plugin#,Distribution Plugin>>.
+In fact, <<plugin_reference#plugin_reference,Gradle core plugins>> are modeled in the same way - for example, the <<java_plugin#java_plugin,Java Plugin>> configures a generic `java` project,
+while <<java_library_plugin#java_library_plugin,Java Library Plugin>> internally applies the <<java_plugin#java_plugin,Java Plugin>> and configures aspects specific to a Java library in addition.
+Similarly, the <<application_plugin#application_plugin,Application Plugin>> applies and configures the <<java_plugin#java_plugin,Java Plugin>> and the <<distribution_plugin#distribution_plugin,Distribution Plugin>>.
 
 You can compose custom build logic by applying and configuring both core and external plugins and create custom plugins
 that define new project _types_ and configure conventions specific to your project or organization.

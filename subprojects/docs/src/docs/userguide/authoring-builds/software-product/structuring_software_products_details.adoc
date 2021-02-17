@@ -1,6 +1,7 @@
+[[tweaking_structure]]
 = Tweaking Project Structure
 
-This chapter covers more details on selected topics related to <<structuring_software_products.adoc#,structuring and building a software product with Gradle>>.
+This chapter covers more details on selected topics related to <<structuring_software_products.adoc#structure_large_projects,structuring and building a software product with Gradle>>.
 
 == Working with the software project
 
@@ -88,11 +89,11 @@ This is described next.
 [[binary_vs_source_components]]
 == Publishing and using binary components
 
-You can also decide to <<publishing_setup.adoc#,publish your components to a binary repository>>.
+You can also decide to <<publishing_setup.adoc#publishing_components,publish your components to a binary repository>>.
 If you make the decision to do so at some point and you want to work with binary versions of certain components instead of the source versions, you can do that by
 <<declaring_repositories.adoc#sub:centralized-repository-declaration,adding the repository to which you published>> instead of the corresponding `includeBuild("...")` statements in your `settings.gradle(.kts)` file.
 If the components keep their coordinates, you do not need to adjust any dependencies.
-You just need to define versions for the components, ideally in a <<platforms.adoc#,platform project>>.
+You just need to define versions for the components, ideally in a <<platforms.adoc#sec:sharing-dep-versions-between-projects,platform project>>.
 
 [[publish-convention-plugins]]
 === Publishing components with convention plugins

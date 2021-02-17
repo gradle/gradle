@@ -15,7 +15,7 @@
 [[scala_plugin]]
 = The Scala Plugin
 
-The Scala plugin extends the <<java_plugin.adoc#,Java plugin>> to add support for https://www.scala-lang.org/[Scala] projects.
+The Scala plugin extends the <<java_plugin.adoc#java_plugin,Java plugin>> to add support for https://www.scala-lang.org/[Scala] projects.
 It can deal with Scala code, mixed Scala and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter).
 The plugin supports _joint compilation_, which allows you to freely mix and match Scala and Java code, with dependencies in both directions.
 For example, a Scala class can extend a Java class that in turn extends a Scala class.
@@ -163,7 +163,7 @@ The Zinc compiler itself needs a compatible version of `scala-library` that may 
 Gradle takes care of specifying a compatible version of `scala-library` for you.
 footnote:[Gradle does not support running the Zinc compiler v1.2.0 with Scala 2.11.]
 
-You can diagnose problems with the version of the Zinc compiler selected by running <<viewing_debugging_dependencies.adoc#,dependencyInsight>> for the `zinc` configuration.
+You can diagnose problems with the version of the Zinc compiler selected by running <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,dependencyInsight>> for the `zinc` configuration.
 
 .Zinc compatibility table
 [%header%autowidth,compact]

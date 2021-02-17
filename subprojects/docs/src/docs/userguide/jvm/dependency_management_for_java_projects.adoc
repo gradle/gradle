@@ -16,7 +16,7 @@
 = Managing Dependencies of JVM Projects
 
 This chapter explains how to apply basic dependency management concepts to JVM-based projects.
-For a detailed introduction to dependency management, see <<core_dependency_management.adoc#,dependency management in Gradle>>.
+For a detailed introduction to dependency management, see <<core_dependency_management.adoc#dependency_management_in_gradle,dependency management in Gradle>>.
 
 [[sec:setting_up_a_standard_build_script_java_tutorial]]
 == Dissecting a typical build script
@@ -48,7 +48,7 @@ include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="buil
 include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=define-dependency]"]
 ====
 
-To find out more about defining dependencies, have a look at <<declaring_dependencies.adoc#,Declaring Dependencies>>.
+To find out more about defining dependencies, have a look at <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>.
 
 [[sec:configurations_java_tutorial]]
 == Using dependency configurations
@@ -100,9 +100,9 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
 
-To find out more about defining repositories, have a look at <<declaring_repositories.adoc#,Declaring Repositories>>.
+To find out more about defining repositories, have a look at <<declaring_repositories.adoc#declaring-repositories,Declaring Repositories>>.
 
 [[sec:publishing_artifacts_java_tutorial]]
 == Publishing artifacts
 
-To learn more about publishing artifacts, have a look at <<publishing_setup.adoc#,publishing plugins>>.
+To learn more about publishing artifacts, have a look at <<publishing_setup.adoc#publishing_components,publishing plugins>>.

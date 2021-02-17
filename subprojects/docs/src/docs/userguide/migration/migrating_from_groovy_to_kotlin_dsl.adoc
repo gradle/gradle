@@ -1,3 +1,4 @@
+[[migrating_groovy_kotlin]]
 = Migrating build logic from Groovy to Kotlin
 :figure-caption!:
 :example-caption!:
@@ -14,10 +15,10 @@ image::intellij-idea-android-studio.png[IntelliJ IDEA and Android Studio]
 
 [TIP]
 --
-Please also read the <<kotlin_dsl.adoc#,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL.
+Please also read the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL.
 
 The rest of the user manual contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL.
-This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins.adoc#,using plugins>> to <<dependency_constraints.adoc#,customizing the dependency resolution behavior>>.
+This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins.adoc#plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
 --
 
 
@@ -30,7 +31,7 @@ This is the best place where to find how to do this and what with each DSL ; and
 * In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts.
 * There are some situations where the Kotlin DSL is slower. First use, on clean checkouts or ephemeral CI agents for example, link:{gradle-issues}15886[are known to be slower].
 The same applies to the scenario in which something in the _buildSrc_ directory changes, which invalidates build-script caching.
-Builds with slow configuration time might affect the IDE responsiveness, please check out the <<performance.adoc#,documentation on Gradle performance>>.
+Builds with slow configuration time might affect the IDE responsiveness, please check out the <<performance.adoc#performance_gradle,documentation on Gradle performance>>.
 * You must run Gradle with Java 8 or higher. Java 7 is not supported.
 * The embedded Kotlin compiler is known to work on Linux, macOS, Windows, Cygwin, FreeBSD and Solaris on x86-64 architectures.
 * Knowledge of Kotlin syntax and basic language features is very helpful. The link:{kotlin-reference}[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] should be useful to you.
@@ -149,7 +150,7 @@ In a multi-project build, you can have some modules using the Groovy DSL (with `
 On top of that, apply the following conventions for better IDE support:
 
 * Name scripts that are applied to `Settings` according to the pattern `*.settings.gradle.kts`,
-* Name <<init_scripts.adoc#,init scripts>> according to the pattern `*.init.gradle.kts`.
+* Name <<init_scripts.adoc#init_scripts,init scripts>> according to the pattern `*.init.gradle.kts`.
 
 
 == Applying plugins
@@ -251,7 +252,7 @@ ____
 One of the major differences between the existing and new Gradle Tasks API is whether or not Gradle spends the time to create `Task` instances and run configuration code. The new API allows Gradle to delay or completely avoid configuring tasks that will never be executed in a build. For example, when compiling code, Gradle does not need to configure tasks that run tests.
 ____
 
-See the link:https://blog.gradle.org/preview-avoiding-task-configuration-time[_Evolving the Gradle API to reduce configuration time_] blog post and the <<task_configuration_avoidance.adoc#,Task Configuration Avoidance>> chapter in the user manual for more information.
+See the link:https://blog.gradle.org/preview-avoiding-task-configuration-time[_Evolving the Gradle API to reduce configuration time_] blog post and the <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>> chapter in the user manual for more information.
 
 The Gradle Kotlin DSL embraces configuration avoidance by making the type-safe model accessors leverage the new APIs and providing DSL constructs to make them easier to use.
 Rest assured, the whole Gradle API remains available.

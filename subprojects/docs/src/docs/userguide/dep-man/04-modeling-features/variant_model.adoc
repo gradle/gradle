@@ -25,7 +25,7 @@ image::component-model-gradle.png[]
 This intermediate level, which associates artifacts and dependencies to variants instead of directly to the component, allows Gradle to model properly what each artifact is used for.
 
 However, this raises the question about how variants are selected: how does Gradle know which variant to choose when there's more than one?
-In practice, variants are selected thanks to the use of <<variant_attributes.adoc#,attributes>>, which provide semantics to the variants and help the engine in achieving a _consistent resolution result_.
+In practice, variants are selected thanks to the use of <<variant_attributes.adoc#variant_attributes,attributes>>, which provide semantics to the variants and help the engine in achieving a _consistent resolution result_.
 
 For historical reasons, Gradle differentiates between two kind of components:
 
@@ -342,10 +342,10 @@ As a consequence, Maven modules are derived into 6 distinct variants, which allo
 
 * 2 "library" variants (attribute `org.gradle.category` = `library`)
 ** the `compile` variant maps the `<scope>compile</scope>` dependencies.
-This variant is equivalent to the `apiElements` variant of the <<java_library_plugin.adoc#,Java Library plugin>>.
+This variant is equivalent to the `apiElements` variant of the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>>.
 All dependencies of this scope are considered _API dependencies_.
 ** the `runtime` variant maps both the `<scope>compile</scope>` and `<scope>runtime</scope>` dependencies.
-This variant is equivalent to the `runtimeElements` variant of the <<java_library_plugin.adoc#,Java Library plugin>>.
+This variant is equivalent to the `runtimeElements` variant of the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>>.
 All dependencies of those scopes are considered _runtime dependencies_.
 - in both cases, the `<dependencyManagement>` dependencies are _not converted to constraints_
 * 4 "platform" variants derived from the `<dependencyManagement>` block (attribute `org.gradle.category` = `platform`):

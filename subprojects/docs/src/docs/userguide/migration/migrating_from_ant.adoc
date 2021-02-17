@@ -252,7 +252,7 @@ Most of Gradle's dependency-related configuration is baked into the build script
 +
 Some Ivy configuration options have no equivalent in Gradle. For example, there are no lock strategies because Gradle ensures that its dependency cache is concurrency safe, period. Nor are there "latest strategies" because it's simpler to have a reliable, single strategy for conflict resolution. If the "wrong" version is picked, you can easily override it using forced versions or other resolution strategy options.
 +
-See the chapter on <<dependency_constraints.adoc#,controlling transitive dependencies>> for more information on this aspect of Gradle.
+See the chapter on <<dependency_constraints.adoc#dependency-constraints,controlling transitive dependencies>> for more information on this aspect of Gradle.
 
 Resolution::
 At the beginning of the build, Gradle will automatically resolve any dependencies that you have declared and download them to its cache.
@@ -260,7 +260,7 @@ It searches the repositories for those dependencies, with the search order defin
 +
 It's worth noting that Gradle supports the same dynamic version syntax as Ivy, so you can still use versions like `1.0.+`. You can also use the special `latest.integration` and `latest.release` labels if you wish. If you decide to use such <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> and <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> dependencies, you can configure the caching behavior for them via link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[resolutionStrategy].
 +
-You might also want to consider <<dependency_locking#,dependency locking>> if you're using dynamic and/or changing dependencies. It's a way to make the build more reliable and allows for https://reproducible-builds.org/[reproducible builds].
+You might also want to consider <<dependency_locking#dependency-locking,dependency locking>> if you're using dynamic and/or changing dependencies. It's a way to make the build more reliable and allows for https://reproducible-builds.org/[reproducible builds].
 
 Retrieval::
 As mentioned, Gradle does not automatically copy files from the dependency cache. Its standard tasks typically use the files directly. If you want to copy the dependencies to a local directory, you can use a link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task like this in your build script:

@@ -1,3 +1,4 @@
+[[performance_gradle]]
 = Improving the Performance of Gradle Builds
 
 TIP: Want faster Gradle Builds? https://gradle.com/training/build-cache-deep-dive/?bid=guides-performance[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
@@ -115,7 +116,7 @@ In addition to the top-level performance summary of your build execution, you ca
 
 == Configuration
 
-As describes in <<build_lifecycle.adoc#,the build lifecycle chapter>>, a Gradle build goes through 3 phases: initialization, configuration, and execution.
+As describes in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through 3 phases: initialization, configuration, and execution.
 The important thing to understand here is that configuration code always executes regardless of which tasks will run.
 That means any expensive work performed during configuration will slow every invocation down, even simple ones like `gradle help` and `gradle tasks`.
 
@@ -349,7 +350,7 @@ It is also possible to use a shared build cache service, like https://gradle.com
 Shared caches can reduce the number of tasks you need to execute by reusing outputs already generated elsewhere.
 This can significantly decrease build times for both CI and developer builds.
 
-For extensive information about leveraging the build cache in your build, check out the documentation about <<build_cache_use_cases.adoc#,using the build cache>>.
+For extensive information about leveraging the build cache in your build, check out the documentation about <<build_cache_use_cases.adoc#use_cases_cache,using the build cache>>.
 It covers the different scenarios caching can improve, and detailed discussions of the different caveats you need to be aware of when enabling caching for a build.
 
 Again, build scans can help you investigate how well your tasks are caching.
@@ -376,7 +377,7 @@ The build scan above shows that `:task1` and `:task3` could be improved and made
 The Gradle daemon is a mechanism for improving the performance of Gradle.
 As of Gradle 3.0, the daemon is enabled by default, but if you are using an older version, you should definitely enable it on local developer machines.
 You will see big improvements in build speed by doing so.
-You can learn how to do that in <<gradle_daemon.adoc#,this section>>.
+You can learn how to do that in <<gradle_daemon.adoc#gradle_daemon,this section>>.
 
 On CI machines the benefit you can expect from the daemon depends on your setup.
 If you have long-lived CI agents and you build lots of small projects that all use the same Gradle version and JVM arguments, then the daemon can reduce your turnarounds.
@@ -565,7 +566,7 @@ dependencies {
 
 This can significantly reduce the "ripple" effect of a single change in large multi-project builds.
 The `implementation` Configuration is available in the `java` plugin.
-`api` dependencies can only be defined by libraries, which should use the <<java_library_plugin.adoc#,`java-library`>> plugin.
+`api` dependencies can only be defined by libraries, which should use the <<java_library_plugin.adoc#java_library_plugin,`java-library`>> plugin.
 
 === Incremental compilation
 
