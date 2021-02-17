@@ -34,6 +34,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import groovy.lang.GroovyObject;
 import org.gradle.api.Named;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -210,10 +211,14 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             return;
         }
         for (Method declaredMethod : declaredMethods) {
-            if (isDefaultInterfaceMethod(declaredMethod) && PropertyAccessorType.of(declaredMethod) == null) {
+            if ((isDefaultInterfaceMethod(declaredMethod) && !isAcceptable(declaredMethod)) && PropertyAccessorType.of(declaredMethod) == null) {
                 problems.add(declaredMethod, "Default interface methods are only supported for getters and setters.");
             }
         }
+    }
+
+    private static boolean isAcceptable(Method method) {
+        return method.getDeclaringClass() == GroovyObject.class;
     }
 
     // Copied from Method.isDefault()
