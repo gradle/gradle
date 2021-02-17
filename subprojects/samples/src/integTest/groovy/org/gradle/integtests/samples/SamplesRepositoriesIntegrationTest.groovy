@@ -41,6 +41,9 @@ class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(sample.dir.file(dsl))
 
         expect:
+        executer.expectDocumentedDeprecationWarning "The RepositoryHandler.jcenter() method has been deprecated." +
+                " This is scheduled to be removed in Gradle 8.0. JCenter will be soon shut down. Use mavenCentral() instead." +
+                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
         succeeds('lookup')
 
         where:

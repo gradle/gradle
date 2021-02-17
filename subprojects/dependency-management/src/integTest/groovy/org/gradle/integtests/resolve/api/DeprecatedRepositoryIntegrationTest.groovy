@@ -31,7 +31,7 @@ class DeprecatedRepositoryIntegrationTest extends AbstractIntegrationSpec {
         when:
         executer.expectDocumentedDeprecationWarning "The RepositoryHandler.jcenter() method has been deprecated." +
             " This is scheduled to be removed in Gradle 8.0. JCenter will be soon shut down. Use mavenCentral() instead." +
-            " Consult the upgrading guide for further information: https://docs.gradle.org/7.0-20210215230000+0000/userguide/upgrading_version_6.html#jcenter_deprecation"
+            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
 
         then:
         succeeds 'help'
