@@ -194,7 +194,7 @@ abstract class AbstractBinaryCompatibilityTest {
                         apply(plugin = "kotlin")
                         the<ModuleIdentityExtension>().baseName.set("api-module")
                         repositories {
-                            jcenter()
+                            mavenCentral()
                         }
                         dependencies {
                             "implementation"(gradleApi())
