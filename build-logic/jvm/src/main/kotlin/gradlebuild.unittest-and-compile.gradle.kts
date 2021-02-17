@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionPlugin
+import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.tasks.ClasspathManifest
@@ -198,10 +198,6 @@ fun configureTests() {
         }
     }
 
-    if (project.testDistributionEnabled()) {
-        plugins.apply(TestDistributionPlugin::class.java)
-    }
-
     fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
 
     tasks.withType<Test>().configureEach {
@@ -229,6 +225,12 @@ fun configureTests() {
             println("Test distribution has been enabled for $testName")
             distribution {
                 enabled.set(true)
+
+
+                // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
+                this as TestDistributionExtensionInternal
+                server.set(uri("https://ge-experiment.grdev.net"))
+
                 if (BuildEnvironment.isCiServer) {
                     when {
                         OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux", "gbt-dogfooding"))
