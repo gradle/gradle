@@ -44,9 +44,9 @@ class GradlePluginVariantsSupportTest extends Specification {
     }
 
     @Unroll
-    def "Gradle #currentGradleVersion #accetpsOrRejects 7.0 api"() {
+    def "Gradle #currentGradleVersion #acceptsOrRejects 7.0 api"() {
         given:
-        def accepts = accetpsOrRejects == 'accepts'
+        def accepts = acceptsOrRejects == 'accepts'
 
         when:
         def consumer = versionAttribute(currentGradleVersion)
@@ -57,7 +57,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         accepts == matcher.isMatching(schema(), producer, consumer)
 
         where:
-        currentGradleVersion       | accetpsOrRejects
+        currentGradleVersion       | acceptsOrRejects
         '7.0'                      | 'accepts'
         '7.0-20210211230048+0000'  | 'accepts'
         '7.0-milestone-1'          | 'accepts'
@@ -92,7 +92,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         def producer = [
             versionAttribute('6.0'),
             versionAttribute('7.0'),
-            versionAttribute('7.1'), // 7.1 is the closest to 7.2 in this list
+            versionAttribute('7.1'), // 7.1 is the closest compatible (i.e. lower) version to 7.2 in this list
             versionAttribute('7.1-rc-2'), // this is bad practice: targeting a not-GA version
             versionAttribute('7.5'),
             versionAttribute('7.5'), // the duplicated '7.5' does not bother in this case
