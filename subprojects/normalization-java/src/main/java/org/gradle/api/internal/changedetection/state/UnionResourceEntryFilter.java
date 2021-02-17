@@ -37,6 +37,7 @@ public class UnionResourceEntryFilter implements ResourceEntryFilter {
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
+        hasher.putString(getClass().getName());
         filters.forEach(resourceEntryFilter -> resourceEntryFilter.appendConfigurationToHasher(hasher));
     }
 }

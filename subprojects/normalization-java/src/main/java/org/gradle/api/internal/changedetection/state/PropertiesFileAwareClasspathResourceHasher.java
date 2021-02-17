@@ -58,6 +58,8 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
+        delegate.appendConfigurationToHasher(hasher);
+        hasher.putString(getClass().getName());
         propertiesFilePatterns.forEach(hasher::putString);
         propertiesFileFilters.values().forEach(resourceEntryFilter -> resourceEntryFilter.appendConfigurationToHasher(hasher));
     }

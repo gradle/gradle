@@ -20,12 +20,17 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
+import spock.lang.Issue
 import spock.lang.Unroll
+
+import java.util.jar.Attributes
+import java.util.jar.Manifest
 
 @Unroll
 class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     def "can ignore files on runtime classpath in #tree (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(api).withFilesIgnored()
 
@@ -80,6 +85,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | Api.ANNOTATION
     }
 
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     @Unroll
     def "can ignore manifest attributes in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestAttributesIgnored()
@@ -96,7 +102,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
 
         when:
-        manifestResource.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        manifestResource.changeAttributes((IMPLEMENTATION_VERSION): "1.0.1")
         succeeds project.customTask
         then:
         skipped(project.customTask)
@@ -107,7 +113,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'directory' | 'manifestInDirectory'
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     @Unroll
     def "can ignore entire manifest in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestIgnored()
@@ -124,7 +130,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
 
         when:
-        manifestResource.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        manifestResource.changeAttributes((IMPLEMENTATION_VERSION): "1.0.1")
         succeeds project.customTask
         then:
         skipped(project.customTask)
@@ -135,7 +141,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'directory' | 'manifestInDirectory'
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     @Unroll
     def "can ignore all meta-inf files in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withAllMetaInfIgnored()
@@ -152,7 +158,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
 
         when:
-        manifestResource.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        manifestResource.changeAttributes((IMPLEMENTATION_VERSION): "1.0.1")
         project.jarManifestProperties.replaceContents("implementation-version=1.0.1")
         succeeds project.customTask
         then:
@@ -164,7 +170,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'directory' | 'manifestInDirectory'
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     def "can ignore manifest properties on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestPropertiesIgnored()
 
@@ -185,7 +191,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     def "can configure ignore rules per project (using runtime API: #api)"() {
         def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a', api).withFilesIgnored()
         def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b', api)
@@ -235,13 +241,13 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         change                      | config                                                    | api
         'ignore file'               | "ignore '**/some-other-file.txt'"                         | Api.RUNTIME
         'ignore file'               | "ignore '**/some-other-file.txt'"                         | Api.ANNOTATION
-        'ignore manifest attribute' | "metaInf { ignoreAttribute 'Implementation-version' }"    | Api.RUNTIME
-        'ignore manifest attribute' | "metaInf { ignoreAttribute 'Implementation-version' }"    | Api.ANNOTATION
+        'ignore manifest attribute' | "metaInf { ignoreAttribute '${IMPLEMENTATION_VERSION}' }" | Api.RUNTIME
+        'ignore manifest attribute' | "metaInf { ignoreAttribute '${IMPLEMENTATION_VERSION}' }" | Api.ANNOTATION
         'ignore property'           | "properties { ignoreProperty 'timestamp' }"               | Api.RUNTIME
         'ignore property'           | "properties { ignoreProperty 'timestamp' }"               | Api.ANNOTATION
     }
-
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     def "can ignore properties on runtime classpath in #tree (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(api).withPropertiesIgnored()
 
@@ -281,7 +287,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested in dir jars' | 'propertiesFileInNestedInDirJar' | Api.ANNOTATION
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     def "can ignore properties in selected files"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
         def notIgnoredPropertiesFile = new PropertiesResource(project.root.file('classpath/dirEntry/bar.properties'), [(IGNORE_ME_TOO): 'this should not actually be ignored'])
@@ -318,7 +324,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     def "can ignore properties in selected files defined in multiple rules"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
         def notIgnoredPropertiesFile = new PropertiesResource(project.root.file('classpath/dirEntry/bar.properties'), [(IGNORE_ME_TOO): 'this should not actually be ignored'])
@@ -403,7 +409,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     def "can add rules to the default properties rule"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
         def notIgnoredPropertiesFile = new PropertiesResource(project.root.file('classpath/dirEntry/bar.properties'), [(IGNORE_ME): 'this should not actually be ignored'])
@@ -466,9 +472,51 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
     }
 
+    @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
+    @Issue('https://github.com/gradle/gradle/issues/16144')
+    def "changing normalization configuration rules changes build cache key (#description)"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
+        project.propertiesFileInJar.changeProperty(ALSO_IGNORE_ME, 'some value')
+
+        // We implement this with a flag, rather than just changing the build script, because we don't want the change in build script to affect
+        // the cache hit. We want the only change to be in the normalization rules so we can be sure that's what's changing the cache key.
+        project.buildFile << """
+            normalization {
+                runtimeClasspath {
+                    if (project.hasProperty('${enableFilterFlag}')) {
+                        ${normalizationRule}
+                    }
+                }
+            }
+        """
+
+        when:
+        args('--build-cache')
+        succeeds 'clean', project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        args("-P${enableFilterFlag}", '--build-cache')
+        succeeds 'clean', project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        where:
+        enableFilterFlag        | normalizationRule                                                         | description
+        PROPERTIES_FILTER_FLAG  | "properties('**/foo.properties') { ignoreProperty '${ALSO_IGNORE_ME}' }"  | 'properties rule'
+        META_INF_FILTER_FLAG    | "metaInf { ignoreAttribute '${IMPLEMENTATION_VERSION}' }"                 | 'meta-inf rule'
+        FILE_FILTER_FLAG        | "ignore '**/ignored.txt'"                                                 | 'ignore rule'
+    }
+
     static final String IGNORE_ME = 'ignore-me'
+    static final String ALSO_IGNORE_ME = 'also-ignore-me'
     static final String IGNORE_ME_TOO = 'ignore-me-too'
     static final String DONT_IGNORE_ME = 'dont-ignore-me'
+    static final String IMPLEMENTATION_VERSION = Attributes.Name.IMPLEMENTATION_VERSION.toString()
+    static final String PROPERTIES_FILTER_FLAG = "filterProperties"
+    static final String META_INF_FILTER_FLAG = "filterMetaInf"
+    static final String FILE_FILTER_FLAG = "filterFile"
 
     enum Api {
         RUNTIME, ANNOTATION
@@ -476,6 +524,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
     class ProjectWithRuntimeClasspathNormalization {
         final TestFile root
+        final TestFile buildCacheDir
         TestResource ignoredResourceInDirectory
         TestResource notIgnoredResourceInDirectory
         TestResource ignoredResourceInJar
@@ -484,9 +533,9 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         TestResource notIgnoredResourceInJar
         TestResource notIgnoredResourceInNestedJar
         TestResource notIgnoredResourceInNestedInDirJar
-        TestResource jarManifest
+        ManifestResource jarManifest
         TestResource jarManifestProperties
-        TestResource manifestInDirectory
+        ManifestResource manifestInDirectory
         PropertiesResource propertiesFileInDir
         PropertiesResource propertiesFileInJar
         PropertiesResource propertiesFileInNestedJar
@@ -499,10 +548,22 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         private TestFile nestedInDirJarContents
         private final String projectName
         final TestFile buildFile
+        final TestFile settingsFile
 
         ProjectWithRuntimeClasspathNormalization(String projectName = null, Api api) {
             this.projectName = projectName
             this.root = projectName ? file(projectName) : temporaryFolder.testDirectory
+            this.buildCacheDir = testDirectory.file("build-cache")
+
+            def buildCachePath = TextUtil.normaliseFileSeparators(buildCacheDir.absolutePath)
+
+            settingsFile = root.file('settings.gradle') << """
+                buildCache {
+                    local {
+                        directory = file('${buildCachePath}')
+                    }
+                }
+            """
 
             buildFile = root.file('build.gradle') << """
                 apply plugin: 'base'
@@ -520,7 +581,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 notIgnoredResourceInDirectory = new TestResource(file("not-ignored.txt") << "This should not be ignored")
                 nestedInDirJar = file('nestedInDir.jar')
                 propertiesFileInDir = new PropertiesResource(file('some/path/to/foo.properties'), [(IGNORE_ME): 'this should be ignored', (DONT_IGNORE_ME): 'this should not be ignored'])
-                manifestInDirectory = new TestResource(file('META-INF/MANIFEST.MF') << "Manifest-Version: 1.0\nImplementation-Version: 1.0.0")
+                manifestInDirectory = new ManifestResource(file('META-INF/MANIFEST.MF')).withAttributes((IMPLEMENTATION_VERSION): "1.0.0")
             }
             nestedJarContents = root.file('libraryContents').create {
                 ignoredResourceInNestedJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
@@ -528,7 +589,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 propertiesFileInNestedJar = new PropertiesResource(file('some/path/to/foo.properties'), [(IGNORE_ME): 'this should be ignored', (DONT_IGNORE_ME): 'this should not be ignored'], this.&createJar)
             }
             libraryJarContents = root.file('libraryContents').create {
-                jarManifest = new TestResource(file('META-INF/MANIFEST.MF') << "Manifest-Version: 1.0\nImplementation-Version: 1.0.0", this.&createJar)
+                jarManifest = new ManifestResource(file('META-INF/MANIFEST.MF'), this.&createJar).withAttributes((IMPLEMENTATION_VERSION): "1.0.0")
                 jarManifestProperties = new TestResource(file('META-INF/build-info.properties') << "implementation-version=1.0.0", this.&createJar)
                 ignoredResourceInJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
                 notIgnoredResourceInJar = new TestResource(file('some/package/not-ignored.txt') << "This should not be ignored", this.&createJar)
@@ -550,6 +611,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                             .withNormalizer(ClasspathNormalizer)
                         outputs.file(outputFile)
                             .withPropertyName("outputFile")
+                        outputs.cacheIf { true }
 
                         doLast {
                             outputFile.text = "done"
@@ -558,6 +620,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 """
             } else {
                 return """
+                    @CacheableTask
                     class CustomTask extends DefaultTask {
                         @OutputFile File outputFile = new File(temporaryDir, "output.txt")
                         @Classpath FileCollection classpath = project.layout.files("classpath/dirEntry", "library.jar")
@@ -632,7 +695,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 normalization {
                     runtimeClasspath {
                         metaInf {
-                            ignoreAttribute "Implementation-Version"
+                            ignoreAttribute "${IMPLEMENTATION_VERSION}"
                         }
                     }
                 }
@@ -704,6 +767,44 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
         void changed() {
             onChange.call()
+        }
+    }
+
+    class ManifestResource extends TestResource {
+        Map<String, String> attributes
+
+        ManifestResource(TestFile backingFile, Closure onChange = {}) {
+            super(backingFile, onChange)
+        }
+
+        ManifestResource withAttributes(Map<String, String> attributes) {
+            this.attributes = attributes
+            def manifest = new Manifest()
+            def mainAttributes = manifest.getMainAttributes()
+            mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
+            attributes.each {name, value ->
+                mainAttributes.put(new Attributes.Name(name), value)
+            }
+            backingFile.withOutputStream {os ->
+                manifest.write(os)
+            }
+            return this
+        }
+
+        ManifestResource changeAttributes(Map<String, String> attributes) {
+            withAttributes(attributes)
+            changed()
+            return this
+        }
+
+        @Override
+        void changeContents() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void add() {
+            throw new UnsupportedOperationException()
         }
     }
 

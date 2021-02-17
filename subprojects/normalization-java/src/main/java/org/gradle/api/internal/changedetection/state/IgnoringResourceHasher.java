@@ -33,6 +33,8 @@ public class IgnoringResourceHasher implements ResourceHasher {
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
+        delegate.appendConfigurationToHasher(hasher);
+        hasher.putString(getClass().getName());
         resourceFilter.appendConfigurationToHasher(hasher);
     }
 
