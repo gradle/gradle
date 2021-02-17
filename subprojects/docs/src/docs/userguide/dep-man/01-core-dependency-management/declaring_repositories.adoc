@@ -44,6 +44,11 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-jcenter]"]
 ====
 
+[WARNING]
+====
+JCenter will soon be link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[decommissioned], hence the `jcenter()` method is now deprecated.
+====
+
 [[sub:maven_google]]
 === Google Maven repository
 
