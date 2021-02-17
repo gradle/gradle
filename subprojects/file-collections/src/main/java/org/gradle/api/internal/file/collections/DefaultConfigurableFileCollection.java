@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
@@ -171,23 +170,22 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void setFrom(Iterable<?> path) {
-        if (assertMutable()) {
-            value = value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, path);
-        }
+        assertMutable();
+        value = value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, path);
     }
 
     @Override
     public void setFrom(Object... paths) {
-        if (assertMutable()) {
-            value = paths.length > 0
-                ? value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, paths)
-                : EMPTY_COLLECTOR;
-        }
+        assertMutable();
+        value = paths.length > 0
+            ? value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, paths)
+            : EMPTY_COLLECTOR;
     }
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
-        if (assertMutable() && paths.length > 0) {
+        assertMutable();
+        if (paths.length > 0) {
             value = value.plus(this, resolver, patternSetFactory, dependencyFactory, host, paths);
         }
         return this;
@@ -207,19 +205,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return newFiles;
     }
 
-    private boolean assertMutable() {
+    private void assertMutable() {
         if (state == State.Final && disallowChanges) {
             throw new IllegalStateException("The value for " + displayNameForThisCollection() + " is final and cannot be changed.");
         } else if (disallowChanges) {
             throw new IllegalStateException("The value for " + displayNameForThisCollection() + " cannot be changed.");
         } else if (state == State.Final) {
-            DeprecationLogger.deprecateAction("Changing the value for a FileCollection with a final value")
-                .willBecomeAnErrorInGradle7()
-                .withUserManual("lazy_configuration", "unmodifiable_property")
-                .nagUser();
-            return false;
-        } else {
-            return true;
+            throw new IllegalStateException("The value for " + displayNameForThisCollection() + " is final and cannot be changed.");
         }
     }
 
@@ -520,9 +512,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
                 @Override
                 public void remove() {
-                    if (assertMutable()) {
-                        iterator.remove();
-                    }
+                    assertMutable();
+                    iterator.remove();
                 }
             };
         }
@@ -539,7 +530,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public boolean add(Object o) {
-            if (assertMutable() && !delegate().contains(o)) {
+            assertMutable();
+            if (!delegate().contains(o)) {
                 value = value.plus(DefaultConfigurableFileCollection.this, resolver, patternSetFactory, dependencyFactory, host, o);
                 return true;
             } else {
@@ -549,18 +541,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public boolean remove(Object o) {
-            if (assertMutable()) {
-                return value.remove(o);
-            } else {
-                return false;
-            }
+            assertMutable();
+            return value.remove(o);
         }
 
         @Override
         public void clear() {
-            if (assertMutable()) {
-                value = EMPTY_COLLECTOR;
-            }
+            assertMutable();
+            value = EMPTY_COLLECTOR;
         }
     }
 }
