@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.FileException;
@@ -73,7 +74,8 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
 
     @Override
     public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
-        File destDir = new File(cacheDir, hashOf(sourceSnapshot));
+        String destDirName = hashOf(sourceSnapshot);
+        File destDir = new File(cacheDir, destDirName);
         String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
         File receipt = new File(destDir, destFileName + ".receipt");
         File transformed = new File(destDir, destFileName);
@@ -83,25 +85,29 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             return transformed;
         }
 
-        final FileLock fileLock = fileLockManager.lock(transformed, exclusiveCrossVersionLock(), "instrumented classpath file");
+        final FileLock exclusiveCrossVersionLock = lock(transformed);
         try {
             if (receipt.isFile()) {
-                // Lock was acquired after a concurrent writer has already finished.
+                // Lock was acquired after a concurrent writer had already finished.
                 return transformed;
             }
             transform(source, transformed);
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
-                LOGGER.debug("Failed to create receipt for instrumented classpath file '{}'.", destFileName, e);
+                LOGGER.debug("Failed to create receipt for instrumented classpath file '{}/{}'.", destDirName, destFileName, e);
             }
             return transformed;
         } finally {
-            fileLock.close();
+            exclusiveCrossVersionLock.close();
         }
     }
 
-    private LockOptionsBuilder exclusiveCrossVersionLock() {
+    private FileLock lock(File file) {
+        return fileLockManager.lock(file, exclusiveCrossVersionLock(), "instrumented classpath file");
+    }
+
+    private LockOptions exclusiveCrossVersionLock() {
         return LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation();
     }
 
