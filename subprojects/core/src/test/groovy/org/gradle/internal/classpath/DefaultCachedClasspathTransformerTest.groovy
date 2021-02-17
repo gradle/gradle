@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.FileLockManager
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.UsedGradleVersions
@@ -66,6 +67,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def classpathBuilder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.root))
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def globalCacheLocations = Stub(GlobalCacheLocations)
+    def fileLockManager = Stub(FileLockManager)
     URLClassLoader testClassLoader = null
 
     @Subject
@@ -77,7 +79,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         classpathBuilder,
         fileSystemAccess,
         executorFactory,
-        globalCacheLocations
+        globalCacheLocations,
+        fileLockManager
     )
 
     def cleanup() {
@@ -126,7 +129,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         0 * fileAccessTimeJournal._
     }
 
-    def "discards missing file when tranform is build logic"() {
+    def "discards missing file when transform is build logic"() {
         given:
         def classpath = DefaultClassPath.of(testDir.file("missing"))
 
