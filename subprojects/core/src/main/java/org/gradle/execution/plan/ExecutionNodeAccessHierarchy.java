@@ -83,12 +83,14 @@ public class ExecutionNodeAccessHierarchy {
             return false;
         }
         // All parent paths need to match the spec as well, since this is how we implement the file system walking for file tree.
-        File parentFile = element.getParentFile();
         RelativePath parentRelativePath = relativePath.getParent();
-        for (; parentRelativePath != null && parentRelativePath != RelativePath.EMPTY_ROOT; parentRelativePath = parentRelativePath.getParent(), parentFile = parentFile.getParentFile()) {
+        File parentFile = element.getParentFile();
+        while (parentRelativePath != null && parentRelativePath != RelativePath.EMPTY_ROOT) {
             if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(parentFile, parentRelativePath, stat))) {
                 return false;
             }
+            parentRelativePath = parentRelativePath.getParent();
+            parentFile = parentFile.getParentFile();
         }
         return true;
     }
@@ -218,7 +220,7 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public boolean isDirectory() {
-            return file.isDirectory();
+            return !relativePath.isFile();
         }
 
         @Override

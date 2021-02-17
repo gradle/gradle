@@ -173,7 +173,7 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         assertNodesAccessing("/other", root)
     }
 
-    def "can query for nodes accessing using excludes for parts of paths"() {
+    def "can return nodes accessing some path taking includes and excludes into consideration"() {
         def childNode = Mock(Node)
 
         hierarchy.recordNodeAccessingLocations(childNode, ["/some/root/child/relative/path"])

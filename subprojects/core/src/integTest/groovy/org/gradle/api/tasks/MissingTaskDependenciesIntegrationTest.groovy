@@ -360,7 +360,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16061")
-    def "excludes part of paths works with missing dependency detection"() {
+    def "missing dependency detection takes excludes into account"() {
         file("src/main/java/my/JavaClass.java").text = """
             package my;
 
