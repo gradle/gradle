@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":resources"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyAnt)
     implementation(libs.ant)
     implementation(libs.guava)
     implementation(libs.commonsLang)
