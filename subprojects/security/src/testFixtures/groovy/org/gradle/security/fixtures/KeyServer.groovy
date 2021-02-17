@@ -39,8 +39,8 @@ class KeyServer extends HttpServer {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 if (request.queryString.startsWith("op=get&options=mr&search=0x")) {
                     String keyId = request.queryString - "op=get&options=mr&search=0x"
-                    if (keyFiles.containsKey(keyId)) {
-                        fileHandler("/pks/lookup", keyFiles[keyId]).handle(request, response)
+                    if (KeyServer.this.keyFiles.containsKey(keyId)) {
+                        KeyServer.this.fileHandler("/pks/lookup", KeyServer.this.keyFiles[keyId]).handle(request, response)
                     } else {
                         response.sendError(404, "not found")
                     }
