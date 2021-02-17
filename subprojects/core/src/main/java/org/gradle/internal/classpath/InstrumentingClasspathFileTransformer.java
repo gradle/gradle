@@ -75,7 +75,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
         File destDir = new File(cacheDir, hashOf(sourceSnapshot));
         String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
-        File receipt = new File(destDir, ".receipt");
+        File receipt = new File(destDir, destFileName + ".receipt");
         File transformed = new File(destDir, destFileName);
 
         // Avoid file locking overhead by checking for the receipt first.
