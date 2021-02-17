@@ -79,6 +79,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final NodeValidator nodeValidator;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy inputHierarchy;
+    private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private boolean invalidNodeRunning;
@@ -99,7 +100,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         TaskDependencyResolver dependencyResolver,
         NodeValidator nodeValidator,
         ExecutionNodeAccessHierarchy outputHierarchy,
-        ExecutionNodeAccessHierarchy inputHierarchy
+        ExecutionNodeAccessHierarchy inputHierarchy,
+        ExecutionNodeAccessHierarchy destroyableHierarchy
     ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
@@ -107,6 +109,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.nodeValidator = nodeValidator;
         this.outputHierarchy = outputHierarchy;
         this.inputHierarchy = inputHierarchy;
+        this.destroyableHierarchy = destroyableHierarchy;
     }
 
     @Override
@@ -504,6 +507,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         runningNodes.clear();
         outputHierarchy.clear();
         inputHierarchy.clear();
+        destroyableHierarchy.clear();
     }
 
     @Override
@@ -654,6 +658,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             node.resolveMutations();
             mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
             outputHierarchy.recordNodeAccessingLocations(node, mutations.outputPaths);
+            destroyableHierarchy.recordNodeAccessingLocations(node, mutations.destroyablePaths);
         }
         return mutations;
     }
@@ -689,10 +694,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             ? candidateNodeOutputs
             : mutations.destroyablePaths;
         if (!candidateMutationPaths.isEmpty()) {
-            for (Node runningNode : runningNodes) {
-                MutationInfo runningMutations = runningNode.getMutationInfo();
-                Iterable<String> runningMutationPaths = Iterables.concat(runningMutations.outputPaths, runningMutations.destroyablePaths);
-                if (hasOverlap(candidateMutationPaths, runningMutationPaths)) {
+            for (String nodeOutput : candidateMutationPaths) {
+                if (outputHierarchy.getNodesAccessing(nodeOutput).stream().anyMatch(runningNodes::contains)) {
+                    return true;
+                }
+                if (destroyableHierarchy.getNodesAccessing(nodeOutput).stream().anyMatch(runningNodes::contains)) {
                     return true;
                 }
             }
