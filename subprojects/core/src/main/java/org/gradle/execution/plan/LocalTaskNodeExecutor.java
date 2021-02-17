@@ -39,6 +39,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -190,32 +191,31 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         // Do a breadth first search for any dependency
         Deque<Node> queue = new ArrayDeque<>();
         Set<Node> seenNodes = new HashSet<>();
-        consumer.getHardSuccessors().forEach(successor ->
-            findHardTaskSuccessors(successor, taskSuccessor -> {
-                if (seenNodes.add(taskSuccessor)) {
-                    queue.add(taskSuccessor);
-                }
-            }));
+        addHardSuccessorTasksToQueue(consumer, queue, seenNodes);
         while (!queue.isEmpty()) {
             Node dependency = queue.removeFirst();
             if (dependency == producer) {
                 return false;
             }
-            dependency.getHardSuccessors().forEach(successor ->
-                findHardTaskSuccessors(successor, taskSuccessor -> {
-                    if (seenNodes.add(taskSuccessor)) {
-                        queue.add(taskSuccessor);
-                    }
-                }));
+            addHardSuccessorTasksToQueue(dependency, queue, seenNodes);
         }
         return true;
     }
 
-    private static void findHardTaskSuccessors(Node node, Consumer<LocalTaskNode> taskNodeConsumer) {
+    private static void addHardSuccessorTasksToQueue(Node node, Queue<Node> queue, Set<Node> seenNodes) {
+        node.getHardSuccessors().forEach(hardSuccessor ->
+            findHardSuccessorTasks(hardSuccessor, taskSuccessor -> {
+                if (seenNodes.add(taskSuccessor)) {
+                    queue.add(taskSuccessor);
+                }
+            }));
+    }
+
+    private static void findHardSuccessorTasks(Node node, Consumer<LocalTaskNode> taskNodeConsumer) {
         if (node instanceof LocalTaskNode) {
             taskNodeConsumer.accept((LocalTaskNode) node);
         } else {
-            node.getHardSuccessors().forEach(successor -> findHardTaskSuccessors(successor, taskNodeConsumer));
+            node.getHardSuccessors().forEach(successor -> findHardSuccessorTasks(successor, taskNodeConsumer));
         }
     }
 
