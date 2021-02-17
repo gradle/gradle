@@ -22,11 +22,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simpl
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
+import spock.lang.Shared
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
 
 @CompileStatic
 trait ExcludeTestSupport {
+
+    @Shared
     ExcludeFactory factory = new DefaultExcludeFactory()
 
     ExcludeSpec group(String group) {

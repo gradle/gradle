@@ -141,29 +141,19 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         then:
         def gradleVersion = GradleVersion.current().version
         def gradleBaseVersion = GradleVersion.current().baseVersion.version
-        def groovyVersion = getGradleGroovyVersion()
+        def groovyVersion = GroovySystem.version
         def kotlinVersion = getGradleKotlinVersion()
-        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, groovy-all-${groovyVersion}.jar, kotlin-stdlib-${kotlinVersion}.jar, kotlin-stdlib-common-${kotlinVersion}.jar, kotlin-stdlib-jdk7-${kotlinVersion}.jar, kotlin-stdlib-jdk8-${kotlinVersion}.jar, kotlin-reflect-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
+        def groovyModules = ["groovy-${groovyVersion}.jar","groovy-ant-${groovyVersion}.jar", "groovy-groovydoc-${groovyVersion}.jar","javaparser-core-3.17.0.jar","groovy-datetime-${groovyVersion}.jar","groovy-json-${groovyVersion}.jar","groovy-test-${groovyVersion}.jar","groovy-templates-${groovyVersion}.jar","groovy-xml-${groovyVersion}.jar"]
+        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, ${groovyModules.join(", ")}, kotlin-stdlib-${kotlinVersion}.jar, kotlin-stdlib-common-${kotlinVersion}.jar, kotlin-stdlib-jdk7-${kotlinVersion}.jar, kotlin-stdlib-jdk8-${kotlinVersion}.jar, kotlin-reflect-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
         def expectedGradleApiIds = { id ->
-            "gradle-api-${gradleVersion}.jar ($id), groovy-all-${groovyVersion}.jar ($id), kotlin-stdlib-${kotlinVersion}.jar ($id), kotlin-stdlib-common-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk7-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk8-${kotlinVersion}.jar ($id), kotlin-reflect-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
+            "gradle-api-${gradleVersion}.jar ($id), ${groovyModules.collect({ it +  " ($id)"}).join(", ")}, kotlin-stdlib-${kotlinVersion}.jar ($id), kotlin-stdlib-common-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk7-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk8-${kotlinVersion}.jar ($id), kotlin-reflect-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
         }
         outputContains("gradleApi() files: [$expectedGradleApiFiles]")
         outputContains("gradleApi() ids: [${expectedGradleApiIds("Gradle API")}]")
         outputContains("gradleTestKit() files: [gradle-test-kit-${gradleVersion}.jar, $expectedGradleApiFiles]")
         outputContains("gradleTestKit() ids: [gradle-test-kit-${gradleVersion}.jar (Gradle TestKit), ${expectedGradleApiIds("Gradle TestKit")}]")
-        outputContains("localGroovy() files: [groovy-all-${groovyVersion}.jar]")
-        outputContains("localGroovy() ids: [groovy-all-${groovyVersion}.jar (Local Groovy)]")
-    }
-
-    /**
-     * Find the version number of the groovy-all.jar packaged by Gradle.
-     * See more about the reasons for repackaging Groovy here: https://github.com/gradle/gradle-groovy-all.
-     */
-    private static String getGradleGroovyVersion() {
-        def gradleGroovyVersionProps = new Properties()
-        def gradleGroovyVersionResource = DependencyHandlerApiResolveIntegrationTest.getResource("/gradle-groovy-all-version.properties")
-        gradleGroovyVersionProps.load(new StringReader(gradleGroovyVersionResource.text))
-        return gradleGroovyVersionProps.version
+        outputContains("localGroovy() files: [${groovyModules.join(", ")}]")
+        outputContains("localGroovy() ids: [${groovyModules.collect({it + " (Local Groovy)"}).join(", ")}]")
     }
 
     private static String getGradleKotlinVersion() {
