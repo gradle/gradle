@@ -32,7 +32,7 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     protected Supplier<String> shortProblemDescription;
     protected Supplier<String> longDescription = () -> null;
     protected Supplier<String> reason = () -> null;
-    protected Supplier<String> documentationLink = () -> null;
+    protected UserManualReference userManualReference;
     protected final List<Supplier<Solution>> possibleSolutions = Lists.newArrayListWithExpectedSize(1);
 
     public AbstractValidationProblemBuilder(DocumentationRegistry documentationRegistry) {
@@ -74,7 +74,7 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
 
     @Override
     public T documentedAt(String id, String section) {
-        this.documentationLink = () -> documentationRegistry.getDocumentationFor(id, section);
+        this.userManualReference = new UserManualReference(documentationRegistry, id, section);
         return Cast.uncheckedCast(this);
     }
 
@@ -87,4 +87,5 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     }
 
     public abstract TypeValidationProblem build();
+
 }

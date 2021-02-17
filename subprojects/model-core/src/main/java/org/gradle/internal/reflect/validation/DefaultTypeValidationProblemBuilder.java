@@ -44,7 +44,7 @@ public class DefaultTypeValidationProblemBuilder extends AbstractValidationProbl
             shortProblemDescription,
             longDescription,
             reason,
-            documentationLink,
+            userManualReference,
             possibleSolutions
         );
     }

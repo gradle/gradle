@@ -234,9 +234,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(true, [
-            "Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.": ERROR,
-            "Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types.": ERROR,
-            "Type 'MyTask.Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.": ERROR,
+            error("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
+            error("Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types."),
+            error("Type 'MyTask.Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
         ])
     }
 
@@ -786,9 +786,24 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract void assertValidationSucceeds()
 
-    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, Severity> messages)
+    @Deprecated
+    final void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, Severity> messages) {
+        assertValidationFailsWith(expectDeprecationsForErrors, messages.collect {message, severity ->
+            new DocumentedProblem(message, severity)
+        })
+    }
+
+    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, List<DocumentedProblem> messages)
 
     abstract TestFile source(String path)
+
+    static DocumentedProblem error(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+        new DocumentedProblem(message, ERROR, id, section)
+    }
+
+    static DocumentedProblem warning(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+        new DocumentedProblem(message, WARNING, id, section)
+    }
 
     TestFile getJavaTaskSource() {
         source("src/main/java/MyTask.java")
@@ -799,5 +814,19 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             apply plugin: "groovy"
         """
         source("src/main/groovy/MyTask.groovy")
+    }
+
+    static class DocumentedProblem {
+        final String message
+        final Severity severity
+        final String id
+        final String section
+
+        DocumentedProblem(String message, Severity severity, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+            this.message = message
+            this.severity = severity
+            this.id = id
+            this.section = section
+        }
     }
 }

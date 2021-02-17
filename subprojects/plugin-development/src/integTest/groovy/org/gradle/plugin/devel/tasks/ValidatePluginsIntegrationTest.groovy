@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
-import org.gradle.internal.reflect.validation.Severity
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -52,14 +51,14 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     @Override
-    void assertValidationFailsWith(boolean expectDeprecationsForErrors, Map<String, Severity> messages) {
+    void assertValidationFailsWith(boolean expectDeprecationsForErrors, List<DocumentedProblem> messages) {
         fails "validatePlugins"
         def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.txt"))
-        report.verify(messages)
+        report.verify(messages.collectEntries {[(it.message): it.severity ]})
 
         failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size()>1?'s':''}"
-        messages.forEach { message, severity ->
-            failure.assertThatCause(containsString("$severity: $message"))
+        messages.forEach { problem ->
+            failure.assertThatCause(containsString("$problem.severity: $problem.message"))
         }
     }
 

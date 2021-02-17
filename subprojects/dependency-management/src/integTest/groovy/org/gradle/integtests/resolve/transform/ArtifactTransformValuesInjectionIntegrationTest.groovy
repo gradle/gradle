@@ -972,7 +972,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         executer.expectDocumentedDeprecationWarning("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+            "See https://docs.gradle.org/current/userguide/validation_problems.html#invalid_use_of_cacheable_transform_annotation for more details.")
 
         expect:
         fails('broken')
@@ -1004,7 +1004,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         executer.expectDocumentedDeprecationWarning("Type 'Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+            "See https://docs.gradle.org/current/userguide/validation_problems.html#invalid_use_of_cacheable_transform_annotation for more details.")
 
         expect:
         // Probably should be eager

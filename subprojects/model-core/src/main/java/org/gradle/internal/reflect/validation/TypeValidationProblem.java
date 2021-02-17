@@ -19,17 +19,22 @@ import me.champeau.jdoctor.BaseProblem;
 import me.champeau.jdoctor.Solution;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation, Void> {
+    @Nullable
+    private final UserManualReference userManualReference;
+
     public TypeValidationProblem(ValidationProblemId id,
                                  Severity severity,
                                  TypeValidationProblemLocation where,
                                  Supplier<String> shortDescription,
                                  Supplier<String> longDescription,
                                  Supplier<String> reason,
-                                 Supplier<String> docUrl,
+                                 @Nullable UserManualReference userManualReference,
                                  List<Supplier<Solution>> solutions) {
         super(id,
             severity,
@@ -38,8 +43,12 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
             shortDescription,
             longDescription,
             reason,
-            docUrl,
+            () -> userManualReference == null ? null : userManualReference.toDocumentationLink(),
             solutions);
+        this.userManualReference = userManualReference;
     }
 
+    public Optional<UserManualReference> getUserManualReference() {
+        return Optional.ofNullable(userManualReference);
+    }
 }

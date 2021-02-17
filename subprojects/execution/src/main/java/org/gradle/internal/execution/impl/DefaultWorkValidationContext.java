@@ -16,16 +16,14 @@
 
 package org.gradle.internal.execution.impl;
 
-import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -34,7 +32,7 @@ import java.util.Set;
 
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final List<TypeValidationProblem> problems = Lists.newArrayList();
+    private final ImmutableList.Builder<TypeValidationProblem> problems = ImmutableList.builder();
     private final DocumentationRegistry documentationRegistry;
 
     public DefaultWorkValidationContext(DocumentationRegistry documentationRegistry) {
@@ -56,14 +54,9 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         };
     }
 
-    public ImmutableMultimap<Severity, String> getProblems() {
-        ImmutableMultimap.Builder<Severity, String> builder = ImmutableMultimap.builder();
-        problems.forEach(problem -> {
-            Severity kind = problem.getSeverity().toReportableSeverity();
-            String message = TypeValidationProblemRenderer.renderMinimalInformationAbout(problem);
-            builder.put(kind, message);
-        });
-        return builder.build();
+    @Override
+    public List<TypeValidationProblem> getProblems() {
+        return problems.build();
     }
 
     public ImmutableSortedSet<Class<?>> getValidatedTypes() {

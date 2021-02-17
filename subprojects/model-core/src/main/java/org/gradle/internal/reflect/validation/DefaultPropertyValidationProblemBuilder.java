@@ -43,7 +43,7 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
             shortProblemDescription,
             longDescription,
             reason,
-            documentationLink,
+            userManualReference,
             possibleSolutions
         );
     }
