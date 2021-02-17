@@ -43,7 +43,7 @@ import java.io.IOException;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final int CACHE_FORMAT = 2;
+    private static final int CACHE_FORMAT = 3;
 
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
