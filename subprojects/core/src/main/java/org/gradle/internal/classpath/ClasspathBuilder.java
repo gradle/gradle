@@ -30,7 +30,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
@@ -50,25 +49,14 @@ public class ClasspathBuilder {
      * Creates a Jar file using the given action to add entries to the file. If the file already exists it will be replaced.
      */
     public void jar(File jarFile, Action action) {
-        tryToBuildJar(jarFile, action, StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    /**
-     * Creates a Jar file using the given action to add entries to the file. Fails if the file already exists.
-     */
-    public void nonReplacingJar(File jarFile, Action action) {
-        tryToBuildJar(jarFile, action);
-    }
-
-    private void tryToBuildJar(File jarFile, Action action, CopyOption... moveOptions) {
         try {
-            buildJar(jarFile, action, moveOptions);
+            buildJar(jarFile, action);
         } catch (Exception e) {
             throw new GradleException(String.format("Failed to create Jar file %s.", jarFile), e);
         }
     }
 
-    private void buildJar(File jarFile, Action action, CopyOption... moveOptions) throws IOException {
+    private void buildJar(File jarFile, Action action) throws IOException {
         File parentDir = jarFile.getParentFile();
         File tmpFile = temporaryFileProvider.createTemporaryFile(jarFile.getName(), ".tmp");
         try {
@@ -77,7 +65,7 @@ public class ClasspathBuilder {
                 outputStream.setLevel(0);
                 action.execute(new ZipEntryBuilder(outputStream));
             }
-            Files.move(tmpFile.toPath(), jarFile.toPath(), moveOptions);
+            Files.move(tmpFile.toPath(), jarFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } finally {
             Files.deleteIfExists(tmpFile.toPath());
         }
