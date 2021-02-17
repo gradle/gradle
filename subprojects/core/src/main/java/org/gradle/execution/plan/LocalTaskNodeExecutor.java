@@ -41,7 +41,6 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
@@ -191,32 +190,27 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         // Do a breadth first search for any dependency
         Deque<Node> queue = new ArrayDeque<>();
         Set<Node> seenNodes = new HashSet<>();
-        addHardSuccessorTasksToQueue(consumer, queue, seenNodes);
+        addHardSuccessorTasksToQueue(consumer, seenNodes, queue);
         while (!queue.isEmpty()) {
             Node dependency = queue.removeFirst();
             if (dependency == producer) {
                 return false;
             }
-            addHardSuccessorTasksToQueue(dependency, queue, seenNodes);
+            addHardSuccessorTasksToQueue(dependency, seenNodes, queue);
         }
         return true;
     }
 
-    private static void addHardSuccessorTasksToQueue(Node node, Queue<Node> queue, Set<Node> seenNodes) {
-        node.getHardSuccessors().forEach(hardSuccessor ->
-            findHardSuccessorTasks(hardSuccessor, taskSuccessor -> {
-                if (seenNodes.add(taskSuccessor)) {
-                    queue.add(taskSuccessor);
+    private static void addHardSuccessorTasksToQueue(Node node, Set<Node> seenNodes, Queue<Node> queue) {
+        node.getHardSuccessors().forEach(successor -> {
+            if (successor instanceof LocalTaskNode) {
+                if (seenNodes.add(successor)) {
+                    queue.add(successor);
                 }
-            }));
-    }
-
-    private static void findHardSuccessorTasks(Node node, Consumer<LocalTaskNode> taskNodeConsumer) {
-        if (node instanceof LocalTaskNode) {
-            taskNodeConsumer.accept((LocalTaskNode) node);
-        } else {
-            node.getHardSuccessors().forEach(successor -> findHardSuccessorTasks(successor, taskNodeConsumer));
-        }
+            } else {
+                addHardSuccessorTasksToQueue(successor, seenNodes, queue);
+            }
+        });
     }
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
