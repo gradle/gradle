@@ -7,7 +7,7 @@ plugins {
 }
 
 // end::use-and-configure-plugin[]
-group = "org.gradle"
+group = "org.example"
 version = "1.0-SNAPSHOT"
 
 // tag::use-and-configure-plugin[]
