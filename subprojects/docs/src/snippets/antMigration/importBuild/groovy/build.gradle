@@ -23,6 +23,6 @@ sourceSets {
 
 // tag::task-dependencies[]
 compileJava.dependsOn 'prepare'  // <1>
-package.dependsOn = [ 'compileJava' ]  // <2>
+tasks.named('package').get().dependsOn = [ 'compileJava' ]  // <2>
 assemble.dependsOn = [ 'package' ]  // <3>
 // end::task-dependencies[]
