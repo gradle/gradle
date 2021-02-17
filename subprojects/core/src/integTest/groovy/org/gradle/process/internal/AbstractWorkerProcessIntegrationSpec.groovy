@@ -23,7 +23,7 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.internal.file.temp.TmpDirTemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory

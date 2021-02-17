@@ -79,6 +79,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -148,6 +149,9 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 @NonNullApi
 @CacheableTask
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
+
+    private static final String TEST_KIT_DIR_SYS_PROP = "org.gradle.testkit.dir";
+    private static final String PROJECT_BUILDER_SYS_PROP = "org.gradle.project.builder.dir";
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
@@ -666,11 +670,26 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             getLogger().info("Running tests for remote debugging.");
         }
 
+        setupGradleTempDirTestingSystemProperties();
+
         try {
             super.executeTests();
         } finally {
             testFramework = null;
         }
+    }
+
+    private void setupGradleTempDirForSystemProperty(String systemProperty, String childDirName) {
+        if (!forkOptions.getSystemProperties().containsKey(systemProperty)) {
+            File testKitDir = new File(getTemporaryDir(), childDirName);
+            GFileUtils.mkdirs(testKitDir);
+            forkOptions.systemProperty(systemProperty, testKitDir);
+        }
+    }
+
+    private void setupGradleTempDirTestingSystemProperties() {
+        setupGradleTempDirForSystemProperty(TEST_KIT_DIR_SYS_PROP, "gradle-test-kit");
+        setupGradleTempDirForSystemProperty(PROJECT_BUILDER_SYS_PROP, "gradle-project-builder");
     }
 
     @Override

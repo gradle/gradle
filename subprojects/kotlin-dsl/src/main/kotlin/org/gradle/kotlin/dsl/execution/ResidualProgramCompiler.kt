@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.api.Project
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing

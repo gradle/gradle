@@ -16,10 +16,10 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.internal.file.temp.TmpDirTemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.file.TempFiles
+import org.gradle.api.internal.file.temp.TempFiles
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
 import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName

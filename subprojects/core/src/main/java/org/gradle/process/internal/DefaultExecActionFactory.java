@@ -24,8 +24,8 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -35,6 +35,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -58,6 +59,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+
+import static java.util.Objects.requireNonNull;
 
 public class DefaultExecActionFactory implements ExecFactory {
     protected final FileResolver fileResolver;
@@ -89,11 +92,13 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     // Do not use this. It's here because some of the services this type needs are not easily accessed in certain cases and will be removed ay some point. Use one of the other methods instead
     @Deprecated
-    public static DefaultExecActionFactory root() {
+    public static DefaultExecActionFactory root(File gradleUserHome) {
+        requireNonNull(gradleUserHome, "gradleUserHome");
         Factory<PatternSet> patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
         FileResolver resolver = new DefaultFileLookup().getFileResolver();
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), patternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        TmpDirTemporaryFileProvider temporaryFileProvider = TmpDirTemporaryFileProvider.createLegacy();
+        GradleUserHomeDirProvider userHomeDirProvider = () -> gradleUserHome;
+        TemporaryFileProvider temporaryFileProvider = new GradleUserHomeTemporaryFileProvider(userHomeDirProvider);
         return of(resolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), new DefaultExecutorFactory(), new DefaultBuildCancellationToken(), temporaryFileProvider);
     }
 
@@ -101,7 +106,7 @@ public class DefaultExecActionFactory implements ExecFactory {
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
         ExecutorFactory executorFactory,
-        TmpDirTemporaryFileProvider temporaryFileProvider
+        TemporaryFileProvider temporaryFileProvider
     ) {
         return of(fileResolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), executorFactory, new DefaultBuildCancellationToken(), temporaryFileProvider);
     }
@@ -112,9 +117,9 @@ public class DefaultExecActionFactory implements ExecFactory {
         ObjectFactory objectFactory,
         ExecutorFactory executorFactory,
         BuildCancellationToken buildCancellationToken,
-        TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider
+        TemporaryFileProvider temporaryFileProvider
     ) {
-        return new RootExecFactory(fileResolver, fileCollectionFactory, objectFactory, executorFactory, buildCancellationToken, tmpDirTemporaryFileProvider);
+        return new RootExecFactory(fileResolver, fileCollectionFactory, objectFactory, executorFactory, buildCancellationToken, temporaryFileProvider);
     }
 
     @Override
@@ -207,7 +212,7 @@ public class DefaultExecActionFactory implements ExecFactory {
             ObjectFactory objectFactory,
             ExecutorFactory executorFactory,
             BuildCancellationToken buildCancellationToken,
-            TmpDirTemporaryFileProvider temporaryFileProvider
+            TemporaryFileProvider temporaryFileProvider
         ) {
             super(fileResolver, fileCollectionFactory, objectFactory, executorFactory.create("Exec process"), temporaryFileProvider, null, buildCancellationToken);
         }

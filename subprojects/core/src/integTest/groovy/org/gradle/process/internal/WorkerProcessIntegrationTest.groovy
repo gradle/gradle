@@ -17,7 +17,7 @@
 package org.gradle.process.internal
 
 import org.gradle.api.Action
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.internal.file.temp.TmpDirTemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.internal.Actions

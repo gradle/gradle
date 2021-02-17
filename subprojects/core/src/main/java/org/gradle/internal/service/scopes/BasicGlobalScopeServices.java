@@ -22,10 +22,9 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -98,7 +97,7 @@ public class BasicGlobalScopeServices {
         return new DefaultJvmVersionDetector(detector);
     }
 
-    ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory, TmpDirTemporaryFileProvider temporaryFileProvider) {
+    ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory, TemporaryFileProvider temporaryFileProvider) {
         return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory, temporaryFileProvider);
     }
 

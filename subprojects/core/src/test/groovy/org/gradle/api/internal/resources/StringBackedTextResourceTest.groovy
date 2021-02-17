@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.resources
 
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 
 class StringBackedTextResourceTest extends AbstractTextResourceTest {
     def setup() {

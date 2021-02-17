@@ -27,4 +27,6 @@ dependencies {
     implementation(project(":base-services"))
 
     implementation(libs.inject)
+
+    testFixturesImplementation(libs.jetbrainsAnnotations)
 }

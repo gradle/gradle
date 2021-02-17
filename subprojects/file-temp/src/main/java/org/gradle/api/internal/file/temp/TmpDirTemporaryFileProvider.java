@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.temp;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;

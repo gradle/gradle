@@ -29,6 +29,7 @@ import org.gradle.execution.ProjectExecutionServices
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
@@ -61,6 +62,11 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         project = TestUtil.createRootProject(temporaryFolder.testDirectory)
         executionServices = new ProjectExecutionServices(project)
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+    }
+
+    def cleanup() {
+        // The root project needs to be cleaned up
+        ProjectBuilderImpl.stop(project)
     }
 
     void execute(Task task) {

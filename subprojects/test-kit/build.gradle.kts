@@ -20,7 +20,9 @@ dependencies {
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":build-option"))
     integTestImplementation(project(":jvm-services"))
+    integTestImplementation(testFixtures(project(":file-temp")))
     integTestImplementation(libs.slf4jApi)
+    integTestImplementation(libs.jetbrainsAnnotations)
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

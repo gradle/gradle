@@ -20,10 +20,11 @@ import org.gradle.internal.SystemProperties;
 
 import java.io.File;
 
-public class TempTestKitDirProvider extends ConstantTestKitDirProvider {
+@Deprecated
+class TempTestKitDirProvider extends ConstantTestKitDirProvider {
 
     @SuppressWarnings("deprecation")
-    public TempTestKitDirProvider(SystemProperties systemProperties) {
+    protected TempTestKitDirProvider(SystemProperties systemProperties) {
         super(new File(systemProperties.getJavaIoTmpDir(), ".gradle-test-kit-".concat(systemProperties.getUserName())));
     }
 

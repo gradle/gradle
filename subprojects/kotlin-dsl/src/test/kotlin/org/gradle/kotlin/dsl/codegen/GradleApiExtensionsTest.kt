@@ -21,7 +21,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.internal.file.temp.TmpDirTemporaryFileProvider
 import org.gradle.api.internal.file.pattern.PatternMatcher
 
 import org.gradle.internal.hash.HashUtil

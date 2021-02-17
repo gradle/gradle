@@ -18,7 +18,7 @@ package org.gradle.api.internal.resources;
 
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.internal.deprecation.Documentation;

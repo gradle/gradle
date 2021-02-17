@@ -18,8 +18,7 @@ package org.gradle.internal.resource.cached;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
@@ -54,13 +53,13 @@ public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileS
 
     @ServiceScope(Scopes.Build.class)
     public static class Factory {
-        private final TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider;
+        private final TemporaryFileProvider temporaryFileProvider;
         private final FileAccessTimeJournal fileAccessTimeJournal;
         private final ChecksumService checksumService;
 
         @Inject
-        public Factory(TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
-            this.tmpDirTemporaryFileProvider = tmpDirTemporaryFileProvider;
+        public Factory(TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+            this.temporaryFileProvider = temporaryFileProvider;
             this.fileAccessTimeJournal = fileAccessTimeJournal;
             this.checksumService = checksumService;
         }
@@ -68,7 +67,7 @@ public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileS
         public DefaultExternalResourceFileStore create(ArtifactCacheMetadata artifactCacheMetadata) {
             return new DefaultExternalResourceFileStore(
                 artifactCacheMetadata.getExternalResourcesStoreDirectory(),
-                tmpDirTemporaryFileProvider,
+                temporaryFileProvider,
                 fileAccessTimeJournal,
                 checksumService
             );

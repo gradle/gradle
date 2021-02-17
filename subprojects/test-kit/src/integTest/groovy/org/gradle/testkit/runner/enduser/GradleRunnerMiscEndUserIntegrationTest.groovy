@@ -21,13 +21,15 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.GFileUtils
+import org.intellij.lang.annotations.Language
 import spock.lang.IgnoreIf
 
 /**
  * Miscellaneous usage scenarios that don't have more specific homes.
  */
-@IgnoreIf({ GradleContextualExecuter.embedded }) // These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
-class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
+@IgnoreIf({ GradleContextualExecuter.embedded })
+// These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
+class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest implements TestKitDependencyBlock {
 
     def setup() {
         buildFile << """
@@ -71,7 +73,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
             }
         """
 
-        file("src/test/groovy/Test.groovy") << """
+        groovyTestSourceFile("""
             import org.gradle.testkit.runner.GradleRunner
             import spock.lang.Specification
 
@@ -81,7 +83,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                     GradleRunner.create().withProjectDir(new File("foo")).build()
                 }
             }
-        """
+        """)
 
         then:
         fails 'build'
@@ -130,7 +132,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
             }
         """
 
-        file("src/test/groovy/Test.groovy") << """
+        groovyTestSourceFile("""
             import org.gradle.testkit.runner.GradleRunner
             import spock.lang.Specification
 
@@ -140,14 +142,15 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                     GradleRunner.create().debug == $debug
                 }
             }
-        """
+        """)
 
         then:
         succeeds 'test'
     }
 
     static String successfulSpockTest(String className) {
-        """
+        @Language("groovy")
+        def spockTest = """
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
             import org.junit.Rule
@@ -187,14 +190,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                 }
             }
         """
-    }
-
-    static String gradleTestKitDependency() {
-        """
-            dependencies {
-                testImplementation gradleTestKit()
-            }
-        """
+        spockTest
     }
 
 }

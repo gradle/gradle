@@ -81,8 +81,18 @@ public class DefaultGradleRunner extends GradleRunner {
                 if (System.getProperties().containsKey(TEST_KIT_DIR_SYS_PROP)) {
                     return new ConstantTestKitDirProvider(new File(System.getProperty(TEST_KIT_DIR_SYS_PROP)));
                 } else {
-                    return new TempTestKitDirProvider(systemProperties);
-                }
+                    // TODO: This logic will survive until Gradle is built with latest nightly.
+                    @SuppressWarnings("deprecation")
+                    TestKitDirProvider old =  new TempTestKitDirProvider(systemProperties);
+                    return old;
+                } /* else {
+                    // TODO: Restore this and remove above once changes merged to latest nightly.
+                    String message = String.format(
+                        "System property `%s` must be set to use use TestKit",
+                        TEST_KIT_DIR_SYS_PROP
+                    );
+                    throw new IllegalStateException(message);
+                } */
             }
         });
     }

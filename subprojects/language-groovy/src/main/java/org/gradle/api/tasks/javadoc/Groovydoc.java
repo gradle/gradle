@@ -21,7 +21,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.AntGroovydoc;
 import org.gradle.api.logging.LogLevel;
@@ -193,7 +193,7 @@ public class Groovydoc extends SourceTask {
     public AntGroovydoc getAntGroovydoc() {
         if (antGroovydoc == null) {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
-            TmpDirTemporaryFileProvider temporaryFileProvider = getServices().get(TmpDirTemporaryFileProvider.class);
+            TemporaryFileProvider temporaryFileProvider = getServices().get(TemporaryFileProvider.class);
             antGroovydoc = new AntGroovydoc(antBuilder, temporaryFileProvider);
         }
         return antGroovydoc;
