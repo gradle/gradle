@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_KOTLIN_DSL;
@@ -86,7 +88,12 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath localGroovy() {
-        return moduleRegistry.getExternalModule("groovy-all").getClasspath();
+        Set<String> groovyModules = ImmutableSet.of("groovy", "groovy-ant", "groovy-groovydoc", "javaparser-core", "groovy-datetime", "groovy-json", "groovy-test", "groovy-templates", "groovy-xml");
+        ClassPath groovy = moduleRegistry.getExternalModule("groovy").getClasspath();
+        for (String groovyModule : groovyModules) {
+            groovy = groovy.plus(moduleRegistry.getExternalModule(groovyModule).getClasspath());
+        }
+        return groovy;
     }
 
     private ClassPath gradleKotlinDsl() {
