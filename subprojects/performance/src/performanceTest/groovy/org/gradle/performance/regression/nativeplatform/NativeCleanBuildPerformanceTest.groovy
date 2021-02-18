@@ -26,7 +26,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.1' // minimum version that contains new C++ plugins
-        runner.targetVersions = ["6.8.2-20210128010010+0000"]
+        runner.targetVersions = ["6.8.2-20210218002439+0000"]
     }
 
     @RunFor([
