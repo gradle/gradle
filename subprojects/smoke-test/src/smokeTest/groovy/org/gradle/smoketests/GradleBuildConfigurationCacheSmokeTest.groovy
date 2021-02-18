@@ -57,7 +57,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.output.count("Reusing configuration cache") == 1
         // result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
         result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
-        result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
 
         when:
         run(["clean"])
