@@ -20,12 +20,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import kotlin.reflect.KClass
-import kotlin.reflect.full.companionObject
-import kotlin.reflect.full.companionObjectInstance
-import kotlin.reflect.full.functions
-import kotlin.reflect.jvm.isAccessible
+import org.gradle.kotlin.dsl.support.disposeKotlinCompilerContext
 
 
 /**
@@ -44,15 +39,6 @@ class KotlinCompilerContextDisposer(
     }
 
     override fun projectsEvaluated(gradle: Gradle) {
-        // TODO replace this reflective hack by direct compiler API invocation once available
-        val compilerEnvClass: KClass<*> = KotlinCoreEnvironment::class
-        val companionClass: KClass<*> = compilerEnvClass.companionObject!!
-        val companionInstance: Any = compilerEnvClass.companionObjectInstance!!
-        companionClass.functions
-            .first { it.name == "disposeApplicationEnvironment" }
-            .let { disposeFunction ->
-                disposeFunction.isAccessible = true
-                disposeFunction.call(companionInstance)
-            }
+        disposeKotlinCompilerContext()
     }
 }
