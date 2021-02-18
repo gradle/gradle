@@ -390,6 +390,11 @@ fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): K
 
 
 internal
+fun disposeKotlinCompilerContext() =
+    KotlinCoreEnvironment.disposeApplicationEnvironment()
+
+
+internal
 fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it }): LoggingMessageCollector =
     LoggingMessageCollector(log, pathTranslation)
 

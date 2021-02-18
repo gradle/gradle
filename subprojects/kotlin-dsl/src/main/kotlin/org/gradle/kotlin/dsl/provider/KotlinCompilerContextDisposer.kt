@@ -20,7 +20,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
+import org.gradle.kotlin.dsl.support.disposeKotlinCompilerContext
 
 
 /**
@@ -39,6 +39,6 @@ class KotlinCompilerContextDisposer(
     }
 
     override fun projectsEvaluated(gradle: Gradle) {
-        KotlinCoreEnvironment.disposeApplicationEnvironment()
+        disposeKotlinCompilerContext()
     }
 }
