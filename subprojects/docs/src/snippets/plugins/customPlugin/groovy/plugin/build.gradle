@@ -24,7 +24,7 @@ dependencies {
     testImplementation 'junit:junit:4.13'
 }
 
-group = 'org.gradle'
+group = 'org.example'
 version = '1.0-SNAPSHOT'
 
 publishing {

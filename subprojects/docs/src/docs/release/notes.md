@@ -130,6 +130,13 @@ includeBuild("../project-with-plugin-and-library")
 This distinction reflects what Gradle offers for repository declarations - 
 repositories are specified separately for plugin dependencies and for production dependencies.
 
+### Support for plugins with multiple variants
+
+Gradle 7 recognizes the [org.gradle.plugin.api-version](userguide/variant_attributes.html#sub:gradle_plugins_default_attributes) attribute during plugin resolution.
+This allows plugin authors to publish different variants of their plugins for different Gradle versions.
+[This user manual section](userguide/implementing_gradle_plugins.html#plugin-with-variants)
+describes how the new attribute can be used with [feature variants](userguide/feature_variants.html) to add additional variants to a plugin.
+
 <!-- 
 
 ================== TEMPLATE ==============================
