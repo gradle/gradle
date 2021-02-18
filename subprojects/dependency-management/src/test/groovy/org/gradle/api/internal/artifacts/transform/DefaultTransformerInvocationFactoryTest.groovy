@@ -144,7 +144,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         Mock(TimeoutHandler),
         { String behavior ->
             DeprecationLogger.deprecateBehaviour(behavior)
-                .willBeRemovedInGradle7()
+                .willBeRemovedInGradle8()
                 .undocumented()
                 .nagUser()
         },
