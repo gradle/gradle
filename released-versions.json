@@ -9,6 +9,10 @@
   },
   "finalReleases": [
     {
+      "version": "6.8.2",
+      "buildTime": "20210205125300+0000"
+    },
+    {
       "version": "6.8.1",
       "buildTime": "20210122132008+0000"
     },
