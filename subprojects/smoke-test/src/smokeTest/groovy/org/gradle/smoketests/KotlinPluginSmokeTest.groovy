@@ -140,6 +140,47 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
+    @Unroll
+    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+        given:
+        buildFile << """
+            buildscript {
+                ext.kotlin_version = '$kotlinVersion'
+                repositories { mavenCentral() }
+                dependencies {
+                    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+                }
+            }
+            apply plugin: 'kotlin'
+            apply plugin: 'java-gradle-plugin'
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+            }
+        """
+        file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
+
+        when:
+        def result = build(false, 'build')
+
+        then:
+        result.task(':compileKotlin').outcome == SUCCESS
+
+        when:
+        result = build(false, 'build')
+
+        then:
+        result.task(':compileKotlin').outcome == UP_TO_DATE
+
+        where:
+        kotlinVersion << TestedVersions.kotlin.versions
+    }
+
     private BuildResult build(boolean workers, String... tasks) {
         return runner(workers, *tasks).build()
     }
