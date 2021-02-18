@@ -90,6 +90,12 @@ repositories {
 }
 // end::maven-central[]
 
+// tag::maven-jcenter[]
+repositories {
+    jcenter()
+}
+// end::maven-jcenter[]
+
 // tag::maven-google[]
 repositories {
     google()

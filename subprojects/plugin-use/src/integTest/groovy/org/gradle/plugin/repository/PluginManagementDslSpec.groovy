@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.repository
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
@@ -91,7 +90,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
                         useModule('com.acme:foo:+')
                     }
                 }
-                repositories {
+                repositories { 
                     maven {
                         url "http://repo.internal.net/m2"
                     }
@@ -286,9 +285,6 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning "The RepositoryHandler.jcenter() method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 8.0. JCenter will soon be shut down. Use mavenCentral() instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
         succeeds "help"
     }
 
