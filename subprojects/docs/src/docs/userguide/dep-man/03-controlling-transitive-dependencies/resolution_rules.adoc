@@ -283,7 +283,7 @@ Execution failed for task ':resolve'.
 > Could not resolve all files for configuration ':runtimeClasspath'.
    > Could not find quasar-core-0.8.0-jdk8.jar (co.paralleluniverse:quasar-core:0.8.0).
      Searched in the following locations:
-         https://jcenter.bintray.com/co/paralleluniverse/quasar-core/0.8.0/quasar-core-0.8.0-jdk8.jar
+         https://repo1.maven.org/maven2/co/paralleluniverse/quasar-core/0.8.0/quasar-core-0.8.0-jdk8.jar
 ----
 
 That's because there's a dependency on another project, `lib`, which itself depends on a different version of `quasar-core`:
