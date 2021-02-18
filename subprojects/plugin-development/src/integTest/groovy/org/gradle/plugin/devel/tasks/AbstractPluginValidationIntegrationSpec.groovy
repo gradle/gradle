@@ -37,7 +37,9 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.Severity
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -207,6 +209,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         double  | 1
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION
+    )
     def "validates task caching annotations"() {
         javaTaskSource << """
             import org.gradle.api.*;
