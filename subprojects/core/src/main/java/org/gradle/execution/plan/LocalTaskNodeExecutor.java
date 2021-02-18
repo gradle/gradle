@@ -44,12 +44,12 @@ import java.util.Set;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
-    private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy inputHierarchy;
+    private final ExecutionNodeAccessHierarchy outputHierarchy;
 
-    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy outputHierarchy, ExecutionNodeAccessHierarchy inputHierarchy) {
-        this.outputHierarchy = outputHierarchy;
+    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy inputHierarchy, ExecutionNodeAccessHierarchy outputHierarchy) {
         this.inputHierarchy = inputHierarchy;
+        this.outputHierarchy = outputHierarchy;
     }
 
     @Override
