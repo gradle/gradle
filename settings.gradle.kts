@@ -13,7 +13,8 @@ plugins {
     id("com.gradle.enterprise").version("3.5.2")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
     id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution") version "2.0-rc-2"
+    // Keep version with `build-logic/build-platform/buildSrc.gradle.kts` in sync
+    id("com.gradle.enterprise.test-distribution") version "2.0-rc-3"
 }
 
 includeBuild("build-logic-commons")
