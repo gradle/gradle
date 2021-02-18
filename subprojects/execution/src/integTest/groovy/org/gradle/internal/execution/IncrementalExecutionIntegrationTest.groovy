@@ -142,24 +142,24 @@ class IncrementalExecutionIntegrationTest extends Specification {
     ExecutionEngine getExecutor() {
         // @formatter:off
         new DefaultExecutionEngine(documentationRegistry,
-                new IdentifyStep<>(inputFingerprinter,
-                        new IdentityCacheStep<>(
-                                new AssignWorkspaceStep<>(
-                                        new LoadExecutionStateStep<>(
-                                                new ValidateStep<>(virtualFileSystem, validationWarningReporter,
-                                                        new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
-                                                                new ResolveCachingStateStep<>(buildCacheController, false,
-                                                                        new ResolveChangesStep<>(changeDetector,
-                                                                                new SkipUpToDateStep<>(
-                                                                                        new RecordOutputsStep<>(outputFilesRepository,
-                                                                                                new StoreExecutionStateStep<>(
-                                                                                                        new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                                                                                                new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
-                                                                                                                        new CreateOutputsStep<>(
-                                                                                                                                new ResolveInputChangesStep<>(
-                                                                                                                                        new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-                                                                                                                                                new ExecuteStep<>(buildOperationExecutor
-                                                                                                                                                ))))))))))))))))))
+            new IdentifyStep<>(inputFingerprinter,
+            new IdentityCacheStep<>(
+            new AssignWorkspaceStep<>(
+            new LoadExecutionStateStep<>(
+            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
+            new ResolveCachingStateStep<>(buildCacheController, false,
+            new ResolveChangesStep<>(changeDetector,
+            new SkipUpToDateStep<>(
+            new RecordOutputsStep<>(outputFilesRepository,
+            new StoreExecutionStateStep<>(
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
+            new CreateOutputsStep<>(
+            new ResolveInputChangesStep<>(
+            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
+            new ExecuteStep<>(buildOperationExecutor
+        ))))))))))))))))))
         // @formatter:on
     }
 

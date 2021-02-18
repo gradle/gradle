@@ -155,22 +155,22 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     // @formatter:off
     def executionEngine = new DefaultExecutionEngine(documentationRegistry,
         new IdentifyStep<>(inputFingerprinter,
-            new IdentityCacheStep<>(
-                new AssignWorkspaceStep<>(
-                    new LoadExecutionStateStep<>(
-                        new SkipEmptyWorkStep<>(
-                            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
-                                new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
-                                    new ResolveCachingStateStep(buildCacheController, false,
-                                        new ResolveChangesStep<>(changeDetector,
-                                            new SkipUpToDateStep<>(
-                                                new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                                    new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
-                                                        new CancelExecutionStep<>(cancellationToken,
-                                                            new ResolveInputChangesStep<>(
-                                                                new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-                                                                    new ExecuteStep<>(buildOperationExecutor
-                                                                    )))))))))))))))))
+        new IdentityCacheStep<>(
+        new AssignWorkspaceStep<>(
+        new LoadExecutionStateStep<>(
+        new SkipEmptyWorkStep<>(
+        new ValidateStep<>(virtualFileSystem, validationWarningReporter,
+        new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
+        new ResolveCachingStateStep(buildCacheController, false,
+        new ResolveChangesStep<>(changeDetector,
+        new SkipUpToDateStep<>(
+        new BroadcastChangingOutputsStep<>(outputChangeListener,
+        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
+        new CancelExecutionStep<>(cancellationToken,
+        new ResolveInputChangesStep<>(
+        new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
+        new ExecuteStep<>(buildOperationExecutor
+    )))))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
