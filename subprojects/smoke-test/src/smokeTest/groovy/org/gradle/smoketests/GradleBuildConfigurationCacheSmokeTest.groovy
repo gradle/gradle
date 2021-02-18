@@ -85,6 +85,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
             tasks + [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
                 "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(), // TODO remove
+                TEST_BUILD_TIMESTAMP
             ],
             // use a unique testKitDir per daemonId other than 0 as 0 means default daemon.
             daemonId != 0 ? file("test-kit/$daemonId") : null
