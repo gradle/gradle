@@ -107,7 +107,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         return fileLockManager.lock(
             file,
             mode(FileLockManager.LockMode.Exclusive),
-            "instrumented classpath file"
+            "instrumented jar cache"
         );
     }
 
