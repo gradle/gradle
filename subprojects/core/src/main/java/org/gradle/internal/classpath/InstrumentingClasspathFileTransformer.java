@@ -23,8 +23,6 @@ import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.LockOptions;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
@@ -41,6 +39,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
@@ -85,7 +85,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             return transformed;
         }
 
-        final FileLock exclusiveCrossVersionLock = lock(transformed);
+        final FileLock fileLock = exclusiveLockFor(transformed);
         try {
             if (receipt.isFile()) {
                 // Lock was acquired after a concurrent writer had already finished.
@@ -99,16 +99,16 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             }
             return transformed;
         } finally {
-            exclusiveCrossVersionLock.close();
+            fileLock.close();
         }
     }
 
-    private FileLock lock(File file) {
-        return fileLockManager.lock(file, exclusiveCrossVersionLock(), "instrumented classpath file");
-    }
-
-    private LockOptions exclusiveCrossVersionLock() {
-        return LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation();
+    private FileLock exclusiveLockFor(File file) {
+        return fileLockManager.lock(
+            file,
+            mode(FileLockManager.LockMode.Exclusive),
+            "instrumented classpath file"
+        );
     }
 
     private String hashOf(FileSystemLocationSnapshot sourceSnapshot) {
