@@ -8,7 +8,7 @@ Check out the <<#sec:repository-types,full reference on all types of repositorie
 == Declaring a publicly-available repository
 
 Organizations building software may want to leverage public binary repositories to download and consume open source dependencies.
-Popular public repositories include <<#sub:maven_central,Maven Central>>, <<#sub:maven_jcenter,Bintray JCenter>> and the <<#sub:maven_google,Google Android>> repository.
+Popular public repositories include <<#sub:maven_central,Maven Central>>and the <<#sub:maven_google,Google Android>> repository.
 Gradle provides built-in shorthand notations for these widely-used repositories.
 
 .Declaring a repository with the help of shorthand notations
@@ -29,24 +29,6 @@ To declare the link:https://repo.maven.apache.org/maven2/[Maven Central reposito
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-central]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-central]"]
-====
-
-[[sub:maven_jcenter]]
-=== JCenter Maven repository
-
-http://bintray.com[Bintray]'s JCenter is an up-to-date collection of all popular Maven OSS artifacts, including artifacts published directly to Bintray.
-
-To declare the link:https://jcenter.bintray.com[JCenter Maven repository] add this to your build script:
-
-.Adding Bintray's JCenter Maven repository
-====
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-jcenter]"]
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-jcenter]"]
-====
-
-[WARNING]
-====
-JCenter will soon be link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[decommissioned], hence the `jcenter()` method is now deprecated.
 ====
 
 [[sub:maven_google]]
@@ -115,7 +97,7 @@ Gradle supports a wide range of sources for dependencies, both in terms of forma
 You may resolve dependencies from:
 
 * Different formats
-** a <<#sec:maven_repo,Maven compatible>> artifact repository (e.g: Maven Central, JCenter, ...)
+** a <<#sec:maven_repo,Maven compatible>> artifact repository (e.g: Maven Central)
 ** an <<#sec:ivy_repositories,Ivy compatible>> artifact repository (including custom layouts)
 ** <<#sub:flat_dir_resolver,local (flat) directories>>
 * with different connectivity
