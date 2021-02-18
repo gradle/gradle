@@ -57,10 +57,11 @@ The `buildId` field will not be populated by default to ensure that the produced
 Users can still opt in to have this unique identifier part of the produced metadata if they want to, see <<publishing_gradle_module_metadata.adoc#sub:gmm-reproducible,the documentation>>.
 
 [[jcenter_deprecation]]
-=== `jcenter()` convenience method is now deprecated
+=== The `jcenter()` convenience method is now deprecated
 
 JFrog recently link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[announced] the decommission of JCenter.
-Gradle emits a warning message when `jcenter()` is used in the repository configuration.
+Gradle emits a deprecation warning when `jcenter()` is used in the repository configuration.
+<<declaring_repositories.adoc#troubleshooting, Consider using>> `mavenCentral()`, `google()` or a private `maven` repository instead.
 
 === Potential breaking changes
 

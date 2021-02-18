@@ -8,7 +8,7 @@ Check out the <<#sec:repository-types,full reference on all types of repositorie
 == Declaring a publicly-available repository
 
 Organizations building software may want to leverage public binary repositories to download and consume open source dependencies.
-Popular public repositories include <<#sub:maven_central,Maven Central>>and the <<#sub:maven_google,Google Android>> repository.
+Popular public repositories include <<#sub:maven_central,Maven Central>> and the <<#sub:maven_google,Google Android>> repository.
 Gradle provides built-in shorthand notations for these widely-used repositories.
 
 .Declaring a repository with the help of shorthand notations

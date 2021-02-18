@@ -123,7 +123,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     private void deprecateJCenter(String method, String replacement) {
         DeprecationLogger.deprecateMethod(RepositoryHandler.class, method)
-            .withAdvice("JCenter will be soon shut down. Use " + replacement + " instead.")
+            .withAdvice("JCenter will soon be shut down. Use " + replacement + " instead.")
             .willBeRemovedInGradle8()
             .withUpgradeGuideSection(6, "jcenter_deprecation")
             .nagUser();
