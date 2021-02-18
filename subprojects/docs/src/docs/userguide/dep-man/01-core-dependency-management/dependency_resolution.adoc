@@ -1,7 +1,8 @@
+[[understanding_dependency_resolution]]
 = Understanding dependency resolution
 
 This chapter covers the way dependency resolution works _inside_ Gradle.
-After covering how you can declare <<declaring_repositories.adoc#,repositories>> and <<declaring_dependencies.adoc#,dependencies>>, it makes sense to explain how these declarations come together during dependency resolution.
+After covering how you can declare <<declaring_repositories.adoc#declaring-repositories,repositories>> and <<declaring_dependencies.adoc#declaring-dependencies,dependencies>>, it makes sense to explain how these declarations come together during dependency resolution.
 
 Dependency resolution is a process that consists of two phases, which are repeated until the dependency graph is complete:
 
@@ -25,7 +26,7 @@ That is when the dependency graph contains module that provide the same implemen
 The following sections will explain in detail how Gradle attempts to resolve these conflicts.
 
 The dependency resolution process is highly customizable to meet enterprise requirements.
-For more information, see the chapter on <<dependency_constraints.adoc#,Controlling transitive dependencies>>.
+For more information, see the chapter on <<dependency_constraints.adoc#dependency-constraints,Controlling transitive dependencies>>.
 
 [[sec:version-conflict]]
 == Version conflict resolution
@@ -70,7 +71,7 @@ This flexibility comes with the price of making it hard to reason about.
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
 Out of these versions, it will select the _highest_ one.
 
-As you have seen, Gradle supports a concept of <<rich_versions.adoc#,rich version declaration>>, so what is the highest version depends on the way versions were declared:
+As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version-constraints,rich version declaration>>, so what is the highest version depends on the way versions were declared:
 
 * If no ranges are involved, then the highest version that is not rejected will be selected.
 ** If a version declared as `strictly` is lower than that version, selection will fail.
@@ -87,7 +88,7 @@ This causes an intermediate lookup for metadata, as described in <<#sec:how-grad
 
 Gradle uses variants and capabilities to identify what a module _provides_.
 
-This is a unique feature that deserves its <<variant_model.adoc#,own chapter>> to understand what it means and enables.
+This is a unique feature that deserves its <<variant_model.adoc#understanding-variant-selection,own chapter>> to understand what it means and enables.
 
 A conflict occurs the moment two modules either:
 

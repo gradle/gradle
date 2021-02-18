@@ -7,15 +7,15 @@ plugins {
 }
 
 // end::use-and-configure-plugin[]
-group = 'org.gradle'
+group = 'org.example'
 version = '1.0-SNAPSHOT'
 
 // tag::use-and-configure-plugin[]
 gradlePlugin {
     plugins {
         simplePlugin {
-            id = 'org.samples.greeting'
-            implementationClass = 'org.gradle.GreetingPlugin'
+            id = 'org.example.greeting'
+            implementationClass = 'org.example.GreetingPlugin'
         }
     }
 }

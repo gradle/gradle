@@ -13,8 +13,8 @@ pluginManagement {
 // tag::use-legacy-plugin[]
     resolutionStrategy {
         eachPlugin {
-            if (requested.id.namespace == "org.samples") {
-                useModule("org.gradle:custom-plugin:${requested.version}")
+            if (requested.id.namespace == "org.example") {
+                useModule("org.example:custom-plugin:${requested.version}")
             }
         }
     }

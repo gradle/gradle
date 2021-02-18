@@ -1,3 +1,4 @@
+[[downgrading_versions_and_excluding_dependencies]]
 = Downgrading versions and excluding dependencies
 
 [[sec:enforcing_dependency_version]]
@@ -71,7 +72,7 @@ Then if a consumer chooses 1.1 (or any other version in the range), the build wi
 Forcing dependencies via link:{javadocPath}/org/gradle/api/artifacts/ExternalDependency.html#setForce-boolean-[ExternalDependency.setForce(boolean)] is deprecated and no longer recommended:
 forced dependencies suffer an ordering issue which can be hard to diagnose and will not work well together with other rich version constraints.
 You should prefer <<#sec:enforcing_dependency_version,strict versions>> instead.
-If you are authoring and publishing a <<library_vs_application.adoc#,library>>, you also need to be aware that `force` is *not* published.
+If you are authoring and publishing a <<library_vs_application.adoc#sec:understanding-diff-libraries-and-apps,library>>, you also need to be aware that `force` is *not* published.
 ====
 
 If, for some reason, you can't use <<#sec:enforcing_dependency_version,strict versions>>, you can force a dependency doing this:
@@ -122,7 +123,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 ====
 
 Effectively, we are expressing that we only use a _subset_ of the library, which does not require the `commons-collection` library.
-This can be seen as implicitly defining a <<feature_variants.adoc#,feature variant>> that has not been explicitly declared by `commons-beanutils` itself.
+This can be seen as implicitly defining a <<feature_variants.adoc#feature_variants,feature variant>> that has not been explicitly declared by `commons-beanutils` itself.
 However, the risk of breaking an untested code path increased by doing this.
 
 For example, here we use the `setSimpleProperty()` method to modify properties defined by setters in the `Person` class, which works fine.
@@ -159,11 +160,11 @@ You may consider to look into the following features:
 
 - <<#sec:enforcing_dependency_version,Update>> or <<#sec:enforcing_dependency_version,downgrade>> dependency versions:
   If versions of dependencies clash, it is usually better to adjust the version through a dependency constraint, instead of attempting to exclude the dependency with the undesired version.
-- <<component_metadata_rules.adoc#,Component Metadata Rules>>:
+- <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>:
   If a library's metadata is clearly wrong, for example if it includes a compile time dependency which is never needed at compile time, a possible solution is to remove the dependency in a component metadata rule.
   By this, you tell Gradle that a dependency between two modules is never needed — i.e. the metadata was wrong — and therefore should *never* be considered.
   If you are developing a library, you have to be aware that this information is not published, and so sometimes an _exclude_ can be the better alternative.
-- <<dependency_capability_conflict.adoc#,Resolving mutually exclusive dependency conflicts>>:
+- <<dependency_capability_conflict.adoc#sec:handling-mutually-exclusive-deps,Resolving mutually exclusive dependency conflicts>>:
   Another situation that you often see solved by excludes is that two dependencies cannot be used together because they represent two implementations of the same thing (the same <<dependency_capability_conflict.adoc#sub:capabilities,capability>>).
   A popular example are clashing logging API implementations (like `log4j` and `log4j-over-slf4j`) or modules that have different coordinates in different versions (like `com.google.collections` and `guava`).
   In this case, if this information is not known to Gradle, it is recommended to add the missing capability information via component metadata rules as described in the <<dependency_capability_conflict.adoc#sub:declaring-component-capabilities,declaring component capabilities>> section.

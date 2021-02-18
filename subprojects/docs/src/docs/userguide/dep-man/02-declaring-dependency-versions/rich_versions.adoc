@@ -120,7 +120,7 @@ Overwrites versions from transitive dependencies. +
 🔒
 |===
 
-Lines annotated with a lock (🔒) indicate that leveraging <<dependency_locking.adoc#,dependency locking>> makes sense in this context.
+Lines annotated with a lock (🔒) indicate that leveraging <<dependency_locking.adoc#dependency-locking,dependency locking>> makes sense in this context.
 Another concept that relates with rich version declaration is the ability to publish <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> instead of declared ones.
 
 

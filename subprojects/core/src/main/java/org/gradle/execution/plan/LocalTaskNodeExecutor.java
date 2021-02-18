@@ -39,6 +39,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
@@ -189,23 +190,27 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         // Do a breadth first search for any dependency
         Deque<Node> queue = new ArrayDeque<>();
         Set<Node> seenNodes = new HashSet<>();
-        consumer.getHardSuccessors().forEach(successor -> {
-            if (seenNodes.add(successor)) {
-                queue.add(successor);
-            }
-        });
+        addHardSuccessorTasksToQueue(consumer, seenNodes, queue);
         while (!queue.isEmpty()) {
             Node dependency = queue.removeFirst();
             if (dependency == producer) {
                 return false;
             }
-            dependency.getHardSuccessors().forEach(node -> {
-                if (seenNodes.add(node)) {
-                    queue.add(node);
-                }
-            });
+            addHardSuccessorTasksToQueue(dependency, seenNodes, queue);
         }
         return true;
+    }
+
+    private static void addHardSuccessorTasksToQueue(Node node, Set<Node> seenNodes, Queue<Node> queue) {
+        node.getHardSuccessors().forEach(successor -> {
+            if (successor instanceof LocalTaskNode) {
+                if (seenNodes.add(successor)) {
+                    queue.add(successor);
+                }
+            } else {
+                addHardSuccessorTasksToQueue(successor, seenNodes, queue);
+            }
+        });
     }
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {

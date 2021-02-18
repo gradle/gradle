@@ -27,10 +27,10 @@ What exactly the `visual-studio` plugin generates depends on which other plugins
 | None
 | Generates minimal solution file.
 
-| <<cpp_application_plugin.adoc#,{cpp} Application>>
+| <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application>>
 | Adds a project representing the {cpp} application to the solution file.
 
-| <<cpp_library_plugin.adoc#,{cpp} Library>>
+| <<cpp_library_plugin.adoc#cpp_library_plugin,{cpp} Library>>
 | Adds a project for each specified linkage representing the shared and/or static library to the solution file.
 |===
 

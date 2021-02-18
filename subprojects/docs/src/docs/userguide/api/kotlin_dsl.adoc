@@ -25,7 +25,7 @@ This chapter provides details of the main Kotlin DSL constructs and how to use i
 
 [TIP]
 ====
-If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated <<migrating_from_groovy_to_kotlin_dsl.adoc#,migration section>>.
+If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated <<migrating_from_groovy_to_kotlin_dsl.adoc#migrating_groovy_kotlin,migration section>>.
 ====
 
 
@@ -90,7 +90,7 @@ The Kotlin DSL is fully supported by IntelliJ IDEA and Android Studio. Other IDE
 As mentioned in the limitations, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts in IntelliJ IDEA.
 
 In addition, IntelliJ IDEA and Android Studio might spawn up to 3 Gradle daemons when editing Gradle scripts — one for each type of script: build scripts, settings files and initialization scripts.
-Builds with slow configuration time might affect the IDE responsiveness, so please check out the <<performance.adoc#,performance section>> to help resolve such issues.
+Builds with slow configuration time might affect the IDE responsiveness, so please check out the <<performance.adoc#performance_gradle,performance section>> to help resolve such issues.
 
 === Automatic build import vs. automatic reloading of script dependencies
 
@@ -706,7 +706,7 @@ tasks.create("myTask") {
 == The Kotlin DSL Plugin
 
 The Kotlin DSL Plugin provides a convenient way to develop Kotlin-based projects that contribute build logic.
-That includes <<organizing_gradle_projects#sec:build_sources,buildSrc projects>>, <<composite_builds#,included builds>> and <<custom_plugins#,Gradle plugins>>.
+That includes <<organizing_gradle_projects#sec:build_sources,buildSrc projects>>, <<composite_builds#composite_builds,included builds>> and <<custom_plugins#custom_plugins,Gradle plugins>>.
 
 The plugin achieves this by doing the following:
 

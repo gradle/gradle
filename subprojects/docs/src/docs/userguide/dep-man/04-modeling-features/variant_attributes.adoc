@@ -111,6 +111,23 @@ In addition to the ecosystem independent attributes defined above, the native ec
 | None
 |===
 
+[[sub:gradle_plugins_default_attributes]]
+=== Gradle plugin ecosystem specific attributes
+
+For Gradle plugin development, the following attribute is supported since Gradle 7.0.
+A Gradle plugin variant can specify compatibility with a Gradle API version through this attribute.
+
+.Gradle plugin ecosystem standard component attributes
+[%header%autowidth,compact]
+|===
+| Attribute name | Description | Values | compatibility and disambiguation rules
+
+| link:{javadocPath}/org/gradle/api/attributes/plugin/GradlePluginApiVersion.html#GRADLE_PLUGIN_API_VERSION_ATTRIBUTE[`org.gradle.plugin.api&#8209;version`]
+| Indicates the Gradle API version compatibility.
+| Valid Gradle version strings.
+| Defaults to the currently running Gradle, lower is compatible with higher, prefers highest compatible.
+|===
+
 [[sec:declaring_attributes]]
 == Declaring custom attributes
 

@@ -192,7 +192,7 @@ See the <<publishing_ivy.adoc#publishing_ivy,Ivy>> and <<publishing_maven.adoc#p
 
 If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the http://plugins.gradle.org[Gradle Plugin Portal].
 This site provides the ability to search for and gather information about plugins contributed by the Gradle community.
-Please refer to the corresponding <<publishing_gradle_plugins.adoc#,section>> on how to make your plugin available on this site.
+Please refer to the corresponding <<publishing_gradle_plugins.adoc#publishing_portal,section>> on how to make your plugin available on this site.
 
 [[sec:using_your_plugin_in_another_project]]
 === Using your plugin in another project
@@ -317,9 +317,9 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 === Example: Testing a custom plugin
 
 [source.multi-language-sample,java]
-.src/test/java/org/gradle/GreetingPluginTest.java
+.src/test/java/org/example/GreetingPluginTest.java
 ----
-include::{snippetsPath}/plugins/customPlugin/groovy/plugin/src/test/java/org/gradle/GreetingPluginTest.java[tag=test-plugin]
+include::{snippetsPath}/plugins/customPlugin/groovy/plugin/src/test/java/org/example/GreetingPluginTest.java[tag=test-plugin]
 ----
 
 == More details

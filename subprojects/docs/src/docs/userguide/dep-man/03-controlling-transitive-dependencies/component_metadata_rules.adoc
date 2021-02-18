@@ -96,8 +96,8 @@ The following details of each variant can be adjusted:
 
 - The <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant — `attributes {}` block
 - The <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> the variant provides — `withCapabilities { }` block
-- The <<declaring_dependencies.adoc#,dependencies>> of the variant, including <<rich_versions.adoc#,rich versions>> — `withDependencies {}` block
-- The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#,rich versions>> — `withDependencyConstraints {}` block
+- The <<declaring_dependencies.adoc#declaring-dependencies,dependencies>> of the variant, including <<rich_versions.adoc#rich-version-constraints,rich versions>> — `withDependencies {}` block
+- The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#rich-version-constraints,rich versions>> — `withDependencyConstraints {}` block
 - The location of the published files that make up the actual content of the variant — `withFiles { }` block
 
 There are also a few properties of the whole component that can be changed:
@@ -120,7 +120,7 @@ In general, if you consider using component metadata rules to adjust the metadat
 
 If a module was published with Gradle Module Metadata, the metadata is likely complete although there can still be cases where something is just plainly wrong.
 For these modules you should only use component metadata rules if you have clearly identified a problem with the metadata itself.
-If you have an issue with the dependency resolution result, you should first check if you can solve the issue by declaring <<rich_versions.adoc#,dependency constraints with rich versions>>.
+If you have an issue with the dependency resolution result, you should first check if you can solve the issue by declaring <<rich_versions.adoc#rich-version-constraints,dependency constraints with rich versions>>.
 In particular, if you are developing a library that you publish, you should remember that dependency constraints, in contrast to component metadata rules, are published as part of the metadata of your own library.
 So with dependency constraints, you automatically share the solution of dependency resolution issues with your consumers, while component metadata rules are only applied to your own build.
 
@@ -145,12 +145,12 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 ====
 
 Within the `withDependencies` block you have access to the full list of dependencies and can use all methods available on the Java collection interface to inspect and modify that list.
-In addition, there are `add(notation, configureAction)` methods accepting the usual notations similar to <<declaring_dependencies.adoc#,declaring dependencies>> in the build script.
+In addition, there are `add(notation, configureAction)` methods accepting the usual notations similar to <<declaring_dependencies.adoc#declaring-dependencies,declaring dependencies>> in the build script.
 Dependency constraints can be inspected and modified the same way in the `withDependencyConstraints` block.
 
 If we take a closer look at the Jaxen 1.1.4 pom, we observe that the _dom4j_, _jdom_ and _xerces_ dependencies are still there but marked as _optional_.
 Optional dependencies in poms are not automatically processed by Gradle nor Maven.
-The reason is that they indicate that there are <<feature_variants.adoc#,optional feature variants>> provided by the Jaxen library which require one or more of these dependencies, but the information what these features are and which dependency belongs to which is missing.
+The reason is that they indicate that there are <<feature_variants.adoc#feature_variants,optional feature variants>> provided by the Jaxen library which require one or more of these dependencies, but the information what these features are and which dependency belongs to which is missing.
 Such information cannot be represented in pom files, but in Gradle Module Metadata through variants and <<component_capabilities.adoc#declaring-component-capabilities,capabilities>>.
 Hence, we can add this information in a rule as well.
 
@@ -261,7 +261,7 @@ This rule is quite similar to the Quasar library example above.
 Only this time we have five different runtime variants we add and nothing we need to change for the compile variant.
 The runtime variants are all based on the existing _runtime_ variant and we do not change any existing information.
 All Java ecosystem attributes, the dependencies and the main jar file stay part of each of the runtime variants.
-We only set the additional attributes `OPERATING_SYSTEM_ATTRIBUTE` and `ARCHITECTURE_ATTRIBUTE` which are defined as part of Gradle's <<building_cpp_projects.adoc#,native support>>.
+We only set the additional attributes `OPERATING_SYSTEM_ATTRIBUTE` and `ARCHITECTURE_ATTRIBUTE` which are defined as part of Gradle's <<building_cpp_projects.adoc#building_cpp_projects,native support>>.
 And we add the corresponding native jar file so that each runtime variant now carries two files: the main jar and the native jar.
 
 In the build script, we can now request a specific variant and Gradle will fail with a selection error if more information is needed to make a decision.
@@ -285,7 +285,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 
 == Making different flavors of a library available through capabilities
 
-Because it is difficult to model <<feature_variants.adoc#,optional feature variants>> as separate jars with pom metadata, libraries sometimes compose different jars with a different feature set.
+Because it is difficult to model <<feature_variants.adoc#feature_variants,optional feature variants>> as separate jars with pom metadata, libraries sometimes compose different jars with a different feature set.
 That is, instead of composing your flavor of the library from different feature variants, you select one of the pre-composed variants (offering everything in one jar).
 One such library is the well-known dependency injection framework Guice, published on link:https://repo1.maven.org/maven2/com/google/inject/guice/4.2.2[Maven central], which offers a complete flavor (the main jar) and a reduced variant without aspect-oriented programming support (`guice-4.2.2-no_aop.jar`).
 That second variant with a classifier is not mentioned in the pom metadata.
@@ -345,7 +345,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 == Modifying metadata on the component level for alignment
 
 While all the examples above made modifications to variants of a component, there is also a limited set of modifications that can be done to the metadata of the component itself.
-This information can influence the <<dependency_resolution.adoc#,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
+This information can influence the <<dependency_resolution.adoc#understanding_dependency_resolution,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
 It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
@@ -361,7 +361,7 @@ It is therefore recommended to only modify this attribute, if any, on the compon
 A dedicated API `setStatus(value)` is available for this.
 To modify another attribute for all variants of a component `withAllVariants { attributes {} }` should be utilised instead.
 
-A module's status is taken into consideration when a <<single_versions.adoc#,_latest_ version selector>> is resolved.
+A module's status is taken into consideration when a <<single_versions.adoc#single-version-declarations,_latest_ version selector>> is resolved.
 Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status.
 For example, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status as explained below), whereas `latest.release` will select the highest module version with status `release`.
 

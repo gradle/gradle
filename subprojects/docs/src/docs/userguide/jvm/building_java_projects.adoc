@@ -38,7 +38,7 @@ link:../samples/index.html#kotlin[Kotlin]
 
 == Introduction
 
-The simplest build script for a Java project applies the <<java_library_plugin.adoc#,Java Library Plugin>> and optionally sets the project version and selects the <<toolchains.adoc#,Java toolchain>> to use:
+The simplest build script for a Java project applies the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and optionally sets the project version and selects the <<toolchains.adoc#toolchains,Java toolchain>> to use:
 
 .Applying the Java Library Plugin
 ====
@@ -127,7 +127,7 @@ You'll learn more about source sets and the features they provide in:
 
 The vast majority of Java projects rely on libraries, so managing a project's dependencies is an important part of building a Java project.
 Dependency management is a big topic, so we will focus on the basics for Java projects here.
-If you'd like to dive into the detail, check out the <<core_dependency_management.adoc#,introduction to dependency management>>.
+If you'd like to dive into the detail, check out the <<core_dependency_management.adoc#dependency_management_in_gradle,introduction to dependency management>>.
 
 Specifying the dependencies for your Java project requires just three pieces of information:
 
@@ -149,7 +149,7 @@ The Gradle terminology for the three elements is as follows:
  * _Configuration_ (ex: `implementation`) — a named collection of dependencies, grouped together for a specific goal such as compiling or running a module — a more flexible form of Maven scopes
  * _Module coordinate_ (ex: `org.hibernate:hibernate-core-3.6.7.Final`) — the ID of the dependency, usually in the form '__<group>__:__<module>__:__<version>__' (or '__<groupId>__:__<artifactId>__:__<version>__' in Maven terminology)
 
-You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#,here>>.
+You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#dependency_management_terminology,here>>.
 
 As far as configurations go, the main ones of interest are:
 
@@ -178,7 +178,7 @@ We have only scratched the surface here, so we recommend that you read the dedic
  * Using dependencies from a <<declaring_repositories.adoc#sub:flat_dir_resolver,local filesystem directory>>
  * Declaring dependencies with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
  * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
- * <<dependency_constraints.adoc#,Controlling transitive dependencies and their versions>>
+ * <<dependency_constraints.adoc#dependency-constraints,Controlling transitive dependencies and their versions>>
  * Testing your fixes to a 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)
 
 You'll discover that Gradle has a rich API for working with dependencies — one that takes time to master, but is straightforward to use for common scenarios.
@@ -240,7 +240,7 @@ That's also how you can change the verbosity of the compiler, disable debug outp
 === Targeting a specific Java version
 
 By default, Gradle will compile Java code to the language level of the JVM running Gradle.
-With the usage of <<toolchains.adoc#,Java toolchains>>, you can break that link by making sure a given Java version, defined by the build, is used for compilation, execution and documentation.
+With the usage of <<toolchains.adoc#toolchains,Java toolchains>>, you can break that link by making sure a given Java version, defined by the build, is used for compilation, execution and documentation.
 It is however possible to override some compiler and execution options at the task level.
 
 Since version 9, the Java compiler can be configured to produce bytecode for an older Java version while making sure the code does not use any APIs from a more recent version.
@@ -489,7 +489,7 @@ The task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.Delete.html
 [[sec:building_jvm_components]]
 == Building JVM components
 
-All of the specific JVM plugins are built on top of the <<java_plugin.adoc#,Java Plugin>>.
+All of the specific JVM plugins are built on top of the <<java_plugin.adoc#java_plugin,Java Plugin>>.
 The examples above only illustrated concepts provided by this base plugin and shared with all JVM plugins.
 
 Read on to understand which plugins fits which project type, as it is recommended to pick a specific plugin instead of applying the Java Plugin directly.
@@ -549,7 +549,7 @@ A Java platform represents a set of dependency declarations and constraints that
 The platform has no source and no artifact of its own.
 It maps in the Maven world to a https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management[BOM].
 
-The support comes via the <<java_platform_plugin.adoc#,Java Platform plugin>>, which sets up the different configurations and publication components.
+The support comes via the <<java_platform_plugin.adoc#java_platform_plugin,Java Platform plugin>>, which sets up the different configurations and publication components.
 
 [NOTE]
 ====
@@ -577,7 +577,7 @@ include::sample[dir="snippets/java/preview/kotlin",files="build.gradle.kts[tags=
 
 If you want to leverage the multi language aspect of the JVM, most of what was described here will still apply.
 
-Gradle itself provides <<groovy_plugin.adoc#,Groovy>> and <<scala_plugin.adoc#,Scala>> plugins.
+Gradle itself provides <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>> plugins.
 The plugins automatically apply support for compiling Java code and can be further enhanced by combining them with the `java-library` plugin.
 
 [[sub:compile_deps_jvm_lang]]
@@ -595,7 +595,7 @@ include::sample[dir="snippets/tutorial/compileTaskClasspath/kotlin",files="build
 1. By setting the `compileGroovy` classpath to be only `sourceSets.main.compileClasspath`, we effectively remove the previous dependency on `compileJava` that was declared by having the classpath also take into consideration `sourceSets.main.java.classesDirectory`
 2. By adding `sourceSets.main.groovy.classesDirectory` to the `compileJava` `classpath`, we effectively declare a dependency on the `compileGroovy` task
 
-All of this is possible through the use of <<lazy_configuration.adoc#,directory properties>>.
+All of this is possible through the use of <<lazy_configuration.adoc#lazy_configuration,directory properties>>.
 
 === Extra language support
 

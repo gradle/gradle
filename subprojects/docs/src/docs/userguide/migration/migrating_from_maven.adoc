@@ -78,7 +78,7 @@ For Gradle builds, you'll be able to see the project structure, the dependencies
 Your build may fail at this point, but that's ok; the scan will still run. Compare the build scan for the Gradle build to the one for the Maven build and continue down this list to troubleshoot the failures.
 +
 We recommend that you regularly generate build scans during the migration to help you identify and troubleshoot problems.
-If you want, you can also use a Gradle build scan to identify opportunities to <<performance.adoc#,improve the performance of the build>>, after all performance is a big reason for switching to Gradle in the first place.
+If you want, you can also use a Gradle build scan to identify opportunities to <<performance.adoc#performance_gradle,improve the performance of the build>>, after all performance is a big reason for switching to Gradle in the first place.
  . <<migmvn:migrating_deps,Verify your dependencies and fix any problems>>
  . <<migmvn:integration_tests,Configure integration and functional tests>>
 +
@@ -127,7 +127,7 @@ If you want to include integration tests, you will have to <<migmvn:integration_
 `install`::
 Use the `publishToMavenLocal` task provided by the <<publishing_maven#publishing_maven:tasks,Maven Publish Plugin>>.
 +
-Note that Gradle builds don't require you to "install" artifacts as you have access to more appropriate features like <<declaring_dependencies.adoc#sub:project_dependencies,inter-project dependencies>> and <<composite_builds#,composite builds>>.
+Note that Gradle builds don't require you to "install" artifacts as you have access to more appropriate features like <<declaring_dependencies.adoc#sub:project_dependencies,inter-project dependencies>> and <<composite_builds#composite_builds,composite builds>>.
 You should only use `publishToMavenLocal` for interoperating with Maven builds.
 +
 Gradle also allows you to resolve dependencies against the local Maven cache, as described in the <<migmvn:declaring_repos,Declaring repositories>> section.
@@ -158,7 +158,7 @@ You'll find that the new Gradle build includes the following:
 
  * All the custom repositories that are specified in the POM
  * Your external and inter-project dependencies
- * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven.adoc#,Maven Publish>>, <<java_plugin.adoc#,Java>> and <<war_plugin.adoc#,War>> Plugins)
+ * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven.adoc#publishing_maven,Maven Publish>>, <<java_plugin.adoc#java_plugin,Java>> and <<war_plugin.adoc#war_plugin,War>> Plugins)
 
 See the <<build_init_plugin#sec:pom_maven_conversion,Build Init Plugin chapter>> for a complete list of the automatic conversion features.
 
@@ -189,7 +189,7 @@ Gradle's dependency management system is more flexible than Maven's, but it stil
 In fact, Gradle works perfectly with Maven-compatible repositories, which makes it easy to migrate your dependencies.
 
 NOTE: One notable difference between the two tools is in how they manage version conflicts. Maven uses a "closest" match algorithm, whereas Gradle picks the newest.
-Don't worry though, you have a lot of control over which versions are selected, as documented in <<dependency_constraints.adoc#,Managing Transitive Dependencies>>.
+Don't worry though, you have a lot of control over which versions are selected, as documented in <<dependency_constraints.adoc#dependency-constraints,Managing Transitive Dependencies>>.
 
 Over the following sections, we will show you how to migrate the most common elements of a Maven build's dependency management information.
 
@@ -198,7 +198,7 @@ Over the following sections, we will show you how to migrate the most common ele
 
 Gradle uses the same dependency identifier components as Maven: group ID, artifact ID and version.
 It also supports classifiers.
-So all you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies#,Declaring Dependencies>> chapter.
+So all you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies#declaring-dependencies,Declaring Dependencies>> chapter.
 
 For example, consider this Maven-style dependency on Log4J:
 
@@ -311,7 +311,7 @@ On a per-project basis, you can use:
  * <<migmvn:using_boms,Bills of materials>> (Maven BOMs)
  * <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,Overriding transitive versions>>
 
-There are even more, specialized options listed in the <<dependency_constraints.adoc#,controlling transitive dependencies>> chapter.
+There are even more, specialized options listed in the <<dependency_constraints.adoc#dependency-constraints,controlling transitive dependencies>> chapter.
 
 If you want to ensure consistency of versions across all projects in a multi-project build, similar to how the `<dependencyManagement>` block in Maven works, you can use the <<java_platform_plugin#java_platform_plugin,Java Platform Plugin>>.
 This allows you declare a set of dependency constraints that can be applied to multiple projects.
@@ -411,7 +411,7 @@ This basically involves creating a root project build script that injects shared
 
 If you want to replicate the Maven pattern of having dependency versions declared in the `dependencyManagement` section of the root POM file, the best approach is to leverage the `java-platform` plugin.
 You will need to add a dedicated project for this and consume it in the regular projects of your build.
-See <<java_platform_plugin.adoc#,the documentation>> for more details on this pattern.
+See <<java_platform_plugin.adoc#java_platform_plugin,the documentation>> for more details on this pattern.
 
 [[migmvn:profiles_and_properties]]
 == Migrating Maven profiles and properties

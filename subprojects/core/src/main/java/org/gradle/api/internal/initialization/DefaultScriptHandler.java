@@ -28,6 +28,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
+import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -42,6 +43,7 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.net.URI;
@@ -136,6 +138,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
             attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
             attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(JavaVersion.current().getMajorVersion()));
+            attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
         }
     }
 

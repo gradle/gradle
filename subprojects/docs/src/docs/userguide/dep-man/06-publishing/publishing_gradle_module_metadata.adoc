@@ -21,9 +21,9 @@ Publication of Gradle Module Metadata will enable better dependency management f
 - early discovery of problems by detecting <<component_capabilities.adoc#declaring-component-capabilities,incompatible modules>>
 - consistent selection of <<cross_project_publications.adoc#targeting-different-platforms,platform-specific dependencies>>
 - native <<dependency_version_alignment.adoc#version_alignment, dependency version alignment>>
-- automatically getting dependencies for specific <<feature_variants.adoc#,features of your library>>
+- automatically getting dependencies for specific <<feature_variants.adoc#feature_variants,features of your library>>
 
-Gradle Module Metadata is automatically published when using the <<publishing_maven.adoc#,Maven Publish plugin>> or the <<publishing_ivy.adoc#,Ivy Publish plugin>>.
+Gradle Module Metadata is automatically published when using the <<publishing_maven.adoc#publishing_maven,Maven Publish plugin>> or the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish plugin>>.
 It is _not_ supported on the legacy `maven` and `ivy` plugins.
 
 The specification for Gradle Module Metadata can be found {metadata-file-spec}[here].
@@ -58,7 +58,7 @@ The table below summarizes how some Gradle specific features are mapped to Maven
 |Not published
 |Component capabilities are unique to Gradle
 
-|<<feature_variants.adoc#,Feature variants>>
+|<<feature_variants.adoc#feature_variants,Feature variants>>
 |Variant artifacts are uploaded, dependencies are published as _optional_ dependencies
 |Variant artifacts are uploaded, dependencies are not published
 |Feature variants are a good replacement for optional dependencies
@@ -117,9 +117,9 @@ Gradle Module Metadata is validated before being published.
 The following rules are enforced:
 
 * Variant names must be unique,
-* Each variant must have at least <<variant_attributes.adoc#,one attribute>>,
-* Two variants cannot have the <<variant_model.adoc#,exact same attributes and capabilities>>,
-* If there are dependencies, at least one, across all variants, must carry <<rich_versions.adoc#,version information>>.
+* Each variant must have at least <<variant_attributes.adoc#variant_attributes,one attribute>>,
+* Two variants cannot have the <<variant_model.adoc#understanding-variant-selection,exact same attributes and capabilities>>,
+* If there are dependencies, at least one, across all variants, must carry <<rich_versions.adoc#rich-version-constraints,version information>>.
 
 These rules ensure the quality of the metadata produced, and help confirm that consumption will not be problematic.
 

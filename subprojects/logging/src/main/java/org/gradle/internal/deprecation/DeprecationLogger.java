@@ -35,8 +35,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Context can be added in free text using {@link DeprecationMessageBuilder#withContext(String)}.
  * Advice is constructed contextually using {@link DeprecationMessageBuilder.WithReplacement#replaceWith(Object)} methods based on the thing being deprecated. Alternatively, it can be populated using {@link DeprecationMessageBuilder#withAdvice(String)}.
  * DeprecationTimeline is mandatory and is added using one of:
- * - ${@link DeprecationMessageBuilder#willBeRemovedInGradle7()}
- * - ${@link DeprecationMessageBuilder#willBecomeAnErrorInGradle7()}
+ * - ${@link DeprecationMessageBuilder#willBeRemovedInGradle8()}
+ * - ${@link DeprecationMessageBuilder#willBecomeAnErrorInGradle8()}
  * After DeprecationTimeline is set, Documentation reference must be added using one of:
  * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withUpgradeGuideSection(int, String)}
  * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withDslReference(Class, String)}

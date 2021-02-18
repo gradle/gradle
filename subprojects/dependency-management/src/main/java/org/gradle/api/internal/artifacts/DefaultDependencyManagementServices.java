@@ -47,6 +47,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConst
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
@@ -207,6 +208,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
             DefaultAttributesSchema attributesSchema = instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
             platformSupport.configureSchema(attributesSchema);
+            GradlePluginVariantsSupport.configureSchema(attributesSchema);
             return attributesSchema;
         }
 

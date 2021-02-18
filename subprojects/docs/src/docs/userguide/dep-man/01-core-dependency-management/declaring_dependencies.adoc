@@ -57,7 +57,7 @@ In the context of dependency resolution, it is useful to distinguish between a _
 1. to declare dependencies
 2. as a _consumer_, to resolve a set of dependencies to files
 3. as a _producer_, to expose artifacts and their dependencies for consumption by other projects
-   (such _consumable_ configurations usually represent the <<variant_model.adoc#,variants>> the producer offers to its consumers)
+   (such _consumable_ configurations usually represent the <<variant_model.adoc#understanding-variant-selection,variants>> the producer offers to its consumers)
 
 For example, to express that an application `app` _depends on_ library `lib`, _at least_ one configuration is required:
 

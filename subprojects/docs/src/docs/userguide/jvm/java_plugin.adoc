@@ -792,5 +792,5 @@ include::sample[dir="snippets/java/apt/kotlin", files="build.gradle.kts[tags=ann
 
 == Variant aware selection
 
-The whole set of JVM plugins leverage <<variant_model.adoc#,variant aware resolution>> for the dependencies used.
+The whole set of JVM plugins leverage <<variant_model.adoc#understanding-variant-selection,variant aware resolution>> for the dependencies used.
 They also install a set of attributes compatibility and disambiguation rules to <<variant_attributes.adoc#sub:jvm_default_attributes,configure the Gradle attributes>> for the specifics of the JVM ecosystem.
