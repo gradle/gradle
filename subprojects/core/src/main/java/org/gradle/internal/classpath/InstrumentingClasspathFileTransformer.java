@@ -21,14 +21,14 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
 import org.gradle.internal.Pair;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
@@ -39,21 +39,26 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
-import java.util.concurrent.TimeUnit;
 
-import static java.lang.String.format;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final int CACHE_FORMAT = 2;
+    private static final int CACHE_FORMAT = 3;
 
+    private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
     private final CachedClasspathTransformer.Transform transform;
     private final HashCode configHash;
 
-    public InstrumentingClasspathFileTransformer(ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, CachedClasspathTransformer.Transform transform) {
+    public InstrumentingClasspathFileTransformer(
+        FileLockManager fileLockManager,
+        ClasspathWalker classpathWalker,
+        ClasspathBuilder classpathBuilder,
+        CachedClasspathTransformer.Transform transform
+    ) {
+        this.fileLockManager = fileLockManager;
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.transform = transform;
@@ -69,72 +74,49 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
 
     @Override
     public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
-        String name = sourceSnapshot.getType() == FileType.Directory
-            ? source.getName() + ".jar"
-            : source.getName();
-        String destFileName = hashOf(sourceSnapshot).toString() + '/' + name;
-        return transformIfNeeded(source, cacheDir, destFileName);
-    }
+        String destDirName = hashOf(sourceSnapshot);
+        File destDir = new File(cacheDir, destDirName);
+        String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
+        File receipt = new File(destDir, destFileName + ".receipt");
+        File transformed = new File(destDir, destFileName);
 
-    private File transformIfNeeded(File source, File cacheDir, String destFileName) {
-        File receipt = new File(cacheDir, destFileName + ".receipt");
-        File transformed = new File(cacheDir, destFileName);
+        // Avoid file locking overhead by checking for the receipt first.
         if (receipt.isFile()) {
             return transformed;
         }
+
+        final FileLock fileLock = exclusiveLockFor(transformed);
         try {
-            transform(source, transformed);
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof FileAlreadyExistsException) {
-                // A concurrent writer has already started writing to the file.
-                // We run identical transforms concurrently and we can sometimes finish two transforms at the same
-                // time in a way that Files.move (see [ClasspathBuilder.nonReplacingJar]) will see [transformed] created before
-                // the move is done.
-                // Just wait until the transformed file is ready for consumption.
-                LOGGER.debug("Instrumented classpath file '{}' already exists.", destFileName, e);
-                waitForReceiptOf(destFileName, receipt);
+            if (receipt.isFile()) {
+                // Lock was acquired after a concurrent writer had already finished.
                 return transformed;
-            } else {
-                throw e;
             }
-        }
-        try {
-            receipt.createNewFile();
-        } catch (IOException e) {
-            LOGGER.debug("Failed to create receipt for instrumented classpath file '{}'.", destFileName, e);
-        }
-        return transformed;
-    }
-
-    private void waitForReceiptOf(String destFileName, File receipt) {
-        if (!waitFor(receipt)) {
-            throw new IllegalStateException(
-                format("Timeout waiting for instrumented classpath file: '%s'.", destFileName)
-            );
+            transform(source, transformed);
+            try {
+                receipt.createNewFile();
+            } catch (IOException e) {
+                LOGGER.debug("Failed to create receipt for instrumented classpath file '{}/{}'.", destDirName, destFileName, e);
+            }
+            return transformed;
+        } finally {
+            fileLock.close();
         }
     }
 
-    /**
-     * Waits up to 60 seconds for the given file to appear.
-     *
-     * @return true when the file appears before the timeout, false otherwise.
-     */
-    private boolean waitFor(File file) {
-        try {
-            return ExponentialBackoff
-                .of(60, TimeUnit.SECONDS)
-                .retryUntil(() -> file.isFile() ? file : null) != null;
-        } catch (InterruptedException | IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    private FileLock exclusiveLockFor(File file) {
+        return fileLockManager.lock(
+            file,
+            mode(FileLockManager.LockMode.Exclusive),
+            "instrumented jar cache"
+        );
     }
 
-    private HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot) {
+    private String hashOf(FileSystemLocationSnapshot sourceSnapshot) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putHash(configHash);
         // TODO - apply runtime classpath normalization?
         hasher.putHash(sourceSnapshot.getHash());
-        return hasher.hash();
+        return hasher.hash().toString();
     }
 
     private void transform(File source, File dest) {
@@ -147,7 +129,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private void instrument(File source, File dest) {
-        classpathBuilder.nonReplacingJar(dest, builder -> {
+        classpathBuilder.jar(dest, builder -> {
             try {
                 visitEntries(source, builder);
             } catch (FileException e) {

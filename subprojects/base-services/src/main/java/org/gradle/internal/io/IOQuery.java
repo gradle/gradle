@@ -15,8 +15,10 @@
  */
 package org.gradle.internal.io;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 public interface IOQuery<T> {
+    @Nullable
     T run() throws IOException, InterruptedException;
 }
