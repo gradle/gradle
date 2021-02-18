@@ -1,0 +1,12 @@
+[[validation-problem]]
+= Dealing with validation problems
+
+This page summarizes the different task (or in general work) validation problems that Gradle reports and provides guidance for fixing them.
+
+[[invalid_use_of_cacheable_transform_annotation]]
+== Invalid use of @CacheableTransform
+
+This error indicates that you have annotated a type with `@CacheableTransform` but this annotation only makes sense on artifact transforms types. Therefore, it's a no-op.
+
+The solution is to remove the annotation. For tasks, the annotation to use is `@CacheableTask`.
+
