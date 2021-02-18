@@ -156,7 +156,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private void validateConfiguration() {
         if (javaCompiler.isPresent()) {
             checkState(getOptions().getForkOptions().getJavaHome() == null, "Must not use `javaHome` property on `ForkOptions` together with `javaCompiler` property");
-            checkState(getOptions().getForkOptions().getExecutable() == null, "Must not use `exectuable` property on `ForkOptions` together with `javaCompiler` property");
+            checkState(getOptions().getForkOptions().getExecutable() == null, "Must not use `executable` property on `ForkOptions` together with `javaCompiler` property");
         }
     }
 
