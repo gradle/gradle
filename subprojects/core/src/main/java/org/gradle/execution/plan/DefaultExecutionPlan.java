@@ -41,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.StringWriter;
 import java.util.AbstractCollection;
 import java.util.ArrayDeque;
@@ -57,6 +56,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newIdentityHashSet;
@@ -694,11 +694,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             ? candidateNodeOutputs
             : mutations.destroyablePaths;
         if (!candidateMutationPaths.isEmpty()) {
-            for (String nodeOutput : candidateMutationPaths) {
-                if (outputHierarchy.getNodesAccessing(nodeOutput).stream().anyMatch(runningNodes::contains)) {
-                    return true;
-                }
-                if (destroyableHierarchy.getNodesAccessing(nodeOutput).stream().anyMatch(runningNodes::contains)) {
+            for (String candidateMutationPath : candidateMutationPaths) {
+                Stream<Node> nodesMutatingCandidatePath = Stream.concat(
+                    outputHierarchy.getNodesAccessing(candidateMutationPath).stream(),
+                    destroyableHierarchy.getNodesAccessing(candidateMutationPath).stream()
+                );
+                if (nodesMutatingCandidatePath.anyMatch(runningNodes::contains)) {
                     return true;
                 }
             }
@@ -707,14 +708,17 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean doesDestroyNotYetConsumedOutputOfAnotherNode(Node destroyer, Set<String> destroyablePaths) {
-        if (!destroyablePaths.isEmpty()) {
+        if (destroyablePaths.isEmpty()) {
+            return false;
+        }
+        for (String destroyablePath : destroyablePaths) {
+            ImmutableSet<Node> producersDestroyedByDestroyer = outputHierarchy.getNodesAccessing(destroyablePath);
             for (Node producingNode : producedButNotYetConsumed) {
-                MutationInfo producingNodeMutations = producingNode.getMutationInfo();
-                assert !producingNodeMutations.consumingNodes.isEmpty();
-                if (!hasOverlap(destroyablePaths, producingNodeMutations.outputPaths)) {
-                    // No overlap no cry
+                if (!producersDestroyedByDestroyer.contains(producingNode)) {
                     continue;
                 }
+                MutationInfo producingNodeMutations = producingNode.getMutationInfo();
+                assert !producingNodeMutations.consumingNodes.isEmpty();
                 for (Node consumer : producingNodeMutations.consumingNodes) {
                     if (doesConsumerDependOnDestroyer(consumer, destroyer)) {
                         // If there's an explicit dependency from consuming node to destroyer,
@@ -749,46 +753,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
         reachableCache.put(nodePair, reachable);
         return reachable;
-    }
-
-    private static boolean hasOverlap(Iterable<String> paths1, Iterable<String> paths2) {
-        for (String path1 : paths1) {
-            for (String path2 : paths2) {
-                String overLappedPath = getOverLappedPath(path1, path2);
-                if (overLappedPath != null) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    @Nullable
-    private static String getOverLappedPath(String firstPath, String secondPath) {
-        if (firstPath.equals(secondPath)) {
-            return firstPath;
-        }
-        if (firstPath.length() == secondPath.length()) {
-            return null;
-        }
-
-        String shorter;
-        String longer;
-        if (firstPath.length() > secondPath.length()) {
-            shorter = secondPath;
-            longer = firstPath;
-        } else {
-            shorter = firstPath;
-            longer = secondPath;
-        }
-
-        boolean isOverlapping = longer.startsWith(shorter) && longer.charAt(shorter.length()) == File.separatorChar;
-        if (isOverlapping) {
-            return shorter;
-        } else {
-            return null;
-        }
     }
 
     private void recordNodeExecutionStarted(Node node) {
