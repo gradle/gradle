@@ -319,11 +319,11 @@ Note that identifiers for <<custom_plugins.adoc#sec:precompiled_plugins,precompi
 [[plugin-with-variants]]
 == Providing multiple variants of a plugin for different Gradle versions
 
-NOTE: The support for multi-variant plugins currently requires you to use the raw <<variant_model.adoc#,variant aware dependency management>> APIs of Gradle.
+NOTE: The support for multi-variant plugins currently requires you to use the raw <<variant_model.adoc#understanding-variant-selection,variant aware dependency management>> APIs of Gradle.
 More conveniences around this may be provided in the future.
 
-Currently, the most convenient way to configure additional plugin variants is to use <<feature_variants.adoc#,feature variants>>, a concept available in all Gradle projects that apply one of the Java plugins.
-As described in the <<feature_variants.adoc#,documentation>>, there are several options to design feature variants.
+Currently, the most convenient way to configure additional plugin variants is to use <<feature_variants.adoc#feature_variants,feature variants>>, a concept available in all Gradle projects that apply one of the Java plugins.
+As described in the <<feature_variants.adoc#feature_variants,documentation>>, there are several options to design feature variants.
 They may be bundled inside the same Jar, or each variant may come with its own Jar.
 Here we show how each plugin variant is developed in isolation.
 That is, in a separate source set that is compiled separately and packaged in a separate Jar.
@@ -340,7 +340,7 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files
 First, we declare a separate _source set_, and a _feature variant_ based on that, for our Gradle7 plugin variant.
 We need to do some specific wiring to turn the feature into a proper Gradle plugin variant:
 
-<1> Assign the <<component_capabilities.adoc#,implicit capability that corresponds to the components GAV>> to the variant.
+<1> Assign the <<component_capabilities.adoc#declaring-component-capabilities,implicit capability that corresponds to the components GAV>> to the variant.
 <2> Assign the <<variant_attributes.adoc#sub:gradle_plugins_default_attributes,Gradle API version attribute>> to all <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. This information is used by Gradle to determine which variant to select during plugin resolution.
 <3> Configure the `processGradle7Resources` task to make sure the plugin descriptor file is added to the Gradle7 variant Jar.
 <4> Add a dependency to the `gradleApi()` for our new variant so that the API is visible during compilation time.
