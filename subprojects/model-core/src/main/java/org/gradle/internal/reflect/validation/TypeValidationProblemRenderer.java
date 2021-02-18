@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.reflect.validation;
 
-import me.champeau.jdoctor.Solution;
+import org.gradle.problems.Solution;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;

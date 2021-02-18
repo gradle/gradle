@@ -16,7 +16,7 @@
 package org.gradle.internal.reflect.validation;
 
 import com.google.common.collect.Lists;
-import me.champeau.jdoctor.Solution;
+import org.gradle.problems.Solution;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.Cast;

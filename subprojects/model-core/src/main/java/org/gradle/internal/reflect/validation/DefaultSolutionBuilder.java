@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.reflect.validation;
 
-import me.champeau.jdoctor.BaseSolution;
-import me.champeau.jdoctor.Solution;
+import org.gradle.problems.BaseSolution;
+import org.gradle.problems.Solution;
 import org.gradle.api.internal.DocumentationRegistry;
 
 import java.util.function.Supplier;

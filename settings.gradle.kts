@@ -15,7 +15,6 @@ plugins {
     id("gradlebuild.base.allprojects")
 }
 
-includeBuild("../jdoctor")
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
 
@@ -123,6 +122,7 @@ include("security")
 include("normalization-java")
 include("enterprise")
 include("build-operations")
+include("problems")
 
 // Plugin portal projects
 include("kotlin-dsl-plugins")

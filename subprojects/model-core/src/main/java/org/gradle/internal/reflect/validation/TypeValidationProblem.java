@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.reflect.validation;
 
-import me.champeau.jdoctor.BaseProblem;
-import me.champeau.jdoctor.Solution;
+import org.gradle.problems.BaseProblem;
+import org.gradle.problems.Solution;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 
 import javax.annotation.Nullable;
