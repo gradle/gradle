@@ -41,42 +41,42 @@ class JavaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
         def javaHome = TextUtil.escapeString(target.getJavaHome())
 
         buildFile << """
-apply plugin: 'java'
-${mavenCentralRepository()}
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of($javaVersion.majorVersion )
-    }
-}
-tasks.withType(Javadoc) {
-    options.noTimestamp = false
-}
-"""
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of($javaVersion.majorVersion )
+                }
+            }
+            tasks.withType(Javadoc) {
+                options.noTimestamp = false
+            }
+        """
 
         file("src/main/java/Thing.java") << """
-/** Some thing. */
-public class Thing { }
-"""
+            /** Some thing. */
+            public class Thing { }
+        """
         executer.withArgument("-Porg.gradle.java.installations.paths=" + javaHome)
     }
 
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testImplementation 'junit:junit:4.13' }
-"""
+            dependencies { testImplementation 'junit:junit:4.13' }
+        """
 
         file("src/test/java/ThingTest.java") << """
-import org.junit.Test;
-import static org.junit.Assert.*;
+            import org.junit.Test;
+            import static org.junit.Assert.*;
 
-public class ThingTest {
-    @Test
-    public void verify() {
-        assertTrue(System.getProperty("java.version").startsWith("${version}"));
-    }
-}
-"""
+            public class ThingTest {
+                @Test
+                public void verify() {
+                    assertTrue(System.getProperty("java.version").startsWith("${version}"));
+                }
+            }
+        """
 
         expect:
         succeeds '--info', 'test'
@@ -87,19 +87,19 @@ public class ThingTest {
     def "can compile source and run TestNG tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testImplementation 'org.testng:testng:6.8.8' }
-"""
+            dependencies { testImplementation 'org.testng:testng:6.8.8' }
+        """
 
         file("src/test/java/ThingTest.java") << """
-import org.testng.annotations.Test;
+            import org.testng.annotations.Test;
 
-public class ThingTest {
-    @Test
-    public void verify() {
-        assert System.getProperty("java.version").startsWith("${version}.");
-    }
-}
-"""
+            public class ThingTest {
+                @Test
+                public void verify() {
+                    assert System.getProperty("java.version").startsWith("${version}.");
+                }
+            }
+        """
 
         expect:
         succeeds '--info', 'test'
@@ -108,21 +108,21 @@ public class ThingTest {
     def "can build and run application using target Java version"() {
         given:
         buildFile << """
-apply plugin: 'application'
+            apply plugin: 'application'
 
-application {
-    mainClass = 'Main'
-}
-"""
+            application {
+                mainClass = 'Main'
+            }
+        """
 
         file("src/main/java/Main.java") << """
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("java home: " + System.getProperty("java.home"));
-        System.out.println("java version: " + System.getProperty("java.version"));
-    }
-}
-"""
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("java home: " + System.getProperty("java.home"));
+                    System.out.println("java version: " + System.getProperty("java.version"));
+                }
+            }
+        """
 
         expect:
         succeeds '--info', 'run'
