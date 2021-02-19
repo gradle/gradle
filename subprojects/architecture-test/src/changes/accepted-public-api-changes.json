@@ -1646,6 +1646,517 @@
             "member": "Constructor org.gradle.StartParameter(org.gradle.initialization.BuildLayoutParameters)",
             "acceptation": "Constructor required so subclasses can better control initialization.",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMapping",
+            "member": "Class org.gradle.api.artifacts.maven.Conf2ScopeMapping",
+            "acceptation": "Deprecated class was removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMapping",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMapping.equals(java.lang.Object)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMapping",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMapping.getConfiguration()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMapping",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMapping.getPriority()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMapping",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMapping.getScope()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMapping",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMapping.hashCode()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMapping",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMapping.toString()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMapping",
+            "member": "Constructor org.gradle.api.artifacts.maven.Conf2ScopeMapping(java.lang.Integer,org.gradle.api.artifacts.Configuration,java.lang.String)",
+            "acceptation": "Deprecated constructor was removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Class org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "acceptation": "Deprecated class was removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Field COMPILE",
+            "acceptation": "Deprecated field was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Field RUNTIME",
+            "acceptation": "Deprecated field was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Field TEST",
+            "acceptation": "Deprecated field was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Field PROVIDED",
+            "acceptation": "Deprecated field was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer.addMapping(int,org.gradle.api.artifacts.Configuration,java.lang.String)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer.getMapping(java.util.Collection)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer.getMappings()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer.isSkipUnmappedConfs()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer",
+            "member": "Method org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer.setSkipUnmappedConfs(boolean)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Class org.gradle.api.artifacts.maven.MavenPom",
+            "acceptation": "Deprecated class was removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Field POM_FILE_ENCODING",
+            "acceptation": "Deprecated field was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.getArtifactId()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.getConfigurations()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.getDependencies()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.getEffectivePom()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.getGroupId()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.getModel()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.getPackaging()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.getScopeMappings()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.getVersion()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.project(groovy.lang.Closure)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.project(org.gradle.api.Action)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.setArtifactId(java.lang.String)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.setConfigurations(org.gradle.api.artifacts.ConfigurationContainer)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.setDependencies(java.util.List)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.setGroupId(java.lang.String)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.setModel(java.lang.Object)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.setPackaging(java.lang.String)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.setVersion(java.lang.String)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.whenConfigured(groovy.lang.Closure)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.whenConfigured(org.gradle.api.Action)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.withXml(org.gradle.api.Action)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.withXml(groovy.lang.Closure)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.writeTo(java.io.Writer)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenPom",
+            "member": "Method org.gradle.api.artifacts.maven.MavenPom.writeTo(java.lang.Object)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Class org.gradle.api.artifacts.maven.PomFilterContainer",
+            "acceptation": "Deprecated class was removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Field DEFAULT_ARTIFACT_POM_NAME",
+            "acceptation": "Deprecated field was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.addFilter(java.lang.String,org.gradle.api.artifacts.maven.PublishFilter)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.addFilter(java.lang.String,groovy.lang.Closure)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.filter(java.lang.String)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.filter(groovy.lang.Closure)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.getActivePomFilters()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.getFilter()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.getPom()",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.pom(java.lang.String)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.pom(java.lang.String,groovy.lang.Closure)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.pom(groovy.lang.Closure)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.pom(java.lang.String,org.gradle.api.Action)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.pom(org.gradle.api.Action)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.setFilter(org.gradle.api.artifacts.maven.PublishFilter)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PomFilterContainer",
+            "member": "Method org.gradle.api.artifacts.maven.PomFilterContainer.setPom(org.gradle.api.artifacts.maven.MavenPom)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PublishFilter",
+            "member": "Class org.gradle.api.artifacts.maven.PublishFilter",
+            "acceptation": "Deprecated class was removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },{
+            "type": "org.gradle.api.artifacts.maven.PublishFilter",
+            "member": "Field ALWAYS_ACCEPT",
+            "acceptation": "Deprecated field was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.PublishFilter",
+            "member": "Method org.gradle.api.artifacts.maven.PublishFilter.accept(org.apache.ivy.core.module.descriptor.Artifact,java.io.File)",
+            "acceptation": "Deprecated method was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.getVersionRangeMapper()",
+            "acceptation": "Not public API - dependency injection for internal type",
+            "changes": [
+                "Method return type has changed"
+            ]
         }
     ]
 }

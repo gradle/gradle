@@ -27,14 +27,8 @@ applyAutomaticUpgradeOfCapabilities()
 dependencies {
     components {
         // Gradle distribution - minify: remove unused transitive dependencies
-        withModule<MavenDependencyCleaningRule>(libs.maven3)
         withLibraryDependencies<DependencyRemovalByNameRule>(libs.awsS3Core, setOf("jackson-dataformat-cbor"))
         withLibraryDependencies<DependencyRemovalByGroupRule>(libs.jgit, setOf("com.googlecode.javaewah"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3WagonHttpShared, setOf("org.jsoup"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.aetherConnector, setOf("org.sonatype.sisu"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3Compat, setOf("org.sonatype.sisu"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3PluginApi, setOf("org.sonatype.sisu"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3SettingsBuilder, setOf("org.sonatype.sisu"))
 
         // We don't need the extra annotations provided by j2objc
         withLibraryDependencies<DependencyRemovalByNameRule>(libs.googleHttpClient, setOf("j2objc-annotations"))
@@ -218,23 +212,6 @@ abstract class KeepDependenciesByNameRule @Inject constructor(
     }
 }
 
-
-abstract class MavenDependencyCleaningRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                removeAll {
-                    it.name != "maven-settings-builder" &&
-                        it.name != "maven-model" &&
-                        it.name != "maven-model-builder" &&
-                        it.name != "maven-artifact" &&
-                        it.name != "maven-aether-provider" &&
-                        it.group != "org.sonatype.aether"
-                }
-            }
-        }
-    }
-}
 
 inline
 fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.withLibraryDependencies(module: String, modulesToRemove: Set<String>) {

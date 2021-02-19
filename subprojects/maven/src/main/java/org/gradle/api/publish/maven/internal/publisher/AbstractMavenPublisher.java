@@ -42,13 +42,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-
-import static org.apache.maven.artifact.ArtifactUtils.isSnapshot;
+import java.util.regex.Pattern;
 
 abstract class AbstractMavenPublisher implements MavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenPublisher.class);
 
     private static final String POM_FILE_ENCODING = "UTF-8";
+    private static final String SNAPSHOT_VERSION = "SNAPSHOT";
+    private static final Pattern VERSION_FILE_PATTERN = Pattern.compile("^(.*)-([0-9]{8}.[0-9]{6})-([0-9]+)$");
     private final Factory<File> temporaryDirFactory;
     private final XmlTransformer xmlTransformer = new XmlTransformer();
 
@@ -129,6 +130,18 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             }
         });
         return metadataFile;
+    }
+
+    private boolean isSnapshot(String version) {
+        if (version != null) {
+            if (version.regionMatches(true, version.length() - SNAPSHOT_VERSION.length(),
+                SNAPSHOT_VERSION, 0, SNAPSHOT_VERSION.length())) {
+                return true;
+            } else {
+                return VERSION_FILE_PATTERN.matcher(version).matches();
+            }
+        }
+        return false;
     }
 
     ExternalResourceReadResult<Metadata> readExistingMetadata(ExternalResourceRepository repository, ExternalResourceName metadataResource) {

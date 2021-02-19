@@ -22,7 +22,7 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.publication.maven.internal.VersionRangeMapper
+import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
