@@ -55,6 +55,7 @@ dependencies {
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
     integTestImplementation(testFixtures(project(":security")))
+    integTestImplementation(testFixtures(project(":model-core")))
 
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")

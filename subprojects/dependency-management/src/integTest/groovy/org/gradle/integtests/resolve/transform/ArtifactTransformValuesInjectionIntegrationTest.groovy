@@ -40,6 +40,8 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.process.ExecOperations
 import spock.lang.Unroll
 
@@ -302,6 +304,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
+    )
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -398,11 +403,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             ],
             missingInput: 'does not have a value specified',
             'nested.outputDirectory': 'is annotated with invalid property type @OutputDirectory',
-            'nested.inputFile': 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
+            'nested.inputFile': 'is annotated with @InputFile but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
             'nested.stringProperty': 'is not annotated with an input annotation',
-            noPathSensitivity: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
-            noPathSensitivityDir: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
-            noPathSensitivityFile: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
+            noPathSensitivity: 'is annotated with @InputFiles but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
+            noPathSensitivityDir: 'is annotated with @InputDirectory but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
+            noPathSensitivityFile: 'is annotated with @InputFile but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
             outputDir: 'is annotated with invalid property type @OutputDirectory',
         )
     }
@@ -572,6 +577,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
+    )
     def "transform action is validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -632,7 +640,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 'is annotated with invalid property type @InputFile'
             ],
             inputFile: 'is annotated with invalid property type @InputFile',
-            noPathSensitivity: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
+            noPathSensitivity: 'is annotated with @InputArtifact but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
             notAnnotated: 'is not annotated with an input annotation',
         )
     }
@@ -1042,6 +1050,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
             def errorMessages = errorMessageOrMessages instanceof Iterable ? [*errorMessageOrMessages] : [errorMessageOrMessages]
             errorMessages.each { errorMessage ->
                 count++
+                System.err.println("Verifying assertion for $propertyName")
                 failure.assertHasCause("Property '${propertyName}' ${errorMessage}.")
             }
         }

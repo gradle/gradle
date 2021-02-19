@@ -33,8 +33,8 @@ public class TypeValidationProblemLocation implements Location {
         return new TypeValidationProblemLocation(type, null, null);
     }
 
-    public static TypeValidationProblemLocation forProperty(@Nullable String parentProperty, @Nullable String property) {
-        return new TypeValidationProblemLocation(null, parentProperty, property);
+    public static TypeValidationProblemLocation forProperty(@Nullable Class<?> rootType, @Nullable String parentProperty, @Nullable String property) {
+        return new TypeValidationProblemLocation(rootType, parentProperty, property);
     }
 
     public Optional<Class<?>> getType() {

@@ -29,10 +29,7 @@ public class TypeValidationProblemRenderer {
     // consumer to render it as they need. For example, an HTML renderer
     // may use the same information differently
     public static String renderMinimalInformationAbout(TypeValidationProblem problem) {
-        String context = problem.getWhere()
-            .getType()
-            .map(c -> "Type '" + ModelType.of(c).getDisplayName() + "': ")
-            .orElse("");
+        String introduction = introductionFor(problem.getWhere());
         StringBuilder details = new StringBuilder(maybeAppendDot(problem.getShortDescription()));
         problem.getWhy().ifPresent(reason -> details.append(" ").append(maybeAppendDot(reason)));
         List<Solution> possibleSolutions = problem.getPossibleSolutions();
@@ -43,7 +40,32 @@ public class TypeValidationProblemRenderer {
                 .map(Solution::getShortDescription)
                 .collect(Collectors.joining(" or "))));
         }
-        return context + details;
+        return introduction + details;
+    }
+
+    private static String introductionFor(TypeValidationProblemLocation location) {
+        StringBuilder builder = new StringBuilder();
+        Class<?> rootType = location.getType().orElse(null);
+        if (rootType != null) {
+            builder.append("Type '");
+            builder.append(ModelType.of(rootType).getDisplayName());
+            builder.append("': ");
+        }
+        String property = location.getPropertyName().orElse(null);
+        if (property != null) {
+            if (rootType == null) {
+                builder.append("Property '");
+            } else {
+                builder.append("property '");
+            }
+            location.getParentPropertyName().ifPresent(parentProperty -> {
+                builder.append(parentProperty);
+                builder.append('.');
+            });
+            builder.append(property);
+            builder.append("' ");
+        }
+        return builder.toString();
     }
 
     private static String maybeAppendDot(String txt) {

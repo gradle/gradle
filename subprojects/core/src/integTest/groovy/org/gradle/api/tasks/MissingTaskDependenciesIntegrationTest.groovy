@@ -310,7 +310,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         """
 
         when:
-        expectMissingDependencyDeprecation(":producer", ":consumer", testDirectory)
+        expectMissingDependencyDeprecation(":producer", ":consumer", testDirectory, 'Zip')
         run("producer", "consumer")
         then:
         executedAndNotSkipped(":producer", ":consumer")
@@ -422,7 +422,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped ":broken"
         outputContains("""
             Execution optimizations have been disabled for task ':broken' to ensure correctness due to the following reasons:
-              - Property 'invalidInputFileCollection' cannot be resolved:
+              - Type 'DefaultTask': property 'invalidInputFileCollection' cannot be resolved:
               Cannot convert the provided notation to a File or URI: 5.
               The following types/formats are supported:
                 - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.

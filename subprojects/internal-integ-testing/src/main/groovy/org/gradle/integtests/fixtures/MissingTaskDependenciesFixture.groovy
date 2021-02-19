@@ -20,9 +20,9 @@ import groovy.transform.SelfType
 
 @SelfType(AbstractIntegrationSpec)
 trait MissingTaskDependenciesFixture {
-    void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
+    void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation, String taskName = 'DefaultTask') {
         executer.expectDocumentedDeprecationWarning(
-            "Gradle detected a problem with the following location: '${producedConsumedLocation.absolutePath}'. " +
+            "Type '$taskName': Gradle detected a problem with the following location: '${producedConsumedLocation.absolutePath}'. " +
                 "Task '${consumer}' uses this output of task '${producer}' without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
                 "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +

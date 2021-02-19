@@ -17,7 +17,10 @@ package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
 
-public class DefaultPropertyValidationProblemBuilder extends AbstractValidationProblemBuilder<PropertyProblemBuilder> implements PropertyProblemBuilder{
+import javax.annotation.Nullable;
+
+public class DefaultPropertyValidationProblemBuilder extends AbstractValidationProblemBuilder<PropertyProblemBuilder> implements PropertyProblemBuilderInternal {
+    private Class<?> rootType;
     private String parentProperty;
     private String property;
 
@@ -32,6 +35,28 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
         return this;
     }
 
+    @Override
+    public PropertyProblemBuilder forOwner(@Nullable String parentProperty) {
+        if (parentProperty == null) {
+            return this;
+        }
+        if (property == null) {
+            throw new IllegalStateException("Calling this method doesn't make sense if the property isn't set");
+        }
+        if (this.parentProperty == null) {
+            this.parentProperty = parentProperty;
+        } else {
+            this.parentProperty = parentProperty + "." + this.parentProperty;
+        }
+        return this;
+    }
+
+    @Override
+    public PropertyProblemBuilder forType(@Nullable Class<?> rootType) {
+        this.rootType = rootType;
+        return this;
+    }
+
     public TypeValidationProblem build() {
         if (shortProblemDescription == null) {
             throw new IllegalStateException("You must provide at least a short description of the problem");
@@ -39,7 +64,7 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
         return new TypeValidationProblem(
             problemId,
             severity,
-            TypeValidationProblemLocation.forProperty(parentProperty, property),
+            TypeValidationProblemLocation.forProperty(rootType, parentProperty, property),
             shortProblemDescription,
             longDescription,
             reason,

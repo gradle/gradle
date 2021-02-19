@@ -407,6 +407,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
+    )
     def "detects problems with file inputs"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -467,15 +470,15 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'file' has @Input annotation used on property of type 'File'.": WARNING,
-            "Type 'MyTask': property 'fileCollection' has @Input annotation used on property of type 'FileCollection'.": WARNING,
-            "Type 'MyTask': property 'filePath' has @Input annotation used on property of type 'Path'.": WARNING,
-            "Type 'MyTask': property 'fileTree' has @Input annotation used on property of type 'FileTree'.": WARNING,
-            "Type 'MyTask': property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'inputFile' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'inputFiles' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-        )
+        assertValidationFailsWith(false, [
+            warning("Type 'MyTask': property 'file' has @Input annotation used on property of type 'File'."),
+            warning("Type 'MyTask': property 'fileCollection' has @Input annotation used on property of type 'FileCollection'."),
+            warning("Type 'MyTask': property 'filePath' has @Input annotation used on property of type 'Path'."),
+            warning("Type 'MyTask': property 'fileTree' has @Input annotation used on property of type 'FileTree'."),
+            error("Type 'MyTask': property 'inputDirectory' is annotated with @InputDirectory but missing a normalization strategy. If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath."),
+            error("Type 'MyTask': property 'inputFile' is annotated with @InputFile but missing a normalization strategy. If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath."),
+            error("Type 'MyTask': property 'inputFiles' is annotated with @InputFiles but missing a normalization strategy. If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath."),
+        ])
     }
 
     def "detects problems on nested collections"() {

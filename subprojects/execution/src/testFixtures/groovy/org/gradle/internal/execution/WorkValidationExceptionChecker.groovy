@@ -38,7 +38,10 @@ class WorkValidationExceptionChecker {
     private WorkValidationExceptionChecker(WorkValidationException ex) {
         error = ex
         verified = [] as Set
-        problems = error.problems as Set
+        problems = error.problems.collect {
+            // assertions do not verify the type name
+            it.substring(it.indexOf(': ') + 2)
+        } as Set
     }
 
     void messageContains(String expected) {

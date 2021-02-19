@@ -35,7 +35,7 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         file('foo').createFile()
 
         given:
-        executer.expectDocumentedDeprecationWarning("Property 'input' is annotated with @IgnoreEmptyDirectories that is not allowed for ${nonDirectoryInput.annotation} properties. " +
+        executer.expectDocumentedDeprecationWarning("Type 'TaskWithInputs': property 'input' is annotated with @IgnoreEmptyDirectories that is not allowed for ${nonDirectoryInput.annotation} properties. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
@@ -60,7 +60,7 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         file('foo').createFile()
 
         given:
-        executer.expectDocumentedDeprecationWarning("Property 'output' is annotated with @IgnoreEmptyDirectories that is not allowed for ${output.annotation} properties. " +
+        executer.expectDocumentedDeprecationWarning("Type 'TaskWithOutputs': property 'output' is annotated with @IgnoreEmptyDirectories that is not allowed for ${output.annotation} properties. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")

@@ -25,7 +25,6 @@ import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
-import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 
@@ -50,6 +49,7 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
     public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {
         DefaultPropertyValidationProblemBuilder builder = new DefaultPropertyValidationProblemBuilder(documentationRegistry);
         problemSpec.execute(builder);
+        builder.forType(rootType);
         recordProblem(builder.build());
     }
 
@@ -70,30 +70,7 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
                 problemBuilder.onlyAffectsCacheableWork();
             }
             problemBuilder.forProperty(parentProperty, property)
-            .withDescription(() -> {
-                StringBuilder builder = new StringBuilder();
-                if (rootType != null) {
-                    builder.append("Type '");
-                    builder.append(ModelType.of(rootType).getDisplayName());
-                    builder.append("': ");
-                }
-                if (property != null) {
-                    if (rootType == null) {
-                        builder.append("Property '");
-                    } else {
-                        builder.append("property '");
-                    }
-                    if (parentProperty != null) {
-                        builder.append(parentProperty);
-                        builder.append('.');
-                    }
-                    builder.append(property);
-                    builder.append("' ");
-                }
-                builder.append(message);
-                builder.append('.');
-                return builder.toString();
-            });
+                .withDescription(message);
         });
     }
 

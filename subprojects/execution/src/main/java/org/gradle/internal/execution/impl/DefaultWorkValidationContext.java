@@ -41,7 +41,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     @Override
     public TypeValidationContext forType(Class<?> type, boolean cacheable) {
         types.add(type);
-        return new MessageFormattingTypeValidationContext(documentationRegistry, null) {
+        return new MessageFormattingTypeValidationContext(documentationRegistry, type) {
             @Override
             protected void recordProblem(TypeValidationProblem problem) {
                 boolean cacheableProblemOnly = problem.getPayload().map(TypeValidationProblem.Payload::isCacheabilityProblemOnly).orElse(false);
