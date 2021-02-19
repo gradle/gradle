@@ -99,15 +99,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """
-            buildscript {
-                ext.kotlin_version = '$kotlinVersion'
-                repositories { mavenCentral() }
-                dependencies {
-                    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-                }
+            plugins {
+                id 'groovy'
+                id 'org.jetbrains.kotlin.jvm' version'$kotlinVersion'
             }
-            apply plugin: 'kotlin'
-            apply plugin: 'groovy'
 
             repositories {
                 mavenCentral()
@@ -145,15 +140,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """
-            buildscript {
-                ext.kotlin_version = '$kotlinVersion'
-                repositories { mavenCentral() }
-                dependencies {
-                    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-                }
+            plugins {
+                id 'java-gradle-plugin'
+                id 'org.jetbrains.kotlin.jvm' version'$kotlinVersion'
             }
-            apply plugin: 'kotlin'
-            apply plugin: 'java-gradle-plugin'
 
             repositories {
                 mavenCentral()
