@@ -30,6 +30,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
@@ -48,7 +49,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public abstract class ValidateAction implements WorkAction<ValidateAction.Params> {
     private final static Logger LOGGER = Logging.getLogger(ValidateAction.class);
@@ -99,6 +100,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
     private static void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
         boolean cacheable;
         boolean mapErrorsToWarnings;
+        DocumentationRegistry documentationRegistry = new DocumentationRegistry();
         if (Task.class.isAssignableFrom(topLevelBean)) {
             cacheable = enableStricterValidation || topLevelBean.isAnnotationPresent(CacheableTask.class);
             // Treat all errors as warnings, for backwards compatibility
@@ -111,7 +113,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             mapErrorsToWarnings = false;
         }
 
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(topLevelBean, cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(documentationRegistry, topLevelBean, cacheable);
         PropertyValidationAccess.collectValidationProblems(topLevelBean, validationContext);
         validationContext.getProblems()
             .forEach((message, severity) -> problems.put(message, severity == ERROR || !mapErrorsToWarnings));

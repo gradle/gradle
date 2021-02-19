@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
@@ -53,6 +54,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ClasspathBuilder classpathBuilder;
     private final FileSystemAccess fileSystemAccess;
     private final GlobalCacheLocations globalCacheLocations;
+    private final FileLockManager fileLockManager;
     private final ManagedExecutor executor;
 
     public DefaultCachedClasspathTransformer(
@@ -63,12 +65,14 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathBuilder classpathBuilder,
         FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
-        GlobalCacheLocations globalCacheLocations
+        GlobalCacheLocations globalCacheLocations,
+        FileLockManager fileLockManager
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.fileSystemAccess = fileSystemAccess;
         this.globalCacheLocations = globalCacheLocations;
+        this.fileLockManager = fileLockManager;
         this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
@@ -87,7 +91,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         if (classPath.isEmpty()) {
             return classPath;
         }
-        return transformFiles(classPath, new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new CompositeTransformer(additional, transformerFor(transform))));
+        return transformFiles(classPath, instrumentingClasspathFileTransformerFor(new CompositeTransformer(additional, transformerFor(transform))));
     }
 
     @Override
@@ -138,12 +142,16 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {
         switch (transform) {
             case BuildLogic:
-                return new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new InstrumentingTransformer());
+                return instrumentingClasspathFileTransformerFor(new InstrumentingTransformer());
             case None:
                 return new CopyingClasspathFileTransformer(globalCacheLocations);
             default:
                 throw new IllegalArgumentException();
         }
+    }
+
+    private InstrumentingClasspathFileTransformer instrumentingClasspathFileTransformerFor(CachedClasspathTransformer.Transform transform) {
+        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, transform);
     }
 
     private CacheOperation cached(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen) {

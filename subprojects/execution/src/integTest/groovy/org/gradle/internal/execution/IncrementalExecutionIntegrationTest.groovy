@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
 import groovy.transform.Immutable
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
@@ -78,10 +79,11 @@ import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREM
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 class IncrementalExecutionIntegrationTest extends Specification {
+    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
@@ -139,7 +141,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     ExecutionEngine getExecutor() {
         // @formatter:off
-        new DefaultExecutionEngine(
+        new DefaultExecutionEngine(documentationRegistry,
             new IdentifyStep<>(inputFingerprinter,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(

@@ -18,11 +18,11 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class CacheableTaskTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override

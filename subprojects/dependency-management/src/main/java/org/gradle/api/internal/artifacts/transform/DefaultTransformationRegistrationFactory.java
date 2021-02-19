@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -47,7 +48,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
@@ -73,6 +74,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final DomainObjectContext owner;
     private final InstantiationScheme actionInstantiationScheme;
     private final InstantiationScheme legacyActionInstantiationScheme;
+    private final DocumentationRegistry documentationRegistry;
 
     public DefaultTransformationRegistrationFactory(
         BuildOperationExecutor buildOperationExecutor,
@@ -87,7 +89,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         DomainObjectContext owner,
         ArtifactTransformParameterScheme parameterScheme,
         ArtifactTransformActionScheme actionScheme,
-        ServiceLookup internalServices
+        ServiceLookup internalServices,
+        DocumentationRegistry documentationRegistry
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.isolatableFactory = isolatableFactory;
@@ -104,13 +107,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.legacyActionInstantiationScheme = actionScheme.getLegacyInstantiationScheme();
         this.parametersPropertyWalker = parameterScheme.getInspectionScheme().getPropertyWalker();
         this.internalServices = internalServices;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, cacheable);
         actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation
@@ -135,7 +139,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
             }
         }
-        ImmutableMap<String, TypeValidationContext.Severity> validationMessages = validationContext.getProblems();
+        ImmutableMap<String, Severity> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             String formatString = validationMessages.size() == 1
                 ? "A problem was found with the configuration of %s."
@@ -167,7 +171,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             actionInstantiationScheme,
             owner,
             calculatedValueContainerFactory,
-            internalServices);
+            internalServices,
+            documentationRegistry);
 
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, fileCollectionFingerprinterRegistry));
     }

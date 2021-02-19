@@ -24,14 +24,14 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING;
+import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override

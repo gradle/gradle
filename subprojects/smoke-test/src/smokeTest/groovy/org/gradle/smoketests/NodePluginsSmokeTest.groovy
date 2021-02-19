@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override

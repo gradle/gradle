@@ -30,6 +30,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.CacheRepositoryServices;
@@ -164,7 +165,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         ExecutorFactory executorFactory,
-        GlobalCacheLocations globalCacheLocations
+        GlobalCacheLocations globalCacheLocations,
+        FileLockManager fileLockManager
     ) {
         return new DefaultCachedClasspathTransformer(
             cacheRepository,
@@ -174,7 +176,9 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             classpathBuilder,
             fileSystemAccess,
             executorFactory,
-            globalCacheLocations);
+            globalCacheLocations,
+            fileLockManager
+        );
     }
 
     ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {

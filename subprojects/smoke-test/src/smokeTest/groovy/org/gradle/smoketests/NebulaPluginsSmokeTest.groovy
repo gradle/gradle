@@ -22,7 +22,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
 
