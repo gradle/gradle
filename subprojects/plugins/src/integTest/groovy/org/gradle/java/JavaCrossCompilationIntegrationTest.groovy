@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.FileUtils
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.util.TextUtil
 import org.junit.Assume
 
 //@TargetVersions(["1.6", "1.7", "1.8", "9"])
@@ -37,7 +36,6 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         Assume.assumeNotNull(target)
-        def javaHome = TextUtil.escapeString(target.getJavaHome())
 
         buildFile << """
             apply plugin: 'java'
@@ -56,7 +54,7 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             /** Some thing. */
             public class Thing { }
         """
-        executer.withArgument("-Porg.gradle.java.installations.paths=" + javaHome)
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + target.javaHome.absolutePath)
     }
 
     def "can compile source and run JUnit tests using target Java version"() {
