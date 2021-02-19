@@ -711,6 +711,38 @@ class GradleModuleMetadataWriterTest extends Specification {
 """
     }
 
+    def "fails to write component with child at the same coordinates"() {
+        def writer = new StringWriter()
+        def rootComponent = Stub(TestComponent)
+        def rootPublication = publication(rootComponent, id)
+
+        def id1 = DefaultModuleVersionIdentifier.newId("group", "module", "1")
+        def comp1 = Stub(TestComponent)
+        def publication1 = publication(comp1, id1)
+
+        def c1 = Stub(Capability) {
+            getGroup() >> 'org.test'
+            getName() >> 'foo'
+            getVersion() >> '1'
+        }
+
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile")
+        v1.capabilities >> [c1]
+
+        rootComponent.variants >> [comp1]
+        rootComponent.usages >> []
+        comp1.usages >> [v1]
+
+        when:
+        writeTo(writer, rootPublication, [rootPublication, publication1])
+
+        then:
+        InvalidUserCodeException ex = thrown()
+        ex.message.contains("Cannot have a remote variant with coordinates 'group:module' that are the same as the module itself")
+    }
+
     def "writes file for module that is a child of another component"() {
         def writer = new StringWriter()
         def rootComponent = Stub(TestComponent)
