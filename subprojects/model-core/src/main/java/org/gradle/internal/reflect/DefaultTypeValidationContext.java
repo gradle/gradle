@@ -43,11 +43,11 @@ public class DefaultTypeValidationContext extends MessageFormattingTypeValidatio
 
     @Override
     protected void recordProblem(TypeValidationProblem problem) {
-        Severity severity = problem.getSeverity();
-        if (severity == Severity.CACHEABILITY_WARNING && !cacheable) {
+        boolean cacheableProblemOnly = problem.getPayload().map(TypeValidationProblem.Payload::isCacheabilityProblemOnly).orElse(false);
+        if (cacheableProblemOnly && !cacheable) {
             return;
         }
-        problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), severity.toReportableSeverity());
+        problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), problem.getSeverity());
     }
 
     public ImmutableMap<String, Severity> getProblems() {
