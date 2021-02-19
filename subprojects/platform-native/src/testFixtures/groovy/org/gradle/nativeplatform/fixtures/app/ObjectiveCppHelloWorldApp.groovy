@@ -73,7 +73,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     }
 
     List<SourceFile> librarySources = [
-            sourceFile("objcpp", "hello.mm", """
+        new SourceFile("objcpp", "hello.mm", """
             #define __STDC_LIMIT_MACROS
             #include "common.h"
             #include <stdint.h>
@@ -98,7 +98,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
                 #endif
             }
         """),
-            sourceFile("objcpp", "sum.mm", """
+            new SourceFile("objcpp", "sum.mm", """
             #include "common.h"
             int DLL_FUNC sum(int a, int b) {
                 return a + b;

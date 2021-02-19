@@ -50,7 +50,7 @@
             "org.codehaus.groovy:groovy",
             "org.codehaus.groovy:groovy-all"
         ],
-        "selected": "org.gradle.groovy:groovy-all"
+        "selected": "org.codehaus.groovy:groovy"
     },
 
     // forced upgrade: the following modules will automatically be replaced with the selected module

@@ -59,12 +59,12 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         }
     }
 
-    private def doResolveArtifacts(ResolveParams params) {
+    def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
         String attributes = params.variant == null ?
             "" :
-            """ 
+            """
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
     }
@@ -107,7 +107,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                 }
             }
             repositories {
-                ivy { 
+                ivy {
                     url "${ivyRepo.uri}"
                     metadataSources {
                        ${params.resolveModuleMetadata?'gradleMetadata':'ivyDescriptor'}()
@@ -189,7 +189,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                 optionalFeatureCapabilities: optionalFeatureCapabilities,
             )
             println "Checking ${additionalArtifacts?'additional artifacts':'artifacts'} when resolving ${withModuleMetadata?'with':'without'} Gradle module metadata"
-            def resolutionResult = doResolveArtifacts(params)
+            def resolutionResult = AbstractIvyPublishIntegTest.this.doResolveArtifacts(params)
             expectationSpec.with {
                 if (expectSuccess) {
                     assert resolutionResult == expectedFileNames

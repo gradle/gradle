@@ -1292,6 +1292,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                 int i = 0;
                 boolean insideVariantDescriptionBlock = false;
                 boolean insideKotlinCompilerFlakyStacktrace = false;
+                boolean sawVmPluginLoadFailure = false;
                 while (i < lines.size()) {
                     String line = lines.get(i);
                     if (insideVariantDescriptionBlock && line.contains("]")) {
@@ -1304,6 +1305,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     if (line.contains("Compilation with Kotlin compile daemon was not successful")) {
                         insideKotlinCompilerFlakyStacktrace = true;
                         i++;
+                    } else if (line.contains("Trying to create VM plugin `org.codehaus.groovy.vmplugin.v9.Java9` by checking `java.lang.Module`")) {
+                        // a groovy warning when running on Java < 9
+                        // https://issues.apache.org/jira/browse/GROOVY-9933
+                        i++; // full stracktrace skipped in next branch
+                        sawVmPluginLoadFailure = true;
+                    } else if (line.contains("java.lang.ClassNotFoundException: java.lang.Module") && sawVmPluginLoadFailure) {
+                        // a groovy warning when running on Java < 9
+                        // https://issues.apache.org/jira/browse/GROOVY-9933
+                        i++;
+                        i = skipStackTrace(lines, i);
                     } else if (insideKotlinCompilerFlakyStacktrace &&
                         (line.contains("java.rmi.UnmarshalException") ||
                             line.contains("java.io.EOFException")) ||

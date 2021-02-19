@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":tooling-api"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsLang)
@@ -35,6 +36,7 @@ dependencies {
         because("test fixtures export the ConsoleOutput class")
     }
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(libs.groovyXml)
 
     testImplementation(project(":dependency-management"))
     testImplementation(libs.xmlunit)

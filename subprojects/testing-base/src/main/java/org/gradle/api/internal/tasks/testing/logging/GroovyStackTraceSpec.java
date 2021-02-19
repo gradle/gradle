@@ -28,6 +28,7 @@ public class GroovyStackTraceSpec implements Spec<StackTraceElement> {
                     + "|org.codehaus.groovy\\..*MetaClass.*"
                     + "|groovy\\..*MetaClass.*"
                     + "|groovy.lang.MetaMethod"
+                    + "|groovy.lang.GroovyObject"
                     + "|java.lang.reflect\\..*"
                     + "|sun.reflect\\..*"
                     + "|jdk.internal.reflect\\..*"

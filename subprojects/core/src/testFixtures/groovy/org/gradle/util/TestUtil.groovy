@@ -127,7 +127,7 @@ class TestUtil {
             it.add(DefaultPropertyFactory)
             it.addProvider(new Object() {
                 InstantiatorFactory createInstantiatorFactory() {
-                    instantiatorFactory()
+                    TestUtil.instantiatorFactory()
                 }
 
                 ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory, PropertyFactory propertyFactory) {

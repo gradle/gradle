@@ -16,10 +16,12 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
 class CppGreeterUsesLogger extends CppLibraryElement implements GreeterElement {
-    final SourceFileElement header = ofFile(sourceFile("headers", "greeter.h", """
+    final SourceFileElement header = ofFile(new SourceFile("headers", "greeter.h", """
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
@@ -32,11 +34,11 @@ public:
 };
 """))
 
-    final SourceFileElement privateHeader = ofFile(sourceFile("headers", "greeter_consts.h", """
+    final SourceFileElement privateHeader = ofFile(new SourceFile("headers", "greeter_consts.h", """
 #define GREETING "${HelloWorldApp.HELLO_WORLD}"
 """))
 
-    final SourceFileElement source = ofFile(sourceFile("cpp", "greeter.cpp", """
+    final SourceFileElement source = ofFile(new SourceFile("cpp", "greeter.cpp", """
 #include <iostream>
 #include <string>
 #include "greeter.h"

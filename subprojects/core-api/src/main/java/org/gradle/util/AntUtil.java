@@ -47,7 +47,7 @@ public class AntUtil {
     /**
      * Masks a string against Ant property expansion.
      * This needs to be used when adding a File as String property
-     * via {@link groovy.util.AntBuilder}.
+     * via {@link groovy.ant.AntBuilder}.
      * @param string to mask
      * @return The masked String
      */

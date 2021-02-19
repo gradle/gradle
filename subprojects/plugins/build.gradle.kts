@@ -28,6 +28,7 @@ dependencies {
     }
 
     implementation(libs.groovy)
+    implementation(libs.groovyTemplates)
     implementation(libs.ant)
     implementation(libs.guava)
     implementation(libs.commonsLang)

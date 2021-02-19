@@ -55,7 +55,7 @@ class CppCallingCHelloWorldApp extends HelloWorldApp {
     }
 
     List<SourceFile> librarySources = [
-        sourceFile("c", "hello.c", """
+        new SourceFile("c", "hello.c", """
             #include <stdio.h>
             #include "hello.h"
 
