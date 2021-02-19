@@ -29,6 +29,10 @@ public class TypeValidationProblemRenderer {
     // consumer to render it as they need. For example, an HTML renderer
     // may use the same information differently
     public static String renderMinimalInformationAbout(TypeValidationProblem problem) {
+        return renderMinimalInformationAbout(problem, true);
+    }
+
+    public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink) {
         String introduction = introductionFor(problem.getWhere());
         StringBuilder details = new StringBuilder(maybeAppendDot(problem.getShortDescription()));
         problem.getWhy().ifPresent(reason -> details.append(" ").append(maybeAppendDot(reason)));
@@ -39,6 +43,11 @@ public class TypeValidationProblemRenderer {
             details.append(maybeAppendDot(possibleSolutions.stream()
                 .map(Solution::getShortDescription)
                 .collect(Collectors.joining(" or "))));
+        }
+        if (renderDocLink) {
+            problem.getDocumentationLink().ifPresent(docLink ->
+                details.append(" Please refer to ").append(docLink).append(" for more details about this problem.")
+            );
         }
         return introduction + details;
     }

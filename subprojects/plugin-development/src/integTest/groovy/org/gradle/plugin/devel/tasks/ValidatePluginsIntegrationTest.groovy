@@ -54,7 +54,13 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     void assertValidationFailsWith(boolean expectDeprecationsForErrors, List<DocumentedProblem> messages) {
         fails "validatePlugins"
         def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.txt"))
-        report.verify(messages.collectEntries {[(it.message): it.severity ]})
+        report.verify(messages.collectEntries {
+            def fullMessage = it.message
+            if (!it.defaultDocLink) {
+                fullMessage = "${fullMessage} ${learnAt(it.id, it.section)}."
+            }
+            [(fullMessage): it.severity ]
+        })
 
         failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size()>1?'s':''}"
         messages.forEach { problem ->
@@ -167,9 +173,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         then:
         assertValidationFailsWith([
-            error("Type 'MyTask': property 'dirProp' is annotated with @InputDirectory but missing a normalization strategy. If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath."),
-            error("Type 'MyTask': property 'fileProp' is annotated with @InputFile but missing a normalization strategy. If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath."),
-            error("Type 'MyTask': property 'filesProp' is annotated with @InputFiles but missing a normalization strategy. If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath."),
+            error("Type 'MyTask': property 'dirProp' is annotated with @InputDirectory but missing a normalization strategy. $normalizationProblemDetails"),
+            error("Type 'MyTask': property 'fileProp' is annotated with @InputFile but missing a normalization strategy. $normalizationProblemDetails"),
+            error("Type 'MyTask': property 'filesProp' is annotated with @InputFiles but missing a normalization strategy. $normalizationProblemDetails"),
         ])
     }
 
