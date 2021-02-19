@@ -166,11 +166,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         given:
         def configurationCache = newConfigurationCacheFixture()
         executer.beforeExecute {
-            executer.expectDocumentedDeprecationWarning("Property 'prop' is not annotated with an input or output annotation. " +
+            executer.expectDocumentedDeprecationWarning("Type 'BrokenTaskType': property 'prop' is not annotated with an input or output annotation. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-            executer.expectDocumentedDeprecationWarning("Property 'anotherProp' is not annotated with an input or output annotation. " +
+            executer.expectDocumentedDeprecationWarning("Type 'BrokenTaskType': property 'anotherProp' is not annotated with an input or output annotation. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
