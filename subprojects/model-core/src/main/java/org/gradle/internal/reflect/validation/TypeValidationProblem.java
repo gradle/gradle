@@ -55,8 +55,8 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
 
     public static class Payload {
 
-        private static Payload CACHEABILITY_PROBLEM_ONLY = new Payload(true);
-        private static Payload STANDARD_PROBLEM = new Payload(false);
+        private static final Payload CACHEABILITY_PROBLEM_ONLY = new Payload(true);
+        private static final Payload STANDARD_PROBLEM = new Payload(false);
 
         public static Payload of(boolean cacheableProblemOnly) {
             if (cacheableProblemOnly) {

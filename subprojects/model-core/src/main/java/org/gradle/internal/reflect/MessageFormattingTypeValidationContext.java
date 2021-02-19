@@ -63,8 +63,7 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
 
     @Override
     public void visitPropertyProblem(Severity kind, @Nullable String parentProperty, @Nullable String property, String message) {
-        visitPropertyProblem(problem ->
-        {
+        visitPropertyProblem(problem -> {
             PropertyProblemBuilder problemBuilder = problem.reportAs(kind.toReportableSeverity());
             // this code should go away once all messages go through the builder instead
             if (kind == Severity.CACHEABILITY_WARNING) {
