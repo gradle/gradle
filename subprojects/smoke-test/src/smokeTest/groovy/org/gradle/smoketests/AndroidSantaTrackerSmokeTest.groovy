@@ -46,9 +46,16 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         def result = buildLocation(checkoutDir, agpVersion)
 
         then:
-        expectDeprecationWarnings(result, "The WorkerExecutor.submit() method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-            "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
+        expectDeprecationWarnings(result,
+            "The WorkerExecutor.submit() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. " +
+                "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",
+            "The RepositoryHandler.jcenter() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. " +
+                "JCenter will soon be shut down. Use mavenCentral() instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#jcenter_deprecation"
+        )
         assertConfigurationCacheStateStored()
 
         where:
