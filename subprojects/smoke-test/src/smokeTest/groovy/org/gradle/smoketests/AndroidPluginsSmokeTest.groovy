@@ -50,6 +50,8 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         and:
         def runner = useAgpVersion(agpVersion, runner(
             'assembleDebug',
+            'testDebugUnitTest',
+            'connectedDebugAndroidTest',
             "-Pandroid.injected.invoked.from.ide=$ide"
         ))
 
@@ -196,6 +198,12 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             <resources>
                 <string name="app_name">Android Gradle</string>
             </resources>'''.stripIndent()
+        file("${app}/src/test/java/ExampleTest.java") << '''
+            import org.junit.Test;
+            public class ExampleTest {
+                @Test public void test() {}
+            }
+        '''.stripIndent()
 
         file('settings.gradle') << """
             include ':${app}'
@@ -235,6 +243,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         appBuildFile << """
             dependencies {
                 implementation project(':${library}')
+                testImplementation 'junit:junit:4.12'
             }
         """
 
