@@ -211,7 +211,10 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                         return true;
                     });
                 });
-                return sourceSet.getOutput().plus(view.getFiles());
+                return pluginUnderTestMetadataTask.getProject().getObjects().fileCollection().from(
+                    sourceSet.getOutput(),
+                    view.getFiles().getElements()
+                );
             });
         });
     }
