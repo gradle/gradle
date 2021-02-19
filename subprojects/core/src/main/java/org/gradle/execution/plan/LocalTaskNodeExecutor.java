@@ -44,12 +44,12 @@ import java.util.Set;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
-    private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy inputHierarchy;
+    private final ExecutionNodeAccessHierarchy outputHierarchy;
 
-    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy outputHierarchy, ExecutionNodeAccessHierarchy inputHierarchy) {
-        this.outputHierarchy = outputHierarchy;
+    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy inputHierarchy, ExecutionNodeAccessHierarchy outputHierarchy) {
         this.inputHierarchy = inputHierarchy;
+        this.outputHierarchy = outputHierarchy;
     }
 
     @Override
@@ -203,6 +203,8 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
 
     private static void addHardSuccessorTasksToQueue(Node node, Set<Node> seenNodes, Queue<Node> queue) {
         node.getHardSuccessors().forEach(successor -> {
+            // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
+            // For example we can skip all the transform nodes between two task nodes.
             if (successor instanceof LocalTaskNode) {
                 if (seenNodes.add(successor)) {
                     queue.add(successor);
