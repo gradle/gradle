@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hasher
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
 
@@ -49,5 +50,15 @@ class IgnoringResourceHasherTest extends Specification {
 
         and:
         hash == null
+    }
+
+    def "delegate configuration is added to hasher"() {
+        def configurationHasher = Mock(Hasher)
+
+        when:
+        hasher.appendConfigurationToHasher(configurationHasher)
+
+        then:
+        1 * delegate.appendConfigurationToHasher(configurationHasher)
     }
 }
