@@ -38,14 +38,8 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         AndroidHome.assertIsSet()
     }
 
-    // TODO:configuration-cache remove once fixed upstream
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return 100
-    }
-
-    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_4_0_ITERATION_MATCHER)
-    def "android library and application APK assembly"(String agpVersion, boolean ide) {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
