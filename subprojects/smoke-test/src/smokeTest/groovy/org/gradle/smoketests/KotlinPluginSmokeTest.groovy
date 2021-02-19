@@ -99,15 +99,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """
-            buildscript {
-                ext.kotlin_version = '$kotlinVersion'
-                repositories { mavenCentral() }
-                dependencies {
-                    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-                }
+            plugins {
+                id 'groovy'
+                id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
             }
-            apply plugin: 'kotlin'
-            apply plugin: 'groovy'
 
             repositories {
                 mavenCentral()
@@ -135,6 +130,42 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         then:
         result.task(':compileJava').outcome == SUCCESS
         result.tasks.collect { it.path } == [':compileGroovy', ':compileKotlin', ':compileJava']
+
+        where:
+        kotlinVersion << TestedVersions.kotlin.versions
+    }
+
+    @Unroll
+    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-gradle-plugin'
+                id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+            }
+        """
+        file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
+
+        when:
+        def result = build(false, 'build')
+
+        then:
+        result.task(':compileKotlin').outcome == SUCCESS
+
+        when:
+        result = build(false, 'build')
+
+        then:
+        result.task(':compileKotlin').outcome == UP_TO_DATE
 
         where:
         kotlinVersion << TestedVersions.kotlin.versions
