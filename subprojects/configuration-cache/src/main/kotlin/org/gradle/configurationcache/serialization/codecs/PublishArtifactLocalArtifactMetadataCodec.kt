@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -25,6 +25,8 @@ import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 import org.gradle.internal.component.model.IvyArtifactName
+import java.io.File
+import java.util.Date
 
 
 /**
@@ -47,6 +49,49 @@ object PublishArtifactLocalArtifactMetadataCodec : Codec<PublishArtifactLocalArt
         val componentId = read() as ComponentIdentifier
         val ivyName = read() as IvyArtifactName
         val file = readFile()
-        return PublishArtifactLocalArtifactMetadata(componentId, DefaultPublishArtifact(ivyName.name, ivyName.extension, ivyName.type, ivyName.classifier, null, file))
+        return PublishArtifactLocalArtifactMetadata(componentId, ImmutablePublishArtifact(ivyName.name, ivyName.extension!!, ivyName.type, ivyName.classifier, file))
+    }
+}
+
+
+private
+class ImmutablePublishArtifact(
+    private val name: String,
+    private val extension: String,
+    private val type: String,
+    private val classifier: String?,
+    private val file: File,
+) : AbstractPublishArtifact() {
+
+    override fun getName() = name
+    override fun getExtension() = extension
+    override fun getType() = type
+    override fun getClassifier() = classifier
+    override fun getFile() = file
+    override fun getDate(): Date? = null
+    override fun shouldBePublished() = true
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ImmutablePublishArtifact
+
+        if (name != other.name) return false
+        if (extension != other.extension) return false
+        if (type != other.type) return false
+        if (classifier != other.classifier) return false
+        if (file != other.file) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + extension.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + (classifier?.hashCode() ?: 0)
+        result = 31 * result + file.hashCode()
+        return result
     }
 }
