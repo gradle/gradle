@@ -109,6 +109,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:assembleDebug').outcome == (VersionNumber.parse(agpVersion) < VersionNumber.parse("3.6.0")
             ? TaskOutcome.SUCCESS
             : TaskOutcome.UP_TO_DATE)
+        result.task(':app:processDebugAndroidTestManifest').outcome == TaskOutcome.UP_TO_DATE
 
         and:
         assertConfigurationCacheStateLoaded()
