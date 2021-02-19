@@ -39,6 +39,8 @@ public enum Severity {
 
     /**
      * Reduce options to {@link #WARNING} and {@link #ERROR}.
+     * This method should go away, as well as the cacheability enum value,
+     * once all validation warnings are migrated to the new builder system
      */
     public Severity toReportableSeverity() {
         return this == CACHEABILITY_WARNING

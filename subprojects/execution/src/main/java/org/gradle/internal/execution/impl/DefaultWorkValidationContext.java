@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
 
@@ -45,8 +44,8 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         return new MessageFormattingTypeValidationContext(documentationRegistry, null) {
             @Override
             protected void recordProblem(TypeValidationProblem problem) {
-                Severity severity = problem.getSeverity();
-                if (severity == Severity.CACHEABILITY_WARNING && !cacheable) {
+                boolean cacheableProblemOnly = problem.getPayload().map(TypeValidationProblem.Payload::isCacheabilityProblemOnly).orElse(false);
+                if (cacheableProblemOnly && !cacheable) {
                     return;
                 }
                 problems.add(problem);

@@ -57,4 +57,5 @@ public interface ValidationProblemBuilder<T extends ValidationProblemBuilder<T>>
         return addPossibleSolution(() -> solution);
     }
 
+    T onlyAffectsCacheableWork();
 }
