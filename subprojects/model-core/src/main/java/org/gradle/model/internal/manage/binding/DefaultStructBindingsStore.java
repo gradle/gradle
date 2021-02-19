@@ -217,6 +217,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         }
     }
 
+    // Groovy3 introduced default methods on GroovyObject that the model objects inhert, skip these
     private static boolean isAcceptable(Method method) {
         return method.getDeclaringClass() == GroovyObject.class;
     }
