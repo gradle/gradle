@@ -79,7 +79,7 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
 
                 dependencies {
                     testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
-                        exclude module: 'groovy-all'
+                        exclude group: 'org.codehaus.groovy'
                     }
                 }
             """
