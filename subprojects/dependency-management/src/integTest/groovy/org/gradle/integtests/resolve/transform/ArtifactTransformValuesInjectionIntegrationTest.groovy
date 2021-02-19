@@ -475,7 +475,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         failure.assertHasCause("Type 'MakeGreen.Parameters': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
-        failure.assertHasCause("Type 'MakeGreen.Parameters': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
+        failure.assertHasCause("Type 'MakeGreen.Parameters': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.")
     }
 
     @Unroll
@@ -969,15 +969,15 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
             tasks.create('broken', MyTask)
         """
 
-        executer.expectDocumentedDeprecationWarning("Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types. " +
+        executer.expectDocumentedDeprecationWarning("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+            "See https://docs.gradle.org/current/userguide/validation_problems.html#invalid_use_of_cacheable_transform_annotation for more details.")
 
         expect:
         fails('broken')
         failure.assertHasDescription("A problem was found with the configuration of task ':broken' (type 'MyTask').")
-        failure.assertThatDescription(containsString("Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types."))
+        failure.assertThatDescription(containsString("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation."))
     }
 
     def "task @Nested bean cannot use cacheable annotations"() {
@@ -1001,17 +1001,17 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        executer.expectDocumentedDeprecationWarning("Type 'Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types. " +
+        executer.expectDocumentedDeprecationWarning("Type 'Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+            "See https://docs.gradle.org/current/userguide/validation_problems.html#invalid_use_of_cacheable_transform_annotation for more details.")
 
         expect:
         // Probably should be eager
         fails('broken')
         failure.assertHasDescription("Some problems were found with the configuration of task ':broken' (type 'MyTask').")
         failure.assertThatDescription(containsString("Type 'Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types."))
-        failure.assertThatDescription(containsString("Type 'Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types."))
+        failure.assertThatDescription(containsString("Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation."))
     }
 
     @Unroll

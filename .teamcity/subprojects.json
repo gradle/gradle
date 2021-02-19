@@ -588,6 +588,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "problems",
+    "name": "problems",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "process-services",
     "name": "process-services",
     "unitTests": true,

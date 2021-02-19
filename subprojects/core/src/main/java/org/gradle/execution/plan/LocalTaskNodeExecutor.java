@@ -29,7 +29,8 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.TextUtil;
 
 import java.io.File;
@@ -126,7 +127,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                         throw e;
                     } else {
                         validationContext.visitPropertyProblem(
-                            TypeValidationContext.Severity.WARNING,
+                            Severity.WARNING,
                             spec.getPropertyName(),
                             String.format("cannot be resolved:%n%s%nConsider using Task.dependsOn instead of an input file collection", TextUtil.indent(e.getMessage(), "  "))
                         );
@@ -216,7 +217,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
     }
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
-        TypeValidationContext.Severity severity = TypeValidationContext.Severity.WARNING;
+        Severity severity = Severity.WARNING;
         validationContext.visitPropertyProblem(
             severity,
             String.format("Gradle detected a problem with the following location: '%s'. "

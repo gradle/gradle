@@ -753,13 +753,15 @@ class DependencyManagementBuildScopeServices {
             OverlappingOutputDetector overlappingOutputDetector,
             TimeoutHandler timeoutHandler,
             ValidateStep.ValidationWarningRecorder validationWarningRecorder,
-            VirtualFileSystem virtualFileSystem
+            VirtualFileSystem virtualFileSystem,
+            DocumentationRegistry documentationRegistry
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
         // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
         return new DefaultExecutionEngine(
+            documentationRegistry,
             new IdentifyStep<>(inputFingerprinter,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(

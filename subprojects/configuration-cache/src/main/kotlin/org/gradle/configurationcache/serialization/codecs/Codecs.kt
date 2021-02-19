@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
@@ -106,7 +107,8 @@ class Codecs(
     fileOperations: FileOperations,
     fileFactory: FileFactory,
     includedTaskGraph: IncludedBuildTaskGraph,
-    buildStateRegistry: BuildStateRegistry
+    buildStateRegistry: BuildStateRegistry,
+    documentationRegistry: DocumentationRegistry,
 ) {
 
     val userTypesCodec = BindingsBackedCodec {
@@ -153,7 +155,7 @@ class Codecs(
         bind(TransformedArtifactCodec(calculatedValueContainerFactory))
         bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory, calculatedValueContainerFactory))
         bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
-        bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, fileCollectionFactory))
+        bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, fileCollectionFactory, documentationRegistry))
         bind(FinalizeTransformDependenciesNodeCodec())
         bind(WorkNodeActionCodec)
 

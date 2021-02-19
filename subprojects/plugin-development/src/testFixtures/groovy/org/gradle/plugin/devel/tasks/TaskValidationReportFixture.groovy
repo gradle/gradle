@@ -17,7 +17,7 @@
 package org.gradle.plugin.devel.tasks
 
 import groovy.transform.CompileStatic
-import org.gradle.internal.reflect.TypeValidationContext
+import org.gradle.internal.reflect.validation.Severity
 
 @CompileStatic
 class TaskValidationReportFixture {
@@ -27,7 +27,7 @@ class TaskValidationReportFixture {
         this.reportFile = reportFile
     }
 
-    void verify(Map<String, TypeValidationContext.Severity> messages) {
+    void verify(Map<String, Severity> messages) {
         def expectedReportContents = messages
             .collect { message, severity ->
                 "$severity: $message"

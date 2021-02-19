@@ -24,7 +24,7 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import java.io.File;
 import java.util.Map;
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public enum ValidationActions implements ValidationAction {
     NO_OP("file collection") {

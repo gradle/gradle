@@ -187,7 +187,8 @@ class ConfigurationCacheIO internal constructor(
             fileOperations = service(),
             fileFactory = service(),
             includedTaskGraph = service(),
-            buildStateRegistry = service()
+            buildStateRegistry = service(),
+            documentationRegistry = service()
         )
 
     private

@@ -16,11 +16,11 @@
 
 package org.gradle.plugin.devel.tasks
 
-import org.gradle.internal.reflect.TypeValidationContext
+
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -49,23 +49,18 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         result.assertTaskNotSkipped(":run")
     }
 
-    @Override
-    void assertValidationFailsWith(boolean expectDeprecationsForErrors, Map<String, TypeValidationContext.Severity> messages) {
+    void assertValidationFailsWith(boolean expectDeprecationsForErrors, List<DocumentedProblem> messages) {
         def expectedDeprecations = messages
-            .findAll { message, severity -> expectDeprecationsForErrors || severity == WARNING }
-            .keySet()
-            .collect { removeTypeForProperties(it) }
+            .findAll { problem -> expectDeprecationsForErrors || problem.severity == WARNING }
         def expectedFailures = messages
-            .findAll { message, severity -> severity == ERROR }
-            .keySet()
-            .collect { removeTypeForProperties(it) }
+            .findAll { problem -> problem.severity == ERROR }
 
         expectedDeprecations.forEach { warning ->
-            executer.expectDocumentedDeprecationWarning(warning + " " +
+            String expectedMessage = removeTypeForProperties(warning.message) + " " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-            )
+                "See https://docs.gradle.org/current/userguide/${warning.id}.html#${warning.section} for more details."
+            executer.expectDocumentedDeprecationWarning(expectedMessage)
         }
         if (expectedFailures) {
             fails "run"
@@ -85,7 +80,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
                 break
         }
         expectedFailures.forEach { error ->
-            failureDescriptionContains(error)
+            failureDescriptionContains(error.message)
         }
     }
 

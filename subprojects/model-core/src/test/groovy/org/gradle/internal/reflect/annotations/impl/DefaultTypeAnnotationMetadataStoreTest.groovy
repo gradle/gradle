@@ -19,6 +19,7 @@ package org.gradle.internal.reflect.annotations.impl
 import groovy.transform.Generated
 import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
@@ -35,10 +36,12 @@ import java.lang.annotation.Target
 import java.lang.reflect.Method
 
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
+import static org.gradle.internal.reflect.validation.Severity.ERROR
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     private static final COLOR = { "color" } as AnnotationCategory
+
+    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     def store = new DefaultTypeAnnotationMetadataStore(
         [TestType],
@@ -732,7 +735,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             }
         }
 
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, false)
         metadata.visitValidationFailures(validationContext)
         List<String> actualErrors = validationContext.problems
             .collect({ message, severity -> ("$message" + (severity == ERROR ? " [STRICT]" : "") as String) })

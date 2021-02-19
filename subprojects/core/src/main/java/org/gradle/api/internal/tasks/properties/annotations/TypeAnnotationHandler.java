@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 

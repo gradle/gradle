@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.execution.UnitOfWork;
@@ -26,7 +26,8 @@ import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.reflect.TypeValidationContext.Severity;
+import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;
@@ -35,8 +36,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 
 public class ValidateStep<R extends Result> implements Step<AfterPreviousExecutionContext, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
@@ -60,9 +67,13 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
 
-        ImmutableMultimap<Severity, String> problems = validationContext.getProblems();
-        ImmutableCollection<String> warnings = problems.get(Severity.WARNING);
-        ImmutableCollection<String> errors = problems.get(Severity.ERROR);
+        Map<Severity, List<String>> problems = validationContext.getProblems()
+            .stream()
+            .collect(
+                groupingBy(p -> p.getSeverity().toReportableSeverity(),
+                mapping(TypeValidationProblemRenderer::renderMinimalInformationAbout, toList())));
+        ImmutableCollection<String> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
+        ImmutableCollection<String> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);

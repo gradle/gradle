@@ -249,7 +249,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 CalculatedValueContainerFactory calculatedValueContainerFactory,
                 FileCollectionFactory fileCollectionFactory,
                 FileLookup fileLookup,
-                ServiceRegistry internalServices
+                ServiceRegistry internalServices,
+                DocumentationRegistry documentationRegistry
         ) {
             return new DefaultTransformationRegistrationFactory(
                     buildOperationExecutor,
@@ -264,7 +265,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     domainObjectContext,
                     parameterScheme,
                     actionScheme,
-                    internalServices
+                    internalServices,
+                    documentationRegistry
             );
         }
 

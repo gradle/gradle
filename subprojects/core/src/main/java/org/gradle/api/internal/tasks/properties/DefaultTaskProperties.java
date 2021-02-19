@@ -28,8 +28,8 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.reflect.TypeValidationContext;
-import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

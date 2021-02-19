@@ -16,16 +16,19 @@
 
 package org.gradle.internal.execution.steps
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.vfs.VirtualFileSystem
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
+    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
+
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
     def step = new ValidateStep<>(virtualFileSystem, warningReporter, delegate)
@@ -33,7 +36,7 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
     @Override
     protected AfterPreviousExecutionContext createContext() {
-        def validationContext = new DefaultWorkValidationContext()
+        def validationContext = new DefaultWorkValidationContext(documentationRegistry)
         return Stub(AfterPreviousExecutionContext) {
             getValidationContext() >> validationContext
         }

@@ -37,14 +37,16 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.TypeValidationContext
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.Severity
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import javax.inject.Inject
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -207,6 +209,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         double  | 1
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION
+    )
     def "validates task caching annotations"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -234,9 +239,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(true, [
-            "Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
-            "Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types.": ERROR,
-            "Type 'MyTask.Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
+            error("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
+            error("Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types."),
+            error("Type 'MyTask.Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
         ])
     }
 
@@ -786,9 +791,24 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract void assertValidationSucceeds()
 
-    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, TypeValidationContext.Severity> messages)
+    @Deprecated
+    final void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, Severity> messages) {
+        assertValidationFailsWith(expectDeprecationsForErrors, messages.collect {message, severity ->
+            new DocumentedProblem(message, severity)
+        })
+    }
+
+    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, List<DocumentedProblem> messages)
 
     abstract TestFile source(String path)
+
+    static DocumentedProblem error(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+        new DocumentedProblem(message, ERROR, id, section)
+    }
+
+    static DocumentedProblem warning(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+        new DocumentedProblem(message, WARNING, id, section)
+    }
 
     TestFile getJavaTaskSource() {
         source("src/main/java/MyTask.java")
@@ -799,5 +819,19 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             apply plugin: "groovy"
         """
         source("src/main/groovy/MyTask.groovy")
+    }
+
+    static class DocumentedProblem {
+        final String message
+        final Severity severity
+        final String id
+        final String section
+
+        DocumentedProblem(String message, Severity severity, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+            this.message = message
+            this.severity = severity
+            this.id = id
+            this.section = section
+        }
     }
 }
