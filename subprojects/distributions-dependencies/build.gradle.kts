@@ -149,7 +149,6 @@ dependencies {
         api(libs.cglib)                 { version { strictly("3.2.6") }}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.flightrecorder)        { version { strictly("7.0.0-alpha01") }}
-        api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.guice)                 { version { strictly("2.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}
