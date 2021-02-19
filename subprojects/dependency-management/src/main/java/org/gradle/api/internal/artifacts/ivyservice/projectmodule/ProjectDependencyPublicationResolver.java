@@ -17,10 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.project.ProjectInternal;
-
-import java.util.List;
 
 public interface ProjectDependencyPublicationResolver {
     /**
@@ -31,5 +28,5 @@ public interface ProjectDependencyPublicationResolver {
     /**
      * Determines the coordinates of the given type that should be used to reference the given dependency.
      */
-    <T> T resolve(Class<T> coordsType, ProjectInternal project, List<Capability> requestedCapabilities);
+    <T> T resolve(Class<T> coordsType, ProjectInternal projectInternal);
 }

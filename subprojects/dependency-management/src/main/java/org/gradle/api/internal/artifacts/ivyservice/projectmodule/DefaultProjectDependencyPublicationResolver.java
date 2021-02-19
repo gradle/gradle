@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -53,11 +52,11 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         // Could probably apply some caching and some immutable types
 
         ProjectInternal dependencyProject = (ProjectInternal) dependency.getDependencyProject();
-        return resolve(coordsType, dependencyProject, dependency.getRequestedCapabilities());
+        return resolve(coordsType, dependencyProject);
     }
 
     @Override
-    public <T> T resolve(Class<T> coordsType, ProjectInternal project, List<Capability> requestedCapabilities) {
+    public <T> T resolve(Class<T> coordsType, ProjectInternal project) {
 
         // Ensure target project is configured
         projectConfigurer.configureFully(project);
