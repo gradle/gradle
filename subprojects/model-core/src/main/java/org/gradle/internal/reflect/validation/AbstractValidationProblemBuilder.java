@@ -88,7 +88,7 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     }
 
     @Override
-    public T isCachabilityProblemOnly() {
+    public T onlyAffectsCacheableWork() {
         this.cacheabilityProblemOnly = true;
         return Cast.uncheckedCast(this);
     }

@@ -68,7 +68,7 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
             PropertyProblemBuilder problemBuilder = problem.reportAs(kind.toReportableSeverity());
             // this code should go away once all messages go through the builder instead
             if (kind == Severity.CACHEABILITY_WARNING) {
-                problemBuilder.isCachabilityProblemOnly();
+                problemBuilder.onlyAffectsCacheableWork();
             }
             problemBuilder.forProperty(parentProperty, property)
             .withDescription(() -> {
