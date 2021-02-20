@@ -17,6 +17,8 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.file.Directory;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 
 /**
  * Converts some existing build to a Gradle build.
@@ -28,4 +30,6 @@ public interface BuildConverter extends BuildInitializer {
     boolean canApplyToCurrentDirectory(Directory current);
 
     String getSourceBuildDescription();
+
+    void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects);
 }

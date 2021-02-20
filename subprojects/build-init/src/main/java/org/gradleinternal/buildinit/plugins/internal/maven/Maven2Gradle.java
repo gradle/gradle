@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.maven;
+package org.gradleinternal.buildinit.plugins.internal.maven;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Exclusion;
@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management and properties.
  */
 public class Maven2Gradle {
-    private final BuildScriptBuilderFactory scriptBuilderFactory;
+    private final BuildScriptBuilderFactory scriptBuilderFactory = new BuildScriptBuilderFactory();
 
     private final Set<MavenProject> allProjects;
     private final MavenProject rootProject;
@@ -63,13 +63,12 @@ public class Maven2Gradle {
     private final Directory workingDir;
     private final BuildInitDsl dsl;
 
-    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, BuildScriptBuilderFactory scriptBuilderFactory) {
+    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl) {
         assert !mavenProjects.isEmpty(): "No Maven projects provided.";
         this.allProjects = mavenProjects;
         this.rootProject = mavenProjects.iterator().next();
         this.workingDir = workingDir;
         this.dsl = dsl;
-        this.scriptBuilderFactory = scriptBuilderFactory;
     }
 
     public void convert() {
@@ -110,7 +109,7 @@ public class Maven2Gradle {
                 String id = module.getArtifactId();
                 List<Dependency> moduleDependencies = dependencies.get(id);
                 boolean warPack = module.getPackaging().equals("war");
-                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(dsl, projectDir(module).getPath() + "/build");
+                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(dsl, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build");
 
                 moduleScriptBuilder.plugin(null, groupId + ".java-conventions");
 

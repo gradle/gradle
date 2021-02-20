@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":platform-base"))
     implementation(project(":platform-native"))
     implementation(project(":plugins"))
+    implementation(project(":workers"))
     implementation(project(":wrapper"))
 
     implementation(libs.groovy)
@@ -22,12 +23,10 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.inject)
 
-    implementation("org.apache.maven:maven-plugin-api:3.6.3")
-    implementation("org.apache.maven:maven-compat:3.6.3")
-    runtimeOnly("org.apache.maven.wagon:wagon-http:3.4.2")
-    runtimeOnly("org.apache.maven.wagon:wagon-provider-api:3.4.2")
-    runtimeOnly("org.eclipse.aether:aether-connector-basic:1.1.0")
-    runtimeOnly("org.eclipse.aether:aether-transport-wagon:1.1.0")
+    compileOnly("org.apache.maven:maven-plugin-api:3.6.3")
+    compileOnly("org.apache.maven:maven-compat:3.6.3")
+    testRuntimeOnly("org.apache.maven:maven-plugin-api:3.6.3")
+    testRuntimeOnly("org.apache.maven:maven-compat:3.6.3")
 
     testImplementation(project(":cli"))
     testImplementation(project(":base-services-groovy"))
