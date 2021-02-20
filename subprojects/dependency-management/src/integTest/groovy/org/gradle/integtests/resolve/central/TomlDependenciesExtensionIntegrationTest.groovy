@@ -32,7 +32,7 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractCentralDependenci
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    TestFile tomlFile = testDirectory.file("gradle/dependencies.toml")
+    TestFile tomlFile = testDirectory.file("gradle/libs.versions.toml")
 
     def setup() {
         usePluginRepoMirror = false // otherwise the plugin portal fixture doesn't work!
@@ -296,7 +296,7 @@ lib = "org.gradle.test:lib:1.0"
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        from(files("../gradle/dependencies.toml"))
+                        from(files("../gradle/libs.versions.toml"))
                     }
                 }
             }
@@ -323,7 +323,7 @@ lib = "org.gradle.test:lib:1.0"
         tomlFile << """[libraries]
 lib="org.gradle.test:lib:1.0"
 """
-        file("buildSrc/gradle/dependencies.toml") << """[libraries]
+        file("buildSrc/gradle/libs.versions.toml") << """[libraries]
 build-src-lib="org.gradle.test:buildsrc-lib:1.0"
 """
         file("buildSrc/build.gradle") << """
@@ -375,7 +375,7 @@ build-src-lib="org.gradle.test:buildsrc-lib:1.0"
                 implementation libs.from.included
             }
         """
-        file("included/gradle/dependencies.toml") << """[libraries]
+        file("included/gradle/libs.versions.toml") << """[libraries]
 from-included="org.gradle.test:other:1.1"
 """
         file("included/settings.gradle") << """
@@ -579,7 +579,7 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version="1.0"}
 
         then:
         cc.assertStateStored()
-        outputContains "Calculating task graph as configuration cache cannot be reused because file 'gradle${File.separatorChar}dependencies.toml' has changed."
+        outputContains "Calculating task graph as configuration cache cannot be reused because file 'gradle${File.separatorChar}libs.versions.toml' has changed."
     }
 
     def "can change the default extension name"() {

@@ -324,7 +324,7 @@ public class TomlCatalogFileParser {
 
     private static void validateAlias(String alias) {
         if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(alias).matches()) {
-            throw new InvalidUserDataException("Invalid alias name [" + alias + "] found in dependencies.toml: it must match the following pattern: " + DependenciesModelHelper.ALIAS_REGEX);
+            throw new InvalidUserDataException("Invalid alias name [" + alias + "] found in TOML file: it must match the following pattern: " + DependenciesModelHelper.ALIAS_REGEX);
         }
     }
 
