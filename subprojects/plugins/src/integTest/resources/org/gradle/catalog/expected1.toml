@@ -4,7 +4,7 @@
 [versions]
 lib = "1.1"
 
-[dependencies]
+[libraries]
 junit4 = {group = "junit", name = "junit", version = { prefer = "4.13.1", require = "[4.13.1, 5[" } }
 my-lib = {group = "org", name = "foo", version = "1.0" }
 other = {group = "org", name = "bar", version.ref = "lib" }

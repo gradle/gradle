@@ -40,7 +40,7 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractCentralDependenci
 
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in TOML file trigger the creation of an extension (notation=#notation)"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 foo = 'org.gradle.test:lib:1.0'
 """
 
@@ -90,7 +90,7 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
     }
 
     def "can use the generated extension to declare a dependency"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
@@ -118,7 +118,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
     }
 
     def "can use the generated extension to declare a dependency and override the version"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
@@ -150,7 +150,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
     }
 
     void "can add several dependencies at once using a bundle"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"
 lib2.version = "1.0
@@ -187,7 +187,7 @@ myBundle = ["lib", "lib2"]
     }
 
     void "overriding the version of a bundle overrides the version of all dependencies of the bundle"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"
 lib2.version = "1.0
@@ -229,7 +229,7 @@ myBundle = ["lib", "lib2"]
 
 
     def "extension can be used in any subproject"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         settingsFile << """
@@ -272,7 +272,7 @@ lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
     }
 
     def "libraries extension is not visible in buildSrc"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 lib = "org.gradle.test:lib:1.0"
 """
         file("buildSrc/build.gradle") << """
@@ -289,7 +289,7 @@ lib = "org.gradle.test:lib:1.0"
     }
 
     def "libraries extension can be made visible to buildSrc"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 lib = "org.gradle.test:lib:1.0"
 """
         file("buildSrc/settings.gradle") << """
@@ -320,10 +320,10 @@ lib = "org.gradle.test:lib:1.0"
     }
 
     def "buildSrc and main project have different libraries extensions"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 lib="org.gradle.test:lib:1.0"
 """
-        file("buildSrc/gradle/dependencies.toml") << """[dependencies]
+        file("buildSrc/gradle/dependencies.toml") << """[libraries]
 build-src-lib="org.gradle.test:buildsrc-lib:1.0"
 """
         file("buildSrc/build.gradle") << """
@@ -375,7 +375,7 @@ build-src-lib="org.gradle.test:buildsrc-lib:1.0"
                 implementation libs.from.included
             }
         """
-        file("included/gradle/dependencies.toml") << """[dependencies]
+        file("included/gradle/dependencies.toml") << """[libraries]
 from-included="org.gradle.test:other:1.1"
 """
         file("included/settings.gradle") << """
@@ -419,7 +419,7 @@ from-included="org.gradle.test:other:1.1"
     }
 
     def "model from TOML file and settings is merged if settings use the same extension name"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
@@ -461,7 +461,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 
     // documents the existing behavior
     def "TOML file wins over settings"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
@@ -524,7 +524,7 @@ $pluginId="$pluginVersion"
     // This test explicitly checks the configuration cache behavior
     def "changing the TOML file invalidates the configuration cache"() {
         def cc = newConfigurationCacheFixture()
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
@@ -583,7 +583,7 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version="1.0"}
     }
 
     def "can change the default extension name"() {
-        tomlFile << """[dependencies]
+        tomlFile << """[libraries]
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
@@ -620,7 +620,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib = "1.0"
 rich = { strictly = "[1.0, 2.0]", prefer = "1.1" }
 
-[dependencies]
+[libraries]
 my-lib = {group = "org.gradle.test", name="lib", version.ref="lib"}
 my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
 """

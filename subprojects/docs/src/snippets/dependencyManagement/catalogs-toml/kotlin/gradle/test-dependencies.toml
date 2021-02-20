@@ -1,4 +1,4 @@
-[dependencies]
+[libraries]
 my-lib = "com.mycompany:mylib:1.4"
 my-other-lib = { module = "com.mycompany:other", version="1.4" }
 my-other-lib2 = { group = "com.mycompany", name="alternate", version="1.4" }

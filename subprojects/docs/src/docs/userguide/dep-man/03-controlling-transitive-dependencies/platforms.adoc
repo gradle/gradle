@@ -176,7 +176,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin",files="
 The https://toml.io/[TOML] file consists of 4 major sections:
 
 - the `[versions]` section is used to declare versions which can be referenced by dependencies
-- the `[dependencies]` section is used to declare the aliases to coordinates
+- the `[libraries]` section is used to declare the aliases to coordinates
 - the `[bundles]` section is used to declare dependency bundles
 - the `[plugins]` section is used to declare default plugin versions
 
@@ -215,7 +215,7 @@ In case you want to reference a version declared in the `[versions]` section, yo
 [versions]
 some = "1.4"
 
-[dependencies]
+[libraries]
 my-lib = { group = "com.mycompany", name="mylib", version.ref="some" }
 ```
 

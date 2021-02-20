@@ -1,4 +1,4 @@
-[dependencies]
+[libraries]
 simple = { group = "foo", name = "bar", version = "1.0" }
 simple-with-rich1 = { group = "foo", name = "bar", version = { prefer = "1.0" } }
 simple-with-rich2 = { group = "foo", name = "bar", version.prefer = "1.0" }

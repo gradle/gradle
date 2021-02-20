@@ -1,2 +1,2 @@
-[dependencies]
+[libraries]
 module = ":bar:1.0"
