@@ -34,14 +34,15 @@ import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.ContainerConfiguration;
 import org.codehaus.plexus.DefaultContainerConfiguration;
 import org.codehaus.plexus.DefaultPlexusContainer;
+import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.classworlds.ClassWorld;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystemSession;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.CollectionUtils;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.util.DefaultRepositorySystemSession;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -64,8 +65,8 @@ public class MavenProjectsCreator {
 
     private Set<MavenProject> createNow(Settings settings, File pomFile) throws PlexusContainerException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
-                .setClassWorld(new ClassWorld("plexus.core", ClassWorld.class.getClassLoader()))
-                .setName("mavenCore");
+                .setClassWorld(new ClassWorld("plexus.core", Thread.currentThread().getContextClassLoader()))
+                .setName("mavenCore").setClassPathScanning(PlexusConstants.SCANNING_INDEX).setAutoWiring(true);
 
         DefaultPlexusContainer container = new DefaultPlexusContainer(containerConfiguration);
         ProjectBuilder builder = container.lookup(ProjectBuilder.class);
@@ -78,7 +79,7 @@ public class MavenProjectsCreator {
 
         executionRequest.setSystemProperties(properties);
         MavenExecutionRequestPopulator populator = container.lookup(MavenExecutionRequestPopulator.class);
-        populator.populateFromSettings(executionRequest, settings);
+        populateFromSettings(settings, executionRequest, populator);
         populator.populateDefaults(executionRequest);
         ProjectBuildingRequest buildingRequest = executionRequest.getProjectBuildingRequest();
         buildingRequest.getRemoteRepositories().forEach(repository -> {
@@ -101,9 +102,15 @@ public class MavenProjectsCreator {
         MavenExecutionResult result = new DefaultMavenExecutionResult();
         result.setProject(mavenProject);
         RepositorySystemSession repoSession = new DefaultRepositorySystemSession();
+        @SuppressWarnings("deprecation")
         MavenSession session = new MavenSession(container, repoSession, executionRequest, result);
         session.setCurrentProject(mavenProject);
 
         return reactorProjects;
+    }
+
+    @SuppressWarnings("deprecation")
+    private void populateFromSettings(Settings settings, MavenExecutionRequest executionRequest, MavenExecutionRequestPopulator populator) throws MavenExecutionRequestPopulationException {
+        populator.populateFromSettings(executionRequest, settings);
     }
 }
