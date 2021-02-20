@@ -41,7 +41,7 @@ class TomlWriterTest extends Specification {
     private Model outputModel
 
     @Subject
-    private TomlWriter writer = new TomlWriter(new PrintWriter(output))
+    private TomlWriter writer = new TomlWriter(output)
 
     @Unroll
     def "generates an equivalent file from an input (#file)"() {
