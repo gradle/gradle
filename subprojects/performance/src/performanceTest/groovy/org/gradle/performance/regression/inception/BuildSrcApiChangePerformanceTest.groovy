@@ -36,7 +36,7 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
     def setup() {
         // TODO: BM regression not accepted yet
-        def targetVersion = "7.0-branch-bmuskalla_groovy3-20210218091829+0000"
+        def targetVersion = "7.0-20210222153642+0000"
         runner.targetVersions = [targetVersion]
         runner.minimumBaseVersion = "6.8"
         runner.warmUpRuns = 3

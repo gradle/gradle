@@ -238,6 +238,21 @@ The local build cache configuration now needs to be done via link:{javadocPath}/
 This internal API was used in plugins, amongst other the https://github.com/nebula-plugins[Nebula plugins], and was deprecated in the Gradle 5.x timeline and is now removed.
 Latest plugins version should no longer reference it.
 
+==== Setting the `config_loc` config property on the `checkstyle` plugin is now an error
+
+The `checkstyle` plugin now fails for the following configuration
+```
+checkstyle {
+    configProperties['config_loc'] = file("path/to/checkstyle-config-dir")
+}
+```
+Builds should declare the checkstyle configuration with the `checkstyle` block:
+```
+checkstyle {
+    configDirectory = file("path/to/checkstyle-config-dir")
+}
+```
+
 === Deprecations
 
 [[missing_dependencies]]

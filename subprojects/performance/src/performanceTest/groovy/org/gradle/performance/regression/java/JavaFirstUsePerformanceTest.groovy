@@ -34,7 +34,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         // TODO: BM regression not accepted yet
-        runner.targetVersions = ["7.0-branch-bmuskalla_groovy3-20210218091829+0000"]
+        runner.targetVersions = ["7.0-20210222153642+0000"]
     }
 
     def "first use"() {

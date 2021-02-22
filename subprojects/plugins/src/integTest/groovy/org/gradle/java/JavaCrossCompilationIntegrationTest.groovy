@@ -17,122 +17,139 @@
 package org.gradle.java
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.internal.FileUtils
-import org.gradle.internal.jvm.JavaInfo
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.util.TextUtil
 import org.junit.Assume
 
-@TargetVersions(["1.6", "1.7", "1.8", "9"])
-class JavaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
-    JavaVersion getJavaVersion() {
-        JavaVersion.toVersion(version)
+class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
+
+    static List<String> javaVersionsToCrossCompileAgainst() {
+        return ["1.6", "1.7", "1.8", "11", "15", "16", "17"]
     }
 
-    JavaInfo getTarget() {
-        return AvailableJavaHomes.getJdk(javaVersion)
+    static JavaVersion toJavaVersion(String version) {
+        return JavaVersion.toVersion(version)
     }
 
-    def setup() {
-        Assume.assumeTrue(target != null)
-        def javaHome = TextUtil.escapeString(target.getJavaHome())
+    def withJavaProjectUsingToolchainsForJavaVersion(String version) {
+        def javaVersion = toJavaVersion(version)
+        def target = AvailableJavaHomes.getJdk(javaVersion)
+        Assume.assumeNotNull(target)
 
         buildFile << """
-apply plugin: 'java'
-${mavenCentralRepository()}
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of($javaVersion.majorVersion )
-    }
-}
-tasks.withType(Javadoc) {
-    options.noTimestamp = false
-}
-"""
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of($javaVersion.majorVersion)
+                }
+            }
+            tasks.withType(Javadoc) {
+                options.noTimestamp = false
+            }
+        """
 
         file("src/main/java/Thing.java") << """
-/** Some thing. */
-public class Thing { }
-"""
-        executer.withArgument("-Porg.gradle.java.installations.paths=" + javaHome)
+            /** Some thing. */
+            public class Thing { }
+        """
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + target.javaHome.absolutePath)
     }
 
     def "can compile source and run JUnit tests using target Java version"() {
         given:
+        withJavaProjectUsingToolchainsForJavaVersion(version)
         buildFile << """
-dependencies { testImplementation 'junit:junit:4.13' }
-"""
+            dependencies { testImplementation 'junit:junit:4.13' }
+        """
 
         file("src/test/java/ThingTest.java") << """
-import org.junit.Test;
-import static org.junit.Assert.*;
+            import org.junit.Test;
+            import static org.junit.Assert.*;
 
-public class ThingTest {
-    @Test
-    public void verify() {
-        assertTrue(System.getProperty("java.version").startsWith("${version}"));
-    }
-}
-"""
+            public class ThingTest {
+                @Test
+                public void verify() {
+                    assertTrue(System.getProperty("java.version").startsWith("${version}"));
+                }
+            }
+        """
 
         expect:
         succeeds 'test'
-        new ClassFile(javaClassFile("Thing.class")).javaVersion == javaVersion
-        new ClassFile(classFile("java", "test", "ThingTest.class")).javaVersion == javaVersion
+        new ClassFile(javaClassFile("Thing.class")).javaVersion == toJavaVersion(version)
+        new ClassFile(classFile("java", "test", "ThingTest.class")).javaVersion == toJavaVersion(version)
+
+        where:
+        version << javaVersionsToCrossCompileAgainst()
     }
 
     def "can compile source and run TestNG tests using target Java version"() {
         given:
+        withJavaProjectUsingToolchainsForJavaVersion(version)
         buildFile << """
-dependencies { testImplementation 'org.testng:testng:6.8.8' }
-"""
+            dependencies { testImplementation 'org.testng:testng:6.8.8' }
+        """
 
         file("src/test/java/ThingTest.java") << """
-import org.testng.annotations.Test;
+            import org.testng.annotations.Test;
 
-public class ThingTest {
-    @Test
-    public void verify() {
-        assert System.getProperty("java.version").startsWith("${version}.");
-    }
-}
-"""
+            public class ThingTest {
+                @Test
+                public void verify() {
+                    assert System.getProperty("java.version").startsWith("${version}.");
+                }
+            }
+        """
 
         expect:
         succeeds 'test'
+
+        where:
+        version << javaVersionsToCrossCompileAgainst()
     }
 
     def "can build and run application using target Java version"() {
         given:
+        withJavaProjectUsingToolchainsForJavaVersion(version)
+        def target = AvailableJavaHomes.getJdk(toJavaVersion(version))
         buildFile << """
-apply plugin: 'application'
+            apply plugin: 'application'
 
-application {
-    mainClass = 'Main'
-}
-"""
+            application {
+                mainClass = 'Main'
+            }
+        """
 
         file("src/main/java/Main.java") << """
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("java home: " + System.getProperty("java.home"));
-        System.out.println("java version: " + System.getProperty("java.version"));
-    }
-}
-"""
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("java home: " + System.getProperty("java.home"));
+                    System.out.println("java version: " + System.getProperty("java.version"));
+                }
+            }
+        """
 
         expect:
         succeeds 'run'
         output.contains("java home: ${FileUtils.canonicalize(target.javaHome)}")
         output.contains("java version: ${version}")
+
+        where:
+        version << javaVersionsToCrossCompileAgainst()
     }
 
     def "can generate Javadocs using target Java version"() {
+        given:
+        withJavaProjectUsingToolchainsForJavaVersion(version)
+
         expect:
         succeeds 'javadoc'
         file('build/docs/javadoc/Thing.html').text.matches("(?s).*Generated by javadoc \\(.*?\\Q${version}\\E.*")
+
+        where:
+        version << javaVersionsToCrossCompileAgainst()
     }
 }
