@@ -314,7 +314,7 @@ Also see <<java_plugin.adoc#sec:incremental_compilation_known_issues,Known issue
 == Compiling and testing for Java 6 or Java 7
 
 With <<toolchains.adoc#toolchains,toolchain support>> added to `GroovyCompile`, it is possible to compile Groovy code using a different Java version than the one running Gradle.
-If you also have Java source files, this will also configure `JavaCompile` to use the right Java compiler is used, as can be seen in the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> documentation.
+If you also have Java source files, this will also configure `JavaCompile` to use the right Java compiler, as can be seen in the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> documentation.
 
 === Example: Configure Java 7 build for Groovy
 
