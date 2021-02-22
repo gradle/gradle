@@ -292,7 +292,7 @@ class TomlDependenciesFileParserTest extends Specification {
     }
 
     private void parse(String name) {
-        TomlDependenciesFileParser.parse(toml(name), builder, pluginsSpec, importConf)
+        TomlCatalogFileParser.parse(toml(name), builder, pluginsSpec, importConf)
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
     }

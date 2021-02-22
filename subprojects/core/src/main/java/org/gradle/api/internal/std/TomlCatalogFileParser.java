@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class TomlDependenciesFileParser {
+public class TomlCatalogFileParser {
     private static final Splitter SPLITTER = Splitter.on(":").trimResults();
     private static final String DEPENDENCIES_KEY = "dependencies";
     private static final String BUNDLES_KEY = "bundles";
@@ -73,7 +73,7 @@ public class TomlDependenciesFileParser {
         }
         List<String> keys = dependenciesTable.keySet()
             .stream()
-            .peek(TomlDependenciesFileParser::validateAlias)
+            .peek(TomlCatalogFileParser::validateAlias)
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
@@ -89,7 +89,7 @@ public class TomlDependenciesFileParser {
         }
         List<String> keys = versionsTable.keySet()
             .stream()
-            .peek(TomlDependenciesFileParser::validateAlias)
+            .peek(TomlCatalogFileParser::validateAlias)
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {

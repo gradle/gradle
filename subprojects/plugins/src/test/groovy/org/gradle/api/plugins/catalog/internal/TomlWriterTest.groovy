@@ -21,7 +21,7 @@ import groovy.transform.Canonical
 import org.gradle.api.internal.std.DefaultVersionCatalog
 import org.gradle.api.internal.std.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.std.ImportConfiguration
-import org.gradle.api.internal.std.TomlDependenciesFileParser
+import org.gradle.api.internal.std.TomlCatalogFileParser
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import org.gradle.util.TestUtil
@@ -96,7 +96,7 @@ class TomlWriterTest extends Specification {
             pluginsSpec,
             Stub(Supplier))
         ins.withCloseable {
-            TomlDependenciesFileParser.parse(it, builder, pluginsSpec, new ImportConfiguration(acceptAll(), acceptAll(), acceptAll(), acceptAll()))
+            TomlCatalogFileParser.parse(it, builder, pluginsSpec, new ImportConfiguration(acceptAll(), acceptAll(), acceptAll(), acceptAll()))
         }
         return new Model(builder.build(), plugins)
     }
