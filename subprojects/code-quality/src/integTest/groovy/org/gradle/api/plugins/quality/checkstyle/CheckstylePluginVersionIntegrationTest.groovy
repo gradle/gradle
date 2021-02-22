@@ -346,11 +346,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         skipped(":checkstyleMain")
     }
 
-    def "behaves if config_loc is already defined"() {
+    def "fails when config_loc is set"() {
         given:
         goodCode()
-        def suppressionsXml = file("config/checkstyle/suppressions.xml")
-        suppressionsXml.moveToDirectory(file("custom"))
 
         buildFile << """
             checkstyle {
@@ -358,15 +356,11 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
             }
         """
         when:
-        // config_loc points to the location of suppressions.xml
-        // while the default configDirectory does not.
-        // The build should fail because we ignore the user provided value
-        executer.expectDocumentedDeprecationWarning("Adding 'config_loc' to checkstyle.configProperties has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "This property is now ignored and the value of configDirectory is always used for 'config_loc'. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#user_provided_config_loc_properties_are_ignored_by_checkstyle")
         fails "checkstyleMain"
+
         then:
         executedAndNotSkipped(":checkstyleMain")
+        result.assertHasErrorOutput("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
