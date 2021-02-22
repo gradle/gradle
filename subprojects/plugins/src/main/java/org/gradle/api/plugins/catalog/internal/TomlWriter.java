@@ -58,7 +58,7 @@ class TomlWriter {
         if (aliases.isEmpty()) {
             return;
         }
-        writeTableHeader("dependencies");
+        writeTableHeader("libraries");
         for (String alias : aliases) {
             DependencyModel data = model.getDependencyData(alias);
             String group = data.getGroup();
