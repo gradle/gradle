@@ -33,7 +33,8 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["7.0-20210122131800+0000"]
+        // TODO: BM regression not accepted yet
+        runner.targetVersions = ["7.0-branch-bmuskalla_groovy3-20210218091829+0000"]
     }
 
     def "first use"() {

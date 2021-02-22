@@ -62,7 +62,7 @@ class CCallingMixedCAndCppHelloWorldApp extends HelloWorldApp {
 
 
     List<SourceFile> librarySources = [
-        sourceFile("cpp", "hello.cpp", """
+        new SourceFile("cpp", "hello.cpp", """
             #include <iostream>
             #include "hello.h"
 
@@ -74,7 +74,7 @@ class CCallingMixedCAndCppHelloWorldApp extends HelloWorldApp {
                 #endif
             }
 """),
-        sourceFile("c", "sum.c", """
+        new SourceFile("c", "sum.c", """
             #include "hello.h"
 
             int DLL_FUNC sum(int a, int b) {

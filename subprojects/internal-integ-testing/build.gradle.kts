@@ -36,6 +36,10 @@ dependencies {
     implementation(project(":build-option"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyAnt)
+    implementation(libs.groovyDatetime)
+    implementation(libs.groovyJson)
+    implementation(libs.groovyXml)
     implementation(libs.junit)
     implementation(libs.spock)
     implementation(libs.nativePlatform)

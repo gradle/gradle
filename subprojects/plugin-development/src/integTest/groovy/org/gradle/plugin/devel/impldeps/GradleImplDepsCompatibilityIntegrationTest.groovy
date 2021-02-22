@@ -109,6 +109,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         buildFile << applyGroovyPlugin()
         buildFile << mavenCentralRepository()
         buildFile << spockDependency()
+        buildFile << junitDependency()
         buildFile << """
             repositories {
                 maven { url '${buildContext.localRepository.toURI().toURL()}' }

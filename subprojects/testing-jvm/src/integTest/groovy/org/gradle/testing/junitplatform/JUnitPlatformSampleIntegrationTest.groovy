@@ -29,7 +29,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample('testing/junitplatform-jupiter/groovy')
     def 'jupiter sample test'() {
         given:
-        sample sample
+        super.sample sample
 
         when:
         succeeds 'test'
@@ -46,7 +46,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample('testing/junitplatform-mix/groovy')
     def 'mix JUnit3/4/5'() {
         given:
-        sample sample
+        super.sample sample
 
         when:
         succeeds('test')
@@ -63,7 +63,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample('testing/junitplatform-engine/groovy')
     def 'engine sample test'() {
         given:
-        sample sample
+        super.sample sample
 
         when:
         succeeds('test')
@@ -77,7 +77,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample('testing/junitplatform-tagging/groovy')
     def 'tagging sample test'() {
         given:
-        sample sample
+        super.sample sample
 
         when:
         succeeds('test')

@@ -37,6 +37,7 @@ dependencies {
     integTestImplementation(project(":jvm-services"))
 
     testFixturesImplementation(libs.inject)
+    testFixturesImplementation(libs.groovyJson)
     testFixturesImplementation(project(":base-services"))
 
     testRuntimeOnly(project(":distributions-core")) {

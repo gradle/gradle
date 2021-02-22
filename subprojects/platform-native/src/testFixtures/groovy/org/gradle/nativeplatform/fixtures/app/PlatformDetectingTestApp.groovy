@@ -49,7 +49,7 @@ void DLL_FUNC outputLibraryPlatform();
 
 
     List<SourceFile> librarySources = [
-        sourceFile("cpp", "hello.cpp", """
+        new SourceFile("cpp", "hello.cpp", """
 #include <iostream>
 using namespace std;
 #include "hello.h"

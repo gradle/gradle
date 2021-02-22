@@ -17,10 +17,17 @@
 package org.gradle.problems
 
 import groovy.transform.CompileStatic
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.FirstParam
 
 @CompileStatic
 class Closures {
-    static <T> void configure(T target, Closure<?> cl) {
+    static <T> void configure(
+        @DelegatesTo.Target("target") T target,
+        @DelegatesTo(value=DelegatesTo.Target.class,
+                     target="target",
+                     strategy=Closure.DELEGATE_FIRST)
+        @ClosureParams(FirstParam.class) Closure<?> cl) {
         cl.delegate = target
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()

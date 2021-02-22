@@ -33,6 +33,14 @@ repositories {
 
 dependencies {
     implementation 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.0.5'
-    testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+    testImplementation platform("org.spockframework:spock-bom:2.0-M4-groovy-3.0")
+    testImplementation 'org.spockframework:spock-core'
+    testImplementation 'org.spockframework:spock-junit4'
+    testImplementation 'junit:junit:4.13.1'
 }
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
 // end::repositories-and-dependencies[]

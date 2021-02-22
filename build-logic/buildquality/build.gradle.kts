@@ -15,7 +15,9 @@ dependencies {
     implementation("org.codenarc:CodeNarc") {
         exclude(group = "org.codehaus.groovy")
     }
-    implementation("com.github.javaparser:javaparser-symbol-solver-core")
+    implementation("com.github.javaparser:javaparser-symbol-solver-core") {
+        exclude(group = "com.google.guava")
+    }
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))
     implementation("com.diffplug.spotless:spotless-plugin-gradle") {

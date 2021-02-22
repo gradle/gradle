@@ -11,7 +11,7 @@ group = "gradlebuild"
 
 dependencies {
     compileOnly(localGroovy())
-    compileOnly("org.codenarc:CodeNarc:1.5") {
+    compileOnly("org.codenarc:CodeNarc:2.0.0") {
         exclude(group = "org.codehaus.groovy")
     }
 }

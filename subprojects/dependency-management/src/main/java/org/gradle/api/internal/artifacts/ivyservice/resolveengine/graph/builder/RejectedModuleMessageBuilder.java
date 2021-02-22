@@ -19,6 +19,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
@@ -29,7 +30,10 @@ class RejectedModuleMessageBuilder {
     String buildFailureMessage(ModuleResolveState module) {
         boolean hasRejectAll = false;
         for (SelectorState candidate : module.getSelectors()) {
-            hasRejectAll |= candidate.getVersionConstraint().isRejectAll();
+            ResolvedVersionConstraint versionConstraint = candidate.getVersionConstraint();
+            if (versionConstraint != null) {
+                hasRejectAll |= versionConstraint.isRejectAll();
+            }
         }
         StringBuilder sb = new StringBuilder();
         if (hasRejectAll) {

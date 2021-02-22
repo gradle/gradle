@@ -91,7 +91,7 @@ class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
     }
 
     List<SourceFile> librarySources = [
-        sourceFile("cpp", "hello.cpp", """
+        new SourceFile("cpp", "hello.cpp", """
             #include <iostream>
             #include "hello.h"
             #include "greetings.h"

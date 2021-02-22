@@ -71,7 +71,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
     }
 
     List<SourceFile> librarySources = [
-        sourceFile("c", "hello.c", """
+        new SourceFile("c", "hello.c", """
             #include "common.h"
 
             #ifdef FRENCH
@@ -93,7 +93,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                 fflush(stdout);
             }
         """),
-        sourceFile("c", "sum.c","""
+        new SourceFile("c", "sum.c","""
             #include "common.h"
 
             int DLL_FUNC sum(int a, int b) {
@@ -118,7 +118,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
     String alternateOutput = "$HELLO_WORLD\ngoodbye"
 
     List<SourceFile> alternateLibrarySources = [
-            sourceFile("c", "hello.c", """
+        new SourceFile("c", "hello.c", """
                 #include "common.h"
 
                 void DLL_FUNC sayHello() {
@@ -131,7 +131,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                     return 1000;
                 }
             """),
-            sourceFile("c", "sum.c","""
+        new SourceFile("c", "sum.c","""
                 #include "common.h"
 
                 int DLL_FUNC sum(int a, int b) {

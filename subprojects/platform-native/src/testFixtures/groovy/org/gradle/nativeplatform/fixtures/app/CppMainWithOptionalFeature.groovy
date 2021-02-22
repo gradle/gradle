@@ -25,10 +25,10 @@ class CppMainWithOptionalFeature extends SourceFileElement implements AppElement
         this.greeter = greeter
     }
 
-    final SourceFile sourceFile = sourceFile("cpp", "main.cpp", """
+    final SourceFile sourceFile = new SourceFile("cpp", "main.cpp", """
     #include <iostream>
     #include "greeter.h"
-    
+
     int main(int argc, char** argv) {
     #ifdef WITH_FEATURE
         std::cout << "hi from main" << std::endl;
