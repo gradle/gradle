@@ -274,7 +274,7 @@ println 'hi'
         then:
         ScriptCompilationException e = thrown()
         e.lineNumber == 3
-        e.cause.message.contains("script.gradle: 3: unexpected token: syntax")
+        e.cause.message.contains("script.gradle: 3: Unexpected input: 'syntax' @ line 3, column 13")
 
         and:
         checkScriptCacheEmpty()

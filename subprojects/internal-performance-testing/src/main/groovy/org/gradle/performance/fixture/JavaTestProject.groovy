@@ -19,11 +19,11 @@ package org.gradle.performance.fixture
 
 import org.gradle.performance.generator.JavaTestProjectGenerator
 import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
+import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
+import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
-import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.language.Language
 
 import javax.annotation.Nullable

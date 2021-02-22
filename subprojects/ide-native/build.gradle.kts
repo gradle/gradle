@@ -35,6 +35,7 @@ dependencies {
     testFixturesApi(testFixtures(project(":ide")))
     testFixturesImplementation(libs.plist)
     testFixturesImplementation(libs.guava)
+    testFixturesImplementation(libs.groovyXml)
     testFixturesImplementation(testFixtures(project(":ide")))
 
     testRuntimeOnly(project(":distributions-core")) {

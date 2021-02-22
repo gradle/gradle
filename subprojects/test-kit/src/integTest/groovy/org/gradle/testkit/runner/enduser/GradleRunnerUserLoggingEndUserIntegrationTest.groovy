@@ -34,8 +34,8 @@ class GradleRunnerUserLoggingEndUserIntegrationTest extends BaseTestKitEndUserIn
             dependencies {
                 testImplementation gradleTestKit()
                 testImplementation 'org.slf4j:slf4j-simple:1.7.21'
-                testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
-                    exclude module: 'groovy-all'
+                testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+                    exclude group: 'org.codehaus.groovy'
                 }
             }
 

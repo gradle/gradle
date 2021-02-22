@@ -24,14 +24,18 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver {
 
     private static final String GRADLE_LIBS_REPO_URL = "https://repo.gradle.org/gradle/list/libs-releases";
     private static final String GRADLE_LIBS_REPO_OVERRIDE_VAR = "GRADLE_LIBS_REPO_OVERRIDE";
+    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+)?)-(\\d.*?).jar");
 
     private final Project project;
 
@@ -41,19 +45,23 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
 
     @Override
     public File resolveLocalGroovySources(String jarName) {
-        String version = jarName.replace("groovy-all-", "").replace(".jar", "");
-
+        Matcher matcher = FILE_NAME_PATTERN.matcher(jarName);
+        if (!matcher.matches()) {
+            return null;
+        }
+        VersionNumber version = VersionNumber.parse(matcher.group(3));
+        final String artifactName = matcher.group(1);
         MavenArtifactRepository repository = addGradleLibsRepository();
         try {
-            return downloadLocalGroovySources(version);
+            return downloadLocalGroovySources(artifactName, version);
         } finally {
             project.getRepositories().remove(repository);
         }
     }
 
-    private File downloadLocalGroovySources(String version) {
+    private File downloadLocalGroovySources(String artifact, VersionNumber version) {
         ArtifactResolutionResult result = project.getDependencies().createArtifactResolutionQuery()
-            .forModule("org.gradle.groovy", "groovy-all", version)
+            .forModule("org.codehaus.groovy", artifact, version.toString())
             .withArtifacts(JvmLibrary.class, Collections.singletonList(SourcesArtifact.class))
             .execute();
 

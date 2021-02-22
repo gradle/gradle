@@ -28,6 +28,8 @@ dependencies {
     smokeTestImplementation(project(":build-option"))
     smokeTestImplementation(project(":process-services"))
     smokeTestImplementation(libs.commonsIo)
+    smokeTestImplementation(libs.groovyAnt)
+    smokeTestImplementation(libs.groovyJson)
     smokeTestImplementation(libs.commonsHttpclient)
     smokeTestImplementation(libs.jgit)
     smokeTestImplementation(libs.gradleProfiler) {

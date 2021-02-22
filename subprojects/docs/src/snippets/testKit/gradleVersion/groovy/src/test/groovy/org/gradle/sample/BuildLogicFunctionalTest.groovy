@@ -3,19 +3,18 @@ package org.gradle.sample
 // tag::functional-test-spock-gradle-version[]
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.io.TempDir;
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class BuildLogicFunctionalTest extends Specification {
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir final File testProjectDir
     File settingsFile
     File buildFile
 
     def setup() {
-        settingsFile = testProjectDir.newFile('settings.gradle')
-        buildFile = testProjectDir.newFile('build.gradle')
+        settingsFile = new File(testProjectDir, 'settings.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
     }
 
     @Unroll

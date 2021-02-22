@@ -27,11 +27,11 @@ class CppMain extends SourceFileElement implements AppElement {
         this.sum = sum
     }
 
-    final SourceFile sourceFile = sourceFile("cpp", "main.cpp", """
+    final SourceFile sourceFile = new SourceFile("cpp", "main.cpp", """
     #include <iostream>
     #include "sum.h"
     #include "greeter.h"
-    
+
     int main(int argc, char** argv) {
         Greeter greeter;
         greeter.sayHello();

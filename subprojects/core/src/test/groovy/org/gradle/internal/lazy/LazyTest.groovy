@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 
 class LazyTest extends Specification {
+
     @Unroll
     def "supplier code is executed once"() {
         def supplier = Mock(Supplier)
@@ -64,11 +65,11 @@ class LazyTest extends Specification {
         val == 3 * expected
 
         where:
-        factory                                || expected
-        { s -> Lazy.unsafe().of(s) } | 123
-        { s -> Lazy.unsafe().of(s).map { 2 * it } }  | 246
-        { s -> Lazy.locking().of(s) }                | 123
-        { s -> Lazy.locking().of(s).map { 2 * it } } | 246
+        factory                                                  | expected
+        asClosure { s -> Lazy.unsafe().of(s as Supplier) }                 | 123
+        asClosure { s -> Lazy.unsafe().of(s as Supplier).map { 2 * it } }  | 246
+        asClosure { s -> Lazy.locking().of(s as Supplier) }                | 123
+        asClosure { s -> Lazy.locking().of(s as Supplier).map { 2 * it } } | 246
     }
 
     @Unroll
@@ -119,4 +120,7 @@ class LazyTest extends Specification {
         'synchronized'  | Lazy.synchronizing()
     }
 
+    Closure asClosure(Closure<Lazy<Object>> lazyClosure) {
+        return lazyClosure
+    }
 }

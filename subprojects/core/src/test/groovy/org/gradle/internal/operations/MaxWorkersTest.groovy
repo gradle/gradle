@@ -52,12 +52,13 @@ class MaxWorkersTest extends ConcurrentSpec {
             start {
                 thread.blockUntil.worker1
                 instant.worker2Ready
+                ConcurrentSpec spec = this;
                 def child2 = workerLeaseService.getWorkerLease().start()
                 processor.runAll(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
                         void run(BuildOperationContext buildOperationContext) {
-                            instant.worker2
+                            spec.instant.worker2
                         }
                     })
                 })
@@ -80,7 +81,7 @@ class MaxWorkersTest extends ConcurrentSpec {
             Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), new DefaultParallelismConfiguration(true, maxWorkers), new DefaultBuildOperationIdFactory())
         def processorWorker = new SimpleWorker()
-
+        def spec = this
         when:
         async {
             start {
@@ -89,20 +90,20 @@ class MaxWorkersTest extends ConcurrentSpec {
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
                         void run(BuildOperationContext buildOperationContext) {
-                            instant.worker1
-                            thread.blockUntil.worker2Ready
-                            thread.block()
-                            instant.worker1Finished
+                            spec.instant.worker1
+                            spec.thread.blockUntil.worker2Ready
+                            spec.thread.block()
+                            spec.instant.worker1Finished
                         }
                     })
                 })
                 cl.leaseFinish()
             }
             start {
-                thread.blockUntil.worker1
-                instant.worker2Ready
+                spec.thread.blockUntil.worker1
+                spec.instant.worker2Ready
                 def cl = workerLeaseService.getWorkerLease().start()
-                instant.worker2
+                spec.instant.worker2
                 cl.leaseFinish()
             }
         }
@@ -122,7 +123,7 @@ class MaxWorkersTest extends ConcurrentSpec {
             Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), new DefaultParallelismConfiguration(true, maxWorkers), new DefaultBuildOperationIdFactory())
         def processorWorker = new SimpleWorker()
-
+        def spec = this
         when:
         async {
             def outer = workerLeaseService.getWorkerLease().start()
@@ -130,17 +131,17 @@ class MaxWorkersTest extends ConcurrentSpec {
                 queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                     @Override
                     void run(BuildOperationContext buildOperationContext) {
-                        instant.child1Started
-                        thread.block()
-                        instant.child1Finished
+                        spec.instant.child1Started
+                        spec.thread.block()
+                        spec.instant.child1Finished
                     }
                 })
                 queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                     @Override
                     void run(BuildOperationContext buildOperationContext) {
-                        instant.child2Started
-                        thread.block()
-                        instant.child2Finished
+                        spec.instant.child2Started
+                        spec.thread.block()
+                        spec.instant.child2Finished
                     }
                 })
             })

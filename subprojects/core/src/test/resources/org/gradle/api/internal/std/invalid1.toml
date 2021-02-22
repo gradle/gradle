@@ -1,2 +1,2 @@
-[dependencies]
+[libraries]
 module = "foo"

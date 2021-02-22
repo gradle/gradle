@@ -27,10 +27,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.Usage;
@@ -45,7 +42,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.Actions;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
@@ -131,7 +127,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     private DefaultVersionCatalog doBuild() {
-        maybeImportPlatforms();
+        maybeImportCatalogs();
         for (Map.Entry<String, BundleModel> entry : bundles.entrySet()) {
             String bundleName = entry.getKey();
             List<String> aliases = entry.getValue().getComponents();
@@ -148,40 +144,33 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints));
     }
 
-    private void maybeImportPlatforms() {
+    private void maybeImportCatalogs() {
         if (imports.isEmpty()) {
             return;
         }
         DependencyResolutionServices drs = dependencyResolutionServicesSupplier.get();
-        Configuration cnf = createResolvableConfiguration(drs);
-        addImportsToResolvableConfiguration(drs, cnf);
-        Map<ComponentIdentifier, Action<? super ImportSpec>> variantToImport = associateVariantToImportSpec(cnf);
-        cnf.getIncoming().getArtifacts().getArtifacts().forEach(ar -> {
-            File file = ar.getFile();
-            Action<? super ImportSpec> configurationAction = variantToImport.getOrDefault(ar.getVariant().getOwner(), Actions.doNothing());
-            withContext("catalog " + ar.getVariant().getOwner(), () -> {
-                importCatalogFromFile(file, configurationAction);
+        for (int i = 0, importsSize = imports.size(); i < importsSize; i++) {
+            Import importConfiguration = imports.get(i);
+            Configuration cnf = createResolvableConfiguration(drs, i);
+            addImportsToResolvableConfiguration(drs, cnf, importConfiguration);
+            cnf.getIncoming().getArtifacts().getArtifacts().forEach(ar -> {
+                File file = ar.getFile();
+                Action<? super ImportSpec> configurationAction = importConfiguration.spec;
+                withContext("catalog " + ar.getVariant().getOwner(), () -> importCatalogFromFile(file, configurationAction));
             });
-        });
+        }
     }
 
-    private void addImportsToResolvableConfiguration(DependencyResolutionServices drs, Configuration cnf) {
+    private void addImportsToResolvableConfiguration(DependencyResolutionServices drs, Configuration cnf, Import imported) {
         for (int i = 0, importsSize = imports.size(); i < importsSize; i++) {
-            Import imported = imports.get(i);
             Object notation = imported.notation;
             Dependency dependency = drs.getDependencyHandler().create(notation);
-            if (dependency instanceof HasConfigurableAttributes) {
-                // This is a workaround for the resolved configuration API which doesn't let
-                // us associate a resolved variant to its files, so we cannot associate directly
-                // the import configuration to the imported file
-                associateDependencyWithId(i, (HasConfigurableAttributes<?>) dependency);
-            }
             cnf.getDependencies().add(dependency);
         }
     }
 
-    private Configuration createResolvableConfiguration(DependencyResolutionServices drs) {
-        Configuration cnf = drs.getConfigurationContainer().create("incomingPlatformsFor" + StringUtils.capitalize(name));
+    private Configuration createResolvableConfiguration(DependencyResolutionServices drs, int i) {
+        Configuration cnf = drs.getConfigurationContainer().create("incomingCatalogFor" + StringUtils.capitalize(name) + i);
         cnf.getResolutionStrategy().activateDependencyLocking();
         cnf.attributes(attrs -> {
             attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
@@ -190,24 +179,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         cnf.setCanBeResolved(true);
         cnf.setCanBeConsumed(false);
         return cnf;
-    }
-
-    private Map<ComponentIdentifier, Action<? super ImportSpec>> associateVariantToImportSpec(Configuration cnf) {
-        Map<ComponentIdentifier, Action<? super ImportSpec>> mapping = Maps.newHashMap();
-        cnf.getIncoming().getResolutionResult().getAllDependencies().stream()
-            .filter(ResolvedDependencyResult.class::isInstance)
-            .map(ResolvedDependencyResult.class::cast)
-            .forEach(resolvedDependencyResult -> {
-                AttributeContainer attributes = resolvedDependencyResult.getRequested().getAttributes();
-                String cpt = attributes.getAttribute(INTERNAL_COUNTER);
-                ComponentIdentifier owner = resolvedDependencyResult.getResolvedVariant().getOwner();
-                Action<? super ImportSpec> action = mapping.getOrDefault(owner, Actions.doNothing());
-                if (cpt != null) {
-                    action = Actions.composite(action, imports.get(Integer.parseInt(cpt)).spec);
-                    mapping.put(owner, action);
-                }
-            });
-        return mapping;
     }
 
     private static void associateDependencyWithId(int id, HasConfigurableAttributes<?> dependency) {
@@ -233,7 +204,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         try {
             DefaultImportSpec spec = new DefaultImportSpec();
             configurationAction.execute(spec);
-            TomlDependenciesFileParser.parse(new ByteArrayInputStream(dataSource.get()), this, plugins, spec.toConfiguration());
+            TomlCatalogFileParser.parse(new ByteArrayInputStream(dataSource.get()), this, plugins, spec.toConfiguration());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

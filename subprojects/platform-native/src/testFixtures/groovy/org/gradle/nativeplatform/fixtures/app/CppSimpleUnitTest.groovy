@@ -23,7 +23,7 @@ class CppSimpleUnitTest extends CppSourceElement {
     final sumTest = new CppSumTest()
 
     List<SourceFile> sourceFiles = [
-        sourceFile("cpp", "test.cpp", """
+        new SourceFile("cpp", "test.cpp", """
             int main(int argc, char **argv) {
               if (42 == 42) {
                 return 0;

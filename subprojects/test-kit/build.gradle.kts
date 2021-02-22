@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":wrapper"))
     implementation(project(":tooling-api"))
     implementation(libs.commonsIo)
+    api(libs.groovyTest)
 
     testImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))

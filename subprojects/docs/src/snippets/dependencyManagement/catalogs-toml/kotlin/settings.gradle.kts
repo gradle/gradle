@@ -31,9 +31,9 @@ dependencyResolutionManagement {
 // tag::additional_catalog[]
 dependencyResolutionManagement {
     versionCatalogs {
-        // declares an additional catalog, named 'testLibs', from the 'test-dependencies.toml' file
+        // declares an additional catalog, named 'testLibs', from the 'test-libs.versions.toml' file
         create("testLibs") {
-            from(files("gradle/test-dependencies.toml"))
+            from(files("gradle/test-libs.versions.toml"))
         }
     }
 }

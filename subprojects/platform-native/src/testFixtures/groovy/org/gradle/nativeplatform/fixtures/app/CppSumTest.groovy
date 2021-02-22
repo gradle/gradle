@@ -16,9 +16,11 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 class CppSumTest extends CppSourceElement implements SumElement {
     final SourceElement headers = empty()
-    final SourceElement sources = ofFiles(sourceFile("cpp", "sum_test.cpp", """
+    final SourceElement sources = ofFiles(new SourceFile("cpp", "sum_test.cpp", """
             #include "sum.h"
 
             int main(int argc, char **argv) {

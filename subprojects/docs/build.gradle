@@ -509,16 +509,8 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
         }
 
-        // Do not execute JaCoCo tests on JDK >= 15 until JaCoCo we use starts supporting newer JDKs
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
-            excludeTestsMatching 'org.gradle.docs.samples.*.jvm-multi-project-with-code-coverage_*_testTask.sample'
-            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-jacoco-application_*_jacocoApp.sample'
-        }
-
         // TODO investigate ignored snippets
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
-        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*.sample'  // compilation error
-        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-cross-compilation_*.sample' // fails to find javadoc
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample' // plugin [id: 'com.android.application', version: '3.2.0', apply: false] was not found: Gradle Central Plugin Repository
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-single-build_*.sample' // seems legit: java.lang.NoClassDefFoundError: Could not initialize class org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetKt
 

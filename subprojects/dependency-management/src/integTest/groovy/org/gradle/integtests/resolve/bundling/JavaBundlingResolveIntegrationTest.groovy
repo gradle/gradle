@@ -89,7 +89,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                 module('org:producer:1.0') {
                     variant('api', [
                             'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.status': defaultStatus(),
+                            'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
                             'org.gradle.usage': 'java-api',
                             'org.gradle.libraryelements': 'jar',
                             'org.gradle.category': 'library'
@@ -167,7 +167,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                     module('org:producer:1.0') {
                         variant('fatApi', [
                                 'org.gradle.dependency.bundling': selected,
-                                'org.gradle.status': defaultStatus(),
+                                'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
                                 'org.gradle.usage': 'java-api',
                                 'org.gradle.libraryelements': 'jar'
                         ])

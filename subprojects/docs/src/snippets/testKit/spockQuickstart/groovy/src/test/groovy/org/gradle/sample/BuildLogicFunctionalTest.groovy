@@ -3,12 +3,11 @@ package org.gradle.sample
 // tag::functional-test-spock[]
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.io.TempDir;
 import spock.lang.Specification
 
 class BuildLogicFunctionalTest extends Specification {
-    @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir File testProjectDir
     File settingsFile
     File buildFile
 
@@ -30,7 +29,7 @@ class BuildLogicFunctionalTest extends Specification {
 
         when:
         def result = GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .withArguments('helloWorld')
             .build()
 
