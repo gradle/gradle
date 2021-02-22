@@ -5,28 +5,17 @@ digraph javaTestConfigurations {
     edge [fontname="Sans"];
 
     /* tasks */
-    test [fillcolor=darkslategray1, fontname="Courier New"]
     compileTestJava [fillcolor=darkslategray1, fontname="Courier New"]
-
-    /* deprecated confs */
-    compile [fontcolor=gray55]
-    runtime [fontcolor=gray55]
-    testCompile [fontcolor=gray55]
-    testRuntime [fontcolor=gray55]
+    test [fillcolor=darkslategray1, fontname="Courier New"]
 
     testCompileClasspath [fillcolor=lightblue]
     testRuntimeClasspath [fillcolor=lightblue]
 
     /* configurations */
-    implementation -> compile;
-    runtime -> compile
-
-    testCompile -> compile
-    testImplementation -> {testCompile implementation}
-    testCompileClasspath -> {testCompile testCompileOnly testImplementation}
-    testRuntime -> {runtime testCompile}
+    testImplementation -> implementation
+    testCompileClasspath -> {testCompileOnly testImplementation}
     testRuntimeOnly -> runtimeOnly
-    testRuntimeClasspath -> {testRuntimeOnly testRuntime testImplementation}
+    testRuntimeClasspath -> {testRuntimeOnly testImplementation}
 
     /* tasks */
     test -> testRuntimeClasspath [style=dashed label="uses"]
