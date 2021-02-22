@@ -79,7 +79,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         DependencyResolutionManagementInternal dm = services.get(DependencyResolutionManagementInternal.class);
         dm.getDefaultLibrariesExtensionName().finalizeValue();
         String defaultLibrary = dm.getDefaultLibrariesExtensionName().get();
-        File dependenciesFile = new File(settings.getSettingsDir(), "gradle/dependencies.toml");
+        File dependenciesFile = new File(settings.getSettingsDir(), "gradle/libs.versions.toml");
         if (dependenciesFile.exists()) {
             dm.versionCatalogs(catalogs -> {
                 VersionCatalogBuilder builder = catalogs.findByName(defaultLibrary);

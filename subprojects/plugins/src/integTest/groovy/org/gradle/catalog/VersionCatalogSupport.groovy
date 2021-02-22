@@ -19,7 +19,7 @@ package org.gradle.catalog
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 trait VersionCatalogSupport {
-    void expectPlatformContents(File expectedTomlFile = file("build/version-catalog/dependencies.toml"), String resultFile) {
+    void expectPlatformContents(File expectedTomlFile = file("build/version-catalog/libs.versions.toml"), String resultFile) {
         assert expectedTomlFile.exists()
         def generated = normaliseLineSeparators(expectedTomlFile.getText("utf-8"))
         def expected = normaliseLineSeparators(this.class.getResourceAsStream("${resultFile}.toml").getText("utf-8"))

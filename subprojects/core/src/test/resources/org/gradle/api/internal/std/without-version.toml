@@ -1,4 +1,4 @@
-[dependencies]
+[libraries]
 alias1 = { module = "g:a" }
 alias2 = { group = "g", name = "a", version = "" }
 alias3 = { group = "g", name = "a" }

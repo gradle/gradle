@@ -1,7 +1,7 @@
 [versions]
 groovy = "2.5.6"
 
-[dependencies]
+[libraries]
 groovy = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
 groovy-json = { module = "org.codehaus.groovy:groovy-json", version.ref = "groovy" }
 
