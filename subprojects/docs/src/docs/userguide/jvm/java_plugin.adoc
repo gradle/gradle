@@ -303,49 +303,37 @@ To find information on the `api` configuration, please consult the <<java_librar
 
 ====
 
-[.line-through]#`compile`#(Deprecated)::
-Compile time dependencies. Superseded by `implementation`.
-
-`implementation` extends `compile`::
+`implementation`::
 Implementation only dependencies.
 
 `compileOnly`::
 Compile time only dependencies, not used at runtime.
 
-`compileClasspath` extends `compile, compileOnly, implementation`::
+`compileClasspath` extends `compileOnly, implementation`::
 Compile classpath, used when compiling source. Used by task `compileJava`.
 
 `annotationProcessor`::
 Annotation processors used during compilation.
 
-[.line-through]#`runtime`#(Deprecated) extends `compile`::
-Runtime dependencies. Superseded by `runtimeOnly`.
-
 `runtimeOnly`::
 Runtime only dependencies.
 
-`runtimeClasspath` extends `runtimeOnly, runtime, implementation`::
+`runtimeClasspath` extends `runtimeOnly, implementation`::
 Runtime classpath contains elements of the implementation, as well as runtime only elements.
 
-[.line-through]#`testCompile`#(Deprecated) extends `compile`::
-Additional dependencies for compiling tests. Superseded by `testImplementation`.
-
-`testImplementation` extends `testCompile, implementation`::
+`testImplementation` extends `implementation`::
 Implementation only dependencies for tests.
 
 `testCompileOnly`::
 Additional dependencies only for compiling tests, not used at runtime.
 
-`testCompileClasspath` extends `testCompile, testCompileOnly, testImplementation`::
+`testCompileClasspath` extends `testCompileOnly, testImplementation`::
 Test compile classpath, used when compiling test sources. Used by task `compileTestJava`.
-
-[.line-through]#`testRuntime`#(Deprecated) extends `runtime, testCompile`::
-Additional dependencies for running tests only. Superseded by `testRuntimeOnly`.
 
 `testRuntimeOnly` extends `runtimeOnly`::
 Runtime only dependencies for running tests.
 
-`testRuntimeClasspath` extends `testRuntimeOnly, testRuntime, testImplementation`::
+`testRuntimeClasspath` extends `testRuntimeOnly, testImplementation`::
 Runtime classpath for running tests. Used by task `test`.
 
 `archives`::
@@ -372,28 +360,22 @@ For each source set you add to the project, the Java plugins adds the following 
 [[java_source_set_configurations]]
 === SourceSet dependency configurations
 
-[.line-through]#`__sourceSet__Compile`#(Deprecated)::
-Compile time dependencies for the given source set. Superseded by `__sourceSet__Implementation`.
-
-`__sourceSet__Implementation` extends `__sourceSet__Compile`::
+`__sourceSet__Implementation`::
 Compile time dependencies for the given source set. Used by `__sourceSet__CompileClasspath, __sourceSet__RuntimeClasspath`.
 
 `__sourceSet__CompileOnly`::
 Compile time only dependencies for the given source set, not used at runtime.
 
-`__sourceSet__CompileClasspath` extends `__sourceSet__Compile, __sourceSet__CompileOnly, __sourceSet__Implementation`::
+`__sourceSet__CompileClasspath` extends `__sourceSet__CompileOnly, __sourceSet__Implementation`::
 Compile classpath, used when compiling source. Used by `compile__SourceSet__Java`.
 
 `__sourceSet__AnnotationProcessor`::
 Annotation processors used during compilation of this source set.
 
-[.line-through]#`__sourceSet__Runtime`#(Deprecated)::
-Runtime dependencies for the given source set. Superseded by `__sourceSet__RuntimeOnly`.
-
 `__sourceSet__RuntimeOnly`::
 Runtime only dependencies for the given source set.
 
-`__sourceSet__RuntimeClasspath` extends `__sourceSet__RuntimeOnly, __sourceSet__Runtime, __sourceSet__Implementation`::
+`__sourceSet__RuntimeClasspath` extends `__sourceSet__RuntimeOnly, __sourceSet__Implementation`::
 Runtime classpath contains elements of the implementation, as well as runtime only elements.
 
 [[sec:java-extension]]
@@ -487,7 +469,8 @@ See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapte
 == Publishing
 
 `components.java`::
-A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_setup.adoc#publishing_overview,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
+A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_setup.adoc#publishing_overview,publishing>> the production JAR created by the `jar` task.
+This component includes the runtime dependency information for the JAR.
 
 See also the <<#sec:java-extension,`java` extension>>.
 
