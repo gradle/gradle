@@ -36,7 +36,9 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         if (name.equals("GROOVY-COMPILER")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getModule("gradle-language-groovy").getImplementationClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("groovy-all").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("groovy").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("groovy-json").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("groovy-xml").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("asm").getClasspath());
             classpath = addJavaCompilerModules(classpath);
             return classpath;

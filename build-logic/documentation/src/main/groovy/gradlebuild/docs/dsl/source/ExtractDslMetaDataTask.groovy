@@ -81,7 +81,7 @@ abstract class ExtractDslMetaDataTask extends SourceTask {
             throw new DocGenerationException("Parsing non-Java files is not supported: $sourceFile")
         }
         try {
-            JavaParser.parse(sourceFile).accept(new SourceMetaDataVisitor(), repository)
+            new JavaParser().parse(sourceFile).getResult().get().accept(new SourceMetaDataVisitor(), repository)
         } catch (Exception e) {
             throw new DocGenerationException("Could not parse '$sourceFile'.", e)
         }

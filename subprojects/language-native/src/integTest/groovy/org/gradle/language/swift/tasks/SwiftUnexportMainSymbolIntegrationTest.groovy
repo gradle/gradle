@@ -49,13 +49,13 @@ class SwiftUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolI
 
     protected SourceFileElement mainFile = getMainFile()
     protected SourceFileElement alternateFile = new SourceFileElement() {
-        final SourceFile sourceFile = sourceFile("swift", "main.swift", 'print("goodbye world!")')
+        final SourceFile sourceFile = new SourceFile("swift", "main.swift", 'print("goodbye world!")')
     }
 
     @Override
     protected SourceFileElement getOtherFile() {
         return new SourceFileElement() {
-            final SourceFile sourceFile = sourceFile("swift", "other.swift", 'class Other {}')
+            final SourceFile sourceFile = new SourceFile("swift", "other.swift", 'class Other {}')
         }
     }
 
@@ -84,7 +84,7 @@ class SwiftUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolI
     @Override
     protected SourceFileElement getMainFile(String filenameWithoutExtension) {
         return new SourceFileElement() {
-            final SourceFile sourceFile = sourceFile("swift", "${filenameWithoutExtension}.swift", 'print("hello world!")')
+            final SourceFile sourceFile = new SourceFile("swift", "${filenameWithoutExtension}.swift", 'print("hello world!")')
         }
     }
 }

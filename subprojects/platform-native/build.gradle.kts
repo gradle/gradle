@@ -36,6 +36,7 @@ dependencies {
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.nativePlatform)
+    testFixturesImplementation(libs.groovyXml)
     testFixturesImplementation(libs.commonsLang)
     testFixturesImplementation(libs.commonsIo)
 

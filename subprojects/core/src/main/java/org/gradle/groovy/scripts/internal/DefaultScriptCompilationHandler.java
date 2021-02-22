@@ -22,7 +22,6 @@ import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.stmt.Statement;
-import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
@@ -65,6 +64,7 @@ import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("deprecation")
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private final Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
@@ -118,7 +118,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
                                                             CodeSource codeSource) {
 
-                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this);
+                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this, simpleNameToFQN);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
@@ -267,19 +267,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
     }
 
-    private class CustomCompilationUnit extends CompilationUnit {
-        public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
-            super(compilerConfiguration, codeSource, groovyClassLoader);
-            this.verifier = new Verifier() {
-                @Override
-                public void visitClass(ClassNode node) {
-                    customVerifier.execute(node);
-                    super.visitClass(node);
-                }
-            };
-            this.resolveVisitor = new GradleResolveVisitor(this, simpleNameToFQN);
-        }
-    }
+
 
     private static class ClassesDirCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
         private final boolean isEmpty;

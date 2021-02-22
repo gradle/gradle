@@ -43,6 +43,13 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
     def setup() {
         executer.withRepositoryMirrors()
+        buildFile << """
+            dependencies {
+                testImplementation 'junit:junit:4.13.1'
+            }
+
+            ${mavenCentralRepository()}
+        """
     }
 
     @Unroll

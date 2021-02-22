@@ -73,7 +73,7 @@ class CppUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolInt
 
     protected SourceFileElement mainFile = getMainFile()
     protected SourceFileElement alternateMainFile = new SourceFileElement() {
-        final SourceFile sourceFile = sourceFile("cpp", "main.cpp", """
+        final SourceFile sourceFile = new SourceFile("cpp", "main.cpp", """
             #include <iostream>
 
             int main(int argc, char* argv[]) {
@@ -86,7 +86,7 @@ class CppUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolInt
     @Override
     protected SourceFileElement getOtherFile() {
         return new SourceFileElement() {
-            final SourceFile sourceFile = sourceFile("cpp", "other.cpp", """
+            final SourceFile sourceFile = new SourceFile("cpp", "other.cpp", """
             class Other {};
         """)
         }
@@ -129,7 +129,7 @@ class CppUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolInt
     @Override
     protected SourceFileElement getMainFile(String filenameWithoutExtension) {
         return new SourceFileElement() {
-            final SourceFile sourceFile = sourceFile("cpp", "${filenameWithoutExtension}.cpp", """
+            final SourceFile sourceFile = new SourceFile("cpp", "${filenameWithoutExtension}.cpp", """
             #include <iostream>
 
             int main(int argc, char* argv[]) {

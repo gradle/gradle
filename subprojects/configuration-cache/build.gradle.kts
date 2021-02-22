@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":build-option"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyJson)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 

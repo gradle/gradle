@@ -58,6 +58,7 @@ import java.util.List;
 public class GroovyRuntime {
     private static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
     private static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
+    private static final VersionNumber GROOVY_VERSION_REQUIRING_JSONXML = VersionNumber.parse("3.0");
     private final Project project;
 
     public GroovyRuntime(Project project) {
@@ -90,7 +91,7 @@ public class GroovyRuntime {
                     throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", Iterables.toString(classpath)));
                 }
 
-                if (groovyJar.isGroovyAll()) {
+                if (groovyJar.isGroovyAll() || groovyJar.getVersion().getMajor() == 3) {
                     return project.getLayout().files(groovyJar.getFile());
                 }
 
@@ -106,6 +107,11 @@ public class GroovyRuntime {
                 if (groovyVersion.compareTo(GROOVY_VERSION_REQUIRING_TEMPLATES) >= 0) {
                     // add groovy-templates for Groovy 2.5+
                     addGroovyDependency(notation, dependencies, "groovy-templates");
+                }
+                if (groovyVersion.compareTo(GROOVY_VERSION_REQUIRING_JSONXML) >= 0) {
+                    // add new modules for Groovy 3+
+                    addGroovyDependency(notation, dependencies, "groovy-json");
+                    addGroovyDependency(notation, dependencies, "groovy-xml");
                 }
                 return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0]));
             }
