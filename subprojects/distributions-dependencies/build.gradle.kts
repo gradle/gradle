@@ -118,6 +118,10 @@ dependencies {
         api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlApis)               { version { strictly("1.4.01"); because("2.0.x has a POM with relocation Gradle does not handle well") }}
 
+        // compile only
+        api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
+        api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
+
         // test only
         api(libs.aircompressor)         { version { strictly("0.8") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}
@@ -127,7 +131,7 @@ dependencies {
         api(libs.cglib)                 { version { strictly("3.2.6") }}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.flightrecorder)        { version { strictly("7.0.0-alpha01") }}
-        api(libs.guice)                 { version { require("2.0") }}
+        api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}
         api(libs.javaParser)            { version { strictly("3.17.0") }}

@@ -45,6 +45,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class PomProjectInitDescriptor implements BuildConverter {
+    private final static String MAVEN_VERSION = "3.6.3";
+    private final static String MAVEN_WAGON_VERSION = "3.4.2";
+    private final static String AETHER_VERSION = "1.1.0";
+
     private final MavenSettingsProvider settingsProvider;
     private final DocumentationRegistry documentationRegistry;
     private final WorkerExecutor executor;
@@ -86,13 +90,13 @@ public class PomProjectInitDescriptor implements BuildConverter {
     public void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects) {
         DependencyHandler dependencies = detachedResolver.getDependencies();
         Configuration config = detachedResolver.getConfigurations().detachedConfiguration(
-            dependencies.create("org.apache.maven:maven-core:3.6.3"),
-            dependencies.create("org.apache.maven:maven-plugin-api:3.6.3"),
-            dependencies.create("org.apache.maven:maven-compat:3.6.3"),
-            dependencies.create("org.apache.maven.wagon:wagon-http:3.4.2"),
-            dependencies.create("org.apache.maven.wagon:wagon-provider-api:3.4.2"),
-            dependencies.create("org.eclipse.aether:aether-connector-basic:1.1.0"),
-            dependencies.create("org.eclipse.aether:aether-transport-wagon:1.1.0")
+            dependencies.create("org.apache.maven:maven-core:" + MAVEN_VERSION),
+            dependencies.create("org.apache.maven:maven-plugin-api:" + MAVEN_VERSION),
+            dependencies.create("org.apache.maven:maven-compat:" + MAVEN_VERSION),
+            dependencies.create("org.apache.maven.wagon:wagon-http:" + MAVEN_WAGON_VERSION),
+            dependencies.create("org.apache.maven.wagon:wagon-provider-api:" + MAVEN_WAGON_VERSION),
+            dependencies.create("org.eclipse.aether:aether-connector-basic:" + AETHER_VERSION),
+            dependencies.create("org.eclipse.aether:aether-transport-wagon:" + AETHER_VERSION)
         );
         config.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
         detachedResolver.getRepositories().mavenCentral();

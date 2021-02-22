@@ -115,6 +115,10 @@ abstract class ExternalModulesExtension {
     val xerces = "xerces:xercesImpl"
     val xmlApis = "xml-apis:xml-apis"
 
+    // Compile only dependencies (dynamically downloaded if needed)
+    val maven3Compat = "org.apache.maven:maven-compat"
+    val maven3PluginApi = "org.apache.maven:maven-plugin-api"
+
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
     val archunit = "com.tngtech.archunit:archunit"
