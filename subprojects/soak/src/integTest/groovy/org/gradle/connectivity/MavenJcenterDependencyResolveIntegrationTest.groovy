@@ -23,6 +23,8 @@ import org.gradle.util.TestPrecondition
 class MavenJcenterDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     def "resolves a minimal dependency from bintray's jcenter"() {
         given:
+        executer.expectDeprecationWarning("The RepositoryHandler.jcenter() method has been deprecated.")
+        executer.expectDeprecationWarning("The RepositoryHandler.jcenter(Action<MavenArtifactRepository>) method has been deprecated.")
         buildFile << """
 repositories {
     jcenter()
