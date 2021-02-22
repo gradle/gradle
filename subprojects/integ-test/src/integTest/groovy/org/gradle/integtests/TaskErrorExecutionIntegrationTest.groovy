@@ -16,9 +16,12 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
-class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec {
+class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def reportsTaskActionExecutionFailsWithError() {
         buildFile << """
             task('do-stuff').doFirst {
@@ -101,6 +104,9 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("broken")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     def reportsTaskValidationFailure() {
         buildFile << '''
             class CustomTask extends DefaultTask {
@@ -117,8 +123,8 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails "custom"
 
         failureDescriptionContains("Some problems were found with the configuration of task ':custom' (type 'CustomTask').")
-        failureDescriptionContains("No value has been specified for property 'srcFile'.")
-        failureDescriptionContains("No value has been specified for property 'destFile'.")
+        failureDescriptionContains(missingValueMessage('srcFile'))
+        failureDescriptionContains(missingValueMessage('destFile'))
     }
 
     def reportsUnknownTask() {

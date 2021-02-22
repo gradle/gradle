@@ -26,10 +26,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class TaskParametersIntegrationTest extends AbstractIntegrationSpec {
+class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker{
 
     def "reports which properties are not serializable"() {
         buildFile << """
@@ -554,6 +557,9 @@ task someTask(type: SomeTask) {
         "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"        | null
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     def "null input properties registered via TaskInputs.property are not allowed"() {
         buildFile << """
             task test {
@@ -564,7 +570,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("No value has been specified for property 'input'.")
+        failureDescriptionContains(missingValueMessage('input'))
     }
 
     def "optional null input properties registered via TaskInputs.property are allowed"() {
@@ -578,6 +584,9 @@ task someTask(type: SomeTask) {
         succeeds "test"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     @Unroll
     def "null input files registered via TaskInputs.#method are not allowed"() {
         buildFile << """
@@ -589,7 +598,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("No value has been specified for property 'input'.")
+        failureDescriptionContains(missingValueMessage('input'))
 
         where:
         method << ["file", "files", "dir"]
@@ -610,6 +619,9 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir"]
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     @Unroll
     def "null output files registered via TaskOutputs.#method are not allowed"() {
         buildFile << """
@@ -621,7 +633,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("No value has been specified for property 'output'.")
+        failureDescriptionContains(missingValueMessage('output'))
 
         where:
         method << ["file", "files", "dir", "dirs"]

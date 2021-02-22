@@ -18,6 +18,9 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -26,7 +29,7 @@ import java.util.jar.JarFile
 import java.util.jar.Manifest
 
 @TestReproducibleArchives
-class JarIntegrationTest extends AbstractIntegrationSpec {
+class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def canCreateAnEmptyJar() {
         given:
@@ -658,6 +661,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         skipped ":jar"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     def "cannot create a JAR without destination dir"() {
         given:
         buildFile << """
@@ -670,7 +676,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         fails('jar')
 
         then:
-        failureDescriptionContains('No value has been specified for property \'archiveFile\'.')
+        failureDescriptionContains(missingValueMessage('archiveFile'))
     }
 
     def "can use Provider values in manifest attribute"() {
