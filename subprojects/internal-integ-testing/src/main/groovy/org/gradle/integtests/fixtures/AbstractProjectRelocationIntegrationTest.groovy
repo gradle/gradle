@@ -20,10 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "JavaGradlePluginRelocationTest",
-        "ScalaCompileRelocationIntegrationTest"
-    ])
+    @ToBeFixedForConfigurationCache(bottomSpecs = ["ScalaCompileRelocationIntegrationTest"])
     def "project is relocatable"() {
         def originalDir = file("original-dir")
         originalDir.file("settings.gradle") << localCacheConfiguration()

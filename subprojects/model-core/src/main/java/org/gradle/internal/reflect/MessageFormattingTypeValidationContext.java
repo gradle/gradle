@@ -63,8 +63,13 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
 
     @Override
     public void visitPropertyProblem(Severity kind, @Nullable String parentProperty, @Nullable String property, String message) {
-        visitPropertyProblem(problem -> problem.reportAs(kind)
-            .forProperty(parentProperty, property)
+        visitPropertyProblem(problem -> {
+            PropertyProblemBuilder problemBuilder = problem.reportAs(kind.toReportableSeverity());
+            // this code should go away once all messages go through the builder instead
+            if (kind == Severity.CACHEABILITY_WARNING) {
+                problemBuilder.onlyAffectsCacheableWork();
+            }
+            problemBuilder.forProperty(parentProperty, property)
             .withDescription(() -> {
                 StringBuilder builder = new StringBuilder();
                 if (rootType != null) {
@@ -88,7 +93,8 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
                 builder.append(message);
                 builder.append('.');
                 return builder.toString();
-            }));
+            });
+        });
     }
 
     abstract protected void recordProblem(TypeValidationProblem problem);

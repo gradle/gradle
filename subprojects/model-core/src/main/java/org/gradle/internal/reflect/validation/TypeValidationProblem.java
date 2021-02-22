@@ -15,16 +15,16 @@
  */
 package org.gradle.internal.reflect.validation;
 
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.problems.BaseProblem;
 import org.gradle.problems.Solution;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation, Void> {
+public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation, TypeValidationProblem.Payload> {
     @Nullable
     private final UserManualReference userManualReference;
 
@@ -34,12 +34,13 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
                                  Supplier<String> shortDescription,
                                  Supplier<String> longDescription,
                                  Supplier<String> reason,
+                                 TypeValidationProblem.Payload payload,
                                  @Nullable UserManualReference userManualReference,
                                  List<Supplier<Solution>> solutions) {
         super(id,
             severity,
             where,
-            null,
+            payload,
             shortDescription,
             longDescription,
             reason,
@@ -50,5 +51,28 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
 
     public Optional<UserManualReference> getUserManualReference() {
         return Optional.ofNullable(userManualReference);
+    }
+
+    public static class Payload {
+
+        private static final Payload CACHEABILITY_PROBLEM_ONLY = new Payload(true);
+        private static final Payload STANDARD_PROBLEM = new Payload(false);
+
+        public static Payload of(boolean cacheableProblemOnly) {
+            if (cacheableProblemOnly) {
+                return CACHEABILITY_PROBLEM_ONLY;
+            }
+            return STANDARD_PROBLEM;
+        }
+
+        private final boolean isCacheabilityProblemOnly;
+
+        public Payload(boolean isCacheabilityProblemOnly) {
+            this.isCacheabilityProblemOnly = isCacheabilityProblemOnly;
+        }
+
+        public boolean isCacheabilityProblemOnly() {
+            return isCacheabilityProblemOnly;
+        }
     }
 }
