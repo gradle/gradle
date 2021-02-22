@@ -511,14 +511,6 @@ tasks.named("docsTest") { task ->
 
         // TODO investigate ignored snippets
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
-
-        // https://github.com/gradle/gradle-private/issues/3265
-        excludeTestsMatching '*jvm-multi-project-with-additional-test-types_kotlin_checkTask*'
-        excludeTestsMatching '*jvm-multi-project-with-code-coverage_kotlin_testTask*'
-        excludeTestsMatching '*jvm-multi-project-with-toolchains_kotlin_checkTask*'
-        excludeTestsMatching '*java-modules-multi-project_kotlin_testTask*'
-        excludeTestsMatching '*java-modules-multi-project-with-integration-tests_kotlin_testTask*'
-        excludeTestsMatching '*structuring-software-projects*'
     }
 }
 
