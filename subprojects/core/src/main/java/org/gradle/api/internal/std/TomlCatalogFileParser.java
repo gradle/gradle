@@ -38,12 +38,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TomlCatalogFileParser {
+    public static final String CURRENT_VERSION = "1.0";
     private static final Splitter SPLITTER = Splitter.on(":").trimResults();
+    private static final String METADATA_KEY = "metadata";
     private static final String LIBRARIES_KEY = "libraries";
     private static final String BUNDLES_KEY = "bundles";
     private static final String PLUGINS_KEY = "plugins";
     private static final String VERSIONS_KEY = "versions";
     private static final Set<String> TOP_LEVEL_ELEMENTS = ImmutableSet.of(
+        METADATA_KEY,
         LIBRARIES_KEY,
         BUNDLES_KEY,
         PLUGINS_KEY,
@@ -53,6 +56,8 @@ public class TomlCatalogFileParser {
     public static void parse(InputStream in, VersionCatalogBuilder builder, PluginDependenciesSpec plugins, ImportConfiguration importConfig) throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
         TomlParseResult result = Toml.parse(in);
+        TomlTable metadataTable = result.getTable(METADATA_KEY);
+        verifyMetadata(metadataTable);
         TomlTable librariesTable = result.getTable(LIBRARIES_KEY);
         TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
         TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
@@ -65,6 +70,15 @@ public class TomlCatalogFileParser {
         parseBundles(bundlesTable, builder, importConfig);
         parsePlugins(pluginsTable, plugins, importConfig);
         parseVersions(versionsTable, builder, strictVersionParser, importConfig);
+    }
+
+    private static void verifyMetadata(@Nullable TomlTable metadataTable) {
+        if (metadataTable != null) {
+            String format = metadataTable.getString("format.version");
+            if (format != null && !CURRENT_VERSION.equals(format)) {
+                throw new InvalidUserDataException("This catalog file format has version " + format + " which isn't supported by this Gradle version.");
+            }
+        }
     }
 
     private static void parseLibraries(@Nullable TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser, ImportConfiguration importConfig) {

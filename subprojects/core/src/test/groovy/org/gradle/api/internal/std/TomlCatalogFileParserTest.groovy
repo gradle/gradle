@@ -34,7 +34,7 @@ import java.util.function.Supplier
 
 import static org.gradle.api.internal.std.IncludeExcludePredicate.acceptAll
 
-class TomlDependenciesFileParserTest extends Specification {
+class TomlCatalogFileParserTest extends Specification {
     final ImportConfiguration importConf = new ImportConfiguration(acceptAll(), acceptAll(), acceptAll(), acceptAll())
     final VersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs",
         Interners.newStrongInterner(),
@@ -265,6 +265,15 @@ class TomlDependenciesFileParserTest extends Specification {
         }
     }
 
+    def "reasonable error message if a file format isn't supported"() {
+        when:
+        parse 'unsupported-format'
+
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == "This catalog file format has version 999.999 which isn't supported by this Gradle version."
+    }
+
     void hasDependency(String name, @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependencySpec) Closure<Void> spec) {
         def data = model.getDependencyData(name)
         assert data != null: "Expected a dependency with alias $name but it wasn't found"
@@ -298,7 +307,7 @@ class TomlDependenciesFileParserTest extends Specification {
     }
 
     private static InputStream toml(String name) {
-        return TomlDependenciesFileParserTest.class.getResourceAsStream("${name}.toml").withReader("utf-8") {
+        return TomlCatalogFileParserTest.class.getResourceAsStream("${name}.toml").withReader("utf-8") {
             String text = it.text
             // we're using an in-memory input stream to make sure we don't accidentally leak descriptors in tests
             return new ByteArrayInputStream(text.getBytes("utf-8"))
