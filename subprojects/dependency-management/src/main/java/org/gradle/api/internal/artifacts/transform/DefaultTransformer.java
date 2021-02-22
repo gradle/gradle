@@ -96,8 +96,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
-
 public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> {
 
     private final Class<? extends FileNormalizer> fileNormalizer;
@@ -302,9 +300,14 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
             @Override
             public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                validationContext.visitPropertyProblem(WARNING,
-                    propertyName,
-                    "is annotated with an output annotation"
+                validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
+                        .reportAs(Severity.ERROR)
+                        .forProperty(propertyName)
+                        .withDescription("declares an output")
+                        .happensBecause("is annotated with an output annotation")
+                        .addPossibleSolution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
+                        .documentedAt("validation_problems", "artifact_transform_should_not_declare_output")
                 );
             }
 

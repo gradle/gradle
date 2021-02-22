@@ -47,3 +47,13 @@ To fix this problem, you must change the normalization strategy using one of tho
 - link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[`PathSensitive`] (but not absolute)
 - link:{javadocPath}/org/gradle/api/tasks/Classpath.html[`Classpath`]
 - link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[`CompileClasspath`]
+
+[[artifact_transform_should_not_declare_output]]
+== Invalid use of an output property on an artifact transforms
+
+This error indicates that you have annotated a property of an artifact transform with an output annotation, which is not the correct way to register outputs for artifact transforms.
+
+To fix this problem, you must remove the property and use the `TransformOutputs` parameter instead.
+
+See link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html#transform-org.gradle.api.artifacts.transform.TransformOutputs-[TransformAction#transform(TransformOutputs)] for details.
+
