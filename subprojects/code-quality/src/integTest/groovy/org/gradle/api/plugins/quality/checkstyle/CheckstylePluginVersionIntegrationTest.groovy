@@ -360,7 +360,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         then:
         executedAndNotSkipped(":checkstyleMain")
-        result.assertHasErrorOutput("Cannot add config_loc property checkstyle.configProperties")
+        result.assertHasErrorOutput("Cannot add config_loc property checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")

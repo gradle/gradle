@@ -243,10 +243,15 @@ Latest plugins version should no longer reference it.
 The `checkstyle` plugin now fails for the following configuration
 ```
 checkstyle {
-    configProperties['config_loc'] = file("/path/to")
+    configProperties['config_loc'] = file("path/to/checkstyle-config-dir")
 }
 ```
-Build authors should remove this configuration as it was already ignored in Gradle 6.x.
+Builds should declare the checkstyle configuration with the `checkstyle` block:
+```
+checkstyle {
+    configDirectory = file("path/to/checkstyle-config-dir")
+}
+```
 
 === Deprecations
 
