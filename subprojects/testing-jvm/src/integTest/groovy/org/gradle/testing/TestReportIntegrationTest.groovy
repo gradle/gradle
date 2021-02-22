@@ -89,7 +89,7 @@ public class LoggingTest {
     @UsesSample("testing/testReport/groovy")
     def "can generate report for subprojects"() {
         given:
-        sample sample
+        super.sample(sample)
 
         when:
         run "testReport"

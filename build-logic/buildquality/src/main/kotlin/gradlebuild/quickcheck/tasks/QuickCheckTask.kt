@@ -108,7 +108,7 @@ enum class Check(private val extension: String) {
             project.dependencies.add("quickCheck", project.dependencies.embeddedKotlin("stdlib"))
             project.dependencies.add("quickCheck", "org.slf4j:slf4j-api:1.7.28")
             project.dependencies.add("quickCheck", project.files(ruleClass.protectionDomain!!.codeSource!!.location))
-            project.dependencies.add("quickCheck", "org.codenarc:CodeNarc:1.5") {
+            project.dependencies.add("quickCheck", "org.codenarc:CodeNarc:2.0") {
                 isTransitive = false
             }
         }

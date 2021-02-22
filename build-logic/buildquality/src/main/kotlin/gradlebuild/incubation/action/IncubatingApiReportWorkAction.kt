@@ -195,7 +195,7 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
         if (!sourceFile.name.endsWith(".java")) return emptyMap()
 
         val versionsToIncubating = mutableMapOf<Version, MutableSet<IncubatingDescription>>()
-        JavaParser.parse(sourceFile).run {
+        JavaParser().parse(sourceFile).getResult().get().run {
             solver.inject(this)
             findAllIncubating()
                 .map { node -> toVersionIncubating(sourceFile, node) }

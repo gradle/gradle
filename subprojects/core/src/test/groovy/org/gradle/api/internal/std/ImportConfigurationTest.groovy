@@ -28,8 +28,8 @@ class ImportConfigurationTest extends Specification {
         )
 
         expect:
-        config.includeDependency('lib1')
-        !config.includeDependency('lib3')
+        config.includeLibrary('lib1')
+        !config.includeLibrary('lib3')
 
         and:
         config.includeBundle('bundle1')

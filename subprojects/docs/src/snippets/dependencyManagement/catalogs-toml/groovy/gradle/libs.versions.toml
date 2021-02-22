@@ -2,7 +2,7 @@
 groovy = "3.0.5"
 checkstyle = "8.37"
 
-[dependencies]
+[libraries]
 groovy-core = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
 groovy-json = { module = "org.codehaus.groovy:groovy-json", version.ref = "groovy" }
 groovy-nio = { module = "org.codehaus.groovy:groovy-nio", version.ref = "groovy" }

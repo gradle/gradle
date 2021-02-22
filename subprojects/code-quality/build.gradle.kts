@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":reporting"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.ant)

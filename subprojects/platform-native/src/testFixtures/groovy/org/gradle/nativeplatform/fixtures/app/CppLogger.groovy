@@ -16,10 +16,12 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
 class CppLogger extends CppSourceFileElement {
-    final SourceFileElement header = ofFile(sourceFile("headers", "logger.h", """
+    final SourceFileElement header = ofFile(new SourceFile("headers", "logger.h", """
 #include <string>
 
 #ifdef _WIN32
@@ -34,7 +36,7 @@ class Logger {
 };
 """))
 
-    final SourceFileElement source = ofFile(sourceFile("cpp", "logger.cpp", """
+    final SourceFileElement source = ofFile(new SourceFile("cpp", "logger.cpp", """
 #include <iostream>
 #include "logger.h"
 

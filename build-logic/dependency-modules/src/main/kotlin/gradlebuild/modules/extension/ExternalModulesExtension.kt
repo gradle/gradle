@@ -20,7 +20,7 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension {
 
-    val groovyVersion = "2.5.12"
+    val groovyVersion = "3.0.7"
     val kotlinVersion = "1.4.30"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
@@ -58,7 +58,15 @@ abstract class ExternalModulesExtension {
     val googleHttpClientJackson2 = "com.google.http-client:google-http-client-jackson2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
-    val groovy = "org.gradle.groovy:groovy-all"
+    val groovy = "org.codehaus.groovy:groovy"
+    val groovyAnt = "org.codehaus.groovy:groovy-ant"
+    val groovyDoc = "org.codehaus.groovy:groovy-groovydoc"
+    val groovyDatetime = "org.codehaus.groovy:groovy-datetime"
+    val groovyDateUtil = "org.codehaus.groovy:groovy-dateutil"
+    val groovyTest = "org.codehaus.groovy:groovy-test"
+    val groovyJson = "org.codehaus.groovy:groovy-json"
+    val groovyTemplates = "org.codehaus.groovy:groovy-templates"
+    val groovyXml = "org.codehaus.groovy:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
     val hamcrest = "org.hamcrest:hamcrest-core"

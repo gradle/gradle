@@ -604,7 +604,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
                 def classpathTxt = file("classpath.txt")
                 doFirst {
                     classpathTxt.createNewFile();
-                    classpathTxt.text = classpath.files*.name.findAll { !it.startsWith('groovy') }.join(', ')
+                    classpathTxt.text = classpath.files*.name.findAll { !it.startsWith('groovy') && !it.startsWith('javaparser-core') }.join(', ')
                 }
             }
         """

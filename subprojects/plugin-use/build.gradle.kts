@@ -19,6 +19,7 @@ dependencies {
 
     integTestImplementation(project(":base-services-groovy"))
     integTestImplementation(libs.jetbrainsAnnotations)
+    integTestImplementation(libs.groovyTest)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics")) {
         because("Requires test-kit: 'java-gradle-plugin' is used in integration tests which always adds the test-kit dependency.")

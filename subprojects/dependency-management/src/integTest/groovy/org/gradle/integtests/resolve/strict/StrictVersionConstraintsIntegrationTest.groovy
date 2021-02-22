@@ -502,6 +502,36 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "configuration as input")
+    def "incompatible strict constraint and local project fail to resolve"() {
+        given:
+
+        settingsFile << "\ninclude 'foo'"
+        buildFile << """
+            project(':foo') {
+                configurations.create('default')
+                group = 'org'
+                version = '1.2'
+            }
+            dependencies {
+                constraints {
+                    conf('org:foo') {
+                       version { strictly '1.0' }
+                    }
+                }
+                conf(project(':foo'))
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
+   Dependency path ':test:unspecified' --> 'project :foo'
+   Constraint path ':test:unspecified' --> 'org:foo:{strictly 1.0}'""")
+    }
+
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @ToBeFixedForConfigurationCache
     def "original version constraint is not ignored if there is another parent"() {

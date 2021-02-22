@@ -21,9 +21,8 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuilderSpec {
-    def fred = new DefaultPerson(name: "Fred")
-    def barney = new DefaultPerson(name: "Barney")
-    def agedFred = new DefaultAgeAwarePerson(name: "Fred", age: 42)
+    def realFred = new DefaultPerson(name: "Fred")
+    def realBarney = new DefaultPerson(name: "Barney")
     def agedBarney = new DefaultAgeAwarePerson(name: "Barney", age: 42)
 
     def instantiator
@@ -80,10 +79,10 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
 
         then:
         container.size() == 2
-        container.findByName("Fred") == fred
-        container.findByName("Barney") == barney
-        container.asDynamicObject.getProperty("Fred") == fred
-        container.asDynamicObject.getProperty("Barney") == barney
+        container.findByName("Fred") == realFred
+        container.findByName("Barney") == realBarney
+        container.asDynamicObject.getProperty("Fred") == realFred
+        container.asDynamicObject.getProperty("Barney") == realBarney
     }
 
     def "create elements with specified type"() {
@@ -98,9 +97,9 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
 
         then:
         container.size() == 2
-        container.findByName("Fred") == fred
+        container.findByName("Fred") == realFred
         container.findByName("Barney") == agedBarney
-        container.asDynamicObject.getProperty("Fred") == fred
+        container.asDynamicObject.getProperty("Fred") == realFred
         container.asDynamicObject.getProperty("Barney") == agedBarney
     }
 

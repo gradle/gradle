@@ -30,7 +30,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
     @Rule
     HttpServer server
 
-    String groovyAllVersion = "1.3-2.5.12"
+    String groovyVersion = "3.0.7"
 
     def setup() {
         server.start()
@@ -357,7 +357,7 @@ dependencies {
     @ToBeFixedForConfigurationCache
     def "sources for localGroovy() are downloaded and attached"() {
         given:
-        def repo = givenGroovyAllExistsInGradleRepo()
+        def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildScript """
@@ -374,13 +374,20 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-ant-${groovyVersion}.jar", ["groovy-ant-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-groovydoc-${groovyVersion}.jar", ["groovy-groovydoc-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-datetime-${groovyVersion}.jar", ["groovy-datetime-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-json-${groovyVersion}.jar", ["groovy-json-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-test-${groovyVersion}.jar", ["groovy-test-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-templates-${groovyVersion}.jar", ["groovy-templates-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-xml-${groovyVersion}.jar", ["groovy-xml-${groovyVersion}-sources.jar"], [])
     }
 
     @ToBeFixedForConfigurationCache
     def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
         given:
-        def repo = givenGroovyAllExistsInGradleRepo()
+        def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildScript """
@@ -397,14 +404,14 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
     }
 
     @ToBeFixedForConfigurationCache
     @IgnoreIf({ GradleContextualExecuter.embedded })
     def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
         given:
-        def repo = givenGroovyAllExistsInGradleRepo()
+        def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildScript """
@@ -421,7 +428,7 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
     }
 
     @ToBeFixedForConfigurationCache
@@ -480,13 +487,25 @@ dependencies {
         return new TestFile(distribution.gradleHomeDir, "src")
     }
 
-    def givenGroovyAllExistsInGradleRepo() {
+    def givenGroovyExistsInGradleRepo() {
         def repo = mavenHttpRepo
-        def module = repo.module("org.gradle.groovy", "groovy-all", groovyAllVersion)
+        publishGroovyModuleWithSources(repo, "groovy")
+        publishGroovyModuleWithSources(repo, "groovy-ant")
+        publishGroovyModuleWithSources(repo, "groovy-docgenerator")
+        publishGroovyModuleWithSources(repo, "groovy-groovydoc")
+        publishGroovyModuleWithSources(repo, "groovy-datetime")
+        publishGroovyModuleWithSources(repo, "groovy-json")
+        publishGroovyModuleWithSources(repo, "groovy-test")
+        publishGroovyModuleWithSources(repo, "groovy-templates")
+        publishGroovyModuleWithSources(repo, "groovy-xml")
+        return repo
+    }
+
+    def publishGroovyModuleWithSources(MavenHttpRepository repo, String artifactId) {
+        def module = repo.module("org.codehaus.groovy", artifactId, groovyVersion)
         module.artifact(classifier: "sources")
         module.publish()
         module.allowAll()
-        return repo
     }
 
     private useIvyRepo(def repo) {

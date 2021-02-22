@@ -144,7 +144,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                 }
             }
         """
-        file("gradle/dependency-locks/settings-incomingPlatformsForLibs.lockfile") << """
+        file("gradle/dependency-locks/settings-incomingCatalogForLibs0.lockfile") << """
 org.gradle.test:my-platform:1.0
 """
 

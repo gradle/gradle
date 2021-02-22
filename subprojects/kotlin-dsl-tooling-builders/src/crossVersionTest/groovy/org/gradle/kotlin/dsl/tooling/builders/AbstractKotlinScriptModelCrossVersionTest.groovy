@@ -221,13 +221,6 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         )
     }
 
-    protected void assertClassPathContains(File... expectedFiles) {
-        assertThat(
-            canonicalClassPath().collect { it.name } as List<String>,
-            hasItems(fileNameSetOf(expectedFiles))
-        )
-    }
-
     protected static void assertIncludes(List<File> classPath, File... files) {
         assertThat(
             classPath.collect { it.name } as List<String>,

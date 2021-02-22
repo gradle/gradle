@@ -28,7 +28,7 @@ import org.gradle.internal.UncheckedException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Excludes everything from a script except statements that are satisfied by a given predicate, and imports for accessible classes.
@@ -59,10 +59,11 @@ public class SubsetScriptTransformer extends AbstractScriptTransformer {
             ImportNode importedClass = iter.next();
             if (!AstUtils.isVisible(source, importedClass.getClassName())) {
                 try {
+                    final ImportNode importNode = source.getAST().getImport(importedClass.getAlias());
                     Field field = ModuleNode.class.getDeclaredField("imports");
                     field.setAccessible(true);
-                    Map value = (Map) field.get(source.getAST());
-                    value.remove(importedClass.getAlias());
+                    List<?> value = (List<?>) field.get(source.getAST());
+                    value.remove(importNode);
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }

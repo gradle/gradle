@@ -82,7 +82,7 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
 
     private void codeViolatingCloneWithoutCloneableRule() {
         file('src/main/groovy/ViolatingClass.groovy') << '''
-            class ViolatingClass extends Tuple {
+            class ViolatingClass {
                 ViolatingClass clone() {}
             }
         '''

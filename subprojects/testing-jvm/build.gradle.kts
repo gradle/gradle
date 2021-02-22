@@ -26,6 +26,7 @@ dependencies {
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
+    implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)

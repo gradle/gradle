@@ -93,10 +93,10 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    variant('api1', ['org.gradle.status': defaultStatus(), custom: 'c1'])
+                    variant('api1', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), custom: 'c1'])
                 }
                 module('org:test:1.0') {
-                    variant('runtime2', ['org.gradle.status': defaultStatus(), custom2: 'c2'])
+                    variant('runtime2', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), custom2: 'c2'])
                 }
             }
         }
@@ -157,8 +157,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Multiple incompatible variants of org:test:1.0 were selected:
-   - Variant org:test:1.0 variant api1 has attributes {custom=c1, org.gradle.status=${defaultStatus()}}
-   - Variant org:test:1.0 variant runtime2 has attributes {custom=c2, org.gradle.status=${defaultStatus()}}""")
+   - Variant org:test:1.0 variant api1 has attributes {custom=c1, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}
+   - Variant org:test:1.0 variant runtime2 has attributes {custom=c2, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}""")
     }
 
     @ToBeFixedForConfigurationCache
@@ -267,10 +267,10 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge('org:test:1.0', 'org:test:1.0') {
-                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
+                        variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
                     }
                     module('org:test:1.0') {
-                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
+                        variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
                     }
                 }
             }
@@ -363,7 +363,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     byConflictResolution('between versions 1.1 and 1.0')
                     // the following assertion is true but limitations to the test fixtures make it hard to check
                     //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c2'
                     artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c3'
                 }
@@ -594,7 +594,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.1 and 1.0')
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'c2'
                 }
                 module('org:bar:1.0') {
@@ -641,11 +641,11 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0'
                 }
                 module('org:foo:1.0') {
-                    variant('test-fixtures', ['org.gradle.status': defaultStatus()])
+                    variant('test-fixtures', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus()])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'test-fixtures'
                 }
             }
@@ -800,7 +800,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    variant('api', ['org.gradle.status': defaultStatus(), usage: 'api', format: 'foo'])
+                    variant('api', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), usage: 'api', format: 'foo'])
                 }
             }
         }

@@ -108,7 +108,10 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             "commons-lang",
             "guava",
             "javax.inject",
-            "groovy-all",
+            "groovy",
+            "groovy-ant",
+            "groovy-json",
+            "groovy-xml",
             "asm"
     };
 
@@ -135,7 +138,11 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         "gradle-hashing",
         "gradle-snapshots",
         "gradle-worker",
-        "groovy-all",
+        "groovy",
+        "groovy-ant",
+        "groovy-json",
+        "groovy-templates",
+        "groovy-xml",
         "kryo",
         "gradle-platform-base",
         "gradle-cli",

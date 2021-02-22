@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":platform-jvm"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.inject)

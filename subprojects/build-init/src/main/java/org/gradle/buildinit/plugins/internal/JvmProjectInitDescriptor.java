@@ -217,11 +217,15 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                     buildScriptBuilder
                         .plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy")
                         .testImplementationDependency("Use the latest Groovy version for Spock testing",
-                            "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"));
+                            "org.codehaus.groovy:groovy:" + libraryVersionProvider.getVersion("groovy"));
                 }
-                buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
+                buildScriptBuilder
+                    .testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
                         "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
-                        "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                        "junit:junit:" + libraryVersionProvider.getVersion("junit"))
+                    .taskMethodInvocation(
+                "Use junit platform for unit tests.",
+                "test", "Test", "useJUnitPlatform");
                 break;
             case TESTNG:
                 buildScriptBuilder
