@@ -36,3 +36,15 @@ To fix the problem, you must either:
 - provide a value for this property explicitly (for example by configuring the task in your build script)
 - or make the property optional by annotating it with link:{javadocPath}/org/gradle/api/tasks/Optional[`@Optional`]
 
+[[cacheable_transform_cant_use_absolute_sensitivity]]
+== Invalid use of absolute path sensitivity for an artifact transform
+
+This error indicates that you have annotated an input of a cacheable artifact transform as sensitive to the absolute path.
+However, artifact transforms are executed in isolation using their own workspace which, for example, is resilient to `clean` builds.
+Even if the artifact transform result can't be shared via the build cache, using an absolute path sensitivity doesn't make sense.
+
+To fix this problem, you must change the normalization strategy using one of those:
+
+- link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[`PathSensitive`] (but not absolute)
+- link:{javadocPath}/org/gradle/api/tasks/Classpath.html[`Classpath`]
+- link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[`CompileClasspath`]

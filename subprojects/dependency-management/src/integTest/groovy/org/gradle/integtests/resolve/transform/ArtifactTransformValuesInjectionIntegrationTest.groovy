@@ -305,9 +305,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
-    )
+    @ValidationTestFor([
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY
+    ])
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -393,7 +394,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         String missingNormalizationDetails = "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}"
         assertPropertyValidationErrors(
-            absolutePathSensitivity: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
+            absolutePathSensitivity: invalidUseOfAbsoluteNormalizationMessage,
             extension: 'is not annotated with an input annotation',
             fileInput: [
                 'does not have a value specified',
@@ -579,9 +580,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
-    )
+    @ValidationTestFor([
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY
+    ])
     def "transform action is validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -636,7 +638,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
         assertPropertyValidationErrors(
-            absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
+            absolutePathSensitivityDependencies: invalidUseOfAbsoluteNormalizationMessage,
             'conflictingAnnotations': [
                 'has conflicting type annotations declared: @InputFile, @InputArtifact, @InputArtifactDependencies; assuming @InputFile',
                 'is annotated with invalid property type @InputFile'
@@ -1063,5 +1065,9 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
             }
         }
         assert errorOutput.count("> Property") == count
+    }
+
+    private String getInvalidUseOfAbsoluteNormalizationMessage() {
+        "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms. Possible solution: Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'cacheable_transform_cant_use_absolute_sensitivity')}"
     }
 }
