@@ -307,7 +307,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
     @ValidationTestFor([
         ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
-        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY
+        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
+        ValidationProblemId.VALUE_NOT_SET
     ])
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
@@ -397,14 +398,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             absolutePathSensitivity: invalidUseOfAbsoluteNormalizationMessage,
             extension: 'is not annotated with an input annotation',
             fileInput: [
-                'does not have a value specified',
+                missingValueMessage('fileInput', false),
                 'has @Input annotation used on property of type \'File\'',
             ],
             incrementalNonFileInput: [
-                'does not have a value specified',
+                missingValueMessage('incrementalNonFileInput', false),
                 'is annotated with @Incremental that is not allowed for @Input properties',
             ],
-            missingInput: 'does not have a value specified',
+            missingInput: missingValueMessage('missingInput', false),
             'nested.outputDirectory': 'is annotated with invalid property type @OutputDirectory',
             'nested.inputFile': "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
             'nested.stringProperty': 'is not annotated with an input annotation',
@@ -1061,7 +1062,11 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
             errorMessages.each { errorMessage ->
                 count++
                 System.err.println("Verifying assertion for $propertyName")
-                failure.assertHasCause("Property '${propertyName}' ${errorMessage}.")
+                if (!errorMessage.endsWith('.')) {
+                    // be tolerant with the missing dot at the end of expected error messages
+                    errorMessage = "${errorMessage}."
+                }
+                failure.assertHasCause("Property '${propertyName}' ${errorMessage}")
             }
         }
         assert errorOutput.count("> Property") == count

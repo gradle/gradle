@@ -30,7 +30,6 @@ To fix this problem, you need to declare a normalization strategy, by applying o
 This error indicates that a property expected a value but none was provided.
 By default, Gradle properties are _required_, that is to say that if an input or output property isn't configured, either via a conventional value or explicitly by a build script, then Gradle will fail because it doesn't know what value to use when the task is executed.
 
-
 To fix the problem, you must either:
 
 - provide a value for this property explicitly (for example by configuring the task in your build script)
