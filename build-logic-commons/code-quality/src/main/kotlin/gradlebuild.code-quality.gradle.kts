@@ -57,7 +57,7 @@ dependencies {
     codenarc("gradlebuild:code-quality-rules") {
         because("Provides the IntegrationTestFixturesRule implementation")
     }
-    codenarc("org.codenarc:CodeNarc:1.5")
+    codenarc("org.codenarc:CodeNarc:2.0.0")
     codenarc(embeddedKotlin("stdlib"))
 
     classycle("classycle:classycle:1.4.2@jar")
@@ -131,9 +131,13 @@ abstract class CodeNarcRule : ComponentMetadataRule {
         context.details.allVariants {
             withDependencies {
                 removeAll { it.group == "org.codehaus.groovy" }
-                add("org.gradle.groovy:groovy-all") {
-                    version { prefer("1.3-" + groovy.lang.GroovySystem.getVersion()) }
-                    because("We use groovy-all everywhere")
+                add("org.codehaus.groovy:groovy") {
+                    version { prefer(groovy.lang.GroovySystem.getVersion()) }
+                    because("We use the packaged groovy")
+                }
+                add("org.codehaus.groovy:groovy-templates") {
+                    version { prefer(groovy.lang.GroovySystem.getVersion()) }
+                    because("We use the packaged groovy")
                 }
             }
         }

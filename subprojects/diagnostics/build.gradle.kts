@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":build-option"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.inject)

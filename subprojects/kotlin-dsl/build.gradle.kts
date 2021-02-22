@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":normalization-java"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyJson)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)

@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TaskSelectionIntegrationTest extends AbstractIntegrationSpec {
@@ -99,7 +100,7 @@ allprojects { task thing }
 
     def "can use camel case to match software model tasks"() {
         buildFile << """
-            model { 
+            model {
                 tasks {
                     "sayHelloToUser"(DefaultTask) {
                     }

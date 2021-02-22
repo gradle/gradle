@@ -32,7 +32,7 @@ class SamplesWebQuickstartIntegrationTest extends AbstractPluginIntegrationTest 
 
     def "can build a war"() {
         given:
-        sample sample
+        super.sample sample
 
         when:
         executer.withTasks('clean', 'build').run()

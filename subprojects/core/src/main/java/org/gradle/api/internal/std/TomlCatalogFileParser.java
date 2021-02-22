@@ -37,14 +37,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class TomlDependenciesFileParser {
+public class TomlCatalogFileParser {
+    public static final String CURRENT_VERSION = "1.0";
     private static final Splitter SPLITTER = Splitter.on(":").trimResults();
-    private static final String DEPENDENCIES_KEY = "dependencies";
+    private static final String METADATA_KEY = "metadata";
+    private static final String LIBRARIES_KEY = "libraries";
     private static final String BUNDLES_KEY = "bundles";
     private static final String PLUGINS_KEY = "plugins";
     private static final String VERSIONS_KEY = "versions";
     private static final Set<String> TOP_LEVEL_ELEMENTS = ImmutableSet.of(
-        DEPENDENCIES_KEY,
+        METADATA_KEY,
+        LIBRARIES_KEY,
         BUNDLES_KEY,
         PLUGINS_KEY,
         VERSIONS_KEY
@@ -53,7 +56,9 @@ public class TomlDependenciesFileParser {
     public static void parse(InputStream in, VersionCatalogBuilder builder, PluginDependenciesSpec plugins, ImportConfiguration importConfig) throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
         TomlParseResult result = Toml.parse(in);
-        TomlTable dependenciesTable = result.getTable(DEPENDENCIES_KEY);
+        TomlTable metadataTable = result.getTable(METADATA_KEY);
+        verifyMetadata(metadataTable);
+        TomlTable librariesTable = result.getTable(LIBRARIES_KEY);
         TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
         TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
         TomlTable versionsTable = result.getTable(VERSIONS_KEY);
@@ -61,24 +66,33 @@ public class TomlDependenciesFileParser {
         if (!unknownTle.isEmpty()) {
             throw new InvalidUserDataException("Unknown top level elements " + unknownTle);
         }
-        parseDependencies(dependenciesTable, builder, strictVersionParser, importConfig);
+        parseLibraries(librariesTable, builder, strictVersionParser, importConfig);
         parseBundles(bundlesTable, builder, importConfig);
         parsePlugins(pluginsTable, plugins, importConfig);
         parseVersions(versionsTable, builder, strictVersionParser, importConfig);
     }
 
-    private static void parseDependencies(@Nullable TomlTable dependenciesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser, ImportConfiguration importConfig) {
-        if (dependenciesTable == null) {
+    private static void verifyMetadata(@Nullable TomlTable metadataTable) {
+        if (metadataTable != null) {
+            String format = metadataTable.getString("format.version");
+            if (format != null && !CURRENT_VERSION.equals(format)) {
+                throw new InvalidUserDataException("This catalog file format has version " + format + " which isn't supported by this Gradle version.");
+            }
+        }
+    }
+
+    private static void parseLibraries(@Nullable TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser, ImportConfiguration importConfig) {
+        if (librariesTable == null) {
             return;
         }
-        List<String> keys = dependenciesTable.keySet()
+        List<String> keys = librariesTable.keySet()
             .stream()
-            .peek(TomlDependenciesFileParser::validateAlias)
+            .peek(TomlCatalogFileParser::validateAlias)
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
-            if (importConfig.includeDependency(alias)) {
-                parseDependency(alias, dependenciesTable, builder, strictVersionParser);
+            if (importConfig.includeLibrary(alias)) {
+                parseLibrary(alias, librariesTable, builder, strictVersionParser);
             }
         }
     }
@@ -89,7 +103,7 @@ public class TomlDependenciesFileParser {
         }
         List<String> keys = versionsTable.keySet()
             .stream()
-            .peek(TomlDependenciesFileParser::validateAlias)
+            .peek(TomlCatalogFileParser::validateAlias)
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
@@ -157,7 +171,7 @@ public class TomlDependenciesFileParser {
         }
     }
 
-    private static void parseDependency(String alias, TomlTable dependenciesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+    private static void parseLibrary(String alias, TomlTable dependenciesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
         Object gav = dependenciesTable.get(alias);
         if (gav instanceof String) {
             List<String> splitted = SPLITTER.splitToList((String) gav);
@@ -324,7 +338,7 @@ public class TomlDependenciesFileParser {
 
     private static void validateAlias(String alias) {
         if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(alias).matches()) {
-            throw new InvalidUserDataException("Invalid alias name [" + alias + "] found in dependencies.toml: it must match the following pattern: " + DependenciesModelHelper.ALIAS_REGEX);
+            throw new InvalidUserDataException("Invalid alias name [" + alias + "] found in TOML file: it must match the following pattern: " + DependenciesModelHelper.ALIAS_REGEX);
         }
     }
 

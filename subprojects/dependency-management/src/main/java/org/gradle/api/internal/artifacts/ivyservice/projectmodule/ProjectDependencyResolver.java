@@ -88,7 +88,11 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             if (componentMetaData == null) {
                 result.failed(new ModuleVersionResolveException(selector, () -> projectId + " not found."));
             } else {
-                result.resolved(componentMetaData);
+                if (rejector != null && rejector.accept(componentMetaData.getModuleVersionId().getVersion())) {
+                    result.rejected(projectId, componentMetaData.getModuleVersionId());
+                } else {
+                    result.resolved(componentMetaData);
+                }
             }
         }
     }

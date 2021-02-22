@@ -100,7 +100,7 @@ void DLL_FUNC hello();
     }
 
     List<SourceFile> librarySources = [
-        sourceFile("cpp", "hello.cpp", """
+        new SourceFile("cpp", "hello.cpp", """
 #include <iostream>
 #include <windows.h>
 #include <string>
@@ -120,7 +120,7 @@ void DLL_FUNC hello() {
     std::cout << hello;
 }
 """),
-        sourceFile("rc", "resources.rc", """
+        new SourceFile("rc", "resources.rc", """
 #include "hello.h"
 
 // HACK: Ensure include root are correctly setup

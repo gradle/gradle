@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
 class CppGreeter extends CppLibraryElement implements GreeterElement {
@@ -36,7 +38,7 @@ class CppGreeter extends CppLibraryElement implements GreeterElement {
     }
 
     CppGreeter(String publicHeaderDir = "headers") {
-        header = ofFile(sourceFile(publicHeaderDir, "greeter.h", """
+        header = ofFile(new SourceFile(publicHeaderDir, "greeter.h", """
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
@@ -49,11 +51,11 @@ public:
 };
 """))
 
-        privateHeader = ofFile(sourceFile("headers", "greeter_consts.h", """
+        privateHeader = ofFile(new SourceFile("headers", "greeter_consts.h", """
 #define GREETING "${HelloWorldApp.HELLO_WORLD}"
 """))
 
-        source = ofFile(sourceFile("cpp", "greeter.cpp", """
+        source = ofFile(new SourceFile("cpp", "greeter.cpp", """
 #include <iostream>
 #include "greeter.h"
 #include "greeter_consts.h"

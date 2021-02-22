@@ -61,7 +61,7 @@ class TestAction implements ${Action.class.name}, ${Serializable.class.name}
     }
 }
 
-class ClassCollector extends ClassgenCallback {
+class ClassCollector implements ClassgenCallback {
     Class generated
     ClassLoader target
 

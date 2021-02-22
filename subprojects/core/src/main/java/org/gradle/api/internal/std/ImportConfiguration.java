@@ -16,23 +16,23 @@
 package org.gradle.api.internal.std;
 
 public class ImportConfiguration {
-    private final IncludeExcludePredicate<String> dependencies;
+    private final IncludeExcludePredicate<String> libraries;
     private final IncludeExcludePredicate<String> bundles;
     private final IncludeExcludePredicate<String> versions;
     private final IncludeExcludePredicate<String> plugins;
 
-    public ImportConfiguration(IncludeExcludePredicate<String> dependencies,
+    public ImportConfiguration(IncludeExcludePredicate<String> libraries,
                                IncludeExcludePredicate<String> bundles,
                                IncludeExcludePredicate<String> versions,
                                IncludeExcludePredicate<String> plugins) {
-        this.dependencies = dependencies;
+        this.libraries = libraries;
         this.bundles = bundles;
         this.versions = versions;
         this.plugins = plugins;
     }
 
-    public boolean includeDependency(String name) {
-        return dependencies.test(name);
+    public boolean includeLibrary(String name) {
+        return libraries.test(name);
     }
 
     public boolean includeBundle(String bundleName) {

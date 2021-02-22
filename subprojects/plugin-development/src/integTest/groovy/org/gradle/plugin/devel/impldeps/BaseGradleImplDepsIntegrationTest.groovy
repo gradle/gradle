@@ -59,7 +59,7 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
     static String junitDependency() {
         """
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation 'junit:junit:4.13.1'
             }
         """
     }
@@ -67,8 +67,8 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
     static String spockDependency() {
         """
             dependencies {
-                testImplementation('org.spockframework:spock-core:1.2-groovy-2.5') {
-                    exclude module: 'groovy-all'
+                testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+                    exclude group: 'org.codehaus.groovy'
                 }
             }
         """

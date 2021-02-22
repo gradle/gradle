@@ -71,11 +71,11 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0'
                 }
                 module('org:foo:1.0') {
-                    variant('feature1', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('feature1', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat1'
                 }
             }
@@ -180,11 +180,11 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0'
                 }
                 module('org:foo:1.0') {
-                    variant('v2', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('v2', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat1'
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat3'
                 }

@@ -27,6 +27,12 @@ import spock.lang.Issue
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
+        def optionalModules = ""
+        if(versionNumber.major >= 3) {
+            optionalModules += "implementation \"org.codehaus.groovy:groovy-ant:${version}\"\n"
+            optionalModules += "implementation \"org.codehaus.groovy:groovy-groovydoc:${version}\"\n"
+            optionalModules += "implementation \"org.codehaus.groovy:groovy-templates:${version}\"\n"
+        }
         buildFile << """
             apply plugin: "groovy"
 
@@ -34,9 +40,9 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
             dependencies {
                 implementation "org.codehaus.groovy:groovy:${version}"
+                ${optionalModules}
             }
         """
-
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3116")

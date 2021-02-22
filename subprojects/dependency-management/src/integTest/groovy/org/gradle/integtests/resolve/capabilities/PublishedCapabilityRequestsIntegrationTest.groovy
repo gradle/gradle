@@ -59,7 +59,7 @@ class PublishedCapabilityRequestsIntegrationTest extends AbstractModuleDependenc
             root(":", ":test:") {
                 module('org:bar:1.0') {
                     module('org:foo:1.0') {
-                        variant('runtimeAlt', [custom: 'c1', 'org.gradle.status': defaultStatus()])
+                        variant('runtimeAlt', [custom: 'c1', 'org.gradle.status': PublishedCapabilityRequestsIntegrationTest.defaultStatus()])
                     }
                 }
             }

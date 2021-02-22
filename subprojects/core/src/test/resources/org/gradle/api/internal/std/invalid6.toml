@@ -1,2 +1,2 @@
-[dependencies]
+[libraries]
 test.module = "foo:"

@@ -9,6 +9,7 @@ dependencies {
     testFixturesApi(project(":base-services"))
     testFixturesImplementation(project(":internal-testing"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(libs.groovyJson)
 
     performanceTestDistributionRuntimeOnly(project(":distributions-full")) {
         because("so that all Gradle features are available")
