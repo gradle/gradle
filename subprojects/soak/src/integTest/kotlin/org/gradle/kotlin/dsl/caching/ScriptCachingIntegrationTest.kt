@@ -33,8 +33,8 @@ import org.gradle.kotlin.dsl.execution.ProgramParser
 import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.junit.Ignore
 import org.junit.Test
-import spock.lang.Ignore
 import java.util.UUID
 
 
