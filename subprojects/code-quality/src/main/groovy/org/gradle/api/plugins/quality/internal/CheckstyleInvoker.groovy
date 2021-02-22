@@ -77,7 +77,7 @@ abstract class CheckstyleInvoker {
                     // User provided their own config_loc
                     def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
                     if (userProvidedConfigLoc) {
-                        throw new InvalidUserDataException("Cannot add config_loc property checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.")
+                        throw new InvalidUserDataException("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.")
                     }
                     // Use configDir for config_loc
                     property(key: CONFIG_LOC_PROPERTY, value: configDir.toString())
