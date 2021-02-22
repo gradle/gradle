@@ -57,3 +57,23 @@ To fix this problem, you must remove the property and use the `TransformOutputs`
 
 See link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html#transform-org.gradle.api.artifacts.transform.TransformOutputs-[TransformAction#transform(TransformOutputs)] for details.
 
+[[ignored_annotations_on_field]]
+== Invalid use of annotations on fields
+
+This error indicates that you have a field annotated, but that there's no getter for this field.
+Gradle will recognize annotations on fields _only_ if there's a corresponding getter.
+If this getter is absent, the annotations have no effect whatsoever.
+
+To fix this, you need to create a getter for this field.
+We also recommend to annotate the getter instead of the field.
+
+If you are using Groovy, it's likely that you unintentionally added the `private` modifier to a property declaration:
+
+```groovy
+@InputFile
+RegularFileProperty inputFile // this is a public property
+
+@InputFile
+private RegularFileProperty inputFile // this is a field, remove the `private` modifier
+```
+

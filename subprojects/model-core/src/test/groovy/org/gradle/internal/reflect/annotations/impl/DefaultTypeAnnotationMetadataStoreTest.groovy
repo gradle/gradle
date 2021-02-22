@@ -23,6 +23,9 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -38,7 +41,7 @@ import java.lang.reflect.Method
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 
-class DefaultTypeAnnotationMetadataStoreTest extends Specification {
+class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
     private static final COLOR = { "color" } as AnnotationCategory
 
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
@@ -157,10 +160,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getProperty() { property }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD
+    )
     def "warns about annotation on field without getter"() {
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large."
+            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large. Annotations on fields are only used if there's a corresponding getter for the field. Possible solutions: Add a getter for field 'property' or remove the annotations on 'property'. ${learnAt('validation_problems', 'ignored_annotations_on_field')}. [STRICT]"
         ]
     }
 

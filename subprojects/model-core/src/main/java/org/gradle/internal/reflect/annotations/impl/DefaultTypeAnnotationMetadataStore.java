@@ -31,6 +31,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
@@ -59,6 +60,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadataStore {
@@ -79,7 +81,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         @Override
-        public void visitValidationFailures(TypeValidationContext validationContext) {}
+        public void visitValidationFailures(TypeValidationContext validationContext) {
+        }
     };
 
     private final ImmutableSet<Class<? extends Annotation>> recordedTypeAnnotations;
@@ -320,11 +323,16 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach(entry -> {
                     String fieldName = entry.getKey();
                     ImmutableMap<Class<? extends Annotation>, Annotation> fieldAnnotations = entry.getValue();
-                    validationContext.visitTypeProblem(WARNING,
-                        type,
-                        String.format("field '%s' without corresponding getter has been annotated with %s",
-                            fieldName,
-                            simpleAnnotationNames(fieldAnnotations.keySet().stream()))
+                    validationContext.visitTypeProblem(problem ->
+                        problem.withId(ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD)
+                            .forType(type)
+                            .reportAs(ERROR)
+                            .withDescription(() -> String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
+                            .happensBecause("Annotations on fields are only used if there's a corresponding getter for the field")
+                            .withLongDescription("If a field is annotated but that there's no corresponding getter, then the annotations are ignored")
+                            .addPossibleSolution(() -> "Add a getter for field '" + fieldName + "'")
+                            .addPossibleSolution(() -> "Remove the annotations on '" + fieldName + "'")
+                            .documentedAt("validation_problems", "ignored_annotations_on_field")
                     );
                 });
         }
@@ -422,7 +430,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 method.getDeclaringClass(),
                 String.format("%s method '%s()' should not be annotated with: %s",
                     methodKind, method.getName(), simpleAnnotationNames(annotationTypes.stream())
-            ));
+                ));
         }
     }
 
