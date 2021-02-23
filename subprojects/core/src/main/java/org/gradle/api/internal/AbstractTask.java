@@ -205,22 +205,26 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
+    @Internal
     @Override
     public TaskStateInternal getState() {
         return state;
     }
 
     @Override
+    @Internal
     public AntBuilder getAnt() {
         return project.getAnt();
     }
 
+    @Internal
     @Override
     public Project getProject() {
         notifyProjectAccess();
         return project;
     }
 
+    @Internal
     @Override
     public String getName() {
         return identity.name;
@@ -231,6 +235,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return identity;
     }
 
+    @Internal
     @Override
     public List<Action<? super Task>> getActions() {
         if (observableActionList == null) {
@@ -271,12 +276,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         });
     }
 
+    @Internal
     @Override
     public TaskDependencyInternal getTaskDependencies() {
         notifyTaskDependenciesAccess("Task.taskDependencies");
         return dependencies;
     }
 
+    @Internal
     @Override
     public Set<Object> getDependsOn() {
         notifyTaskDependenciesAccess("Task.dependsOn");
@@ -347,6 +354,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return onlyIfSpec;
     }
 
+    @Internal
     @Override
     public boolean getDidWork() {
         return state.getDidWork();
@@ -362,6 +370,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return enabled;
     }
 
+    @Internal
     @Override
     public boolean getEnabled() {
         return enabled;
@@ -387,6 +396,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.impliesSubProjects = impliesSubProjects;
     }
 
+    @Internal
     @Override
     public String getPath() {
         return identity.projectPath.toString();
@@ -458,11 +468,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
+    @Internal
     @Override
     public Logger getLogger() {
         return logger;
     }
 
+    @Internal
     @Override
     public org.gradle.api.logging.LoggingManager getLogging() {
         return loggingManager();
@@ -498,6 +510,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         extensibleDynamicObject.setProperty(name, value);
     }
 
+    @Internal
     @Override
     public Convention getConvention() {
         assertDynamicObject();
@@ -517,6 +530,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return extensibleDynamicObject;
     }
 
+    @Internal
     @Override
     public String getDescription() {
         return description;
@@ -527,6 +541,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.description = description;
     }
 
+    @Internal
     @Override
     public String getGroup() {
         return group;
@@ -537,21 +552,25 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.group = group;
     }
 
+    @Internal
     @Override
     public TaskInputsInternal getInputs() {
         return taskInputs;
     }
 
+    @Internal
     @Override
     public TaskOutputsInternal getOutputs() {
         return taskOutputs;
     }
 
+    @Internal
     @Override
     public TaskDestroyables getDestroyables() {
         return taskDestroyables;
     }
 
+    @Internal
     @Override
     public TaskLocalState getLocalState() {
         return taskLocalState;
@@ -597,6 +616,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return ConfigureUtil.configureSelf(closure, this);
     }
 
+    @Internal
     @Override
     public File getTemporaryDir() {
         File dir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
@@ -794,6 +814,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
+    @Internal
     @Override
     public TaskDependency getMustRunAfter() {
         return mustRunAfter;
@@ -820,6 +841,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
+    @Internal
     @Override
     public TaskDependency getFinalizedBy() {
         return finalizedBy;
@@ -846,6 +868,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         });
     }
 
+    @Internal
     @Override
     public TaskDependency getShouldRunAfter() {
         return shouldRunAfter;
@@ -932,6 +955,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return hasCustomActions;
     }
 
+    @Internal
     @Override
     public Property<Duration> getTimeout() {
         return timeout;
