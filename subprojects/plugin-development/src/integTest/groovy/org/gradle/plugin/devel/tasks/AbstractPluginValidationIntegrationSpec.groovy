@@ -775,6 +775,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "reports both input and output annotation applied to the same property"() {
         javaTaskSource << """
             import java.io.File;
@@ -796,9 +799,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'file' has conflicting type annotations declared: @InputFile, @OutputFile; assuming @InputFile.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(conflictingAnnotationsMessage('file', ['InputFile', 'OutputFile']), 'validation_problems', 'conflicting_annotations'),
+        ])
     }
 
     abstract String getIterableSymbol()

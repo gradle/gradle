@@ -583,7 +583,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
     @ValidationTestFor([
         ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
-        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY
+        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
     ])
     def "transform action is validated for input output annotations"() {
         settingsFile << """
@@ -638,10 +639,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
+        String conflictingAnnotationsMessage = conflictingAnnotationsMessage('conflictingAnnotations', ['InputFile','InputArtifact', 'InputArtifactDependencies'], false, false, false)
         assertPropertyValidationErrors(
             absolutePathSensitivityDependencies: invalidUseOfAbsoluteNormalizationMessage,
             'conflictingAnnotations': [
-                'has conflicting type annotations declared: @InputFile, @InputArtifact, @InputArtifactDependencies; assuming @InputFile',
+                conflictingAnnotationsMessage,
                 'is annotated with invalid property type @InputFile'
             ],
             inputFile: 'is annotated with invalid property type @InputFile',

@@ -1380,17 +1380,13 @@ task generate(type: TransformerTask) {
         outputFile.text == 'second'
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     @Issue("https://github.com/gradle/gradle/issues/11805")
-    def "Groovy property annotated as @Internal with differently annotated getter emits warning about conflicting annotations"() {
+    def "Groovy property annotated as @Internal with differently annotated getter fails about conflicting annotations"() {
         def inputFile = file("input.txt")
         inputFile.text = "original"
-
-        executer.beforeExecute {
-            executer.expectDocumentedDeprecationWarning("Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        }
 
         buildFile << """
             class CustomTask extends DefaultTask {
@@ -1419,21 +1415,11 @@ task generate(type: TransformerTask) {
         """
 
         when:
-        run "custom"
-        then:
-        executedAndNotSkipped ":custom"
+        fails "custom"
 
-        when:
-        run "custom", "--info"
         then:
-        executedAndNotSkipped ":custom"
-        outputContains("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
-
-        when:
-        inputFile.text = "changed"
-        run "custom", "--info"
-        then:
-        executedAndNotSkipped ":custom"
-        outputContains("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
+        failure.assertThatDescription(containsNormalizedString(
+            "Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. A property is ignored but contains input annotations. Possible solutions: Remove the input annotations or remove the @Internal annotation."
+        ))
     }
 }

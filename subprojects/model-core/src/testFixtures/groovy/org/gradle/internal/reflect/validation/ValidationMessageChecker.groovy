@@ -55,4 +55,11 @@ trait ValidationMessageChecker {
         String outro = includeLink ? " ${learnAt("validation_problems", "ignored_property_must_not_be_annotated")}." : ""
         "$intro '${property}' annotated with @${ignoringAnnotation} should not be also annotated with @${alsoAnnotatedWith}. A property is ignored but contains input annotations. Possible solutions: Remove the input annotations or remove the @${ignoringAnnotation} annotation.$outro"
     }
+
+    String conflictingAnnotationsMessage(String property, List<String> inConflict, boolean includeType = true, boolean includeProperty = true, boolean includeLink = false, String kind = 'type annotations declared') {
+        String intro = includeType ? "Type 'MyTask': ${includeProperty ? "property '${property}' " : ''}" : (includeProperty ? "Property '${property}' " : "")
+        String outro = includeLink ? " ${learnAt("validation_problems", "conflicting_annotations")}." : ""
+        String annotations = inConflict.collect { "@$it" }.join(", ")
+        "${intro}has conflicting $kind: $annotations. The different annotations have different semantics and Gradle cannot determine which one to pick. Possible solution: Choose between one of the conflicting annotations.$outro"
+    }
 }

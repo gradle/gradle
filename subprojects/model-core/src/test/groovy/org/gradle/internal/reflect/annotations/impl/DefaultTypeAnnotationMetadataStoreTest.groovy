@@ -145,12 +145,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             String getInjectedProperty() { injectedProperty }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "warns about annotation on field conflicting with annotation on getter and prefers getter annotation"() {
         expect:
         assertProperties TypeWithConflictingFieldAndMethodAnnotation, [
             property: [(TYPE): Small],
         ], [
-            "Property 'property' has conflicting type annotations declared: @Small, @Large; assuming @Small."
+            strict(conflictingAnnotationsMessage('property', ['Small', 'Large'], false, true, true))
         ]
     }
 
@@ -407,12 +410,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             String getOverriddenProperty() { "test" }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "implemented properties inherit annotation from first conflicting interface"() {
         expect:
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "first-interface" }]
         ], [
-            "Property 'overriddenProperty' has conflicting color annotations inherited (from interface): @Color, @Color; assuming @Color."
+            strict(conflictingAnnotationsMessage('overriddenProperty', ['Color', 'Color'], false, true, true, 'color annotations inherited (from interface)'))
         ]
     }
 
@@ -544,14 +550,17 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             String getPropertyIgnoredInBase()
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "warns about conflicting property types being specified, chooses first declaration"() {
         expect:
         assertProperties TypeWithPropertiesWithMultipleAnnotationsOfSameCategory, [
             largeThenSmall: [(TYPE): Large],
             smallThenLarge: [(TYPE): Small]
         ], [
-            "Property 'largeThenSmall' has conflicting type annotations declared: @Large, @Small; assuming @Large.",
-            "Property 'smallThenLarge' has conflicting type annotations declared: @Small, @Large; assuming @Small."
+            strict(conflictingAnnotationsMessage('largeThenSmall', ['Large', 'Small'], false, true, true)),
+            strict(conflictingAnnotationsMessage('smallThenLarge', ['Small', 'Large'], false, true, true))
         ]
     }
 
@@ -566,12 +575,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             String getSmallThenLarge()
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "warns about both method and field having the same annotation, prefers method annotation"() {
         expect:
         assertProperties WithBothFieldAndGetterAnnotation, [
             inputFiles: [(COLOR): { it instanceof Color && it.declaredBy() == "method" }]
         ], [
-            "Property 'inputFiles' has conflicting color annotations declared: @Color, @Color; assuming @Color."
+            strict(conflictingAnnotationsMessage('inputFiles', ['Color', 'Color'], false, true, true, 'color annotations declared'))
         ]
     }
 

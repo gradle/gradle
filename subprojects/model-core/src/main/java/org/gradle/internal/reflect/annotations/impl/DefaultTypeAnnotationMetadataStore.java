@@ -64,7 +64,6 @@ import static java.util.stream.Collectors.joining;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadataStore {
     private static final TypeAnnotationMetadata EMPTY_TYPE_ANNOTATION_METADATA = new TypeAnnotationMetadata() {
@@ -422,14 +421,14 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             // At this point we must have annotations on this private getter
             metadataBuilder.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED)
-                .forProperty(propertyName)
-                .reportAs(ERROR)
-                .withDescription(() -> String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
-                .happensBecause("Annotations on private getters are ignored")
-                .withLongDescription("Private getters are ignored for up-to-date checking, meaning that you might think you have declared an input when it's not the case")
-                .addPossibleSolution("Make the getter public")
-                .addPossibleSolution("Annotate the public version of the getter")
-                .documentedAt("validation_problems", "private_getter_must_not_be_annotated")
+                    .forProperty(propertyName)
+                    .reportAs(ERROR)
+                    .withDescription(() -> String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
+                    .happensBecause("Annotations on private getters are ignored")
+                    .withLongDescription("Private getters are ignored for up-to-date checking, meaning that you might think you have declared an input when it's not the case")
+                    .addPossibleSolution("Make the getter public")
+                    .addPossibleSolution("Annotate the public version of the getter")
+                    .documentedAt("validation_problems", "private_getter_must_not_be_annotated")
             );
         }
 
@@ -552,10 +551,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             validationContext.visitPropertyProblem(builder);
         }
 
-        public void recordProblem(String problem) {
-            validationContext.visitPropertyProblem(WARNING, propertyName, problem);
-        }
-
         public PropertyAnnotationMetadata build() {
             return new DefaultPropertyAnnotationMetadata(propertyName, method, resolveAnnotations());
         }
@@ -620,13 +615,20 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             // Ignore all but the first recorded annotation
             Annotation declaredAnnotationForCategory = iDeclaredAnnotationForCategory.next();
             if (iDeclaredAnnotationForCategory.hasNext()) {
-                recordProblem(String.format("has conflicting %s annotations %s: %s; assuming @%s",
-                    category.getDisplayName(),
-                    source,
-                    simpleAnnotationNames(annotationsForCategory.stream()
-                        .map(Annotation::annotationType)),
-                    declaredAnnotationForCategory.annotationType().getSimpleName()
-                ));
+                visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.CONFLICTING_ANNOTATIONS)
+                        .forProperty(propertyName)
+                        .reportAs(ERROR)
+                        .withDescription(() -> String.format("has conflicting %s annotations %s: %s",
+                            category.getDisplayName(),
+                            source,
+                            simpleAnnotationNames(annotationsForCategory.stream()
+                                .map(Annotation::annotationType))
+                        ))
+                        .happensBecause("The different annotations have different semantics and Gradle cannot determine which one to pick")
+                        .addPossibleSolution("Choose between one of the conflicting annotations")
+                        .documentedAt("validation_problems", "conflicting_annotations")
+                );
             }
             return declaredAnnotationForCategory;
         }

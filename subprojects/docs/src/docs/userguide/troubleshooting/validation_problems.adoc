@@ -163,4 +163,11 @@ To fix this, you must either:
 - remove the input annotations from the property or
 - remove the ignoring annotation from the property
 
+[[conflicting_annotations]]
+== Conflicting annotations
 
+This error indicates that a property is annotated with conflicting annotations, that is to say annotations which have different, irreconciliable semantics.
+
+For example, a property cannot be annotated both with `@InputFile` and `@InputArtifact` at the same time.
+
+To fix this problem, you need to verify what are the semantics of the annotations and select one.
