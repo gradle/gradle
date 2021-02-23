@@ -166,7 +166,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     def "warns about annotation on field without getter"() {
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large. Annotations on fields are only used if there's a corresponding getter for the field. Possible solutions: Add a getter for field 'property' or remove the annotations on 'property'. ${learnAt('validation_problems', 'ignored_annotations_on_field')}. [STRICT]"
+            strict("Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large. Annotations on fields are only used if there's a corresponding getter for the field. Possible solutions: Add a getter for field 'property' or remove the annotations on 'property'. ${learnAt('validation_problems', 'ignored_annotations_on_field')}.")
         ]
     }
 
@@ -685,13 +685,16 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         @Irrelevant
         interface TypeWithAnnotations {}
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+    )
     def "warns about annotations on non-getter methods"() {
         expect:
         assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': non-property method 'doSomething()' should not be annotated with: @Large.",
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': setter method 'setSomething()' should not be annotated with: @Large.",
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': static method 'doStatic()' should not be annotated with: @Large.",
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': static method 'getStatic()' should not be annotated with: @Small.",
+            strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'method', 'doSomething', 'Large', true)),
+            strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'setter', 'setSomething', 'Large', true)),
+            strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'static method', 'doStatic', 'Large', true)),
+            strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'static method', 'getStatic', 'Small', true)),
         ]
     }
 
@@ -748,6 +751,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
+    }
+
+    private static String strict(String message) {
+        "$message [STRICT]"
     }
 }
 

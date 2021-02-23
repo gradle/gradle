@@ -77,3 +77,14 @@ RegularFileProperty inputFile // this is a public property
 private RegularFileProperty inputFile // this is a field, remove the `private` modifier
 ```
 
+[[ignored_annotations_on_method]]
+== Invalid annotation on method
+
+This error indicates that a annotation has been placed on an unexpected method.
+In general, annotations like `@InputFiles` or `@OutputDirectory` need to be placed on a "property" method.
+A property is defined by having a getter.
+
+This causes Gradle to ignore the annotations, so they are typically not used in up-to-date checking or caching.
+
+To fix this problem, you must remove the annotation, create a getter for the property you want to use and annotate the getter instead.
+

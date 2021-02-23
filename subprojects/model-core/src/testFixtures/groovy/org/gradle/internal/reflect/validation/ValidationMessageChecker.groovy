@@ -35,4 +35,13 @@ trait ValidationMessageChecker {
         String intro = includePropertyName ? "property '$property' " : ""
         "${intro}doesn't have a configured value. This property isn't marked as optional and no value has been configured. Possible solutions: Assign a value to '${property}' or mark property '${property}' as optional. ${learnAt('validation_problems', 'value_not_set')}."
     }
+
+    String methodShouldNotBeAnnotatedMessage(String type, String kind, String method, String annotation, boolean includeDocLink = false) {
+        String message = "Type '$type': $kind '$method()' should not be annotated with: @$annotation. Method '$method' is annotated with an input/output annotation and there is no corresponding getter. Possible solution: Remove the annotations."
+        if (includeDocLink) {
+            message = "${message} ${learnAt('validation_problems', 'ignored_annotations_on_method')}."
+        }
+        message
+    }
+
 }

@@ -355,19 +355,19 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         ImmutableMap<Class<? extends Annotation>, Annotation> annotations = collectRelevantAnnotations(method);
 
         if (Modifier.isStatic(method.getModifiers())) {
-            validateNotAnnotated("static", method, annotations.keySet(), validationContext);
+            validateNotAnnotated(MethodKind.STATIC, method, annotations.keySet(), validationContext);
             return;
         }
 
         PropertyAccessorType accessorType = PropertyAccessorType.of(method);
         if (accessorType == null) {
-            validateNotAnnotated("non-property", method, annotations.keySet(), validationContext);
+            validateNotAnnotated(MethodKind.NON_PROPERTY, method, annotations.keySet(), validationContext);
             return;
         }
 
         String propertyName = accessorType.propertyNameFor(method);
         if (accessorType == PropertyAccessorType.SETTER) {
-            validateNotAnnotated("setter", method, annotations.keySet(), validationContext);
+            validateNotAnnotated(MethodKind.SETTER, method, annotations.keySet(), validationContext);
             validateSetterForMutableType(method, accessorType, validationContext, propertyName);
             return;
         }
@@ -424,13 +424,19 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         void visitType(Class<?> type, TypeAnnotationMetadata metadata);
     }
 
-    private static void validateNotAnnotated(String methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+    private static void validateNotAnnotated(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
-            validationContext.visitTypeProblem(WARNING,
-                method.getDeclaringClass(),
-                String.format("%s method '%s()' should not be annotated with: %s",
-                    methodKind, method.getName(), simpleAnnotationNames(annotationTypes.stream())
-                ));
+            validationContext.visitTypeProblem(problem ->
+                problem.forType(method.getDeclaringClass())
+                    .withId(ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD)
+                    .reportAs(ERROR)
+                    .withDescription(() -> String.format("%s '%s()' should not be annotated with: %s",
+                        methodKind.getDisplayName(), method.getName(), simpleAnnotationNames(annotationTypes.stream())
+                    ))
+                    .happensBecause(() -> "Method '" + method.getName() + "' is annotated with an input/output annotation and there is no corresponding getter.")
+                    .addPossibleSolution("Remove the annotations")
+                    .documentedAt("validation_problems", "ignored_annotations_on_method")
+            );
         }
     }
 
@@ -580,6 +586,22 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         @Override
         public int compareTo(PropertyAnnotationMetadataBuilder o) {
             return propertyName.compareTo(o.propertyName);
+        }
+    }
+
+    private enum MethodKind {
+        STATIC("static method"),
+        NON_PROPERTY("method"),
+        SETTER("setter");
+
+        private final String displayName;
+
+        MethodKind(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
         }
     }
 }

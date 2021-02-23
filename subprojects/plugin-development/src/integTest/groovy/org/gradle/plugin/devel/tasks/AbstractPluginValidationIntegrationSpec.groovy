@@ -239,7 +239,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(true, [
+        assertValidationFailsWith([
             error("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
             error("Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types."),
             error("Type 'MyTask.Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
@@ -636,6 +636,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+    )
     def "detects annotations on non-property methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -666,12 +669,15 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask.Options': non-property method 'notANestedGetter()' should not be annotated with: @Input.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(methodShouldNotBeAnnotatedMessage('MyTask', 'method', 'notAGetter', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage('MyTask.Options', 'method', 'notANestedGetter', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+    )
     def "detects annotations on setter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -717,13 +723,13 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask.Options': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask.Options': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
-        )
+        assertValidationFailsWith([
+            warning("Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation."),
+            error(methodShouldNotBeAnnotatedMessage('MyTask', 'setter', 'setReadWrite', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage('MyTask', 'setter', 'setWriteOnly', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage('MyTask.Options', 'setter', 'setReadWrite', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage('MyTask.Options', 'setter', 'setWriteOnly', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+        ])
     }
 
     def "reports conflicting types when property is replaced"() {
