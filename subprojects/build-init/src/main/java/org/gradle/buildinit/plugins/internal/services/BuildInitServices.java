@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.workers.WorkerExecutor;
 
 /**
  * Provides the various build initialization services.
@@ -36,9 +37,9 @@ public class BuildInitServices extends AbstractPluginServiceRegistry {
 
     private static class ProjectScopeBuildInitServices {
         @SuppressWarnings("unused")
-        ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileCollectionFactory fileCollectionFactory, GradleInternal gradle) {
+        ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileCollectionFactory fileCollectionFactory, WorkerExecutor workerExecutor, GradleInternal gradle) {
             FileResolver fileResolver = gradle.getRootProject().getFileResolver();
-            return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry).createProjectLayoutSetupRegistry();
+            return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, workerExecutor).createProjectLayoutSetupRegistry();
         }
     }
 }

@@ -11,7 +11,6 @@ plugins {
     id("gradlebuild.platform")
 }
 
-val aetherVersion = "1.13.1"
 val antVersion = "1.10.9"
 val archunitVersion = "0.11.0"
 val asmVersion = "9.1"
@@ -20,21 +19,14 @@ val bouncycastleVersion = "1.64"
 val googleApiVersion = "1.25.0"
 val jacksonVersion = "2.10.2"
 val jettyVersion = "9.4.31.v20200723"
-val mavenVersion = "3.0.5"
-val mavenWagonVersion = "3.0.0"
+val mavenVersion = "3.6.3"
 val nativePlatformVersion = "0.22-milestone-10"
-val pmavenVersion = "0.8-20100325"
 val slf4jVersion = "1.7.28"
 val sshdVersion = "2.0.0"
 val tomljVersion = "1.0.0"
 
 dependencies {
     constraints {
-        api(libs.aetherApi)             { version { strictly(aetherVersion) }}
-        api(libs.aetherConnector)       { version { strictly(aetherVersion) }}
-        api(libs.aetherImpl)            { version { strictly(aetherVersion) }}
-        api(libs.aetherSpi)             { version { strictly(aetherVersion) }}
-        api(libs.aetherUtil)            { version { strictly(aetherVersion) }}
         api(libs.ansiControlSequenceUtil) { version { strictly("0.2") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
@@ -101,35 +93,21 @@ dependencies {
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
-        api(libs.maven3)                { version { strictly(mavenVersion) }}
-        api(libs.maven3AetherProvider)  { version { strictly(mavenVersion) }}
-        api(libs.maven3Artifact)        { version { strictly(mavenVersion) }}
-        api(libs.maven3Compat)          { version { strictly(mavenVersion) }}
-        api(libs.maven3Model)           { version { strictly(mavenVersion) }}
-        api(libs.maven3ModelBuilder)    { version { strictly(mavenVersion) }}
-        api(libs.maven3PluginApi)       { version { strictly(mavenVersion) }}
-        api(libs.maven3RepositoryMetadata) { version { strictly(mavenVersion) }}
-        api(libs.maven3Settings)        { version { strictly(mavenVersion) }}
-        api(libs.maven3SettingsBuilder) { version { strictly(mavenVersion) }}
-        api(libs.maven3WagonFile)       { version { strictly(mavenWagonVersion) }}
-        api(libs.maven3WagonHttp)       { version { strictly(mavenWagonVersion); because("3.1.0 of wagon-http seems to break Digest authentication")  }}
-        api(libs.maven3WagonHttpShared) { version { strictly(mavenWagonVersion) }}
-        api(libs.maven3WagonProviderApi) { version { strictly(mavenWagonVersion) }}
+        api(libs.maven3BuilderSupport)  { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3Model)           { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3RepositoryMetadata) { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3Settings)        { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
+        api(libs.maven3SettingsBuilder) { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.minlog)                { version { strictly("1.2") }}
         api(libs.nativePlatform)        { version { strictly(nativePlatformVersion) }}
         api(libs.nativePlatformFileEvents) { version { strictly(nativePlatformVersion) }}
         api(libs.nekohtml)              { version { strictly("1.9.22") }}
         api(libs.objenesis)             { version { strictly("2.6") }}
-        api(libs.plexusCipher)          { version { strictly("1.7") }}
-        api(libs.plexusClassworlds)     { version { strictly("2.5.1") }}
-        api(libs.plexusComponentAnnotations) { version { strictly("1.5.5") }}
-        api(libs.plexusContainer)       { version { strictly("1.7.1") }}
-        api(libs.plexusInterpolation)   { version { strictly("1.14") }}
-        api(libs.plexusSecDispatcher)   { version { strictly("1.3") }}
-        api(libs.plexusUtils)           { version { strictly("3.1.0") }}
+        api(libs.plexusCipher)          { version { strictly("1.7"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusSecDispatcher)   { version { strictly("1.4"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusUtils)           { version { strictly("3.3.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plist)                 { version { strictly("1.21") }}
-        api(libs.pmavenCommon)          { version { strictly(pmavenVersion) }}
-        api(libs.pmavenGroovy)          { version { strictly(pmavenVersion) }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
         api(libs.snakeyaml)             { version { strictly("1.17") }}
@@ -140,6 +118,10 @@ dependencies {
         api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlApis)               { version { strictly("1.4.01"); because("2.0.x has a POM with relocation Gradle does not handle well") }}
 
+        // compile only
+        api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
+        api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
+
         // test only
         api(libs.aircompressor)         { version { strictly("0.8") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}
@@ -149,7 +131,7 @@ dependencies {
         api(libs.cglib)                 { version { strictly("3.2.6") }}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.flightrecorder)        { version { strictly("7.0.0-alpha01") }}
-        api(libs.guice)                 { version { strictly("2.0") }}
+        api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}
         api(libs.javaParser)            { version { strictly("3.17.0") }}

@@ -21,15 +21,12 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.inject)
-    implementation(libs.ant)
-    implementation(libs.ivy)
-    implementation(libs.maven3)
-    implementation(libs.pmavenCommon)
-    implementation(libs.pmavenGroovy)
-    implementation(libs.maven3WagonFile)
-    implementation(libs.maven3WagonHttp)
-    implementation(libs.plexusContainer)
-    implementation(libs.aetherConnector)
+    implementation(libs.maven3Model) {
+        because("We use the metadata model classes to create POM metadata files for components")
+    }
+    implementation(libs.maven3RepositoryMetadata) {
+        because("We use the metadata model classes to create repository metadata files")
+    }
 
     testImplementation(project(":native"))
     testImplementation(project(":process-services"))

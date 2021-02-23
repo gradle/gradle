@@ -25,11 +25,6 @@ abstract class ExternalModulesExtension {
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
-    val aetherApi = "org.sonatype.aether:aether-api"
-    val aetherConnector = "org.sonatype.aether:aether-connector-wagon"
-    val aetherImpl = "org.sonatype.aether:aether-impl"
-    val aetherSpi = "org.sonatype.aether:aether-spi"
-    val aetherUtil = "org.sonatype.aether:aether-util"
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
     val antLauncher = "org.apache.ant:ant-launcher"
@@ -94,29 +89,17 @@ abstract class ExternalModulesExtension {
     val jzlib = "com.jcraft:jzlib"
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
-    val maven3 = "org.apache.maven:maven-core"
-    val maven3AetherProvider = "org.apache.maven:maven-aether-provider"
-    val maven3Artifact = "org.apache.maven:maven-artifact"
-    val maven3Compat = "org.apache.maven:maven-compat"
+    val maven3BuilderSupport = "org.apache.maven:maven-builder-support"
     val maven3Model = "org.apache.maven:maven-model"
-    val maven3ModelBuilder = "org.apache.maven:maven-model-builder"
-    val maven3PluginApi = "org.apache.maven:maven-plugin-api"
     val maven3RepositoryMetadata = "org.apache.maven:maven-repository-metadata"
     val maven3Settings = "org.apache.maven:maven-settings"
     val maven3SettingsBuilder = "org.apache.maven:maven-settings-builder"
-    val maven3WagonFile = "org.apache.maven.wagon:wagon-file"
-    val maven3WagonHttp = "org.apache.maven.wagon:wagon-http"
-    val maven3WagonHttpShared = "org.apache.maven.wagon:wagon-http-shared"
-    val maven3WagonProviderApi = "org.apache.maven.wagon:wagon-provider-api"
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
     val nekohtml = "net.sourceforge.nekohtml:nekohtml"
     val objenesis = "org.objenesis:objenesis"
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"
-    val plexusClassworlds = "org.codehaus.plexus:plexus-classworlds"
-    val plexusComponentAnnotations = "org.codehaus.plexus:plexus-component-annotations"
-    val plexusContainer = "org.codehaus.plexus:plexus-container-default"
     val plexusInterpolation = "org.codehaus.plexus:plexus-interpolation"
     val plexusSecDispatcher = "org.codehaus.plexus:plexus-sec-dispatcher"
     val plexusUtils = "org.codehaus.plexus:plexus-utils"
@@ -131,6 +114,10 @@ abstract class ExternalModulesExtension {
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
     val xerces = "xerces:xercesImpl"
     val xmlApis = "xml-apis:xml-apis"
+
+    // Compile only dependencies (dynamically downloaded if needed)
+    val maven3Compat = "org.apache.maven:maven-compat"
+    val maven3PluginApi = "org.apache.maven:maven-plugin-api"
 
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
@@ -171,11 +158,6 @@ abstract class ExternalModulesExtension {
     val xmlunit = "xmlunit:xmlunit"
 
     val licenses = mapOf(
-        aetherApi to License.EPL,
-        aetherConnector to License.EPL,
-        aetherImpl to License.EPL,
-        aetherSpi to License.EPL,
-        aetherUtil to License.EPL,
         ansiControlSequenceUtil to License.Apache2,
         ant to License.Apache2,
         antLauncher to License.Apache2,
@@ -233,28 +215,17 @@ abstract class ExternalModulesExtension {
         jzlib to License.BSDStyle,
         kryo to License.BSD3,
         log4jToSlf4j to License.MIT,
-        maven3 to License.Apache2,
-        maven3AetherProvider to License.Apache2,
-        maven3Artifact to License.Apache2,
-        maven3Compat to License.Apache2,
+        maven3BuilderSupport to License.Apache2,
         maven3Model to License.Apache2,
-        maven3ModelBuilder to License.Apache2,
-        maven3PluginApi to License.Apache2,
         maven3RepositoryMetadata to License.Apache2,
         maven3Settings to License.Apache2,
         maven3SettingsBuilder to License.Apache2,
-        maven3WagonFile to License.Apache2,
-        maven3WagonHttp to License.Apache2,
-        maven3WagonHttpShared to License.Apache2,
-        maven3WagonProviderApi to License.Apache2,
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
+        nativePlatformFileEvents to License.Apache2,
         nekohtml to License.Apache2,
         objenesis to License.Apache2,
         plexusCipher to License.Apache2,
-        plexusClassworlds to License.Apache2,
-        plexusComponentAnnotations to License.Apache2,
-        plexusContainer to License.Apache2,
         plexusInterpolation to License.Apache2,
         plexusSecDispatcher to License.Apache2,
         plexusUtils to License.Apache2,
