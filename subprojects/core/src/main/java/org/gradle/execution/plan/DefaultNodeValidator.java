@@ -47,7 +47,7 @@ public class DefaultNodeValidator implements NodeValidator {
                     docId = docref.getId();
                     section = docref.getSection();
                 }
-                String warning = TypeValidationProblemRenderer.renderMinimalInformationAbout(problem);
+                String warning = TypeValidationProblemRenderer.renderMinimalInformationAbout(problem, false);
                 DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
                     .willBeRemovedInGradle7()

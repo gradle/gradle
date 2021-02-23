@@ -33,13 +33,14 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
-import static org.gradle.internal.reflect.validation.Severity.CACHEABILITY_WARNING;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -83,10 +84,17 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
-            validationContext.visitPropertyProblem(CACHEABILITY_WARNING,
-                propertyMetadata.getPropertyName(),
-                "is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE"
-            );
+            validationContext.visitPropertyProblem(problem -> {
+                String propertyName = propertyMetadata.getPropertyName();
+                problem.withId(ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION)
+                    .reportAs(Severity.ERROR)
+                    .onlyAffectsCacheableWork()
+                    .forProperty(propertyName)
+                    .withDescription(() -> String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
+                    .happensBecause("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
+                    .addPossibleSolution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath")
+                    .documentedAt("validation_problems", "missing_normalization_annotation");
+            });
         }
     }
 

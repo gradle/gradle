@@ -923,7 +923,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     private static void validateException(TaskInternal task, WorkValidationException exception, String... causes) {
         def expectedMessage = causes.length > 1 ? "Some problems were found with the configuration of $task" : "A problem was found with the configuration of $task"
-        WorkValidationExceptionChecker.check(exception) {
+        WorkValidationExceptionChecker.check(exception, true) {
             messageContains(expectedMessage)
             causes.each { cause ->
                 hasProblem(cause)

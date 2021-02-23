@@ -26,19 +26,22 @@ class WorkValidationExceptionChecker {
     private final Set<String> verified
     private final Set<String> problems
 
-    static void check(Exception exception, @DelegatesTo(value = WorkValidationExceptionChecker, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    static void check(Exception exception, boolean ignoreType = false, @DelegatesTo(value = WorkValidationExceptionChecker, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         assert exception instanceof WorkValidationException
-        def checker = new WorkValidationExceptionChecker(exception)
+        def checker = new WorkValidationExceptionChecker(exception, ignoreType)
         spec.delegate = checker
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
         checker.done()
     }
 
-    private WorkValidationExceptionChecker(WorkValidationException ex) {
+    private WorkValidationExceptionChecker(WorkValidationException ex, boolean ignoreType) {
         error = ex
         verified = [] as Set
-        problems = error.problems as Set
+        problems = error.problems.collect {
+            // assertions do not verify the type name
+            ignoreType ? it.substring(it.indexOf(': ') + 2) : it
+        } as Set
     }
 
     void messageContains(String expected) {

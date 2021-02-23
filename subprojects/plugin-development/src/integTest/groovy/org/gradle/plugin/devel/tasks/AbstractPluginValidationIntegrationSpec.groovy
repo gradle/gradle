@@ -38,6 +38,7 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.DocumentationLinkChecker
 import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
@@ -48,7 +49,7 @@ import javax.inject.Inject
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 
-abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec implements DocumentationLinkChecker {
 
     def "detects missing annotations on Java properties"() {
         javaTaskSource << """
@@ -407,6 +408,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
+    )
     def "detects problems with file inputs"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -467,15 +471,15 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'file' has @Input annotation used on property of type 'File'.": WARNING,
-            "Type 'MyTask': property 'fileCollection' has @Input annotation used on property of type 'FileCollection'.": WARNING,
-            "Type 'MyTask': property 'filePath' has @Input annotation used on property of type 'Path'.": WARNING,
-            "Type 'MyTask': property 'fileTree' has @Input annotation used on property of type 'FileTree'.": WARNING,
-            "Type 'MyTask': property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'inputFile' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'inputFiles' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-        )
+        assertValidationFailsWith(false, [
+            warning("Type 'MyTask': property 'file' has @Input annotation used on property of type 'File'."),
+            warning("Type 'MyTask': property 'fileCollection' has @Input annotation used on property of type 'FileCollection'."),
+            warning("Type 'MyTask': property 'filePath' has @Input annotation used on property of type 'Path'."),
+            warning("Type 'MyTask': property 'fileTree' has @Input annotation used on property of type 'FileTree'."),
+            error("Type 'MyTask': property 'inputDirectory' is annotated with @InputDirectory but missing a normalization strategy. $normalizationProblemDetails"),
+            error("Type 'MyTask': property 'inputFile' is annotated with @InputFile but missing a normalization strategy. $normalizationProblemDetails"),
+            error("Type 'MyTask': property 'inputFiles' is annotated with @InputFiles but missing a normalization strategy. $normalizationProblemDetails"),
+        ])
     }
 
     def "detects problems on nested collections"() {
@@ -826,12 +830,19 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         final Severity severity
         final String id
         final String section
+        final boolean defaultDocLink
 
         DocumentedProblem(String message, Severity severity, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
             this.message = message
             this.severity = severity
             this.id = id
             this.section = section
+            this.defaultDocLink = (id == "more_about_tasks") && (section == "sec:up_to_date_checks")
         }
     }
+
+    String getNormalizationProblemDetails() {
+        "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}."
+    }
+
 }

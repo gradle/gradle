@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.reflect.validation;
 
-import javax.annotation.Nullable;
+package org.gradle.internal.reflect.validation
 
-public interface PropertyProblemBuilder extends ValidationProblemBuilder<PropertyProblemBuilder> {
+import groovy.transform.CompileStatic
+import org.gradle.api.internal.DocumentationRegistry
 
-    default PropertyProblemBuilder forProperty(String property) {
-        return forProperty(null, property);
+@CompileStatic
+trait DocumentationLinkChecker {
+    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
+
+    String userguideLink(String id, String section) {
+        documentationRegistry.getDocumentationFor(id, section)
     }
 
-    PropertyProblemBuilder forProperty(@Nullable String parentProperty, @Nullable String property);
-
+    String learnAt(String id, String section) {
+        "Please refer to ${userguideLink(id, section)} for more details about this problem"
+    }
 }

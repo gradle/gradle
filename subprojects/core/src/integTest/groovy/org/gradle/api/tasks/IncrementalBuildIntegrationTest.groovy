@@ -1285,7 +1285,7 @@ task generate(type: TransformerTask) {
     @ToBeImplemented("Private getters should be ignored")
     def "private inputs can be overridden in subclass"() {
         executer.beforeExecute {
-            executer.expectDocumentedDeprecationWarning("Property 'myPrivateInput' is private and annotated with @Input. " +
+            executer.expectDocumentedDeprecationWarning("Type 'MyTask': property 'myPrivateInput' is private and annotated with @Input. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
@@ -1394,7 +1394,7 @@ task generate(type: TransformerTask) {
         inputFile.text = "original"
 
         executer.beforeExecute {
-            executer.expectDocumentedDeprecationWarning("Property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. " +
+            executer.expectDocumentedDeprecationWarning("Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")

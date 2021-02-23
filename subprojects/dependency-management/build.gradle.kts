@@ -57,6 +57,7 @@ dependencies {
     integTestImplementation(libs.ansiControlSequenceUtil)
     integTestImplementation(libs.groovyJson)
     integTestImplementation(testFixtures(project(":security")))
+    integTestImplementation(testFixtures(project(":model-core")))
 
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")

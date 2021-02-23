@@ -109,8 +109,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         }
         // Generate external jar with entries in alphabetical order
         def externalJar = file('build/libs/external.jar')
-        expectMissingDependencyDeprecation(":alphabetic", ":a:compileJava", file("build/libs/external.jar"))
-        expectMissingDependencyDeprecation(":alphabetic", ":a:javadoc", file("build/libs/external.jar"))
+        expectMissingDependencyDeprecation(":alphabetic", ":a:compileJava", file("build/libs/external.jar"), 'JavaCompile')
+        expectMissingDependencyDeprecation(":alphabetic", ":a:javadoc", file("build/libs/external.jar"), 'Javadoc')
         succeeds("alphabetic", ":a:javadoc")
         new ZipTestFixture(externalJar).hasDescendantsInOrder('META-INF/MANIFEST.MF', 'a', 'b', 'c', 'd')
 
@@ -157,8 +157,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
             file("external/$it").touch()
         }
         // Generate external jar with entries with a current timestamp
-        expectMissingDependencyDeprecation(":currentTime", ":a:compileJava", file("build/libs/external.jar"))
-        expectMissingDependencyDeprecation(":currentTime", ":a:javadoc", file("build/libs/external.jar"))
+        expectMissingDependencyDeprecation(":currentTime", ":a:compileJava", file("build/libs/external.jar"), 'JavaCompile')
+        expectMissingDependencyDeprecation(":currentTime", ":a:javadoc", file("build/libs/external.jar"), 'Javadoc')
         succeeds("currentTime", ":a:javadoc")
         def oldHash = externalJar.md5Hash
         when:
@@ -200,8 +200,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         duplicate.text = "duplicate"
 
         // Generate external jar with entries with a duplicate 'a' file
-        expectMissingDependencyDeprecation(":duplicate", ":a:compileJava", file("build/libs/external.jar"))
-        expectMissingDependencyDeprecation(":duplicate", ":a:javadoc", file("build/libs/external.jar"))
+        expectMissingDependencyDeprecation(":duplicate", ":a:compileJava", file("build/libs/external.jar"), 'JavaCompile')
+        expectMissingDependencyDeprecation(":duplicate", ":a:javadoc", file("build/libs/external.jar"), 'Javadoc')
         succeeds("duplicate", ":a:javadoc")
         def oldHash = externalJar.md5Hash
 

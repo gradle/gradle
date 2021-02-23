@@ -54,7 +54,13 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     void assertValidationFailsWith(boolean expectDeprecationsForErrors, List<DocumentedProblem> messages) {
         fails "validatePlugins"
         def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.txt"))
-        report.verify(messages.collectEntries {[(it.message): it.severity ]})
+        report.verify(messages.collectEntries {
+            def fullMessage = it.message
+            if (!it.defaultDocLink) {
+                fullMessage = "${fullMessage} ${learnAt(it.id, it.section)}."
+            }
+            [(fullMessage): it.severity ]
+        })
 
         failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size()>1?'s':''}"
         messages.forEach { problem ->
@@ -166,11 +172,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         file("gradle.properties").text = "strict=true"
 
         then:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'dirProp' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'fileProp' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'filesProp' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-        )
+        assertValidationFailsWith([
+            error("Type 'MyTask': property 'dirProp' is annotated with @InputDirectory but missing a normalization strategy. $normalizationProblemDetails"),
+            error("Type 'MyTask': property 'fileProp' is annotated with @InputFile but missing a normalization strategy. $normalizationProblemDetails"),
+            error("Type 'MyTask': property 'filesProp' is annotated with @InputFiles but missing a normalization strategy. $normalizationProblemDetails"),
+        ])
     }
 
     def "can validate task classes using external types"() {

@@ -17,11 +17,13 @@
 package org.gradle.smoketests
 
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 // https://plugins.gradle.org/plugin/org.samples.greeting
 // Plugin is used by the GE build.
+@Ignore("https://github.com/gradle/gradle/issues/16243")
 class GreetingSamplePluginSmokeTest extends AbstractSmokeTest {
     def 'greeting plugin'() {
         given:

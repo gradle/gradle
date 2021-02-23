@@ -10,3 +10,17 @@ This error indicates that you have annotated a type with `@CacheableTransform` b
 
 The solution is to remove the annotation. For tasks, the annotation to use is `@CacheableTask`.
 
+[[missing_normalization_annotation]]
+== Missing normalization annotation
+
+This error occurs whenever a task or artifact transform is cacheable and that a file or file collection input property isn't declaring how it should be normalized.
+Normalization tells Gradle if, for example, the absolute path of input files matter or if only the contents is relevant.
+If you don't declare the normalization strategy, outputs of the task cannot be reused between machines or between different locations on the same machine.
+In short, without normalization, caching is highly ineffective.
+
+To fix this problem, you need to declare a normalization strategy, by applying one of the following annotations:
+
+- link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[`PathSensitive`]
+- link:{javadocPath}/org/gradle/api/tasks/Classpath.html[`Classpath`]
+- link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[`CompileClasspath`]
+

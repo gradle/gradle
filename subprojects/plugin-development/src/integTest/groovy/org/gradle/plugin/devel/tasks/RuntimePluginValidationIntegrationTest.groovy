@@ -56,7 +56,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
             .findAll { problem -> problem.severity == ERROR }
 
         expectedDeprecations.forEach { warning ->
-            String expectedMessage = removeTypeForProperties(warning.message) + " " +
+            String expectedMessage = "${warning.message} " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/${warning.id}.html#${warning.section} for more details."
@@ -82,10 +82,6 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         expectedFailures.forEach { error ->
             failureDescriptionContains(error.message)
         }
-    }
-
-    static String removeTypeForProperties(String message) {
-        message.replaceAll(/Type '.*?': property/, "Property")
     }
 
     @Override
@@ -120,10 +116,10 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         """
 
         expect:
-        assertValidationFailsWith(
-            "Property 'tree.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Property 'tree.left.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Property 'tree.right.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
-        )
+        assertValidationFailsWith([
+            warning("Type 'MyTask': property 'tree.nonAnnotated' is not annotated with an input or output annotation."),
+            warning("Type 'MyTask': property 'tree.left.nonAnnotated' is not annotated with an input or output annotation."),
+            warning("Type 'MyTask': property 'tree.right.nonAnnotated' is not annotated with an input or output annotation."),
+        ])
     }
 }
