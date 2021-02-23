@@ -16,9 +16,12 @@
 
 package org.gradle.smoketests
 
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+
+import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 
-class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
+class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
@@ -35,7 +38,7 @@ class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
             onPlugin('com.moowork.node') {
                 failsWith([
                     "Type 'NpmSetupTask': property 'args' is not annotated with an input or output annotation.": WARNING,
-                    "Type 'NpmSetupTask': setter method 'setArgs()' should not be annotated with: @Internal.": WARNING,
+                    "Type 'NpmSetupTask': setter 'setArgs()' should not be annotated with: @Internal. Method 'setArgs' is annotated with an input/output annotation and there is no corresponding getter. Possible solution: Remove the annotations. ${learnAt("validation_problems", "ignored_annotations_on_method")}.": ERROR,
                     "Type 'YarnSetupTask': property 'args' is not annotated with an input or output annotation.": WARNING
                 ])
             }
