@@ -770,9 +770,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'oldProperty' annotated with @ReplacedBy should not be also annotated with @Input.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(ignoredAnnotatedPropertyMessage('oldProperty', 'ReplacedBy', 'Input'), 'validation_problems', 'ignored_property_must_not_be_annotated')
+        ])
     }
 
     def "reports both input and output annotation applied to the same property"() {

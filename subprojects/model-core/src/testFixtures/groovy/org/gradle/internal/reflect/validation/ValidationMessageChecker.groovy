@@ -49,4 +49,10 @@ trait ValidationMessageChecker {
         String outro = includeLink ? " ${learnAt("validation_problems", "private_getter_must_not_be_annotated")}." : ""
         "$intro '${property}' is private and annotated with @${annotation}. Annotations on private getters are ignored. Possible solutions: Make the getter public or annotate the public version of the getter.$outro"
     }
+
+    String ignoredAnnotatedPropertyMessage(String property, String ignoringAnnotation, String alsoAnnotatedWith, boolean includeType = true, boolean includeLink = false) {
+        String intro = includeType ? "Type 'MyTask': property" : "Property"
+        String outro = includeLink ? " ${learnAt("validation_problems", "ignored_property_must_not_be_annotated")}." : ""
+        "$intro '${property}' annotated with @${ignoringAnnotation} should not be also annotated with @${alsoAnnotatedWith}. A property is ignored but contains input annotations. Possible solutions: Remove the input annotations or remove the @${ignoringAnnotation} annotation.$outro"
+    }
 }

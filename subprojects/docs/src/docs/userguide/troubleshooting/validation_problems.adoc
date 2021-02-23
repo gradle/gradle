@@ -151,3 +151,16 @@ It is important to fix because you might think that you have declared an input w
 
 To fix this, either make the getter public, or annotate an existing getter instead, or create a new annotated getter.
 
+[[ignored_property_must_not_be_annotated]]
+== Annotations on ignored properties
+
+This error indicates that you have a property which is annotated with an annotation which tells Gradle to ignore it (for example link:{javadocPath}/org/gradle/api/model/ReplacedBy.html[`@ReplacedBy`]) but is also annotated with an input annotation (for example link:{javadocPath}/org/gradle/api/tasks/InputFile.html[`@InputFile`]).
+
+This is an error because Gradle cannot determine if the property should actually be used for up-to-date checking, that is to say if it's actually an input or not.
+
+To fix this, you must either:
+
+- remove the input annotations from the property or
+- remove the ignoring annotation from the property
+
+

@@ -567,12 +567,21 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 Class<? extends Annotation> ignoredMethodAnnotation = declaredType.annotationType();
                 if (ignoredMethodAnnotations.contains(ignoredMethodAnnotation)) {
                     if (declaredAnnotations.values().size() > 1) {
-                        recordProblem(String.format("annotated with @%s should not be also annotated with %s",
-                            ignoredMethodAnnotation.getSimpleName(),
-                            simpleAnnotationNames(declaredAnnotations.values().stream()
-                                .<Class<? extends Annotation>>map(Annotation::annotationType)
-                                .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
-                        ));
+                        visitPropertyProblem(problem ->
+                            problem.withId(ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED)
+                                .reportAs(ERROR)
+                                .forProperty(propertyName)
+                                .withDescription(() -> String.format("annotated with @%s should not be also annotated with %s",
+                                    ignoredMethodAnnotation.getSimpleName(),
+                                    simpleAnnotationNames(declaredAnnotations.values().stream()
+                                        .<Class<? extends Annotation>>map(Annotation::annotationType)
+                                        .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))))
+                                .happensBecause("A property is ignored but contains input annotations")
+                                .withLongDescription("Having both an input annotation and saying that the property is ignored is confusing: Gradle cannot determine if the input is relevant or not")
+                                .addPossibleSolution("Remove the input annotations")
+                                .addPossibleSolution(() -> "Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
+                                .documentedAt("validation_problems", "ignored_property_must_not_be_annotated")
+                        );
                     }
                     return ImmutableMap.of(TYPE, declaredType);
                 }

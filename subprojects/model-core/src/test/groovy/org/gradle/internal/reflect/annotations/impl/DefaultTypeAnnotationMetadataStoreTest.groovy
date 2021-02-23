@@ -267,12 +267,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             boolean isBool() { true }
         }
 
-    def "warns when ignored property has other annotations"() {
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
+    def "fails when ignored property has other annotations"() {
         expect:
         assertProperties TypeWithIgnoredPropertyWithOtherAnnotations, [
             ignoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'ignoredProperty' annotated with @Ignored should not be also annotated with @Color."
+            strict(ignoredAnnotatedPropertyMessage('ignoredProperty', 'Ignored', 'Color', false, true))
         ]
     }
 
@@ -282,12 +285,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             String getIgnoredProperty()
         }
 
-    def "warns when ignored property has other ignore annotations"() {
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
+    def "fails when ignored property has other ignore annotations"() {
         expect:
         assertProperties TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations, [
             twiceIgnoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'twiceIgnoredProperty' annotated with @Ignored should not be also annotated with @Ignored2."
+            strict(ignoredAnnotatedPropertyMessage('twiceIgnoredProperty', 'Ignored', 'Ignored2', false, true))
         ]
     }
 
@@ -297,12 +303,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             String getTwiceIgnoredProperty()
         }
 
-    def "warns when field is ignored but there is another annotation on the getter"() {
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
+    def "fails when field is ignored but there is another annotation on the getter"() {
         expect:
         assertProperties TypeWithIgnoredFieldAndGetterInput, [
             ignoredByField: [(TYPE): Ignored]
         ], [
-            "Property 'ignoredByField' annotated with @Ignored should not be also annotated with @Small."
+            strict(ignoredAnnotatedPropertyMessage('ignoredByField', 'Ignored', 'Small', false, true))
         ]
     }
 
