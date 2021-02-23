@@ -369,6 +369,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
+    @ValidationTestFor(
+        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
+    )
     def "reports setters for property of mutable type #type"() {
         file("input.txt").text = "input"
 
@@ -397,9 +400,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself.": WARNING,
-        )
+        def typeDesc = type.replaceAll("<.+>", "")
+        def errorMessage = "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '$typeDesc' is writable. Properties of type '$typeDesc' are already mutable. Possible solution: Remove the 'setMutablePropertyWithSetter' method."
+        assertValidationFailsWith([
+            error(errorMessage, 'validation_problems', 'mutable_type_with_setter')
+        ])
 
         where:
         type                            | init

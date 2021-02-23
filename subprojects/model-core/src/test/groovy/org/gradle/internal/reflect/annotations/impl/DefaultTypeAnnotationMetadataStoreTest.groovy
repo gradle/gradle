@@ -571,6 +571,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
+    )
     def "report setters for property of mutable type"() {
         expect:
         assertProperties TypeWithPropertiesWithMutableProperties, [
@@ -579,8 +582,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             mutableSubTypeWithSetter: [(TYPE): Small],
             mutableTypeWithSetter: [(TYPE): Small]
         ], [
-            "Property 'mutableSubTypeWithSetter' of mutable type '${MutableSubType.name}' is writable. Properties of this type should be read-only and mutated via the value itself.",
-            "Property 'mutableTypeWithSetter' of mutable type '${MutableType.name}' is writable. Properties of this type should be read-only and mutated via the value itself."
+            mutableSetterErrorMessage('mutableSubTypeWithSetter', MutableSubType.name),
+            mutableSetterErrorMessage('mutableTypeWithSetter', MutableType.name),
         ]
     }
 
@@ -755,6 +758,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 
     private static String strict(String message) {
         "$message [STRICT]"
+    }
+
+    private String mutableSetterErrorMessage(String property, String propertyType) {
+        strict("Property '$property' of mutable type '$propertyType' is writable. Properties of type '$propertyType' are already mutable. Possible solution: Remove the 'set${property.capitalize()}' method. ${learnAt("validation_problems", "mutable_type_with_setter")}.")
     }
 }
 
