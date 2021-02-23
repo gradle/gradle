@@ -245,6 +245,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             dependencies {
                 implementation project(':${library}')
                 testImplementation 'junit:junit:4.12'
+                androidTestImplementation project(":${library}")
             }
         """
 
