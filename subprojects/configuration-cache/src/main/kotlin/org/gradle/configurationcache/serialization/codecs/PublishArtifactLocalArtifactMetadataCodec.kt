@@ -16,8 +16,10 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact
+import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -55,43 +57,20 @@ object PublishArtifactLocalArtifactMetadataCodec : Codec<PublishArtifactLocalArt
 
 
 private
-class ImmutablePublishArtifact(
+data class ImmutablePublishArtifact(
     private val name: String,
     private val extension: String,
     private val type: String,
     private val classifier: String?,
     private val file: File,
-) : AbstractPublishArtifact() {
+) : PublishArtifact {
 
     override fun getName() = name
     override fun getExtension() = extension
     override fun getType() = type
     override fun getClassifier() = classifier
     override fun getFile() = file
+
     override fun getDate(): Date? = null
-    override fun shouldBePublished() = true
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ImmutablePublishArtifact
-
-        if (name != other.name) return false
-        if (extension != other.extension) return false
-        if (type != other.type) return false
-        if (classifier != other.classifier) return false
-        if (file != other.file) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + extension.hashCode()
-        result = 31 * result + type.hashCode()
-        result = 31 * result + (classifier?.hashCode() ?: 0)
-        result = 31 * result + file.hashCode()
-        return result
-    }
+    override fun getBuildDependencies(): TaskDependency = TaskDependencyInternal.EMPTY
 }
