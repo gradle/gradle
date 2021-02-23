@@ -511,6 +511,9 @@ tasks.named("docsTest") { task ->
 
         // TODO investigate ignored snippets
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
+        if (org.gradle.internal.os.OperatingSystem.current().macOsX) {
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-tasks-incremental-task_*_incrementalTask*.sample' // Some 'incrementalTask' tests seem to be flaky on OS X only
+        }
     }
 }
 
