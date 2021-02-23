@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
+import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
@@ -151,6 +152,10 @@ class CollectingVisitor : FileCollectionStructureVisitor {
             // However, currently it is not easy to determine whether or not this is the case so assume that all transforms
             // have changing inputs
             FileCollectionStructureVisitor.VisitType.NoContents
+        } else if (source is GeneratedSingletonFileTree) {
+            // Represents ad-hoc single file generated inputs.
+            // Visit the spec and capture user code rather than the files.
+            FileCollectionStructureVisitor.VisitType.Spec
         } else {
             FileCollectionStructureVisitor.VisitType.Visit
         }
