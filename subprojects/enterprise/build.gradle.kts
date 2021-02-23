@@ -7,7 +7,6 @@ dependencies {
 
     implementation(libs.jsr305)
     implementation(libs.inject)
-    implementation(libs.groovyJson)
     implementation(project(":logging"))
     implementation(project(":core-api"))
     implementation(project(":core"))
