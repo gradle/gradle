@@ -28,6 +28,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import groovy.transform.Generated;
+import org.gradle.api.Action;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
@@ -36,6 +37,7 @@ import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
@@ -274,9 +276,18 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     propertyBuilders.put(propertyName, metadataBuilder);
                     continue;
                 }
-                previouslySeenBuilder.recordProblem(String.format("has redundant getters: '%s()' and '%s()'",
-                    previouslySeenBuilder.method.getName(),
-                    metadataBuilder.method.getName()));
+                previouslySeenBuilder.visitPropertyProblem(problem -> {
+                    problem.withId(ValidationProblemId.REDUNDANT_GETTERS)
+                        .reportAs(ERROR)
+                        .forProperty(propertyName)
+                        .withDescription(() -> String.format("has redundant getters: '%s()' and '%s()'",
+                            previouslySeenBuilder.method.getName(),
+                            metadataBuilder.method.getName()))
+                        .happensBecause(() -> "Boolean property '" + propertyName + "' has both an `is` and a `get` getter")
+                        .withLongDescription("Different annotations on the different getters cause problems on what to track as inputs")
+                        .addPossibleSolution("Remove one of the getters")
+                        .documentedAt("validation_problems", "redundant_getters");
+                });
             }
         }
         return ImmutableList.copyOf(propertyBuilders.values());
@@ -526,6 +537,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach((fromInterface
                     ? inheritedInterfaceAnnotations
                     : inheritedSuperclassAnnotations)::put);
+        }
+
+        public void visitPropertyProblem(Action<? super PropertyProblemBuilder> builder) {
+            validationContext.visitPropertyProblem(builder);
         }
 
         public void recordProblem(String problem) {

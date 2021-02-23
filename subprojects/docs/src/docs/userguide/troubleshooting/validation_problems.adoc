@@ -134,3 +134,11 @@ myTask {
 }
 ```
 
+[[redundant_getters]]
+== Redundant getters
+
+This error indicates that a `boolean` property has both a `get` and an `is` getter method.
+This is a problem because both getters can be annotated differently and Gradle cannot know which ones to use.
+
+The solution to this problem is to get rid of one of the getters.
+

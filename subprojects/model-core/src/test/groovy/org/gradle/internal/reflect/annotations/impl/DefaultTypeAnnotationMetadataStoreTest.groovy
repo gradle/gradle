@@ -193,12 +193,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             String getIgnoredProperty()
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.REDUNDANT_GETTERS
+    )
     def "ignores 'is' getter when 'get' getter is also defined"() {
         expect:
         assertProperties TypeWithIsAndGetProperty, [
             bool: [(TYPE): Small],
         ], [
-            "Property 'bool' has redundant getters: 'getBool()' and 'isBool()'."
+            strict("Property 'bool' has redundant getters: 'getBool()' and 'isBool()'. Boolean property 'bool' has both an `is` and a `get` getter. Possible solution: Remove one of the getters. ${learnAt("validation_problems", "redundant_getters")}.")
         ]
         store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
