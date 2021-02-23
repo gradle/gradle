@@ -16,8 +16,10 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -25,6 +27,8 @@ import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 import org.gradle.internal.component.model.IvyArtifactName
+import java.io.File
+import java.util.Date
 
 
 /**
@@ -47,6 +51,26 @@ object PublishArtifactLocalArtifactMetadataCodec : Codec<PublishArtifactLocalArt
         val componentId = read() as ComponentIdentifier
         val ivyName = read() as IvyArtifactName
         val file = readFile()
-        return PublishArtifactLocalArtifactMetadata(componentId, DefaultPublishArtifact(ivyName.name, ivyName.extension, ivyName.type, ivyName.classifier, null, file))
+        return PublishArtifactLocalArtifactMetadata(componentId, ImmutablePublishArtifact(ivyName.name, ivyName.extension!!, ivyName.type, ivyName.classifier, file))
     }
+}
+
+
+private
+data class ImmutablePublishArtifact(
+    private val name: String,
+    private val extension: String,
+    private val type: String,
+    private val classifier: String?,
+    private val file: File,
+) : PublishArtifact {
+
+    override fun getName() = name
+    override fun getExtension() = extension
+    override fun getType() = type
+    override fun getClassifier() = classifier
+    override fun getFile() = file
+
+    override fun getDate(): Date? = null
+    override fun getBuildDependencies(): TaskDependency = TaskDependencyInternal.EMPTY
 }
