@@ -77,6 +77,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
@@ -94,8 +95,6 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> {
 
@@ -181,10 +180,15 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == AbsolutePathInputNormalizer.class) {
-                validationContext.visitPropertyProblem(WARNING,
-                    propertyName,
-                    "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms"
-                );
+                validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
+                        .reportAs(Severity.ERROR)
+                        .forProperty(propertyName)
+                        .withDescription("is declared to be sensitive to absolute paths")
+                        .happensBecause("This is not allowed for cacheable transforms")
+                        .withLongDescription("This annotation doesn't make sense for artifact transforms which are executed in their own workspace.")
+                        .addPossibleSolution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath")
+                        .documentedAt("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"));
             }
         }
     }
@@ -272,9 +276,15 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                     Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                     if (preparedValue == null && !optional) {
-                        validationContext.visitPropertyProblem(WARNING,
-                            propertyName,
-                            "does not have a value specified"
+                        validationContext.visitPropertyProblem(problem ->
+                            problem.withId(ValidationProblemId.VALUE_NOT_SET)
+                                .reportAs(Severity.ERROR)
+                                .forProperty(propertyName)
+                                .withDescription("doesn't have a configured value")
+                                .happensBecause("This property isn't marked as optional and no value has been configured")
+                                .addPossibleSolution(() -> "Assign a value to '" + propertyName + "'")
+                                .addPossibleSolution(() -> "Mark property '" + propertyName + "' as optional")
+                                .documentedAt("validation_problems", "value_not_set")
                         );
                     }
 
@@ -290,9 +300,14 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
             @Override
             public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                validationContext.visitPropertyProblem(WARNING,
-                    propertyName,
-                    "is annotated with an output annotation"
+                validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
+                        .reportAs(Severity.ERROR)
+                        .forProperty(propertyName)
+                        .withDescription("declares an output")
+                        .happensBecause("is annotated with an output annotation")
+                        .addPossibleSolution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
+                        .documentedAt("validation_problems", "artifact_transform_should_not_declare_output")
                 );
             }
 

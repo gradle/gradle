@@ -30,9 +30,30 @@ To fix this problem, you need to declare a normalization strategy, by applying o
 This error indicates that a property expected a value but none was provided.
 By default, Gradle properties are _required_, that is to say that if an input or output property isn't configured, either via a conventional value or explicitly by a build script, then Gradle will fail because it doesn't know what value to use when the task is executed.
 
-
 To fix the problem, you must either:
 
 - provide a value for this property explicitly (for example by configuring the task in your build script)
 - or make the property optional by annotating it with link:{javadocPath}/org/gradle/api/tasks/Optional[`@Optional`]
+
+[[cacheable_transform_cant_use_absolute_sensitivity]]
+== Invalid use of absolute path sensitivity for an artifact transform
+
+This error indicates that you have annotated an input of a cacheable artifact transform as sensitive to the absolute path.
+However, artifact transforms are executed in isolation using their own workspace which, for example, is resilient to `clean` builds.
+Even if the artifact transform result can't be shared via the build cache, using an absolute path sensitivity doesn't make sense.
+
+To fix this problem, you must change the normalization strategy using one of those:
+
+- link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[`PathSensitive`] (but not absolute)
+- link:{javadocPath}/org/gradle/api/tasks/Classpath.html[`Classpath`]
+- link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[`CompileClasspath`]
+
+[[artifact_transform_should_not_declare_output]]
+== Invalid use of an output property on an artifact transforms
+
+This error indicates that you have annotated a property of an artifact transform with an output annotation, which is not the correct way to register outputs for artifact transforms.
+
+To fix this problem, you must remove the property and use the `TransformOutputs` parameter instead.
+
+See link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html#transform-org.gradle.api.artifacts.transform.TransformOutputs-[TransformAction#transform(TransformOutputs)] for details.
 
