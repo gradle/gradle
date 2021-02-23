@@ -50,6 +50,8 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  *
+ * @see org.gradle.work.DoNotCacheByDefault
+ *
  * @since 5.3
  */
 @Retention(RetentionPolicy.RUNTIME)
