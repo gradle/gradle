@@ -68,6 +68,8 @@ Consider <<declaring_repositories.adoc#declaring-repositories,using>> `mavenCent
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.30].
+- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.7].
+
 
 ==== Removal of `compile` and `runtime` configurations
 
