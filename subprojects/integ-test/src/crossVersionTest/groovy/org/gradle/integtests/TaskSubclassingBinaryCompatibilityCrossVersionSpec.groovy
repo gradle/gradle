@@ -146,7 +146,7 @@ apply plugin: SomePlugin
         version current withTasks 'tasks' requireDaemon() requireIsolatedDaemons() run()
     }
 
-    def "task can use all methods declared by Task interface that DefaultTask specialises"() {
+    def "task can use all methods declared by Task interface that AbstractTask specialises"() {
         file("someFile").touch()
         file("anotherFile").touch()
         file("yetAnotherFile").touch()

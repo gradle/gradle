@@ -101,6 +101,7 @@ val irrelevantDeclaringClasses = setOf(
     Object::class.java,
     Task::class.java,
     TaskInternal::class.java,
+    DefaultTask::class.java,
     ConventionTask::class.java
 )
 
@@ -115,13 +116,13 @@ val Class<*>.relevantFields: Sequence<Field>
         }
         .filter { field ->
             @Suppress("deprecation")
-            field.declaringClass != DefaultTask::class.java || field.name in defaultTaskRelevantFields
+            field.declaringClass != org.gradle.api.internal.AbstractTask::class.java || field.name in abstractTaskRelevantFields
         }
         .sortedBy { it.name }
 
 
 private
-val defaultTaskRelevantFields = listOf("actions", "enabled", "timeout", "onlyIfSpec")
+val abstractTaskRelevantFields = listOf("actions", "enabled", "timeout", "onlyIfSpec")
 
 
 internal
