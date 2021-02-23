@@ -80,6 +80,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             private String getPrivateProperty() { "private" }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "finds annotated properties"() {
         expect:
         assertProperties TypeWithAnnotatedProperty, [
@@ -89,7 +92,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             privateProperty: [(TYPE): Small],
             injectedProperty: [(TYPE): Inject],
         ], [
-            "Property 'privateProperty' is private and annotated with @$Small.simpleName."
+            strict(privateGetterAnnotatedMessage('privateProperty', Small.simpleName, false, true))
         ]
     }
 
@@ -629,12 +632,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "warns about annotations on private properties"() {
         expect:
         assertProperties WithAnnotationsOnPrivateProperty, [
             privateInput: [(TYPE): Large]
         ], [
-            "Property 'privateInput' is private and annotated with @${Large.simpleName}."
+            strict(privateGetterAnnotatedMessage('privateInput', Large.simpleName, false, true))
         ]
     }
 

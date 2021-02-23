@@ -420,8 +420,17 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         if (privateGetter) {
             // At this point we must have annotations on this private getter
-            metadataBuilder.recordProblem(String.format("is private and annotated with %s",
-                simpleAnnotationNames(annotations.keySet().stream())));
+            metadataBuilder.visitPropertyProblem(problem ->
+                problem.withId(ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED)
+                .forProperty(propertyName)
+                .reportAs(ERROR)
+                .withDescription(() -> String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
+                .happensBecause("Annotations on private getters are ignored")
+                .withLongDescription("Private getters are ignored for up-to-date checking, meaning that you might think you have declared an input when it's not the case")
+                .addPossibleSolution("Make the getter public")
+                .addPossibleSolution("Annotate the public version of the getter")
+                .documentedAt("validation_problems", "private_getter_must_not_be_annotated")
+            );
         }
 
         for (Annotation annotation : annotations.values()) {

@@ -44,4 +44,9 @@ trait ValidationMessageChecker {
         message
     }
 
+    String privateGetterAnnotatedMessage(String property, String annotation, boolean includeType = true, boolean includeLink = false) {
+        String intro = includeType ? "Type 'MyTask': property" : "Property"
+        String outro = includeLink ? " ${learnAt("validation_problems", "private_getter_must_not_be_annotated")}." : ""
+        "$intro '${property}' is private and annotated with @${annotation}. Annotations on private getters are ignored. Possible solutions: Make the getter public or annotate the public version of the getter.$outro"
+    }
 }

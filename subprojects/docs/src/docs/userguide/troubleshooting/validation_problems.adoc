@@ -142,3 +142,12 @@ This is a problem because both getters can be annotated differently and Gradle c
 
 The solution to this problem is to get rid of one of the getters.
 
+[[private_getter_must_not_be_annotated]]
+== Annotations on private getters
+
+This error indicates that you have annotated a _private_ getter with an input or output annotation.
+Gradle doesn't use private getters as inputs for up-to-date checking, which means that your effectively are basically ignored.
+It is important to fix because you might think that you have declared an input when it's not the case.
+
+To fix this, either make the getter public, or annotate an existing getter instead, or create a new annotated getter.
+

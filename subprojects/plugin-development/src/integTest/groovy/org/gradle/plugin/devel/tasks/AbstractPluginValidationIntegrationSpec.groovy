@@ -599,6 +599,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "detects annotations on private getter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -634,11 +637,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'badTime' is private and annotated with @Input.": WARNING,
-            "Type 'MyTask': property 'options.badNested' is private and annotated with @Input.": WARNING,
-            "Type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(privateGetterAnnotatedMessage('badTime', 'Input'), 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage('options.badNested', 'Input'), 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage('outputDir', 'OutputDirectory'), 'validation_problems', 'private_getter_must_not_be_annotated'),
+        ])
     }
 
     @ValidationTestFor(
@@ -855,5 +858,4 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     String getNormalizationProblemDetails() {
         "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}."
     }
-
 }
