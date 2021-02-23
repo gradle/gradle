@@ -22,10 +22,13 @@ import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
+class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     @Unroll
     def "allows optional @#annotation.simpleName to have null value"() {
@@ -177,6 +180,9 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         executed ":foo"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     @Issue("https://github.com/gradle/gradle/issues/9674")
     def "shows validation error when non-Optional @Input is null"() {
         buildFile << """
@@ -196,6 +202,6 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails "foo"
 
         then:
-        failureDescriptionContains("No value has been specified for property 'bar'.")
+        failureDescriptionContains(missingValueMessage('bar'))
     }
 }

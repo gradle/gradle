@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.util.DeferredUtil;
-
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public abstract class AbstractValidatingProperty implements ValidatingProperty {
     private final String propertyName;
@@ -39,7 +39,16 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         Object unpacked = DeferredUtil.unpackOrNull(value.call());
         if (unpacked == null) {
             if (!optional) {
-                context.visitPropertyProblem(ERROR, String.format("No value has been specified for property '%s'", propertyName));
+                context.visitPropertyProblem(problem -> {
+                    problem.withId(ValidationProblemId.VALUE_NOT_SET)
+                        .reportAs(Severity.ERROR)
+                        .forProperty(propertyName)
+                        .withDescription("doesn't have a configured value")
+                        .happensBecause("This property isn't marked as optional and no value has been configured")
+                        .addPossibleSolution(() -> "Assign a value to '" + propertyName + "'")
+                        .addPossibleSolution(() -> "Mark property '" + propertyName + "' as optional")
+                        .documentedAt("validation_problems", "value_not_set");
+                });
             }
         } else {
             validationAction.validate(propertyName, unpacked, context);

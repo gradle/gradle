@@ -23,4 +23,5 @@ public enum ValidationProblemId {
     // to assign it an id, so that it can be referenced in tests
     INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION,
     MISSING_NORMALIZATION_ANNOTATION,
+    VALUE_NOT_SET,
 }

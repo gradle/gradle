@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.reflect.validation;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.problems.Solution;
 import org.gradle.model.internal.type.ModelType;
 
@@ -40,9 +41,11 @@ public class TypeValidationProblemRenderer {
         int solutionCount = possibleSolutions.size();
         if (solutionCount > 0) {
             details.append(" Possible solution").append(solutionCount > 1 ? "s" : "").append(": ");
-            details.append(maybeAppendDot(possibleSolutions.stream()
+            details.append(StringUtils.capitalize(maybeAppendDot(possibleSolutions.stream()
                 .map(Solution::getShortDescription)
-                .collect(Collectors.joining(" or "))));
+                .map(StringUtils::uncapitalize)
+                .collect(Collectors.joining(" or "))
+            )));
         }
         if (renderDocLink) {
             problem.getDocumentationLink().ifPresent(docLink ->

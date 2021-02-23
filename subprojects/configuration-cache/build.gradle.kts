@@ -77,6 +77,7 @@ dependencies {
 
     integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":jacoco")))
+    integTestImplementation(testFixtures(project(":model-core")))
 
     crossVersionTestImplementation(project(":cli"))
 

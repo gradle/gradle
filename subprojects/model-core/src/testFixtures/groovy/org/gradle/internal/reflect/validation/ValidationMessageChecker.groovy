@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 
 @CompileStatic
-trait DocumentationLinkChecker {
+trait ValidationMessageChecker {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     String userguideLink(String id, String section) {
@@ -29,5 +29,9 @@ trait DocumentationLinkChecker {
 
     String learnAt(String id, String section) {
         "Please refer to ${userguideLink(id, section)} for more details about this problem"
+    }
+
+    String missingValueMessage(String property) {
+        "property '$property' doesn't have a configured value. This property isn't marked as optional and no value has been configured. Possible solutions: Assign a value to '${property}' or mark property '${property}' as optional. ${learnAt('validation_problems', 'value_not_set')}."
     }
 }

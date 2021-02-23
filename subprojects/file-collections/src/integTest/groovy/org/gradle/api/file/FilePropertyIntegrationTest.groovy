@@ -18,9 +18,12 @@ package org.gradle.api.file
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Unroll
 
-class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
+class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, ValidationMessageChecker {
     def "can attach a calculated directory to task property"() {
         buildFile """
             class SomeTask extends DefaultTask {
@@ -740,6 +743,9 @@ class SomeTask extends DefaultTask {
         result.assertTasksSkipped(":doNothing")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     def "optional output consumed as non-optional input yields a reasonable error message"() {
         given:
         buildFile """
@@ -784,7 +790,7 @@ class SomeTask extends DefaultTask {
 
         then:
         failure.assertHasDescription("A problem was found with the configuration of task ':consumer' (type 'ConsumerTask').")
-        failureDescriptionContains("No value has been specified for property 'bean.inputFile'.")
+        failureDescriptionContains(missingValueMessage('bean.inputFile'))
         failure.assertTasksExecuted(':producer', ':consumer')
     }
 }

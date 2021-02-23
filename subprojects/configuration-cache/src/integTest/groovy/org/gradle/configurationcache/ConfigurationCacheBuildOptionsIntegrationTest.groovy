@@ -16,12 +16,15 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
-class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ValidationMessageChecker {
 
     @Issue("https://github.com/gradle/gradle/issues/13333")
     @Unroll
@@ -109,6 +112,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
             : 'producer.flatMap { it.outputFile }.map { it.asFile.readText() }'
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     @Issue("https://github.com/gradle/gradle/issues/13334")
     @Unroll
     def "task input property with convention set to absent #operator is reported correctly"() {
@@ -135,14 +141,14 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains "No value has been specified for property 'string'."
+        failureDescriptionContains missingValueMessage('string')
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains "No value has been specified for property 'string'."
+        failureDescriptionContains missingValueMessage('string')
         configurationCache.assertStateLoaded()
 
         where:
