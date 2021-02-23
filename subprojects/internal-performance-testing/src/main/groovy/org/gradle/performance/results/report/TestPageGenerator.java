@@ -304,7 +304,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         }
 
         public String getUrl() {
-            return String.format("https://github.com/%s/commit/%s", repo, formatHash(hash));
+            return String.format("https://github.com/%s/commit/%s", repo, hash);
         }
 
         public String getLabel() {
