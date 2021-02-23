@@ -62,6 +62,11 @@ File system watching and configuration caching is enabled for the comparison.
 
 You can find the performance test project [here](https://github.com/gradle/santa-tracker-performance).
 
+## Groovy 3 upgrade
+
+Gradle has been upgraded to use Groovy 3. Groovy 3 comes with a brand new parser (code-named Parrot) and host of other new features and capabilities. In order to learn more about the improvements and new features in Groovy, please refer to [their release notes](https://groovy-lang.org/releasenotes/groovy-3.0.html).
+While we're integrating the various improvements of Groovy into the Gradle codebase, you might experience unexpected problems related to the Groovy classpath, the Groovy DSL and the usage of `withGroovyBuilder`. If you experience any issues, please report an issue for us to look into this before the final release.
+ 
 ## Ignore empty `buildSrc` project
 
 In earlier Gradle versions, the mere presence of a `buildSrc` directory was enough to trigger Gradle to execute all `buildSrc` tasks and to add the resulting `buildSrc.jar` to the buildscript class path.
