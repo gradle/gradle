@@ -24,7 +24,6 @@ changeBuildType(RelativeId("Check_Stage_ExperimentalPerformance_PerformanceTests
             }
         }
         feature1.apply {
-            vcsRootExtId = "GradleWithoutDummy"
             publisher = github {
                 githubUrl = "https://api.github.com"
                 authType = personalToken {
