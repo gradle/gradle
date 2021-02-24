@@ -13,11 +13,6 @@ To apply the patch, change the buildType with id = 'Check_SanityCheck'
 accordingly, and delete the patch script.
 */
 changeBuildType(RelativeId("Check_SanityCheck")) {
-    vcs {
-        remove(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
-        add(AbsoluteId("GradleWithoutDummy"))
-    }
-
     features {
         val feature1 = find<CommitStatusPublisher> {
             commitStatusPublisher {
@@ -31,6 +26,7 @@ changeBuildType(RelativeId("Check_SanityCheck")) {
             }
         }
         feature1.apply {
+            vcsRootExtId = "GradleWithoutDummy"
             publisher = github {
                 githubUrl = "https://api.github.com"
                 authType = personalToken {

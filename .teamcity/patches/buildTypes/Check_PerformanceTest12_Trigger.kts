@@ -11,11 +11,6 @@ To apply the patch, change the buildType with id = 'Check_PerformanceTest12_Trig
 accordingly, and delete the patch script.
 */
 changeBuildType(RelativeId("Check_PerformanceTest12_Trigger")) {
-    vcs {
-        remove(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
-        add(AbsoluteId("GradleWithoutDummy"))
-    }
-
     features {
         val feature1 = find<CommitStatusPublisher> {
             commitStatusPublisher {
@@ -29,6 +24,7 @@ changeBuildType(RelativeId("Check_PerformanceTest12_Trigger")) {
             }
         }
         feature1.apply {
+            vcsRootExtId = "GradleWithoutDummy"
             publisher = github {
                 githubUrl = "https://api.github.com"
                 authType = personalToken {
