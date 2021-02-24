@@ -180,11 +180,9 @@ fun Test.configureJvmForTest() {
         }.getOrNull()
     }
     javaLauncher.set(launcher)
-    if (jvmVersionForTest().canCompileOrRun(9)) {
-        // allow embedded executer to modify environment variables
-        jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
-        // allow embedded executer to inject legacy types into the system classloader
-        jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+    if (jvmVersionForTest().canCompileOrRun(9) && (isUnitTest() || usesEmbeddedExecuter())) {
+        // This will break on wrapper update. Please change to org.gradle.internal.jvm.GroovyJpmsConfiguration.GROOVY_JPMS_JVM_ARGS when it does.
+        jvmArgs(org.gradle.internal.jvm.GroovyJpmsWorkarounds.SUPPRESS_COMMON_GROOVY_WARNINGS)
     }
 }
 
@@ -194,6 +192,10 @@ fun Test.addOsAsInputs() {
     inputs.property("operatingSystem", "${OperatingSystem.current().name} ${System.getProperty("os.arch")}")
 }
 
+fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
+
+fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
+
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -201,8 +203,6 @@ fun configureTests() {
             ignore("org/gradle/build-receipt.properties")
         }
     }
-
-    fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
 
     tasks.withType<Test>().configureEach {
         filterEnvironmentVariables()

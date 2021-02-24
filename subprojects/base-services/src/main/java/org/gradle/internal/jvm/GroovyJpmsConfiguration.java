@@ -20,17 +20,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-
-/**
- * Replaced by GroovyJpmsConfiguration
- * GradleBuild smoke tests still depend on this class - should be removable after a new nightly is built and the wrapper is updated
- */
-@Deprecated
-public class GroovyJpmsWorkarounds {
-    public static final List<String> SUPPRESS_COMMON_GROOVY_WARNINGS = Collections.unmodifiableList(Arrays.asList(
+public class GroovyJpmsConfiguration {
+    /**
+     * These JVM arguments should be passed to any process that will be using Groovy on Java 9+
+     * Gradle accesses those packages reflectively. On Java versions 9 to 15, the users will get
+     * a warning they can do nothing about. On Java 16+, strong encapsulation of JDK internals is
+     * enforced and not having those arguments will result in runtime exceptions on illegal
+     * reflective accesses.
+     */
+    public static final List<String> GROOVY_JPMS_JVM_ARGS = Collections.unmodifiableList(Arrays.asList(
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
         "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        // required by PreferenceCleaningGroovySystemLoader
         "--add-opens", "java.prefs/java.util.prefs=ALL-UNNAMED"
     ));
 }
