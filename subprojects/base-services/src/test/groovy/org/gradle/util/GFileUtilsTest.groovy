@@ -17,6 +17,7 @@
 package org.gradle.util
 
 import org.gradle.api.UncheckedIOException
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
 import org.junit.Rule
@@ -33,7 +34,8 @@ import static org.gradle.util.GFileUtils.touch
 
 class GFileUtilsTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def "can read the file's tail"() {
         def f = temp.file("foo.txt") << """
@@ -155,15 +157,17 @@ three
 
     def "uses fallback for touching empty files"() {
         given:
-        def fileAttributeView = Mock(BasicFileAttributeView)
-        def file = Spy(temp.file("data.txt"))
-        file.toPath() >> Stub(java.nio.file.Path) {
+        def fileAttributeView = Stub(BasicFileAttributeView) {
+            setTimes(_, _, _) >> { throw new FileSystemException("file: Operation not permitted") }
+        }
+        def path = Stub(java.nio.file.Path) {
             getFileSystem() >> Stub(FileSystem) {
                 provider() >> Stub(FileSystemProvider) {
                     getFileAttributeView(_, _, _) >> fileAttributeView
                 }
             }
         }
+        def file = new PathOverridingFile(temp.file("data.txt"), path)
         file.createNewFile()
         def original = file.makeOlder().lastModified()
 
@@ -171,7 +175,6 @@ three
         touch(file)
 
         then:
-        1 * fileAttributeView.setTimes(_, _, _) >> { throw new FileSystemException("file: Operation not permitted") }
         file.file
         file.lastModified() > original
         file.length() == 0
@@ -179,15 +182,17 @@ three
 
     def "does not use fallback for touching non-empty files"() {
         given:
-        def fileAttributeView = Mock(BasicFileAttributeView)
-        def file = Spy(temp.file("data.txt"))
-        file.toPath() >> Stub(java.nio.file.Path) {
+        def fileAttributeView = Stub(BasicFileAttributeView) {
+            setTimes(_, _, _) >> { throw new FileSystemException("file: Operation not permitted") }
+        }
+        def path = Stub(java.nio.file.Path) {
             getFileSystem() >> Stub(FileSystem) {
                 provider() >> Stub(FileSystemProvider) {
                     getFileAttributeView(_, _, _) >> fileAttributeView
                 }
             }
         }
+        def file = new PathOverridingFile(temp.file("data.txt"), path)
         file.text = "data"
         def original = file.makeOlder().lastModified()
 
@@ -195,11 +200,24 @@ three
         touch(file)
 
         then:
-        1 * fileAttributeView.setTimes(_, _, _) >> { throw new FileSystemException("file: Operation not permitted") }
         def exception = thrown(UncheckedIOException)
         exception.message.startsWith("Could not update timestamp")
         file.file
         file.lastModified() == original
         file.text == "data"
+    }
+
+    private static class PathOverridingFile extends TestFile {
+        private final java.nio.file.Path path
+
+        PathOverridingFile(TestFile delegate, java.nio.file.Path path) {
+            super(delegate)
+            this.path = path
+        }
+
+        @Override
+        java.nio.file.Path toPath() {
+            return path
+        }
     }
 }
