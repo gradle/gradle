@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import groovy.transform.NotYetImplemented
+import groovy.test.NotYetImplemented
 import spock.lang.Issue
 
 class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTest {
