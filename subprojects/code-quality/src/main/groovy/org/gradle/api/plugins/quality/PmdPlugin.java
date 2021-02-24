@@ -29,6 +29,7 @@ import org.gradle.util.VersionNumber;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -47,7 +48,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "6.26.0";
+    public static final String DEFAULT_PMD_VERSION = "6.31.0";
     private PmdExtension extension;
 
     @Override
@@ -64,7 +65,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
         extension.setToolVersion(DEFAULT_PMD_VERSION);
-        extension.setRuleSets(new ArrayList<>(Arrays.asList("category/java/errorprone.xml")));
+        extension.setRuleSets(new ArrayList<>(Collections.singletonList("category/java/errorprone.xml")));
         extension.setRuleSetFiles(project.getLayout().files());
         conventionMappingOf(extension).map("targetJdk", () ->
             getDefaultTargetJdk(getJavaPluginConvention().getSourceCompatibility()));
