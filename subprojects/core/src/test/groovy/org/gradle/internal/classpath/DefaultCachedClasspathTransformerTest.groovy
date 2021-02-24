@@ -84,7 +84,6 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     )
 
     def cleanup() {
-        testDir.eachFileRecurse { println it.absolutePath }
         testClassLoader?.close()
     }
 
@@ -298,7 +297,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(dir, file)
-        def cachedDir = testDir.file("cached/18274a6c4c429939a8a2acdbcbc1a553git/thing.dir.jar")
+        def cachedDir = testDir.file("cached/18274a6c4c429939a8a2acdbcbc1a553/thing.dir.jar")
         def cachedFile = testDir.file("cached/6b35df0a2af3d86f962ddecdcbefa7ee/thing.jar")
 
         when:
