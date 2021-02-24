@@ -11,6 +11,11 @@ To apply the patch, change the buildType with id = 'Check_Stage_ReadyforNightly_
 accordingly, and delete the patch script.
 */
 changeBuildType(RelativeId("Check_Stage_ReadyforNightly_Trigger")) {
+    vcs {
+        remove(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
+        add(AbsoluteId("GradleWithoutDummy"))
+    }
+
     features {
         val feature1 = find<CommitStatusPublisher> {
             commitStatusPublisher {
