@@ -26,7 +26,6 @@ changeBuildType(RelativeId("Check_SanityCheck")) {
             }
         }
         feature1.apply {
-            vcsRootExtId = "GradleWithoutDummy"
             publisher = github {
                 githubUrl = "https://api.github.com"
                 authType = personalToken {

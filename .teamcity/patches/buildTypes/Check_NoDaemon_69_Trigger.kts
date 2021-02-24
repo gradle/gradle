@@ -24,7 +24,6 @@ changeBuildType(RelativeId("Check_NoDaemon_69_Trigger")) {
             }
         }
         feature1.apply {
-            vcsRootExtId = "GradleWithoutDummy"
             publisher = github {
                 githubUrl = "https://api.github.com"
                 authType = personalToken {
