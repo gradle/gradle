@@ -28,7 +28,6 @@ import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
