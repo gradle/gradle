@@ -1,18 +1,14 @@
 // A project extension
-class MessageExtension {
+interface MessageExtension {
     // A configurable greeting
-    final Property<String> greeting
-
-    MessageExtension(ObjectFactory objects) {
-        greeting = objects.property(String)
-    }
+    Property<String> getGreeting()
 }
 
 // A task that displays a greeting
-class Greeting extends DefaultTask {
-    // A configurable greeting
+abstract class Greeting extends DefaultTask {
+    // Configurable by the user
     @Input
-    final Property<String> greeting = project.objects.property(String)
+    abstract Property<String> getGreeting()
 
     // Read-only property calculated from the greeting
     @Internal
@@ -28,13 +24,10 @@ class Greeting extends DefaultTask {
 project.extensions.create('messages', MessageExtension)
 
 // Create the greeting task
-task greeting(type: Greeting) {
+tasks.register("greeting", Greeting) {
     // Attach the greeting from the project extension
     // Note that the values of the project extension have not been configured yet
-    greeting.set(project.messages.greeting)
-
-    // Note that an assignment statement can be used instead of calling Property.set()
-    greeting = project.messages.greeting
+    greeting = messages.greeting
 }
 
 messages {

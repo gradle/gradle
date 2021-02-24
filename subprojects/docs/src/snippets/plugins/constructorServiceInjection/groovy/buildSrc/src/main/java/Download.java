@@ -6,6 +6,7 @@ import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
 
+// tag::download[]
 public class Download extends DefaultTask {
     private final DirectoryProperty outputDirectory;
 
@@ -26,3 +27,4 @@ public class Download extends DefaultTask {
         // ...
     }
 }
+// end::download[]

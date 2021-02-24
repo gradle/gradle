@@ -1,10 +1,12 @@
 // A task that generates a source file and writes the result to an output directory
-open class GenerateSource @Inject constructor(objects: ObjectFactory) : DefaultTask() {
-    @InputFile
-    val configFile: RegularFileProperty = objects.fileProperty()
+abstract class GenerateSource : DefaultTask() {
+    // The configuration file to use to generate the source file
+    @get:InputFile
+    abstract val configFile: RegularFileProperty
 
-    @OutputDirectory
-    val outputDir: DirectoryProperty = objects.directoryProperty()
+    // The directory to write source files to
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
 
     @TaskAction
     fun compile() {
@@ -21,10 +23,10 @@ open class GenerateSource @Inject constructor(objects: ObjectFactory) : DefaultT
 // Create the source generation task
 tasks.register<GenerateSource>("generate") {
     // Configure the locations, relative to the project and build directories
-    configFile.set(project.layout.projectDirectory.file("src/config.txt"))
-    outputDir.set(project.layout.buildDirectory.dir("generated-source"))
+    configFile.set(layout.projectDirectory.file("src/config.txt"))
+    outputDir.set(layout.buildDirectory.dir("generated-source"))
 }
 
 // Change the build directory
 // Don't need to reconfigure the task properties. These are automatically updated as the build directory changes
-buildDir = file("output")
+layout.buildDirectory.set(layout.projectDirectory.dir("output"))

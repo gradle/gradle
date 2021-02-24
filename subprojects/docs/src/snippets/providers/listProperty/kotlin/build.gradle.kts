@@ -1,6 +1,6 @@
-open class Producer : DefaultTask() {
-    @OutputFile
-    val outputFile: RegularFileProperty = project.objects.fileProperty()
+abstract class Producer : DefaultTask() {
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
 
     @TaskAction
     fun produce() {
@@ -11,9 +11,9 @@ open class Producer : DefaultTask() {
     }
 }
 
-open class Consumer : DefaultTask() {
-    @InputFiles
-    val inputFiles: ListProperty<RegularFile> = project.objects.listProperty(RegularFile::class)
+abstract class Consumer : DefaultTask() {
+    @get:InputFiles
+    abstract val inputFiles: ListProperty<RegularFile>
 
     @TaskAction
     fun consume() {
@@ -25,9 +25,9 @@ open class Consumer : DefaultTask() {
     }
 }
 
-val producerOne by tasks.registering(Producer::class)
-val producerTwo by tasks.registering(Producer::class)
-val consumer by tasks.registering(Consumer::class) {
+val producerOne = tasks.register<Producer>("producerOne")
+val producerTwo = tasks.register<Producer>("producerTwo")
+tasks.register<Consumer>("consumer") {
     // Connect the producer task outputs to the consumer task input
     // Don't need to add task dependencies to the consumer task. These are automatically added
     inputFiles.add(producerOne.get().outputFile)
@@ -41,4 +41,4 @@ producerTwo { outputFile.set(layout.buildDirectory.file("two.txt")) }
 
 // Change the build directory.
 // Don't need to update the task properties. These are automatically updated as the build directory changes
-buildDir = file("output")
+layout.buildDirectory.set(layout.projectDirectory.dir("output"))

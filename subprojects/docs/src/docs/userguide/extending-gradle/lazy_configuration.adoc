@@ -64,7 +64,7 @@ The `Greeting` task has a property of type `Property<String>` to represent the c
 
 Note that Gradle Groovy DSL generates setter methods for each `Property`-typed property in a task implementation. These setter methods allow you to configure the property using the assignment (`=`) operator as a convenience.
 
-Kotlin DSL conveniences will be added in a future release.
+In Kotlin DSL, the `set()` method on the property needs to be used instead of `=`.
 
 ====
 
@@ -267,8 +267,8 @@ Often you want to apply some _convention_, or default value, to a property to be
 
 .Property conventions
 ====
-include::sample[dir="snippets/providers/propertyConvention/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/providers/propertyConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/providers/propertyConvention/groovy",files="build.gradle[tags=conventions]"]
+include::sample[dir="snippets/providers/propertyConvention/kotlin",files="build.gradle.kts[tags=conventions]"]
 ====
 
 .Output of **`gradle show`**
