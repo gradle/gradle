@@ -12,7 +12,7 @@ def functionalTestTask = tasks.register('functionalTest', Test) {
 }
 
 tasks.named("check") {
-    dependsOn functionalTest
+    dependsOn functionalTestTask
 }
 
 gradlePlugin {

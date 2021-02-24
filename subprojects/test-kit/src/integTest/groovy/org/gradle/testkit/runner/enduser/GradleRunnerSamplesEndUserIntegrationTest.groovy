@@ -29,7 +29,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
+import static org.gradle.util.TestPrecondition.JDK11_OR_EARLIER
 import static org.gradle.util.TestPrecondition.ONLINE
 
 @NonCrossVersion
@@ -72,20 +72,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     }
 
     @Unroll
-    @UsesSample("testKit/manualClasspathInjection")
-    @Requires(JDK8_OR_EARLIER)
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl.*")
-    // Uses Gradle 2.8 which does not support Java 9
-    def "manualClasspathInjection with #dsl dsl"() {
-        expect:
-        executer.inDirectory(sample.dir.file(dsl))
-        succeeds "check", '--stacktrace', '--info'
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @Unroll
     @UsesSample("testKit/automaticClasspathInjectionQuickstart")
     def "automaticClasspathInjectionQuickstart with #dsl dsl"() {
         expect:
@@ -107,8 +93,8 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Requires([ONLINE, JDK8_OR_EARLIER])
-    // Uses Gradle 2.6 which does not support Java 9
+    @Requires([ONLINE, JDK11_OR_EARLIER])
+    // Uses Gradle 5.0 which does not support Java versions >11
     @UsesSample("testKit/gradleVersion")
     @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def gradleVersion() {
