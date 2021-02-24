@@ -70,8 +70,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
         inProject(":") {
             onPlugin('org.jetbrains.gradle.plugin.idea-ext') {
                 failsWith([
-                    "Type 'BuildIdeArtifact': property 'artifact' is not annotated with an input or output annotation.": WARNING,
-                    "Type 'BuildIdeArtifact': property 'outputDirectory' is not annotated with an input or output annotation.": WARNING
+                    "Type 'BuildIdeArtifact': property 'artifact' is not annotated with an input or output annotation.": WARNING
                 ])
             }
         }
