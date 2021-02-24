@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.internal.jvm.GroovyJpmsWorkarounds;
+import org.gradle.internal.jvm.GroovyJpmsConfiguration;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.configuration.BuildLayoutResult;
@@ -126,7 +126,7 @@ public class DaemonParameters {
     public void applyDefaultsFor(JavaVersion javaVersion) {
         if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
             jvmOptions.jvmArgs(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
-            jvmOptions.jvmArgs(GroovyJpmsWorkarounds.SUPPRESS_COMMON_GROOVY_WARNINGS);
+            jvmOptions.jvmArgs(GroovyJpmsConfiguration.GROOVY_JPMS_JVM_ARGS);
         }
         if (hasJvmArgs) {
             return;

@@ -1,4 +1,5 @@
 task originalInputs() {
+    outputs.dir('inputs')
     doLast {
         file('inputs').mkdir()
         file('inputs/1.txt').text = 'Content for file 1.'
@@ -9,6 +10,7 @@ task originalInputs() {
 
 // tag::updated-inputs[]
 task updateInputs() {
+    outputs.dir('inputs')
     doLast {
         file('inputs/1.txt').text = 'Changed content for existing file 1.'
         file('inputs/4.txt').text = 'Content for new file 4.'
@@ -18,6 +20,7 @@ task updateInputs() {
 
 // tag::removed-input[]
 task removeInput() {
+    outputs.dir('inputs')
     doLast {
         file('inputs/3.txt').delete()
     }
@@ -26,6 +29,7 @@ task removeInput() {
 
 // tag::removed-output[]
 task removeOutput() {
+    outputs.dir("$buildDir/outputs")
     doLast {
         file("$buildDir/outputs/1.txt").delete()
     }
@@ -39,6 +43,8 @@ task incrementalReverse(type: IncrementalReverseTask) {
     inputProperty = project.properties['taskInputProperty'] ?: 'original'
 }
 // end::reverse[]
+
+incrementalReverse.mustRunAfter(originalInputs, updateInputs, removeInput, removeOutput)
 
 // tag::incremental-task[]
 abstract class IncrementalReverseTask extends DefaultTask {

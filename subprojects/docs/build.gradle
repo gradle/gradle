@@ -508,11 +508,6 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
         }
-
-        // TODO investigate ignored snippets
-        if (org.gradle.internal.os.OperatingSystem.current().macOsX) {
-            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-tasks-incremental-task_*_incrementalTask*.sample' // Some 'incrementalTask' tests seem to be flaky on OS X only
-        }
     }
 }
 

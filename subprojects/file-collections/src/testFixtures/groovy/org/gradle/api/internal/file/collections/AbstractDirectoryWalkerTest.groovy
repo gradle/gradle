@@ -31,7 +31,6 @@ import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicInteger
 
 @UsesNativeServices
@@ -43,10 +42,6 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     SetSystemProperties setSystemPropertiesRule
 
     protected abstract List<T> getWalkers()
-
-    def cleanup() {
-        Charset.defaultCharset = null // clear cache
-    }
 
     @Unroll
     def "basic directory walking works - walker: #walkerInstance.class.simpleName"() {

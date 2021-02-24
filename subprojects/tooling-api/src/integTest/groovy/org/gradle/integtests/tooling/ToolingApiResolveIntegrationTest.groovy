@@ -51,7 +51,7 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'resolve'
 
         then:
-        outputContains("[gradle-tooling-api-${tapiVersion}.jar, slf4j-api-1.7.28.jar]")
+        outputContains("[gradle-tooling-api-${tapiVersion}.jar, slf4j-api-1.7.30.jar]")
 
         where:
         configuration << ['compileClasspath', 'runtimeClasspath', 'customConf']
