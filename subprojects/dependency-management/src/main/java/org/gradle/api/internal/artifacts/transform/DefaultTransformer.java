@@ -96,6 +96,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
+
 public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> {
 
     private final Class<? extends FileNormalizer> fileNormalizer;
@@ -186,7 +188,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                         .forProperty(propertyName)
                         .withDescription("is declared to be sensitive to absolute paths")
                         .happensBecause("This is not allowed for cacheable transforms")
-                        .withLongDescription("This annotation doesn't make sense for artifact transforms which are executed in their own workspace.")
+                        .withLongDescription("Absolute path sensitivity does not allow sharing the transform result between different machines, although that is the goal of cacheable transforms.")
                         .addPossibleSolution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath")
                         .documentedAt("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"));
             }
@@ -276,16 +278,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                     Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                     if (preparedValue == null && !optional) {
-                        validationContext.visitPropertyProblem(problem ->
-                            problem.withId(ValidationProblemId.VALUE_NOT_SET)
-                                .reportAs(Severity.ERROR)
-                                .forProperty(propertyName)
-                                .withDescription("doesn't have a configured value")
-                                .happensBecause("This property isn't marked as optional and no value has been configured")
-                                .addPossibleSolution(() -> "Assign a value to '" + propertyName + "'")
-                                .addPossibleSolution(() -> "Mark property '" + propertyName + "' as optional")
-                                .documentedAt("validation_problems", "value_not_set")
-                        );
+                        reportValueNotSet(propertyName, validationContext);
                     }
 
                     inputParameterFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
