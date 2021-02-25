@@ -245,7 +245,7 @@ apply plugin: SomePlugin
                 repositories {
                     maven {
                         name = "localRepo"
-                        setUrl(project.layout.buildDirectory.dir("repo"))
+                        setUrl(new File(project.buildDir, 'repo'))
                     }
                 }
             }
