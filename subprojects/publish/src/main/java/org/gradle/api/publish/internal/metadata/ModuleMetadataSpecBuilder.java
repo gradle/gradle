@@ -17,6 +17,7 @@
 package org.gradle.api.publish.internal.metadata;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -187,6 +188,9 @@ class ModuleMetadataSpecBuilder {
     }
 
     private ModuleMetadataSpec.AvailableAt availableAt(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates) {
+        if (coordinates.getModule().equals(targetCoordinates.getModule())) {
+            throw new InvalidUserCodeException("Cannot have a remote variant with coordinates '" + targetCoordinates.getModule() + "' that are the same as the module itself.");
+        }
         return new ModuleMetadataSpec.AvailableAt(
             relativeUrlTo(coordinates, targetCoordinates),
             targetCoordinates
