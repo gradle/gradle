@@ -17,12 +17,16 @@
 package org.gradle.internal.reflect.annotations.impl
 
 import groovy.transform.Generated
+import groovy.transform.Memoized
 import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -38,7 +42,7 @@ import java.lang.reflect.Method
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 
-class DefaultTypeAnnotationMetadataStoreTest extends Specification {
+class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
     private static final COLOR = { "color" } as AnnotationCategory
 
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
@@ -77,6 +81,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             private String getPrivateProperty() { "private" }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "finds annotated properties"() {
         expect:
         assertProperties TypeWithAnnotatedProperty, [
@@ -86,7 +93,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             privateProperty: [(TYPE): Small],
             injectedProperty: [(TYPE): Inject],
         ], [
-            "Property 'privateProperty' is private and annotated with @$Small.simpleName."
+            strict(privateGetterAnnotatedMessage('privateProperty', Small.simpleName, false, true))
         ]
     }
 
@@ -139,12 +146,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getInjectedProperty() { injectedProperty }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "warns about annotation on field conflicting with annotation on getter and prefers getter annotation"() {
         expect:
         assertProperties TypeWithConflictingFieldAndMethodAnnotation, [
             property: [(TYPE): Small],
         ], [
-            "Property 'property' has conflicting type annotations declared: @Small, @Large; assuming @Small."
+            strict(conflictingAnnotationsMessage('property', ['Small', 'Large'], false, true, true))
         ]
     }
 
@@ -157,10 +167,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getProperty() { property }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD
+    )
     def "warns about annotation on field without getter"() {
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large."
+            strict("Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large. Annotations on fields are only used if there's a corresponding getter for the field. Possible solutions: Add a getter for field 'property' or remove the annotations on 'property'. ${learnAt('validation_problems', 'ignored_annotations_on_field')}.")
         ]
     }
 
@@ -187,12 +200,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getIgnoredProperty()
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.REDUNDANT_GETTERS
+    )
     def "ignores 'is' getter when 'get' getter is also defined"() {
         expect:
         assertProperties TypeWithIsAndGetProperty, [
             bool: [(TYPE): Small],
         ], [
-            "Property 'bool' has redundant getters: 'getBool()' and 'isBool()'."
+            strict("Property 'bool' has redundant getters: 'getBool()' and 'isBool()'. Boolean property 'bool' has both an `is` and a `get` getter. Possible solution: Remove one of the getters. ${learnAt("validation_problems", "redundant_getters")}.")
         ]
         store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
@@ -255,12 +271,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             boolean isBool() { true }
         }
 
-    def "warns when ignored property has other annotations"() {
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
+    def "fails when ignored property has other annotations"() {
         expect:
         assertProperties TypeWithIgnoredPropertyWithOtherAnnotations, [
             ignoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'ignoredProperty' annotated with @Ignored should not be also annotated with @Color."
+            strict(ignoredAnnotatedPropertyMessage('ignoredProperty', 'Ignored', 'Color', false, true))
         ]
     }
 
@@ -270,12 +289,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getIgnoredProperty()
         }
 
-    def "warns when ignored property has other ignore annotations"() {
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
+    def "fails when ignored property has other ignore annotations"() {
         expect:
         assertProperties TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations, [
             twiceIgnoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'twiceIgnoredProperty' annotated with @Ignored should not be also annotated with @Ignored2."
+            strict(ignoredAnnotatedPropertyMessage('twiceIgnoredProperty', 'Ignored', 'Ignored2', false, true))
         ]
     }
 
@@ -285,12 +307,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getTwiceIgnoredProperty()
         }
 
-    def "warns when field is ignored but there is another annotation on the getter"() {
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
+    def "fails when field is ignored but there is another annotation on the getter"() {
         expect:
         assertProperties TypeWithIgnoredFieldAndGetterInput, [
             ignoredByField: [(TYPE): Ignored]
         ], [
-            "Property 'ignoredByField' annotated with @Ignored should not be also annotated with @Small."
+            strict(ignoredAnnotatedPropertyMessage('ignoredByField', 'Ignored', 'Small', false, true))
         ]
     }
 
@@ -386,12 +411,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getOverriddenProperty() { "test" }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "implemented properties inherit annotation from first conflicting interface"() {
         expect:
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "first-interface" }]
         ], [
-            "Property 'overriddenProperty' has conflicting color annotations inherited (from interface): @Color, @Color; assuming @Color."
+            strict(conflictingAnnotationsMessage('overriddenProperty', ['Color', 'Color'], false, true, true, 'color annotations inherited (from interface)'))
         ]
     }
 
@@ -523,14 +551,17 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getPropertyIgnoredInBase()
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "warns about conflicting property types being specified, chooses first declaration"() {
         expect:
         assertProperties TypeWithPropertiesWithMultipleAnnotationsOfSameCategory, [
             largeThenSmall: [(TYPE): Large],
             smallThenLarge: [(TYPE): Small]
         ], [
-            "Property 'largeThenSmall' has conflicting type annotations declared: @Large, @Small; assuming @Large.",
-            "Property 'smallThenLarge' has conflicting type annotations declared: @Small, @Large; assuming @Small."
+            strict(conflictingAnnotationsMessage('largeThenSmall', ['Large', 'Small'], false, true, true)),
+            strict(conflictingAnnotationsMessage('smallThenLarge', ['Small', 'Large'], false, true, true))
         ]
     }
 
@@ -545,12 +576,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getSmallThenLarge()
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "warns about both method and field having the same annotation, prefers method annotation"() {
         expect:
         assertProperties WithBothFieldAndGetterAnnotation, [
             inputFiles: [(COLOR): { it instanceof Color && it.declaredBy() == "method" }]
         ], [
-            "Property 'inputFiles' has conflicting color annotations declared: @Color, @Color; assuming @Color."
+            strict(conflictingAnnotationsMessage('inputFiles', ['Color', 'Color'], false, true, true, 'color annotations declared'))
         ]
     }
 
@@ -565,6 +599,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
+    )
     def "report setters for property of mutable type"() {
         expect:
         assertProperties TypeWithPropertiesWithMutableProperties, [
@@ -573,8 +610,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             mutableSubTypeWithSetter: [(TYPE): Small],
             mutableTypeWithSetter: [(TYPE): Small]
         ], [
-            "Property 'mutableSubTypeWithSetter' of mutable type '${MutableSubType.name}' is writable. Properties of this type should be read-only and mutated via the value itself.",
-            "Property 'mutableTypeWithSetter' of mutable type '${MutableType.name}' is writable. Properties of this type should be read-only and mutated via the value itself."
+            mutableSetterErrorMessage('mutableSubTypeWithSetter', MutableSubType.name),
+            mutableSetterErrorMessage('mutableTypeWithSetter', MutableType.name),
         ]
     }
 
@@ -617,12 +654,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             }
         }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "warns about annotations on private properties"() {
         expect:
         assertProperties WithAnnotationsOnPrivateProperty, [
             privateInput: [(TYPE): Large]
         ], [
-            "Property 'privateInput' is private and annotated with @${Large.simpleName}."
+            strict(privateGetterAnnotatedMessage('privateInput', Large.simpleName, false, true))
         ]
     }
 
@@ -679,13 +719,16 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         @Irrelevant
         interface TypeWithAnnotations {}
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+    )
     def "warns about annotations on non-getter methods"() {
         expect:
         assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': non-property method 'doSomething()' should not be annotated with: @Large.",
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': setter method 'setSomething()' should not be annotated with: @Large.",
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': static method 'doStatic()' should not be annotated with: @Large.",
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': static method 'getStatic()' should not be annotated with: @Small.",
+            strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'method', 'doSomething', 'Large', true)),
+            strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'setter', 'setSomething', 'Large', true)),
+            strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'static method', 'doStatic', 'Large', true)),
+            strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'static method', 'getStatic', 'Small', true)),
         ]
     }
 
@@ -702,6 +745,19 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
 
             @Large
             void setSomething(String something) {}
+        }
+
+
+    def "ignores validation of generated Groovy methods"() {
+        expect:
+        assertProperties TypeWithGeneratedGroovyMethods, [someValue:[(TYPE): Large]]
+    }
+
+        @SuppressWarnings("GroovyUnusedDeclaration")
+        private static class TypeWithGeneratedGroovyMethods {
+            @Memoized
+            @Large
+            String getSomeValue() { "foo" }
         }
 
     def "does not detect methods on type from ignored package"() {
@@ -742,6 +798,14 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
+    }
+
+    private static String strict(String message) {
+        "$message [STRICT]"
+    }
+
+    private String mutableSetterErrorMessage(String property, String propertyType) {
+        strict("Property '$property' of mutable type '$propertyType' is writable. Properties of type '$propertyType' are already mutable. Possible solution: Remove the 'set${property.capitalize()}' method. ${learnAt("validation_problems", "mutable_type_with_setter")}.")
     }
 }
 

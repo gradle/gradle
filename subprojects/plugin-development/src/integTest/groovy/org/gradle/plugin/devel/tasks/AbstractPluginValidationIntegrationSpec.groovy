@@ -239,7 +239,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(true, [
+        assertValidationFailsWith([
             error("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
             error("Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types."),
             error("Type 'MyTask.Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
@@ -369,6 +369,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
+    @ValidationTestFor(
+        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
+    )
     def "reports setters for property of mutable type #type"() {
         file("input.txt").text = "input"
 
@@ -397,9 +400,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself.": WARNING,
-        )
+        def typeDesc = type.replaceAll("<.+>", "")
+        def errorMessage = "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '$typeDesc' is writable. Properties of type '$typeDesc' are already mutable. Possible solution: Remove the 'setMutablePropertyWithSetter' method."
+        assertValidationFailsWith([
+            error(errorMessage, 'validation_problems', 'mutable_type_with_setter')
+        ])
 
         where:
         type                            | init
@@ -594,6 +599,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "detects annotations on private getter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -629,13 +637,16 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'badTime' is private and annotated with @Input.": WARNING,
-            "Type 'MyTask': property 'options.badNested' is private and annotated with @Input.": WARNING,
-            "Type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(privateGetterAnnotatedMessage('badTime', 'Input'), 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage('options.badNested', 'Input'), 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage('outputDir', 'OutputDirectory'), 'validation_problems', 'private_getter_must_not_be_annotated'),
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+    )
     def "detects annotations on non-property methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -666,12 +677,15 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask.Options': non-property method 'notANestedGetter()' should not be annotated with: @Input.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(methodShouldNotBeAnnotatedMessage('MyTask', 'method', 'notAGetter', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage('MyTask.Options', 'method', 'notANestedGetter', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+    )
     def "detects annotations on setter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -717,13 +731,13 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask.Options': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask.Options': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
-        )
+        assertValidationFailsWith([
+            warning("Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation."),
+            error(methodShouldNotBeAnnotatedMessage('MyTask', 'setter', 'setReadWrite', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage('MyTask', 'setter', 'setWriteOnly', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage('MyTask.Options', 'setter', 'setReadWrite', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage('MyTask.Options', 'setter', 'setWriteOnly', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+        ])
     }
 
     def "reports conflicting types when property is replaced"() {
@@ -756,11 +770,14 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'oldProperty' annotated with @ReplacedBy should not be also annotated with @Input.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(ignoredAnnotatedPropertyMessage('oldProperty', 'ReplacedBy', 'Input'), 'validation_problems', 'ignored_property_must_not_be_annotated')
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "reports both input and output annotation applied to the same property"() {
         javaTaskSource << """
             import java.io.File;
@@ -782,9 +799,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'file' has conflicting type annotations declared: @InputFile, @OutputFile; assuming @InputFile.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(conflictingAnnotationsMessage('file', ['InputFile', 'OutputFile']), 'validation_problems', 'conflicting_annotations'),
+        ])
     }
 
     abstract String getIterableSymbol()
@@ -844,5 +861,4 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     String getNormalizationProblemDetails() {
         "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}."
     }
-
 }

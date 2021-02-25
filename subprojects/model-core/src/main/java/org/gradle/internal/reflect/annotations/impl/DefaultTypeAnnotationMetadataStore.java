@@ -27,15 +27,19 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
+import groovy.transform.Generated;
+import org.gradle.api.Action;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyAccessorType;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
@@ -59,7 +63,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadataStore {
     private static final TypeAnnotationMetadata EMPTY_TYPE_ANNOTATION_METADATA = new TypeAnnotationMetadata() {
@@ -79,7 +83,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         @Override
-        public void visitValidationFailures(TypeValidationContext validationContext) {}
+        public void visitValidationFailures(TypeValidationContext validationContext) {
+        }
     };
 
     private final ImmutableSet<Class<? extends Annotation>> recordedTypeAnnotations;
@@ -270,9 +275,18 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     propertyBuilders.put(propertyName, metadataBuilder);
                     continue;
                 }
-                previouslySeenBuilder.recordProblem(String.format("has redundant getters: '%s()' and '%s()'",
-                    previouslySeenBuilder.method.getName(),
-                    metadataBuilder.method.getName()));
+                previouslySeenBuilder.visitPropertyProblem(problem -> {
+                    problem.withId(ValidationProblemId.REDUNDANT_GETTERS)
+                        .reportAs(ERROR)
+                        .forProperty(propertyName)
+                        .withDescription(() -> String.format("has redundant getters: '%s()' and '%s()'",
+                            previouslySeenBuilder.method.getName(),
+                            metadataBuilder.method.getName()))
+                        .happensBecause(() -> "Boolean property '" + propertyName + "' has both an `is` and a `get` getter")
+                        .withLongDescription("Different annotations on the different getters cause problems on what to track as inputs")
+                        .addPossibleSolution("Remove one of the getters")
+                        .documentedAt("validation_problems", "redundant_getters");
+                });
             }
         }
         return ImmutableList.copyOf(propertyBuilders.values());
@@ -320,22 +334,50 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach(entry -> {
                     String fieldName = entry.getKey();
                     ImmutableMap<Class<? extends Annotation>, Annotation> fieldAnnotations = entry.getValue();
-                    validationContext.visitTypeProblem(WARNING,
-                        type,
-                        String.format("field '%s' without corresponding getter has been annotated with %s",
-                            fieldName,
-                            simpleAnnotationNames(fieldAnnotations.keySet().stream()))
+                    validationContext.visitTypeProblem(problem ->
+                        problem.withId(ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD)
+                            .forType(type)
+                            .reportAs(ERROR)
+                            .withDescription(() -> String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
+                            .happensBecause("Annotations on fields are only used if there's a corresponding getter for the field")
+                            .withLongDescription("If a field is annotated but there's no corresponding getter, then the annotations are ignored")
+                            .addPossibleSolution(() -> "Add a getter for field '" + fieldName + "'")
+                            .addPossibleSolution(() -> "Remove the annotations on '" + fieldName + "'")
+                            .documentedAt("validation_problems", "ignored_annotations_on_field")
                     );
                 });
         }
         return propertiesMetadata;
     }
 
-    private void processMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
+    private boolean shouldIgnore(Method method) {
         if (method.isSynthetic()) {
-            return;
+            return true;
         }
         if (method.isBridge()) {
+            return true;
+        }
+        if (isIgnoredGeneratedGroovyMethod(method)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Groovy getters are annotated with `@Generated` but shouldn't be ignored.
+     * Other methods which have '$' in their name are usually a good heuristic for the
+     * fact we should ignore them, for example methods generated by the @Memoized annotation
+     * ref: https://github.com/gradle/gradle/issues/16117
+     *
+     * @param method a candidate method
+     * @return true if we suspect this method to be a safely ignorable generated method
+     */
+    private boolean isIgnoredGeneratedGroovyMethod(Method method) {
+        return method.getAnnotation(Generated.class) != null && method.getName().contains("$");
+    }
+
+    private void processMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
+        if (shouldIgnore(method)) {
             return;
         }
         // As an optimization first check if the method name is among the candidates before we construct an equivalence wrapper
@@ -347,19 +389,19 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         ImmutableMap<Class<? extends Annotation>, Annotation> annotations = collectRelevantAnnotations(method);
 
         if (Modifier.isStatic(method.getModifiers())) {
-            validateNotAnnotated("static", method, annotations.keySet(), validationContext);
+            validateNotAnnotated(MethodKind.STATIC, method, annotations.keySet(), validationContext);
             return;
         }
 
         PropertyAccessorType accessorType = PropertyAccessorType.of(method);
         if (accessorType == null) {
-            validateNotAnnotated("non-property", method, annotations.keySet(), validationContext);
+            validateNotAnnotated(MethodKind.NON_PROPERTY, method, annotations.keySet(), validationContext);
             return;
         }
 
         String propertyName = accessorType.propertyNameFor(method);
         if (accessorType == PropertyAccessorType.SETTER) {
-            validateNotAnnotated("setter", method, annotations.keySet(), validationContext);
+            validateNotAnnotated(MethodKind.SETTER, method, annotations.keySet(), validationContext);
             validateSetterForMutableType(method, accessorType, validationContext, propertyName);
             return;
         }
@@ -377,8 +419,17 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         if (privateGetter) {
             // At this point we must have annotations on this private getter
-            metadataBuilder.recordProblem(String.format("is private and annotated with %s",
-                simpleAnnotationNames(annotations.keySet().stream())));
+            metadataBuilder.visitPropertyProblem(problem ->
+                problem.withId(ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED)
+                    .forProperty(propertyName)
+                    .reportAs(ERROR)
+                    .withDescription(() -> String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
+                    .happensBecause("Annotations on private getters are ignored")
+                    .withLongDescription("Private getters are ignored for up-to-date checking, meaning that you might think you have declared an input when it's not the case")
+                    .addPossibleSolution("Make the getter public")
+                    .addPossibleSolution("Annotate the public version of the getter")
+                    .documentedAt("validation_problems", "private_getter_must_not_be_annotated")
+            );
         }
 
         for (Annotation annotation : annotations.values()) {
@@ -389,10 +440,15 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private void validateSetterForMutableType(Method setterMethod, PropertyAccessorType setterAccessorType, TypeValidationContext validationContext, String propertyName) {
         Class<?> setterType = setterAccessorType.propertyTypeFor(setterMethod);
         if (isSetterProhibitedForType(setterType)) {
-            validationContext.visitPropertyProblem(WARNING,
-                propertyName,
-                String.format("of mutable type '%s' is writable. Properties of this type should be read-only and mutated via the value itself",
-                    setterType.getName())
+            validationContext.visitPropertyProblem(problem ->
+                problem.withId(ValidationProblemId.MUTABLE_TYPE_WITH_SETTER)
+                    .reportAs(ERROR)
+                    .forProperty(propertyName)
+                    .withDescription(() -> String.format("of mutable type '%s' is writable", setterType.getName()))
+                    .happensBecause(() -> "Properties of type '" + setterType.getName() + "' are already mutable")
+                    .withLongDescription(() -> "Setting mutable properties value shouldn't be done by calling a setter but using the mutation methods of '" + setterType.getName() + "', otherwise task dependencies may be lost.")
+                    .addPossibleSolution(() -> "Remove the '" + setterMethod.getName() + "' method")
+                    .documentedAt("validation_problems", "mutable_type_with_setter")
             );
         }
     }
@@ -416,13 +472,20 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         void visitType(Class<?> type, TypeAnnotationMetadata metadata);
     }
 
-    private static void validateNotAnnotated(String methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+    private static void validateNotAnnotated(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
-            validationContext.visitTypeProblem(WARNING,
-                method.getDeclaringClass(),
-                String.format("%s method '%s()' should not be annotated with: %s",
-                    methodKind, method.getName(), simpleAnnotationNames(annotationTypes.stream())
-            ));
+            validationContext.visitTypeProblem(problem ->
+                problem.forType(method.getDeclaringClass())
+                    .withId(ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD)
+                    .reportAs(ERROR)
+                    .withDescription(() -> String.format("%s '%s()' should not be annotated with: %s",
+                        methodKind.getDisplayName(), method.getName(), simpleAnnotationNames(annotationTypes.stream())
+                    ))
+                    .happensBecause(() -> "Input/Output annotations are ignored if they are placed on something else than a getter")
+                    .addPossibleSolution("Remove the annotations")
+                    .addPossibleSolution("Rename the method")
+                    .documentedAt("validation_problems", "ignored_annotations_on_method")
+            );
         }
     }
 
@@ -485,8 +548,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     : inheritedSuperclassAnnotations)::put);
         }
 
-        public void recordProblem(String problem) {
-            validationContext.visitPropertyProblem(WARNING, propertyName, problem);
+        public void visitPropertyProblem(Action<? super PropertyProblemBuilder> builder) {
+            validationContext.visitPropertyProblem(builder);
         }
 
         public PropertyAnnotationMetadata build() {
@@ -500,12 +563,21 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 Class<? extends Annotation> ignoredMethodAnnotation = declaredType.annotationType();
                 if (ignoredMethodAnnotations.contains(ignoredMethodAnnotation)) {
                     if (declaredAnnotations.values().size() > 1) {
-                        recordProblem(String.format("annotated with @%s should not be also annotated with %s",
-                            ignoredMethodAnnotation.getSimpleName(),
-                            simpleAnnotationNames(declaredAnnotations.values().stream()
-                                .<Class<? extends Annotation>>map(Annotation::annotationType)
-                                .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
-                        ));
+                        visitPropertyProblem(problem ->
+                            problem.withId(ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED)
+                                .reportAs(ERROR)
+                                .forProperty(propertyName)
+                                .withDescription(() -> String.format("annotated with @%s should not be also annotated with %s",
+                                    ignoredMethodAnnotation.getSimpleName(),
+                                    simpleAnnotationNames(declaredAnnotations.values().stream()
+                                        .<Class<? extends Annotation>>map(Annotation::annotationType)
+                                        .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))))
+                                .happensBecause("A property is ignored but contains input annotations")
+                                .withLongDescription("Having both an input annotation and saying that the property is ignored is confusing: Gradle cannot determine if the input is relevant or not")
+                                .addPossibleSolution("Remove the input annotations")
+                                .addPossibleSolution(() -> "Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
+                                .documentedAt("validation_problems", "ignored_property_must_not_be_annotated")
+                        );
                     }
                     return ImmutableMap.of(TYPE, declaredType);
                 }
@@ -544,13 +616,20 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             // Ignore all but the first recorded annotation
             Annotation declaredAnnotationForCategory = iDeclaredAnnotationForCategory.next();
             if (iDeclaredAnnotationForCategory.hasNext()) {
-                recordProblem(String.format("has conflicting %s annotations %s: %s; assuming @%s",
-                    category.getDisplayName(),
-                    source,
-                    simpleAnnotationNames(annotationsForCategory.stream()
-                        .map(Annotation::annotationType)),
-                    declaredAnnotationForCategory.annotationType().getSimpleName()
-                ));
+                visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.CONFLICTING_ANNOTATIONS)
+                        .forProperty(propertyName)
+                        .reportAs(ERROR)
+                        .withDescription(() -> String.format("has conflicting %s annotations %s: %s",
+                            category.getDisplayName(),
+                            source,
+                            simpleAnnotationNames(annotationsForCategory.stream()
+                                .map(Annotation::annotationType))
+                        ))
+                        .happensBecause("The different annotations have different semantics and Gradle cannot determine which one to pick")
+                        .addPossibleSolution("Choose between one of the conflicting annotations")
+                        .documentedAt("validation_problems", "conflicting_annotations")
+                );
             }
             return declaredAnnotationForCategory;
         }
@@ -572,6 +651,22 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         @Override
         public int compareTo(PropertyAnnotationMetadataBuilder o) {
             return propertyName.compareTo(o.propertyName);
+        }
+    }
+
+    private enum MethodKind {
+        STATIC("static method"),
+        NON_PROPERTY("method"),
+        SETTER("setter");
+
+        private final String displayName;
+
+        MethodKind(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
         }
     }
 }

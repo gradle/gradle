@@ -47,12 +47,14 @@ public class DefaultNodeValidator implements NodeValidator {
                     docId = docref.getId();
                     section = docref.getSection();
                 }
-                String warning = TypeValidationProblemRenderer.renderMinimalInformationAbout(problem, false);
-                DeprecationLogger.deprecateBehaviour(warning)
-                    .withContext("Execution optimizations are disabled to ensure correctness.")
-                    .willBeRemovedInGradle7()
-                    .withUserManual(docId, section)
-                    .nagUser();
+                if (problem.getSeverity().isWarning()) {
+                    String warning = TypeValidationProblemRenderer.renderMinimalInformationAbout(problem, false);
+                    DeprecationLogger.deprecateBehaviour(warning)
+                        .withContext("Execution optimizations are disabled to ensure correctness.")
+                        .willBeRemovedInGradle7()
+                        .withUserManual(docId, section)
+                        .nagUser();
+                }
             });
             return !problems.isEmpty();
         } else {

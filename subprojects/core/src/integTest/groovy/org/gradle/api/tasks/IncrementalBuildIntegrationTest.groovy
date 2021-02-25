@@ -17,6 +17,8 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -1283,14 +1285,10 @@ task generate(type: TransformerTask) {
     }
 
     @ToBeImplemented("Private getters should be ignored")
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "private inputs can be overridden in subclass"() {
-        executer.beforeExecute {
-            executer.expectDocumentedDeprecationWarning("Type 'MyTask': property 'myPrivateInput' is private and annotated with @Input. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        }
-
         given:
         buildFile << '''
             abstract class MyBaseTask extends DefaultTask {
@@ -1323,16 +1321,10 @@ task generate(type: TransformerTask) {
         '''
 
         when:
-        run 'myTask'
-        then:
-        def outputFile = file('build/output.txt')
-        outputFile.text == 'overridden private'
+        fails 'myTask'
 
-        when:
-        run 'myTask', "--info"
         then:
-        executedAndNotSkipped(":myTask")
-        outputContains("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
+        failure.assertThatDescription(containsNormalizedString("Type 'MyTask': property 'myPrivateInput' is private and annotated with @Input. Annotations on private getters are ignored."))
     }
 
     @ToBeImplemented("Private getters should be ignored")
@@ -1388,17 +1380,13 @@ task generate(type: TransformerTask) {
         outputFile.text == 'second'
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     @Issue("https://github.com/gradle/gradle/issues/11805")
-    def "Groovy property annotated as @Internal with differently annotated getter emits warning about conflicting annotations"() {
+    def "Groovy property annotated as @Internal with differently annotated getter fails about conflicting annotations"() {
         def inputFile = file("input.txt")
         inputFile.text = "original"
-
-        executer.beforeExecute {
-            executer.expectDocumentedDeprecationWarning("Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        }
 
         buildFile << """
             class CustomTask extends DefaultTask {
@@ -1427,21 +1415,11 @@ task generate(type: TransformerTask) {
         """
 
         when:
-        run "custom"
-        then:
-        executedAndNotSkipped ":custom"
+        fails "custom"
 
-        when:
-        run "custom", "--info"
         then:
-        executedAndNotSkipped ":custom"
-        outputContains("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
-
-        when:
-        inputFile.text = "changed"
-        run "custom", "--info"
-        then:
-        executedAndNotSkipped ":custom"
-        outputContains("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
+        failure.assertThatDescription(containsNormalizedString(
+            "Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. A property is ignored but contains input annotations. Possible solutions: Remove the input annotations or remove the @Internal annotation."
+        ))
     }
 }
