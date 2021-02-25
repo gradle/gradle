@@ -1,7 +1,11 @@
 // tag::add-property[]
-class GreetingTask extends DefaultTask {
+abstract class GreetingTask extends DefaultTask {
     @Input
-    String greeting = 'hello from GreetingTask'
+    abstract Property<String> getGreeting()
+
+    GreetingTask() {
+        greeting.convention('hello from GreetingTask')
+    }
 
     @TaskAction
     def greet() {

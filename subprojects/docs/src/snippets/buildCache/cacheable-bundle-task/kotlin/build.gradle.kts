@@ -3,7 +3,7 @@ plugins {
 }
 
 // Fake NPM task that would normally execute npm with its provided arguments
-open class NpmTask : DefaultTask() {
+abstract class NpmTask : DefaultTask() {
 
     open val args = project.objects.listProperty<String>()
 
@@ -19,7 +19,7 @@ open class NpmTask : DefaultTask() {
 
 // tag::bundle-task[]
 @CacheableTask                                       // <1>
-open class BundleTask : NpmTask() {
+abstract class BundleTask : NpmTask() {
 
     @get:Internal                                    // <2>
     override val args

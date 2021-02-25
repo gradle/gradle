@@ -1,5 +1,9 @@
-open class GreetingPluginExtension {
-    var message = "Hello from GreetingPlugin"
+abstract class GreetingPluginExtension {
+    abstract val message: Property<String>
+
+    init {
+        message.convention("Hello from GreetingPlugin")
+    }
 }
 
 class GreetingPlugin : Plugin<Project> {
@@ -9,7 +13,7 @@ class GreetingPlugin : Plugin<Project> {
         // Add a task that uses configuration from the extension object
         project.task("hello") {
             doLast {
-                println(extension.message)
+                println(extension.message.get())
             }
         }
     }
@@ -18,4 +22,4 @@ class GreetingPlugin : Plugin<Project> {
 apply<GreetingPlugin>()
 
 // Configure the extension
-the<GreetingPluginExtension>().message = "Hi from Gradle"
+the<GreetingPluginExtension>().message.set("Hi from Gradle")

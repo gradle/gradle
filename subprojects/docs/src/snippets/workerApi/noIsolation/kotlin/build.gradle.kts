@@ -20,9 +20,9 @@ abstract class ReverseFile @Inject constructor(val fileSystemOperations: FileSys
 
 // tag::task-implementation[]
 // The WorkerExecutor will be injected by Gradle at runtime
-open class ReverseFiles @Inject constructor(private val workerExecutor: WorkerExecutor) : SourceTask() {
-    @OutputDirectory
-    lateinit var outputDir: File
+abstract class ReverseFiles @Inject constructor(private val workerExecutor: WorkerExecutor) : SourceTask() {
+    @get:OutputDirectory
+    val outputDir: DirectoryProperty
 
     @TaskAction
     fun reverseFiles() {

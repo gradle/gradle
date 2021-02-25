@@ -37,7 +37,7 @@ dependencies {
 }
 
 // tag::bom-alignment-rule[]
-open class JacksonBomAlignmentRule: ComponentMetadataRule {
+abstract class JacksonBomAlignmentRule: ComponentMetadataRule {
     override fun execute(ctx: ComponentMetadataContext) {
         ctx.details.run {
             if (id.group.startsWith("com.fasterxml.jackson")) {
@@ -50,7 +50,7 @@ open class JacksonBomAlignmentRule: ComponentMetadataRule {
 // end::bom-alignment-rule[]
 
 // tag::alignment-rule[]
-open class JacksonAlignmentRule: ComponentMetadataRule {
+abstract class JacksonAlignmentRule: ComponentMetadataRule {
     override fun execute(ctx: ComponentMetadataContext) {
         ctx.details.run {
             if (id.group.startsWith("com.fasterxml.jackson")) {

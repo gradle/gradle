@@ -19,9 +19,9 @@ abstract class ReverseFile @Inject constructor(val fileSystemOperations: FileSys
     }
 }
 
-open class ReverseFiles @Inject constructor(private val workerExecutor: WorkerExecutor) : SourceTask() {
-    @OutputDirectory
-    lateinit var outputDir: File
+abstract class ReverseFiles @Inject constructor(private val workerExecutor: WorkerExecutor) : SourceTask() {
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
 
     @TaskAction
     fun reverseFiles() {
