@@ -61,8 +61,12 @@ dependencies {
         api(libs.gradleProfiler)        { version { strictly("0.15.0") }}
         api(libs.groovy)                { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAnt)             { version { strictly(libs.groovyVersion) }}
+        api(libs.groovyAstbuilder)      { version { strictly(libs.groovyVersion) }}
+        api(libs.groovyConsole)         { version { strictly(libs.groovyVersion) }}
+        api(libs.groovySql)             { version { strictly(libs.groovyVersion) }}
         api(libs.groovyDatetime)        { version { strictly(libs.groovyVersion) }}
         api(libs.groovyDateUtil)        { version { strictly(libs.groovyVersion) }}
+        api(libs.groovyNio)             { version { strictly(libs.groovyVersion) }}
         api(libs.groovyDoc)             { version { strictly(libs.groovyVersion) }}
         api(libs.groovyJson)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyTemplates)       { version { strictly(libs.groovyVersion) }}
