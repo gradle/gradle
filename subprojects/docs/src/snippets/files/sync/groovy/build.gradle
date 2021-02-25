@@ -1,8 +1,8 @@
 configurations { runtime }
 
 // tag::copy-dependencies[]
-task libs(type: Sync) {
+tasks.register('libs', Sync) {
     from configurations.runtime
-    into "$buildDir/libs"
+    into layout.buildDirectory.dir('libs')
 }
 // end::copy-dependencies[]

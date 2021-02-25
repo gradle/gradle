@@ -34,7 +34,7 @@ dependencies {
 
 tasks.register<Copy>("copyLibs") {
     from(configurations.compileClasspath)
-    into("$buildDir/libs")
+    into(layout.buildDirectory.dir("libs"))
 }
 
 /*

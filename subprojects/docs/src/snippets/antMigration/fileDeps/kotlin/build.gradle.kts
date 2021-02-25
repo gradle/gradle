@@ -20,7 +20,7 @@ dependencies {
 // tag::retrieve-deps[]
 tasks {
     register<Copy>("retrieveRuntimeDependencies") {
-        into("$buildDir/libs")
+        into(layout.buildDirectory.dir("libs"))
         from(configurations.runtimeClasspath)
     }
 }

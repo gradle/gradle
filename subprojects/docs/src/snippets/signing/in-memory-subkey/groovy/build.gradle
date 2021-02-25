@@ -2,7 +2,7 @@ plugins {
     id 'signing'
 }
 
-task stuffZip(type: Zip) {
+tasks.register('stuffZip', Zip) {
     archiveBaseName = 'stuff'
     from 'src/stuff'
 }

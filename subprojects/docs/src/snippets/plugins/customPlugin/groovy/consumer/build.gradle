@@ -4,6 +4,6 @@ plugins {
 }
 // end::use-plugin[]
 
-task greeting(type: org.example.GreetingTask) {
+tasks.register('greeting', org.example.GreetingTask) {
     greeting = 'howdy!'
 }

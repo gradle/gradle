@@ -7,12 +7,12 @@ import org.gradle.distribution.DownloadGradle
 
 version = '0.1'
 
-task downloadGradle(type: DownloadGradle) {
+tasks.register('downloadGradle', DownloadGradle) {
     description = 'Downloads the Gradle distribution with a given version.'
     gradleVersion = '4.6'
 }
 
-task createCustomGradleDistribution(type: Zip) {
+tasks.register('createCustomGradleDistribution', Zip) {
     description = 'Builds custom Gradle distribution and bundles initialization scripts.'
 
     dependsOn downloadGradle

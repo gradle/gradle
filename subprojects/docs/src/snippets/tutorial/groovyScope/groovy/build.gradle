@@ -6,7 +6,7 @@ dependencies {
     implementation localGroovy()
 }
 
-task runScript(type: JavaExec) {
+tasks.register('runScript', JavaExec) {
     main = 'scope'
     classpath = sourceSets.main.runtimeClasspath
     if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {

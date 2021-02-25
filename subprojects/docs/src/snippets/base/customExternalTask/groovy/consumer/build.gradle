@@ -13,7 +13,7 @@ buildscript {
     }
 }
 
-task greeting(type: org.gradle.GreetingTask) {
+tasks.register('greeting', org.gradle.GreetingTask) {
     greeting = 'howdy!'
 }
 // end::use-task[]
