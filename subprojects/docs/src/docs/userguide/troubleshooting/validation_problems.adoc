@@ -118,7 +118,7 @@ class MyTask extends DefaultTask {
     final Property<Integer> getX() = ...
 ```
 
-or rely on Gradle's built-in capacity to inject final properties:
+You can also rely on Gradle's built-in capacity to inject final properties:
 
 ```groovy
 abstract class MyTask {
@@ -126,7 +126,7 @@ abstract class MyTask {
 }
 ```
 
-then the value of the properties need to be configured via the mutation methods:
+Then the value of the properties need to be configured via the mutation methods:
 
 ```groovy
 myTask {
@@ -168,6 +168,6 @@ To fix this, you must either:
 
 This error indicates that a property is annotated with conflicting annotations, that is to say annotations which have different, irreconciliable semantics.
 
-For example, a property cannot be annotated both with `@InputFile` and `@InputArtifact` at the same time.
+For example, a property cannot be annotated both with `@InputFile` and `@OutputFile` at the same time.
 
-To fix this problem, you need to verify what are the semantics of the annotations and select one.
+To fix this problem, you need to understand the semantics of the different annotations and choose only one.

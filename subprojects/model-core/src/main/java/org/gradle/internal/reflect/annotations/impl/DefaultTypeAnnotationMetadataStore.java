@@ -340,7 +340,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             .reportAs(ERROR)
                             .withDescription(() -> String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
                             .happensBecause("Annotations on fields are only used if there's a corresponding getter for the field")
-                            .withLongDescription("If a field is annotated but that there's no corresponding getter, then the annotations are ignored")
+                            .withLongDescription("If a field is annotated but there's no corresponding getter, then the annotations are ignored")
                             .addPossibleSolution(() -> "Add a getter for field '" + fieldName + "'")
                             .addPossibleSolution(() -> "Remove the annotations on '" + fieldName + "'")
                             .documentedAt("validation_problems", "ignored_annotations_on_field")
@@ -481,8 +481,9 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .withDescription(() -> String.format("%s '%s()' should not be annotated with: %s",
                         methodKind.getDisplayName(), method.getName(), simpleAnnotationNames(annotationTypes.stream())
                     ))
-                    .happensBecause(() -> "Method '" + method.getName() + "' is annotated with an input/output annotation and there is no corresponding getter.")
+                    .happensBecause(() -> "Input/Output annotations are ignored if they are placed on something else than a getter")
                     .addPossibleSolution("Remove the annotations")
+                    .addPossibleSolution("Rename the method")
                     .documentedAt("validation_problems", "ignored_annotations_on_method")
             );
         }

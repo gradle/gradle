@@ -37,7 +37,7 @@ trait ValidationMessageChecker {
     }
 
     String methodShouldNotBeAnnotatedMessage(String type, String kind, String method, String annotation, boolean includeDocLink = false) {
-        String message = "Type '$type': $kind '$method()' should not be annotated with: @$annotation. Method '$method' is annotated with an input/output annotation and there is no corresponding getter. Possible solution: Remove the annotations."
+        String message = "Type '$type': $kind '$method()' should not be annotated with: @$annotation. Input/Output annotations are ignored if they are placed on something else than a getter. Possible solution: Remove the annotations or rename the method."
         if (includeDocLink) {
             message = "${message} ${learnAt('validation_problems', 'ignored_annotations_on_method')}."
         }
