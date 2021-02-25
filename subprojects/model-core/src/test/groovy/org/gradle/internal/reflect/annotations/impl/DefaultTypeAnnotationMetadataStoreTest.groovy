@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.annotations.impl
 
 import groovy.transform.Generated
+import groovy.transform.Memoized
 import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
@@ -723,7 +724,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     )
     def "warns about annotations on non-getter methods"() {
         expect:
-        assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
+        assertProperties TypeWithGeneratedGroovyMethods, [:], [
             strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'method', 'doSomething', 'Large', true)),
             strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'setter', 'setSomething', 'Large', true)),
             strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'static method', 'doStatic', 'Large', true)),
@@ -744,6 +745,19 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 
             @Large
             void setSomething(String something) {}
+        }
+
+
+    def "ignores validation of generated Groovy methods"() {
+        expect:
+        assertProperties TypeWithGeneratedGroovyMethods, [someValue:[(TYPE): Large]]
+    }
+
+        @SuppressWarnings("GroovyUnusedDeclaration")
+        private static class TypeWithGeneratedGroovyMethods {
+            @Memoized
+            @Large
+            String getSomeValue() { "foo" }
         }
 
     def "does not detect methods on type from ignored package"() {
