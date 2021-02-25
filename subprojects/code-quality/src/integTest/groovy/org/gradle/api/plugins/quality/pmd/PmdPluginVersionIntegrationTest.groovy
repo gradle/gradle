@@ -28,8 +28,10 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
     def setup() {
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "pmd"
+            plugins {
+                id("java")
+                id("pmd")
+            }
 
             ${mavenCentralRepository()}
 
@@ -317,6 +319,8 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
             pathToRuleset = "rulesets/braces.xml"
         } else if (versionNumber < VersionNumber.version(6)) {
             pathToRuleset = "rulesets/java/braces.xml"
+        } else if (versionNumber < VersionNumber.version(6, 13)) {
+            pathToRuleset = "category/java/codestyle.xml/IfStmtsMustUseBraces"
         }
         """
             <ruleset name="custom"
