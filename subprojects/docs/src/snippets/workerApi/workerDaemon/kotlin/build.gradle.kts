@@ -47,6 +47,6 @@ abstract class ReverseFiles @Inject constructor(private val workerExecutor: Work
 }
 
 tasks.register<ReverseFiles>("reverseFiles") {
-    outputDir = file("$buildDir/reversed")
+    outputDir.set(layout.buildDirectory.dir("reversed"))
     source("sources")
 }

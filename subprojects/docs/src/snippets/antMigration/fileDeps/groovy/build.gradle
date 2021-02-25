@@ -24,9 +24,7 @@ tasks.register('retrieveRuntimeDependencies', Copy) {
 // end::retrieve-deps[]
 
 // tag::properties[]
-ext {
-    tmpDistDir = file("$buildDir/dist")
-}
+def tmpDistDir = layout.buildDirectory.dir('dist')
 
 tasks.register('javadocJarArchive', Jar) {
     from javadoc  // <1>

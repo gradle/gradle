@@ -7,8 +7,8 @@ version = "1.1"
 
 // tag::copy-single-file-example[]
 tasks.register<Copy>("copyReport") {
-    from(file("$buildDir/reports/my-report.pdf"))
-    into(file("$buildDir/toArchive"))
+    from(layout.buildDirectory.dir("reports/my-report.pdf"))
+    into(layout.buildDirectory.dir("toArchive"))
 }
 // end::copy-single-file-example[]
 
@@ -44,57 +44,57 @@ tasks.register<Copy>("copyReport3") {
 
 // tag::copy-multiple-files-example[]
 tasks.register<Copy>("copyReportsForArchiving") {
-    from("$buildDir/reports/my-report.pdf", "src/docs/manual.pdf")
-    into("$buildDir/toArchive")
+    from(layout.buildDirectory.file("reports/my-report.pdf"), layout.projectDirectory.file("src/docs/manual.pdf"))
+    into(layout.buildDirectory.dir("toArchive"))
 }
 // end::copy-multiple-files-example[]
 
 // tag::copy-multiple-files-with-flat-filter-example[]
 tasks.register<Copy>("copyPdfReportsForArchiving") {
-    from("$buildDir/reports")
+    from(layout.buildDirectory.dir("reports"))
     include("*.pdf")
-    into("$buildDir/toArchive")
+    into(layout.buildDirectory.dir("toArchive"))
 }
 // end::copy-multiple-files-with-flat-filter-example[]
 
 // tag::copy-multiple-files-with-deep-filter-example[]
 tasks.register<Copy>("copyAllPdfReportsForArchiving") {
-    from("$buildDir/reports")
+    from(layout.buildDirectory.dir("reports"))
     include("**/*.pdf")
-    into("$buildDir/toArchive")
+    into(layout.buildDirectory.dir("toArchive"))
 }
 // end::copy-multiple-files-with-deep-filter-example[]
 
 
 // tag::copy-directory-example[]
 tasks.register<Copy>("copyReportsDirForArchiving") {
-    from("$buildDir/reports")
-    into("$buildDir/toArchive")
+    from(layout.buildDirectory.dir("reports"))
+    into(layout.buildDirectory.dir("toArchive"))
 }
 // end::copy-directory-example[]
 
 // tag::copy-directory-including-itself-example[]
 tasks.register<Copy>("copyReportsDirForArchiving2") {
-    from("$buildDir") {
+    from(layout.buildDirectory) {
         include("reports/**")
     }
-    into("$buildDir/toArchive")
+    into(layout.buildDirectory.dir("toArchive"))
 }
 // end::copy-directory-including-itself-example[]
 
 // tag::create-archive-example[]
 tasks.register<Zip>("packageDistribution") {
     archiveFileName.set("my-distribution.zip")
-    destinationDirectory.set(file("$buildDir/dist"))
+    destinationDirectory.set(layout.buildDirectory.dir("dist"))
 
-    from("$buildDir/toArchive")
+    from(layout.buildDirectory.dir("toArchive"))
 }
 // end::create-archive-example[]
 
 // tag::rename-on-copy-example[]
 tasks.register<Copy>("copyFromStaging") {
     from("src/main/webapp")
-    into("$buildDir/explodedWar")
+    into(layout.buildDirectory.dir("explodedWar"))
 
     rename("(.+)-staging(.+)", "$1$2")
 }
@@ -102,14 +102,14 @@ tasks.register<Copy>("copyFromStaging") {
 
 // tag::truncate-names-example[]
 tasks.register<Copy>("copyWithTruncate") {
-    from("$buildDir/reports")
+    from(layout.buildDirectory.dir("reports"))
     rename { filename: String ->
         if (filename.length > 10) {
             filename.slice(0..7) + "~" + filename.length
         }
         else filename
     }
-    into("$buildDir/toArchive")
+    into(layout.buildDirectory.dir("toArchive"))
 }
 // end::truncate-names-example[]
 
@@ -121,13 +121,13 @@ tasks.register<Copy>("copyWithTruncate") {
 
 val copyTask by tasks.registering(Copy::class) {
     from("src/main/webapp")
-    into("$buildDir/explodedWar")
+    into(layout.buildDirectory.dir("explodedWar"))
 }
 
 // tag::copy-task-with-patterns[]
 tasks.register<Copy>("copyTaskWithPatterns") {
     from("src/main/webapp")
-    into("$buildDir/explodedWar")
+    into(layout.buildDirectory.dir("explodedWar"))
     include("**/*.html")
     include("**/*.jsp")
     exclude { details: FileTreeElement ->
@@ -161,7 +161,7 @@ tasks.register("copyMethod") {
     doLast {
         copy {
             from("src/main/webapp")
-            into("$buildDir/explodedWar")
+            into(layout.buildDirectory.dir("explodedWar"))
             include("**/*.html")
             include("**/*.jsp")
         }
@@ -192,7 +192,7 @@ configurations { "runtime" }
 // tag::rename-files[]
 tasks.register<Copy>("rename") {
     from("src/main/webapp")
-    into("$buildDir/explodedWar")
+    into(layout.buildDirectory.dir("explodedWar"))
     // Use a closure to convert all file names to upper case
     rename { fileName: String ->
         fileName.toUpperCase()
@@ -206,7 +206,7 @@ tasks.register<Copy>("rename") {
 // tag::filter-files[]
 tasks.register<Copy>("filter") {
     from("src/main/webapp")
-    into("$buildDir/explodedWar")
+    into(layout.buildDirectory.dir("explodedWar"))
     // Substitute property tokens in files
     expand("copyright" to "2009", "version" to "2.3.1")
     expand(project.properties)
@@ -231,7 +231,7 @@ tasks.register("test") {
     dependsOn(tasks["copyMethodWithExplicitDependencies"])
 }
 
-val appClasses = layout.files("$buildDir/classes")
+val appClasses = layout.buildDirectory.dir("classes")
 
 // tag::standalone-copyspec[]
 val webAssetsSpec: CopySpec = copySpec {
@@ -241,13 +241,13 @@ val webAssetsSpec: CopySpec = copySpec {
 }
 
 tasks.register<Copy>("copyAssets") {
-    into("$buildDir/inPlaceApp")
+    into(layout.buildDirectory.dir("inPlaceApp"))
     with(webAssetsSpec)
 }
 
 tasks.register<Zip>("distApp") {
     archiveFileName.set("my-app-dist.zip")
-    destinationDirectory.set(file("$buildDir/dists"))
+    destinationDirectory.set(layout.buildDirectory.dir("dists"))
 
     from(appClasses)
     with(webAssetsSpec)
@@ -260,13 +260,13 @@ val webAssetPatterns = Action<CopySpec> {
 }
 
 tasks.register<Copy>("copyAppAssets") {
-    into("$buildDir/inPlaceApp")
+    into(layout.buildDirectory.dir("inPlaceApp"))
     from("src/main/webapp", webAssetPatterns)
 }
 
 tasks.register<Zip>("archiveDistAssets") {
     archiveFileName.set("distribution-assets.zip")
-    destinationDirectory.set(file("$buildDir/dists"))
+    destinationDirectory.set(layout.buildDirectory.dir("dists"))
 
     from("distResources", webAssetPatterns)
 }

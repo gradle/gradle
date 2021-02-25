@@ -1,7 +1,7 @@
 // tag::add-property[]
 abstract class GreetingTask : DefaultTask() {
     @get:Input
-    val greeting: Property<String>
+    abstract val greeting: Property<String>
 
     init {
         greeting.convention("hello from GreetingTask")
@@ -9,7 +9,7 @@ abstract class GreetingTask : DefaultTask() {
 
     @TaskAction
     fun greet() {
-        println(greeting)
+        println(greeting.get())
     }
 }
 

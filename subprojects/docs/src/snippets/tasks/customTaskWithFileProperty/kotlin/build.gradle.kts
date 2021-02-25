@@ -7,7 +7,7 @@ abstract class GreetingToFileTask : DefaultTask() {
 
     @TaskAction
     fun greet() {
-        val file = getDestination().get().asFile
+        val file = destination.get().asFile
         file.parentFile.mkdirs()
         file.writeText("Hello!")
     }
@@ -15,7 +15,7 @@ abstract class GreetingToFileTask : DefaultTask() {
 // end::task[]
 
 // tag::config[]
-val greetingFile = layout.buildDirectory.file("greeting.txt")
+val greetingFile = objects.fileProperty()
 
 tasks.register<GreetingToFileTask>("greet") {
     destination.set(greetingFile)

@@ -55,6 +55,6 @@ abstract class ReverseFiles extends SourceTask {
 // end::task-implementation[]
 
 tasks.register('reverseFiles', ReverseFiles) {
-    outputDir = file("$buildDir/reversed")
+    outputDir = layout.buildDirectory.dir("reversed")
     source("sources")
 }

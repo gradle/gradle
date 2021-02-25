@@ -22,7 +22,7 @@ abstract class ReverseFiles @Inject constructor(
     private val workerExecutor: WorkerExecutor
 ) : SourceTask() {
 
-    @OutputDirectory
+    @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
     @TaskAction
@@ -41,12 +41,12 @@ abstract class ReverseFiles @Inject constructor(
 
         // Wait for all asynchronous work submitted to this queue to complete before continuing
         workQueue.await()
-        logger.lifecycle("Created ${outputDir.get().asFile.listFiles().length} reversed files in ${outputDir.get().asFile.toRelativeString(projectLayout.projectDirectory.asFile)}")
+        logger.lifecycle("Created ${outputDir.get().asFile.listFiles().size} reversed files in ${outputDir.get().asFile.toRelativeString(projectLayout.projectDirectory.asFile)}")
         // end::wait-for-completion[]
     }
 }
 
 tasks.register<ReverseFiles>("reverseFiles") {
-    outputDir = file("$buildDir/reversed")
+    outputDir.set(layout.buildDirectory.dir("reversed"))
     source("sources")
 }

@@ -1,7 +1,7 @@
 println("This is executed during the configuration phase.")
 
 tasks.register("configured") {
-    println("This is also executed during the configuration phase.")
+    println("This is also executed during the configuration phase, because :configured is used in the build.")
 }
 
 tasks.register("test") {
@@ -17,5 +17,5 @@ tasks.register("testBoth") {
     doLast {
         println("This is executed last during the execution phase.")
     }
-    println("This is executed during the configuration phase as well.")
+    println("This is executed during the configuration phase as well, because :testBoth is used in the build.")
 }

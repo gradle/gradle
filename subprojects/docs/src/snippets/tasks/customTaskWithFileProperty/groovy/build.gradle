@@ -15,7 +15,7 @@ abstract class GreetingToFileTask extends DefaultTask {
 // end::task[]
 
 // tag::config[]
-def greetingFile = layout.buildDirectory.file('greeting.txt')
+def greetingFile = objects.fileProperty()
 
 tasks.register('greet', GreetingToFileTask) {
     destination = greetingFile

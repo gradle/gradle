@@ -60,6 +60,6 @@ abstract class ReverseFiles extends SourceTask {
 }
 
 task reverseFiles(type: ReverseFiles) {
-    outputDir = file("$buildDir/reversed")
+    outputDir = layout.buildDirectory.dir("reversed")
     source("sources")
 }

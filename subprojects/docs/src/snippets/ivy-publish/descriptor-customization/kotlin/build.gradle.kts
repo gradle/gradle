@@ -41,13 +41,13 @@ publishing {
     repositories {
         ivy {
             // change to point to your repo, e.g. http://my.org/repo
-            url = uri("$buildDir/repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
 }
 
 // tag::generate[]
 tasks.named<GenerateIvyDescriptor>("generateDescriptorFileForIvyCustomPublication") {
-    destination = file("$buildDir/generated-ivy.xml")
+    destination = layout.buildDirectory.file("generated-ivy.xml").get().asFile
 }
 // end::generate[]

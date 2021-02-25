@@ -1,6 +1,6 @@
 interface GreetingPluginExtension {
-    val message: Propert<String>
-    val greeter: Propert<String>
+    val message: Property<String>
+    val greeter: Property<String>
 }
 
 class GreetingPlugin : Plugin<Project> {
