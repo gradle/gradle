@@ -30,6 +30,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
@@ -115,10 +116,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
-                validationContext.visitPropertyProblem(ERROR,
-                    propertyAnnotationMetadata.getPropertyName(),
-                    String.format("is annotated with invalid property type @%s",
-                        propertyType.getSimpleName())
+                validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
+                        .forProperty(propertyAnnotationMetadata.getPropertyName())
+                        .reportAs(ERROR)
+                        .withDescription(() -> String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
+                        .happensBecause(() -> "The '@"+propertyType.getSimpleName() + "' annotation cannot be used in this context")
+                        .addPossibleSolution("Remove the property")
+                        .documentedAt("validation_problems", "annotation_invalid_in_context")
                 );
                 continue;
             }
@@ -137,10 +142,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             annotationType.getSimpleName(), propertyType.getSimpleName())
                     );
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
-                    validationContext.visitPropertyProblem(ERROR,
-                        propertyAnnotationMetadata.getPropertyName(),
-                        String.format("has invalid annotation @%s",
-                            annotationType.getSimpleName())
+                    validationContext.visitPropertyProblem(problem ->
+                        problem.withId(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
+                            .forProperty(propertyAnnotationMetadata.getPropertyName())
+                            .reportAs(ERROR)
+                            .withDescription(() -> String.format("has invalid annotation @%s", annotationType.getSimpleName()))
+                            .happensBecause(() -> "The '@"+propertyType.getSimpleName() + "' annotation cannot be used in this context")
+                            .addPossibleSolution("Remove the property")
+                            .documentedAt("validation_problems", "annotation_invalid_in_context")
                     );
                 }
             }
@@ -161,7 +170,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             return typeAnnotation.annotationType();
         } else if (normalizationAnnotation != null) {
             if (normalizationAnnotation.annotationType().equals(Classpath.class)
-            || normalizationAnnotation.annotationType().equals(CompileClasspath.class)) {
+                || normalizationAnnotation.annotationType().equals(CompileClasspath.class)) {
                 return InputFiles.class;
             }
         }

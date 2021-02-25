@@ -171,3 +171,13 @@ This error indicates that a property is annotated with conflicting annotations, 
 For example, a property cannot be annotated both with `@InputFile` and `@OutputFile` at the same time.
 
 To fix this problem, you need to understand the semantics of the different annotations and choose only one.
+
+[[annotation_invalid_in_context]]
+== Annotation is invalid in a particular context
+
+This error indicates that a property was annotated with an annotation which is invalid in a particular context.
+For example, it's in general possible to annotate a `DirectoryProperty` with `@OutputDirectory`, but this is invalid in the context of an artifact transform, because artifact transforms provide their own workspace.
+
+To fix this problem, you must remove the property.
+
+

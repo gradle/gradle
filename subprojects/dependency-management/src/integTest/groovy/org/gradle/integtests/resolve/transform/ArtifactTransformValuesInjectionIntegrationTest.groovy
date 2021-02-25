@@ -308,7 +308,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     @ValidationTestFor([
         ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
         ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
-        ValidationProblemId.VALUE_NOT_SET
+        ValidationProblemId.VALUE_NOT_SET,
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     ])
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
@@ -406,13 +407,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 'is annotated with @Incremental that is not allowed for @Input properties',
             ],
             missingInput: missingValueMessage('missingInput', false),
-            'nested.outputDirectory': 'is annotated with invalid property type @OutputDirectory',
+            'nested.outputDirectory': annotationInvalidInContext('nested.outputDirectory', 'OutputDirectory', null, false),
             'nested.inputFile': "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
             'nested.stringProperty': 'is not annotated with an input annotation',
             noPathSensitivity: "is annotated with @InputFiles but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityDir: "is annotated with @InputDirectory but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityFile: "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
-            outputDir: 'is annotated with invalid property type @OutputDirectory',
+            outputDir: annotationInvalidInContext('outputDir', 'OutputDirectory', null, false)
         )
     }
 
@@ -487,6 +488,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Type 'MakeGreen.Parameters': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
     @Unroll
     def "transform parameters type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
@@ -529,7 +533,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
+        assertPropertyValidationErrors(bad: annotationInvalidInContext('bad', annotation.simpleName, null, false))
 
         where:
         annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
@@ -584,7 +588,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     @ValidationTestFor([
         ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
         ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
-        ValidationProblemId.CONFLICTING_ANNOTATIONS
+        ValidationProblemId.CONFLICTING_ANNOTATIONS,
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     ])
     def "transform action is validated for input output annotations"() {
         settingsFile << """
@@ -644,9 +649,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             absolutePathSensitivityDependencies: invalidUseOfAbsoluteNormalizationMessage,
             'conflictingAnnotations': [
                 conflictingAnnotationsMessage,
-                'is annotated with invalid property type @InputFile'
+                annotationInvalidInContext('conflictingAnnotations', 'InputFile', null, false, false)
             ],
-            inputFile: 'is annotated with invalid property type @InputFile',
+            inputFile: annotationInvalidInContext('inputFile', 'InputFile', null, false, false),
             noPathSensitivity: 'is annotated with @InputArtifact but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
             notAnnotated: 'is not annotated with an input annotation',
         )
@@ -682,6 +687,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Type 'MakeGreen': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
     @Unroll
     def "transform action type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
@@ -722,7 +730,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
+        assertPropertyValidationErrors(bad: annotationInvalidInContext('bad', annotation.simpleName, null, false))
 
         where:
         annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]

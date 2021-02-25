@@ -62,4 +62,10 @@ trait ValidationMessageChecker {
         String annotations = inConflict.collect { "@$it" }.join(", ")
         "${intro}has conflicting $kind: $annotations. The different annotations have different semantics and Gradle cannot determine which one to pick. Possible solution: Choose between one of the conflicting annotations.$outro"
     }
+
+    String annotationInvalidInContext(String property, String annotation, String type = null, boolean includeProperty = true, boolean includeLink = false) {
+        String intro = type ? "Type '$type': ${includeProperty ? "property '${property}' " : ''}" : (includeProperty ? "Property '${property}' " : "")
+        String outro = includeLink ? " ${learnAt("validation_problems", "annotation_invalid_in_context")}." : ""
+        "${intro}is annotated with invalid property type @${annotation}. The '@${annotation}' annotation cannot be used in this context. Possible solution: Remove the property.$outro"
+    }
 }

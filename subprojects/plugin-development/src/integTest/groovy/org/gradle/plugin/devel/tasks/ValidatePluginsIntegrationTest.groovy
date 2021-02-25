@@ -18,10 +18,11 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.hamcrest.Matchers.containsString
 
@@ -100,6 +101,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
     @Unroll
     def "task cannot have property with annotation @#annotation.simpleName"() {
         javaTaskSource << """
@@ -128,10 +132,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.": ERROR,
-            "Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.": ERROR,
-        )
+        assertValidationFailsWith([
+            error(annotationInvalidInContext('options.nestedThing', annotation.simpleName, 'MyTask'), 'validation_problems', 'annotation_invalid_in_context'),
+            error(annotationInvalidInContext('thing', annotation.simpleName, 'MyTask'), 'validation_problems', 'annotation_invalid_in_context')
+        ])
 
         where:
         annotation << [InputArtifact, InputArtifactDependencies]
@@ -265,6 +269,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationSucceeds()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
     def "can validate properties of an artifact transform action"() {
         file("src/main/java/MyTransformAction.java") << """
             import org.gradle.api.*;
@@ -316,13 +323,16 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation.": ERROR,
-            "Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile.": ERROR,
-            "Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation.": ERROR,
-        )
+        assertValidationFailsWith([
+            error("Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation."),
+            error(annotationInvalidInContext( 'inputFile', 'InputFile', 'MyTransformAction'), 'validation_problems', 'annotation_invalid_in_context'),
+            error("Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation."),
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
             import org.gradle.api.*;
@@ -379,12 +389,12 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.": ERROR,
-            "Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties.": ERROR,
-            "Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.": ERROR,
-            "Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.": ERROR,
-        )
+        assertValidationFailsWith([
+            error("Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."),
+            error("Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."),
+            error(annotationInvalidInContext('inputFile', 'InputArtifact', 'MyTransformParameters'), 'validation_problems', 'annotation_invalid_in_context'),
+            error("Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."),
+        ])
     }
 
     def "tests only classes from plugin source set"() {
