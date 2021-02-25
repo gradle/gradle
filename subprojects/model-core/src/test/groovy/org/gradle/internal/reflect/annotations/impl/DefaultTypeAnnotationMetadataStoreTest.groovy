@@ -724,7 +724,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     )
     def "warns about annotations on non-getter methods"() {
         expect:
-        assertProperties TypeWithGeneratedGroovyMethods, [:], [
+        assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
             strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'method', 'doSomething', 'Large', true)),
             strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'setter', 'setSomething', 'Large', true)),
             strict(methodShouldNotBeAnnotatedMessage('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods', 'static method', 'doStatic', 'Large', true)),
