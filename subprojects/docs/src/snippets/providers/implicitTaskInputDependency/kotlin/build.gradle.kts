@@ -1,6 +1,6 @@
-open class Producer : DefaultTask() {
-    @OutputFile
-    val outputFile: RegularFileProperty = project.objects.fileProperty()
+abstract class Producer : DefaultTask() {
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
 
     @TaskAction
     fun produce() {
@@ -11,9 +11,9 @@ open class Producer : DefaultTask() {
     }
 }
 
-open class Consumer : DefaultTask() {
-    @Input
-    val message: Property<String> = project.objects.property(String::class)
+abstract class Consumer : DefaultTask() {
+    @get:Input
+    abstract val message: Property<String>
 
     @TaskAction
     fun consume() {
@@ -21,12 +21,12 @@ open class Consumer : DefaultTask() {
     }
 }
 
-val producer by tasks.registering(Producer::class) {
+val producer = tasks.register<Producer>("producer") {
     // Set values for the producer lazily
     // Don't need to update the consumer.inputFile property. This is automatically updated as producer.outputFile changes
     outputFile.set(layout.buildDirectory.file("file.txt"))
 }
-val consumer by tasks.registering(Consumer::class) {
+tasks.register<Consumer>("consumer") {
     // Connect the producer task output to the consumer task input
     // Don't need to add a task dependency to the consumer task. This is automatically added
     message.set(producer.map { it.outputFile.get().asFile.readText() })

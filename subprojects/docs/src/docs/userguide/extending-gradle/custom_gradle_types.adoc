@@ -18,68 +18,38 @@ This chapter applies to the following types:
 - Objects created for a managed nested property.
 - Elements of a `NamedDomainObjectContainer`.
 
-== Configuration using bean properties
+== Configuration using properties
 
 The custom Gradle types that you implement often hold some configuration that you want to make available to build scripts and other plugins.
 For example, a download task may have configuration that specifies the URL to download from and the file system location to write the result to.
-This configuration is represented as Java bean properties.
-
-Kotlin and Groovy provide conveniences for declaring Java bean properties, which make them good language choices to use to implement Gradle types.
-These conveniences are demonstrated in the samples below.
-
-Gradle also provides some conveniences for implementing types with bean properties.
 
 [[managed_properties]]
 === Managed properties
 
-Gradle can provide an implementation of an abstract property. This is called a _managed property_, as Gradle takes care of managing the state of the property.
-A property may be _mutable_, meaning that it has both a getter method and setter method, or _read-only_, meaning that it has only a getter method.
-
-[NOTE]
-====
-Managed properties are currently an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
-====
+Gradle provides its own _managed properties_ concept that allows you to declare each property as an abstract getter (Java, Groovy) or an abstract property (Kotlin).
+Gradle then provides the implementation for such a property automatically.
+It is called a _managed property_, as Gradle takes care of managing the state of the property.
+A property may be _mutable_, meaning that it has both a `get()` method and `set()` method, or _read-only_, meaning that it has only a `get()` method.
+_Read-only_ properties are also called _providers_.
 
 ==== Mutable managed properties
 
-To declare a mutable managed property, add an abstract getter method and an abstract setter method for the property to the type.
-
-Here is an example of a task type with a `uri` property:
+To declare a mutable managed property, add an abstract getter method of type `Property<T>` - where `T` can be any serializable type or a fully Gradle <<#managed_types,managed type>>.
+(See the list further down for more specific property types.)
+The property must not have any setter methods.
+Here is an example of a task type with an `uri` property of type `URI`:
 
 .Mutable managed property
 ====
 [source.multi-language-sample,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/mutableManagedProperty/groovy/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/plugins/mutableManagedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
 ====
 
-Note that for a property to be considered a mutable managed property, _all_ of the property's getter methods and setter methods must be `abstract` and have `public` or `protected` visibility.
-
-[[read_only_managed_properties]]
-==== Read-only managed properties
-
-To declare a read-only managed property, add an abstract getter method for the property to the type.
-The property should not have any setter methods.
-Gradle will provide an implementation of the getter and also create a value for the property.
-
-This is a useful pattern to use with one of Gradle's configurable <<lazy_configuration.adoc#lazy_configuration,lazy property>> or container types.
-
-Here is an example of a task type with a `uri` property:
-
-.Read-only managed property
-====
-[source.multi-language-sample,java]
-.Download.java
-----
-include::{snippetsPath}/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/java/Download.java[]
-----
-====
-
-Note that for a property to be considered a read only managed property, _all_ of the property's getter methods must be `abstract` and have `public` or `protected` visibility.
-The property must not have any setter methods.
-In addition, the property type must have one of the following:
+Note that for a property to be considered a mutable managed property, the property's getter methods must be `abstract` and have `public` or `protected` visibility.
+The property type must be one of the following:
 
 - `Property<T>`
 - `RegularFileProperty`
@@ -92,7 +62,24 @@ In addition, the property type must have one of the following:
 - `DomainObjectSet<T>`
 - `NamedDomainObjectContainer<T>`
 
-Gradle creates values for read-only managed properties in the same way as link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].
+Gradle creates values for managed properties in the same way as link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].
+
+[[read_only_managed_properties]]
+==== Read-only managed properties
+
+To declare a read-only managed property, also called provider, add a getter method of type `Provider<T>`.
+The method implementation then needs to derive the value, for example from other properties.
+
+Here is an example of a task type with a `uri` provider that is derived from a `location` property:
+
+.Read-only managed property
+====
+[source.multi-language-sample,java]
+.Download.java
+----
+include::{snippetsPath}/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
+----
+====
 
 [[read_only_managed_nested_properties]]
 ==== Read-only managed nested properties
@@ -117,7 +104,7 @@ include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/
 ----
 ====
 
-Note that for a property to be considered a read only managed nested property, _all_ of the property's getter methods must be `abstract` and have `public` or `protected` visibility.
+Note that for a property to be considered a read-only managed nested property, the property's getter methods must be `abstract` and have `public` or `protected` visibility.
 The property must not have any setter methods.
 In addition, the property getter must be annotated with `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
 
@@ -139,6 +126,22 @@ That is, it is a type whose state is entirely managed by Gradle.
 
 A _named managed type_ is a managed type that additionally has an abstract property "name" of type `String`. Named
 managed types are especially useful as the element type of link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] (see below).
+
+.Managed type defined as interface
+====
+[source.multi-language-sample,java]
+.Resource.java
+----
+include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+----
+====
+
+=== Java bean properties.
+
+Sometimes you may see properties implemented in the Java bean property style.
+That is, they do not use a `Property<T>` or `Provider<T>` types but are instead implemented with concrete setter and getter methods (or corresponding conveniences in Groovy or Kotlin).
+This style of property definition is legacy in Gradle and is discouraged.
+Properties in Gradle's core plugins that are still of this style will be migrated to managed properties in future versions.
 
 == DSL support and extensibility
 
@@ -186,7 +189,7 @@ Here is an example that shows a task type that receives an `ObjectFactory` via i
 [source.multi-language-sample,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
 ====
 
@@ -207,17 +210,17 @@ Here is an example that shows a task type that receives a two services via prope
 [source.multi-language-sample,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/plugins/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
 ====
 
 [[nested_objects]]
-== Creating nested objects
+== Creating objects explicitly
+
+NOTE: Prefer letting Gradle create objects automatically by using <<#managed_properties,managed properties>>.
 
 A custom Gradle type can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service to create instances of Gradle types to use for its property values.
-These instances can make use of the features discussed in this chapter, allowing you to create 'nested' object and a nested DSL.
-
-You can also have Gradle create nested objects for you by using a <<read_only_managed_nested_properties,managed nested property>>.
+These instances can make use of the features discussed in this chapter, allowing you to create objects and a nested DSL.
 
 In the following example, a project extension receives an `ObjectFactory` instance through its constructor.
 The constructor uses this to create a nested `Resource` object (also a custom Gradle type) and makes this object available through the `resource` property.
@@ -227,7 +230,7 @@ The constructor uses this to create a nested `Resource` object (also a custom Gr
 [source.multi-language-sample,java]
 .DownloadExtension.java
 ----
-include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/DownloadExtension.java[]
+include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/DownloadExtension.java[tags=download-extension]
 include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 ====
@@ -235,7 +238,7 @@ include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/Reso
 [[collection_types]]
 == Collection types
 
-Gradle provides types for maintaining collections of objects, intended to work well with the Gradle DSL and provide useful features such as lazy configuration.
+Gradle provides types for maintaining collections of objects, intended to work well to extends Gradle's DSLs and provide useful features such as lazy configuration.
 
 === NamedDomainObjectContainer
 
@@ -268,20 +271,8 @@ See the above link for `domainObjectContainer()` method variants that allow cust
 [source.multi-language-sample,java]
 .DownloadExtension.java
 ----
-include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/DownloadExtension.java[]
+include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/DownloadExtension.java[tags=download-extension]
 include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
-----
-====
-
-To be even more concise, you can define this model entirely using interfaces, and take advantage of Gradle's managed types:
-
-.Managing a collection of objects based on interfaces
-====
-[source.multi-language-sample,java]
-.DownloadExtension.java
-----
-include::{snippetsPath}/plugins/namedDomainObjectContainerInterfaces/groovy/buildSrc/src/main/java/DownloadExtension.java[]
-include::{snippetsPath}/plugins/namedDomainObjectContainerInterfaces/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 ====
 

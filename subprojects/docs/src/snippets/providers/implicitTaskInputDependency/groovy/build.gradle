@@ -1,6 +1,6 @@
-class Producer extends DefaultTask {
+abstract class Producer extends DefaultTask {
     @OutputFile
-    final RegularFileProperty outputFile = project.objects.fileProperty()
+    abstract RegularFileProperty getOutputFile()
 
     @TaskAction
     void produce() {
@@ -11,9 +11,9 @@ class Producer extends DefaultTask {
     }
 }
 
-class Consumer extends DefaultTask {
+abstract class Consumer extends DefaultTask {
     @Input
-    final Property<String> message = project.objects.property(String)
+    abstract Property<String> getMessage()
 
     @TaskAction
     void consume() {
@@ -21,12 +21,13 @@ class Consumer extends DefaultTask {
     }
 }
 
-task producer(type: Producer)
-task consumer(type: Consumer)
-
-// Connect the producer task output to the consumer task input
-// Don't need to add a task dependency to the consumer task. This is automatically added
-consumer.message = producer.outputFile.map { it.asFile.text }
-
-// Set values for the producer lazily
-producer.outputFile = layout.buildDirectory.file('file.txt')
+def producer = tasks.register('producer', Producer) {
+    // Set values for the producer lazily
+    // Don't need to update the consumer.inputFile property. This is automatically updated as producer.outputFile changes
+    outputFile = layout.buildDirectory.file('file.txt')
+}
+tasks.register('consumer', Consumer) {
+    // Connect the producer task output to the consumer task input
+    // Don't need to add a task dependency to the consumer task. This is automatically added
+    message = producer.map { it.outputFile.get().asFile.text }
+}

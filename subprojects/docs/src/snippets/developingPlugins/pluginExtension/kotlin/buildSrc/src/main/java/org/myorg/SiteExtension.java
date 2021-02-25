@@ -3,22 +3,16 @@ package org.myorg;
 import org.gradle.api.Action;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.Nested;
 
 abstract public class SiteExtension {
 
-    private final CustomData customData;
-
-    public SiteExtension(ObjectFactory objects) {
-        customData = objects.newInstance(CustomData.class);
-    }
-
     abstract public RegularFileProperty getOutputDir();
 
-    public CustomData getCustomData() {
-        return customData;
-    }
+    @Nested
+    abstract public CustomData getCustomData();
 
     public void customData(Action<? super CustomData> action) {
-        action.execute(customData);
+        action.execute(getCustomData());
     }
 }

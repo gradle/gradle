@@ -1,6 +1,6 @@
-class Producer extends DefaultTask {
+abstract class Producer extends DefaultTask {
     @OutputFile
-    final RegularFileProperty outputFile = project.objects.fileProperty()
+    abstract RegularFileProperty getOutputFile()
 
     @TaskAction
     void produce() {
@@ -11,9 +11,9 @@ class Producer extends DefaultTask {
     }
 }
 
-class Consumer extends DefaultTask {
+abstract class Consumer extends DefaultTask {
     @InputFile
-    final RegularFileProperty inputFile = project.objects.fileProperty()
+    abstract RegularFileProperty getInputFile()
 
     @TaskAction
     void consume() {
@@ -26,18 +26,18 @@ class Consumer extends DefaultTask {
 def producer = tasks.register("producer", Producer)
 def consumer = tasks.register("consumer", Consumer)
 
-// Connect the producer task output to the consumer task input
-// Don't need to add a task dependency to the consumer task. This is automatically added
 consumer.configure {
+    // Connect the producer task output to the consumer task input
+    // Don't need to add a task dependency to the consumer task. This is automatically added
     inputFile = producer.flatMap { it.outputFile }
 }
 
-// Set values for the producer lazily
-// Don't need to update the consumer.inputFile property. This is automatically updated as producer.outputFile changes
 producer.configure {
+    // Set values for the producer lazily
+    // Don't need to update the consumer.inputFile property. This is automatically updated as producer.outputFile changes
     outputFile = layout.buildDirectory.file('file.txt')
 }
 
 // Change the build directory.
 // Don't need to update producer.outputFile and consumer.inputFile. These are automatically updated as the build directory changes
-buildDir = 'output'
+layout.buildDirectory = layout.projectDirectory.dir('output')

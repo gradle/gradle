@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.workers.WorkerExecutor;
 
+// tag::download[]
 public abstract class Download extends DefaultTask {
     // Use an abstract getter method
     @Inject
@@ -23,3 +24,4 @@ public abstract class Download extends DefaultTask {
         // Use the executor and factory ...
     }
 }
+// end::download[]

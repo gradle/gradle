@@ -1,6 +1,6 @@
-open class Producer : DefaultTask() {
-    @OutputFile
-    val outputFile: RegularFileProperty = project.objects.fileProperty()
+abstract class Producer : DefaultTask() {
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
 
     @TaskAction
     fun produce() {
@@ -11,9 +11,9 @@ open class Producer : DefaultTask() {
     }
 }
 
-open class Consumer : DefaultTask() {
-    @InputFile
-    val inputFile: RegularFileProperty = project.objects.fileProperty()
+abstract class Consumer : DefaultTask() {
+    @get:InputFile
+    abstract val inputFile: RegularFileProperty
 
     @TaskAction
     fun consume() {
@@ -23,8 +23,8 @@ open class Consumer : DefaultTask() {
     }
 }
 
-val producer by tasks.registering(Producer::class)
-val consumer by tasks.registering(Consumer::class)
+val producer = tasks.register<Producer>("producer")
+val consumer = tasks.register<Consumer>("consumer")
 
 consumer {
     // Connect the producer task output to the consumer task input
@@ -40,4 +40,4 @@ producer {
 
 // Change the build directory.
 // Don't need to update producer.outputFile and consumer.inputFile. These are automatically updated as the build directory changes
-buildDir = file("output")
+layout.buildDirectory.set(layout.projectDirectory.dir("output"))

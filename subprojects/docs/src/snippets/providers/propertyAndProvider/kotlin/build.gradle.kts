@@ -1,8 +1,8 @@
 // A task that displays a greeting
-open class Greeting : DefaultTask() {
+abstract class Greeting : DefaultTask() {
     // Configurable by the user
-    @Input
-    val greeting: Property<String> = project.objects.property()
+    @get:Input
+    abstract val greeting: Property<String>
 
     // Read-only property calculated from the greeting
     @Internal
@@ -17,4 +17,5 @@ open class Greeting : DefaultTask() {
 tasks.register<Greeting>("greeting") {
     // Configure the greeting
     greeting.set("Hi")
+
 }
