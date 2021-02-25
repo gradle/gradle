@@ -177,6 +177,12 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     static String determineMinimumVersionThatRunsOnCurrentJavaVersion(String desiredGradleVersion) {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            def compatibleVersion = GradleVersion.version("7.0-20210224105427+0000")
+            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
+                return compatibleVersion.version
+            }
+        }
         if (JavaVersion.current().isJava11Compatible()) {
             def compatibleVersion = GradleVersion.version("4.8.1") // see https://github.com/gradle/gradle/issues/4860
             if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
