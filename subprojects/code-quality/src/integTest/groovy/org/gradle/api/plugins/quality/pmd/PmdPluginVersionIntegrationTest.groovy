@@ -312,7 +312,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     }
 
     private static customRuleSetText() {
-        String pathToRuleset = "category/java/codestyle.xml/IfStmtsMustUseBraces"
+        String pathToRuleset = "category/java/codestyle.xml/ControlStatementBraces"
         if (versionNumber < VersionNumber.version(5)) {
             pathToRuleset = "rulesets/braces.xml"
         } else if (versionNumber < VersionNumber.version(6)) {
