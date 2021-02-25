@@ -1384,7 +1384,7 @@ task generate(type: TransformerTask) {
         ValidationProblemId.CONFLICTING_ANNOTATIONS
     )
     @Issue("https://github.com/gradle/gradle/issues/11805")
-    def "Groovy property annotated as @Internal with differently annotated getter fails about conflicting annotations"() {
+    def "Groovy property annotated as @Internal with differently annotated getter is not allowed"() {
         def inputFile = file("input.txt")
         inputFile.text = "original"
 

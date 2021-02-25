@@ -53,7 +53,7 @@ trait ValidationMessageChecker {
     String ignoredAnnotatedPropertyMessage(String property, String ignoringAnnotation, String alsoAnnotatedWith, boolean includeType = true, boolean includeLink = false) {
         String intro = includeType ? "Type 'MyTask': property" : "Property"
         String outro = includeLink ? " ${learnAt("validation_problems", "ignored_property_must_not_be_annotated")}." : ""
-        "$intro '${property}' annotated with @${ignoringAnnotation} should not be also annotated with @${alsoAnnotatedWith}. A property is ignored but contains input annotations. Possible solutions: Remove the input annotations or remove the @${ignoringAnnotation} annotation.$outro"
+        "$intro '${property}' annotated with @${ignoringAnnotation} should not be also annotated with @${alsoAnnotatedWith}. A property is ignored but also has input annotations. Possible solutions: Remove the input annotations or remove the @${ignoringAnnotation} annotation.$outro"
     }
 
     String conflictingAnnotationsMessage(String property, List<String> inConflict, boolean includeType = true, boolean includeProperty = true, boolean includeLink = false, String kind = 'type annotations declared') {

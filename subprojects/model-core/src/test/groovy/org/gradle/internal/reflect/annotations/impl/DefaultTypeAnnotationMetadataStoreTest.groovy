@@ -208,7 +208,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertProperties TypeWithIsAndGetProperty, [
             bool: [(TYPE): Small],
         ], [
-            strict("Property 'bool' has redundant getters: 'getBool()' and 'isBool()'. Boolean property 'bool' has both an `is` and a `get` getter. Possible solution: Remove one of the getters. ${learnAt("validation_problems", "redundant_getters")}.")
+            strict("Property 'bool' has redundant getters: 'getBool()' and 'isBool()'. Boolean property 'bool' has both an `is` and a `get` getter. Possible solutions: Remove one of the getters or annotate one of the getters with @Internal. ${learnAt("validation_problems", "redundant_getters")}.")
         ]
         store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
