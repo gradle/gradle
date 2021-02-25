@@ -676,7 +676,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         fails('jar')
 
         then:
-        failureDescriptionContains(missingValueMessage('archiveFile'))
+        failureDescriptionContains(missingValueMessage { type('Jar').property('archiveFile') })
     }
 
     def "can use Provider values in manifest attribute"() {

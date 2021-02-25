@@ -428,7 +428,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    def "validation fails for unspecified #property for #type.simpleName"() {
+    def "validation fails for unspecified #propName for #type.simpleName"() {
         given:
         def task = expectTaskCreated(type, [null] as Object[])
 
@@ -437,11 +437,11 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        String expectedMessage = missingValueMessage(property)
+        String expectedMessage = missingValueMessage { property(propName).includeLink() }
         validateException(task, e, expectedMessage)
 
         where:
-        type                | property
+        type                | propName
         TaskWithInputFile   | 'inputFile'
         TaskWithOutputFile  | 'outputFile'
         TaskWithOutputFiles | 'outputFiles'
@@ -592,7 +592,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, false, e,
-            "Type 'AnnotationProcessingTasks.TaskWithNestedBeanWithPrivateClass': ${missingValueMessage('bean.inputFile')}",
+            missingValueMessage { type('AnnotationProcessingTasks.TaskWithNestedBeanWithPrivateClass').property('bean.inputFile').includeLink() },
             "Type 'AnnotationProcessingTasks.Bean2': field 'inputFile2' without corresponding getter has been annotated with @InputFile. Annotations on fields are only used if there's a corresponding getter for the field. Possible solutions: Add a getter for field 'inputFile2' or remove the annotations on 'inputFile2'. ${learnAt('validation_problems', 'ignored_annotations_on_field')}.")
     }
 
@@ -609,7 +609,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, missingValueMessage('bean'))
+        validateException(task, e, missingValueMessage { property('bean').includeLink() })
     }
 
     @ValidationTestFor(
@@ -625,7 +625,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, missingValueMessage('bean'))
+        validateException(task, e, missingValueMessage { property('bean').includeLink() })
     }
 
     @ValidationTestFor(
@@ -640,7 +640,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, missingValueMessage('srcFile'))
+        validateException(task, e, missingValueMessage { property('srcFile').includeLink() })
     }
 
     def validationFailureListsViolationsForAllProperties() {
@@ -653,8 +653,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, e,
-            missingValueMessage('outputFile'),
-            missingValueMessage('bean.inputFile'))
+            missingValueMessage { property('outputFile').includeLink() },
+            missingValueMessage { property('bean.inputFile').includeLink() })
     }
 
     @ValidationTestFor(
@@ -670,10 +670,10 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, e,
-            missingValueMessage('cCompiler'),
-            missingValueMessage('CFlags'),
-            missingValueMessage('dns'),
-            missingValueMessage('URL'))
+            missingValueMessage { property('cCompiler').includeLink() },
+            missingValueMessage { property('CFlags').includeLink() },
+            missingValueMessage { property('dns').includeLink() },
+            missingValueMessage { property('URL').includeLink() })
     }
 
     @ValidationTestFor(
@@ -689,8 +689,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, e,
-            missingValueMessage('a'),
-            missingValueMessage('b'))
+            missingValueMessage { property('a').includeLink() },
+            missingValueMessage { property('b').includeLink() })
     }
 
     @Unroll

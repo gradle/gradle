@@ -202,6 +202,6 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         fails "foo"
 
         then:
-        failureDescriptionContains(missingValueMessage('bar'))
+        failureDescriptionContains(missingValueMessage { type('FooTask').property('bar') })
     }
 }

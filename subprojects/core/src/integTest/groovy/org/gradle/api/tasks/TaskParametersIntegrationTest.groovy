@@ -32,7 +32,7 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker{
+class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def "reports which properties are not serializable"() {
         buildFile << """
@@ -585,7 +585,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage('input'))
+        failureDescriptionContains(missingValueMessage { type('DefaultTask').property('input') })
     }
 
     def "optional null input properties registered via TaskInputs.property are allowed"() {
@@ -613,7 +613,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage('input'))
+        failureDescriptionContains(missingValueMessage { type('DefaultTask').property('input') })
 
         where:
         method << ["file", "files", "dir"]
@@ -648,7 +648,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage('output'))
+        failureDescriptionContains(missingValueMessage { type('DefaultTask').property('output') })
 
         where:
         method << ["file", "files", "dir", "dirs"]

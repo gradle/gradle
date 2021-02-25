@@ -638,9 +638,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(privateGetterAnnotatedMessage('badTime', 'Input'), 'validation_problems', 'private_getter_must_not_be_annotated'),
-            error(privateGetterAnnotatedMessage('options.badNested', 'Input'), 'validation_problems', 'private_getter_must_not_be_annotated'),
-            error(privateGetterAnnotatedMessage('outputDir', 'OutputDirectory'), 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage { type('MyTask').property('badTime').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage { type('MyTask').property('options.badNested').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage { type('MyTask').property('outputDir').annotation('OutputDirectory') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
         ])
     }
 
@@ -678,8 +678,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(methodShouldNotBeAnnotatedMessage('MyTask', 'method', 'notAGetter', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage('MyTask.Options', 'method', 'notANestedGetter', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('method').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('method').method('notANestedGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
     }
 
@@ -733,13 +733,16 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         expect:
         assertValidationFailsWith([
             warning("Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation."),
-            error(methodShouldNotBeAnnotatedMessage('MyTask', 'setter', 'setReadWrite', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage('MyTask', 'setter', 'setWriteOnly', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage('MyTask.Options', 'setter', 'setReadWrite', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage('MyTask.Options', 'setter', 'setWriteOnly', 'Input'), 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
     def "reports conflicting types when property is replaced"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -771,7 +774,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(ignoredAnnotatedPropertyMessage('oldProperty', 'ReplacedBy', 'Input'), 'validation_problems', 'ignored_property_must_not_be_annotated')
+            error(ignoredAnnotatedPropertyMessage { type('MyTask').property('oldProperty').ignoring('ReplacedBy').alsoAnnotatedWith('Input') }, 'validation_problems', 'ignored_property_must_not_be_annotated')
         ])
     }
 
@@ -800,7 +803,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(conflictingAnnotationsMessage('file', ['InputFile', 'OutputFile']), 'validation_problems', 'conflicting_annotations'),
+            error(conflictingAnnotationsMessage { type('MyTask').property('file').inConflict('InputFile', 'OutputFile') }, 'validation_problems', 'conflicting_annotations'),
         ])
     }
 
@@ -814,7 +817,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     @Deprecated
     final void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, Severity> messages) {
-        assertValidationFailsWith(expectDeprecationsForErrors, messages.collect {message, severity ->
+        assertValidationFailsWith(expectDeprecationsForErrors, messages.collect { message, severity ->
             new DocumentedProblem(message, severity)
         })
     }

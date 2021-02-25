@@ -399,21 +399,21 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             absolutePathSensitivity: invalidUseOfAbsoluteNormalizationMessage,
             extension: 'is not annotated with an input annotation',
             fileInput: [
-                missingValueMessage('fileInput', false),
+                missingValueMessage { property('fileInput').includeLink().noIntro() },
                 'has @Input annotation used on property of type \'File\'',
             ],
             incrementalNonFileInput: [
-                missingValueMessage('incrementalNonFileInput', false),
+                missingValueMessage { property('incrementalNonFileInput').includeLink().noIntro() },
                 'is annotated with @Incremental that is not allowed for @Input properties',
             ],
-            missingInput: missingValueMessage('missingInput', false),
-            'nested.outputDirectory': annotationInvalidInContext('nested.outputDirectory', 'OutputDirectory', null, false),
+            missingInput: missingValueMessage { property('missingInput').includeLink().noIntro() },
+            'nested.outputDirectory': annotationInvalidInContext { annotation('OutputDirectory').includeLink() },
             'nested.inputFile': "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
             'nested.stringProperty': 'is not annotated with an input annotation',
             noPathSensitivity: "is annotated with @InputFiles but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityDir: "is annotated with @InputDirectory but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityFile: "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
-            outputDir: annotationInvalidInContext('outputDir', 'OutputDirectory', null, false)
+            outputDir: annotationInvalidInContext { annotation('OutputDirectory').includeLink() }
         )
     }
 
@@ -492,7 +492,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
     @Unroll
-    def "transform parameters type cannot use annotation @#annotation.simpleName"() {
+    def "transform parameters type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b'
         """
@@ -513,7 +513,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     @Input
                     String getExtension()
                     void setExtension(String value)
-                    @${annotation.simpleName}
+                    @${ann.simpleName}
                     String getBad()
                     void setBad(String value)
                 }
@@ -533,10 +533,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        assertPropertyValidationErrors(bad: annotationInvalidInContext('bad', annotation.simpleName, null, false))
+        assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName) })
 
         where:
-        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
+        ann << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
     @Unroll
@@ -644,14 +644,16 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
-        String conflictingAnnotationsMessage = conflictingAnnotationsMessage('conflictingAnnotations', ['InputFile','InputArtifact', 'InputArtifactDependencies'], false, false, false)
+        String conflictingAnnotationsMessage = conflictingAnnotationsMessage {
+            inConflict('InputFile', 'InputArtifact', 'InputArtifactDependencies')
+        }
         assertPropertyValidationErrors(
             absolutePathSensitivityDependencies: invalidUseOfAbsoluteNormalizationMessage,
             'conflictingAnnotations': [
                 conflictingAnnotationsMessage,
-                annotationInvalidInContext('conflictingAnnotations', 'InputFile', null, false, false)
+                annotationInvalidInContext { annotation('InputFile') }
             ],
-            inputFile: annotationInvalidInContext('inputFile', 'InputFile', null, false, false),
+            inputFile: annotationInvalidInContext { annotation('InputFile') },
             noPathSensitivity: 'is annotated with @InputArtifact but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
             notAnnotated: 'is not annotated with an input annotation',
         )
@@ -691,7 +693,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
     @Unroll
-    def "transform action type cannot use annotation @#annotation.simpleName"() {
+    def "transform action type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -715,7 +717,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     void setExtension(String value)
                 }
 
-                @${annotation.simpleName}
+                @${ann.simpleName}
                 String getBad() { }
 
                 void transform(TransformOutputs outputs) {
@@ -730,10 +732,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        assertPropertyValidationErrors(bad: annotationInvalidInContext('bad', annotation.simpleName, null, false))
+        assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName) })
 
         where:
-        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
+        ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
     @Unroll

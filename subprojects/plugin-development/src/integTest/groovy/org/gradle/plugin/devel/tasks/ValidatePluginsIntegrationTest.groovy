@@ -60,10 +60,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             if (!it.defaultDocLink) {
                 fullMessage = "${fullMessage} ${learnAt(it.id, it.section)}."
             }
-            [(fullMessage): it.severity ]
+            [(fullMessage): it.severity]
         })
 
-        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size()>1?'s':''}"
+        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size() > 1 ? 's' : ''}"
         messages.forEach { problem ->
             failure.assertThatCause(containsString("$problem.severity: $problem.message"))
         }
@@ -105,14 +105,14 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
     @Unroll
-    def "task cannot have property with annotation @#annotation.simpleName"() {
+    def "task cannot have property with annotation @#ann.simpleName"() {
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
 
             public class MyTask extends DefaultTask {
-                @${annotation.simpleName}
+                @${ann.simpleName}
                 String getThing() {
                     return null;
                 }
@@ -123,7 +123,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 }
 
                 public static class Options {
-                    @${annotation.simpleName}
+                    @${ann.simpleName}
                     String getNestedThing() {
                         return null;
                     }
@@ -133,12 +133,12 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(annotationInvalidInContext('options.nestedThing', annotation.simpleName, 'MyTask'), 'validation_problems', 'annotation_invalid_in_context'),
-            error(annotationInvalidInContext('thing', annotation.simpleName, 'MyTask'), 'validation_problems', 'annotation_invalid_in_context')
+            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('options.nestedThing') }, 'validation_problems', 'annotation_invalid_in_context'),
+            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('thing') }, 'validation_problems', 'annotation_invalid_in_context')
         ])
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies]
+        ann << [InputArtifact, InputArtifactDependencies]
     }
 
     def "can enable stricter validation"() {
@@ -325,7 +325,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         expect:
         assertValidationFailsWith([
             error("Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation."),
-            error(annotationInvalidInContext( 'inputFile', 'InputFile', 'MyTransformAction'), 'validation_problems', 'annotation_invalid_in_context'),
+            error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
             error("Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation."),
         ])
     }
@@ -392,7 +392,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationFailsWith([
             error("Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."),
             error("Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."),
-            error(annotationInvalidInContext('inputFile', 'InputArtifact', 'MyTransformParameters'), 'validation_problems', 'annotation_invalid_in_context'),
+            error(annotationInvalidInContext { annotation('InputArtifact').type('MyTransformParameters').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
             error("Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."),
         ])
     }
