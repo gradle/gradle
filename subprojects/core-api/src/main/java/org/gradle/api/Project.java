@@ -263,6 +263,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     File getBuildDir();
 
+
     /**
      * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
      * generated into.</p>
