@@ -7,14 +7,15 @@ repositories {
 }
 
 // tag::config-component-metadata-rule[]
-open class TargetJvmVersionRule @Inject constructor(val jvmVersion: Int) : ComponentMetadataRule {
-    @Inject open fun getObjects(): ObjectFactory = throw UnsupportedOperationException()
+@CacheableRule
+abstract class TargetJvmVersionRule @Inject constructor(val jvmVersion: Int) : ComponentMetadataRule {
+    @get:Inject abstract val objects: ObjectFactory
 
     override fun execute(context: ComponentMetadataContext) {
         context.details.withVariant("compile") {
             attributes {
                 attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, jvmVersion)
-                attribute(Usage.USAGE_ATTRIBUTE, getObjects().named(Usage.JAVA_API))
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
             }
         }
     }
@@ -35,7 +36,8 @@ dependencies {
 
 
 // tag::jaxen-rule-1[]
-open class JaxenDependenciesRule: ComponentMetadataRule {
+@CacheableRule
+abstract class JaxenDependenciesRule: ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
             withDependencies {
@@ -47,7 +49,8 @@ open class JaxenDependenciesRule: ComponentMetadataRule {
 // end::jaxen-rule-1[]
 
 // tag::jaxen-rule-2[]
-open class JaxenCapabilitiesRule: ComponentMetadataRule {
+@CacheableRule
+abstract class JaxenCapabilitiesRule: ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.addVariant("runtime-dom4j", "runtime") {
             withCapabilities {
@@ -77,7 +80,8 @@ dependencies {
 
 
 // tag::guava-rule[]
-open class GuavaRule: ComponentMetadataRule {
+@CacheableRule
+abstract class GuavaRule: ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         val variantVersion = context.details.id.version
         val version = variantVersion.substring(0, variantVersion.indexOf("-"))
@@ -113,7 +117,8 @@ dependencies {
 
 
 // tag::quasar-rule[]
-open class QuasarRule: ComponentMetadataRule {
+@CacheableRule
+abstract class QuasarRule: ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         listOf("compile", "runtime").forEach { base ->
             context.details.addVariant("jdk8${base.capitalize()}", base) {
@@ -149,7 +154,8 @@ dependencies {
 
 
 // tag::lwgj-rule[]
-open class LwjglRule: ComponentMetadataRule {
+@CacheableRule
+abstract class LwjglRule: ComponentMetadataRule {
     data class NativeVariant(val os: String, val arch: String, val classifier: String)
 
     private val nativeVariants = listOf(
@@ -160,20 +166,20 @@ open class LwjglRule: ComponentMetadataRule {
         NativeVariant(OperatingSystemFamily.MACOS,   "x86-64", "natives-macos")
     )
 
-    @Inject open fun getObjects(): ObjectFactory = throw UnsupportedOperationException()
+    @get:Inject abstract val objects: ObjectFactory
 
     override fun execute(context: ComponentMetadataContext) {
         context.details.withVariant("runtime") {
             attributes {
-                attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, getObjects().named("none"))
-                attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, getObjects().named("none"))
+                attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named("none"))
+                attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("none"))
             }
         }
         nativeVariants.forEach { variantDefinition ->
             context.details.addVariant("${variantDefinition.classifier}-runtime", "runtime") {
                 attributes {
-                    attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, getObjects().named(variantDefinition.os))
-                    attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, getObjects().named(variantDefinition.arch))
+                    attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(variantDefinition.os))
+                    attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(variantDefinition.arch))
                 }
                 withFiles {
                     addFile("${context.details.id.name}-${context.details.id.version}-${variantDefinition.classifier}.jar")
@@ -198,7 +204,8 @@ dependencies {
 
 
 // tag::guice-rule[]
-open class GuiceRule: ComponentMetadataRule {
+@CacheableRule
+abstract class GuiceRule: ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         listOf("compile", "runtime").forEach { base ->
             context.details.addVariant("noAop${base.capitalize()}", base) {
@@ -231,7 +238,8 @@ dependencies {
 
 
 // tag::ivy-component-metadata-rule[]
-open class IvyComponentRule : ComponentMetadataRule {
+@CacheableRule
+abstract class IvyComponentRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         val descriptor = context.getDescriptor(IvyModuleDescriptor::class)
         if (descriptor != null && descriptor.branch == "testing") {
@@ -242,7 +250,8 @@ open class IvyComponentRule : ComponentMetadataRule {
 // end::ivy-component-metadata-rule[]
 
 // tag::maven-packaging-component-metadata-rule[]
-open class MavenComponentRule : ComponentMetadataRule {
+@CacheableRule
+abstract class MavenComponentRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         val descriptor = context.getDescriptor(PomModuleDescriptor::class)
         if (descriptor != null && descriptor.packaging == "war") {
@@ -260,7 +269,8 @@ dependencies {
 }
 
 // tag::custom-status-scheme[]
-open class CustomStatusRule : ComponentMetadataRule {
+@CacheableRule
+abstract class CustomStatusRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.statusScheme = listOf("nightly", "milestone", "rc", "release")
         if (context.details.status == "integration") {
@@ -290,7 +300,7 @@ tasks.register("failRuntimeClasspathResolve") {
 tasks.register("runtimeClasspathArtifacts") {
     doLast {
         configurations["runtimeClasspath"].attributes {
-            attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, getObjects().named("x86"))
+            attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("x86"))
         }
         configurations["runtimeClasspath"].filter { !it.name.startsWith("commons-lang3") }.forEach { println(it.name) }
     }
