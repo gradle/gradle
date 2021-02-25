@@ -62,11 +62,42 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
         )
     }
 
+    def "unable to resolve dependencies when server does not support requested TLS version"() {
+        given:
+        keyStore.enableSslWithServerCert(mavenHttpRepo.server) {
+            it.addExcludeProtocols("TLSv1.2")
+            it.setExcludeCipherSuites()
+        }
+        keyStore.configureServerCert(executer)
+        def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+        and:
+        writeBuildFile()
+        when:
+        module.allowAll()
+        executer.withArgument("-Dhttps.protocols=TLSv1.2")
+        then:
+        executer.withStackTraceChecksDisabled()
+        fails('listJars')
+        and:
+        failure.assertHasDescription("Execution failed for task ':listJars'")
+        failure.assertHasCause("Could not GET '$server.uri")
+        failure.assertThatCause(
+            allOf(
+                anyOf(
+                    startsWith("The server does not support the client's requested TLS protocol versions:"),
+                    startsWith("The server may not support the client's requested TLS protocol versions:") // Windows
+                ),
+                containsString("You may need to configure the client to allow other protocols to be used."),
+                containsString("See: https://docs.gradle.org/")
+            )
+        )
+    }
+
     def "able to resolve dependencies when the user manually specifies the supported TLS versions using `https.protocols`"() {
         given:
         keyStore.enableSslWithServerCert(mavenHttpRepo.server) {
-            it.addExcludeProtocols("TLSv1.2", "TLSv1.3")
-            it.setIncludeProtocols("TLSv1", "TLSv1.1")
+            it.addExcludeProtocols("TLSv1.3")
+            it.setIncludeProtocols("TLSv1.2")
             it.setExcludeCipherSuites()
         }
         keyStore.configureServerCert(executer)
@@ -76,27 +107,27 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
         when:
         module.allowAll()
         and:
-        executer.withArgument("-Dhttps.protocols=TLSv1,TLSv1.1")
+        executer.withArgument("-Dhttps.protocols=TLSv1.2")
         then:
         succeeds('listJars')
     }
 
     def writeBuildFile() {
         buildFile << """
-repositories {
-    maven {
-        url "${mavenHttpRepo.uri}"
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'group:projectA:1.2'
-}
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-    }
-}
-"""
+            repositories {
+                maven {
+                    url "${mavenHttpRepo.uri}"
+                }
+            }
+            configurations { compile }
+            dependencies {
+                compile 'group:projectA:1.2'
+            }
+            task listJars {
+                doLast {
+                    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+                }
+            }
+        """
     }
 }
