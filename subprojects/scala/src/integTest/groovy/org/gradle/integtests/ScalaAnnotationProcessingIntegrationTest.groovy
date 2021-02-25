@@ -18,6 +18,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.escapeString
@@ -103,6 +105,8 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':compileScala')
     }
 
+    // https://github.com/rzwitserloot/lombok/issues/2681
+    @Requires(TestPrecondition.JDK15_OR_EARLIER)
     def "can use external annotation processor for Java class, from processor path"() {
         given:
         buildFile << basicScalaProject()
@@ -122,7 +126,9 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     static String basicScalaProject() {
         """
-            apply plugin: 'scala'
+            plugins {
+                id("scala")
+            }
 
             ${mavenCentralRepository()}
 
@@ -151,7 +157,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     static String lombokDependency() {
         """
             dependencies {
-                compileOnly 'org.projectlombok:lombok:1.16.22'
+                compileOnly 'org.projectlombok:lombok:1.18.18'
             }
         """
     }
