@@ -17,16 +17,14 @@
 package org.gradle.api.tasks
 
 import org.apache.commons.io.FilenameUtils
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-import spock.lang.Unroll
 
-
-@Unroll
 class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/8051")
@@ -125,7 +123,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         compression | md5
-        'gzip'      | 'a9339a2b2bb7f96057c480834d00e29e'
+        'gzip'      | (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? 'c4d89909b123359774c0a5dfd3cc8e46' : 'a9339a2b2bb7f96057c480834d00e29e')
         'bzip2'     | '3da0b978d23f0a774ea7cf07d73f3283'
     }
 
