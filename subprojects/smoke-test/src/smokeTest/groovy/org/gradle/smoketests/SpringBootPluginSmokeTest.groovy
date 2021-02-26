@@ -75,6 +75,8 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     void configureValidation(String pluginId, String version) {
         validatePlugins {
             onPlugin(pluginId) {
+                // This is not a problem, since this task type is only used for Gradle versions < 6.4.
+                // See https://github.com/spring-projects/spring-boot/blob/038ae9340644f0128ed6f29d9e5eb7e6c359f291/spring-boot-project/spring-boot-tools/spring-boot-gradle-plugin/src/main/java/org/springframework/boot/gradle/plugin/ApplicationPluginAction.java#L85
                 failsWith "Type 'CreateBootStartScripts': property 'mainClassName' is annotated with @Optional that is not allowed for @ReplacedBy properties.", WARNING
             }
         }
