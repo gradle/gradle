@@ -74,6 +74,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file(path)
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -96,9 +99,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'tree.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+        ])
     }
 
     @ValidationTestFor(
@@ -269,9 +272,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationSucceeds()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
-    )
+    @ValidationTestFor([
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+        ValidationProblemId.MISSING_ANNOTATION
+    ])
     def "can validate properties of an artifact transform action"() {
         file("src/main/java/MyTransformAction.java") << """
             import org.gradle.api.*;
@@ -324,15 +328,16 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error("Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation."),
+            error(missingAnnotationMessage { type('MyTransformAction').property('badTime').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
             error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
-            error("Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation."),
+            error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
-    )
+    @ValidationTestFor([
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+        ValidationProblemId.MISSING_ANNOTATION
+    ])
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
             import org.gradle.api.*;
@@ -390,13 +395,16 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error("Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."),
+            error(missingAnnotationMessage { type('MyTransformParameters').property('badTime').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
             error("Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."),
             error(annotationInvalidInContext { annotation('InputArtifact').type('MyTransformParameters').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
-            error("Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."),
+            error(missingAnnotationMessage { type('MyTransformParameters').property('oldThing').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "tests only classes from plugin source set"() {
         buildFile << """
             sourceSets {
@@ -442,8 +450,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'PluginTask': property 'badProperty' is not annotated with an input or output annotation.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(missingAnnotationMessage { type('PluginTask').property('badProperty').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+        ])
     }
 }

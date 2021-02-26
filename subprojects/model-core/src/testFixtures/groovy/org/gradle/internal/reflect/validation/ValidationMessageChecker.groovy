@@ -63,12 +63,30 @@ trait ValidationMessageChecker {
         config.render "is annotated with invalid property type @${config.annotation}. The '@${config.annotation}' annotation cannot be used in this context. Possible solution: Remove the property."
     }
 
+    String missingAnnotationMessage(@DelegatesTo(value=MissingAnnotation, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(MissingAnnotation, 'missing_annotation', spec)
+        config.render "is missing ${config.kind}. A property without annotation isn't considered during up-to-date checking. Possible solutions: Add ${config.kind} or mark it as @Internal."
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class MissingAnnotation extends ValidationMessageDisplayConfiguration<MissingAnnotation> {
+        String kind
+
+        MissingAnnotation(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        MissingAnnotation kind(String kind) {
+            this.kind = kind
+            this
+        }
     }
 
     static class SimpleMessage extends ValidationMessageDisplayConfiguration<SimpleMessage> {

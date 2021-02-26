@@ -107,9 +107,15 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             Annotation normalizationAnnotation = propertyAnnotations.get(NORMALIZATION);
             Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
             if (propertyType == null) {
-                validationContext.visitPropertyProblem(WARNING,
-                    propertyAnnotationMetadata.getPropertyName(),
-                    String.format("is not annotated with %s", displayName)
+                validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.MISSING_ANNOTATION)
+                        .forProperty(propertyAnnotationMetadata.getPropertyName())
+                        .reportAs(ERROR)
+                        .withDescription(() -> "is missing " + displayName)
+                        .happensBecause("A property without annotation isn't considered during up-to-date checking")
+                        .addPossibleSolution(() -> "Add " + displayName)
+                        .addPossibleSolution("Mark it as @Internal")
+                        .documentedAt("validation_problems", "missing_annotation")
                 );
                 continue;
             }
@@ -121,7 +127,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
                         .reportAs(ERROR)
                         .withDescription(() -> String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
-                        .happensBecause(() -> "The '@"+propertyType.getSimpleName() + "' annotation cannot be used in this context")
+                        .happensBecause(() -> "The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
                         .addPossibleSolution("Remove the property")
                         .documentedAt("validation_problems", "annotation_invalid_in_context")
                 );
@@ -147,7 +153,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .reportAs(ERROR)
                             .withDescription(() -> String.format("has invalid annotation @%s", annotationType.getSimpleName()))
-                            .happensBecause(() -> "The '@"+propertyType.getSimpleName() + "' annotation cannot be used in this context")
+                            .happensBecause(() -> "The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
                             .addPossibleSolution("Remove the property")
                             .documentedAt("validation_problems", "annotation_invalid_in_context")
                     );

@@ -180,4 +180,15 @@ For example, it's in general possible to annotate a `DirectoryProperty` with `@O
 
 To fix this problem, you must remove the property.
 
+[[missing_annotation]]
+== Properties without annotations
+
+This error indicates that a property isn't annotated with an input or output annotation.
+Therefore, Gradle doesn't know if this property represents an input, an output, or simply should be ignored.
+As a consequence, up-to-date checking and caching won't work.
+
+To fix this problem, you need to annotate the property with the appropriate annotation, for example `@InputDirectory` for a property representing an input directory, or `@OutputDirectory` for a property representing an output directory.
+
+Alternatively, if the property is internal, that is to say that it shouldn't participate in up-to-date checking (it's not an input or an output), then you need to annotate it with link:{javadocPath}/org/gradle/api/tasks/Internal.html[@Internal].
+
 

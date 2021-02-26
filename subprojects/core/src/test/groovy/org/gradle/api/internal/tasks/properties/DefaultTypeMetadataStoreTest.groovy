@@ -50,7 +50,10 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
+import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.TypeValidationContext
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.internal.scripts.ScriptOrigin
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
@@ -65,7 +68,7 @@ import java.lang.annotation.Annotation
 import static ModifierAnnotationCategory.NORMALIZATION
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 
-class DefaultTypeMetadataStoreTest extends Specification {
+class DefaultTypeMetadataStoreTest extends Specification implements ValidationMessageChecker {
     static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     static final PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
@@ -350,6 +353,9 @@ class DefaultTypeMetadataStoreTest extends Specification {
         @Input String useful
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "warns about and ignores properties that are not annotated"() {
         when:
         def metadata = metadataStore.getTypeMetadata(TypeWithUnannotatedProperties)
@@ -357,8 +363,8 @@ class DefaultTypeMetadataStoreTest extends Specification {
         then:
         metadata.propertiesMetadata.propertyName == ["useful"]
         collectProblems(metadata) == [
-            "Property 'bad1' is not annotated with an input or output annotation.",
-            "Property 'bad2' is not annotated with an input or output annotation."
+            missingAnnotationMessage { property('bad1').kind('an input or output annotation').includeLink() },
+            missingAnnotationMessage { property('bad2').kind('an input or output annotation').includeLink() },
         ]
     }
 

@@ -51,6 +51,9 @@ import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "detects missing annotations on Java properties"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -128,12 +131,12 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'ter' is not annotated with an input or output annotation.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(missingAnnotationMessage { type('MyTask').property('badTime').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('oldThing').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('options.badNested').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('ter').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+        ])
     }
 
     @Unroll
@@ -246,6 +249,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "detects missing annotation on Groovy properties"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -278,10 +284,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(missingAnnotationMessage { type('MyTask').property('badTime').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('options.badNested').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+        ])
     }
 
     def "no problems with Copy task"() {
@@ -487,6 +493,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "detects problems on nested collections"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -587,16 +596,17 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'iterableOptions${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'mappedOptions${getKeySymbolFor("alma")}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'namedIterable${getNameSymbolFor("tibor")}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'options.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'optionsList${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'providedOptions.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-        )
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
+        assertValidationFailsWith([
+            error(missingAnnotationMessage { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor( "alma")}${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+        ])
     }
 
     @ValidationTestFor(
@@ -683,9 +693,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
-    )
+    @ValidationTestFor([
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD,
+        ValidationProblemId.MISSING_ANNOTATION
+    ])
     def "detects annotations on setter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -732,7 +743,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            warning("Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation."),
+            error(missingAnnotationMessage { type('MyTask').property('readWrite').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
             error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
             error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
             error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),

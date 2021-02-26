@@ -16,7 +16,8 @@
 
 package org.gradle.plugin.devel.tasks
 
-
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
@@ -89,6 +90,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         return file("buildSrc/$path")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -117,9 +121,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
 
         expect:
         assertValidationFailsWith([
-            warning("Type 'MyTask': property 'tree.nonAnnotated' is not annotated with an input or output annotation."),
-            warning("Type 'MyTask': property 'tree.left.nonAnnotated' is not annotated with an input or output annotation."),
-            warning("Type 'MyTask': property 'tree.right.nonAnnotated' is not annotated with an input or output annotation."),
+            error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('tree.left.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('tree.right.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
         ])
     }
 }

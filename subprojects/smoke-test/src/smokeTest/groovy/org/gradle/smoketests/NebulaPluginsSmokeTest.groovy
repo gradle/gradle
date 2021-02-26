@@ -17,15 +17,16 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
 
-class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
+class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
     @ToBeFixedForConfigurationCache
@@ -256,9 +257,9 @@ testImplementation('junit:junit:4.7')""")
             if (testedPluginId == 'nebula.plugin-plugin') {
                 onPlugin('com.github.kt3k.coveralls') {
                     failsWith([
-                        "Type 'CoverallsTask': property 'env' is not annotated with an input or output annotation.": WARNING,
-                        "Type 'CoverallsTask': property 'logger' is not annotated with an input or output annotation.": WARNING,
-                        "Type 'CoverallsTask': property 'sourceReportFactoryMap' is not annotated with an input or output annotation.": WARNING
+                        (missingAnnotationMessage { type('CoverallsTask').property('env').kind('an input or output annotation').includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('CoverallsTask').property('logger').kind('an input or output annotation').includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('CoverallsTask').property('sourceReportFactoryMap').kind('an input or output annotation').includeLink() }): ERROR,
                     ])
                 }
                 onPlugins(['com.gradle.plugin-publish',

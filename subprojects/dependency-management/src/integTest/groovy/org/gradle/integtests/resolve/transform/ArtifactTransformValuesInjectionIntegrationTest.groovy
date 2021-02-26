@@ -309,7 +309,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
         ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
         ValidationProblemId.VALUE_NOT_SET,
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+        ValidationProblemId.MISSING_ANNOTATION
     ])
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
@@ -397,7 +398,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         String missingNormalizationDetails = "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}"
         assertPropertyValidationErrors(
             absolutePathSensitivity: invalidUseOfAbsoluteNormalizationMessage,
-            extension: 'is not annotated with an input annotation',
+            extension: missingAnnotationMessage { property('extension').kind('an input annotation').includeLink().noIntro() },
             fileInput: [
                 missingValueMessage { property('fileInput').includeLink().noIntro() },
                 'has @Input annotation used on property of type \'File\'',
@@ -409,7 +410,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             missingInput: missingValueMessage { property('missingInput').includeLink().noIntro() },
             'nested.outputDirectory': annotationInvalidInContext { annotation('OutputDirectory').includeLink() },
             'nested.inputFile': "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
-            'nested.stringProperty': 'is not annotated with an input annotation',
+            'nested.stringProperty': missingAnnotationMessage { property('nested.stringProperty').kind('an input annotation').includeLink().noIntro() },
             noPathSensitivity: "is annotated with @InputFiles but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityDir: "is annotated with @InputDirectory but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityFile: "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
@@ -589,7 +590,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
         ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
         ValidationProblemId.CONFLICTING_ANNOTATIONS,
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+        ValidationProblemId.MISSING_ANNOTATION
     ])
     def "transform action is validated for input output annotations"() {
         settingsFile << """
@@ -655,7 +657,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             ],
             inputFile: annotationInvalidInContext { annotation('InputFile') },
             noPathSensitivity: 'is annotated with @InputArtifact but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
-            notAnnotated: 'is not annotated with an input annotation',
+            notAnnotated: missingAnnotationMessage { property('extension').kind('an input annotation').includeLink().noIntro() },
         )
     }
 
