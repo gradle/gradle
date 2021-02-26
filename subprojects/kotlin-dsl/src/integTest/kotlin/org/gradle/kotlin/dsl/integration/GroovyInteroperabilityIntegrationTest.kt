@@ -40,7 +40,7 @@ class GroovyInteroperabilityIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             pluginManager.apply(MyPlugin)
-        """
+            """
         )
 
         withBuildScript(
@@ -52,7 +52,7 @@ class GroovyInteroperabilityIntegrationTest : AbstractKotlinIntegrationTest() {
                 setProperty("server", "newValue")
                 setMetaClass(getMetaClass())
             }
-        """
+            """
         )
 
         build()
