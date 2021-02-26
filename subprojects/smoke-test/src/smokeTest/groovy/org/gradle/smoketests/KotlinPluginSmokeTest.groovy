@@ -187,6 +187,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'org.jetbrains.kotlin.jvm': TestedVersions.kotlin,
             'org.jetbrains.kotlin.js': TestedVersions.kotlin,
             'org.jetbrains.kotlin.multiplatform': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.android': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.android.extensions': TestedVersions.kotlin,
             'org.jetbrains.kotlin.kapt': TestedVersions.kotlin,
             'org.jetbrains.kotlin.plugin.scripting': TestedVersions.kotlin,
             'org.jetbrains.kotlin.native.cocoapods': TestedVersions.kotlin,
@@ -199,14 +201,13 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         if (testedPluginId == 'org.jetbrains.kotlin.kapt') {
             return ['org.jetbrains.kotlin.jvm': version]
         }
-        if (testedPluginId == 'org.jetbrains.kotlin.android') {
-            return ['com.android.application': androidVersion]
-        }
-        if (testedPluginId == 'org.jetbrains.kotlin.android.extensions') {
-            return [
-                'com.android.application': androidVersion,
-                'org.jetbrains.kotlin.android': version
-            ]
+        if (isAndroidKotlinPlugin(testedPluginId)) {
+            AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidVersion)
+            def extraPlugins = ['com.android.application': androidVersion]
+            if (testedPluginId == 'org.jetbrains.kotlin.android.extensions') {
+                extraPlugins.put('org.jetbrains.kotlin.android', version)
+            }
+            return extraPlugins
         }
         return [:]
     }
@@ -214,7 +215,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     void configureValidation(String testedPluginId, String version) {
         validatePlugins {
-            if (testedPluginId.contains('android')) {
+            if (isAndroidKotlinPlugin(testedPluginId)) {
                 buildFile << """
                     android {
                         compileSdkVersion 24
@@ -263,5 +264,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 }
             """
         }
+    }
+
+    private static boolean isAndroidKotlinPlugin(String pluginId) {
+        return pluginId.contains('android')
     }
 }
