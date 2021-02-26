@@ -22,10 +22,11 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
-class KotlinPluginSmokeTest extends AbstractSmokeTest {
+class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
 
@@ -178,5 +179,91 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     private GradleRunner runner(boolean workers, String... tasks) {
         return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
             .forwardOutput()
+    }
+
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'org.jetbrains.kotlin.jvm': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.js': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.multiplatform': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.android': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.android.extensions': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.kapt': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.plugin.scripting': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.native.cocoapods': TestedVersions.kotlin,
+        ]
+    }
+
+    @Override
+    Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
+        def androidVersion = TestedVersions.androidGradle.latest()
+        if (testedPluginId == 'org.jetbrains.kotlin.kapt') {
+            return ['org.jetbrains.kotlin.jvm': version]
+        }
+        if (testedPluginId == 'org.jetbrains.kotlin.android') {
+            return ['com.android.application': androidVersion]
+        }
+        if (testedPluginId == 'org.jetbrains.kotlin.android.extensions') {
+            return [
+                'com.android.application': androidVersion,
+                'org.jetbrains.kotlin.android': version
+            ]
+        }
+        return [:]
+    }
+
+    @Override
+    void configureValidation(String testedPluginId, String version) {
+        validatePlugins {
+            if (testedPluginId.contains('android')) {
+                buildFile << """
+                    android {
+                        compileSdkVersion 24
+                        buildToolsVersion '${TestedVersions.androidTools}'
+                    }
+                """
+
+                def failingAndroidPlugins = [
+                    'com.android.internal.application', 'com.android.internal.version-check',
+                    // For 1.4.30 we seem to detect the id android for the android application plugin.
+                    // It seems like this change caused this: https://github.com/JetBrains/kotlin/commit/96352b9c8c16dce9f9d6c4c68314163583fe0628#diff-87838cc076c7f5e1aa28563cc605bfbebd9c36718fd3aaee3da7ebcd638ef641R220
+                    version == '1.4.30' ? 'android' : 'com.android.application'
+                ]
+                passing {
+                    it !in failingAndroidPlugins
+                }
+                onPlugins(failingAndroidPlugins) {
+                    // This is not a problem, since the task is only used for internal testing
+                    failsWith([
+                        "Type 'TaskManager.ConfigAttrTask': property 'consumable' is not annotated with an input or output annotation.": WARNING,
+                        "Type 'TaskManager.ConfigAttrTask': property 'resolvable' is not annotated with an input or output annotation.": WARNING,
+                    ])
+                }
+            } else {
+                alwaysPasses()
+            }
+            if (testedPluginId == 'org.jetbrains.kotlin.js' && version != '1.3.72') {
+                buildFile << """
+                    kotlin { js { browser() } }
+                """
+            }
+            if (testedPluginId == 'org.jetbrains.kotlin.multiplatform') {
+                buildFile << """
+                    kotlin {
+                        jvm()
+                        js { browser() }
+                    }
+                """
+            }
+            settingsFile << """
+                pluginManagement {
+                    repositories {
+                        gradlePluginPortal()
+                        google()
+                    }
+                }
+            """
+        }
     }
 }
