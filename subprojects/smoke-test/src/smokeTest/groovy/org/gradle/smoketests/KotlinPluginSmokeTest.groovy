@@ -187,8 +187,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'org.jetbrains.kotlin.jvm': TestedVersions.kotlin,
             'org.jetbrains.kotlin.js': TestedVersions.kotlin,
             'org.jetbrains.kotlin.multiplatform': TestedVersions.kotlin,
-            'org.jetbrains.kotlin.android': TestedVersions.kotlin,
-            'org.jetbrains.kotlin.android.extensions': TestedVersions.kotlin,
             'org.jetbrains.kotlin.kapt': TestedVersions.kotlin,
             'org.jetbrains.kotlin.plugin.scripting': TestedVersions.kotlin,
             'org.jetbrains.kotlin.native.cocoapods': TestedVersions.kotlin,
