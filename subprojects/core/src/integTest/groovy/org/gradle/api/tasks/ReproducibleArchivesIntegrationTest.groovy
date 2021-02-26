@@ -121,6 +121,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/test.tar.${compression}").md5Hash == md5
 
+        // Reason for different gzip checksum on JDK16: https://jdk.java.net/16/release-notes#JDK-8244706
         where:
         compression | md5
         'gzip'      | (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? 'c4d89909b123359774c0a5dfd3cc8e46' : 'a9339a2b2bb7f96057c480834d00e29e')
