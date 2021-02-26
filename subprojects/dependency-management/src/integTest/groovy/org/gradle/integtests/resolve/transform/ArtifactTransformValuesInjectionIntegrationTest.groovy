@@ -406,7 +406,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             ],
             incrementalNonFileInput: [
                 missingValueMessage { property('incrementalNonFileInput').includeLink().noIntro() },
-                incompatibleAnnotations { property('incrementalNonFileInput').annotatedWith('Incremenal').incompatibleWith('Input').includeLink().noIntro() },
+                incompatibleAnnotations { property('incrementalNonFileInput').annotatedWith('Incremental').incompatibleWith('Input').includeLink().noIntro() },
             ],
             missingInput: missingValueMessage { property('missingInput').includeLink().noIntro() },
             'nested.outputDirectory': annotationInvalidInContext { annotation('OutputDirectory').includeLink() },
