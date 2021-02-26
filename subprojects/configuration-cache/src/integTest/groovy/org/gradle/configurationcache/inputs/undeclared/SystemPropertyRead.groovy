@@ -148,7 +148,7 @@ abstract class SystemPropertyRead {
         return new SystemPropertyRead() {
             @Override
             String getJavaExpression() {
-                return "Integer.getInteger(\"$name\", new Integer($defaultValue))"
+                return "Integer.getInteger(\"$name\", Integer.valueOf($defaultValue))"
             }
 
             @Override
@@ -205,7 +205,7 @@ abstract class SystemPropertyRead {
         return new SystemPropertyRead() {
             @Override
             String getJavaExpression() {
-                return "Long.getLong(\"$name\", new Long($defaultValue))"
+                return "Long.getLong(\"$name\", Long.valueOf($defaultValue))"
             }
 
             @Override
