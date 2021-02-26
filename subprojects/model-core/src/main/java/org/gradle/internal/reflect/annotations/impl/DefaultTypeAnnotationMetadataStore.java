@@ -285,6 +285,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .happensBecause(() -> "Boolean property '" + propertyName + "' has both an `is` and a `get` getter")
                         .withLongDescription("Different annotations on the different getters cause problems on what to track as inputs")
                         .addPossibleSolution("Remove one of the getters")
+                        .addPossibleSolution("Annotate one of the getters with @Internal")
                         .documentedAt("validation_problems", "redundant_getters");
                 });
             }
@@ -572,7 +573,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                     simpleAnnotationNames(declaredAnnotations.values().stream()
                                         .<Class<? extends Annotation>>map(Annotation::annotationType)
                                         .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))))
-                                .happensBecause("A property is ignored but contains input annotations")
+                                .happensBecause("A property is ignored but also has input annotations")
                                 .withLongDescription("Having both an input annotation and saying that the property is ignored is confusing: Gradle cannot determine if the input is relevant or not")
                                 .addPossibleSolution("Remove the input annotations")
                                 .addPossibleSolution(() -> "Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")

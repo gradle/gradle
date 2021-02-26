@@ -1384,7 +1384,7 @@ task generate(type: TransformerTask) {
         ValidationProblemId.CONFLICTING_ANNOTATIONS
     )
     @Issue("https://github.com/gradle/gradle/issues/11805")
-    def "Groovy property annotated as @Internal with differently annotated getter fails about conflicting annotations"() {
+    def "Groovy property annotated as @Internal with differently annotated getter is not allowed"() {
         def inputFile = file("input.txt")
         inputFile.text = "original"
 
@@ -1419,7 +1419,7 @@ task generate(type: TransformerTask) {
 
         then:
         failure.assertThatDescription(containsNormalizedString(
-            "Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. A property is ignored but contains input annotations. Possible solutions: Remove the input annotations or remove the @Internal annotation."
+            "Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. A property is ignored but also has input annotations. Possible solutions: Remove the input annotations or remove the @Internal annotation."
         ))
     }
 }

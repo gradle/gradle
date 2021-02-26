@@ -140,13 +140,13 @@ myTask {
 This error indicates that a `boolean` property has both a `get` and an `is` getter method.
 This is a problem because both getters can be annotated differently and Gradle cannot know which ones to use.
 
-The solution to this problem is to get rid of one of the getters.
+The solution to this problem is to get rid of one of the getters or to mark one of the getters with link:{javadocPath}/org/gradle/api/tasks/Internal.html[@Internal]
 
 [[private_getter_must_not_be_annotated]]
 == Annotations on private getters
 
 This error indicates that you have annotated a _private_ getter with an input or output annotation.
-Gradle doesn't use private getters as inputs for up-to-date checking, which means that your effectively are basically ignored.
+Gradle doesn't consider private getters as inputs for up-to-date checking, which means that your annotations effectively are ignored.
 It is important to fix because you might think that you have declared an input when it's not the case.
 
 To fix this, either make the getter public, or annotate an existing getter instead, or create a new annotated getter.
@@ -160,8 +160,8 @@ This is an error because Gradle cannot determine if the property should actually
 
 To fix this, you must either:
 
-- remove the input annotations from the property or
-- remove the ignoring annotation from the property
+- remove the input annotations from the property, or
+- remove the ignoring annotation from the property.
 
 [[conflicting_annotations]]
 == Conflicting annotations
