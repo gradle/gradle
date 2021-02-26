@@ -19,11 +19,8 @@ package org.gradle.kotlin.dsl
 import groovy.lang.Closure
 import groovy.lang.GroovyObject
 import groovy.lang.MetaClass
-
-import org.gradle.kotlin.dsl.support.uncheckedCast
-
 import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
-
+import org.gradle.kotlin.dsl.support.uncheckedCast
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 
