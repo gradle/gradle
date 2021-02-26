@@ -181,8 +181,7 @@ fun Test.configureJvmForTest() {
     }
     javaLauncher.set(launcher)
     if (jvmVersionForTest().canCompileOrRun(9) && (isUnitTest() || usesEmbeddedExecuter())) {
-        // This will break on wrapper update. Please change to org.gradle.internal.jvm.GroovyJpmsConfiguration.GROOVY_JPMS_JVM_ARGS when it does.
-        jvmArgs(org.gradle.internal.jvm.GroovyJpmsWorkarounds.SUPPRESS_COMMON_GROOVY_WARNINGS)
+        jvmArgs(org.gradle.internal.jvm.GroovyJpmsConfiguration.GROOVY_JPMS_JVM_ARGS)
     }
 }
 
