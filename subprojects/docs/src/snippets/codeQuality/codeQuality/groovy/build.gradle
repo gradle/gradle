@@ -22,7 +22,7 @@ plugins {
 // end::use-pmd-plugin[]
 
 codenarc {
-    toolVersion = "0.25.2"
+    toolVersion = "2.0.0"
 }
 
 repositories {
