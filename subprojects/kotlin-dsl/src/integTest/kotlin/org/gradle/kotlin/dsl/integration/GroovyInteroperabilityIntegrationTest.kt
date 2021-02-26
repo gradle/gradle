@@ -25,7 +25,10 @@ class GroovyInteroperabilityIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can call GroovyObject methods in withGroovyBuilder`() {
         withDefaultSettings()
-        withFile("groovy.gradle", """
+
+        withFile(
+            "groovy.gradle",
+            """
             class MyExtension {
                 String server = 'default'
             }
@@ -37,8 +40,11 @@ class GroovyInteroperabilityIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             pluginManager.apply(MyPlugin)
-        """)
-        withBuildScript("""
+        """
+        )
+
+        withBuildScript(
+            """
             apply(from = "groovy.gradle")
 
             extensions["myextension"].withGroovyBuilder {
@@ -46,7 +52,8 @@ class GroovyInteroperabilityIntegrationTest : AbstractKotlinIntegrationTest() {
                 setProperty("server", "newValue")
                 setMetaClass(getMetaClass())
             }
-        """)
+        """
+        )
 
         build()
     }
