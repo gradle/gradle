@@ -43,6 +43,9 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
         afterEvaluate {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
+                    it.doFirst {
+                        System.setProperty("kotlin.daemon.jvm.options", "--illegal-access=permit")
+                    }
                     it.kotlinOptions {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
                         apiVersion = "1.4"
