@@ -310,7 +310,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
         ValidationProblemId.VALUE_NOT_SET,
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
-        ValidationProblemId.MISSING_ANNOTATION
+        ValidationProblemId.MISSING_ANNOTATION,
+        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
     ])
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
@@ -405,7 +406,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             ],
             incrementalNonFileInput: [
                 missingValueMessage { property('incrementalNonFileInput').includeLink().noIntro() },
-                'is annotated with @Incremental that is not allowed for @Input properties',
+                incompatibleAnnotations { property('incrementalNonFileInput').annotatedWith('Incremenal').incompatibleWith('Input').includeLink().noIntro() },
             ],
             missingInput: missingValueMessage { property('missingInput').includeLink().noIntro() },
             'nested.outputDirectory': annotationInvalidInContext { annotation('OutputDirectory').includeLink() },

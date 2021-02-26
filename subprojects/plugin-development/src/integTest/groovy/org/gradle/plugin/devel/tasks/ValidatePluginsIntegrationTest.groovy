@@ -23,7 +23,6 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.hamcrest.Matchers.containsString
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
@@ -396,7 +395,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         expect:
         assertValidationFailsWith([
             error(missingAnnotationMessage { type('MyTransformParameters').property('badTime').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
-            error("Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."),
+            error(incompatibleAnnotations { type('MyTransformParameters').property ('incrementalNonFileInput').annotatedWith('Incremental').incompatibleWith('Input') }, 'validation_problems', 'incompatible_annotations'),
             error(annotationInvalidInContext { annotation('InputArtifact').type('MyTransformParameters').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
             error(missingAnnotationMessage { type('MyTransformParameters').property('oldThing').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
         ])

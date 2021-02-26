@@ -68,12 +68,36 @@ trait ValidationMessageChecker {
         config.render "is missing ${config.kind}. A property without annotation isn't considered during up-to-date checking. Possible solutions: Add ${config.kind} or mark it as @Internal."
     }
 
+    String incompatibleAnnotations(@DelegatesTo(value=IncompatibleAnnotations, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(IncompatibleAnnotations, 'incompatible_annotations', spec)
+        config.render "is annotated with @${config.annotatedWith} but that is not allowed for '${config.incompatibleWith}' properties. This modifier is used in conjunction with a property of type '${config.incompatibleWith}' but this doesn't have semantics. Possible solution: Remove the '@${config.annotatedWith}' annotation."
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class IncompatibleAnnotations extends ValidationMessageDisplayConfiguration<IncompatibleAnnotations> {
+        String annotatedWith
+        String incompatibleWith
+
+        IncompatibleAnnotations(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        IncompatibleAnnotations annotatedWith(String name) {
+            annotatedWith = name
+            this
+        }
+
+        IncompatibleAnnotations incompatibleWith(String name) {
+            incompatibleWith = name
+            this
+        }
     }
 
     static class MissingAnnotation extends ValidationMessageDisplayConfiguration<MissingAnnotation> {
@@ -128,6 +152,11 @@ trait ValidationMessageChecker {
 
         IgnoredAnnotationPropertyMessage(ValidationMessageChecker checker) {
             super(checker)
+        }
+
+        IgnoredAnnotationPropertyMessage ignoring(String name) {
+            ignoringAnnotation = name
+            this
         }
 
         IgnoredAnnotationPropertyMessage alsoAnnotatedWith(String name) {

@@ -30,12 +30,12 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -48,7 +48,6 @@ import java.util.function.Function;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;
@@ -142,11 +141,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationCategory)) {
-                    validationContext.visitPropertyProblem(WARNING,
-                        propertyAnnotationMetadata.getPropertyName(),
-                        String.format("is annotated with @%s that is not allowed for @%s properties",
-                            annotationType.getSimpleName(), propertyType.getSimpleName())
-                    );
+                    validationContext.visitPropertyProblem(problem ->
+                        problem.withId(ValidationProblemId.INCOMPATIBLE_ANNOTATIONS)
+                            .forProperty(propertyAnnotationMetadata.getPropertyName())
+                            .reportAs(ERROR)
+                            .withDescription(() -> "is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
+                            .happensBecause(() -> "This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
+                            .addPossibleSolution(() -> "Remove the '@" + annotationType.getSimpleName() + "' annotation")
+                            .documentedAt("validation_problems", "incompatible_annotations"));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
                     validationContext.visitPropertyProblem(problem ->
                         problem.withId(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)

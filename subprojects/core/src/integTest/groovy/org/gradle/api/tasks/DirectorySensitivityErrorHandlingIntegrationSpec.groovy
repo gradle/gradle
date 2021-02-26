@@ -17,13 +17,19 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Unroll
 
 
-class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrationSpec {
+class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
+    @ValidationTestFor(
+        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+    )
     @Unroll
-    def "deprecation warning when @IgnoreEmptyDirectories is applied to an #nonDirectoryInput.annotation annotation"() {
+    def "fails when @IgnoreEmptyDirectories is applied to an #nonDirectoryInput.annotation annotation"() {
         createAnnotatedInputFileTask(nonDirectoryInput)
         buildFile << """
             task taskWithInputs(type: TaskWithInputs) {
@@ -34,21 +40,28 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
 
         file('foo').createFile()
 
-        given:
-        executer.expectDocumentedDeprecationWarning("Type 'TaskWithInputs': property 'input' is annotated with @IgnoreEmptyDirectories that is not allowed for ${nonDirectoryInput.annotation} properties. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        when:
+        fails("taskWithInputs")
 
-        expect:
-        succeeds("taskWithInputs")
+        then:
+        failureDescriptionContains(
+            incompatibleAnnotations {
+                type('TaskWithInputs').property('input')
+                annotatedWith('IgnoreEmptyDirectories')
+                incompatibleWith(nonDirectoryInput.annotation - '@')
+                includeLink()
+            }
+        )
 
         where:
         nonDirectoryInput << NonDirectoryInput.values()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+    )
     @Unroll
-    def "deprecation warning when @IgnoreEmptyDirectories is applied to an #output.annotation annotation"() {
+    def "fails when @IgnoreEmptyDirectories is applied to an #output.annotation annotation"() {
         createAnnotatedOutputFileTask(output)
         buildFile << """
             task taskWithOutputs(type: TaskWithOutputs) {
@@ -59,14 +72,18 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
 
         file('foo').createFile()
 
-        given:
-        executer.expectDocumentedDeprecationWarning("Type 'TaskWithOutputs': property 'output' is annotated with @IgnoreEmptyDirectories that is not allowed for ${output.annotation} properties. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        when:
+        fails("taskWithOutputs")
 
-        expect:
-        succeeds("taskWithOutputs")
+        then:
+        failureDescriptionContains(
+            incompatibleAnnotations {
+                type('TaskWithOutputs').property('output')
+                annotatedWith('IgnoreEmptyDirectories')
+                incompatibleWith(output.annotation - '@')
+                includeLink()
+            }
+        )
 
         where:
         output << Output.values()

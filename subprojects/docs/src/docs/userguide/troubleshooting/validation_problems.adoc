@@ -191,4 +191,13 @@ To fix this problem, you need to annotate the property with the appropriate anno
 
 Alternatively, if the property is internal, that is to say that it shouldn't participate in up-to-date checking (it's not an input or an output), then you need to annotate it with link:{javadocPath}/org/gradle/api/tasks/Internal.html[@Internal].
 
+[[incompatible_annotations]]
+== Annotation is incompatible with the property type
+
+This error indicates that for a specific kind of property, a modifier annotation doesn't make sense.
+This is the case, for example, if the `@SkipWhenEmpty` is used on an output property.
+Because there are no semantics associated with this combination, Gradle cannot deduce your intent.
+
+To fix this, you most likely need to remove the conflicting modifier annotation or check that the actual property type is what you intended.
+
 
