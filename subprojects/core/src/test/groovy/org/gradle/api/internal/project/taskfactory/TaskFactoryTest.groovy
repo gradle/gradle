@@ -19,6 +19,7 @@ package org.gradle.api.internal.project.taskfactory
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.TaskInstantiationException
@@ -75,20 +76,8 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, Path.path(':task'), null, 12), (Object[]) null)
 
         then:
-        1 * deserializeInstantiator.newInstance(TestDefaultTask, DefaultTask) >> { new TestDefaultTask() }
+        1 * deserializeInstantiator.newInstance(TestDefaultTask, AbstractTask) >> { new TestDefaultTask() }
         task instanceof TestDefaultTask
-    }
-
-    void testCreateTaskForUnsupportedTaskType() {
-        when:
-        taskFactory.create(new TaskIdentity(taskType, 'task', null, Path.path(':task'), null, 12))
-
-        then:
-        InvalidUserDataException e = thrown()
-        e.message == "Cannot create task ':task' of type '${taskType.simpleName}' as it does not extend DefaultTask."
-
-        where:
-        taskType << [TaskInternal]
     }
 
     void testCreateTaskForTypeWhichDoesNotImplementTask() {
@@ -106,10 +95,19 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot create task ':task' of type '$taskType.simpleName' as it does not extend DefaultTask."
+        e.message == "Cannot create task ':task' of type '$taskType.simpleName' as this type is not supported for task registration."
 
         where:
-        taskType << [TaskInternal, NotADefaultTask]
+        taskType << [AbstractTask, TaskInternal]
+    }
+
+    void testCreateTaskForTypeDirectlyExtendingAbstractTask() {
+        when:
+        taskFactory.create(new TaskIdentity(ExtendsAbstractTask, 'task', null, Path.path(':task'), null, 12))
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "Cannot create task ':task' of type 'ExtendsAbstractTask' as directly extending AbstractTask is not supported."
     }
 
     void wrapsFailureToCreateTaskInstance() {
@@ -136,6 +134,6 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
     static class NotATask {
     }
 
-    static abstract class NotADefaultTask implements Task {
+    static class ExtendsAbstractTask extends AbstractTask {
     }
 }

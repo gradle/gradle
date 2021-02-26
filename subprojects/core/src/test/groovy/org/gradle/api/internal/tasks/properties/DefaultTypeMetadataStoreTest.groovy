@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DynamicObjectAware
@@ -314,7 +315,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         typeMetadata*.propertyName.empty
 
         where:
-        workClass << [ConventionTask.class, DefaultTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class]
+        workClass << [ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class]
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")

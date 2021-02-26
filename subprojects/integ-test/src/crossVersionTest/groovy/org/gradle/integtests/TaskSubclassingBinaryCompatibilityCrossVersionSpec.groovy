@@ -43,6 +43,7 @@ import org.gradle.plugins.ide.idea.GenerateIdeaProject
 import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
+
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
@@ -146,7 +147,7 @@ apply plugin: SomePlugin
         version current withTasks 'tasks' requireDaemon() requireIsolatedDaemons() run()
     }
 
-    def "task can use all methods declared by Task interface that DefaultTask specialises"() {
+    def "task can use all methods declared by Task interface that AbstractTask specialises"() {
         file("someFile").touch()
         file("anotherFile").touch()
         file("yetAnotherFile").touch()
@@ -209,5 +210,4 @@ apply plugin: SomePlugin
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
         version current requireDaemon() requireIsolatedDaemons() withTasks 't' run()
     }
-
 }
