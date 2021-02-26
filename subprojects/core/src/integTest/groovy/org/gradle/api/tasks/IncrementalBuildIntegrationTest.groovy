@@ -1419,7 +1419,7 @@ task generate(type: TransformerTask) {
 
         then:
         failure.assertThatDescription(containsNormalizedString(
-            "Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. A property is ignored but contains input annotations. Possible solutions: Remove the input annotations or remove the @Internal annotation."
+            "Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. A property is ignored but also has input annotations. Possible solutions: Remove the input annotations or remove the @Internal annotation."
         ))
     }
 }
