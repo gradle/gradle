@@ -20,11 +20,10 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 
 
-internal
 class ExperimentalCompilerWarningSilencer(private val warningsToSilence: List<String>) : ContextAwareTaskLogger.MessageRewriter {
 
     private
-    val unsafeCompilerArgumentsWarningHeader = "This build uses unsafe internal compiler arguments:"
+    val unsafeCompilerArgumentsWarningFooter = "This mode is not recommended for production use,"
 
     override fun rewrite(logLevel: LogLevel, message: String): String? {
         return if (containsWarningsToBeSilenced(logLevel, message)) {
@@ -51,7 +50,7 @@ class ExperimentalCompilerWarningSilencer(private val warningsToSilence: List<St
         if (logLevel != LogLevel.WARN && logLevel != LogLevel.ERROR) {
             return false
         }
-        if (!message.contains(unsafeCompilerArgumentsWarningHeader)) {
+        if (!message.contains(unsafeCompilerArgumentsWarningFooter)) {
             return false
         }
         return true
