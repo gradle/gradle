@@ -1573,8 +1573,8 @@ The following variants were also considered but didn't match the requested attri
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    _compileFreeDebug fooJar
-                    _compileFreeRelease barJar
+                    _compileFreeDebug(fooJar)
+                    _compileFreeRelease(barJar)
                 }
             }
 
