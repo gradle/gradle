@@ -32,9 +32,6 @@ dependencies {
     smokeTestImplementation(libs.groovyJson)
     smokeTestImplementation(libs.commonsHttpclient)
     smokeTestImplementation(libs.jgit)
-    smokeTestImplementation(libs.gradleProfiler) {
-        because("Using build mutators to change a Java file")
-    }
     smokeTestImplementation(libs.spock)
     smokeTestImplementation(libs.junitPlatform)
 

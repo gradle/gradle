@@ -17,11 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.profiler.DefaultScenarioContext
-import org.gradle.profiler.Phase
-import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -59,7 +55,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    @Ignore("TODO: BM to be fixed as part of Groovy3 upgrade")
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
     def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
 
@@ -69,13 +64,11 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         and:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir)
-        def buildContext = new DefaultScenarioContext(UUID.randomUUID(), "nonAbiChange").withBuild(Phase.MEASURE, 0)
 
         and:
         def pathToClass = "com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior"
         def fileToChange = checkoutDir.file("tracker/src/main/java/${pathToClass}.java")
         def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
-        def nonAbiChangeMutator = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
 
         when:
         def result = buildLocation(checkoutDir, agpVersion)
@@ -86,7 +79,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         assertConfigurationCacheStateStored()
 
         when:
-        nonAbiChangeMutator.beforeBuild(buildContext)
+        fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
         buildLocation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
 
