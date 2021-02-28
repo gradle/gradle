@@ -213,6 +213,21 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         publicTypeOfExtension("idea") == typeOf(IdeaModel)
     }
 
+    def "can add to file set properties"() {
+        given:
+        applyPluginToProjects()
+        def source = new File("foo")
+
+        when:
+        property(project.idea.module).add(source)
+
+        then:
+        property(project.idea.module).contains(source)
+
+        where:
+        property << [{ it.sourceDirs }, { it.testSourceDirs }, { it.resourceDirs }, { it.testResourceDirs }, { it.excludeDirs }]
+    }
+
     private TypeOf<?> publicTypeOfExtension(String named) {
         project.extensions.extensionsSchema.find { it.name == named }.publicType
     }
