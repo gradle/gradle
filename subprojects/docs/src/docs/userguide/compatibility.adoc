@@ -24,7 +24,7 @@ Java 6 and 7 can still be used for <<building_java_projects.adoc#sec:java_cross_
 Any supported version of Java can be used for compile or test.
 
 == Kotlin
-Gradle is tested with Kotlin 1.3.72 through 1.4.30.
+Gradle is tested with Kotlin 1.3.72 through 1.4.31.
 
 == Groovy
 Gradle is tested with Groovy 1.5.8 through 2.5.12.
