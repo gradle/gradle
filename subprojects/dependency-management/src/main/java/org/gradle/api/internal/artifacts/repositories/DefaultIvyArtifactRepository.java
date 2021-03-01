@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
@@ -117,9 +116,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         ObjectFactory objectFactory,
                                         DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                         ChecksumService checksumService,
-                                        ProviderFactory providerFactory,
-                                        FeaturePreviews featurePreviews) {
-        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, featurePreviews);
+                                        ProviderFactory providerFactory) {
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory);
         this.fileResolver = fileResolver;
         this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Ivy", this::getDisplayName);
         this.transportFactory = transportFactory;

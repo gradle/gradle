@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -100,7 +99,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final ChecksumService checksumService;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
-    private final FeaturePreviews featurePreviews;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver,
                                           RepositoryTransportFactory transportFactory,
@@ -117,11 +115,10 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           ObjectFactory objectFactory,
                                           DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                           ChecksumService checksumService,
-                                          ProviderFactory providerFactory,
-                                          FeaturePreviews featurePreviews) {
+                                          ProviderFactory providerFactory) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer,
-            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, featurePreviews);
+            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory);
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -140,9 +137,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           ObjectFactory objectFactory,
                                           DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                           ChecksumService checksumService,
-                                          ProviderFactory providerFactory,
-                                          FeaturePreviews featurePreviews) {
-        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, featurePreviews);
+                                          ProviderFactory providerFactory) {
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory);
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Maven", this::getDisplayName);
@@ -158,7 +154,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.checksumService = checksumService;
         this.metadataSources.setDefaults();
         this.instantiatorFactory = instantiatorFactory;
-        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -359,7 +354,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return new DefaultMavenRepositoryContentDescriptor(this::getDisplayName, featurePreviews);
+        return new DefaultMavenRepositoryContentDescriptor(this::getDisplayName);
     }
 
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {

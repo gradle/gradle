@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.internal.Actions;
 
 import java.util.function.Supplier;
@@ -26,7 +25,7 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
     private boolean snapshots = true;
     private boolean releases = true;
 
-    public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier, FeaturePreviews featurePreviews) {
+    public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier) {
         super(repositoryNameSupplier);
     }
 

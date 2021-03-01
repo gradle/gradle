@@ -31,7 +31,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
@@ -300,8 +299,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 NamedObjectInstantiator instantiator,
                 DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                 ChecksumService checksumService,
-                ProviderFactory providerFactory,
-                FeaturePreviews featurePreviews
+                ProviderFactory providerFactory
         ) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
@@ -325,8 +323,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     callbackDecorator,
                     urlArtifactRepositoryFactory,
                     checksumService,
-                    providerFactory,
-                    featurePreviews);
+                    providerFactory
+            );
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {
