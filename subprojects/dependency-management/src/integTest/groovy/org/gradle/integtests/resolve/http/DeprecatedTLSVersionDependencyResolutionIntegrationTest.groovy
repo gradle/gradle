@@ -19,6 +19,8 @@ package org.gradle.integtests.resolve.http
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.allOf
@@ -62,6 +64,8 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
         )
     }
 
+    // TLSv1 and TLSv1.1 are disabled by default on JDK16: https://bugs.openjdk.java.net/browse/JDK-8202343
+    @Requires(TestPrecondition.JDK15_OR_EARLIER)
     def "able to resolve dependencies when the user manually specifies the supported TLS versions using `https.protocols`"() {
         given:
         keyStore.enableSslWithServerCert(mavenHttpRepo.server) {
@@ -83,20 +87,20 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
 
     def writeBuildFile() {
         buildFile << """
-repositories {
-    maven {
-        url "${mavenHttpRepo.uri}"
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'group:projectA:1.2'
-}
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-    }
-}
-"""
+            repositories {
+                maven {
+                    url "${mavenHttpRepo.uri}"
+                }
+            }
+            configurations { compile }
+            dependencies {
+                compile 'group:projectA:1.2'
+            }
+            task listJars {
+                doLast {
+                    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+                }
+            }
+        """
     }
 }

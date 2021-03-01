@@ -6,11 +6,11 @@ plugins {
 version = "1.0.0"
 
 tasks.register<Zip>("packageDistribution") {
-    from("$buildDir/toArchive") {
+    from(layout.buildDirectory.dir("toArchive")) {
         exclude("**/*.pdf")
     }
 
-    from("$buildDir/toArchive") {
+    from(layout.buildDirectory.dir("toArchive")) {
         include("**/*.pdf")
         into("docs")
     }

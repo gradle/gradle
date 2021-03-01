@@ -67,7 +67,9 @@ include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[t
 include::{snippetsPath}/tasks/customTask/tests/customTaskWithAction.out[]
 ----
 
-Let's add a property to the task, so we can customize it. Tasks are simply POGOs, and when you declare a task, you can set the properties or call methods on the task object. Here we add a `greeting` property, and set the value when we declare the `greeting` task.
+Let's add a property to the task, so we can customize it.
+Tasks are objects, and when you declare a task, you can set the properties or call methods on the task object.
+Here we add a `greeting` property, and set the value when we declare the `greeting` task.
 
 .A customizable hello world task
 ====

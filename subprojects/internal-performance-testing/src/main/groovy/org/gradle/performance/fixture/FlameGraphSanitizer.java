@@ -234,7 +234,7 @@ public class FlameGraphSanitizer {
         protected String mapFrame(String frame) {
             // Lambdas contain a name that's based on an index + timestamp at runtime and changes build-to-build.
             // This makes comparing two builds very difficult when a lambda is in the stack
-            return frame.replaceFirst(Pattern.quote("$$Lambda$")+"[0-9/]+", "\\$\\$Lambda\\$");
+            return frame.replaceFirst(Pattern.quote("$$Lambda$")+"[0-9]+[./][0-9]+", "\\$\\$Lambda\\$");
         }
     }
 
