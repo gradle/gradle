@@ -144,20 +144,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         }
     }
 
-    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(
-        ClassLoaderRegistry classLoaderRegistry,
-        ClassLoaderCache classLoaderCache,
-        ListenerManager listenerManager,
-        ClassLoaderScopeListeners listeners
-    ) {
-        return new DefaultClassLoaderScopeRegistry(
-            classLoaderRegistry,
-            classLoaderCache,
-            listenerManager,
-            listeners
-        );
-    }
-
     ResourceLockCoordinationService createWorkerLeaseCoordinationService() {
         return new DefaultResourceLockCoordinationService();
     }
