@@ -29,8 +29,8 @@ import org.gradle.internal.Actions
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
-import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.Requires
 import spock.lang.Unroll
 
 class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
@@ -377,7 +377,7 @@ task someTask {
         "123"                | "123 as short"
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.embedded })
+    @Requires({ GradleContextualExecuter.embedded })
     // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task causes VFS to drop"() {
         buildFile << """
@@ -406,7 +406,7 @@ task someTask {
         outputContains("Invalidating VFS because task ':invalid' failed validation")
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.embedded })
+    @Requires({ GradleContextualExecuter.embedded })
     // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are displayed once"() {
         buildFile << """
@@ -435,7 +435,7 @@ task someTask {
         output.count("- Type 'InvalidTask': property 'inputFile' test problem. this is a test.") == 1
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.embedded })
+    @Requires({ GradleContextualExecuter.embedded })
     // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are reported even when task is skipped"() {
         buildFile << """

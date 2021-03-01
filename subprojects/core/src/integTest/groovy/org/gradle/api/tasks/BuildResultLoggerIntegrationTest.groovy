@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import spock.lang.Requires
 
 class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
@@ -96,7 +96,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         !output.contains("actionable tasks")
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.embedded })
+    @Requires({ GradleContextualExecuter.embedded })
     // this test only works in embedded mode because of the use of validation test fixtures
     def "work validation warnings are mentioned in summary"() {
         buildFile << """

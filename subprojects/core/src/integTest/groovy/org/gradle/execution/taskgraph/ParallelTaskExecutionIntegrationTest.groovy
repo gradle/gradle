@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Requires
 import spock.lang.Timeout
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -473,7 +474,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.embedded })
+    @Requires({ GradleContextualExecuter.embedded })
     // this test only works in embedded mode because of the use of validation test fixtures
     def "other tasks are not started when an invalid task task is running"() {
         given:
@@ -502,7 +503,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run ":aPingWithCacheableWarnings", ":bPing", ":cPing"
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.embedded })
+    @Requires({ GradleContextualExecuter.embedded })
     // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task is not executed in parallel with other task"() {
         given:
