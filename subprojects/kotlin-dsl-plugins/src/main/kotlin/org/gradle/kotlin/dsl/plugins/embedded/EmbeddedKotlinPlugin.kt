@@ -15,19 +15,17 @@
  */
 package org.gradle.kotlin.dsl.plugins.embedded
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
-
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME
-
+import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
-
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
-
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import javax.inject.Inject
 
 
@@ -57,6 +55,17 @@ class EmbeddedKotlinPlugin @Inject internal constructor(
 
             kotlinArtifactConfigurationNames.forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
+            }
+
+            afterEvaluate {
+                tasks.withType<KotlinCompile>().configureEach {
+                    it.doFirst {
+                        // Reevaluate whether this workaround is still needed when upgrading external Kotlin plugin version
+                        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+                            System.setProperty("kotlin.daemon.jvm.options", "--illegal-access=permit")
+                        }
+                    }
+                }
             }
         }
     }

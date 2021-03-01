@@ -45,6 +45,7 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.doFirst {
+                        // Reevaluate whether this workaround is still needed when upgrading external Kotlin plugin version
                         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
                             System.setProperty("kotlin.daemon.jvm.options", "--illegal-access=permit")
                         }
