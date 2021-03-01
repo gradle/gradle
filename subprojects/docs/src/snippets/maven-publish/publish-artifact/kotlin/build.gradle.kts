@@ -7,8 +7,8 @@ group = "org.gradle.sample"
 version = "1.0"
 
 // tag::custom-artifact[]
-val rpmFile = file("$buildDir/rpms/my-package.rpm")
-val rpmArtifact = artifacts.add("archives", rpmFile) {
+val rpmFile = layout.buildDirectory.file("rpms/my-package.rpm")
+val rpmArtifact = artifacts.add("archives", rpmFile.get().asFile) {
     type = "rpm"
     builtBy("rpm")
 }
@@ -18,7 +18,7 @@ tasks.register("rpm") {
     outputs.file(rpmFile)
     doLast {
         // produce real RPM here
-        rpmFile.writeText("file contents")
+        rpmFile.get().asFile.writeText("file contents")
     }
 }
 
@@ -33,7 +33,7 @@ publishing {
     repositories {
         // change URLs to point to your repo, e.g. http://my.org/repo
         maven {
-            url = uri("$buildDir/repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
 // tag::custom-artifact-publication[]

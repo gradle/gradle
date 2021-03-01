@@ -22,5 +22,5 @@ dependencies {
 
 tasks.register<Copy>("copyLibs") {
     from(configurations["js"])
-    into("$buildDir/libs")
+    into(layout.buildDirectory.dir("libs"))
 }

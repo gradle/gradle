@@ -9,8 +9,8 @@ repositories {
 }
 
 // tag::ivy-component-metadata-rule[]
-class IvyVariantDerivationRule implements ComponentMetadataRule {
-    @Inject ObjectFactory getObjects() { }
+abstract class IvyVariantDerivationRule implements ComponentMetadataRule {
+    @Inject abstract ObjectFactory getObjects()
 
     void execute(ComponentMetadataContext context) {
         // This filters out any non Ivy module

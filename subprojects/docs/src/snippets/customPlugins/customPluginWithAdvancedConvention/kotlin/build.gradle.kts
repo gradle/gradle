@@ -1,6 +1,6 @@
-open class GreetingPluginExtension {
-    var message: String? = null
-    var greeter: String? = null
+interface GreetingPluginExtension {
+    val message: Property<String>
+    val greeter: Property<String>
 }
 
 class GreetingPlugin : Plugin<Project> {
@@ -8,7 +8,7 @@ class GreetingPlugin : Plugin<Project> {
         val extension = project.extensions.create<GreetingPluginExtension>("greeting")
         project.task("hello") {
             doLast {
-                println("${extension.message} from ${extension.greeter}")
+                println("${extension.message.get()} from ${extension.greeter.get()}")
             }
         }
     }
@@ -18,6 +18,6 @@ apply<GreetingPlugin>()
 
 // Configure the extension using a DSL block
 configure<GreetingPluginExtension> {
-    message = "Hi"
-    greeter = "Gradle"
+    message.set("Hi")
+    greeter.set("Gradle")
 }

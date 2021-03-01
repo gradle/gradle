@@ -5,7 +5,7 @@ val compileClasspath = configurations.create("compileClasspath") {
 
 // tag::generated-file-dependencies[]
 dependencies {
-    implementation(files("$buildDir/classes") {
+    implementation(files(layout.buildDirectory.dir("classes")) {
         builtBy("compile")
     })
 }

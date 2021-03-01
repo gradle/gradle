@@ -1,7 +1,7 @@
 
 // tag::add-action[]
 // tag::define-task[]
-class GreetingTask extends DefaultTask {
+abstract class GreetingTask extends DefaultTask {
 // end::define-task[]
     @TaskAction
     def greet() {
@@ -12,5 +12,5 @@ class GreetingTask extends DefaultTask {
 // end::define-task[]
 
 // Create a task using the task type
-task hello(type: GreetingTask)
+tasks.register('hello', GreetingTask)
 // end::add-action[]

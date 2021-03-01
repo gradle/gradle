@@ -19,5 +19,5 @@ dependencies {
 
 tasks.register<Copy>("copyLibs") {
     from(smokeTest)
-    into("$buildDir/libs")
+    into(layout.buildDirectory.dir("libs"))
 }

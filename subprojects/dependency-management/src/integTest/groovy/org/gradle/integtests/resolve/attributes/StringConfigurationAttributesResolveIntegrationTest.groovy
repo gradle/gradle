@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.attributes
-
-import spock.lang.Ignore
-
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the string attributes notation.
  */
-@Ignore("TODO: BM to be fixed as part of Groovy3 upgrade")
 class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfigurationAttributesResolveIntegrationTest {
 
     @Override

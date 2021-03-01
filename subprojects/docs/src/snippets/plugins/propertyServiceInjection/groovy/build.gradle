@@ -1,1 +1,1 @@
-task download(type: Download)
+tasks.register('download', Download)

@@ -10,7 +10,7 @@ plugins {
 // tag::unpack-archive-example[]
 tasks.register<Copy>("unpackFiles") {
     from(zipTree("src/resources/thirdPartyResources.zip"))
-    into("$buildDir/resources")
+    into(layout.buildDirectory.dir("resources"))
 }
 // end::unpack-archive-example[]
 
@@ -23,7 +23,7 @@ tasks.register<Copy>("unpackLibsDirectory") {
         }
         includeEmptyDirs = false  // <3>
     }
-    into("$buildDir/resources")
+    into(layout.buildDirectory.dir("resources"))
 }
 // end::unpack-archive-subset-example[]
 

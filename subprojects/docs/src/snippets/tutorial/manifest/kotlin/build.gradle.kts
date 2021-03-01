@@ -49,5 +49,5 @@ tasks.register<Jar>("barJar") {
 // end::merge[]
 
 // tag::write[]
-tasks.named<Jar>("jar") { manifest.writeTo("$buildDir/mymanifest.mf") }
+tasks.jar { manifest.writeTo(layout.buildDirectory.file("mymanifest.mf")) }
 // end::write[]

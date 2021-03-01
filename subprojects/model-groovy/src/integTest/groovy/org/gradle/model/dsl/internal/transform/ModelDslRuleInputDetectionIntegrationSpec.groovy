@@ -18,7 +18,6 @@ package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -26,7 +25,6 @@ import static org.hamcrest.CoreMatchers.containsString
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Ignore("TODO: BM to be fixed as part of Groovy3 upgrade")
     @Unroll
     def "can reference input using dollar method expression - #syntax"() {
         when:
@@ -61,7 +59,6 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             '$("thing").value',
             '$("thing").getValue()',
             "(\$('thing')).value",
-            "(\$('thing')).(value)",
             '$("thing")."${"value"}"',
             "\$('thing').'value'",
             "\$('thing').value.toUpperCase().toLowerCase()",
