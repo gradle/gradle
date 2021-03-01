@@ -17,16 +17,17 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
-class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
+class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
 
@@ -235,8 +236,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 onPlugins(failingAndroidPlugins) {
                     // This is not a problem, since the task is only used for internal testing
                     failsWith([
-                        "Type 'TaskManager.ConfigAttrTask': property 'consumable' is not annotated with an input or output annotation.": WARNING,
-                        "Type 'TaskManager.ConfigAttrTask': property 'resolvable' is not annotated with an input or output annotation.": WARNING,
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('consumable').kind('an input or output annotation').includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('resolvable').kind('an input or output annotation').includeLink() }): ERROR,
                     ])
                 }
             } else {
