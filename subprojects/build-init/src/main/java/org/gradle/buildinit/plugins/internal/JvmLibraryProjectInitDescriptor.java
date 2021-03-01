@@ -39,6 +39,7 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
     @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
+        applyKotlinCompilerWorkaroundIfJdk16(settings);
 
         applyLibraryPlugin(buildScriptBuilder);
         buildScriptBuilder.dependency(

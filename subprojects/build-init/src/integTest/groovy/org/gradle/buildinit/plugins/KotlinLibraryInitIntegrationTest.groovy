@@ -91,13 +91,13 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
             class SampleMain {
             }
-    """
+        """
         subprojectDir.file("src/test/kotlin/org/acme/SampleMainTest.kt") << """
-                    package org.acme
+            package org.acme
 
-                    class SampleMainTest {
-                    }
-            """
+            class SampleMainTest {
+            }
+        """
         when:
         run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
 

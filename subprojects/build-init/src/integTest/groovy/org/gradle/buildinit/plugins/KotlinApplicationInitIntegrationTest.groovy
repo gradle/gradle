@@ -103,7 +103,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         class SampleMain {
         }
-"""
+        """
         subprojectDir.file("src/test/kotlin/org/acme/SampleMainTest.kt") << """
                 package org.acme
 

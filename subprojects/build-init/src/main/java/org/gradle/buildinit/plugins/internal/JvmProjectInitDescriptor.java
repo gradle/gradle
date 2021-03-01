@@ -16,12 +16,18 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -169,6 +175,18 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder.plugin(
             "Apply the java-library plugin for API and implementation separation.",
             "java-library");
+    }
+
+    protected void applyKotlinCompilerWorkaroundIfJdk16(InitSettings settings) {
+        if (getLanguage() == Language.KOTLIN && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            File gradleProperties = settings.getTarget().file("gradle.properties").getAsFile();
+            try (PrintWriter writer = new PrintWriter(new FileWriter(gradleProperties, true))) {
+                writer.println("# Kotlin compiler workaround for JDK16");
+                writer.println("systemProp.kotlin.daemon.jvm.options=--illegal-access=permit");
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
     }
 
     private void addMavenCentral(BuildScriptBuilder buildScriptBuilder) {
