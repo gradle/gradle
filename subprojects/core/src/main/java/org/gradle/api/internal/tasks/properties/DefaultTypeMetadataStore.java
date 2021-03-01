@@ -128,6 +128,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .withDescription(() -> String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
                         .happensBecause(() -> "The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
                         .addPossibleSolution("Remove the property")
+                        .addPossibleSolution("use a different annotation")
                         .documentedAt("validation_problems", "annotation_invalid_in_context")
                 );
                 continue;

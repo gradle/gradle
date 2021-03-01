@@ -168,8 +168,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         buildFile << """
             class BrokenTaskType extends DefaultTask {
-                final prop = project
-                final anotherProp = project.configurations
+                @Internal final prop = project
+                @Internal final anotherProp = project.configurations
             }
 
             task problems {

@@ -60,7 +60,7 @@ trait ValidationMessageChecker {
 
     String annotationInvalidInContext(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(AnnotationContext, 'annotation_invalid_in_context', spec)
-        config.render "is annotated with invalid property type @${config.annotation}. The '@${config.annotation}' annotation cannot be used in this context. Possible solution: Remove the property."
+        config.render "is annotated with invalid property type @${config.annotation}. The '@${config.annotation}' annotation cannot be used in this context. Possible solutions: Remove the property or use a different annotation."
     }
 
     String missingAnnotationMessage(@DelegatesTo(value=MissingAnnotation, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
