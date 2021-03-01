@@ -27,11 +27,11 @@ abstract class ReverseFile implements WorkAction<ReverseParameters> {
     }
 }
 
-class ReverseFiles extends SourceTask {
+abstract class ReverseFiles extends SourceTask {
     private final WorkerExecutor workerExecutor
 
     @OutputDirectory
-    File outputDir
+    abstract DirectoryProperty getOutputDir()
 
     // The WorkerExecutor will be injected by Gradle at runtime
     @Inject

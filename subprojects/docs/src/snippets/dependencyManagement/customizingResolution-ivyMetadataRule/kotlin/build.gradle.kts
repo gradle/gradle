@@ -9,8 +9,8 @@ repositories {
 }
 
 // tag::ivy-component-metadata-rule[]
-open class IvyVariantDerivationRule : ComponentMetadataRule {
-    @Inject open fun getObjects(): ObjectFactory = throw UnsupportedOperationException()
+abstract class IvyVariantDerivationRule : ComponentMetadataRule {
+    @Inject abstract fun getObjects(): ObjectFactory
 
     override fun execute(context: ComponentMetadataContext) {
         // This filters out any non Ivy module

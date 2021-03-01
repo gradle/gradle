@@ -2,7 +2,7 @@ This is executed during the initialization phase.
 
 > Configure project :
 This is executed during the configuration phase.
-This is executed during the configuration phase as well.
+This is executed during the configuration phase as well, because :testBoth is used in the build.
 
 > Task :test
 This is executed during the execution phase.

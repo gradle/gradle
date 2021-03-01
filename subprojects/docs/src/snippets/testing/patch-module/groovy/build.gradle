@@ -8,10 +8,10 @@ repositories {
 // tag::patchArgs[]
 def moduleName = "org.gradle.sample"
 def patchArgs = ["--patch-module", "$moduleName=${tasks.compileJava.destinationDirectory.asFile.get().path}"]
-tasks.compileTestJava {
+tasks.named('compileTestJava') {
     options.compilerArgs += patchArgs
 }
-tasks.test {
+tasks.named('test') {
     jvmArgs += patchArgs
 }
 // end::patchArgs[]

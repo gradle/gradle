@@ -8,7 +8,7 @@ publishing {
     // end::customize-identity[]
     repositories {
         ivy {
-            url = uri("$buildDir/repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
 // tag::customize-identity[]

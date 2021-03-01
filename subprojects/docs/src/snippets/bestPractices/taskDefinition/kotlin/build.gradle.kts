@@ -3,8 +3,8 @@ import com.enterprise.DocsGenerate
 tasks.register<DocsGenerate>("generateHtmlDocs") {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     description = "Generates the HTML documentation for this project."
-    title = "Project docs"
-    outputDir = file("$buildDir/docs")
+    title.set("Project docs")
+    outputDir.set(layout.buildDirectory.dir("docs"))
 }
 
 tasks.register("allDocs") {

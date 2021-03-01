@@ -15,13 +15,9 @@
  */
 
 package org.gradle.integtests.resolve.attributes
-
-import spock.lang.Ignore
-
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
-@Ignore("TODO: BM to be fixed as part of Groovy3 upgrade")
 class StronglyTypedConfigurationAttributesResolveIntegrationTest extends AbstractConfigurationAttributesResolveIntegrationTest {
     @Override
     String getTypeDefs() {

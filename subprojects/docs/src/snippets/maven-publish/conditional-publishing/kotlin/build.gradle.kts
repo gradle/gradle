@@ -26,11 +26,11 @@ publishing {
         // change URLs to point to your repos, e.g. http://my.org/repo
         maven {
             name = "external"
-            url = uri("$buildDir/repos/external")
+            url = uri(layout.buildDirectory.dir("repos/external"))
         }
         maven {
             name = "internal"
-            url = uri("$buildDir/repos/internal")
+            url = uri(layout.buildDirectory.dir("repos/internal"))
         }
     }
 }

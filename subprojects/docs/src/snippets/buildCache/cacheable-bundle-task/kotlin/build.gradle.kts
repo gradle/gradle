@@ -3,7 +3,7 @@ plugins {
 }
 
 // Fake NPM task that would normally execute npm with its provided arguments
-open class NpmTask : DefaultTask() {
+abstract class NpmTask : DefaultTask() {
 
     open val args = project.objects.listProperty<String>()
 
@@ -19,7 +19,7 @@ open class NpmTask : DefaultTask() {
 
 // tag::bundle-task[]
 @CacheableTask                                       // <1>
-open class BundleTask : NpmTask() {
+abstract class BundleTask : NpmTask() {
 
     @get:Internal                                    // <2>
     override val args
@@ -29,14 +29,14 @@ open class BundleTask : NpmTask() {
     @get:InputDirectory
     @get:SkipWhenEmpty
     @get:PathSensitive(PathSensitivity.RELATIVE)     // <3>
-    val scripts: DirectoryProperty = project.objects.directoryProperty()
+    abstract val scripts: DirectoryProperty
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)     // <4>
-    val configFiles: ConfigurableFileCollection = project.objects.fileCollection()
+    abstract val configFiles: ConfigurableFileCollection
 
     @get:OutputFile
-    val bundle: RegularFileProperty = project.objects.fileProperty()
+    abstract val bundle: RegularFileProperty
 
     init {
         args.addAll("run", "bundle")
@@ -53,6 +53,6 @@ tasks.register<BundleTask>("bundle")
 tasks.register("printBundle") {
     dependsOn("bundle")
     doLast {
-        println(file("$buildDir/bundle.js").readText())
+        println(project.layout.buildDirectory.file("bundle.js").get().asFile.readText())
     }
 }
