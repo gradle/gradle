@@ -399,7 +399,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         String missingNormalizationDetails = "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}"
         assertPropertyValidationErrors(
             absolutePathSensitivity: invalidUseOfAbsoluteNormalizationMessage,
-            extension: missingAnnotationMessage { property('extension').kind('an input annotation').includeLink().noIntro() },
+            extension: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
             fileInput: [
                 missingValueMessage { property('fileInput').includeLink().noIntro() },
                 incorrectUseOfInputAnnotation { property('fileInput').propertyType('File').includeLink().noIntro() },
@@ -411,7 +411,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             missingInput: missingValueMessage { property('missingInput').includeLink().noIntro() },
             'nested.outputDirectory': annotationInvalidInContext { annotation('OutputDirectory').includeLink() },
             'nested.inputFile': "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
-            'nested.stringProperty': missingAnnotationMessage { property('nested.stringProperty').kind('an input annotation').includeLink().noIntro() },
+            'nested.stringProperty': missingAnnotationMessage { property('nested.stringProperty').missingInput().includeLink().noIntro() },
             noPathSensitivity: "is annotated with @InputFiles but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityDir: "is annotated with @InputDirectory but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityFile: "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
@@ -658,7 +658,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             ],
             inputFile: annotationInvalidInContext { annotation('InputFile') },
             noPathSensitivity: 'is annotated with @InputArtifact but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
-            notAnnotated: missingAnnotationMessage { property('extension').kind('an input annotation').includeLink().noIntro() },
+            notAnnotated: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
         )
     }
 

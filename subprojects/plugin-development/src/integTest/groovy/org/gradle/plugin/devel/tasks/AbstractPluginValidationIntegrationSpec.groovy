@@ -132,10 +132,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('badTime').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('oldThing').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('options.badNested').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('ter').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('oldThing').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('ter').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -285,8 +285,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('badTime').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('options.badNested').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -600,14 +600,14 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -745,7 +745,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('readWrite').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
             error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
             error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
             error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),

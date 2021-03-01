@@ -121,9 +121,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
 
         expect:
         assertValidationFailsWith([
-                error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property('tree.left.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property('tree.right.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.left.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.right.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 }

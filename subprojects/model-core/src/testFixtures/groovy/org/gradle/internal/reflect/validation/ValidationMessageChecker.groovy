@@ -143,6 +143,14 @@ trait ValidationMessageChecker {
             super(checker)
         }
 
+        MissingAnnotation missingInputOrOutput() {
+            kind("an input or output annotation")
+        }
+
+        MissingAnnotation missingInput() {
+            kind("an input annotation")
+        }
+
         MissingAnnotation kind(String kind) {
             this.kind = kind
             this

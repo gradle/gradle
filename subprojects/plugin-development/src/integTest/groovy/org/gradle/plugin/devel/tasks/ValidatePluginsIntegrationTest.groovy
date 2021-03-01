@@ -99,7 +99,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -330,9 +330,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTransformAction').property('badTime').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
             error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -397,10 +397,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTransformParameters').property('badTime').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTransformParameters').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
             error(incompatibleAnnotations { type('MyTransformParameters').property('incrementalNonFileInput').annotatedWith('Incremental').incompatibleWith('Input') }, 'validation_problems', 'incompatible_annotations'),
             error(annotationInvalidInContext { annotation('InputArtifact').type('MyTransformParameters').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(missingAnnotationMessage { type('MyTransformParameters').property('oldThing').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTransformParameters').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -453,7 +453,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('PluginTask').property('badProperty').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('PluginTask').property('badProperty').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 }

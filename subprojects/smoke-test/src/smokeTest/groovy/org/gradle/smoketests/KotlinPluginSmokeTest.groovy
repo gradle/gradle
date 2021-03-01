@@ -236,8 +236,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 onPlugins(failingAndroidPlugins) {
                     // This is not a problem, since the task is only used for internal testing
                     failsWith([
-                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('consumable').kind('an input or output annotation').includeLink() }): ERROR,
-                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('resolvable').kind('an input or output annotation').includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('consumable').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('resolvable').missingInputOrOutput().includeLink() }): ERROR,
                     ])
                 }
             } else {

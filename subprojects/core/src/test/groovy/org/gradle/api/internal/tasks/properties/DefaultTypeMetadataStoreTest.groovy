@@ -363,8 +363,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         then:
         metadata.propertiesMetadata.propertyName == ["useful"]
         collectProblems(metadata) == [
-            missingAnnotationMessage { property('bad1').kind('an input or output annotation').includeLink() },
-            missingAnnotationMessage { property('bad2').kind('an input or output annotation').includeLink() },
+            missingAnnotationMessage { property('bad1').missingInputOrOutput().includeLink() },
+            missingAnnotationMessage { property('bad2').missingInputOrOutput().includeLink() },
         ]
     }
 
