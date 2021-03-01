@@ -105,7 +105,7 @@ A distribution can be published using the <<publishing_ivy.adoc#publishing_ivy, 
 [[sec:publishing_distributions_publish_plugins]]
 === Using the Ivy/Maven Publish Plugins
 
-To publish a distribution to an Ivy repository with the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, simply add one or both of its archive tasks to an link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. The following sample demonstrates how to add the ZIP archive of the `main` distribution and the TAR archive of the `custom` distribution to the `myDistribution` publication:
+To publish a distribution to an Ivy repository with the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, add one or both of its archive tasks to an link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. The following sample demonstrates how to add the ZIP archive of the `main` distribution and the TAR archive of the `custom` distribution to the `myDistribution` publication:
 
 .Adding distribution archives to an Ivy publication
 ====
