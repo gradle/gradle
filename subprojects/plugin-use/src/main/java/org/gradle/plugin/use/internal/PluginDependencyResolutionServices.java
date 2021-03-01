@@ -107,7 +107,7 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         private PluginArtifactRepository(ArtifactRepository delegate) {
             this.delegate = (ArtifactRepositoryInternal) delegate;
             this.resolutionAwareDelegate = (ResolutionAwareRepository) delegate;
-            this.repositoryContentDescriptor = this.delegate.createRepositoryDescriptor();
+            this.repositoryContentDescriptor = this.delegate.getRepositoryDescriptorCopy();
         }
 
         @Override
@@ -153,6 +153,11 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         @Override
         public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
             return delegate.createRepositoryDescriptor();
+        }
+
+        @Override
+        public RepositoryContentDescriptorInternal getRepositoryDescriptorCopy() {
+            return repositoryContentDescriptor.asMutableCopy();
         }
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.internal.Actions;
@@ -63,5 +65,26 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
             return Actions.composite(filter, action);
         }
         return filter;
+    }
+
+    @Override
+    public RepositoryContentDescriptorInternal asMutableCopy() {
+        DefaultMavenRepositoryContentDescriptor copy = new DefaultMavenRepositoryContentDescriptor(getRepositoryNameSupplier());
+        if (getIncludedConfigurations() != null) {
+            copy.setIncludedConfigurations(Sets.newHashSet(getIncludedConfigurations()));
+        }
+        if (getExcludedConfigurations() != null) {
+            copy.setExcludedConfigurations(Sets.newHashSet(getExcludedConfigurations()));
+        }
+        if (getIncludeSpecs() != null) {
+            copy.setIncludeSpecs(Sets.newHashSet(getIncludeSpecs()));
+        }
+        if (getExcludeSpecs() != null) {
+            copy.setExcludeSpecs(Sets.newHashSet(getExcludeSpecs()));
+        }
+        if (getRequiredAttributes() != null) {
+            copy.setRequiredAttributes(Maps.newHashMap(getRequiredAttributes()));
+        }
+        return copy;
     }
 }

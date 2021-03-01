@@ -20,4 +20,5 @@ import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 
 public interface RepositoryContentDescriptorInternal extends RepositoryContentDescriptor {
     Action<? super ArtifactResolutionDetails> toContentFilter();
+    RepositoryContentDescriptorInternal asMutableCopy();
 }

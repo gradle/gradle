@@ -114,6 +114,15 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     @Override
+    public RepositoryContentDescriptorInternal getRepositoryDescriptorCopy() {
+        return repositoryContentDescriptor.get().asMutableCopy();
+    }
+
+    RepositoryContentDescriptorInternal getRepositoryDescriptor() {
+        return repositoryContentDescriptor.get();
+    }
+
+    @Override
     public Action<? super ArtifactResolutionDetails> getContentFilter() {
         return repositoryContentDescriptor.get().toContentFilter();
     }

@@ -357,6 +357,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return new DefaultMavenRepositoryContentDescriptor(this::getDisplayName);
     }
 
+    @Override
+    public RepositoryContentDescriptorInternal getRepositoryDescriptorCopy() {
+        return getRepositoryDescriptor().asMutableCopy();
+    }
+
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
         @Override
         public String transform(MavenArtifactRepository repository) {
