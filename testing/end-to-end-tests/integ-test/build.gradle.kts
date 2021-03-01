@@ -23,7 +23,7 @@ dependencies {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
         exclude(module = "slf4j-simple")
     }
-    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures("org.gradle:model-core"))
 
     crossVersionTestImplementation("org.gradle:base-services")
     crossVersionTestImplementation("org.gradle:core")

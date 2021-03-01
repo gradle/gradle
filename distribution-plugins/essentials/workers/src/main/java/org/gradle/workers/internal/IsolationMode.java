@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-import gradlebuild.integrationtests.getBucketProvider
-import org.gradle.api.tasks.testing.Test
+package org.gradle.workers.internal;
 
-tasks.named<Test>("docsTest") {
-    getBucketProvider().get().bucketProvider.configureTest(this, "docsTest")
+/**
+ * Isolation mode for workers.
+ */
+public enum IsolationMode {
+    /**
+     * Don't attempt to isolate the work, use in-process workers.
+     */
+    NONE,
+    /**
+     * Isolate the work in it's own classloader, use in-process workers.
+     */
+    CLASSLOADER,
+    /**
+     * Isolate the work in a separate process, use out-of-process workers.
+     */
+    PROCESS
 }

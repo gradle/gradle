@@ -61,7 +61,7 @@ dependencies {
     testFixturesImplementation("org.gradle:internal-integ-testing")
     testFixturesImplementation(libs.guava)
 
-    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures("org.gradle:model-core"))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

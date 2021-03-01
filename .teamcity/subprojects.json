@@ -245,6 +245,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "problems",
+    "path": "distribution-core:problems",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "process-services",
     "path": "distribution-core:process-services",
     "unitTests": true,
@@ -550,13 +557,6 @@
     "path": "full:build-profile",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "problems",
-    "path": "distribution-core:problems",
-    "unitTests": true,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {

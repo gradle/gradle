@@ -75,7 +75,7 @@ dependencies {
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
 
-    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures("org.gradle:model-core"))
     integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures("org.gradle:jacoco"))
 

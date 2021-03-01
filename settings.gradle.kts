@@ -1,12 +1,10 @@
 pluginManagement {
-    includeBuild("build-logic-settings")
     includeBuild("build-logic/build-logic-base")
 }
 
 plugins {
     id("gradlebuild.settings-plugins")
     id("gradlebuild.repositories")
-    id("gradlebuild.base.allprojects")
 }
 
 rootProject.name = "gradle"

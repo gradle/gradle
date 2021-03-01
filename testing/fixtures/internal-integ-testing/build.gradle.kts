@@ -1,3 +1,4 @@
+import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.repoRoot
 import gradlebuild.integrationtests.tasks.GenerateLanguageAnnotations
 import java.util.Properties

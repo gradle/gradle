@@ -34,6 +34,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
@@ -128,7 +129,7 @@ internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
     tasks.register<IntegrationTest>(name) {
         val integTest = project.the<IntegrationTestExtension>()
-        buildBucketProvider().configureTest(this, sourceSet, testType)
+        buildBucketProvider().configureTest(this, sourceSet.name)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
@@ -145,7 +146,6 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
     }
 
 
-private
 fun Project.buildBucketProvider() =
     gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
         parameters.includeTestClasses.set(stringPropertyOrEmpty("includeTestClasses"))

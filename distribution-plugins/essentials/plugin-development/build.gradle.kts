@@ -37,7 +37,7 @@ dependencies {
 
     integTestImplementation("org.gradle:base-services-groovy")
     integTestImplementation(libs.jetbrainsAnnotations)
-    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures("org.gradle:model-core"))
     integTestImplementation(libs.groovyTest)
 
     integTestLocalRepository("org.gradle:tooling-api") {
