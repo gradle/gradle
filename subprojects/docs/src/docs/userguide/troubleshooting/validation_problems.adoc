@@ -213,11 +213,12 @@ If what you really wanted to say is that the actual file path is an input, then 
 [[unresolvable_input]]
 == Unresolvable input
 
-This error indicates that a file collection is used as an input of a task, but that resolution failed.
-In general, this shouldn't happen.
-However, when this happens it means that Gradle cannot properly determine the task dependencies.
+This error indicates that a file collection is used as an input of a task, but that resolution failed, for example because of the use of an invalid notation for a file.
+Previous versions of Gradle used to skip validation if a task didn't declare any output but task execution would have failed.
+In practice, it means that would have been a failure at execution time is a failure when inputs are validated.
 
-As a workaround, you can declare an explicit task dependency instead using `Task#dependsOn`.
+There are different reasons why the resolution of your file collection have failed.
+If you actually declared a file collection as an input in order to infer task dependencies, you might want to consider declaring an explicit task dependency instead using `Task#dependsOn`.
 
 [[implicit_dependency]]
 == Implicit dependencies between tasks
@@ -255,7 +256,7 @@ someTask {
 }
 ```
 
-In some cases, for producer tasks which for example don't use the <<lazy_configuration#lazy_configuration,configuration avoidance APIs>>, you can instead declare an _explicit dependency_ on the task:
+In some cases, for producer tasks which don't use the <<lazy_configuration#lazy_configuration,configuration avoidance APIs>>, you can instead declare an _explicit dependency_ on the task:
 
 ```
 someTask {
