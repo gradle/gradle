@@ -49,7 +49,7 @@ dependencies {
            strictly '1.7.15'
         }
     }
-    
+
     // or...
     implementation('org.slf4j:slf4j-api:[1.7, 1.8[!!1.7.25')
     // is equivalent to
@@ -63,7 +63,7 @@ dependencies {
 // end::strict-shorthand[]
  */
 
-task copyLibs(type: Copy) {
+tasks.register('copyLibs', Copy) {
     from configurations.compileClasspath
-    into "$buildDir/libs"
+    into layout.buildDirectory.dir('libs')
 }

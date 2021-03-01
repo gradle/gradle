@@ -1,11 +1,15 @@
 // tag::add-property[]
-open class GreetingTask : DefaultTask() {
+abstract class GreetingTask : DefaultTask() {
     @get:Input
-    var greeting = "hello from GreetingTask"
+    abstract val greeting: Property<String>
+
+    init {
+        greeting.convention("hello from GreetingTask")
+    }
 
     @TaskAction
     fun greet() {
-        println(greeting)
+        println(greeting.get())
     }
 }
 
@@ -14,6 +18,6 @@ tasks.register<GreetingTask>("hello")
 
 // Customize the greeting
 tasks.register<GreetingTask>("greeting") {
-    greeting = "greetings from GreetingTask"
+    greeting.set("greetings from GreetingTask")
 }
 // end::add-property[]

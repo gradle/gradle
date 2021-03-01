@@ -38,7 +38,7 @@ publishing {
 publishing {
     repositories {
         ivy {
-            url = uri("$buildDir/repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
 }

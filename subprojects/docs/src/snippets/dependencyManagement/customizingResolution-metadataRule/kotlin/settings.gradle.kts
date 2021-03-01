@@ -26,7 +26,8 @@ dependencyResolutionManagement {
 }
 // end::prefer-projects[]
 
-open class GuavaRule: ComponentMetadataRule {
+@CacheableRule
+abstract class GuavaRule: ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         val variantVersion = context.details.id.version
         val version = variantVersion.substring(0, variantVersion.indexOf("-"))

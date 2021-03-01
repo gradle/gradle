@@ -34,7 +34,7 @@ dependencies {
 // end::compatibility-rule-use[]
 
 // tag::compatibility-rule[]
-class InstrumentedJarsRule implements AttributeCompatibilityRule<LibraryElements> {
+abstract class InstrumentedJarsRule implements AttributeCompatibilityRule<LibraryElements> {
 
     @Override
     void execute(CompatibilityCheckDetails<LibraryElements> details) {

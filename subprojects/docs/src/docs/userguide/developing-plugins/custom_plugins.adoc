@@ -119,7 +119,8 @@ You can find out more about implementing project extensions in <<custom_gradle_t
 == Working with files in custom tasks and plugins
 
 When developing custom tasks and plugins, it's a good idea to be very flexible when accepting input configuration for file locations.
-To do this, you can leverage the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to resolve values to files as late as possible.
+You should use Gradle's <<custom_gradle_types.adoc#managed_properties,managed properties>> and `project.layout` to select file or directory locations.
+By this, the actual location will only be resolved when the file is needed and can be reconfigured at any time during build configuration.
 
 .Evaluating file properties lazily
 ====

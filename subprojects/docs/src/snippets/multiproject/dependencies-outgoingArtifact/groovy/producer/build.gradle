@@ -6,7 +6,7 @@ version = '1.0'
 
 def buildInfo = tasks.register("buildInfo", BuildInfo) {
     version = project.version
-    outputFile = file("$buildDir/generated-resources/build-info.properties")
+    outputFile = layout.buildDirectory.file('generated-resources/build-info.properties')
 }
 
 sourceSets {

@@ -35,9 +35,9 @@ java {
     }
 }
 
-task showDefaultToolchain(type: CustomTaskUsingToolchains)
+tasks.register('showDefaultToolchain', CustomTaskUsingToolchains)
 
-task showCustomToolchain(type: CustomTaskUsingToolchains) {
+tasks.register('showCustomToolchain', CustomTaskUsingToolchains) {
     launcher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(14)
     }
