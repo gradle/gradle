@@ -47,6 +47,22 @@ rootDir.listFiles(File::isDirectory)!!.filter {
     include(it.name)
 }
 
+/*
+ * This is responsible for applying a plugin to ALL projects that are configured as part of a build.
+ *
+ * This should be limited to validation or tasks which are independent
+ * of the kind of project we're building.
+ */
+val enableValidation = providers.systemProperty("org.gradle.internal.validate.external.plugins")
+    .forUseAtConfigurationTime()
+
+gradle.beforeProject {
+    if (enableValidation.map(String::toBoolean).orElse(false).get()) {
+        // Add external plugin validation only for smoke tests of the Gradle build itself
+        pluginManager.apply("validate-external-gradle-plugin")
+    }
+}
+
 dependencyResolutionManagement {
     repositories {
         // Cannot use 'FAIL_ON_PROJECT_REPOS' because
