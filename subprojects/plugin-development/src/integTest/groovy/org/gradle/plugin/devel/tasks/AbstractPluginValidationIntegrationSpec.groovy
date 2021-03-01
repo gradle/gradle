@@ -419,9 +419,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
-    )
+    @ValidationTestFor([
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
+    ])
     def "detects problems with file inputs"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -482,14 +483,15 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(false, [
-            warning("Type 'MyTask': property 'file' has @Input annotation used on property of type 'File'."),
-            warning("Type 'MyTask': property 'fileCollection' has @Input annotation used on property of type 'FileCollection'."),
-            warning("Type 'MyTask': property 'filePath' has @Input annotation used on property of type 'Path'."),
-            warning("Type 'MyTask': property 'fileTree' has @Input annotation used on property of type 'FileTree'."),
-            error("Type 'MyTask': property 'inputDirectory' is annotated with @InputDirectory but missing a normalization strategy. $normalizationProblemDetails"),
-            error("Type 'MyTask': property 'inputFile' is annotated with @InputFile but missing a normalization strategy. $normalizationProblemDetails"),
-            error("Type 'MyTask': property 'inputFiles' is annotated with @InputFiles but missing a normalization strategy. $normalizationProblemDetails"),
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
+        assertValidationFailsWith([
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('file').propertyType('File') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('fileCollection').propertyType('FileCollection') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('filePath').propertyType('Path') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('fileTree').propertyType('FileTree') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('inputDirectory').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('inputFile').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('inputFiles').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
         ])
     }
 
@@ -599,7 +601,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
         assertValidationFailsWith([
             error(missingAnnotationMessage { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor( "alma")}${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
             error(missingAnnotationMessage { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
             error(missingAnnotationMessage { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
             error(missingAnnotationMessage { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
@@ -827,13 +829,13 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     abstract void assertValidationSucceeds()
 
     @Deprecated
-    final void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, Severity> messages) {
-        assertValidationFailsWith(expectDeprecationsForErrors, messages.collect { message, severity ->
+    final void assertValidationFailsWith(Map<String, Severity> messages) {
+        assertValidationFailsWith(messages.collect { message, severity ->
             new DocumentedProblem(message, severity)
         })
     }
 
-    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, List<DocumentedProblem> messages)
+    abstract void assertValidationFailsWith(List<DocumentedProblem> messages)
 
     abstract TestFile source(String path)
 
@@ -870,9 +872,5 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             this.section = section
             this.defaultDocLink = (id == "more_about_tasks") && (section == "sec:up_to_date_checks")
         }
-    }
-
-    String getNormalizationProblemDetails() {
-        "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}."
     }
 }

@@ -402,7 +402,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             extension: missingAnnotationMessage { property('extension').kind('an input annotation').includeLink().noIntro() },
             fileInput: [
                 missingValueMessage { property('fileInput').includeLink().noIntro() },
-                'has @Input annotation used on property of type \'File\'',
+                incorrectUseOfInputAnnotation { property('fileInput').propertyType('File').includeLink().noIntro() },
             ],
             incrementalNonFileInput: [
                 missingValueMessage { property('incrementalNonFileInput').includeLink().noIntro() },

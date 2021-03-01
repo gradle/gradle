@@ -157,29 +157,6 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         executed ":foo"
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/9674")
-    def "allows @Input of task with no actions to be null"() {
-        buildFile << """
-            class FooTask extends DefaultTask {
-               @Input
-               FileCollection bar
-            }
-
-            task foo(type: FooTask)
-        """
-
-        executer.expectDocumentedDeprecationWarning("Type 'FooTask': property 'bar' has @Input annotation used on property of type 'FileCollection'. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-
-        when:
-        run "foo"
-
-        then:
-        executed ":foo"
-    }
-
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )

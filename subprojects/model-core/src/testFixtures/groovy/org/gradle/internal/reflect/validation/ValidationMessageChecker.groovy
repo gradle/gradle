@@ -73,12 +73,48 @@ trait ValidationMessageChecker {
         config.render "is annotated with @${config.annotatedWith} but that is not allowed for '${config.incompatibleWith}' properties. This modifier is used in conjunction with a property of type '${config.incompatibleWith}' but this doesn't have semantics. Possible solution: Remove the '@${config.annotatedWith}' annotation."
     }
 
-    private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+    String incorrectUseOfInputAnnotation(@DelegatesTo(value=IncorrectUseOfInputAnnotation, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(IncorrectUseOfInputAnnotation, 'incorrect_use_of_input_annotation', spec)
+        config.render "has @Input annotation used on property of type '${config.propertyType}'. A property of type '${config.propertyType}' is annotated with @Input cannot determine how to interpret the file. Possible solutions: Annotate with @InputFile for regular files or annotate with @InputDirectory for directories."
+    }
+
+    String missingNormalizationStrategy(@DelegatesTo(value=MissingNormalization, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(MissingNormalization, 'missing_normalization_annotation', spec)
+        config.render "is annotated with @${config.annotatedWith} but missing a normalization strategy. If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath."
+    }
+
+    private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class MissingNormalization extends ValidationMessageDisplayConfiguration<MissingNormalization> {
+        String annotatedWith
+
+        MissingNormalization(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        MissingNormalization annotatedWith(String name) {
+            annotatedWith = name
+            this
+        }
+    }
+
+    static class IncorrectUseOfInputAnnotation extends ValidationMessageDisplayConfiguration<IncorrectUseOfInputAnnotation> {
+        String propertyType
+
+        IncorrectUseOfInputAnnotation(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        IncorrectUseOfInputAnnotation propertyType(String type) {
+            propertyType = type
+            this
+        }
     }
 
     static class IncompatibleAnnotations extends ValidationMessageDisplayConfiguration<IncompatibleAnnotations> {
