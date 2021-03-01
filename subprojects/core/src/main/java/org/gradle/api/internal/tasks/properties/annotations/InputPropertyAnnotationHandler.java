@@ -72,9 +72,10 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
                 .forProperty(propertyMetadata.getPropertyName())
                 .reportAs(ERROR)
                 .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
-                .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' is annotated with @Input cannot determine how to interpret the file")
+                .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                 .addPossibleSolution("Annotate with @InputFile for regular files")
                 .addPossibleSolution("Annotate with @InputDirectory for directories")
+                .addPossibleSolution("If you want to track the path, return File.absolutePath as a String and keep @Input")
                 .documentedAt("validation_problems", "incorrect_use_of_input_annotation")
             );
         }

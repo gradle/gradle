@@ -157,6 +157,24 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         executed ":foo"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/9674")
+    def "allows @InputFiles of task with no actions to be null"() {
+        buildFile << """
+            class FooTask extends DefaultTask {
+               @InputFiles
+               FileCollection bar
+            }
+
+            task foo(type: FooTask)
+        """
+
+        when:
+        run "foo"
+
+        then:
+        executed ":foo"
+    }
+
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )

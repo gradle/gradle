@@ -75,7 +75,7 @@ trait ValidationMessageChecker {
 
     String incorrectUseOfInputAnnotation(@DelegatesTo(value=IncorrectUseOfInputAnnotation, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncorrectUseOfInputAnnotation, 'incorrect_use_of_input_annotation', spec)
-        config.render "has @Input annotation used on property of type '${config.propertyType}'. A property of type '${config.propertyType}' is annotated with @Input cannot determine how to interpret the file. Possible solutions: Annotate with @InputFile for regular files or annotate with @InputDirectory for directories."
+        config.render "has @Input annotation used on property of type '${config.propertyType}'. A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file. Possible solutions: Annotate with @InputFile for regular files or annotate with @InputDirectory for directories or if you want to track the path, return File.absolutePath as a String and keep @Input."
     }
 
     String missingNormalizationStrategy(@DelegatesTo(value=MissingNormalization, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {

@@ -208,5 +208,7 @@ This error indicates that a property is annotated with `@Input`, but that it sho
 If you use the `@Input` annotation on a file-based property, Gradle wouldn't consider the file contents, or the directory contents, as inputs, as you might expect.
 
 To fix this problem, you need to tell Gradle if the file property represents an input file, in which case you should annotate it with `@InputFile`, or a directory, in which case it should be annotated with `@InputDirectory`.
+If what you really wanted to say is that the actual file path is an input, then you should return a `String` instead which corresponds to the absolute path of the file.
+
 
 
