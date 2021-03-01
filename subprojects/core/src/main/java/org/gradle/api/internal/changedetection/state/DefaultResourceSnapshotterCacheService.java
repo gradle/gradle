@@ -17,9 +17,14 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
+
+import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public class DefaultResourceSnapshotterCacheService implements ResourceSnapshotterCacheService {
     private static final HashCode NO_HASH = Hashing.signature(CachingResourceHasher.class.getName() + " : no hash");
@@ -30,8 +35,18 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
     }
 
     @Override
-    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash) {
-        HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshotContext.getSnapshot().getHash(), configurationHash);
+    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileContextHasher hasher, HashCode configurationHash) {
+        return hashFile(fileSnapshotContext.getSnapshot(), () -> hasher.hash(fileSnapshotContext), configurationHash);
+    }
+
+    @Override
+    public HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileSnapshotHasher hasher, HashCode configurationHash) {
+        return hashFile(fileSnapshot, () -> hasher.hash(fileSnapshot), configurationHash);
+    }
+
+    @Nullable
+    private HashCode hashFile(RegularFileSnapshot fileSnapshot, Supplier<HashCode> hashCodeSupplier, HashCode configurationHash) {
+        HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshot.getHash(), configurationHash);
 
         HashCode resourceHash = persistentCache.getIfPresent(resourceHashCacheKey);
         if (resourceHash != null) {
@@ -41,7 +56,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
             return resourceHash;
         }
 
-        resourceHash = hasher.hash(fileSnapshotContext);
+        resourceHash = hashCodeSupplier.get();
 
         if (resourceHash != null) {
             persistentCache.put(resourceHashCacheKey, resourceHash);

@@ -21,7 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.hashing.FileContentHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
@@ -34,14 +35,12 @@ import java.util.Map;
  * Fingerprint files without path or content normalization.
  */
 public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
-    public static final FingerprintingStrategy DEFAULT = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.DEFAULT);
-    public static final FingerprintingStrategy IGNORE_DIRECTORIES = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "ABSOLUTE_PATH";
 
     private final DirectorySensitivity directorySensitivity;
 
-    private AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
-        super(IDENTIFIER);
+    public AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity, FileContentHasher fileContentHasher) {
+        super(IDENTIFIER, fileContentHasher);
         this.directorySensitivity = directorySensitivity;
     }
 
@@ -59,7 +58,10 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
                 if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
-                    builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));
+                    HashCode normalizedContentHash = hashSnapshotContent(snapshot);
+                    if (normalizedContentHash != null) {
+                        builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot.getType(), normalizedContentHash));
+                    }
                 }
                 return SnapshotVisitResult.CONTINUE;
             }

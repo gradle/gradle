@@ -29,11 +29,15 @@ public class DefaultFileHasher implements FileHasher {
         this.streamHasher = streamHasher;
     }
 
+    protected InputStream getInputStream(File file) throws FileNotFoundException {
+        return new FileInputStream(file);
+    }
+
     @Override
     public HashCode hash(File file) {
         InputStream inputStream;
         try {
-            inputStream = new FileInputStream(file);
+            inputStream = getInputStream(file);
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
         }

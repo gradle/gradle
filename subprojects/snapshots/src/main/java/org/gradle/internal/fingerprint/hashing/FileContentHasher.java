@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint.hashing;
 
-import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
-/**
- * A resource entry filter supporting exact matches of values.
- */
-public interface ResourceEntryFilter extends ConfigurableNormalizer {
-    ResourceEntryFilter FILTER_NOTHING = new ResourceEntryFilter() {
-        @Override
-        public boolean shouldBeIgnored(String entry) {
-            return false;
-        }
-
+public interface FileContentHasher extends RegularFileSnapshotHasher, ConfigurableNormalizer {
+    FileContentHasher NONE = new FileContentHasher() {
         @Override
         public void appendConfigurationToHasher(Hasher hasher) {
             hasher.putString(getClass().getName());
         }
-    };
 
-    boolean shouldBeIgnored(String entry);
+        @Override
+        public HashCode hash(RegularFileSnapshot snapshot) {
+            return snapshot.getHash();
+        }
+    };
 }

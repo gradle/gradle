@@ -21,6 +21,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.fingerprint.hashing.FileContentHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
@@ -35,14 +37,11 @@ import java.util.Map;
  * File names for root directories are ignored.
  */
 public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrategy {
-
-    public static final NameOnlyFingerprintingStrategy DEFAULT = new NameOnlyFingerprintingStrategy(DirectorySensitivity.DEFAULT);
-    public static final NameOnlyFingerprintingStrategy IGNORE_DIRECTORIES = new NameOnlyFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "NAME_ONLY";
     private final DirectorySensitivity directorySensitivity;
 
-    private NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
-        super(IDENTIFIER);
+    public NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity, FileContentHasher fileContentHasher) {
+        super(IDENTIFIER, fileContentHasher);
         this.directorySensitivity = directorySensitivity;
     }
 
@@ -60,10 +59,14 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
                 if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
-                    FileSystemLocationFingerprint fingerprint = isRoot && snapshot.getType() == FileType.Directory
-                        ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY
-                        : new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
-                    builder.put(absolutePath, fingerprint);
+                    if (isRoot && snapshot.getType() == FileType.Directory) {
+                        builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.DIRECTORY);
+                    } else {
+                        HashCode normalizedContentHash = hashSnapshotContent(snapshot);
+                        if (normalizedContentHash != null) {
+                            builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot.getType(), normalizedContentHash));
+                        }
+                    }
                 }
                 return SnapshotVisitResult.CONTINUE;
             }

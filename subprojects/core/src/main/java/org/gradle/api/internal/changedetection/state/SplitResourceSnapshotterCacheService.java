@@ -17,7 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.GlobalCacheLocations;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 /**
  * A {@link ResourceSnapshotterCacheService} that delegates to the global service for immutable files
@@ -35,11 +37,20 @@ public class SplitResourceSnapshotterCacheService implements ResourceSnapshotter
     }
 
     @Override
-    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash) {
+    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileContextHasher hasher, HashCode configurationHash) {
         if (globalCacheLocations.isInsideGlobalCache(fileSnapshotContext.getSnapshot().getAbsolutePath())) {
             return globalCache.hashFile(fileSnapshotContext, hasher, configurationHash);
         } else {
             return localCache.hashFile(fileSnapshotContext, hasher, configurationHash);
+        }
+    }
+
+    @Override
+    public HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileSnapshotHasher hasher, HashCode configurationHash) {
+        if (globalCacheLocations.isInsideGlobalCache(fileSnapshot.getAbsolutePath())) {
+            return globalCache.hashFile(fileSnapshot, hasher, configurationHash);
+        } else {
+            return localCache.hashFile(fileSnapshot, hasher, configurationHash);
         }
     }
 }

@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.tasks
 
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotHasher;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 
-import javax.annotation.Nullable;
+class UpToDateLineEndingNormalizationIntegrationSpec extends AbstractLineEndingNormalizationIntegrationSpec {
+    @Override
+    String getStatusForReusedOutput() {
+        return "UP-TO-DATE"
+    }
 
-public interface ResourceSnapshotterCacheService {
-    @Nullable
-    HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileContextHasher hasher, HashCode configurationHash);
+    @Override
+    void execute(String... tasks) {
+        succeeds tasks
+    }
 
-    @Nullable
-    HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileSnapshotHasher hasher, HashCode configurationHash);
+    @Override
+    void cleanWorkspace() {
+        // do nothing
+    }
 }

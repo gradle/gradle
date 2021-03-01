@@ -16,16 +16,25 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.hashing.FileContentHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
+
+import javax.annotation.Nullable;
 
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
+    private final FileContentHasher fileContentHasher;
 
-    public AbstractFingerprintingStrategy(String identifier) {
+    public AbstractFingerprintingStrategy(String identifier, FileContentHasher fileContentHasher) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
+        this.fileContentHasher = fileContentHasher;
     }
 
     @Override
@@ -36,5 +45,10 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     @Override
     public CurrentFileCollectionFingerprint getEmptyFingerprint() {
         return emptyFingerprint;
+    }
+
+    @Nullable
+    protected HashCode hashSnapshotContent(FileSystemLocationSnapshot snapshot) {
+        return snapshot.getType() == FileType.RegularFile ? fileContentHasher.hash((RegularFileSnapshot)snapshot) : snapshot.getHash();
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.state.DefaultRegularFileSnapshotC
 import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
 import org.gradle.api.internal.changedetection.state.MetaInfAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.PropertiesFileAwareClasspathResourceHasher;
+import org.gradle.internal.fingerprint.hashing.FileContentHasher;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
@@ -83,7 +84,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                                            ZipHasher zipHasher,
                                            ResourceSnapshotterCacheService cacheService,
                                            Interner<String> stringInterner) {
-        super(identifier);
+        super(identifier, FileContentHasher.NONE);
         this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
         this.classpathResourceHasher = classpathResourceHasher;
         this.cacheService = cacheService;

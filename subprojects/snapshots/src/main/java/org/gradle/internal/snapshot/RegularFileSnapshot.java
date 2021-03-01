@@ -59,7 +59,7 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot impl
 
     @Override
     public boolean isContentUpToDate(FileSystemLocationSnapshot other) {
-        if (!(other instanceof RegularFileSnapshot)) {
+        if (!(other.getType() == FileType.RegularFile)) {
             return false;
         }
         return contentHash.equals(((RegularFileSnapshot) other).contentHash);

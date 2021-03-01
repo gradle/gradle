@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.hash;
 
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotHasher;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
-import javax.annotation.Nullable;
+/**
+ * A {@link FileHasher} that normalizes line endings.
+ */
+public class LineEndingNormalizationFileHasher extends DefaultFileHasher {
+    public LineEndingNormalizationFileHasher(StreamHasher streamHasher) {
+        super(streamHasher);
+    }
 
-public interface ResourceSnapshotterCacheService {
-    @Nullable
-    HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileContextHasher hasher, HashCode configurationHash);
-
-    @Nullable
-    HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileSnapshotHasher hasher, HashCode configurationHash);
+    @Override
+    protected InputStream getInputStream(File file) throws FileNotFoundException {
+        return new LineEndingNormalizingInputStream(super.getInputStream(file));
+    }
 }

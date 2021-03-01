@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint.hashing;
 
-import org.gradle.internal.hash.HashCode;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
+import org.gradle.internal.hash.Hasher;
 
 /**
- * Hashes a zip entry (e.g. a class file in a jar, a manifest file, a properties file)
+ * A resource normalizer which is configurable.
+ *
+ * Allows tracking changes to its configuration.
  */
-public interface ZipEntryHasher {
-    /**
-     * Returns {@code null} if the zip entry should be ignored.
-     */
-    @Nullable
-    HashCode hash(ZipEntryContext zipEntryContext) throws IOException;
+public interface ConfigurableNormalizer {
+    void appendConfigurationToHasher(Hasher hasher);
 }
