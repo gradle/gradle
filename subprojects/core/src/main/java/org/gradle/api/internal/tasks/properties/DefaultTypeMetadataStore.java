@@ -44,6 +44,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
@@ -128,7 +130,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .withDescription(() -> String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
                         .happensBecause(() -> "The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
                         .addPossibleSolution("Remove the property")
-                        .addPossibleSolution("use a different annotation")
+                        .addPossibleSolution(() -> "Use a different annotation, e.g one of " + toListOfAnnotations(propertyAnnotationHandlers.keySet()))
                         .documentedAt("validation_problems", "annotation_invalid_in_context")
                 );
                 continue;
@@ -148,6 +150,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .reportAs(ERROR)
                             .withDescription(() -> "is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
                             .happensBecause(() -> "This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
+                            .withLongDescription(() -> "The list of allowed modifiers for '" + propertyType.getSimpleName() + "' is " + toListOfAnnotations(allowedPropertyModifiers))
                             .addPossibleSolution(() -> "Remove the '@" + annotationType.getSimpleName() + "' annotation")
                             .documentedAt("validation_problems", "incompatible_annotations"));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
@@ -171,6 +174,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             }
         }
         return new DefaultTypeMetadata(effectiveProperties.build(), validationContext, propertyAnnotationHandlers);
+    }
+
+    private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
+        return classes.stream()
+            .map(Class::getSimpleName)
+            .map(s -> "@" + s)
+            .sorted()
+            .collect(forDisplay());
     }
 
     @Nullable
@@ -267,5 +278,18 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         public String toString() {
             return String.format("@%s %s", propertyType.getSimpleName(), getPropertyName());
         }
+    }
+
+    private static Collector<? super String, ?, String> forDisplay() {
+        return Collectors.collectingAndThen(Collectors.toList(), stringList -> {
+                if (stringList.isEmpty()) {
+                    return "";
+                }
+                if (stringList.size() == 1) {
+                    return stringList.get(0);
+                }
+            int bound = stringList.size() - 1;
+            return String.join(", ", stringList.subList(0, bound)) + " or " + stringList.get(bound);
+        });
     }
 }

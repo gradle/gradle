@@ -135,8 +135,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('options.nestedThing') }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('thing') }, 'validation_problems', 'annotation_invalid_in_context')
+            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('options.nestedThing').forTask() }, 'validation_problems', 'annotation_invalid_in_context'),
+            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('thing').forTask() }, 'validation_problems', 'annotation_invalid_in_context')
         ])
 
         where:
