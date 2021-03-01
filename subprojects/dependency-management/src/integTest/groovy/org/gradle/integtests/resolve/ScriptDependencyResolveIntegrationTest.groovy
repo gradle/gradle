@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import spock.lang.Issue
 
 class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @LeaksFileHandles("Puts gradle user home in integration test dir")
@@ -57,6 +58,43 @@ task check {
 }
 """
 
+        expect:
+        succeeds "check"
+    }
+
+    @Issue("gradle/gradle#15378")
+    def "strict resolution strategy can be used when resolving a script classpath from settings"() {
+        given:
+        mavenRepo().module("org.gradle", "test", "1.45").publish()
+
+        and:
+        settingsFile << """
+buildscript {
+    repositories { maven { url "${mavenRepo().uri}" } }
+    configurations.classpath {
+        resolutionStrategy {
+            failOnVersionConflict()
+        }
+    }
+    dependencies {
+        classpath "org.gradle:test:1.45"
+    }
+}
+
+rootProject.name = 'testproject'
+"""
+        buildFile << """
+task check {
+    doLast {
+        assert gradle.settings.buildscript.configurations.classpath.collect { it.name } == ['test-1.45.jar']
+        def result = gradle.settings.buildscript.configurations.classpath.incoming.resolutionResult
+
+        // Check root component
+        def rootId = result.root.id
+        assert rootId instanceof ModuleComponentIdentifier
+    }
+}
+"""
         expect:
         succeeds "check"
     }
