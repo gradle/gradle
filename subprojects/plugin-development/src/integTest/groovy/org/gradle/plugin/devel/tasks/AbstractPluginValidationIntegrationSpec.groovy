@@ -185,15 +185,18 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         Nested            | '@Nested'                                                  | List           | "new ArrayList()"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE
+    )
     @Unroll
-    def "detects optional primitive type #type"() {
+    def "detects optional primitive type #primitiveType"() {
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
 
             public class MyTask extends DefaultTask {
                 @Optional @Input
-                ${type.name} getPrimitive() {
+                ${primitiveType.name} getPrimitive() {
                     return ${value};
                 }
 
@@ -202,15 +205,22 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'primitive' @Input properties with primitive type '${type.name}' cannot be @Optional.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(optionalOnPrimitive {
+                type('MyTask').property('primitive')
+                .primitive(primitiveType)
+            }, "validation_problems", "cannot_use_optional_on_primitive_types"),
+        ])
 
         where:
-        type    | value
-        boolean | true
-        int     | 1
-        double  | 1
+        primitiveType | value
+        boolean       | "true"
+        int           | "1"
+        double        | "1"
+        float         | "2f"
+        double        | "2d"
+        char          | "'c'"
+        short         | "(short) 5"
     }
 
     @ValidationTestFor(

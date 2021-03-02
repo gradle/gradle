@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.AnnotationCategory;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -33,7 +34,6 @@ import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -69,20 +69,26 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
             || FileCollection.class.isAssignableFrom(valueType)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
-                .forProperty(propertyMetadata.getPropertyName())
-                .reportAs(ERROR)
-                .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
-                .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
-                .addPossibleSolution("Annotate with @InputFile for regular files")
-                .addPossibleSolution("Annotate with @InputDirectory for directories")
-                .addPossibleSolution("If you want to track the path, return File.absolutePath as a String and keep @Input")
-                .documentedAt("validation_problems", "incorrect_use_of_input_annotation")
+                    .forProperty(propertyMetadata.getPropertyName())
+                    .reportAs(ERROR)
+                    .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
+                    .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
+                    .addPossibleSolution("Annotate with @InputFile for regular files")
+                    .addPossibleSolution("Annotate with @InputDirectory for directories")
+                    .addPossibleSolution("If you want to track the path, return File.absolutePath as a String and keep @Input")
+                    .documentedAt("validation_problems", "incorrect_use_of_input_annotation")
             );
         }
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
-            validationContext.visitPropertyProblem(WARNING,
-                propertyMetadata.getPropertyName(),
-                String.format("@Input properties with primitive type '%s' cannot be @Optional", valueType.getName())
+            validationContext.visitPropertyProblem(problem ->
+                problem.withId(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
+                    .reportAs(ERROR)
+                    .forProperty(propertyMetadata.getPropertyName())
+                    .withDescription(() -> "of type " + valueType.getName() + " shouldn't be annotated with @Optional")
+                    .happensBecause("Properties of primitive type cannot be optional")
+                    .addPossibleSolution("Remove the @Optional annotation")
+                    .addPossibleSolution(() -> "Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
+                    .documentedAt("validation_problems", "cannot_use_optional_on_primitive_types")
             );
         }
     }
