@@ -123,12 +123,36 @@ trait ValidationMessageChecker {
         config.render "has value '${config.value}' which cannot be converted to a ${config.targetType}. Automatic conversion of value notation failed. ${config.solution}"
     }
 
+    String invalidUseOfCacheableAnnotation(@DelegatesTo(value=InvalidUseOfCacheable, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(InvalidUseOfCacheable, 'invalid_use_of_cacheable_annotation', spec)
+        config.render "Using @${config.invalidAnnotation} here is incorrect. This annotation only makes sense on ${config.correctType} types. Possible solution: Remove the annotation"
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class InvalidUseOfCacheable extends ValidationMessageDisplayConfiguration<InvalidUseOfCacheable> {
+        String invalidAnnotation
+        String correctType
+
+        InvalidUseOfCacheable(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        InvalidUseOfCacheable invalidAnnotation(String type) {
+            this.invalidAnnotation = type
+            this
+        }
+
+        InvalidUseOfCacheable onlyMakesSenseOn(String type) {
+            this.correctType = type
+            this
+        }
     }
 
     static class UnsupportedNotation extends ValidationMessageDisplayConfiguration<UnsupportedNotation> {
