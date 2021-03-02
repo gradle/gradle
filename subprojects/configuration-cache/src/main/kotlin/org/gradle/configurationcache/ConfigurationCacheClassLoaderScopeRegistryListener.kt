@@ -18,34 +18,29 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.serialization.ClassLoaderRole
 import org.gradle.configurationcache.serialization.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.hash.HashCode
 
 
 internal
-class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener, ScopeLookup, AutoCloseable {
+class ConfigurationCacheClassLoaderScopeRegistryListener(
+    private val startParameter: ConfigurationCacheStartParameter
+) : ClassLoaderScopeRegistryListener, ScopeLookup, AutoCloseable {
     private
     val scopeSpecs = LinkedHashMap<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
     private
     val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
-    private
-    var manager: ListenerManager? = null
-
     val scopes: Collection<ClassLoaderScopeSpec>
         get() = scopeSpecs.values
 
-    fun attach(manager: ListenerManager) {
-        require(this.manager == null)
-        this.manager = manager
-        manager.addListener(this)
-    }
+    var closed = false
 
     /**
      * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
@@ -56,19 +51,13 @@ class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegis
         //  from DefaultConfigurationCacheHost so a decision based on the configured
         //  configuration cache strategy (none, store or load) can be taken early on.
         //  The listener only needs to be attached in the `store` state.
+        closed = true
         scopeSpecs.clear()
         loaders.clear()
-        detach()
     }
 
     override fun close() {
         dispose()
-    }
-
-    private
-    fun detach() {
-        manager?.removeListener(this)
-        manager = null
     }
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
@@ -76,6 +65,10 @@ class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegis
     }
 
     override fun rootScopeCreated(rootScopeId: ClassLoaderScopeId) {
+        if (closed || !startParameter.isEnabled) {
+            return
+        }
+
         if (scopeSpecs.containsKey(rootScopeId)) {
             // scope is being reused
             return
@@ -85,6 +78,10 @@ class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegis
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
+        if (closed || !startParameter.isEnabled) {
+            return
+        }
+
         if (scopeSpecs.containsKey(childId)) {
             // scope is being reused
             return
@@ -99,9 +96,12 @@ class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegis
     }
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
-        // We may not know of the scope if it is from another build
-        // https://github.com/gradle/gradle/pull/16351
-        val spec = scopeSpecs[scopeId] ?: return
+        if (closed || !startParameter.isEnabled) {
+            return
+        }
+
+        val spec = scopeSpecs[scopeId]
+        require(spec != null)
         // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
         //  Rather than fix the assumption here, it would be better to rework the scope implementation so that it produces no more than one export and one local ClassLoader
         val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
