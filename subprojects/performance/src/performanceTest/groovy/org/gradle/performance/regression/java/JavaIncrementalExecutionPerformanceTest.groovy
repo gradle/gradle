@@ -36,7 +36,7 @@ import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
-class JavaIncrementalExecutionIntegrationTest extends AbstractIncrementalExecutionPerformanceTest {
+class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecutionPerformanceTest {
     JavaTestProject testProject
     boolean isGroovyProject
 
