@@ -18,10 +18,10 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
-import org.gradle.initialization.ClassLoaderScopeId
-import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.configurationcache.serialization.ClassLoaderRole
 import org.gradle.configurationcache.serialization.ScopeLookup
+import org.gradle.initialization.ClassLoaderScopeId
+import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.hash.HashCode
@@ -89,17 +89,19 @@ class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegis
             // scope is being reused
             return
         }
-        val parent = scopeSpecs[parentId]
-        require(parent != null) {
-            "Cannot find parent $parentId for child scope $childId"
-        }
+
+        // We may not know of the parent if it is from another build
+        // https://github.com/gradle/gradle/pull/16351
+        val parent = scopeSpecs[parentId] ?: return
+
         val child = ClassLoaderScopeSpec(parent, childId.name)
         scopeSpecs[childId] = child
     }
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
-        val spec = scopeSpecs[scopeId]
-        require(spec != null)
+        // We may not know of the scope if it is from another build
+        // https://github.com/gradle/gradle/pull/16351
+        val spec = scopeSpecs[scopeId] ?: return
         // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
         //  Rather than fix the assumption here, it would be better to rework the scope implementation so that it produces no more than one export and one local ClassLoader
         val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
