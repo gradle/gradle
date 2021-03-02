@@ -3,12 +3,12 @@ package org.gradle.sample
 // tag::functional-test-spock-gradle-version[]
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.jupiter.api.io.TempDir;
+import spock.lang.TempDir
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class BuildLogicFunctionalTest extends Specification {
-    @TempDir final File testProjectDir
+    @TempDir File testProjectDir
     File settingsFile
     File buildFile
 
@@ -31,7 +31,7 @@ class BuildLogicFunctionalTest extends Specification {
         when:
         def result = GradleRunner.create()
             .withGradleVersion(gradleVersion)
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .withArguments('helloWorld')
             .build()
 

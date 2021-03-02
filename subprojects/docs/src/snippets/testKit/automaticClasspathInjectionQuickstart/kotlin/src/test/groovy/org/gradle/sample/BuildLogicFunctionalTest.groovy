@@ -1,7 +1,7 @@
 package org.gradle.sample
 
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.jupiter.api.io.TempDir
+import spock.lang.TempDir
 import spock.lang.Specification
 
 import static org.gradle.testkit.runner.TaskOutcome.*
@@ -13,8 +13,8 @@ class BuildLogicFunctionalTest extends Specification {
     File buildFile
 
     def setup() {
-        settingsFile = testProjectDir.newFile('settings.gradle')
-        buildFile = testProjectDir.newFile('build.gradle')
+        settingsFile = new File(testProjectDir, 'settings.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
     }
 
     // tag::functional-test-classpath-setup-automatic[]
