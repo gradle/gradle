@@ -17,6 +17,7 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
 import javax.annotation.Nullable;
@@ -166,6 +167,7 @@ public class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 7.0
      */
+    @Incubating
     public boolean isFollowRedirects() {
         return followRedirects;
     }
@@ -176,6 +178,7 @@ public class HttpBuildCache extends AbstractBuildCache {
      * @see #isAllowInsecureProtocol()
      * @since 7.0
      */
+    @Incubating
     public void setFollowRedirects(boolean followRedirects) {
         this.followRedirects = followRedirects;
     }
