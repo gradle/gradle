@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties.annotations;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.work.DoNotCacheByDefault;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.lang.annotation.Annotation;
 
@@ -28,7 +28,7 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR;
 public class DoNotCacheByDefaultTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
-        return DoNotCacheByDefault.class;
+        return DisableCachingByDefault.class;
     }
 
     @Override

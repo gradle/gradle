@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.specs.Spec;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -32,7 +33,7 @@ import java.lang.annotation.Target;
  * <p>Caching for individual task instances can be enabled and disabled via {@link TaskOutputs#cacheIf(String, Spec)} or disabled via {@link TaskOutputs#doNotCacheIf(String, Spec)}.
  * Using these APIs takes precedence over the presence (or absence) of {@code @CacheableTask}.</p>
  *
- * @see org.gradle.work.DoNotCacheByDefault
+ * @see DisableCachingByDefault
  *
  * @since 3.0
  */

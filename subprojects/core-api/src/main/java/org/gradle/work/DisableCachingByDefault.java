@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * It also allows attaching an explanation about why a certain work unit is not made cacheable.
  *
  * <p>Caching for individual task instances can be enabled and disabled via {@link TaskOutputs#cacheIf(String, Spec)} or disabled via {@link TaskOutputs#doNotCacheIf(String, Spec)}.
- * Using these APIs takes precedence over the presence (or absence) of {@code @DoNotCacheByDefault}.</p>
+ * Using these APIs takes precedence over the presence (or absence) of {@code @DisableCachingByDefault}.</p>
  *
  * @see org.gradle.api.tasks.CacheableTask
  * @see org.gradle.api.artifacts.transform.CacheableTransform
@@ -43,6 +43,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface DoNotCacheByDefault {
+public @interface DisableCachingByDefault {
     String because() default "";
 }

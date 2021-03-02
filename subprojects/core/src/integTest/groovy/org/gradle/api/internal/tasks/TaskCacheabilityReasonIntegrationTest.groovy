@@ -55,10 +55,10 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
                 }
             }
 
-            @DoNotCacheByDefault
+            @DisableCachingByDefault
             class NotCacheableByDefault extends UnspecifiedCacheabilityTask {}
 
-            @DoNotCacheByDefault(because = 'do-not-cache-by-default reason')
+            @DisableCachingByDefault(because = 'do-not-cache-by-default reason')
             class NotCacheableByDefaultWithReason extends UnspecifiedCacheabilityTask {}
 
             @CacheableTask
