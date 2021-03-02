@@ -17,7 +17,9 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
@@ -148,6 +150,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private void addPluginArtifactRepositories(RepositoryHandler repositories) {
+        if (pluginRepositoriesProvider.isExclusiveContentInUse() && !repositories.isEmpty()) {
+            throw new InvalidUserCodeException("When using exclusive repository content in 'settings.pluginManagement.repositories', you cannot add repositories to 'buildscript.repositories'.\n" +
+                "See the documentation in " + new DocumentationRegistry().getDocumentationFor("declaring_repositories", "declaring_content_exclusively_found_in_one_repository") + ".");
+        }
         repositories.addAll(pluginRepositoriesProvider.getPluginRepositories());
     }
 

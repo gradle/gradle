@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
@@ -36,6 +37,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class PluginDependencyResolutionServices implements DependencyResolutionServices {
@@ -96,8 +98,22 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
     }
 
     public PluginRepositoriesProvider getPluginRepositoriesProvider() {
-        return () -> getResolveRepositoryHandler().stream().map(PluginArtifactRepository::new).collect(Collectors.toList());
+        return new DefaultPluginRepositoriesProvider();
     }
+
+    private class DefaultPluginRepositoriesProvider implements PluginRepositoriesProvider {
+
+        @Override
+        public List<ArtifactRepository> getPluginRepositories() {
+            return getResolveRepositoryHandler().stream().map(PluginArtifactRepository::new).collect(Collectors.toList());
+        }
+
+        @Override
+        public boolean isExclusiveContentInUse() {
+            return ((RepositoryHandlerInternal) getResolveRepositoryHandler()).isExclusiveContentInUse();
+        }
+    }
+
 
     private static class PluginArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, ResolutionAwareRepository {
         private final ArtifactRepositoryInternal delegate;

@@ -27,17 +27,17 @@ class BuildscriptRepositoryContentFilteringIntegrationTest extends AbstractHttpD
 
         given:
         def repositories = """
-                repositories {
-                    maven {
-                        url "${mavenHttpRepo.uri}"
-                        content {
-                            $notation
-                        }
-                    }
-                    ivy {
-                        url "${ivyHttpRepo.uri}"
-                    }
-                }
+    repositories {
+        maven {
+            url "${mavenHttpRepo.uri}"
+            content {
+                $notation
+            }
+        }
+        ivy {
+            url "${ivyHttpRepo.uri}"
+        }
+    }
 """
         if (inSettings) {
             settingsFile << """
@@ -52,17 +52,17 @@ pluginManagement {
 rootProject.name = 'test'
 """
         buildFile.text = """
-            buildscript {
-                $repositories
+buildscript {
+    $repositories
 
-                dependencies {
-                    classpath "org:foo:1.0"
-                }
-            }
-            plugins {
-                id('base')
-            }
-        """
+    dependencies {
+        classpath "org:foo:1.0"
+    }
+}
+plugins {
+    id('base')
+}
+"""
 
         when:
         mod.ivy.expectGet()
@@ -79,6 +79,50 @@ rootProject.name = 'test'
         true        | "excludeGroupByRegex('or.+')"
         false       | "excludeGroup('org')"
         false       | "excludeGroupByRegex('or.+')"
+    }
+
+    def 'exclusive content filtering in settings prevents adding repositories in project'() {
+        given:
+        settingsFile << """
+pluginManagement {
+    repositories {
+        ivy {
+            url "irrelevant"
+        }
+        exclusiveContent {
+            forRepository {
+                maven {
+                    url "whatever"
+                }
+            }
+            filter {
+                includeGroup('org')
+            }
+        }
+    }
+}
+
+rootProject.name = 'test-exclusive'
+"""
+
+        buildFile << """
+buildscript {
+    repositories {
+        maven {
+            url 'another'
+        }
+    }
+}
+
+plugins {
+    id('base')
+}
+"""
+        when:
+        fails 'buildEnvironment'
+
+        then:
+        failureCauseContains("When using exclusive repository content in 'settings.pluginManagement.repositories', you cannot add repositories to 'buildscript.repositories'.")
     }
 
 
