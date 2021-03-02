@@ -175,7 +175,7 @@ public class HttpBuildCache extends AbstractBuildCache {
     /**
      * Specifies whether it is acceptable to follow a redirect from the build cache server.
      *
-     * @see #isAllowInsecureProtocol()
+     * @see #isFollowRedirects()
      * @since 7.0
      */
     @Incubating
