@@ -41,4 +41,5 @@ public enum ValidationProblemId {
     IMPLICIT_DEPENDENCY,
     INPUT_DOES_NOT_EXIST,
     UNEXPECTED_INPUT_TYPE,
+    CANNOT_WRITE_OUTPUT,
 }

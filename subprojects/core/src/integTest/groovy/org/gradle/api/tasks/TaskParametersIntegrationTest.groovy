@@ -723,10 +723,13 @@ task someTask(type: SomeTask) {
         "dir"  | "input-file.txt" | "directory"
     }
 
+    @ValidationTestFor(
+
+    )
     @Unroll
-    def "wrong output file type registered via TaskOutputs.#method is not allowed"() {
-        file("output-file.txt").touch()
-        file("output-dir").createDir()
+    def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
+        def outputDir = file("output-dir")
+        outputDir.createDir()
         buildFile << """
             task test {
                 outputs.${method}({ "$path" }) withPropertyName "output"
@@ -742,8 +745,36 @@ task someTask(type: SomeTask) {
         method  | path              | message
         "file"  | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
         "files" | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
-        "dir"   | "output-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
-        "dirs"  | "output-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
+    }
+
+
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    @Unroll
+    def "wrong output file type registered via TaskOutputs.#method is not allowed (directories)"() {
+        def outputFile = file("output-file.txt")
+        outputFile.touch()
+        buildFile << """
+            task test {
+                outputs.${method}({ "$path" }) withPropertyName "output"
+                doLast {}
+            }
+        """
+
+        expect:
+        fails "test"
+        failureDescriptionContains(cannotWriteToDir {
+            type('DefaultTask').property('output')
+                .dir(outputFile)
+                .isNotDirectory()
+                .includeLink()
+        })
+
+        where:
+        method  | path
+        "dir"   | "output-file.txt"
+        "dirs"  | "output-file.txt"
     }
 
     def "can specify null as an input property in ad-hoc task"() {

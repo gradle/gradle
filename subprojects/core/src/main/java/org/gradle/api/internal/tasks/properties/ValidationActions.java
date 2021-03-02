@@ -62,12 +62,12 @@ public enum ValidationActions implements ValidationAction {
             validateNotInReservedFileSystemLocation(context, directory);
             if (directory.exists()) {
                 if (!directory.isDirectory()) {
-                    context.visitPropertyProblem(ERROR, String.format("Directory '%s' specified for property '%s' is not a directory", directory, propertyName));
+                    reportCannotWriteToDirectory(propertyName, context, directory, "'" + directory + "' is not a directory");
                 }
             } else {
                 for (File candidate = directory.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
                     if (candidate.exists() && !candidate.isDirectory()) {
-                        context.visitPropertyProblem(ERROR, String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory", directory, propertyName, candidate));
+                        reportCannotWriteToDirectory(propertyName, context, candidate, "'" + directory + "' ancestor '" + candidate +"' is not a directory");
                         return;
                     }
                 }
@@ -137,6 +137,18 @@ public enum ValidationActions implements ValidationAction {
                 .addPossibleSolution(() -> "Declare the input as a " + actualKindOf(input) + " instead")
                 .documentedAt("validation_problems", "unexpected_input_type");
         });
+    }
+
+    private static void reportCannotWriteToDirectory(String propertyName, TaskValidationContext context, File directory, String cause) {
+        context.visitPropertyProblem(problem ->
+            problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+                .reportAs(ERROR)
+                .forProperty(propertyName)
+                .withDescription(() -> "is not writable because " + cause)
+                .happensBecause(() -> "Expected '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
+                .addPossibleSolution("Make sure that the '" + propertyName + "' is configured to a directory")
+                .documentedAt("validation_problems", "cannot_write_output")
+        );
     }
 
     private static String actualKindOf(File input) {

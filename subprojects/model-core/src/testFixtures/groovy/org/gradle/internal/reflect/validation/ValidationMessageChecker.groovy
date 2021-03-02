@@ -103,12 +103,44 @@ trait ValidationMessageChecker {
         config.render "${config.kind} '${config.file}' is not a ${config.kind}. Expected an input to be a ${config.kind} but it was a ${config.oppositeKind}. Possible solutions: Use a ${config.kind} as an input or declare the input as a ${config.oppositeKind} instead."
     }
 
+    String cannotWriteToDir(@DelegatesTo(value=CannotWriteToDir, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(CannotWriteToDir, 'cannot_write_output', spec)
+        config.render "is not writable because '${config.dir}' ${config.reason}. Expected '${config.problemDir}' to be a directory but it's a file. Possible solution: Make sure that the '${config.property}' is configured to a directory."
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class CannotWriteToDir extends ValidationMessageDisplayConfiguration<CannotWriteToDir> {
+        File dir
+        File problemDir
+        String reason
+
+        CannotWriteToDir(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        CannotWriteToDir dir(File directory) {
+            this.problemDir = directory
+            this.dir = directory
+            this
+        }
+
+        CannotWriteToDir isNotDirectory() {
+            this.reason = "is not a directory"
+            this
+        }
+
+        CannotWriteToDir ancestorIsNotDirectory(File ancestor) {
+            this.problemDir = ancestor
+            this.reason = "ancestor '$ancestor' is not a directory"
+            this
+        }
     }
 
     static class IncorrectInputMessage extends ValidationMessageDisplayConfiguration<IncorrectInputMessage> {

@@ -296,3 +296,13 @@ To fix this problem, you have two options:
 - either you made a mistake an provided a directory instead of a file in which case you just need to fix the input
 - or the task should actually have used a directory as an input, in which case you need to change the type of the property to `@InputDirectory`
 
+[[cannot_write_output]]
+== Cannot write to an output directory
+
+This error indicates that an output directory cannot be written because the directory property which has been configured actually refers to a regular file (or something else than an actual directory).
+
+For example, you've set an output directory to `/some/path/file.txt` instead of `/some/path`.
+It's also possible that you have configured an output directory like `/some/path` but that an ancestor `/some` is a regular file.
+
+To fix this problem, make sure that the configured output is actually a directory.
+
