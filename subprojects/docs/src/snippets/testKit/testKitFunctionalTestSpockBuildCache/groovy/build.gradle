@@ -9,6 +9,10 @@ dependencies {
     }
 }
 
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
 repositories {
     mavenCentral()
 }
