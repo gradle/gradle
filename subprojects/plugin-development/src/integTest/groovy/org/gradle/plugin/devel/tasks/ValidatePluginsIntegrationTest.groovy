@@ -51,7 +51,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     @Override
-    void assertValidationFailsWith(boolean expectDeprecationsForErrors, List<DocumentedProblem> messages) {
+    void assertValidationFailsWith(List<DocumentedProblem> messages) {
         fails "validatePlugins"
         def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.txt"))
         report.verify(messages.collectEntries {
@@ -99,7 +99,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -135,14 +135,17 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('options.nestedThing') }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('thing') }, 'validation_problems', 'annotation_invalid_in_context')
+            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('options.nestedThing').forTask() }, 'validation_problems', 'annotation_invalid_in_context'),
+            error(annotationInvalidInContext { annotation(ann.simpleName).type('MyTask').property('thing').forTask() }, 'validation_problems', 'annotation_invalid_in_context')
         ])
 
         where:
         ann << [InputArtifact, InputArtifactDependencies]
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
+    )
     def "can enable stricter validation"() {
         buildFile << """
             dependencies {
@@ -179,9 +182,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         then:
         assertValidationFailsWith([
-            error("Type 'MyTask': property 'dirProp' is annotated with @InputDirectory but missing a normalization strategy. $normalizationProblemDetails"),
-            error("Type 'MyTask': property 'fileProp' is annotated with @InputFile but missing a normalization strategy. $normalizationProblemDetails"),
-            error("Type 'MyTask': property 'filesProp' is annotated with @InputFiles but missing a normalization strategy. $normalizationProblemDetails"),
+            error(missingNormalizationStrategy { type('MyTask').property('dirProp').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('fileProp').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('filesProp').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
         ])
     }
 
@@ -327,9 +330,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTransformAction').property('badTime').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
-            error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
+            error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile').forInjection() }, 'validation_problems', 'annotation_invalid_in_context'),
+            error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -394,10 +397,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTransformParameters').property('badTime').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
-            error(incompatibleAnnotations { type('MyTransformParameters').property ('incrementalNonFileInput').annotatedWith('Incremental').incompatibleWith('Input') }, 'validation_problems', 'incompatible_annotations'),
+            error(missingAnnotationMessage { type('MyTransformParameters').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
+            error(incompatibleAnnotations { type('MyTransformParameters').property('incrementalNonFileInput').annotatedWith('Incremental').incompatibleWith('Input') }, 'validation_problems', 'incompatible_annotations'),
             error(annotationInvalidInContext { annotation('InputArtifact').type('MyTransformParameters').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(missingAnnotationMessage { type('MyTransformParameters').property('oldThing').kind('an input annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTransformParameters').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -450,7 +453,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('PluginTask').property('badProperty').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('PluginTask').property('badProperty').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 }

@@ -257,9 +257,9 @@ testImplementation('junit:junit:4.7')""")
             if (testedPluginId == 'nebula.plugin-plugin') {
                 onPlugin('com.github.kt3k.coveralls') {
                     failsWith([
-                        (missingAnnotationMessage { type('CoverallsTask').property('env').kind('an input or output annotation').includeLink() }): ERROR,
-                        (missingAnnotationMessage { type('CoverallsTask').property('logger').kind('an input or output annotation').includeLink() }): ERROR,
-                        (missingAnnotationMessage { type('CoverallsTask').property('sourceReportFactoryMap').kind('an input or output annotation').includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('CoverallsTask').property('env').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('CoverallsTask').property('logger').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('CoverallsTask').property('sourceReportFactoryMap').missingInputOrOutput().includeLink() }): ERROR,
                     ])
                 }
                 onPlugins(['com.gradle.plugin-publish',

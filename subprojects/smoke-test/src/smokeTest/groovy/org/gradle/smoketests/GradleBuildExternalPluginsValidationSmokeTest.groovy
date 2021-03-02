@@ -71,7 +71,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
         inProject(":") {
             onPlugin('org.jetbrains.gradle.plugin.idea-ext') {
                 failsWith([
-                    (missingAnnotationMessage { type('BuildIdeArtifact').property('artifact').kind('an input or output annotation').includeLink() }): ERROR
+                    (missingAnnotationMessage { type('BuildIdeArtifact').property('artifact').missingInputOrOutput().includeLink() }): ERROR,
                 ])
             }
         }

@@ -30,6 +30,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
+import spock.lang.Requires
 import spock.lang.Unroll
 
 class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
@@ -376,10 +377,14 @@ task someTask {
         "123"                | "123 as short"
     }
 
+    @Requires({ GradleContextualExecuter.embedded })
+    // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task causes VFS to drop"() {
         buildFile << """
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
+
             class InvalidTask extends DefaultTask {
-                @Optional @Input File inputFile
+                @ValidationProblem inputFile
 
                 @TaskAction void execute() {
                     println "Executed"
@@ -389,7 +394,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        executer.expectDocumentedDeprecationWarning("Type 'InvalidTask': property 'inputFile' has @Input annotation used on property of type 'File'. " +
+        executer.expectDocumentedDeprecationWarning("Type 'InvalidTask': property 'inputFile' test problem. this is a test. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
@@ -401,10 +406,14 @@ task someTask {
         outputContains("Invalidating VFS because task ':invalid' failed validation")
     }
 
+    @Requires({ GradleContextualExecuter.embedded })
+    // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are displayed once"() {
         buildFile << """
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
+
             class InvalidTask extends DefaultTask {
-                @Optional @Input File inputFile
+                @ValidationProblem File inputFile
 
                 @TaskAction void execute() {
                     println "Executed"
@@ -414,7 +423,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        executer.expectDocumentedDeprecationWarning("Type 'InvalidTask': property 'inputFile' has @Input annotation used on property of type 'File'. " +
+        executer.expectDocumentedDeprecationWarning("Type 'InvalidTask': property 'inputFile' test problem. this is a test. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
@@ -423,13 +432,17 @@ task someTask {
         run "invalid"
         then:
         executedAndNotSkipped(":invalid")
-        output.count("- Type 'InvalidTask': property 'inputFile' has @Input annotation used on property of type 'File'.") == 1
+        output.count("- Type 'InvalidTask': property 'inputFile' test problem. this is a test.") == 1
     }
 
+    @Requires({ GradleContextualExecuter.embedded })
+    // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are reported even when task is skipped"() {
         buildFile << """
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
+
             class InvalidTask extends SourceTask {
-                @Optional @Input File inputFile
+                @ValidationProblem File inputFile
 
                 @TaskAction void execute() {
                     println "Executed"
@@ -439,7 +452,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        executer.expectDocumentedDeprecationWarning("Type 'InvalidTask': property 'inputFile' has @Input annotation used on property of type 'File'. " +
+        executer.expectDocumentedDeprecationWarning("Type 'InvalidTask': property 'inputFile' test problem. this is a test. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
@@ -450,9 +463,10 @@ task someTask {
         skipped(":invalid")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
-    )
+    @ValidationTestFor([
+        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER,
+        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
+    ])
     @Unroll
     def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
@@ -484,19 +498,7 @@ task someTask(type: SomeTask) {
     d = file("build/out")
 }
 """
-        def isWarning = expectedValidationProblem?.get(0) == 'WARNING'
-        def isError = expectedValidationProblem?.get(0) == 'ERROR'
-        def message = expectedValidationProblem?.get(1)
-
-        if (isWarning) {
-            executer.beforeExecute {
-                executer.expectDocumentedDeprecationWarning(message + " " +
-                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                    "Execution optimizations are disabled to ensure correctness. " +
-                    "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-                )
-            }
-        }
+        def isError = expectedValidationProblem != null
 
         when:
         if (isError) {
@@ -507,9 +509,7 @@ task someTask(type: SomeTask) {
 
         then:
         if (isError) {
-            failure.error.contains(message)
-        } else if (isWarning) {
-            outputContains message
+            failure.error.contains(expectedValidationProblem)
         }
 
         when:
@@ -523,29 +523,22 @@ task someTask(type: SomeTask) {
 
         then:
         if (isError) {
-            failure.error.contains(message)
-        } else if (isWarning) {
-            outputContains message
+            failure.error.contains(expectedValidationProblem)
         } else {
             outputContains("Value of input property 'v' has changed for task ':someTask'")
         }
 
-        when:
+        and:
         if (isError) {
             fails 'someTask'
         } else {
             succeeds "someTask"
         }
 
-        then:
-        if (isWarning) {
-            executedAndNotSkipped(":someTask")
-        }
-
         where:
         type                                  | initialValue                                          | newValue                                                     | expectedValidationProblem
         "String"                              | "'value 1'"                                           | "'value 2'"                                                  | null
-        "java.io.File"                        | "file('file1')"                                       | "file('file2')"                                              | ["WARNING", "Type 'SomeTask': property 'v' has @Input annotation used on property of type 'File'."]
+        "java.io.File"                        | "file('file1')"                                       | "file('file2')"                                              | incorrectUseOfInputAnnotation { type('SomeTask') property('v') propertyType('File') }
         "boolean"                             | "true"                                                | "false"                                                      | null
         "Boolean"                             | "Boolean.TRUE"                                        | "Boolean.FALSE"                                              | null
         "int"                                 | "123"                                                 | "-45"                                                        | null
@@ -563,10 +556,10 @@ task someTask(type: SomeTask) {
         "java.util.Collection<String>"        | "['value1', 'value2']"                                | "['value1'] as SortedSet"                                    | null
         "java.util.Set<String>"               | "['value1', 'value2'] as Set"                         | "['value1'] as Set"                                          | null
         "Iterable<java.io.File>"              | "[file('1'), file('2')] as Set"                       | "files('1')"                                                 | null
-        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"                             | ["WARNING", "Type 'SomeTask': property 'v' has @Input annotation used on property of type 'FileCollection'."]
+        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"                             | incorrectUseOfInputAnnotation { type('SomeTask') property('v') propertyType('FileCollection') }
         "java.util.Map<String, Boolean>"      | "[a: true, b: false]"                                 | "[a: true, b: true]"                                         | null
         "${Provider.name}<String>"            | "providers.provider { 'a' }"                          | "providers.provider { 'b' }"                                 | null
-        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"                     | ["ERROR", "Type 'SomeTask': property 'v' of mutable type 'org.gradle.api.provider.Property' is writable. Properties of type 'org.gradle.api.provider.Property' are already mutable. Possible solution: Remove the 'setV' method. ${learnAt("validation_problems", "mutable_type_with_setter")}."]
+        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"                     | "Type 'SomeTask': property 'v' of mutable type 'org.gradle.api.provider.Property' is writable. Properties of type 'org.gradle.api.provider.Property' are already mutable. Possible solution: Remove the 'setV' method. ${learnAt("validation_problems", "mutable_type_with_setter")}."
         "${ListProperty.name}<String>"        | "objects.listProperty(String); v.set(['abc'])"        | "objects.listProperty(String); v.set(['123'])"               | null
         "${SetProperty.name}<String>"         | "objects.setProperty(String); v.set(['abc'])"         | "objects.setProperty(String); v.set(['123'])"                | null
         "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"        | null
