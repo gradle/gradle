@@ -654,9 +654,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             absolutePathSensitivityDependencies: invalidUseOfAbsoluteNormalizationMessage,
             'conflictingAnnotations': [
                 conflictingAnnotationsMessage,
-                annotationInvalidInContext { annotation('InputFile').forInjection() }
+                annotationInvalidInContext { annotation('InputFile').forTransformAction() }
             ],
-            inputFile: annotationInvalidInContext { annotation('InputFile').forInjection() },
+            inputFile: annotationInvalidInContext { annotation('InputFile').forTransformAction() },
             noPathSensitivity: 'is annotated with @InputArtifact but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
             notAnnotated: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
         )
@@ -735,7 +735,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName).forInjection() })
+        assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName).forTransformAction() })
 
         where:
         ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]

@@ -339,7 +339,7 @@ trait ValidationMessageChecker {
 
         AnnotationContext(ValidationMessageChecker checker) {
             super(checker)
-            forWorkItem()
+            forTransformParameters()
         }
 
         AnnotationContext annotation(String name) {
@@ -347,12 +347,12 @@ trait ValidationMessageChecker {
             this
         }
 
-        AnnotationContext forInjection() {
+        AnnotationContext forTransformAction() {
             validAnnotations = "@Inject, @InputArtifact or @InputArtifactDependencies"
             this
         }
 
-        AnnotationContext forWorkItem() {
+        AnnotationContext forTransformParameters() {
             validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested or @ReplacedBy"
             this
         }

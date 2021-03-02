@@ -330,9 +330,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
-            error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile').forInjection() }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
+                error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile').forTransformAction() }, 'validation_problems', 'annotation_invalid_in_context'),
+                error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
