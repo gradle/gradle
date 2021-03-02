@@ -28,9 +28,6 @@ import javax.annotation.Nullable;
 /**
  * Listens to changes to the ClassLoaderScope tree.
  *
- * Must be registered with the {@link org.gradle.internal.event.ListenerManager} during
- * a {@link org.gradle.internal.service.scopes.BuildScopeListenerManagerAction}.
- *
  * @see ClassLoaderScopeRegistry
  * @see org.gradle.api.internal.initialization.ClassLoaderScope
  */
@@ -43,17 +40,4 @@ public interface ClassLoaderScopeRegistryListener {
 
     void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash);
 
-    ClassLoaderScopeRegistryListener NULL = new ClassLoaderScopeRegistryListener() {
-        @Override
-        public void rootScopeCreated(ClassLoaderScopeId rootScopeId) {
-        }
-
-        @Override
-        public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId) {
-        }
-
-        @Override
-        public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash) {
-        }
-    };
 }
