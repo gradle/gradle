@@ -29,7 +29,8 @@ import java.lang.annotation.Target;
  *
  * <p>Only tasks that produce reproducible and relocatable output should be marked with {@code CacheableTask}.</p>
  *
- * <p>Caching for individual task instances can be enabled and disabled via {@link TaskOutputs#cacheIf(String, Spec)} or disabled via {@link TaskOutputs#doNotCacheIf(String, Spec)}, even if the task type is not annotated with {@link CacheableTask}.</p>
+ * <p>Caching for individual task instances can be enabled and disabled via {@link TaskOutputs#cacheIf(String, Spec)} or disabled via {@link TaskOutputs#doNotCacheIf(String, Spec)}.
+ * Using these APIs takes precedence over the presence (or absence) of {@code @CacheableTask}.</p>
  *
  * @see org.gradle.work.DoNotCacheByDefault
  *
