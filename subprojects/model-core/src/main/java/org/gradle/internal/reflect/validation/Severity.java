@@ -22,11 +22,6 @@ public enum Severity {
     WARNING("Warning"),
 
     /**
-     * A validation warning about cacheability issues, emitted as a deprecation warning during runtime.
-     */
-    CACHEABILITY_WARNING("Warning"),
-
-    /**
      * A validation error, emitted as a failure cause during runtime.
      */
     ERROR("Error");
@@ -35,17 +30,6 @@ public enum Severity {
 
     Severity(String displayName) {
         this.displayName = displayName;
-    }
-
-    /**
-     * Reduce options to {@link #WARNING} and {@link #ERROR}.
-     * This method should go away, as well as the cacheability enum value,
-     * once all validation warnings are migrated to the new builder system
-     */
-    public Severity toReportableSeverity() {
-        return this == CACHEABILITY_WARNING
-            ? WARNING
-            : this;
     }
 
     @Override

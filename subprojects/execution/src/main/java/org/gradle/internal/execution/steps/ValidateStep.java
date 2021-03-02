@@ -31,6 +31,7 @@ import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.problems.BaseProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +72,7 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         Map<Severity, List<String>> problems = validationContext.getProblems()
             .stream()
             .collect(
-                groupingBy(p -> p.getSeverity().toReportableSeverity(),
+                groupingBy(BaseProblem::getSeverity,
                 mapping(TypeValidationProblemRenderer::renderMinimalInformationAbout, toList())));
         ImmutableCollection<String> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
         ImmutableCollection<String> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
