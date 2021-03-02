@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * Attached to a task or artifact transform type to indicate that task output caching should be disabled by default for work of this type.
  *
  * Not all work benefits from caching: for example tasks that only copy content around on disk rarely do.
- * This annotation allows that intention to be stated clearly.
+ * This annotation allows clearly stating that work does not benefit from caching.
  * It also allows attaching an explanation about why a certain work unit is not made cacheable.
  *
  * <p>Caching for individual task instances can be enabled and disabled via {@link TaskOutputs#cacheIf(String, Spec)} or disabled via {@link TaskOutputs#doNotCacheIf(String, Spec)}, even if the task type is annotated with {@link DoNotCacheByDefault}.</p>
