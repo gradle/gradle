@@ -45,6 +45,8 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.doFirst {
+                        // Workaround until external kotlin-dsl plugins support JDK16 properly
+                        // https://youtrack.jetbrains.com/issue/KT-43704 - should be in 1.5.x line
                         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
                             System.setProperty("kotlin.daemon.jvm.options", "--illegal-access=permit")
                         }

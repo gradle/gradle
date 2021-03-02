@@ -24,15 +24,26 @@ import org.gradle.api.logging.Logger
 
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import org.hamcrest.CoreMatchers.containsString
 
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Before
 import org.junit.Test
 
 
 class EmbeddedKotlinPluginTest : AbstractPluginTest() {
+
+    @Before
+    fun `apply Kotlin JDK16 workaround`() {
+        // Workaround until external kotlin-dsl plugins support JDK16 properly
+        // https://youtrack.jetbrains.com/issue/KT-43704 - should be in 1.5.x line
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            System.setProperty("kotlin.daemon.jvm.options", "--illegal-access=permit")
+        }
+    }
 
     @Test
     fun `applies the kotlin plugin`() {

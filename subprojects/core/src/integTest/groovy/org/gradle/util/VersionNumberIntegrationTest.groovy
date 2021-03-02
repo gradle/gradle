@@ -16,14 +16,22 @@
 
 package org.gradle.util
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 
 class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
 
-    def "nullability with Kotlin jsr-305 strict"() {
+    def setup() {
+        // Workaround until external kotlin-dsl plugins support JDK16 properly
+        // https://youtrack.jetbrains.com/issue/KT-43704 - should be in 1.5.x line
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            System.setProperty("kotlin.daemon.jvm.options", "--illegal-access=permit")
+        }
+    }
 
+    def "nullability with Kotlin jsr-305 strict"() {
         given:
         file("src/main/kotlin/Test.kt") << """
             import org.gradle.util.VersionNumber
