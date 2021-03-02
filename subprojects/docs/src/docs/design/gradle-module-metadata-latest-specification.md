@@ -119,10 +119,12 @@ Existing metadata must remain compatible and thus tools supporting the Gradle Mo
 
 This value, nested in `variants`, must contain an object with the following values:
 
-- `url`: The location of the metadata file that describes the variant. A string. In version 1.0, this must be a path relative to the module.
+- `url`: The location of the metadata file that describes the variant. A string. In version 1.0 and 1.1, this must be a path relative to the module.
 - `group`: The group of the module. A string
 - `module`: The name of the module. A string
 - `version`: The version of the module. A string
+
+Note that the `group:module` cannot be the same as the `group:module` of the root `component` element.
 
 ### `dependencies` value
 

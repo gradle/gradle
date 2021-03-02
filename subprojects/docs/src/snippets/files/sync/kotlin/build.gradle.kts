@@ -3,6 +3,6 @@ configurations.create("runtime")
 // tag::copy-dependencies[]
 tasks.register<Sync>("libs") {
     from(configurations["runtime"])
-    into("$buildDir/libs")
+    into(layout.buildDirectory.dir("libs"))
 }
 // end::copy-dependencies[]

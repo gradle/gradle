@@ -40,7 +40,7 @@ class BuildLogicFunctionalTest extends Specification {
         result.task(":helloWorld").outcome == SUCCESS
 
         where:
-        gradleVersion << ['2.6', '2.7']
+        gradleVersion << ['5.0', '6.0.1']
     }
 }
 // end::functional-test-spock-gradle-version[]

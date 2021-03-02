@@ -4,35 +4,24 @@ plugins {
     `java-gradle-plugin`
 }
 
-sourceSets {
-    create("functionalTest") {
-        withConvention(GroovySourceSet::class) {
-            groovy {
-                srcDir(file("src/functionalTest/groovy"))
-            }
-        }
-        resources {
-            srcDir(file("src/functionalTest/resources"))
-        }
-        compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath
-        runtimeClasspath += output + compileClasspath
-    }
+val functionalTest = sourceSets.create("functionalTest")
+val functionalTestTask = tasks.register<Test>("functionalTest") {
+    group = "verification"
+    testClassesDirs = functionalTest.output.classesDirs
+    classpath = functionalTest.runtimeClasspath
 }
 
-tasks.register<Test>("functionalTest") {
-    testClassesDirs = sourceSets["functionalTest"].output.classesDirs
-    classpath = sourceSets["functionalTest"].runtimeClasspath
+tasks.check {
+    dependsOn(functionalTestTask)
 }
-
-tasks.check { dependsOn(tasks["functionalTest"]) }
 
 gradlePlugin {
-    testSourceSets(sourceSets["functionalTest"])
+    testSourceSets(functionalTest)
 }
 
 dependencies {
     "functionalTestImplementation"("org.spockframework:spock-core:2.0-M4-groovy-3.0") {
-        exclude(module = "groovy-all")
+        exclude(group = "org.codehaus.groovy")
     }
     "functionalTestImplementation"("org.junit.jupiter:junit-jupiter-api")
 }

@@ -17,12 +17,16 @@
 package org.gradle.internal.reflect.annotations.impl
 
 import groovy.transform.Generated
+import groovy.transform.Memoized
 import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -38,7 +42,7 @@ import java.lang.reflect.Method
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 
-class DefaultTypeAnnotationMetadataStoreTest extends Specification {
+class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
     private static final COLOR = { "color" } as AnnotationCategory
 
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
@@ -64,19 +68,23 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        class TypeWithNotAnnotatedProperty {
-            String getPublicProperty() { "public" }
+    @SuppressWarnings("unused")
+    class TypeWithNotAnnotatedProperty {
+        String getPublicProperty() { "public" }
 
-            @Irrelevant
-            protected boolean getProtectedProperty() { true }
+        @Irrelevant
+        protected boolean getProtectedProperty() { true }
 
-            @PackageScope boolean isPackageProperty() { false }
+        @PackageScope
+        boolean isPackageProperty() { false }
 
-            @Irrelevant
-            private String getPrivateProperty() { "private" }
-        }
+        @Irrelevant
+        private String getPrivateProperty() { "private" }
+    }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "finds annotated properties"() {
         expect:
         assertProperties TypeWithAnnotatedProperty, [
@@ -86,27 +94,28 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             privateProperty: [(TYPE): Small],
             injectedProperty: [(TYPE): Inject],
         ], [
-            "Property 'privateProperty' is private and annotated with @$Small.simpleName."
+            strict(privateGetterAnnotatedMessage { property('privateProperty').annotation(Small.simpleName).includeLink() })
         ]
     }
 
-        @SuppressWarnings("unused")
-        class TypeWithAnnotatedProperty {
-            @Large
-            String getPublicProperty() { "public" }
+    @SuppressWarnings("unused")
+    class TypeWithAnnotatedProperty {
+        @Large
+        String getPublicProperty() { "public" }
 
-            @Large
-            protected boolean getProtectedProperty() { true }
+        @Large
+        protected boolean getProtectedProperty() { true }
 
-            @Small
-            @PackageScope boolean isPackageProperty() { false }
+        @Small
+        @PackageScope
+        boolean isPackageProperty() { false }
 
-            @Small
-            private String getPrivateProperty() { "private" }
+        @Small
+        private String getPrivateProperty() { "private" }
 
-            @Inject
-            String getInjectedProperty() { "injected" }
-        }
+        @Inject
+        String getInjectedProperty() { "injected" }
+    }
 
     @Unroll
     def "ignores all properties on type #type.simpleName"() {
@@ -116,7 +125,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         type << [int, EmptyGroovyObject, int[], Object[], Nullable]
     }
 
-        class EmptyGroovyObject {}
+    class EmptyGroovyObject {}
 
     def "finds annotation on field"() {
         expect:
@@ -126,53 +135,59 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        class TypeWithFieldAnnotation {
-            @Large
-            private final String largeProperty = "test"
+    @SuppressWarnings("unused")
+    class TypeWithFieldAnnotation {
+        @Large
+        private final String largeProperty = "test"
 
-            String getLargeProperty() { largeProperty }
+        String getLargeProperty() { largeProperty }
 
-            @Inject
-            private String injectedProperty
+        @Inject
+        private String injectedProperty
 
-            String getInjectedProperty() { injectedProperty }
-        }
+        String getInjectedProperty() { injectedProperty }
+    }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "warns about annotation on field conflicting with annotation on getter and prefers getter annotation"() {
         expect:
         assertProperties TypeWithConflictingFieldAndMethodAnnotation, [
             property: [(TYPE): Small],
         ], [
-            "Property 'property' has conflicting type annotations declared: @Small, @Large; assuming @Small."
+            strict(conflictingAnnotationsMessage { property('property').inConflict('Small', 'Large').includeLink() })
         ]
     }
 
-        @SuppressWarnings("unused")
-        class TypeWithConflictingFieldAndMethodAnnotation {
-            @Large
-            private final String property = "test"
+    @SuppressWarnings("unused")
+    class TypeWithConflictingFieldAndMethodAnnotation {
+        @Large
+        private final String property = "test"
 
-            @Small
-            String getProperty() { property }
-        }
+        @Small
+        String getProperty() { property }
+    }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD
+    )
     def "warns about annotation on field without getter"() {
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large."
+            strict("Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large. Annotations on fields are only used if there's a corresponding getter for the field. Possible solutions: Add a getter for field 'property' or remove the annotations on 'property'. ${learnAt('validation_problems', 'ignored_annotations_on_field')}.")
         ]
     }
 
-        @SuppressWarnings("unused")
-        class TypeWithFieldOnlyAnnotation {
-            @Large
-            private final String property = "test"
+    @SuppressWarnings("unused")
+    class TypeWithFieldOnlyAnnotation {
+        @Large
+        private final String property = "test"
 
-            // @Inject is allowed on a field only
-            @Inject
-            private String injectedProperty
-        }
+        // @Inject is allowed on a field only
+        @Inject
+        private String injectedProperty
+    }
 
     def "detects ignored properties"() {
         expect:
@@ -181,31 +196,34 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface TypeWithIgnoredProperty {
-            @Ignored
-            String getIgnoredProperty()
-        }
+    @SuppressWarnings("unused")
+    interface TypeWithIgnoredProperty {
+        @Ignored
+        String getIgnoredProperty()
+    }
 
+    @ValidationTestFor(
+        ValidationProblemId.REDUNDANT_GETTERS
+    )
     def "ignores 'is' getter when 'get' getter is also defined"() {
         expect:
         assertProperties TypeWithIsAndGetProperty, [
             bool: [(TYPE): Small],
         ], [
-            "Property 'bool' has redundant getters: 'getBool()' and 'isBool()'."
+            strict("Property 'bool' has redundant getters: 'getBool()' and 'isBool()'. Boolean property 'bool' has both an `is` and a `get` getter. Possible solutions: Remove one of the getters or annotate one of the getters with @Internal. ${learnAt("validation_problems", "redundant_getters")}.")
         ]
         store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
 
-        @SuppressWarnings("unused")
-        class TypeWithIsAndGetProperty {
+    @SuppressWarnings("unused")
+    class TypeWithIsAndGetProperty {
 
-            @Small
-            boolean getBool() { true }
+        @Small
+        boolean getBool() { true }
 
-            @Color
-            boolean isBool() { true }
-        }
+        @Color
+        boolean isBool() { true }
+    }
 
     def "can have annotated Groovy boolean field without warnings"() {
         expect:
@@ -214,10 +232,11 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        class TypeWithGroovyBooleanProperty {
-            @Small boolean bool
-        }
+    @SuppressWarnings("unused")
+    class TypeWithGroovyBooleanProperty {
+        @Small
+        boolean bool
+    }
 
     def "can ignore 'is' getter in favor of 'get' getter"() {
         expect:
@@ -227,15 +246,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         store.getTypeAnnotationMetadata(TypeWithIgnoredIsGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
 
-        @SuppressWarnings("unused")
-        class TypeWithIgnoredIsGetterBooleanProperty {
+    @SuppressWarnings("unused")
+    class TypeWithIgnoredIsGetterBooleanProperty {
 
-            @Small
-            boolean getBool() { true }
+        @Small
+        boolean getBool() { true }
 
-            @Ignored
-            boolean isBool() { true }
-        }
+        @Ignored
+        boolean isBool() { true }
+    }
 
     def "can ignore 'get' getter in favor of 'is' getter"() {
         expect:
@@ -245,65 +264,76 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         store.getTypeAnnotationMetadata(TypeWithIgnoredGetGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "isBool"
     }
 
-        @SuppressWarnings("unused")
-        class TypeWithIgnoredGetGetterBooleanProperty {
+    @SuppressWarnings("unused")
+    class TypeWithIgnoredGetGetterBooleanProperty {
 
-            @Ignored
-            boolean getBool() { true }
+        @Ignored
+        boolean getBool() { true }
 
-            @Small
-            boolean isBool() { true }
-        }
+        @Small
+        boolean isBool() { true }
+    }
 
-    def "warns when ignored property has other annotations"() {
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
+    def "fails when ignored property has other annotations"() {
         expect:
         assertProperties TypeWithIgnoredPropertyWithOtherAnnotations, [
             ignoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'ignoredProperty' annotated with @Ignored should not be also annotated with @Color."
+            strict(ignoredAnnotatedPropertyMessage { property('ignoredProperty').ignoring('Ignored').alsoAnnotatedWith('Color').includeLink() })
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface TypeWithIgnoredPropertyWithOtherAnnotations {
-            @Ignored @Color
-            String getIgnoredProperty()
-        }
+    @SuppressWarnings("unused")
+    interface TypeWithIgnoredPropertyWithOtherAnnotations {
+        @Ignored
+        @Color
+        String getIgnoredProperty()
+    }
 
-    def "warns when ignored property has other ignore annotations"() {
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
+    def "fails when ignored property has other ignore annotations"() {
         expect:
         assertProperties TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations, [
             twiceIgnoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'twiceIgnoredProperty' annotated with @Ignored should not be also annotated with @Ignored2."
+            strict(ignoredAnnotatedPropertyMessage { property('twiceIgnoredProperty').ignoring('Ignored').alsoAnnotatedWith('Ignored2').includeLink() })
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations {
-            @Ignored @Ignored2
-            String getTwiceIgnoredProperty()
-        }
+    @SuppressWarnings("unused")
+    interface TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations {
+        @Ignored
+        @Ignored2
+        String getTwiceIgnoredProperty()
+    }
 
-    def "warns when field is ignored but there is another annotation on the getter"() {
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
+    def "fails when field is ignored but there is another annotation on the getter"() {
         expect:
         assertProperties TypeWithIgnoredFieldAndGetterInput, [
             ignoredByField: [(TYPE): Ignored]
         ], [
-            "Property 'ignoredByField' annotated with @Ignored should not be also annotated with @Small."
+            strict(ignoredAnnotatedPropertyMessage { property('ignoredByField').ignoring('Ignored').alsoAnnotatedWith('Small').includeLink() })
         ]
     }
 
-        @SuppressWarnings("unused")
-        static class TypeWithIgnoredFieldAndGetterInput {
-            @Ignored
-            private String ignoredByField;
+    @SuppressWarnings("unused")
+    static class TypeWithIgnoredFieldAndGetterInput {
+        @Ignored
+        private String ignoredByField;
 
-            @Small
-            String getIgnoredByField() {
-                return ignoredByField
-            }
+        @Small
+        String getIgnoredByField() {
+            return ignoredByField
         }
+    }
 
     def "superclass properties are present in subclass"() {
         expect:
@@ -313,17 +343,17 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface BaseTypeWithSuperClassProperties {
-            @Small
-            String getBaseProperty()
-        }
+    @SuppressWarnings("unused")
+    interface BaseTypeWithSuperClassProperties {
+        @Small
+        String getBaseProperty()
+    }
 
-        @SuppressWarnings("unused")
-        interface TypeWithSuperclassProperties extends BaseTypeWithSuperClassProperties {
-            @Large
-            String getSubclassProperty()
-        }
+    @SuppressWarnings("unused")
+    interface TypeWithSuperclassProperties extends BaseTypeWithSuperClassProperties {
+        @Large
+        String getSubclassProperty()
+    }
 
     def "properties are inherited from implemented interface"() {
         expect:
@@ -333,17 +363,17 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface InterfaceWithProperties {
-            @Small
-            String getInterfaceProperty()
-        }
+    @SuppressWarnings("unused")
+    interface InterfaceWithProperties {
+        @Small
+        String getInterfaceProperty()
+    }
 
-        @SuppressWarnings("unused")
-        abstract class TypeWithInterfaceProperties implements InterfaceWithProperties{
-            @Large
-            abstract String getSubclassProperty()
-        }
+    @SuppressWarnings("unused")
+    abstract class TypeWithInterfaceProperties implements InterfaceWithProperties {
+        @Large
+        abstract String getSubclassProperty()
+    }
 
     def "overridden properties inherit super-class annotations"() {
         expect:
@@ -352,17 +382,17 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        class BaseTypeWithInheritedProperty {
-            @Color(declaredBy = "super-class")
-            String getOverriddenProperty() { "test" }
-        }
+    @SuppressWarnings("unused")
+    class BaseTypeWithInheritedProperty {
+        @Color(declaredBy = "super-class")
+        String getOverriddenProperty() { "test" }
+    }
 
-        @SuppressWarnings("unused")
-        class TypeWithInheritedProperty extends BaseTypeWithInheritedProperty {
-            @Override
-            String getOverriddenProperty() { "test" }
-        }
+    @SuppressWarnings("unused")
+    class TypeWithInheritedProperty extends BaseTypeWithInheritedProperty {
+        @Override
+        String getOverriddenProperty() { "test" }
+    }
 
     def "annotation defined on implemented interface takes precedence over superclass annotation"() {
         expect:
@@ -371,49 +401,50 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface InterfaceWithInheritedProperty {
-            @Color(declaredBy = "interface")
-            String getOverriddenProperty()
-        }
+    @SuppressWarnings("unused")
+    interface InterfaceWithInheritedProperty {
+        @Color(declaredBy = "interface")
+        String getOverriddenProperty()
+    }
 
-        @SuppressWarnings("unused")
-        class TypeWithInheritedPropertyFromSuperClassAndInterface
-            extends BaseTypeWithInheritedProperty
-            implements InterfaceWithInheritedProperty
-        {
-            @Override
-            String getOverriddenProperty() { "test" }
-        }
+    @SuppressWarnings("unused")
+    class TypeWithInheritedPropertyFromSuperClassAndInterface
+        extends BaseTypeWithInheritedProperty
+        implements InterfaceWithInheritedProperty {
+        @Override
+        String getOverriddenProperty() { "test" }
+    }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "implemented properties inherit annotation from first conflicting interface"() {
         expect:
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "first-interface" }]
         ], [
-            "Property 'overriddenProperty' has conflicting color annotations inherited (from interface): @Color, @Color; assuming @Color."
+            strict(conflictingAnnotationsMessage { property('overriddenProperty').inConflict('Color', 'Color').includeLink().kind('color annotations inherited (from interface)') })
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface FirstInterfaceWithInheritedProperty {
-            @Color(declaredBy = "first-interface")
-            String getOverriddenProperty()
-        }
+    @SuppressWarnings("unused")
+    interface FirstInterfaceWithInheritedProperty {
+        @Color(declaredBy = "first-interface")
+        String getOverriddenProperty()
+    }
 
-        @SuppressWarnings("unused")
-        interface SecondInterfaceWithInheritedProperty {
-            @Color(declaredBy = "second-interface")
-            String getOverriddenProperty()
-        }
+    @SuppressWarnings("unused")
+    interface SecondInterfaceWithInheritedProperty {
+        @Color(declaredBy = "second-interface")
+        String getOverriddenProperty()
+    }
 
-        @SuppressWarnings("unused")
-        class TypeWithImplementedPropertyFromInterfaces
-            implements FirstInterfaceWithInheritedProperty, SecondInterfaceWithInheritedProperty
-        {
-            @Override
-            String getOverriddenProperty() { "test" }
-        }
+    @SuppressWarnings("unused")
+    class TypeWithImplementedPropertyFromInterfaces
+        implements FirstInterfaceWithInheritedProperty, SecondInterfaceWithInheritedProperty {
+        @Override
+        String getOverriddenProperty() { "test" }
+    }
 
     def "subtype can resolve conflicting annotations from implemented interfaces"() {
         expect:
@@ -422,14 +453,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        class TypeOverridingPropertyFromConflictingInterfaces
-            implements FirstInterfaceWithInheritedProperty, SecondInterfaceWithInheritedProperty
-        {
-            @Override
-            @Color(declaredBy = "subtype")
-            String getOverriddenProperty() { "test" }
-        }
+    @SuppressWarnings("unused")
+    class TypeOverridingPropertyFromConflictingInterfaces
+        implements FirstInterfaceWithInheritedProperty, SecondInterfaceWithInheritedProperty {
+        @Override
+        @Color(declaredBy = "subtype")
+        String getOverriddenProperty() { "test" }
+    }
 
     def "can override same annotation in subclass"() {
         expect:
@@ -445,18 +475,18 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         metadata.propertiesAnnotationMetadata[0].method.declaringClass == TypeWithOverride
     }
 
-        @SuppressWarnings("unused")
-        interface BaseTypeWithOverride {
-            @Color(declaredBy = "base")
-            String getOverriddenProperty()
-        }
+    @SuppressWarnings("unused")
+    interface BaseTypeWithOverride {
+        @Color(declaredBy = "base")
+        String getOverriddenProperty()
+    }
 
-        @SuppressWarnings("unused")
-        interface TypeWithOverride extends BaseTypeWithOverride {
-            @Override
-            @Color(declaredBy = "override")
-            String getOverriddenProperty()
-        }
+    @SuppressWarnings("unused")
+    interface TypeWithOverride extends BaseTypeWithOverride {
+        @Override
+        @Color(declaredBy = "override")
+        String getOverriddenProperty()
+    }
 
     def "can override annotation with different annotation in same category in subclass"() {
         expect:
@@ -465,23 +495,23 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface CanOverrideCategoryBaseClass {
-            @Large
-            String getOverriddenProperty()
-        }
+    @SuppressWarnings("unused")
+    interface CanOverrideCategoryBaseClass {
+        @Large
+        String getOverriddenProperty()
+    }
 
-        interface CanOverrideCategoryIntermediateClass extends CanOverrideCategoryBaseClass {
-            @Override
-            @Color
-            String getOverriddenProperty()
-        }
+    interface CanOverrideCategoryIntermediateClass extends CanOverrideCategoryBaseClass {
+        @Override
+        @Color
+        String getOverriddenProperty()
+    }
 
-        interface CanOverrideOverrideCategoryClass extends CanOverrideCategoryIntermediateClass {
-            @Override
-            @Small
-            String getOverriddenProperty()
-        }
+    interface CanOverrideOverrideCategoryClass extends CanOverrideCategoryIntermediateClass {
+        @Override
+        @Small
+        String getOverriddenProperty()
+    }
 
     def "can ignore supertype property"() {
         expect:
@@ -490,18 +520,18 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface BaseTypeWithPropertyToHide {
-            @Color
-            String getBaseProperty()
-        }
+    @SuppressWarnings("unused")
+    interface BaseTypeWithPropertyToHide {
+        @Color
+        String getBaseProperty()
+    }
 
-        @SuppressWarnings("unused")
-        interface TypeHidingPropertyFromSuperType extends BaseTypeWithPropertyToHide {
-            @Ignored
-            @Override
-            String getBaseProperty()
-        }
+    @SuppressWarnings("unused")
+    interface TypeHidingPropertyFromSuperType extends BaseTypeWithPropertyToHide {
+        @Ignored
+        @Override
+        String getBaseProperty()
+    }
 
     def "can redefine ignored supertype property"() {
         expect:
@@ -510,61 +540,70 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface BaseTypeWithIgnoredProperty {
-            @Ignored
-            String getPropertyIgnoredInBase()
-        }
+    @SuppressWarnings("unused")
+    interface BaseTypeWithIgnoredProperty {
+        @Ignored
+        String getPropertyIgnoredInBase()
+    }
 
-        @SuppressWarnings("unused")
-        interface TypeRedefiningIgnoredPropertyFromSuperType extends BaseTypeWithIgnoredProperty {
-            @Override
-            @Small
-            String getPropertyIgnoredInBase()
-        }
+    @SuppressWarnings("unused")
+    interface TypeRedefiningIgnoredPropertyFromSuperType extends BaseTypeWithIgnoredProperty {
+        @Override
+        @Small
+        String getPropertyIgnoredInBase()
+    }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "warns about conflicting property types being specified, chooses first declaration"() {
         expect:
         assertProperties TypeWithPropertiesWithMultipleAnnotationsOfSameCategory, [
             largeThenSmall: [(TYPE): Large],
             smallThenLarge: [(TYPE): Small]
         ], [
-            "Property 'largeThenSmall' has conflicting type annotations declared: @Large, @Small; assuming @Large.",
-            "Property 'smallThenLarge' has conflicting type annotations declared: @Small, @Large; assuming @Small."
+            strict(conflictingAnnotationsMessage { property('largeThenSmall').inConflict('Large', 'Small').includeLink() }),
+            strict(conflictingAnnotationsMessage { property('smallThenLarge').inConflict('Small', 'Large').includeLink() })
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface TypeWithPropertiesWithMultipleAnnotationsOfSameCategory {
-            @Large
-            @Small
-            String getLargeThenSmall()
+    @SuppressWarnings("unused")
+    interface TypeWithPropertiesWithMultipleAnnotationsOfSameCategory {
+        @Large
+        @Small
+        String getLargeThenSmall()
 
-            @Small
-            @Large
-            String getSmallThenLarge()
-        }
+        @Small
+        @Large
+        String getSmallThenLarge()
+    }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "warns about both method and field having the same annotation, prefers method annotation"() {
         expect:
         assertProperties WithBothFieldAndGetterAnnotation, [
             inputFiles: [(COLOR): { it instanceof Color && it.declaredBy() == "method" }]
         ], [
-            "Property 'inputFiles' has conflicting color annotations declared: @Color, @Color; assuming @Color."
+            strict(conflictingAnnotationsMessage { property('inputFiles').inConflict('Color', 'Color').includeLink().kind('color annotations declared') })
         ]
     }
 
-        @SuppressWarnings("unused")
-        class WithBothFieldAndGetterAnnotation {
-            @Color(declaredBy = "field")
-            FileCollection inputFiles
+    @SuppressWarnings("unused")
+    class WithBothFieldAndGetterAnnotation {
+        @Color(declaredBy = "field")
+        FileCollection inputFiles
 
-            @Color(declaredBy = "method")
-            FileCollection getInputFiles() {
-                return inputFiles
-            }
+        @Color(declaredBy = "method")
+        FileCollection getInputFiles() {
+            return inputFiles
         }
+    }
 
+    @ValidationTestFor(
+        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
+    )
     def "report setters for property of mutable type"() {
         expect:
         assertProperties TypeWithPropertiesWithMutableProperties, [
@@ -573,30 +612,33 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             mutableSubTypeWithSetter: [(TYPE): Small],
             mutableTypeWithSetter: [(TYPE): Small]
         ], [
-            "Property 'mutableSubTypeWithSetter' of mutable type '${MutableSubType.name}' is writable. Properties of this type should be read-only and mutated via the value itself.",
-            "Property 'mutableTypeWithSetter' of mutable type '${MutableType.name}' is writable. Properties of this type should be read-only and mutated via the value itself."
+            mutableSetterErrorMessage('mutableSubTypeWithSetter', MutableSubType.name),
+            mutableSetterErrorMessage('mutableTypeWithSetter', MutableType.name),
         ]
     }
 
-        @SuppressWarnings("unused")
-        interface TypeWithPropertiesWithMutableProperties {
-            @Small
-            MutableType getMutableType()
+    @SuppressWarnings("unused")
+    interface TypeWithPropertiesWithMutableProperties {
+        @Small
+        MutableType getMutableType()
 
-            @Small
-            MutableSubType getMutableSubType()
+        @Small
+        MutableSubType getMutableSubType()
 
-            @Small
-            MutableType getMutableTypeWithSetter()
-            void setMutableTypeWithSetter(MutableType value)
+        @Small
+        MutableType getMutableTypeWithSetter()
 
-            @Small
-            MutableSubType getMutableSubTypeWithSetter()
-            void setMutableSubTypeWithSetter(MutableSubType value)
-        }
+        void setMutableTypeWithSetter(MutableType value)
 
-        class MutableType {}
-        class MutableSubType extends MutableType {}
+        @Small
+        MutableSubType getMutableSubTypeWithSetter()
+
+        void setMutableSubTypeWithSetter(MutableSubType value)
+    }
+
+    class MutableType {}
+
+    class MutableSubType extends MutableType {}
 
     def "doesn't warn about both method and field having the same irrelevant annotation"() {
         expect:
@@ -605,38 +647,41 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("unused")
-        class WithBothFieldAndGetterAnnotationButIrrelevant {
-            @Irrelevant
-            FileCollection inputFiles
+    @SuppressWarnings("unused")
+    class WithBothFieldAndGetterAnnotationButIrrelevant {
+        @Irrelevant
+        FileCollection inputFiles
 
-            @Irrelevant
-            @Color
-            FileCollection getInputFiles() {
-                return inputFiles
-            }
+        @Irrelevant
+        @Color
+        FileCollection getInputFiles() {
+            return inputFiles
         }
+    }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "warns about annotations on private properties"() {
         expect:
         assertProperties WithAnnotationsOnPrivateProperty, [
             privateInput: [(TYPE): Large]
         ], [
-            "Property 'privateInput' is private and annotated with @${Large.simpleName}."
+            strict(privateGetterAnnotatedMessage { property('privateInput').annotation(Large.simpleName).includeLink() })
         ]
     }
 
-        @SuppressWarnings("unused")
-        class WithAnnotationsOnPrivateProperty {
-            @Large
-            private String getPrivateInput() {
-                'Input'
-            }
-
-            private String getNotAnInput() {
-                'Not an input'
-            }
+    @SuppressWarnings("unused")
+    class WithAnnotationsOnPrivateProperty {
+        @Large
+        private String getPrivateInput() {
+            'Input'
         }
+
+        private String getNotAnInput() {
+            'Not an input'
+        }
+    }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2115")
     def "annotation on private field is recognized for is-getter"() {
@@ -647,25 +692,28 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         ]
     }
 
-        @SuppressWarnings("GroovyUnusedDeclaration")
-        private static class IsGetterType {
-            @Large
-            private boolean feature1
-            private boolean feature2
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    private static class IsGetterType {
+        @Large
+        private boolean feature1
+        private boolean feature2
 
-            boolean isFeature1() {
-                return feature1
-            }
-            void setFeature1(boolean enabled) {
-                this.feature1 = enabled
-            }
-            boolean isFeature2() {
-                return feature2
-            }
-            void setFeature2(boolean enabled) {
-                this.feature2 = enabled
-            }
+        boolean isFeature1() {
+            return feature1
         }
+
+        void setFeature1(boolean enabled) {
+            this.feature1 = enabled
+        }
+
+        boolean isFeature2() {
+            return feature2
+        }
+
+        void setFeature2(boolean enabled) {
+            this.feature2 = enabled
+        }
+    }
 
     def "only relevant type annotations are captured"() {
         when:
@@ -675,34 +723,50 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         metadata.annotations*.annotationType() == [TestType]
     }
 
-        @TestType
-        @Irrelevant
-        interface TypeWithAnnotations {}
+    @TestType
+    @Irrelevant
+    interface TypeWithAnnotations {}
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+    )
     def "warns about annotations on non-getter methods"() {
         expect:
         assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': non-property method 'doSomething()' should not be annotated with: @Large.",
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': setter method 'setSomething()' should not be annotated with: @Large.",
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': static method 'doStatic()' should not be annotated with: @Large.",
-            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': static method 'getStatic()' should not be annotated with: @Small.",
+            strict(methodShouldNotBeAnnotatedMessage { type('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods').kind('method').method('doSomething').annotation('Large').includeLink() }),
+            strict(methodShouldNotBeAnnotatedMessage { type('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods').kind('setter').method('setSomething').annotation('Large').includeLink() }),
+            strict(methodShouldNotBeAnnotatedMessage { type('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods').kind('static method').method('doStatic').annotation('Large').includeLink() }),
+            strict(methodShouldNotBeAnnotatedMessage { type('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods').kind('static method').method('getStatic').annotation('Small').includeLink() }),
         ]
     }
 
-        @SuppressWarnings("GroovyUnusedDeclaration")
-        private static class TypeWithAnnotatedNonGetterMethods {
-            @Large
-            static void doStatic() {}
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    private static class TypeWithAnnotatedNonGetterMethods {
+        @Large
+        static void doStatic() {}
 
-            @Small
-            static String getStatic() { "static" }
+        @Small
+        static String getStatic() { "static" }
 
-            @Large
-            void doSomething() {}
+        @Large
+        void doSomething() {}
 
-            @Large
-            void setSomething(String something) {}
-        }
+        @Large
+        void setSomething(String something) {}
+    }
+
+
+    def "ignores validation of generated Groovy methods"() {
+        expect:
+        assertProperties TypeWithGeneratedGroovyMethods, [someValue: [(TYPE): Large]]
+    }
+
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    private static class TypeWithGeneratedGroovyMethods {
+        @Memoized
+        @Large
+        String getSomeValue() { "foo" }
+    }
 
     def "does not detect methods on type from ignored package"() {
         expect:
@@ -742,6 +806,14 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
+    }
+
+    private static String strict(String message) {
+        "$message [STRICT]"
+    }
+
+    private String mutableSetterErrorMessage(String property, String propertyType) {
+        strict("Property '$property' of mutable type '$propertyType' is writable. Properties of type '$propertyType' are already mutable. Possible solution: Remove the 'set${property.capitalize()}' method. ${learnAt("validation_problems", "mutable_type_with_setter")}.")
     }
 }
 

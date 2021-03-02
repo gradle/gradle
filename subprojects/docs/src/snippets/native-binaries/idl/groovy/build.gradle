@@ -2,7 +2,7 @@ plugins {
     id 'c'
 }
 
-task idl(type: DummyIdlCompiler) {
+tasks.register('idl', DummyIdlCompiler) {
     idlFiles = project.fileTree("src/main/idl")
     headerDir = project.file("${buildDir}/src/generated/headers")
     sourceDir = project.file("${buildDir}/src/generated/c")

@@ -4,25 +4,16 @@ plugins {
     id 'java-gradle-plugin'
 }
 
-sourceSets {
-    functionalTest {
-        groovy {
-            srcDir file('src/functionalTest/groovy')
-        }
-        resources {
-            srcDir file('src/functionalTest/resources')
-        }
-        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
-        runtimeClasspath += output + compileClasspath
-    }
-}
-
-task functionalTest(type: Test) {
+def functionalTest = sourceSets.create('functionalTest')
+def functionalTestTask = tasks.register('functionalTest', Test) {
+    group = 'verification'
     testClassesDirs = sourceSets.functionalTest.output.classesDirs
     classpath = sourceSets.functionalTest.runtimeClasspath
 }
 
-check.dependsOn functionalTest
+tasks.named("check") {
+    dependsOn functionalTestTask
+}
 
 gradlePlugin {
     testSourceSets sourceSets.functionalTest

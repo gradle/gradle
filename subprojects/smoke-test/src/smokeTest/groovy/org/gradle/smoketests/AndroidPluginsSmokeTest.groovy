@@ -38,14 +38,8 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         AndroidHome.assertIsSet()
     }
 
-    // TODO:configuration-cache remove once fixed upstream
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return 100
-    }
-
-    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_4_0_ITERATION_MATCHER)
-    def "android library and application APK assembly"(String agpVersion, boolean ide) {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
@@ -56,6 +50,8 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         and:
         def runner = useAgpVersion(agpVersion, runner(
             'assembleDebug',
+            'testDebugUnitTest',
+            'connectedDebugAndroidTest',
             "-Pandroid.injected.invoked.from.ide=$ide"
         ))
 
@@ -113,6 +109,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:assembleDebug').outcome == (VersionNumber.parse(agpVersion) < VersionNumber.parse("3.6.0")
             ? TaskOutcome.SUCCESS
             : TaskOutcome.UP_TO_DATE)
+        result.task(':app:processDebugAndroidTestManifest').outcome == TaskOutcome.UP_TO_DATE
 
         and:
         assertConfigurationCacheStateLoaded()
@@ -202,6 +199,12 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             <resources>
                 <string name="app_name">Android Gradle</string>
             </resources>'''.stripIndent()
+        file("${app}/src/test/java/ExampleTest.java") << '''
+            import org.junit.Test;
+            public class ExampleTest {
+                @Test public void test() {}
+            }
+        '''.stripIndent()
 
         file('settings.gradle') << """
             include ':${app}'
@@ -241,6 +244,8 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         appBuildFile << """
             dependencies {
                 implementation project(':${library}')
+                testImplementation 'junit:junit:4.12'
+                androidTestImplementation project(":${library}")
             }
         """
 

@@ -19,6 +19,7 @@ package org.gradle.api.internal.plugins;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
@@ -29,6 +30,7 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -121,15 +123,20 @@ public class DefaultPluginRegistry implements PluginRegistry {
             // and the number of plugins is low in any case
             Map<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> idToPlugin = idMappings.asMap();
             PluginImplementation<?> lookup = impl.get();
+            ImmutableSortedSet.Builder<PluginId> builder = ImmutableSortedSet.orderedBy(Comparator.comparing(PluginId::getId));
             for (Map.Entry<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> entry : idToPlugin.entrySet()) {
                 Optional<PluginImplementation<?>> value = entry.getValue();
                 if (value.isPresent()) {
                     PluginImplementation<?> found = value.get();
                     if (found.asClass().equals(lookup.asClass())) {
-                        return Optional.ofNullable(entry.getKey().id);
+                        PluginId foundId = entry.getKey().id;
+                        if (foundId != null) {
+                            builder.add(foundId);
+                        }
                     }
                 }
             }
+            return builder.build().stream().findFirst();
         }
 
         return Optional.empty();

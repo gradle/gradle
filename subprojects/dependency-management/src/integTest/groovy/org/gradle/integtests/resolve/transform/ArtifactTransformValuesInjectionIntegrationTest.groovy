@@ -305,9 +305,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
-    )
+    @ValidationTestFor([
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
+        ValidationProblemId.VALUE_NOT_SET,
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+        ValidationProblemId.MISSING_ANNOTATION,
+        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+    ])
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -393,24 +398,24 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         String missingNormalizationDetails = "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}"
         assertPropertyValidationErrors(
-            absolutePathSensitivity: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
-            extension: 'is not annotated with an input annotation',
+            absolutePathSensitivity: invalidUseOfAbsoluteNormalizationMessage,
+            extension: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
             fileInput: [
-                'does not have a value specified',
-                'has @Input annotation used on property of type \'File\'',
+                missingValueMessage { property('fileInput').includeLink().noIntro() },
+                incorrectUseOfInputAnnotation { property('fileInput').propertyType('File').includeLink().noIntro() },
             ],
             incrementalNonFileInput: [
-                'does not have a value specified',
-                'is annotated with @Incremental that is not allowed for @Input properties',
+                missingValueMessage { property('incrementalNonFileInput').includeLink().noIntro() },
+                incompatibleAnnotations { property('incrementalNonFileInput').annotatedWith('Incremental').incompatibleWith('Input').includeLink().noIntro() },
             ],
-            missingInput: 'does not have a value specified',
-            'nested.outputDirectory': 'is annotated with invalid property type @OutputDirectory',
+            missingInput: missingValueMessage { property('missingInput').includeLink().noIntro() },
+            'nested.outputDirectory': annotationInvalidInContext { annotation('OutputDirectory').includeLink() },
             'nested.inputFile': "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
-            'nested.stringProperty': 'is not annotated with an input annotation',
+            'nested.stringProperty': missingAnnotationMessage { property('nested.stringProperty').missingInput().includeLink().noIntro() },
             noPathSensitivity: "is annotated with @InputFiles but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityDir: "is annotated with @InputDirectory but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityFile: "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
-            outputDir: 'is annotated with invalid property type @OutputDirectory',
+            outputDir: annotationInvalidInContext { annotation('OutputDirectory').includeLink() }
         )
     }
 
@@ -485,8 +490,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Type 'MakeGreen.Parameters': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
     @Unroll
-    def "transform parameters type cannot use annotation @#annotation.simpleName"() {
+    def "transform parameters type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b'
         """
@@ -507,7 +515,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     @Input
                     String getExtension()
                     void setExtension(String value)
-                    @${annotation.simpleName}
+                    @${ann.simpleName}
                     String getBad()
                     void setBad(String value)
                 }
@@ -527,10 +535,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
+        assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName) })
 
         where:
-        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
+        ann << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
     @Unroll
@@ -579,9 +587,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
-    )
+    @ValidationTestFor([
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
+        ValidationProblemId.CONFLICTING_ANNOTATIONS,
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+        ValidationProblemId.MISSING_ANNOTATION
+    ])
     def "transform action is validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -635,15 +647,18 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
+        String conflictingAnnotationsMessage = conflictingAnnotationsMessage {
+            inConflict('InputFile', 'InputArtifact', 'InputArtifactDependencies')
+        }
         assertPropertyValidationErrors(
-            absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
+            absolutePathSensitivityDependencies: invalidUseOfAbsoluteNormalizationMessage,
             'conflictingAnnotations': [
-                'has conflicting type annotations declared: @InputFile, @InputArtifact, @InputArtifactDependencies; assuming @InputFile',
-                'is annotated with invalid property type @InputFile'
+                conflictingAnnotationsMessage,
+                annotationInvalidInContext { annotation('InputFile').forInjection() }
             ],
-            inputFile: 'is annotated with invalid property type @InputFile',
+            inputFile: annotationInvalidInContext { annotation('InputFile').forInjection() },
             noPathSensitivity: 'is annotated with @InputArtifact but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
-            notAnnotated: 'is not annotated with an input annotation',
+            notAnnotated: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
         )
     }
 
@@ -677,8 +692,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Type 'MakeGreen': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
     @Unroll
-    def "transform action type cannot use annotation @#annotation.simpleName"() {
+    def "transform action type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -702,7 +720,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     void setExtension(String value)
                 }
 
-                @${annotation.simpleName}
+                @${ann.simpleName}
                 String getBad() { }
 
                 void transform(TransformOutputs outputs) {
@@ -717,10 +735,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
+        assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName).forInjection() })
 
         where:
-        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
+        ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
     @Unroll
@@ -982,11 +1000,6 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
             tasks.create('broken', MyTask)
         """
 
-        executer.expectDocumentedDeprecationWarning("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/validation_problems.html#invalid_use_of_cacheable_transform_annotation for more details.")
-
         expect:
         fails('broken')
         failure.assertHasDescription("A problem was found with the configuration of task ':broken' (type 'MyTask').")
@@ -1012,15 +1025,6 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
             tasks.create('broken', MyTask)
         """
-
-        executer.expectDocumentedDeprecationWarning("Type 'Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        executer.expectDocumentedDeprecationWarning("Type 'Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/validation_problems.html#invalid_use_of_cacheable_transform_annotation for more details.")
 
         expect:
         // Probably should be eager
@@ -1059,9 +1063,17 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
             errorMessages.each { errorMessage ->
                 count++
                 System.err.println("Verifying assertion for $propertyName")
-                failure.assertHasCause("Property '${propertyName}' ${errorMessage}.")
+                if (!errorMessage.endsWith('.')) {
+                    // be tolerant with the missing dot at the end of expected error messages
+                    errorMessage = "${errorMessage}."
+                }
+                failure.assertHasCause("Property '${propertyName}' ${errorMessage}")
             }
         }
         assert errorOutput.count("> Property") == count
+    }
+
+    private String getInvalidUseOfAbsoluteNormalizationMessage() {
+        "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms. Possible solution: Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'cacheable_transform_cant_use_absolute_sensitivity')}"
     }
 }

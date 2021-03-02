@@ -64,7 +64,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
                     assert resolvedArtifacts.find { (it.name =~ 'groovy-(.*)\\\\.jar').matches() }
                     assert resolvedArtifacts.findAll { (it.name =~ 'kotlin-stdlib-(.*)\\\\.jar').matches() }.size() == 4
                     assert resolvedArtifacts.find { (it.name =~ 'kotlin-reflect-(.*)\\\\.jar').matches() }
-                    assert resolvedArtifacts.size() == 16
+                    assert resolvedArtifacts.size() == 21
                 }
             }
         """

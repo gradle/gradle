@@ -69,6 +69,7 @@ class PerformanceTestScenarioDefinition {
     void writeTo(File file) {
         sort()
         new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(file, this)
+        file.append('\n')
     }
 
     PerformanceTestScenarioDefinition sort() {

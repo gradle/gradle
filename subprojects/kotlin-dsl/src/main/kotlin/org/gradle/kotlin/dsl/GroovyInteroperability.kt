@@ -19,11 +19,8 @@ package org.gradle.kotlin.dsl
 import groovy.lang.Closure
 import groovy.lang.GroovyObject
 import groovy.lang.MetaClass
-
-import org.gradle.kotlin.dsl.support.uncheckedCast
-
 import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
-
+import org.gradle.kotlin.dsl.support.uncheckedCast
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 
@@ -260,10 +257,26 @@ interface GroovyBuilderScope : GroovyObject {
 
 
 private
-class GroovyBuilderScopeForGroovyObject(override val delegate: GroovyObject) : GroovyBuilderScope, GroovyObject by delegate {
+class GroovyBuilderScopeForGroovyObject(override val delegate: GroovyObject) : GroovyBuilderScope {
 
     override fun String.invoke(vararg arguments: Any?): Any? =
         delegate.invokeMethod(this, arguments)
+
+    override fun getProperty(propertyName: String?): Any? {
+        return delegate.getProperty(propertyName)
+    }
+
+    override fun setProperty(propertyName: String?, newValue: Any?) {
+        return delegate.setProperty(propertyName, newValue)
+    }
+
+    override fun getMetaClass(): MetaClass {
+        return delegate.metaClass
+    }
+
+    override fun setMetaClass(metaClass: MetaClass?) {
+        delegate.metaClass = metaClass
+    }
 }
 
 

@@ -28,7 +28,7 @@ publishing {
     repositories {
         maven {
             name = 'myRepo'
-            url = "file://${buildDir}/repo"
+            url = layout.buildDirectory.dir("repo")
         }
     }
 }
@@ -38,7 +38,7 @@ publishing {
 tasks.withType(GenerateMavenPom).all {
     def matcher = name =~ /generatePomFileFor(\w+)Publication/
     def publicationName = matcher[0][1]
-    destination = "$buildDir/poms/${publicationName}-pom.xml"
+    destination = layout.buildDirectory.file("poms/${publicationName}-pom.xml").get().asFile
 }
 // end::configure-generate-task[]
 

@@ -1,6 +1,6 @@
-open class Generator: DefaultTask() {
-    @Input
-    val properties: MapProperty<String, Int> = project.objects.mapProperty(String::class, Int::class)
+abstract class Generator: DefaultTask() {
+    @get:Input
+    abstract val properties: MapProperty<String, Int>
 
     @TaskAction
     fun generate() {

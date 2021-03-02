@@ -88,7 +88,20 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath localGroovy() {
-        Set<String> groovyModules = ImmutableSet.of("groovy", "groovy-ant", "groovy-groovydoc", "javaparser-core", "groovy-datetime", "groovy-json", "groovy-test", "groovy-templates", "groovy-xml");
+        Set<String> groovyModules = ImmutableSet.of(
+            "groovy-ant",
+            "groovy-astbuilder",
+            "groovy-console",
+            "groovy-datetime",
+            "groovy-dateutil",
+            "groovy-groovydoc",
+            "groovy-json",
+            "groovy-nio",
+            "groovy-sql",
+            "groovy-templates",
+            "groovy-test",
+            "groovy-xml",
+            "javaparser-core");
         ClassPath groovy = moduleRegistry.getExternalModule("groovy").getClasspath();
         for (String groovyModule : groovyModules) {
             groovy = groovy.plus(moduleRegistry.getExternalModule(groovyModule).getClasspath());

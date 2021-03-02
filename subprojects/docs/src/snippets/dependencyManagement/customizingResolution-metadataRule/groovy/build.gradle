@@ -7,13 +7,14 @@ repositories {
 }
 
 // tag::config-component-metadata-rule[]
-class TargetJvmVersionRule implements ComponentMetadataRule {
+@CacheableRule
+abstract class TargetJvmVersionRule implements ComponentMetadataRule {
     final Integer jvmVersion
     @Inject TargetJvmVersionRule(Integer jvmVersion) {
         this.jvmVersion = jvmVersion
     }
 
-    @Inject ObjectFactory getObjects() { }
+    @Inject abstract ObjectFactory getObjects()
 
     void execute(ComponentMetadataContext context) {
         context.details.withVariant("compile") {
@@ -40,7 +41,8 @@ dependencies {
 
 
 // tag::jaxen-rule-1[]
-class JaxenDependenciesRule implements ComponentMetadataRule {
+@CacheableRule
+abstract class JaxenDependenciesRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         context.details.allVariants {
             withDependencies {
@@ -52,7 +54,8 @@ class JaxenDependenciesRule implements ComponentMetadataRule {
 // end::jaxen-rule-1[]
 
 // tag::jaxen-rule-2[]
-class JaxenCapabilitiesRule implements ComponentMetadataRule {
+@CacheableRule
+abstract class JaxenCapabilitiesRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         context.details.addVariant("runtime-dom4j", "runtime") {
             withCapabilities {
@@ -82,7 +85,8 @@ dependencies {
 
 
 // tag::guava-rule[]
-class GuavaRule implements ComponentMetadataRule {
+@CacheableRule
+abstract class GuavaRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         def variantVersion = context.details.id.version
         def version = variantVersion.substring(0, variantVersion.indexOf("-"))
@@ -118,7 +122,8 @@ dependencies {
 
 
 // tag::quasar-rule[]
-class QuasarRule implements ComponentMetadataRule {
+@CacheableRule
+abstract class QuasarRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         ["compile", "runtime"].each { base ->
             context.details.addVariant("jdk8${base.capitalize()}", base) {
@@ -154,7 +159,8 @@ dependencies {
 
 
 // tag::lwgj-rule[]
-class LwjglRule implements ComponentMetadataRule { //val os: String, val arch: String, val classifier: String)
+@CacheableRule
+abstract class LwjglRule implements ComponentMetadataRule { //val os: String, val arch: String, val classifier: String)
     private def nativeVariants = [
         [os: OperatingSystemFamily.LINUX,   arch: "arm32",  classifier: "natives-linux-arm32"],
         [os: OperatingSystemFamily.LINUX,   arch: "arm64",  classifier: "natives-linux-arm64"],
@@ -163,7 +169,7 @@ class LwjglRule implements ComponentMetadataRule { //val os: String, val arch: S
         [os: OperatingSystemFamily.MACOS,   arch: "x86-64", classifier: "natives-macos"]
     ]
 
-    @Inject ObjectFactory getObjects() { }
+    @Inject abstract ObjectFactory getObjects()
 
     void execute(ComponentMetadataContext context) {
         context.details.withVariant("runtime") {
@@ -201,7 +207,8 @@ dependencies {
 
 
 // tag::guice-rule[]
-class GuiceRule implements ComponentMetadataRule {
+@CacheableRule
+abstract class GuiceRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         ["compile", "runtime"].each { base ->
             context.details.addVariant("noAop${base.capitalize()}", base) {
@@ -234,7 +241,8 @@ dependencies {
 
 
 // tag::ivy-component-metadata-rule[]
-class IvyComponentRule implements ComponentMetadataRule {
+@CacheableRule
+abstract class IvyComponentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         def descriptor = context.getDescriptor(IvyModuleDescriptor)
         if (descriptor != null && descriptor.branch == "testing") {
@@ -245,7 +253,8 @@ class IvyComponentRule implements ComponentMetadataRule {
 // end::ivy-component-metadata-rule[]
 
 // tag::maven-packaging-component-metadata-rule[]
-class MavenComponentRule implements ComponentMetadataRule {
+@CacheableRule
+abstract class MavenComponentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         def descriptor = context.getDescriptor(PomModuleDescriptor)
         if (descriptor != null && descriptor.packaging == "war") {
@@ -264,7 +273,8 @@ dependencies {
 
 
 // tag::custom-status-scheme[]
-class CustomStatusRule implements ComponentMetadataRule {
+@CacheableRule
+abstract class CustomStatusRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         context.details.statusScheme = ["nightly", "milestone", "rc", "release"]
         if (context.details.status == "integration") {

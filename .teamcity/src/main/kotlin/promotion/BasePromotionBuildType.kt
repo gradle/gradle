@@ -44,5 +44,15 @@ abstract class BasePromotionBuildType(vcsRootId: String, cleanCheckout: Boolean 
             param("env.GRADLE_CACHE_REMOTE_URL", "%gradle.cache.remote.url%")
             param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
         }
+
+        features {
+            // https://www.jetbrains.com/help/teamcity/shared-resources.html#Viewing+Shared+Resources+Usage
+            // https://blog.jetbrains.com/teamcity/2013/05/explaining-the-shared-resources-plugin/
+            // we only allow 1 promotion job running at the same time to avoid website xml conflicts
+            feature {
+                type = "JetBrains.SharedResources"
+                param("locks-param", "WebsiteReleasesXml writeLock")
+            }
+        }
     }
 }

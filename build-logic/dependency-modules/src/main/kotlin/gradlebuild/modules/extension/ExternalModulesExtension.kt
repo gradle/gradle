@@ -38,6 +38,7 @@ abstract class ExternalModulesExtension {
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
     val awsS3Sts = "com.amazonaws:aws-java-sdk-sts"
     val bouncycastlePgp = "org.bouncycastle:bcpg-jdk15on"
+    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk15on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val commonsCodec = "commons-codec:commons-codec"
@@ -55,12 +56,16 @@ abstract class ExternalModulesExtension {
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val groovy = "org.codehaus.groovy:groovy"
     val groovyAnt = "org.codehaus.groovy:groovy-ant"
-    val groovyDoc = "org.codehaus.groovy:groovy-groovydoc"
-    val groovyDatetime = "org.codehaus.groovy:groovy-datetime"
+    val groovyAstbuilder = "org.codehaus.groovy:groovy-astbuilder"
+    val groovyConsole = "org.codehaus.groovy:groovy-console"
     val groovyDateUtil = "org.codehaus.groovy:groovy-dateutil"
-    val groovyTest = "org.codehaus.groovy:groovy-test"
+    val groovyDatetime = "org.codehaus.groovy:groovy-datetime"
+    val groovyDoc = "org.codehaus.groovy:groovy-groovydoc"
     val groovyJson = "org.codehaus.groovy:groovy-json"
+    val groovyNio = "org.codehaus.groovy:groovy-nio"
+    val groovySql = "org.codehaus.groovy:groovy-sql"
     val groovyTemplates = "org.codehaus.groovy:groovy-templates"
+    val groovyTest = "org.codehaus.groovy:groovy-test"
     val groovyXml = "org.codehaus.groovy:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
@@ -71,9 +76,12 @@ abstract class ExternalModulesExtension {
     val jacksonAnnotations = "com.fasterxml.jackson.core:jackson-annotations"
     val jacksonCore = "com.fasterxml.jackson.core:jackson-core"
     val jacksonDatabind = "com.fasterxml.jackson.core:jackson-databind"
+    val jakartaActivation = "com.sun.activation:jakarta.activation"
+    val jakartaXmlBind = "jakarta.xml.bind:jakarta.xml.bind-api"
     val jansi = "org.fusesource.jansi:jansi"
     val jatl = "com.googlecode.jatl:jatl"
-    val jaxb = "com.sun.xml.bind:jaxb-impl"
+    val jaxbCore = "com.sun.xml.bind:jaxb-core"
+    val jaxbImpl = "com.sun.xml.bind:jaxb-impl"
     val jcifs = "org.samba.jcifs:jcifs"
     val jclToSlf4j = "org.slf4j:jcl-over-slf4j"
     val jcommander = "com.beust:jcommander"
@@ -125,6 +133,7 @@ abstract class ExternalModulesExtension {
     val archunitJunit4 = "com.tngtech.archunit:archunit-junit4"
     val awaitility = "org.awaitility:awaitility-kotlin"
     val bytebuddy = "net.bytebuddy:byte-buddy"
+    val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
     val flightrecorder = "org.gradle.org.openjdk.jmc:flightrecorder"
@@ -133,16 +142,17 @@ abstract class ExternalModulesExtension {
     val httpmime = "org.apache.httpcomponents:httpmime"
     val jacksonKotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
     val javaParser = "com.github.javaparser:javaparser-core"
-    val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jetty = "org.eclipse.jetty:jetty-http"
     val jettySecurity = "org.eclipse.jetty:jetty-security"
     val jettyWebApp = "org.eclipse.jetty:jetty-webapp"
+    val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jsoup = "org.jsoup:jsoup"
     val jtar = "org.kamranzafar:jtar"
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
     val littleproxy = "org.gradle.org.littleshoot:littleproxy"
     val mina = "org.apache.mina:mina-core"
+    val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "com.nhaarman:mockito-kotlin"
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
     val mySqlConnector = "mysql:mysql-connector-java"
@@ -155,6 +165,7 @@ abstract class ExternalModulesExtension {
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
+    val typesafeConfig = "com.typesafe:config"
     val xmlunit = "xmlunit:xmlunit"
 
     val licenses = mapOf(
@@ -197,9 +208,12 @@ abstract class ExternalModulesExtension {
         jacksonAnnotations to License.Apache2,
         jacksonCore to License.Apache2,
         jacksonDatabind to License.Apache2,
+        jakartaActivation to License.EDL,
+        jakartaXmlBind to License.EDL,
         jansi to License.Apache2,
         jatl to License.Apache2,
-        jaxb to License.CDDL,
+        jaxbCore to License.EDL,
+        jaxbImpl to License.EDL,
         jcifs to License.LGPL21,
         jclToSlf4j to License.MIT,
         jcommander to License.Apache2,

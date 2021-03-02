@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.HasImplicitReceiver
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
@@ -43,6 +44,11 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
         afterEvaluate {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
+                    it.doFirst {
+                        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+                            System.setProperty("kotlin.daemon.jvm.options", "--illegal-access=permit")
+                        }
+                    }
                     it.kotlinOptions {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
                         apiVersion = "1.4"

@@ -371,7 +371,7 @@ include::sample[dir="snippets/antMigration/fileDeps/kotlin",files="build.gradle.
 ====
 <1> Packages all ``javadoc``'s output files — equivalent to `from javadoc.destinationDir`
 <2> Uses the location of the Javadoc JAR held by the `javadocJar` task
-<3> Uses an extra project property called `tmpDistDir` to define the location of the 'dist' directory
+<3> Uses an project property called `tmpDistDir` to define the location of the 'dist' directory
 
 As you can see from the example with `tmpDistDir`, there is often still a need to define paths and the like through properties, which is why Gradle also provides <<writing_build_scripts#sec:extra_properties,extra properties>> that can be attached to the project, tasks and some other types of objects.
 

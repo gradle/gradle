@@ -303,7 +303,8 @@ fun Project.propertiesForPerformanceDb(): Map<String, String> {
     } else {
         selectStringProperties(
             PropertyNames.dbUrl,
-            PropertyNames.dbUsername
+            PropertyNames.dbUsername,
+            PropertyNames.dbPassword
         )
     }
 }

@@ -26,7 +26,7 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.jvm.GroovyJpmsWorkarounds;
+import org.gradle.internal.jvm.GroovyJpmsConfiguration;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
@@ -97,7 +97,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(javaOptions.getExecutable());
         if (jvmVersionDetector.getJavaVersion(javaForkOptions.getExecutable()).isJava9Compatible()) {
-            javaForkOptions.jvmArgs(GroovyJpmsWorkarounds.SUPPRESS_COMMON_GROOVY_WARNINGS);
+            javaForkOptions.jvmArgs(GroovyJpmsConfiguration.GROOVY_JPMS_JVM_ARGS);
         }
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)

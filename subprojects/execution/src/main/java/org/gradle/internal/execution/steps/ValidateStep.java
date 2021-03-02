@@ -47,6 +47,7 @@ import static java.util.stream.Collectors.toList;
 
 public class ValidateStep<R extends Result> implements Step<AfterPreviousExecutionContext, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
+    private static final String MAX_NB_OF_ERRORS = "org.gradle.internal.max.validation.errors";
 
     private final VirtualFileSystem virtualFileSystem;
     private final ValidationWarningRecorder warningReporter;
@@ -80,9 +81,10 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         }
 
         if (!errors.isEmpty()) {
+            int maxErrCount = Integer.getInteger(MAX_NB_OF_ERRORS, 5);
             ImmutableSortedSet<String> uniqueSortedErrors = ImmutableSortedSet.copyOf(errors);
             throw WorkValidationException.forProblems(uniqueSortedErrors)
-                .limitTo(5)
+                .limitTo(maxErrCount)
                 .withSummary(helper ->
                     String.format("%s found with the configuration of %s (%s).",
                         helper.size() == 1

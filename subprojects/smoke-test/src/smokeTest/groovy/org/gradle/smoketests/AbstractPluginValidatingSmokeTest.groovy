@@ -28,6 +28,10 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         [:]
     }
 
+    Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
+        extraPluginsRequiredForValidation
+    }
+
     String getBuildScriptConfigurationForValidation() {
         ""
     }
@@ -46,7 +50,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         because = "some plugins are not compatible with the configuration cache but it doesn't really matter because we get the results with the regular test suite"
     )
     def "performs static analysis of plugin #id version #version"() {
-        def extraPluginsBlock = extraPluginsRequiredForValidation.collect { pluginId, pluginVersion ->
+        def extraPluginsBlock = getExtraPluginsRequiredForValidation(id, version).collect { pluginId, pluginVersion ->
             "                id '$pluginId'" + (pluginVersion ? "version '$pluginVersion'" : "")
         }.join('\n')
 

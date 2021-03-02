@@ -5,18 +5,19 @@ configurations {
 
 // tag::generated-file-dependencies[]
 dependencies {
-    implementation files("$buildDir/classes") {
+    implementation files(layout.buildDirectory.dir('classes')) {
         builtBy 'compile'
     }
 }
 
-task compile {
+tasks.register('compile') {
     doLast {
         println 'compiling classes'
     }
 }
 
-task list(dependsOn: configurations.compileClasspath) {
+tasks.register('list') {
+    dependsOn configurations.compileClasspath
     doLast {
         println "classpath = ${configurations.compileClasspath.collect { File file -> file.name }}"
     }

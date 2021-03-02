@@ -489,7 +489,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         expect:
         fails "myTask"
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
-        failureDescriptionContains(missingValueMessage('nested'))
+        failureDescriptionContains(missingValueMessage { type('TaskWithAbsentNestedInput').property('nested') })
     }
 
     def "null on optional nested bean is allowed"() {

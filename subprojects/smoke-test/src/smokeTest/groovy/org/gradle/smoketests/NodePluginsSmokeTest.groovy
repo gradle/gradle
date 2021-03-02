@@ -16,9 +16,11 @@
 
 package org.gradle.smoketests
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
+import static org.gradle.internal.reflect.validation.Severity.ERROR
+
+class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
@@ -34,9 +36,9 @@ class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
         validatePlugins {
             onPlugin('com.moowork.node') {
                 failsWith([
-                    "Type 'NpmSetupTask': property 'args' is not annotated with an input or output annotation.": WARNING,
-                    "Type 'NpmSetupTask': setter method 'setArgs()' should not be annotated with: @Internal.": WARNING,
-                    "Type 'YarnSetupTask': property 'args' is not annotated with an input or output annotation.": WARNING
+                    (missingAnnotationMessage { type('NpmSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
+                    "Type 'NpmSetupTask': setter 'setArgs()' should not be annotated with: @Internal. Input/Output annotations are ignored if they are placed on something else than a getter. Possible solutions: Remove the annotations or rename the method. ${learnAt("validation_problems", "ignored_annotations_on_method")}.": ERROR,
+                    (missingAnnotationMessage { type('YarnSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
                 ])
             }
         }
