@@ -97,6 +97,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
         List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
         daemonArgs.addAll(daemonOpts);
+        daemonArgs.add("-Dgroovy.antlr4=false");
         daemonArgs.add("-cp");
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
 

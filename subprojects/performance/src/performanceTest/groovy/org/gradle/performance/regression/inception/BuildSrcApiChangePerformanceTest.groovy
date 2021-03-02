@@ -40,6 +40,7 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.targetVersions = [targetVersion]
         runner.minimumBaseVersion = "6.8"
         runner.warmUpRuns = 3
+        runner.args += "-Dgroovy.antlr4=false"
     }
 
     def setupGradleOpts() {

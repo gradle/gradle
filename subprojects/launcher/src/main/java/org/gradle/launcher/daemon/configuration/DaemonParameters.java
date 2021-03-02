@@ -136,6 +136,7 @@ public class DaemonParameters {
         } else {
             jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         }
+        jvmOptions.jvmArgs("-Dgroovy.antlr4=false");
     }
 
     public Map<String, String> getSystemProperties() {

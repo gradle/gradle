@@ -16,7 +16,7 @@
 package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.Matchers.matchesPattern
 
 class ExternalScriptErrorIntegrationTest extends AbstractIntegrationSpec {
     def externalScript
@@ -52,7 +52,7 @@ doStuff()
 
         then:
         failure.assertHasDescription("Could not compile script '$externalScript'.")
-                .assertThatCause(containsString("script '${externalScript}': 1: Unexpected input: '(' @ line 1, column 18."))
+                .assertThatCause(matchesPattern("(?s).*[u|U]nexpected (?:input|token): [']?\\(.*"))
                 .assertHasFileName("Script '$externalScript'")
                 .assertHasLineNumber(1)
     }

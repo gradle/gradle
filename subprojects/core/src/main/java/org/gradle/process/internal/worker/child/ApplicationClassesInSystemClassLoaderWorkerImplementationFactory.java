@@ -206,6 +206,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
             argumentList.addAll(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
         }
         argumentList.addAll(JpmsConfiguration.GRADLE_WORKER_JPMS_ARGS);
+        argumentList.add("-Dgroovy.antlr4=false");
         return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).transform(argumentList);
     }
 }
