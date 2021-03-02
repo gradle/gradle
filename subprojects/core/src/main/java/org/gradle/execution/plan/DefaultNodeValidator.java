@@ -38,24 +38,24 @@ public class DefaultNodeValidator implements NodeValidator {
             TypeValidationContext taskValidationContext = validationContext.forType(taskType, false);
             taskNode.getTaskProperties().validateType(taskValidationContext);
             List<TypeValidationProblem> problems = validationContext.getProblems();
-            problems.forEach(problem -> {
-                Optional<UserManualReference> userManualReference = problem.getUserManualReference();
-                String docId = "more_about_tasks";
-                String section = "sec:up_to_date_checks";
-                if (userManualReference.isPresent()) {
-                    UserManualReference docref = userManualReference.get();
-                    docId = docref.getId();
-                    section = docref.getSection();
-                }
-                if (problem.getSeverity().isWarning()) {
-                    String warning = TypeValidationProblemRenderer.renderMinimalInformationAbout(problem, false);
-                    DeprecationLogger.deprecateBehaviour(warning)
-                        .withContext("Execution optimizations are disabled to ensure correctness.")
-                        .willBeRemovedInGradle7()
-                        .withUserManual(docId, section)
-                        .nagUser();
-                }
-            });
+            problems.stream()
+                .filter(problem -> problem.getSeverity().isWarning())
+                .forEach(problem -> {
+                    Optional<UserManualReference> userManualReference = problem.getUserManualReference();
+                    String docId = "more_about_tasks";
+                    String section = "sec:up_to_date_checks";
+                    if (userManualReference.isPresent()) {
+                        UserManualReference docref = userManualReference.get();
+                        docId = docref.getId();
+                        section = docref.getSection();
+                    }
+                        String warning = TypeValidationProblemRenderer.renderMinimalInformationAbout(problem, false);
+                        DeprecationLogger.deprecateBehaviour(warning)
+                            .withContext("Execution optimizations are disabled to ensure correctness.")
+                            .willBeRemovedInGradle7()
+                            .withUserManual(docId, section)
+                            .nagUser();
+                });
             return !problems.isEmpty();
         } else {
             return false;

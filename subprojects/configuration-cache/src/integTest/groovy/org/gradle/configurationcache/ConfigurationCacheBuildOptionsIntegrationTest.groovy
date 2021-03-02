@@ -141,14 +141,14 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains missingValueMessage('string')
+        failureDescriptionContains missingValueMessage { type('Build_gradle.PrintString').property('string') }
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains missingValueMessage('string')
+        failureDescriptionContains missingValueMessage { type('Build_gradle.PrintString').property('string') }
         configurationCache.assertStateLoaded()
 
         where:
@@ -406,7 +406,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         given:
         def configurationCache = newConfigurationCacheFixture()
-        buildKotlinFile ("""
+        buildKotlinFile("""
 
             val sysPropProvider = providers
                 .systemProperty("thread.pool.size")

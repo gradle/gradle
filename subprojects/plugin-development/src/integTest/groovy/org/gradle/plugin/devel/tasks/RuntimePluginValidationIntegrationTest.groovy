@@ -16,7 +16,8 @@
 
 package org.gradle.plugin.devel.tasks
 
-
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
@@ -49,9 +50,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         result.assertTaskNotSkipped(":run")
     }
 
-    void assertValidationFailsWith(boolean expectDeprecationsForErrors, List<DocumentedProblem> messages) {
+    void assertValidationFailsWith(List<DocumentedProblem> messages) {
         def expectedDeprecations = messages
-            .findAll { problem -> expectDeprecationsForErrors || problem.severity == WARNING }
+            .findAll { problem -> problem.severity == WARNING }
         def expectedFailures = messages
             .findAll { problem -> problem.severity == ERROR }
 
@@ -89,6 +90,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         return file("buildSrc/$path")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -117,9 +121,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
 
         expect:
         assertValidationFailsWith([
-            warning("Type 'MyTask': property 'tree.nonAnnotated' is not annotated with an input or output annotation."),
-            warning("Type 'MyTask': property 'tree.left.nonAnnotated' is not annotated with an input or output annotation."),
-            warning("Type 'MyTask': property 'tree.right.nonAnnotated' is not annotated with an input or output annotation."),
+                error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.left.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.right.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 }

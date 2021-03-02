@@ -17,10 +17,11 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
 /**
  * Smoke test verifying the external plugins.
  *
@@ -28,7 +29,7 @@ import static org.gradle.internal.reflect.validation.Severity.WARNING
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
     GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
 })
-class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptionSmokeTest implements WithPluginValidation {
+class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptionSmokeTest implements WithPluginValidation, ValidationMessageChecker {
 
     def setup() {
         allPlugins.projectPathToBuildDir = {
@@ -70,8 +71,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
         inProject(":") {
             onPlugin('org.jetbrains.gradle.plugin.idea-ext') {
                 failsWith([
-                    "Type 'BuildIdeArtifact': property 'artifact' is not annotated with an input or output annotation.": WARNING,
-                    "Type 'BuildIdeArtifact': property 'outputDirectory' is not annotated with an input or output annotation.": WARNING
+                    (missingAnnotationMessage { type('BuildIdeArtifact').property('artifact').missingInputOrOutput().includeLink() }): ERROR,
                 ])
             }
         }

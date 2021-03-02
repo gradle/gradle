@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.Requires
 import spock.lang.Unroll
 
 import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
@@ -915,14 +916,17 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         noExceptionThrown()
     }
 
+    @Requires({ GradleContextualExecuter.embedded })
+    // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid tasks are not cached"() {
         buildFile << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
 
             @CacheableTask
             abstract class InvalidTask extends DefaultTask {
-                @Input File input
+                @ValidationProblem File input
                 @OutputFile outputFile
                 @TaskAction action() {
                     outputFile.text = "created"
@@ -936,7 +940,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         executer.beforeExecute {
-            executer.expectDocumentedDeprecationWarning("Type 'InvalidTask': property 'input' has @Input annotation used on property of type 'File'. " +
+            executer.expectDocumentedDeprecationWarning("Type 'InvalidTask': property 'input' test problem. this is a test. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")

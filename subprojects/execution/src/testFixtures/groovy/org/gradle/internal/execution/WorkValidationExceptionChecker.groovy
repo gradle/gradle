@@ -40,7 +40,7 @@ class WorkValidationExceptionChecker {
         verified = [] as Set
         problems = error.problems.collect {
             // assertions do not verify the type name
-            ignoreType ? it.substring(it.indexOf(': ') + 2) : it
+            ignoreType ? it.substring(it.indexOf(': ') + 2).capitalize() : it.capitalize()
         } as Set
     }
 
@@ -57,6 +57,7 @@ class WorkValidationExceptionChecker {
     }
 
     void hasProblem(String problem) {
+        problem = problem.capitalize()
         assert problems.contains(problem)
         verified.add(problem)
     }

@@ -171,3 +171,44 @@ This error indicates that a property is annotated with conflicting annotations, 
 For example, a property cannot be annotated both with `@InputFile` and `@OutputFile` at the same time.
 
 To fix this problem, you need to understand the semantics of the different annotations and choose only one.
+
+[[annotation_invalid_in_context]]
+== Annotation is invalid in a particular context
+
+This error indicates that a property was annotated with an annotation which is invalid in a particular context.
+For example, it's in general possible to annotate a `DirectoryProperty` with `@OutputDirectory`, but this is invalid in the context of an artifact transform, because artifact transforms provide their own workspace.
+
+To fix this problem, you must remove the property.
+
+[[missing_annotation]]
+== Properties without annotations
+
+This error indicates that a property isn't annotated with an input or output annotation.
+Therefore, Gradle doesn't know if this property represents an input, an output, or simply should be ignored.
+As a consequence, up-to-date checking and caching won't work.
+
+To fix this problem, you need to annotate the property with the appropriate annotation, for example `@InputDirectory` for a property representing an input directory, or `@OutputDirectory` for a property representing an output directory.
+
+Alternatively, if the property is internal, that is to say that it shouldn't participate in up-to-date checking (it's not an input or an output), then you need to annotate it with link:{javadocPath}/org/gradle/api/tasks/Internal.html[@Internal].
+
+[[incompatible_annotations]]
+== Annotation is incompatible with the property type
+
+This error indicates that for a specific kind of property, a modifier annotation doesn't make sense.
+This is the case, for example, if the `@SkipWhenEmpty` is used on an output property.
+Because there are no semantics associated with this combination, Gradle cannot deduce your intent.
+
+To fix this, you most likely need to remove the conflicting modifier annotation or check that the actual property type is what you intended.
+
+[[incorrect_use_of_input_annotation]]
+== Incorrect use of the `@Input` annotation
+
+This error indicates that a property is annotated with `@Input`, but that it should be annotated with `@InputFile` or `@InputDirectory` instead.
+
+If you use the `@Input` annotation on a file-based property, Gradle wouldn't consider the file contents, or the directory contents, as inputs, as you might expect.
+
+To fix this problem, you need to tell Gradle if the file property represents an input file, in which case you should annotate it with `@InputFile`, or a directory, in which case it should be annotated with `@InputDirectory`.
+If what you really wanted to say is that the actual file path is an input, then you should return a `String` instead which corresponds to the absolute path of the file.
+
+
+

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Requires
 import spock.lang.Timeout
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -72,10 +73,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            abstract class InvalidPing extends Ping {
-                @Optional @Input File invalidInput
-            }
-
             abstract class PingWithCacheableWarnings extends Ping {
                 @Optional @InputFile File invalidInput
             }
@@ -102,11 +99,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                         tasks.create(name, FailingPing)
                     }
                 }
-                tasks.addRule("<>InvalidPing") { String name ->
-                    if (name.endsWith("InvalidPing")) {
-                        tasks.create(name, InvalidPing)
-                    }
-                }
                 tasks.addRule("<>PingWithCacheableWarnings") { String name ->
                     if (name.endsWith("PingWithCacheableWarnings")) {
                         tasks.create(name, PingWithCacheableWarnings)
@@ -122,6 +114,21 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.beforeExecute {
             withArgument('--info')
         }
+    }
+
+    void withInvalidPing() {
+        buildFile << """
+            abstract class InvalidPing extends Ping {
+                @org.gradle.integtests.fixtures.validation.ValidationProblem File invalidInput
+            }
+            allprojects {
+                tasks.addRule("<>InvalidPing") { String name ->
+                    if (name.endsWith("InvalidPing")) {
+                        tasks.create(name, InvalidPing)
+                    }
+                }
+            }
+        """
     }
 
     void withParallelThreads(int threadCount) {
@@ -467,13 +474,16 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Requires({ GradleContextualExecuter.embedded })
+    // this test only works in embedded mode because of the use of validation test fixtures
     def "other tasks are not started when an invalid task task is running"() {
         given:
         withParallelThreads(3)
+        withInvalidPing()
 
         expect:
         2.times {
-            executer.expectDocumentedDeprecationWarning("Type 'InvalidPing': property 'invalidInput' has @Input annotation used on property of type 'File'. " +
+            executer.expectDocumentedDeprecationWarning("Type 'InvalidPing': property 'invalidInput' test problem. this is a test. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
@@ -493,13 +503,16 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run ":aPingWithCacheableWarnings", ":bPing", ":cPing"
     }
 
+    @Requires({ GradleContextualExecuter.embedded })
+    // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task is not executed in parallel with other task"() {
         given:
         withParallelThreads(3)
+        withInvalidPing()
 
         expect:
         2.times {
-            executer.expectDocumentedDeprecationWarning("Type 'InvalidPing': property 'invalidInput' has @Input annotation used on property of type 'File'. " +
+            executer.expectDocumentedDeprecationWarning("Type 'InvalidPing': property 'invalidInput' test problem. this is a test. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")

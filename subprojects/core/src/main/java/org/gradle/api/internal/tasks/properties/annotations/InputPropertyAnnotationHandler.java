@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
@@ -31,6 +32,7 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -65,9 +67,16 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         if (File.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
-            validationContext.visitPropertyProblem(WARNING,
-                propertyMetadata.getPropertyName(),
-                String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName())
+            validationContext.visitPropertyProblem(problem ->
+                problem.withId(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
+                .forProperty(propertyMetadata.getPropertyName())
+                .reportAs(ERROR)
+                .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
+                .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
+                .addPossibleSolution("Annotate with @InputFile for regular files")
+                .addPossibleSolution("Annotate with @InputDirectory for directories")
+                .addPossibleSolution("If you want to track the path, return File.absolutePath as a String and keep @Input")
+                .documentedAt("validation_problems", "incorrect_use_of_input_annotation")
             );
         }
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {

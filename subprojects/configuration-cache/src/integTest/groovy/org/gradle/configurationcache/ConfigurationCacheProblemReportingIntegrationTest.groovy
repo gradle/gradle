@@ -165,21 +165,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
     def "serialization problems are reported and fail the build by default invalidating the cache"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        executer.beforeExecute {
-            executer.expectDocumentedDeprecationWarning("Type 'BrokenTaskType': property 'prop' is not annotated with an input or output annotation. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-            executer.expectDocumentedDeprecationWarning("Type 'BrokenTaskType': property 'anotherProp' is not annotated with an input or output annotation. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        }
 
         buildFile << """
             class BrokenTaskType extends DefaultTask {
-                final prop = project
-                final anotherProp = project.configurations
+                @Internal final prop = project
+                @Internal final anotherProp = project.configurations
             }
 
             task problems {

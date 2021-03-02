@@ -16,11 +16,10 @@
 
 package org.gradle.smoketests
 
-import org.gradle.util.GradleVersion
+
 import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-
 // https://plugins.gradle.org/plugin/org.samples.greeting
 // Plugin is used by the GE build.
 @Ignore("https://github.com/gradle/gradle/issues/16243")
@@ -38,13 +37,5 @@ class GreetingSamplePluginSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':hello').outcome == SUCCESS
-
-        expectDeprecationWarnings(
-            result,
-            "Property 'greeting' is not annotated with an input or output annotation. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-        )
     }
 }
