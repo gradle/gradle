@@ -264,3 +264,15 @@ someTask {
     inputFile.from(producer.someFile)
 }
 ```
+
+[[input_does_not_exist]]
+== Input doesn't exist
+
+This error occurs whenever a file (or a directory) is declared as an input of a task, but at the moment the task is executed, the file (or directory) doesn't exist.
+
+Usually, this hints at a missing task dependency: the file should exist _before_ the task is executed, which means that a dependent task wasn't executed.
+
+The symptoms are similar to <<implicit_dependency>> except that in this case the task which creates the file hasn't been executed.
+
+Please refer to the <<implicit_dependency>> section for possible solutions.
+If the file isn't produced by another task, you may want to make sure that it exists before the task is called.

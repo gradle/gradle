@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.io.File;
@@ -37,7 +38,7 @@ public enum ValidationActions implements ValidationAction {
         public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File file = toFile(context, value);
             if (!file.exists()) {
-                context.visitPropertyProblem(ERROR, String.format("File '%s' specified for property '%s' does not exist", file, propertyName));
+                reportMissingInput(context, "File", propertyName, file);
             } else if (!file.isFile()) {
                 context.visitPropertyProblem(ERROR, String.format("File '%s' specified for property '%s' is not a file", file, propertyName));
             }
@@ -48,7 +49,7 @@ public enum ValidationActions implements ValidationAction {
         public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File directory = toDirectory(context, value);
             if (!directory.exists()) {
-                context.visitPropertyProblem(ERROR, String.format("Directory '%s' specified for property '%s' does not exist", directory, propertyName));
+                reportMissingInput(context, "Directory", propertyName, directory);
             } else if (!directory.isDirectory()) {
                 context.visitPropertyProblem(ERROR, String.format("Directory '%s' specified for property '%s' is not a directory", directory, propertyName));
             }
@@ -109,6 +110,18 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     };
+
+    private static void reportMissingInput(TaskValidationContext context, String kind, String propertyName, File input) {
+        context.visitPropertyProblem(problem ->
+            problem.withId(ValidationProblemId.INPUT_DOES_NOT_EXIST)
+                .forProperty(propertyName)
+                .reportAs(ERROR)
+                .withDescription(() -> kind + " '" + input + "' doesn't exist")
+                .happensBecause("An input is missing")
+                .addPossibleSolution(() -> "Make sure the " + kind.toLowerCase() + " exists before the task is called")
+                .addPossibleSolution(() -> "Make sure that the task which produces the " + kind.toLowerCase() + " is declared as an input")
+                .documentedAt("validation_problems", "input_does_not_exist"));
+    }
 
     private static void validateNotInReservedFileSystemLocation(TaskValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {

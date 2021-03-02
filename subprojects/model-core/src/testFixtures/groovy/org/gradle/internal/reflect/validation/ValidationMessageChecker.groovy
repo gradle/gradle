@@ -93,12 +93,48 @@ trait ValidationMessageChecker {
         config.render "Gradle detected a problem with the following location: '${config.location.absolutePath}'. Task '${config.consumer}' uses this output of task '${config.producer}' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed. Possible solutions: Declare task '${config.producer}' as an input of '${config.consumer}' or declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#dependsOn or declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#mustRunAfter."
     }
 
+    String inputDoesNotExist(@DelegatesTo(value=InputDoesNotExist, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(InputDoesNotExist, 'input_does_not_exist', spec)
+        config.render "${config.kind.capitalize()} '${config.file}' doesn't exist. An input is missing. Possible solutions: Make sure the ${config.kind.toLowerCase()} exists before the task is called or make sure that the task which produces the ${config.kind.toLowerCase()} is declared as an input."
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class InputDoesNotExist extends ValidationMessageDisplayConfiguration<InputDoesNotExist> {
+        String kind
+        File file
+
+        InputDoesNotExist(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        InputDoesNotExist file(File missing) {
+            kind = 'File'
+            file = missing
+            this
+        }
+
+        InputDoesNotExist dir(File missing) {
+            kind = 'Directory'
+            file = missing
+            this
+        }
+
+        InputDoesNotExist kind(String kind) {
+            this.kind = kind
+            this
+        }
+
+        InputDoesNotExist missing(File file) {
+            this.file = file
+            this
+        }
     }
 
     static class ImplicitDependency extends ValidationMessageDisplayConfiguration<ImplicitDependency> {

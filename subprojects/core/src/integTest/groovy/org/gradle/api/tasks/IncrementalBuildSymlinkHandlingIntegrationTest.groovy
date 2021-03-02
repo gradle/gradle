@@ -17,6 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -24,7 +27,7 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 @Requires(TestPrecondition.SYMLINKS)
-class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec {
+class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         buildFile << """
 // This is a workaround to bust the JVM's file canonicalization cache
@@ -124,6 +127,9 @@ task work {
         result.assertTasksSkipped(":work")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INPUT_DOES_NOT_EXIST
+    )
     def "symlink may not reference missing input file"() {
         file("in-dir").createDir()
         def link = file("in.txt")
@@ -133,7 +139,12 @@ task work {
         expect:
         fails("work")
         failure.assertHasDescription("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
-        failureDescriptionContains("File '$link' specified for property '\$1' does not exist.")
+        failureDescriptionContains(inputDoesNotExist {
+            type('DefaultTask')
+                .property('$1')
+                .file(link)
+                .includeLink()
+        })
     }
 
     def "can replace input file with symlink to file with same content"() {

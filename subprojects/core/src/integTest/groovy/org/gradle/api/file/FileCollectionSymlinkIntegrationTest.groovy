@@ -20,6 +20,9 @@ import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -31,7 +34,7 @@ import static org.gradle.work.ChangeType.MODIFIED
 
 @Unroll
 @Requires(TestPrecondition.SYMLINKS)
-class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
+class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def "#desc can handle symlinks"() {
         def buildScript = file("build.gradle")
@@ -358,6 +361,9 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         output.text == "${[MODIFIED]}"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INPUT_DOES_NOT_EXIST
+    )
     def "broken symlink in #inputType.simpleName fails validation"() {
         def brokenInputFile = file('brokenInput').createLink("brokenInputFileTarget")
         buildFile << """
@@ -373,8 +379,15 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fails 'brokenInput'
+
         then:
-        failureDescriptionContains("${inputName} '${brokenInputFile}' specified for property 'brokenInputFile' does not exist.")
+        failureDescriptionContains(inputDoesNotExist {
+            type('CustomTask')
+            property('brokenInputFile')
+            kind(inputName)
+            missing(brokenInputFile)
+            includeLink()
+        })
 
         where:
         inputName   | inputType

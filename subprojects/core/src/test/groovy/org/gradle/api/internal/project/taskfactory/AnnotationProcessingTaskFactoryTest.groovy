@@ -553,6 +553,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         validateException(task, e, "Cannot write to directory '${task.outputDirs[0]}' specified for property 'outputDirs', as ancestor '${task.outputDirs[0].parentFile}' is not a directory.")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INPUT_DOES_NOT_EXIST
+    )
     def validationActionFailsWhenInputDirectoryDoesNotExist() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, missingDir)
@@ -562,7 +565,11 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, "Directory '$task.inputDir' specified for property 'inputDir' does not exist.")
+        validateException(task, e, inputDoesNotExist {
+                property('inputDir')
+                .dir(missingDir)
+                .includeLink()
+        })
     }
 
     def validationActionFailsWhenInputDirectoryIsAFile() {

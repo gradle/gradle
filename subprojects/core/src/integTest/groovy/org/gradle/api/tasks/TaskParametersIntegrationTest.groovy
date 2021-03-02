@@ -662,6 +662,9 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir", "dirs"]
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INPUT_DOES_NOT_EXIST
+    )
     @Unroll
     def "missing input files registered via TaskInputs.#method are not allowed"() {
         buildFile << """
@@ -672,12 +675,19 @@ task someTask(type: SomeTask) {
         """
 
         expect:
+        def missingFile = file('missing')
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("$type '${file("missing")}' specified for property 'input' does not exist.")
+        failureDescriptionContains(inputDoesNotExist {
+            type('DefaultTask')
+                .property('input')
+                .kind(fileType)
+                .missing(missingFile)
+                .includeLink()
+        })
 
         where:
-        method | type
+        method | fileType
         "file" | "File"
         "dir"  | "Directory"
     }
