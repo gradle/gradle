@@ -132,7 +132,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                                 .forProperty(spec.getPropertyName())
                                 .reportAs(Severity.WARNING)
                                 .withDescription(() -> String.format("cannot be resolved:%n%s%n", TextUtil.indent(e.getMessage(), "  ")))
-                                .happensBecause("An input file collection couldn't be resolved, making it impossible to determine task dependencies")
+                                .happensBecause("An input file collection couldn't be resolved, making it impossible to determine task inputs")
                                 .addPossibleSolution("Consider using Task.dependsOn instead")
                                 .documentedAt("validation_problems", "unresolvable_input")
                         );
@@ -226,15 +226,14 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             problem.withId(ValidationProblemId.IMPLICIT_DEPENDENCY)
                 .reportAs(Severity.WARNING)
                 .withDescription(() -> "Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
-                .happensBecause(() -> String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency or an implicit dependency. "
+                .happensBecause(() -> String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
                         + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
                     consumer,
-                    producer,
                     producer
                 ))
                 .addPossibleSolution(() -> "Declare task '" + producer + "' as an input of '" + consumer + "'")
-                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' to '" + consumer + "' using Task#dependsOn")
-                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' to '" + consumer + "' using Task#mustRunAfter")
+                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
+                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
                 .documentedAt("validation_problems", "implicit_dependency")
         );
     }
