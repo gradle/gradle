@@ -11,5 +11,5 @@ dependencies {
     implementation(project(":code-quality"))
 
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:2.1.3")
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.6.0")
+    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
 }
