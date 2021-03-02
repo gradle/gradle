@@ -21,7 +21,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.reflect.validation.DefaultPropertyValidationProblemBuilder;
 import org.gradle.internal.reflect.validation.DefaultTypeValidationProblemBuilder;
 import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
@@ -51,19 +50,6 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
         problemSpec.execute(builder);
         builder.forType(rootType);
         recordProblem(builder.build());
-    }
-
-    @Override
-    public void visitPropertyProblem(Severity kind, @Nullable String parentProperty, @Nullable String property, String message) {
-        visitPropertyProblem(problem -> {
-            PropertyProblemBuilder problemBuilder = problem.reportAs(kind.toReportableSeverity());
-            // this code should go away once all messages go through the builder instead
-            if (kind == Severity.CACHEABILITY_WARNING) {
-                problemBuilder.onlyAffectsCacheableWork();
-            }
-            problemBuilder.forProperty(parentProperty, property)
-                .withDescription(message);
-        });
     }
 
     abstract protected void recordProblem(TypeValidationProblem problem);

@@ -38,16 +38,6 @@ public class ReplayingTypeValidationContext implements TypeValidationContext {
         }));
     }
 
-    @Override
-    public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
-        problems.add((ownerProperty, validationContext) -> validationContext.visitPropertyProblem(
-            severity,
-            combineParents(ownerProperty, parentProperty),
-            property,
-            message
-        ));
-    }
-
     public void replay(@Nullable String ownerProperty, TypeValidationContext target) {
         problems.forEach(problem -> problem.accept(ownerProperty, target));
     }
