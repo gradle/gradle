@@ -17,14 +17,13 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.SelfType
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 @SelfType(AbstractIntegrationSpec)
-trait MissingTaskDependenciesFixture {
+trait MissingTaskDependenciesFixture extends ValidationMessageChecker {
     void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation, String taskName = 'DefaultTask') {
         executer.expectDocumentedDeprecationWarning(
-            "Type '$taskName': Gradle detected a problem with the following location: '${producedConsumedLocation.absolutePath}'. " +
-                "Task '${consumer}' uses this output of task '${producer}' without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
-                "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
+            "${implicitDependency { type(taskName).at(producedConsumedLocation).consumer(consumer).producer(producer).includeLink() }} " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled to ensure correctness. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")

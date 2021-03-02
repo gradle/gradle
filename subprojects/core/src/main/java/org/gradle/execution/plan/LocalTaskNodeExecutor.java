@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.TextUtil;
@@ -126,10 +127,14 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                         // We would later try to snapshot the inputs anyway, no need to suppress the exception
                         throw e;
                     } else {
-                        validationContext.visitPropertyProblem(
-                            Severity.WARNING,
-                            spec.getPropertyName(),
-                            String.format("cannot be resolved:%n%s%nConsider using Task.dependsOn instead of an input file collection", TextUtil.indent(e.getMessage(), "  "))
+                        validationContext.visitPropertyProblem(problem ->
+                            problem.withId(ValidationProblemId.UNRESOLVABLE_INPUT)
+                                .forProperty(spec.getPropertyName())
+                                .reportAs(Severity.WARNING)
+                                .withDescription(() -> String.format("cannot be resolved:%n%s%n", TextUtil.indent(e.getMessage(), "  ")))
+                                .happensBecause("An input file collection couldn't be resolved, making it impossible to determine task inputs")
+                                .addPossibleSolution("Consider using Task.dependsOn instead")
+                                .documentedAt("validation_problems", "unresolvable_input")
                         );
                     }
                 }
@@ -217,17 +222,19 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
     }
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
-        Severity severity = Severity.WARNING;
-        validationContext.visitPropertyProblem(
-            severity,
-            String.format("Gradle detected a problem with the following location: '%s'. "
-                    + "Task '%s' uses this output of task '%s' without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '%s' as an input). "
-                    + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
-                consumerProducerPath,
-                consumer,
-                producer,
-                producer
-            )
+        validationContext.visitPropertyProblem(problem ->
+            problem.withId(ValidationProblemId.IMPLICIT_DEPENDENCY)
+                .reportAs(Severity.WARNING)
+                .withDescription(() -> "Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
+                .happensBecause(() -> String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
+                        + "This can lead to incorrect results being produced, depending on what order the tasks are executed",
+                    consumer,
+                    producer
+                ))
+                .addPossibleSolution(() -> "Declare task '" + producer + "' as an input of '" + consumer + "'")
+                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
+                .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
+                .documentedAt("validation_problems", "implicit_dependency")
         );
     }
 
