@@ -276,3 +276,23 @@ The symptoms are similar to <<implicit_dependency>> except that in this case the
 
 Please refer to the <<implicit_dependency>> section for possible solutions.
 If the file isn't produced by another task, you may want to make sure that it exists before the task is called.
+
+[[unexpected_input_type]]
+== Unexpected input file or directory
+
+This error indicates that a property expected a regular file as an input but that it was provided with a directory (or the other way around).
+
+For example, if property is annotated with `@InputFile`:
+
+```groovy
+@InputFile
+File getInputFile()
+```
+
+Then Gradle expects the input file to be a _regular file_. If the input is a directory, then validation fails.
+
+To fix this problem, you have two options:
+
+- either you made a mistake an provided a directory instead of a file in which case you just need to fix the input
+- or the task should actually have used a directory as an input, in which case you need to change the type of the property to `@InputDirectory`
+

@@ -40,7 +40,7 @@ public enum ValidationActions implements ValidationAction {
             if (!file.exists()) {
                 reportMissingInput(context, "File", propertyName, file);
             } else if (!file.isFile()) {
-                context.visitPropertyProblem(ERROR, String.format("File '%s' specified for property '%s' is not a file", file, propertyName));
+                reportUnexpectedInputKind(context, "File", propertyName, file);
             }
         }
     },
@@ -51,7 +51,7 @@ public enum ValidationActions implements ValidationAction {
             if (!directory.exists()) {
                 reportMissingInput(context, "Directory", propertyName, directory);
             } else if (!directory.isDirectory()) {
-                context.visitPropertyProblem(ERROR, String.format("Directory '%s' specified for property '%s' is not a directory", directory, propertyName));
+                reportUnexpectedInputKind(context, "Directory", propertyName, directory);
             }
         }
     },
@@ -112,15 +112,41 @@ public enum ValidationActions implements ValidationAction {
     };
 
     private static void reportMissingInput(TaskValidationContext context, String kind, String propertyName, File input) {
-        context.visitPropertyProblem(problem ->
+        context.visitPropertyProblem(problem -> {
+            String lowerKind = kind.toLowerCase();
             problem.withId(ValidationProblemId.INPUT_DOES_NOT_EXIST)
                 .forProperty(propertyName)
                 .reportAs(ERROR)
-                .withDescription(() -> kind + " '" + input + "' doesn't exist")
+                .withDescription(() -> lowerKind + " '" + input + "' doesn't exist")
                 .happensBecause("An input is missing")
-                .addPossibleSolution(() -> "Make sure the " + kind.toLowerCase() + " exists before the task is called")
-                .addPossibleSolution(() -> "Make sure that the task which produces the " + kind.toLowerCase() + " is declared as an input")
-                .documentedAt("validation_problems", "input_does_not_exist"));
+                .addPossibleSolution(() -> "Make sure the " + lowerKind + " exists before the task is called")
+                .addPossibleSolution(() -> "Make sure that the task which produces the " + lowerKind + " is declared as an input")
+                .documentedAt("validation_problems", "input_does_not_exist");
+        });
+    }
+
+    private static void reportUnexpectedInputKind(TaskValidationContext context, String kind, String propertyName, File input) {
+        context.visitPropertyProblem(problem -> {
+            String lowerKind = kind.toLowerCase();
+            problem.withId(ValidationProblemId.UNEXPECTED_INPUT_TYPE)
+                .forProperty(propertyName)
+                .reportAs(ERROR)
+                .withDescription(() -> lowerKind + " '" + input + "' is not a " + lowerKind)
+                .happensBecause(() -> "Expected an input to be a " + kind.toLowerCase() + " but it was a " + actualKindOf(input))
+                .addPossibleSolution(() -> "Use a " + lowerKind + " as an input")
+                .addPossibleSolution(() -> "Declare the input as a " + actualKindOf(input) + " instead")
+                .documentedAt("validation_problems", "unexpected_input_type");
+        });
+    }
+
+    private static String actualKindOf(File input) {
+        if (input.isFile()) {
+            return "file";
+        }
+        if (input.isDirectory()) {
+            return "directory";
+        }
+        return "unexpected file type";
     }
 
     private static void validateNotInReservedFileSystemLocation(TaskValidationContext context, File location) {

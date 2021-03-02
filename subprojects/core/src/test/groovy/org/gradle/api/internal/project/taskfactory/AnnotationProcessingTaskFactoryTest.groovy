@@ -566,12 +566,15 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, e, inputDoesNotExist {
-                property('inputDir')
+            property('inputDir')
                 .dir(missingDir)
                 .includeLink()
         })
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNEXPECTED_INPUT_TYPE
+    )
     def validationActionFailsWhenInputDirectoryIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, existingFile)
@@ -582,7 +585,11 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, "Directory '$task.inputDir' specified for property 'inputDir' is not a directory.")
+        validateException(task, e, unexpectedInputType {
+            property('inputDir')
+                .dir(task.inputDir)
+                .includeLink()
+        })
     }
 
     @ValidationTestFor([

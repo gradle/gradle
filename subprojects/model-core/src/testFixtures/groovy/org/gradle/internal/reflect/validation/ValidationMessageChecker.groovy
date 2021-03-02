@@ -93,9 +93,14 @@ trait ValidationMessageChecker {
         config.render "Gradle detected a problem with the following location: '${config.location.absolutePath}'. Task '${config.consumer}' uses this output of task '${config.producer}' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed. Possible solutions: Declare task '${config.producer}' as an input of '${config.consumer}' or declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#dependsOn or declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#mustRunAfter."
     }
 
-    String inputDoesNotExist(@DelegatesTo(value=InputDoesNotExist, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        def config = display(InputDoesNotExist, 'input_does_not_exist', spec)
-        config.render "${config.kind.capitalize()} '${config.file}' doesn't exist. An input is missing. Possible solutions: Make sure the ${config.kind.toLowerCase()} exists before the task is called or make sure that the task which produces the ${config.kind.toLowerCase()} is declared as an input."
+    String inputDoesNotExist(@DelegatesTo(value=IncorrectInputMessage, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(IncorrectInputMessage, 'input_does_not_exist', spec)
+        config.render "${config.kind} '${config.file}' doesn't exist. An input is missing. Possible solutions: Make sure the ${config.kind} exists before the task is called or make sure that the task which produces the ${config.kind} is declared as an input."
+    }
+
+    String unexpectedInputType(@DelegatesTo(value=IncorrectInputMessage, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(IncorrectInputMessage, 'unexpected_input_type', spec)
+        config.render "${config.kind} '${config.file}' is not a ${config.kind}. Expected an input to be a ${config.kind} but it was a ${config.oppositeKind}. Possible solutions: Use a ${config.kind} as an input or declare the input as a ${config.oppositeKind} instead."
     }
 
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
@@ -106,34 +111,49 @@ trait ValidationMessageChecker {
         return (T) conf
     }
 
-    static class InputDoesNotExist extends ValidationMessageDisplayConfiguration<InputDoesNotExist> {
+    static class IncorrectInputMessage extends ValidationMessageDisplayConfiguration<IncorrectInputMessage> {
         String kind
         File file
 
-        InputDoesNotExist(ValidationMessageChecker checker) {
+        IncorrectInputMessage(ValidationMessageChecker checker) {
             super(checker)
         }
 
-        InputDoesNotExist file(File missing) {
-            kind = 'File'
-            file = missing
+        IncorrectInputMessage file(File target) {
+            kind('file')
+            file = target
             this
         }
 
-        InputDoesNotExist dir(File missing) {
-            kind = 'Directory'
-            file = missing
+        IncorrectInputMessage dir(File target) {
+            kind('directory')
+            file = target
             this
         }
 
-        InputDoesNotExist kind(String kind) {
-            this.kind = kind
+        IncorrectInputMessage kind(String kind) {
+            this.kind = kind.toLowerCase()
             this
         }
 
-        InputDoesNotExist missing(File file) {
+        IncorrectInputMessage missing(File file) {
             this.file = file
             this
+        }
+
+        IncorrectInputMessage unexpected(File file) {
+            this.file = file
+            this
+        }
+
+        String getOppositeKind() {
+            switch (kind) {
+                case 'file':
+                    return 'directory'
+                case 'directory':
+                    return 'file'
+            }
+            return 'unexpected file type'
         }
     }
 

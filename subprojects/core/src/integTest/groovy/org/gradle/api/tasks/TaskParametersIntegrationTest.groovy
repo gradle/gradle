@@ -692,6 +692,9 @@ task someTask(type: SomeTask) {
         "dir"  | "Directory"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNEXPECTED_INPUT_TYPE
+    )
     @Unroll
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
         file("input-file.txt").touch()
@@ -704,12 +707,18 @@ task someTask(type: SomeTask) {
         """
 
         expect:
+        def unexpected = file(path)
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type.")
+        failureDescriptionContains(unexpectedInputType {
+            type('DefaultTask').property('input')
+                .kind(fileType)
+                .missing(unexpected)
+                .includeLink()
+        })
 
         where:
-        method | path             | type
+        method | path             | fileType
         "file" | "input-dir"      | "file"
         "dir"  | "input-file.txt" | "directory"
     }

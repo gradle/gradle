@@ -40,4 +40,5 @@ public enum ValidationProblemId {
     UNRESOLVABLE_INPUT,
     IMPLICIT_DEPENDENCY,
     INPUT_DOES_NOT_EXIST,
+    UNEXPECTED_INPUT_TYPE,
 }
