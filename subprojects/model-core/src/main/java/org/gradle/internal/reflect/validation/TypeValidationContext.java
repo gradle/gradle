@@ -24,11 +24,6 @@ public interface TypeValidationContext {
 
     /**
      * Visits a validation problem associated with the given type.
-     */
-    void visitTypeProblem(Severity severity, Class<?> type, String message);
-
-    /**
-     * Visits a validation problem associated with the given type.
      * Callers are encourages to provide as much information as they can on
      * the problem following the problem builder instructions.
      * @param problemSpec the problem builder
@@ -63,9 +58,6 @@ public interface TypeValidationContext {
     void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec);
 
     TypeValidationContext NOOP = new TypeValidationContext() {
-        @Override
-        public void visitTypeProblem(Severity severity, Class<?> type, String message) {}
-
         @Override
         public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {}
 

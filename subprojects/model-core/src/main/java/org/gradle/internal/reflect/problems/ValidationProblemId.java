@@ -18,6 +18,8 @@ package org.gradle.internal.reflect.problems;
 public enum ValidationProblemId {
     // This enum value should go away as soon as possible!
     UNCLASSIFIED_PROBLEM,
+    // A problem id used only for test purposes
+    TEST_PROBLEM,
 
     // Now every time you add a new validation problem, you need
     // to assign it an id, so that it can be referenced in tests

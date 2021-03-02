@@ -53,14 +53,6 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
         recordProblem(builder.build());
     }
 
-
-    @Override
-    public void visitTypeProblem(Severity kind, Class<?> type, String message) {
-        visitTypeProblem(problem -> problem.reportAs(kind)
-            .forType(type)
-            .withDescription(message));
-    }
-
     @Override
     public void visitPropertyProblem(Severity kind, @Nullable String parentProperty, @Nullable String property, String message) {
         visitPropertyProblem(problem -> {

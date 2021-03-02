@@ -171,7 +171,11 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
-            context.visitTypeProblem(WARNING, type, "type is broken")
+            context.visitTypeProblem { it.reportAs(WARNING)
+                .forType(type)
+                .withDescription("type is broken")
+                .happensBecause("Test")
+            }
         }
 
         def metadataStore = new DefaultTypeMetadataStore([typeAnnotationHandler], [], [], typeAnnotationMetadataStore, cacheFactory)
@@ -186,7 +190,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == ["Type 'DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation': type is broken." as String]
+        collectProblems(typeMetadata) == ["Type 'DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation': type is broken. Test." as String]
     }
 
     @Unroll

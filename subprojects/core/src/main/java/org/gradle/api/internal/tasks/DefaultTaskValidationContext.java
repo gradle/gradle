@@ -39,11 +39,6 @@ public class DefaultTaskValidationContext implements TaskValidationContext, Type
     }
 
     @Override
-    public void visitTypeProblem(Severity severity, Class<?> type, String message) {
-        delegate.visitTypeProblem(severity, type, message);
-    }
-
-    @Override
     public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {
         delegate.visitTypeProblem(problemSpec);
     }
