@@ -180,8 +180,13 @@ fun Test.configureJvmForTest() {
         }.getOrNull()
     }
     javaLauncher.set(launcher)
-    if (jvmVersionForTest().canCompileOrRun(9) && (isUnitTest() || usesEmbeddedExecuter())) {
-        jvmArgs(org.gradle.internal.jvm.GroovyJpmsConfiguration.GROOVY_JPMS_JVM_ARGS)
+    if (jvmVersionForTest().canCompileOrRun(9)) {
+        if (isUnitTest() || usesEmbeddedExecuter()) {
+            jvmArgs(org.gradle.internal.jvm.GroovyJpmsConfiguration.GROOVY_JPMS_JVM_ARGS)
+        } else {
+            jvmArgs(listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")) // Used in tests by native platform library: WrapperProcess.getEnv
+            jvmArgs(listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")) // Used in tests by ClassLoaderUtils
+        }
     }
 }
 
