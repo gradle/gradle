@@ -19,6 +19,9 @@ package org.gradle.performance.fixture
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 
+import java.nio.file.Files
+import java.util.stream.Collectors
+
 /**
  * Generates flame graphs based on JFR recordings.
  */
@@ -35,11 +38,12 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
 
     @Override
     File getJfrOutputDirectory(BuildExperimentSpec spec) {
+        String version = ((GradleInvocationSpec) spec.getInvocation()).gradleDistribution.version.version;
         def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
         // When the path is too long on Windows, then JProfiler can't write to the JPS file
         // Length 40 seems to work.
         // It may be better to create the flame graph in the tmp directory, and then move it to the right place after the build.
-        def outputDir = new File(flamesBaseDirectory, shortenPath(fileSafeName, 40))
+        def outputDir = new File(flamesBaseDirectory, "${shortenPath(fileSafeName, 40)}/${version}")
         outputDir.mkdirs()
         return outputDir
     }
@@ -54,7 +58,30 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
 
     @Override
     void generateDifferentialGraphs(BuildExperimentSpec experimentSpec) {
-        Collection<File> experiments = getJfrOutputDirectory(experimentSpec).listFiles().findAll { it.directory }
+        // getJfrOutputDirectory() is a version-specific output directory.
+        // To find out all version results for diff generation, we need to search parent directory
+        // https://github.com/gradle/gradle-profiler/blob/a39d4a8df71d6b4e69d52bb0d5a239cde1fa5e83/src/main/java/org/gradle/profiler/jfr/JfrFlameGraphGenerator.java#L53
+        //
+        // +--- output directory
+        //    |--- 7.0-20210301160000+0000 <--- This is `getJfrOutputDirectory(experimentSpec)`
+        //    |     |--- {scenarioName}-7.0-20210301160000+0000.jfr-flamegraphs
+        //    |     |--- XXX.jfr
+        //    |     |--- XXX.jfr
+        //    |     |--- ...
+        //    |
+        //    |--- 7.0-20210224105427+0000
+        //          |--- {scenarioName}-7.0-20210224105427+0000.jfr-flamegraphs
+        //          |--- XXX.jfr
+        //          |--- XXX.jfr
+        //          |--- ...
+        //
+        List<File> experiments = Files.walk(getJfrOutputDirectory(experimentSpec).parentFile.toPath())
+            .filter {
+                it.toFile().directory && it.fileName.toString().endsWith("flamegraphs")
+            }
+            .map { it.toFile() }
+            .collect(Collectors.toList())
+
         experiments.each { File experiment ->
             EventType.values().each { EventType type ->
                 DetailLevel.values().each { DetailLevel level ->
