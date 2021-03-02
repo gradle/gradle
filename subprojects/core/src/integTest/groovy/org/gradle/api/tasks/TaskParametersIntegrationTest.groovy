@@ -739,15 +739,19 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failureDescriptionContains(message.replace("<PATH>", file(path).absolutePath))
+        failureDescriptionContains(cannotWriteToFile {
+            type('DefaultTask').property('output')
+                .file(outputDir)
+                .isNotFile()
+                .includeLink()
+        })
 
         where:
-        method  | path              | message
-        "file"  | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
-        "files" | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
+        method  | path
+        "file"  | "output-dir"
+        "files" | "output-dir"
     }
-
-
+    
     @ValidationTestFor(
         ValidationProblemId.CANNOT_WRITE_OUTPUT
     )

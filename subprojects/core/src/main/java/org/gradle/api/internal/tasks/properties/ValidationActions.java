@@ -67,7 +67,7 @@ public enum ValidationActions implements ValidationAction {
             } else {
                 for (File candidate = directory.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
                     if (candidate.exists() && !candidate.isDirectory()) {
-                        reportCannotWriteToDirectory(propertyName, context, candidate, "'" + directory + "' ancestor '" + candidate +"' is not a directory");
+                        reportCannotWriteToDirectory(propertyName, context, candidate, "'" + directory + "' ancestor '" + candidate + "' is not a directory");
                         return;
                     }
                 }
@@ -89,13 +89,13 @@ public enum ValidationActions implements ValidationAction {
             validateNotInReservedFileSystemLocation(context, file);
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    context.visitPropertyProblem(ERROR, String.format("Cannot write to file '%s' specified for property '%s' as it is a directory", file, propertyName));
+                    reportCannotWriteToFile(propertyName, context, "'" + file + "' is not a file");
                 }
                 // else, assume we can write to anything that exists and is not a directory
             } else {
                 for (File candidate = file.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
                     if (candidate.exists() && !candidate.isDirectory()) {
-                        context.visitPropertyProblem(ERROR, String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory", file, propertyName, candidate));
+                        reportCannotWriteToFile(propertyName, context, "'" + file + "' ancestor '" + candidate + "' is not a directory");
                         break;
                     }
                 }
@@ -150,6 +150,20 @@ public enum ValidationActions implements ValidationAction {
                 .documentedAt("validation_problems", "cannot_write_output")
         );
     }
+
+
+    private static void reportCannotWriteToFile(String propertyName, TaskValidationContext context, String cause) {
+        context.visitPropertyProblem(problem ->
+            problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+                .reportAs(ERROR)
+                .forProperty(propertyName)
+                .withDescription(() -> "is not writable because " + cause)
+                .happensBecause(() -> "Cannot write a file to a location pointing at a directory")
+                .addPossibleSolution(() -> "Configure '" + propertyName + "' to point to a file, not a directory")
+                .documentedAt("validation_problems", "cannot_write_output")
+        );
+    }
+
 
     private static String actualKindOf(File input) {
         if (input.isFile()) {

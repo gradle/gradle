@@ -108,6 +108,11 @@ trait ValidationMessageChecker {
         config.render "is not writable because '${config.dir}' ${config.reason}. Expected '${config.problemDir}' to be a directory but it's a file. Possible solution: Make sure that the '${config.property}' is configured to a directory."
     }
 
+    String cannotWriteToFile(@DelegatesTo(value=CannotWriteToFile, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(CannotWriteToFile, 'cannot_write_output', spec)
+        config.render "is not writable because '${config.file}' ${config.reason}. Cannot write a file to a location pointing at a directory. Possible solution: Configure '${config.property}' to point to a file, not a directory."
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
@@ -137,6 +142,33 @@ trait ValidationMessageChecker {
         }
 
         CannotWriteToDir ancestorIsNotDirectory(File ancestor) {
+            this.problemDir = ancestor
+            this.reason = "ancestor '$ancestor' is not a directory"
+            this
+        }
+    }
+
+    static class CannotWriteToFile extends ValidationMessageDisplayConfiguration<CannotWriteToFile> {
+        File file
+        File problemDir
+        String reason
+
+        CannotWriteToFile(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        CannotWriteToFile file(File directory) {
+            this.problemDir = directory
+            this.file = directory
+            this
+        }
+
+        CannotWriteToFile isNotFile() {
+            this.reason = "is not a file"
+            this
+        }
+
+        CannotWriteToFile ancestorIsNotDirectory(File ancestor) {
             this.problemDir = ancestor
             this.reason = "ancestor '$ancestor' is not a directory"
             this

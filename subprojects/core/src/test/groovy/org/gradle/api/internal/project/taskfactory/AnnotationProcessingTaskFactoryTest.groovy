@@ -465,9 +465,17 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, "Cannot write to file '$task.outputFile' specified for property 'outputFile' as it is a directory.")
+        validateException(task, e, cannotWriteToFile {
+            property('outputFile')
+                .file(task.outputFile)
+                .isNotFile()
+                .includeLink()
+        })
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
     def validationActionFailsWhenSpecifiedOutputFilesIsADirectory() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [existingDir] as List)
@@ -477,9 +485,17 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, "Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles' as it is a directory.")
+        validateException(task, e, cannotWriteToFile {
+            property('outputFiles')
+                .file(task.outputFiles[0])
+                .isNotFile()
+                .includeLink()
+        })
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
     def validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
@@ -490,9 +506,17 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, "Cannot write to file '$task.outputFile' specified for property 'outputFile', as ancestor '$task.outputFile.parentFile' is not a directory.")
+        validateException(task, e, cannotWriteToFile {
+            property('outputFile')
+                .file(task.outputFile)
+                .ancestorIsNotDirectory(task.outputFile.parentFile)
+                .includeLink()
+        })
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
     def validationActionFailsWhenSpecifiedOutputFilesParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt")] as List)
@@ -503,7 +527,12 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, "Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles', as ancestor '${task.outputFiles[0].parentFile}' is not a directory.")
+        validateException(task, e, cannotWriteToFile {
+            property('outputFiles')
+                .file(task.outputFiles[0])
+                .ancestorIsNotDirectory(task.outputFiles[0].parentFile)
+                .includeLink()
+        })
     }
 
     @ValidationTestFor(

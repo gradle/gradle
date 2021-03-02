@@ -297,12 +297,16 @@ To fix this problem, you have two options:
 - or the task should actually have used a directory as an input, in which case you need to change the type of the property to `@InputDirectory`
 
 [[cannot_write_output]]
-== Cannot write to an output directory
+== Cannot write to an output file or directory
 
-This error indicates that an output directory cannot be written because the directory property which has been configured actually refers to a regular file (or something else than an actual directory).
+This error indicates that :
+
+- an output directory cannot be written because the directory property which has been configured actually refers to a regular file (or something else than an actual directory).
+- or that an output file cannot be written because the file property which has been configured actually refers to a directory
 
 For example, you've set an output directory to `/some/path/file.txt` instead of `/some/path`.
 It's also possible that you have configured an output directory like `/some/path` but that an ancestor `/some` is a regular file.
 
-To fix this problem, make sure that the configured output is actually a directory.
+To fix this problem, make sure that the configured output is a directory (for properties which expect a directory) or a file (for tasks which expect a file).
+
 
