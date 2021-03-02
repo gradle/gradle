@@ -751,7 +751,7 @@ task someTask(type: SomeTask) {
         "file"  | "output-dir"
         "files" | "output-dir"
     }
-    
+
     @ValidationTestFor(
         ValidationProblemId.CANNOT_WRITE_OUTPUT
     )

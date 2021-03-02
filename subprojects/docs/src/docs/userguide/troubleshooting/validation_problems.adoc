@@ -309,4 +309,11 @@ It's also possible that you have configured an output directory like `/some/path
 
 To fix this problem, make sure that the configured output is a directory (for properties which expect a directory) or a file (for tasks which expect a file).
 
+[[cannot_write_to_reserved_location]]
+== Cannot write to reserved location
 
+This error indicates that you are trying to write a file to a location which is managed by Gradle only.
+Typically, this happens whenever you're trying to write a file directly into an artifact transforms output directory.
+If you did this intentionally, this is a mistake because those directories should never be written directly: all artifact transform writes should be performed within the artifact transform code itself.
+
+If you didn't intend to write in this directory, you should simply setup your task to write in a different location.

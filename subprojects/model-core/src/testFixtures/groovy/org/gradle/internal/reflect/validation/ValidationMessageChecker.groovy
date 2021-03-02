@@ -113,12 +113,30 @@ trait ValidationMessageChecker {
         config.render "is not writable because '${config.file}' ${config.reason}. Cannot write a file to a location pointing at a directory. Possible solution: Configure '${config.property}' to point to a file, not a directory."
     }
 
+    String cannotWriteToReservedLocation(@DelegatesTo(value=ForbiddenPath, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(ForbiddenPath, 'cannot_write_to_reserved_location', spec)
+        config.render "points to '${config.location}' which is a not writable. Trying to write an output to a read-only location which is for Gradle internal use only. Possible solution: Select a different output location."
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class ForbiddenPath extends ValidationMessageDisplayConfiguration<ForbiddenPath> {
+        File location
+
+        ForbiddenPath(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        ForbiddenPath forbiddenAt(File location) {
+            this.location = location
+            this
+        }
     }
 
     static class CannotWriteToDir extends ValidationMessageDisplayConfiguration<CannotWriteToDir> {

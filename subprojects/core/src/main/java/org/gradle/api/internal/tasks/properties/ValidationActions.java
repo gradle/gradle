@@ -59,7 +59,7 @@ public enum ValidationActions implements ValidationAction {
         @Override
         public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File directory = toFile(context, value);
-            validateNotInReservedFileSystemLocation(context, directory);
+            validateNotInReservedFileSystemLocation(propertyName, context, directory);
             if (directory.exists()) {
                 if (!directory.isDirectory()) {
                     reportCannotWriteToDirectory(propertyName, context, directory, "'" + directory + "' is not a directory");
@@ -86,7 +86,7 @@ public enum ValidationActions implements ValidationAction {
         @Override
         public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File file = toFile(context, value);
-            validateNotInReservedFileSystemLocation(context, file);
+            validateNotInReservedFileSystemLocation(propertyName, context, file);
             if (file.exists()) {
                 if (file.isDirectory()) {
                     reportCannotWriteToFile(propertyName, context, "'" + file + "' is not a file");
@@ -175,9 +175,17 @@ public enum ValidationActions implements ValidationAction {
         return "unexpected file type";
     }
 
-    private static void validateNotInReservedFileSystemLocation(TaskValidationContext context, File location) {
+    private static void validateNotInReservedFileSystemLocation(String propertyName, TaskValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {
-            context.visitPropertyProblem(ERROR, String.format("The output %s must not be in a reserved location", location));
+            context.visitPropertyProblem(problem ->
+                problem.withId(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION)
+                .forProperty(propertyName)
+                .reportAs(ERROR)
+                .withDescription(() -> "points to '" + location + "' which is a not writable")
+                .happensBecause("Trying to write an output to a read-only location which is for Gradle internal use only")
+                .addPossibleSolution("Select a different output location")
+                .documentedAt("validation_problems", "cannot_write_to_reserved_location")
+            );
         }
     }
 
