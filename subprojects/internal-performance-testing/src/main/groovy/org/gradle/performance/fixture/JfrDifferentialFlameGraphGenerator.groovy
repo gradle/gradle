@@ -100,7 +100,7 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
 
     private void generateDifferentialIcicleGraph(File stacks, EventType type, DetailLevel level, boolean negate) {
         File icicles = new File(stacks.parentFile, "icicle-" + stacks.name.replace(".txt", ".svg"))
-        List<String> options = ["--title", type.displayName + "${negate ? " Forward " : " Backward "}Differential Icicle Graph", "--countname", type.unitOfMeasure, "--reverse", "--invert"] + level.flameGraphOptions
+        List<String> options = ["--title", type.displayName + "${negate ? " Forward " : " Backward "}Differential Icicle Graph", "--countname", type.unitOfMeasure, "--reverse", "--invert"] + level.icicleGraphOptions
         if (negate) {
             options << "--negate"
         }
@@ -126,41 +126,15 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
     }
 
     enum DetailLevel {
-        RAW(
-            true,
-            true,
-            Arrays.asList("--minwidth", "0.5"),
-            Arrays.asList("--minwidth", "1"),
-            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS, FlameGraphSanitizer.NORMALIZE_LAMBDA_NAMES)
-        ),
-        SIMPLIFIED(
-            false,
-            false,
-            Arrays.asList("--minwidth", "1"),
-            Arrays.asList("--minwidth", "2"),
-            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS, FlameGraphSanitizer.NORMALIZE_LAMBDA_NAMES, FlameGraphSanitizer.COLLAPSE_GRADLE_INFRASTRUCTURE, FlameGraphSanitizer.SIMPLE_NAMES)
-        )
+        RAW(['--minwidth', '0.5'], ['--minwidth', '1']),
+        SIMPLIFIED(['--minwidth', '1'], ['--minwidth', '2'])
 
-        private final boolean showArguments
-        private final boolean showLineNumbers
         private List<String> flameGraphOptions
         private List<String> icicleGraphOptions
-        private FlameGraphSanitizer sanitizer
 
-        DetailLevel(boolean showArguments, boolean showLineNumbers, List<String> flameGraphOptions, List<String> icicleGraphOptions, FlameGraphSanitizer sanitizer) {
-            this.showArguments = showArguments
-            this.showLineNumbers = showLineNumbers
+        DetailLevel(List<String> flameGraphOptions, List<String> icicleGraphOptions) {
             this.flameGraphOptions = flameGraphOptions
             this.icicleGraphOptions = icicleGraphOptions
-            this.sanitizer = sanitizer
-        }
-
-        boolean isShowArguments() {
-            return showArguments
-        }
-
-        boolean isShowLineNumbers() {
-            return showLineNumbers
         }
 
         List<String> getFlameGraphOptions() {
@@ -170,10 +144,5 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
         List<String> getIcicleGraphOptions() {
             return icicleGraphOptions
         }
-
-        FlameGraphSanitizer getSanitizer() {
-            return sanitizer
-        }
-
     }
 }
