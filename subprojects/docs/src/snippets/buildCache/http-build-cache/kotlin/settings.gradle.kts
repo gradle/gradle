@@ -15,3 +15,12 @@ buildCache {
     }
 }
 // end::allow-untrusted-server[]
+
+// tag::follow-redirects[]
+buildCache {
+    remote<HttpBuildCache> {
+        url = uri("https://example.com:8123/cache/")
+        isFollowRedirects = true
+    }
+}
+// end::follow-redirects[]

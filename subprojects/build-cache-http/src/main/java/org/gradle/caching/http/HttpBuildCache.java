@@ -41,6 +41,7 @@ public class HttpBuildCache extends AbstractBuildCache {
     private URI url;
     private boolean allowUntrustedServer;
     private boolean allowInsecureProtocol;
+    private boolean followRedirects;
 
     public HttpBuildCache() {
         this.credentials = new HttpBuildCacheCredentials();
@@ -157,4 +158,28 @@ public class HttpBuildCache extends AbstractBuildCache {
     public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
         this.allowInsecureProtocol = allowInsecureProtocol;
     }
+
+    /**
+     * Specifies whether it is acceptable to follow a redirect from the build cache server.
+     * <p>
+     * This intentionally requires a user to opt-in to follow a redirect on a case by case basis.
+     *
+     * @since 7.0
+     */
+    public boolean isFollowRedirects() {
+        return followRedirects;
+    }
+
+    /**
+     * Specifies whether it is acceptable to follow a redirect from the build cache server.
+     *
+     * @see #isAllowInsecureProtocol()
+     * @since 7.0
+     */
+    public void setFollowRedirects(boolean followRedirects) {
+        this.followRedirects = followRedirects;
+    }
+
+
+
 }

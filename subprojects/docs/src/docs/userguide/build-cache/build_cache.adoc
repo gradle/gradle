@@ -314,6 +314,18 @@ include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="setting
 include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=allow-untrusted-server]"]
 ====
 
+[NOTE]
+====
+The HTTP build cache does not support following HTTP redirects by default. You may encounter problems using a build cache backend that requires HTTP clients that support HTTP redirects.
+In that case, set link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:followRedirects[HttpBuildCache.isFollowRedirects()] to `true`.
+====
+
+.Follow Redirects
+====
+include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="settings.gradle[tags=follow-redirects]"]
+include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=follow-redirects]"]
+====
+
 [[sec:build_cache_configure_use_cases]]
 === Configuration use cases
 

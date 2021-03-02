@@ -162,6 +162,37 @@ class HttpBuildCacheServiceTest extends Specification {
         exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when loading entry from '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
     }
 
+    def "loading from cache with follow redirects follows redirects"() {
+
+        def cacheConfig = new HttpBuildCache()
+        cacheConfig.url = server.uri.resolve("/cache/")
+        cacheConfig.setFollowRedirects(true)
+
+        def backingServer = new HttpServer()
+        backingServer.start()
+
+        def followCache = new DefaultHttpBuildCacheServiceFactory(
+            new DefaultSslContextFactory(),
+            { it.addHeader("X-Gradle-Version", "3.0") },
+            httpClientHelperFactory
+        ).createBuildCacheService(cacheConfig, buildCacheDescriber)
+
+        def srcFile = tempDir.file("cached.zip")
+        srcFile.text = "Data"
+
+        server.expectGetRedirected("/cache/${key.hashCode}", "${backingServer.uri}/cache/${key.hashCode}")
+        backingServer.expectGet("/cache/${key.hashCode}", srcFile)
+
+        when:
+        def receivedInput = null
+        followCache.load(key) { input ->
+            receivedInput = input.text
+        }
+
+        then:
+        receivedInput == "Data"
+    }
+
     def "reports cache miss on 404"() {
         server.expectGetMissing("/cache/${key.hashCode}")
 

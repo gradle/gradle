@@ -16,3 +16,12 @@ buildCache {
     }
 }
 // end::allow-untrusted-server[]
+
+// tag::follow-redirects[]
+buildCache {
+    remote(HttpBuildCache) {
+        url = 'https://example.com:8123/cache/'
+        followRedirects = true
+    }
+}
+// end::follow-redirects[]

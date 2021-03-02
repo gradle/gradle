@@ -78,13 +78,14 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         boolean authenticated = !authentications.isEmpty();
         boolean allowUntrustedServer = configuration.isAllowUntrustedServer();
         boolean allowInsecureProtocol = configuration.isAllowInsecureProtocol();
+        boolean followRedirects = configuration.isFollowRedirects();
 
         HttpRedirectVerifier redirectVerifier =
             createRedirectVerifier(noUserInfoUrl, allowInsecureProtocol);
 
         DefaultHttpSettings.Builder builder = DefaultHttpSettings.builder()
             .withAuthenticationSettings(authentications)
-            .followRedirects(false)
+            .followRedirects(followRedirects)
             .withRedirectVerifier(redirectVerifier);
         if (allowUntrustedServer) {
             builder.allowUntrustedConnections();
@@ -96,6 +97,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         describer.type("HTTP")
             .config("url", noUserInfoUrl.toASCIIString())
             .config("authenticated", Boolean.toString(authenticated))
+            .config("followRedirects", Boolean.toString(followRedirects))
             .config("allowUntrustedServer", Boolean.toString(allowUntrustedServer))
             .config("allowInsecureProtocol", Boolean.toString(allowInsecureProtocol));
 
