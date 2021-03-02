@@ -317,3 +317,10 @@ Typically, this happens whenever you're trying to write a file directly into an 
 If you did this intentionally, this is a mistake because those directories should never be written directly: all artifact transform writes should be performed within the artifact transform code itself.
 
 If you didn't intend to write in this directory, you should simply setup your task to write in a different location.
+
+[[unsupported_notation]]
+== Unsupported notation in file collection
+
+This error indicates that a collection of files, or a nested collection of files, contains an element that Gradle cannot convert to a file.
+
+To fix this, look at the error message which indicates the list of supported file notations and make sure to pick one of them.

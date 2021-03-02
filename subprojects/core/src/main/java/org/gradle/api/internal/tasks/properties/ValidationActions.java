@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskValidationContext;
@@ -23,6 +24,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Map;
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
@@ -179,12 +181,12 @@ public enum ValidationActions implements ValidationAction {
         if (context.isInReservedFileSystemLocation(location)) {
             context.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION)
-                .forProperty(propertyName)
-                .reportAs(ERROR)
-                .withDescription(() -> "points to '" + location + "' which is a not writable")
-                .happensBecause("Trying to write an output to a read-only location which is for Gradle internal use only")
-                .addPossibleSolution("Select a different output location")
-                .documentedAt("validation_problems", "cannot_write_to_reserved_location")
+                    .forProperty(propertyName)
+                    .reportAs(ERROR)
+                    .withDescription(() -> "points to '" + location + "' which is a not writable")
+                    .happensBecause("Trying to write an output to a read-only location which is for Gradle internal use only")
+                    .addPossibleSolution("Select a different output location")
+                    .documentedAt("validation_problems", "cannot_write_to_reserved_location")
             );
         }
     }
@@ -202,8 +204,30 @@ public enum ValidationActions implements ValidationAction {
         try {
             doValidate(propertyName, value, context);
         } catch (UnsupportedNotationException ignored) {
-            context.visitPropertyProblem(ERROR, String.format("Value '%s' specified for property '%s' cannot be converted to a %s", value, propertyName, targetType));
+            context.visitPropertyProblem(problem -> {
+                    problem.withId(ValidationProblemId.UNSUPPORTED_NOTATION)
+                        .forProperty(propertyName)
+                        .reportAs(ERROR)
+                        .withDescription(() -> "has value '" + value + "' which cannot be converted to a " + targetType)
+                        .happensBecause("Automatic conversion of value notation failed");
+                    Collection<String> candidates = ignored.getCandidates();
+                    if (candidates.isEmpty()) {
+                        problem.addPossibleSolution(() -> "Use a value of type '" + targetType + "'");
+                    } else {
+                        candidates.forEach(candidate -> problem.addPossibleSolution(() -> toCandidateSolution(candidate)));
+                    }
+                    problem.documentedAt("validation_problems", "unsupported_notation");
+                }
+            );
         }
+    }
+
+    private static String toCandidateSolution(String conversionCandidate) {
+        String result = StringUtils.uncapitalize(conversionCandidate);
+        if (result.endsWith(".")) {
+            result = result.substring(0, result.lastIndexOf("."));
+        }
+        return "Use " + result;
     }
 
     private static File toDirectory(TaskValidationContext context, Object value) {

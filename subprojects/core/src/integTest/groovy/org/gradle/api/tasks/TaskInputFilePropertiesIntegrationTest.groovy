@@ -59,7 +59,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         succeeds "customTask"
 
         where:
-        annotation << [ InputFile, InputDirectory, InputFiles ]
+        annotation << [InputFile, InputDirectory, InputFiles]
     }
 
     @Unroll
@@ -81,7 +81,20 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
+        failureDescriptionContains(unsupportedNotation {
+            type('DefaultTask').property('input')
+                .value("task ':dependencyTask'")
+                .cannotBeConvertedTo(targetType)
+                .candidates(
+                    "a String or CharSequence path, for example 'src/main/java' or '/usr/include'",
+                    "a String or CharSequence URI, for example 'file:/usr/include'",
+                    "a File instance or use a Path instance",
+                    "a Directory instance",
+                    "a RegularFile instance",
+                    "a URI or URL instance",
+                    "a TextResource instance"
+                ).includeLink()
+        })
 
         where:
         method | targetType
@@ -115,7 +128,20 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         expect:
         fails "customTask"
         failure.assertHasDescription("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
+        failureDescriptionContains(unsupportedNotation {
+            type('CustomTask').property('input')
+                .value("task ':dependencyTask'")
+                .cannotBeConvertedTo(targetType)
+                .candidates(
+                    "a String or CharSequence path, for example 'src/main/java' or '/usr/include'",
+                    "a String or CharSequence URI, for example 'file:/usr/include'",
+                    "a File instance or use a Path instance",
+                    "a Directory instance",
+                    "a RegularFile instance",
+                    "a URI or URL instance",
+                    "a TextResource instance"
+                ).includeLink()
+        })
 
         where:
         annotation     | targetType

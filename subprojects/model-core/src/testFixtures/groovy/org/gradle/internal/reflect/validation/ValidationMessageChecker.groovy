@@ -118,12 +118,47 @@ trait ValidationMessageChecker {
         config.render "points to '${config.location}' which is a not writable. Trying to write an output to a read-only location which is for Gradle internal use only. Possible solution: Select a different output location."
     }
 
+    String unsupportedNotation(@DelegatesTo(value=UnsupportedNotation, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(UnsupportedNotation, 'unsupported_notation', spec)
+        config.render "has value '${config.value}' which cannot be converted to a ${config.targetType}. Automatic conversion of value notation failed. ${config.solution}"
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class UnsupportedNotation extends ValidationMessageDisplayConfiguration<UnsupportedNotation> {
+        String value
+        String targetType
+        List<String> candidates = []
+
+        UnsupportedNotation(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnsupportedNotation value(String value) {
+            this.value = value
+            this
+        }
+
+        UnsupportedNotation cannotBeConvertedTo(String type) {
+            this.targetType = type
+            this
+        }
+
+        UnsupportedNotation candidates(String... candidates) {
+            Collections.addAll(this.candidates, candidates)
+            this
+        }
+
+        String getSolution() {
+            def solutions = candidates.collect { "use $it" }.join(" or ").capitalize()
+            "Possible solution${candidates.size()>1 ? 's':''}: $solutions"
+        }
     }
 
     static class ForbiddenPath extends ValidationMessageDisplayConfiguration<ForbiddenPath> {
