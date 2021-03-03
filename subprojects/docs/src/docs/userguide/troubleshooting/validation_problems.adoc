@@ -329,7 +329,7 @@ This error indicates that a collection of files, or a nested collection of files
 To fix this, look at the error message which indicates the list of supported file notations and make sure to pick one of them.
 
 [[cannot_use_optional_on_primitive_types]]
-== Invalid use @Optional annotation on primitive types
+== Invalid use of @Optional annotation on primitive types
 
 This error indicates that a property of primitive type is also annotated with `@Optional`.
 This is similar to `null` not being assignable to primitive types in Java.
