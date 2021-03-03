@@ -16,9 +16,12 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
 import javax.annotation.Nullable;
 
@@ -27,11 +30,10 @@ import javax.annotation.Nullable;
  * Listens to changes to the ClassLoaderScope tree.
  *
  * @see ClassLoaderScopeRegistry
- * @see org.gradle.api.internal.initialization.ClassLoaderScope
+ * @see ClassLoaderScope
  */
+@EventScope(Scopes.UserHome.class)
 public interface ClassLoaderScopeRegistryListener {
-
-    void rootScopeCreated(ClassLoaderScopeId rootScopeId);
 
     void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId);
 
