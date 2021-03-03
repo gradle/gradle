@@ -260,7 +260,7 @@ checkstyle {
 
 ==== Querying the mapped value of a provider before the producer has completed is now an error
 
-Gradle 6.x warns users about the wrong behavior and the returns incorrect provider value.
+Gradle 6.x warns users about the wrong behavior and then returns a possibly incorrect provider value.
 Starting from 7.0 the same case will produce an error.
 Plugins and build scripts should be adjusted to query the mapped value of a provider, for example a task output property, after the producer has completed.
 
