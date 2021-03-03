@@ -43,7 +43,7 @@ public class DefaultTypeValidationContext extends MessageFormattingTypeValidatio
 
     @Override
     protected void recordProblem(TypeValidationProblem problem) {
-        boolean cacheableProblemOnly = problem.getPayload().map(TypeValidationProblem.Payload::isCacheabilityProblemOnly).orElse(false);
+        boolean cacheableProblemOnly = problem.isCacheabilityProblemOnly();
         if (cacheableProblemOnly && !cacheable) {
             return;
         }

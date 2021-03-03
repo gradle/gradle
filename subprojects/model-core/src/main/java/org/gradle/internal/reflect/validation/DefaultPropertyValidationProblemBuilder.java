@@ -68,7 +68,7 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
             shortProblemDescription,
             longDescription,
             reason,
-            TypeValidationProblem.Payload.of(cacheabilityProblemOnly),
+            cacheabilityProblemOnly,
             userManualReference,
             possibleSolutions
         );
