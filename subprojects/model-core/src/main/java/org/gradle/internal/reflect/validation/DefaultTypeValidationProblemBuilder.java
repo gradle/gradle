@@ -31,6 +31,9 @@ public class DefaultTypeValidationProblemBuilder extends AbstractValidationProbl
     }
 
     public TypeValidationProblem build() {
+        if (problemId == null) {
+            throw new IllegalStateException("You must set the problem id");
+        }
         if (type == null) {
             throw new IllegalStateException("The type on which the problem should be reported hasn't been set");
         }

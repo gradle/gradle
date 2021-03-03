@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuilder<T>> implements ValidationProblemBuilder<T> {
     protected final DocumentationRegistry documentationRegistry;
-    protected ValidationProblemId problemId = ValidationProblemId.UNCLASSIFIED_PROBLEM;
+    protected ValidationProblemId problemId = null;
     protected Severity severity = Severity.WARNING;
     protected Supplier<String> shortProblemDescription;
     protected Supplier<String> longDescription = () -> null;
@@ -42,9 +42,6 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
 
     @Override
     public T withId(ValidationProblemId id) {
-        if (id == ValidationProblemId.UNCLASSIFIED_PROBLEM) {
-            throw new IllegalStateException("Problems are by default unclassified. If you call this method, you must provide a different id.");
-        }
         this.problemId = id;
         return Cast.uncheckedCast(this);
     }

@@ -58,6 +58,9 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
     }
 
     public TypeValidationProblem build() {
+        if (problemId == null) {
+            throw new IllegalStateException("You must set the problem id");
+        }
         if (shortProblemDescription == null) {
             throw new IllegalStateException("You must provide at least a short description of the problem");
         }
