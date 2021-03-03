@@ -17,6 +17,7 @@
 package org.gradle.internal.nativeintegration.jansi;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 
 import java.io.File;
@@ -47,9 +48,12 @@ public class JansiBootPathConfigurer {
 
             if (!libFile.exists()) {
                 InputStream libraryInputStream = getClass().getResourceAsStream(jansiStorage.getJansiLibrary().getResourcePath());
-
-                if (libraryInputStream != null) {
-                    copyLibrary(libraryInputStream, libFile);
+                try {
+                    if (libraryInputStream != null) {
+                        copyLibrary(libraryInputStream, libFile);
+                    }
+                } finally {
+                    IoActions.closeQuietly(libraryInputStream);
                 }
             }
 
