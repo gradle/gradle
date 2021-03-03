@@ -123,6 +123,7 @@ It’s a developer’s choice as long as the plugin binary can be executed on th
 
 It is recommended to use a statically-typed language like Java or Kotlin for implementing plugins to decrease the likelihood of binary incompatibilities.
 Should you decide on using Groovy for your plugin implementation then it is a good choice to use the annotation link:https://docs.groovy-lang.org/latest/html/gapi/groovy/transform/CompileStatic.html[@groovy.transform.CompileStatic].
+
 The recommendation to use a statically-typed language is independent from the language choice for writing tests for your plugin code.
 The use of dynamic Groovy and (its very capable testing and mocking framework) link:http://spockframework.org[Spock] is a very viable and common option.
 
