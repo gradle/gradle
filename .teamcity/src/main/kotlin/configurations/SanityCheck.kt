@@ -4,7 +4,7 @@ import common.Os.LINUX
 import model.CIBuildModel
 import model.Stage
 
-class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, usesParentBuildCache = true, init = {
+class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
     id(buildTypeId(model))
     name = "Sanity Check"
     description = "Static code analysis, checkstyle, release notes verification, etc."

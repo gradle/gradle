@@ -18,7 +18,7 @@ class FunctionalTest(
     extraParameters: String = "",
     extraBuildSteps: BuildSteps.() -> Unit = {},
     preBuildSteps: BuildSteps.() -> Unit = {}
-) : BaseGradleBuildType(model, stage = stage, init = {
+) : BaseGradleBuildType(stage = stage, init = {
     this.name = name
     this.description = description
     this.id(id)

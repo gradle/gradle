@@ -291,7 +291,7 @@ class SubprojectTestClassTime(val subProject: GradleSubproject, private val test
             // R List<TestClassTime>
             val list = LinkedList(testClassTimes.sortedBy { -it.buildTimeMs })
             val toIntFunction = TestClassTime::buildTimeMs
-            val largeElementSplitFunction: (TestClassTime, Int) -> List<List<TestClassTime>> = { testClassTime: TestClassTime, number: Int -> listOf(listOf(testClassTime)) }
+            val largeElementSplitFunction: (TestClassTime, Int) -> List<List<TestClassTime>> = { testClassTime: TestClassTime, _ -> listOf(listOf(testClassTime)) }
             val smallElementAggregateFunction: (List<TestClassTime>) -> List<TestClassTime> = { it }
 
             val buckets: List<List<TestClassTime>> = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber, Integer.MAX_VALUE)

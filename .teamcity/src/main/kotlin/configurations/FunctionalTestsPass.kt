@@ -20,7 +20,7 @@ import common.applyDefaultSettings
 import model.CIBuildModel
 import projects.FunctionalTestProject
 
-class FunctionalTestsPass(model: CIBuildModel, functionalTestProject: FunctionalTestProject) : BaseGradleBuildType(model, init = {
+class FunctionalTestsPass(model: CIBuildModel, functionalTestProject: FunctionalTestProject) : BaseGradleBuildType(init = {
     id("${functionalTestProject.testConfig.asId(model)}_Trigger")
     name = functionalTestProject.name + " (Trigger)"
 

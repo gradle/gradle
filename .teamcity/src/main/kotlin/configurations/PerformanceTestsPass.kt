@@ -24,7 +24,7 @@ import model.PerformanceTestProjectSpec
 import model.PerformanceTestType
 import projects.PerformanceTestProject
 
-class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(model, init = {
+class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(init = {
     id("${performanceTestProject.spec.asConfigurationId(model)}_Trigger")
     val performanceTestSpec = performanceTestProject.spec
     name = performanceTestProject.name + " (Trigger)"

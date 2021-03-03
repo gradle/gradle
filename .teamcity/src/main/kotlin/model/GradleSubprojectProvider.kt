@@ -32,7 +32,7 @@ interface GradleSubprojectProvider {
 }
 
 data class JsonBasedGradleSubprojectProvider(private val jsonFile: File) : GradleSubprojectProvider {
-    override val subprojects = JSON.parseArray(jsonFile.readText()).map { toSubproject(it as Map<String, Object>) }
+    override val subprojects = JSON.parseArray(jsonFile.readText()).map { toSubproject(it as Map<String, Any>) }
     private val nameToSubproject = subprojects.map { it.name to it }.toMap()
 
     override fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage) =
@@ -42,7 +42,7 @@ data class JsonBasedGradleSubprojectProvider(private val jsonFile: File) : Gradl
     override fun getSubprojectByName(name: String) = nameToSubproject[name]
 
     private
-    fun toSubproject(subproject: Map<String, Object>): GradleSubproject {
+    fun toSubproject(subproject: Map<String, Any>): GradleSubproject {
         val name = subproject["name"] as String
         val path = subproject["path"] as String
         val unitTests = !ignoredSubprojects.contains(name) && subproject["unitTests"] as Boolean

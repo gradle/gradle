@@ -4,7 +4,7 @@ import common.Os.LINUX
 import model.CIBuildModel
 import model.Stage
 
-class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
+class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
     id("${model.projectId}_BuildDistributions")
     name = "Build Distributions"
     description = "Creation and verification of the distribution and documentation"

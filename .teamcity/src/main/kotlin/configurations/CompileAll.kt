@@ -4,7 +4,7 @@ import common.Os.LINUX
 import model.CIBuildModel
 import model.Stage
 
-class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, usesParentBuildCache = true, init = {
+class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
     id(buildTypeId(model))
     name = "Compile All"
     description = "Compiles all the source code and warms up the build cache"

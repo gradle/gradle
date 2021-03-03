@@ -8,7 +8,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.Stage
 
-class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
+class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
     id("${model.projectId}_Gradleception")
     name = "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
