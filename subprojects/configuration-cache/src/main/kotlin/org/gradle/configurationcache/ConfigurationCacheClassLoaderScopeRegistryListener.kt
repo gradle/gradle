@@ -27,6 +27,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.BuildTreeScopeInitializer
+import java.io.Closeable
 
 
 internal
@@ -38,7 +39,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     private
     val listenerManager: ClassLoaderScopeRegistryListenerManager
 
-) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeScopeInitializer, AutoCloseable {
+) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeScopeInitializer, Closeable {
 
     private
     val scopeSpecs = mutableMapOf<ClassLoaderScopeId, ClassLoaderScopeSpec>()
