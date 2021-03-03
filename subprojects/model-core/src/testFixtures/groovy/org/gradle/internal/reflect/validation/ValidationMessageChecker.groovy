@@ -18,6 +18,7 @@ package org.gradle.internal.reflect.validation
 
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.reflect.JavaReflectionUtil
 
 @CompileStatic
@@ -132,6 +133,13 @@ trait ValidationMessageChecker {
     String optionalOnPrimitive(@DelegatesTo(value=OptionalOnPrimitive, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(OptionalOnPrimitive, 'cannot_use_optional_on_primitive_types', spec)
         config.render "of type ${config.primitiveType.name} shouldn't be annotated with @Optional. Properties of primitive type cannot be optional. Possible solutions: Remove the @Optional annotation or use the ${config.wrapperType.name} type instead"
+    }
+
+    void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer, String message, String docId = 'more_about_tasks', String section = 'sec:up_to_date_checks') {
+        executer.expectDocumentedDeprecationWarning("$message " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+            "Execution optimizations are disabled to ensure correctness. " +
+            "See https://docs.gradle.org/current/userguide/${docId}.html#${section} for more details.")
     }
 
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {

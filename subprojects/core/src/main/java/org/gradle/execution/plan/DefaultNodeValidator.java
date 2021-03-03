@@ -52,7 +52,7 @@ public class DefaultNodeValidator implements NodeValidator {
                         String warning = TypeValidationProblemRenderer.renderMinimalInformationAbout(problem, false);
                         DeprecationLogger.deprecateBehaviour(warning)
                             .withContext("Execution optimizations are disabled to ensure correctness.")
-                            .willBeRemovedInGradle7()
+                            .willBeRemovedInGradle8()
                             .withUserManual(docId, section)
                             .nagUser();
                 });

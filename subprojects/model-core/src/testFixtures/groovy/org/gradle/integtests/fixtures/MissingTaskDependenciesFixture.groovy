@@ -22,10 +22,8 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 @SelfType(AbstractIntegrationSpec)
 trait MissingTaskDependenciesFixture extends ValidationMessageChecker {
     void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
-        executer.expectDocumentedDeprecationWarning(
-            "${implicitDependency { at(producedConsumedLocation).consumer(consumer).producer(producer).includeLink() }} " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            implicitDependency { at(producedConsumedLocation).consumer(consumer).producer(producer).includeLink() }
+        )
     }
 }

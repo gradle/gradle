@@ -57,11 +57,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
             .findAll { problem -> problem.severity == ERROR }
 
         expectedDeprecations.forEach { warning ->
-            String expectedMessage = "${warning.message} " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/${warning.id}.html#${warning.section} for more details."
-            executer.expectDocumentedDeprecationWarning(expectedMessage)
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, warning.message, warning.id, warning.section)
         }
         if (expectedFailures) {
             fails "run"

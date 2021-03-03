@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -26,7 +27,7 @@ import spock.lang.Timeout
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
-class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     @Rule
     public final BlockingHttpServer blockingServer = new BlockingHttpServer()
@@ -483,10 +484,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         2.times {
-            executer.expectDocumentedDeprecationWarning("Type 'InvalidPing': property 'invalidInput' test problem. this is a test. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidPing': property 'invalidInput' test problem. this is a test.")
 
             blockingServer.expect(":aInvalidPing")
             blockingServer.expectConcurrent(":bPing", ":cPing")
@@ -512,10 +510,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         2.times {
-            executer.expectDocumentedDeprecationWarning("Type 'InvalidPing': property 'invalidInput' test problem. this is a test. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidPing': property 'invalidInput' test problem. this is a test.")
 
             blockingServer.expectConcurrent(":aPing", ":bPing")
             blockingServer.expect(":cInvalidPing")

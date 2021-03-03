@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -28,7 +29,7 @@ import spock.lang.Unroll
 
 import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
 
-class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
     def configureCacheForBuildSrc() {
         file("buildSrc/settings.gradle") << localCacheConfiguration()
     }
@@ -940,10 +941,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         executer.beforeExecute {
-            executer.expectDocumentedDeprecationWarning("Type 'InvalidTask': property 'input' test problem. this is a test. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidTask': property 'input' test problem. this is a test.")
         }
 
         when:
