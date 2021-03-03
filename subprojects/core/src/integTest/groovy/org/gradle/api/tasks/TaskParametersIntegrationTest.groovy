@@ -662,6 +662,9 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir", "dirs"]
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
+    )
     @Unroll
     def "missing input files registered via TaskInputs.#method are not allowed"() {
         buildFile << """
@@ -672,16 +675,26 @@ task someTask(type: SomeTask) {
         """
 
         expect:
+        def missingFile = file('missing')
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("$type '${file("missing")}' specified for property 'input' does not exist.")
+        failureDescriptionContains(inputDoesNotExist {
+            type('DefaultTask')
+                .property('input')
+                .kind(fileType)
+                .missing(missingFile)
+                .includeLink()
+        })
 
         where:
-        method | type
+        method | fileType
         "file" | "File"
         "dir"  | "Directory"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
+    )
     @Unroll
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
         file("input-file.txt").touch()
@@ -694,20 +707,29 @@ task someTask(type: SomeTask) {
         """
 
         expect:
+        def unexpected = file(path)
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type.")
+        failureDescriptionContains(unexpectedInputType {
+            type('DefaultTask').property('input')
+                .kind(fileType)
+                .missing(unexpected)
+                .includeLink()
+        })
 
         where:
-        method | path             | type
+        method | path             | fileType
         "file" | "input-dir"      | "file"
         "dir"  | "input-file.txt" | "directory"
     }
 
+    @ValidationTestFor(
+
+    )
     @Unroll
-    def "wrong output file type registered via TaskOutputs.#method is not allowed"() {
-        file("output-file.txt").touch()
-        file("output-dir").createDir()
+    def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
+        def outputDir = file("output-dir")
+        outputDir.createDir()
         buildFile << """
             task test {
                 outputs.${method}({ "$path" }) withPropertyName "output"
@@ -717,14 +739,46 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failureDescriptionContains(message.replace("<PATH>", file(path).absolutePath))
+        failureDescriptionContains(cannotWriteToFile {
+            type('DefaultTask').property('output')
+                .file(outputDir)
+                .isNotFile()
+                .includeLink()
+        })
 
         where:
-        method  | path              | message
-        "file"  | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
-        "files" | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
-        "dir"   | "output-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
-        "dirs"  | "output-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
+        method  | path
+        "file"  | "output-dir"
+        "files" | "output-dir"
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    @Unroll
+    def "wrong output file type registered via TaskOutputs.#method is not allowed (directories)"() {
+        def outputFile = file("output-file.txt")
+        outputFile.touch()
+        buildFile << """
+            task test {
+                outputs.${method}({ "$path" }) withPropertyName "output"
+                doLast {}
+            }
+        """
+
+        expect:
+        fails "test"
+        failureDescriptionContains(cannotWriteToDir {
+            type('DefaultTask').property('output')
+                .dir(outputFile)
+                .isNotDirectory()
+                .includeLink()
+        })
+
+        where:
+        method  | path
+        "dir"   | "output-file.txt"
+        "dirs"  | "output-file.txt"
     }
 
     def "can specify null as an input property in ad-hoc task"() {

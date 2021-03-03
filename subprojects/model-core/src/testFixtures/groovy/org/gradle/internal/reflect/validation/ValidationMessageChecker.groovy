@@ -93,12 +93,187 @@ trait ValidationMessageChecker {
         config.render "Gradle detected a problem with the following location: '${config.location.absolutePath}'. Task '${config.consumer}' uses this output of task '${config.producer}' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed. Possible solutions: Declare task '${config.producer}' as an input of '${config.consumer}' or declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#dependsOn or declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#mustRunAfter."
     }
 
+    String inputDoesNotExist(@DelegatesTo(value=IncorrectInputMessage, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(IncorrectInputMessage, 'input_file_does_not_exist', spec)
+        config.render "specifies ${config.kind} '${config.file}' which doesn't exist. An input file was expected to be present but it doesn't exist. Possible solutions: Make sure the ${config.kind} exists before the task is called or make sure that the task which produces the ${config.kind} is declared as an input."
+    }
+
+    String unexpectedInputType(@DelegatesTo(value=IncorrectInputMessage, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(IncorrectInputMessage, 'unexpected_input_file_type', spec)
+        config.render "${config.kind} '${config.file}' is not a ${config.kind}. Expected an input to be a ${config.kind} but it was a ${config.oppositeKind}. Possible solutions: Use a ${config.kind} as an input or declare the input as a ${config.oppositeKind} instead."
+    }
+
+    String cannotWriteToDir(@DelegatesTo(value=CannotWriteToDir, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(CannotWriteToDir, 'cannot_write_output', spec)
+        config.render "is not writable because '${config.dir}' ${config.reason}. Expected '${config.problemDir}' to be a directory but it's a file. Possible solution: Make sure that the '${config.property}' is configured to a directory."
+    }
+
+    String cannotWriteToFile(@DelegatesTo(value=CannotWriteToFile, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(CannotWriteToFile, 'cannot_write_output', spec)
+        config.render "is not writable because '${config.file}' ${config.reason}. Cannot write a file to a location pointing at a directory. Possible solution: Configure '${config.property}' to point to a file, not a directory."
+    }
+
+    String cannotWriteToReservedLocation(@DelegatesTo(value=ForbiddenPath, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(ForbiddenPath, 'cannot_write_to_reserved_location', spec)
+        config.render "points to '${config.location}' which is managed by Gradle. Trying to write an output to a read-only location which is for Gradle internal use only. Possible solution: Select a different output location."
+    }
+
+    String unsupportedNotation(@DelegatesTo(value=UnsupportedNotation, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(UnsupportedNotation, 'unsupported_notation', spec)
+        config.render "has unsupported value '${config.value}'. Type '${config.type}' cannot be converted to a ${config.targetType}. ${config.solution}"
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class UnsupportedNotation extends ValidationMessageDisplayConfiguration<UnsupportedNotation> {
+        String type
+        String value
+        String targetType
+        List<String> candidates = []
+
+        UnsupportedNotation(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnsupportedNotation value(String value, String type = 'DefaultTask') {
+            this.value = value
+            this.type = type
+            this
+        }
+
+        UnsupportedNotation cannotBeConvertedTo(String type) {
+            this.targetType = type
+            this
+        }
+
+        UnsupportedNotation candidates(String... candidates) {
+            Collections.addAll(this.candidates, candidates)
+            this
+        }
+
+        String getSolution() {
+            def solutions = candidates.collect { "use $it" }.join(" or ").capitalize()
+            "Possible solution${candidates.size()>1 ? 's':''}: $solutions"
+        }
+    }
+
+    static class ForbiddenPath extends ValidationMessageDisplayConfiguration<ForbiddenPath> {
+        File location
+
+        ForbiddenPath(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        ForbiddenPath forbiddenAt(File location) {
+            this.location = location
+            this
+        }
+    }
+
+    static class CannotWriteToDir extends ValidationMessageDisplayConfiguration<CannotWriteToDir> {
+        File dir
+        File problemDir
+        String reason
+
+        CannotWriteToDir(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        CannotWriteToDir dir(File directory) {
+            this.problemDir = directory
+            this.dir = directory
+            this
+        }
+
+        CannotWriteToDir isNotDirectory() {
+            this.reason = "is not a directory"
+            this
+        }
+
+        CannotWriteToDir ancestorIsNotDirectory(File ancestor) {
+            this.problemDir = ancestor
+            this.reason = "ancestor '$ancestor' is not a directory"
+            this
+        }
+    }
+
+    static class CannotWriteToFile extends ValidationMessageDisplayConfiguration<CannotWriteToFile> {
+        File file
+        File problemDir
+        String reason
+
+        CannotWriteToFile(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        CannotWriteToFile file(File directory) {
+            this.problemDir = directory
+            this.file = directory
+            this
+        }
+
+        CannotWriteToFile isNotFile() {
+            this.reason = "is not a file"
+            this
+        }
+
+        CannotWriteToFile ancestorIsNotDirectory(File ancestor) {
+            this.problemDir = ancestor
+            this.reason = "ancestor '$ancestor' is not a directory"
+            this
+        }
+    }
+
+    static class IncorrectInputMessage extends ValidationMessageDisplayConfiguration<IncorrectInputMessage> {
+        String kind
+        File file
+
+        IncorrectInputMessage(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        IncorrectInputMessage file(File target) {
+            kind('file')
+            file = target
+            this
+        }
+
+        IncorrectInputMessage dir(File target) {
+            kind('directory')
+            file = target
+            this
+        }
+
+        IncorrectInputMessage kind(String kind) {
+            this.kind = kind.toLowerCase()
+            this
+        }
+
+        IncorrectInputMessage missing(File file) {
+            this.file = file
+            this
+        }
+
+        IncorrectInputMessage unexpected(File file) {
+            this.file = file
+            this
+        }
+
+        String getOppositeKind() {
+            switch (kind) {
+                case 'file':
+                    return 'directory'
+                case 'directory':
+                    return 'file'
+            }
+            return 'unexpected file type'
+        }
     }
 
     static class ImplicitDependency extends ValidationMessageDisplayConfiguration<ImplicitDependency> {
@@ -251,7 +426,7 @@ trait ValidationMessageChecker {
 
         AnnotationContext(ValidationMessageChecker checker) {
             super(checker)
-            forWorkItem()
+            forTransformParameters()
         }
 
         AnnotationContext annotation(String name) {
@@ -259,12 +434,12 @@ trait ValidationMessageChecker {
             this
         }
 
-        AnnotationContext forInjection() {
+        AnnotationContext forTransformAction() {
             validAnnotations = "@Inject, @InputArtifact or @InputArtifactDependencies"
             this
         }
 
-        AnnotationContext forWorkItem() {
+        AnnotationContext forTransformParameters() {
             validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested or @ReplacedBy"
             this
         }

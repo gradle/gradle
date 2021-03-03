@@ -22,6 +22,9 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -37,7 +40,7 @@ import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServi
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.hamcrest.Matchers.containsString
 
-class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
+class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
     @Rule
@@ -181,13 +184,16 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION
+    )
     def "task cannot write into transform directory"() {
         def forbiddenPath = ".transforms/not-allowed.txt"
 
         buildFile << """
             subprojects {
                 task badTask {
-                    outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") }
+                    outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") } withPropertyName "output"
                     doLast { }
                 }
             }
@@ -197,8 +203,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         fails "badTask", "--continue"
         then:
         ['lib', 'app', 'util'].each {
+            def reserved = file("${it}/build/${forbiddenPath}")
             failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask' (type 'DefaultTask').")
-            failure.assertThatDescription(containsString("The output ${file("${it}/build/${forbiddenPath}")} must not be in a reserved location."))
+            failure.assertThatDescription(containsString(cannotWriteToReservedLocation {
+                type('DefaultTask').property('output')
+                    .forbiddenAt(reserved)
+                    .includeLink()
+            }))
         }
     }
 

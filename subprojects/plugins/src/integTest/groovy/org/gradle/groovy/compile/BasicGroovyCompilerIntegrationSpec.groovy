@@ -23,6 +23,9 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.Requires
@@ -33,7 +36,7 @@ import spock.lang.Ignore
 import spock.lang.Issue
 
 @TargetCoverage({ GroovyCoverage.SUPPORTED_BY_JDK })
-abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
+abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
 
@@ -376,12 +379,21 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         checkCompileOutput('Cannot find matching method java.lang.String#bar()')
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
+    )
     def "failsBecauseOfMissingConfigFile"() {
         Assume.assumeFalse(versionLowerThan("2.1"))
 
         expect:
+        def configFile = file('groovycompilerconfig.groovy')
         fails("compileGroovy")
-        failureDescriptionContains("File '${file('groovycompilerconfig.groovy')}' specified for property 'groovyOptions.configurationScript' does not exist.")
+        failureDescriptionContains(inputDoesNotExist {
+            type('GroovyCompile')
+                .property('groovyOptions.configurationScript')
+                .file(configFile)
+                .includeLink()
+        })
     }
 
     def "failsBecauseOfInvalidConfigFile"() {
