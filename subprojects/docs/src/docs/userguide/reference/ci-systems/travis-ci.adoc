@@ -22,7 +22,7 @@ More specifically, a Gradle plugin written in Java and tested with Spock.
 First, we'll get the project set up on your local machine before covering the same steps on CI.
 
 Just follow these steps:
-
+// TODO junit-plaform?
 === Clone https://github.com/gradle/gradle-site-plugin[Gradle Site Plugin] repository
 
 [listing.terminal.sample-command]

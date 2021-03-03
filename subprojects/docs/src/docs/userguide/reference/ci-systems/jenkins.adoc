@@ -24,6 +24,8 @@ First, we'll get the project set up on your local machine before covering the sa
 
 Just follow these steps:
 
+// TODO does this use junitPlatform?
+
 === Clone https://github.com/gradle/gradle-site-plugin[Gradle Site Plugin] repository
 
 [listing.terminal.sample-command]
