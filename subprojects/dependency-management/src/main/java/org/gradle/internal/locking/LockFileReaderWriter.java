@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.resource.local.FileResourceListener;
+import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -37,6 +38,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -204,6 +206,15 @@ public class LockFileReaderWriter {
         mapLockStateFromDependencyToConfiguration(lockState, dependencyToConfigurations, emptyConfigurations);
 
         writeUniqueLockfile(lockfilePath, dependencyToConfigurations, emptyConfigurations);
+
+        cleanupLegacyLockFiles(lockState.keySet());
+    }
+
+    private void cleanupLegacyLockFiles(Set<String> lockedConfigurations) {
+        lockedConfigurations.stream()
+            .map(f -> lockFilesRoot.resolve(decorate(f) + FILE_SUFFIX))
+            .map(Path::toFile)
+            .forEach(GFileUtils::deleteQuietly);
     }
 
     private void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToConfigurations, List<String> emptyConfigurations) {

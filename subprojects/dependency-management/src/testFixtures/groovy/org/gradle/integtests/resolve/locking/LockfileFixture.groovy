@@ -145,6 +145,11 @@ class LockfileFixture {
         }
     }
 
+    void assertLegacyLockfileMissing(String configurationName) {
+        def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, "$configurationName$LockFileReaderWriter.FILE_SUFFIX")
+        assert !lockFile.exists()
+    }
+
     private enum LockScope {
         PROJECT, BUILDSCRIPT, SETTINGS
     }
