@@ -18,33 +18,39 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
-import org.gradle.initialization.ClassLoaderScopeId
-import org.gradle.initialization.ClassLoaderScopeRegistryListener
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.serialization.ClassLoaderRole
 import org.gradle.configurationcache.serialization.ScopeLookup
+import org.gradle.initialization.ClassLoaderScopeId
+import org.gradle.initialization.ClassLoaderScopeRegistryListener
+import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.scopes.BuildTreeScopeInitializer
+import java.io.Closeable
 
 
 internal
-class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener, ScopeLookup, AutoCloseable {
+class ConfigurationCacheClassLoaderScopeRegistryListener(
+
     private
-    val scopeSpecs = LinkedHashMap<ClassLoaderScopeId, ClassLoaderScopeSpec>()
+    val startParameter: ConfigurationCacheStartParameter,
+
+    private
+    val listenerManager: ClassLoaderScopeRegistryListenerManager
+
+) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeScopeInitializer, Closeable {
+
+    private
+    val scopeSpecs = mutableMapOf<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
     private
     val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
-    private
-    var manager: ListenerManager? = null
-
-    val scopes: Collection<ClassLoaderScopeSpec>
-        get() = scopeSpecs.values
-
-    fun attach(manager: ListenerManager) {
-        require(this.manager == null)
-        this.manager = manager
-        manager.addListener(this)
+    override fun initializeBuildTreeScope() {
+        if (startParameter.isEnabled) {
+            listenerManager.add(this)
+        }
     }
 
     /**
@@ -58,30 +64,15 @@ class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegis
         //  The listener only needs to be attached in the `store` state.
         scopeSpecs.clear()
         loaders.clear()
-        detach()
+        listenerManager.remove(this)
     }
 
     override fun close() {
         dispose()
     }
 
-    private
-    fun detach() {
-        manager?.removeListener(this)
-        manager = null
-    }
-
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
         return loaders[classLoader]
-    }
-
-    override fun rootScopeCreated(rootScopeId: ClassLoaderScopeId) {
-        if (scopeSpecs.containsKey(rootScopeId)) {
-            // scope is being reused
-            return
-        }
-        val root = ClassLoaderScopeSpec(null, rootScopeId.name)
-        scopeSpecs[rootScopeId] = root
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
@@ -89,10 +80,18 @@ class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegis
             // scope is being reused
             return
         }
-        val parent = scopeSpecs[parentId]
-        require(parent != null) {
-            "Cannot find parent $parentId for child scope $childId"
+
+        val parentIsRoot = parentId.parent == null
+        val parent = if (parentIsRoot) {
+            null
+        } else {
+            val lookupParent = scopeSpecs[parentId]
+            require(lookupParent != null) {
+                "Cannot find parent $parentId for child scope $childId"
+            }
+            lookupParent
         }
+
         val child = ClassLoaderScopeSpec(parent, childId.name)
         scopeSpecs[childId] = child
     }
@@ -108,7 +107,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegis
             spec.localImplementationHash = implementationHash
         } else {
             spec.exportClassPath = classPath
-            spec.exportImplementationHash = implementationHash
         }
         loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
     }
@@ -123,7 +121,6 @@ class ClassLoaderScopeSpec(
     var localClassPath: ClassPath = ClassPath.EMPTY
     var localImplementationHash: HashCode? = null
     var exportClassPath: ClassPath = ClassPath.EMPTY
-    var exportImplementationHash: HashCode? = null
 
     override fun toString(): String {
         return if (parent != null) {

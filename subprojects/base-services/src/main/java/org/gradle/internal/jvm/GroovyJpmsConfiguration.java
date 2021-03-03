@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+// Replaced by JpmsConfiguration
+// Remove once Gradle wrapper is updated and gradlebuild.unittest-and-compile.gradle.kts is using the replacement class
+@Deprecated
 public class GroovyJpmsConfiguration {
     /**
      * These JVM arguments should be passed to any process that will be using Groovy on Java 9+

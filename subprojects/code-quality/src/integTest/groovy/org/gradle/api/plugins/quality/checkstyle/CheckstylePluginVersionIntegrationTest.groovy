@@ -64,7 +64,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INPUT_DOES_NOT_EXIST
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
     )
     def "does not support fallback when configDirectory does not exist"() {
         goodCode()

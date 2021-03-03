@@ -128,7 +128,7 @@ task work {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INPUT_DOES_NOT_EXIST
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
     )
     def "symlink may not reference missing input file"() {
         file("in-dir").createDir()

@@ -50,14 +50,14 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheKey::class.java)
             add(ConfigurationCacheReport::class.java)
             add(ConfigurationCacheProblems::class.java)
+            add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
         }
     }
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {
             add(ConfigurationCacheBuildEnablement::class.java)
-            add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
-            add(ConfigurationCacheBuildScopeListenerManagerAction::class.java)
+            add(ConfigurationCacheProblemsListenerManagerAction::class.java)
             add(SystemPropertyAccessListener::class.java)
             add(RelevantProjectsRegistry::class.java)
             add(ConfigurationCacheFingerprintController::class.java)

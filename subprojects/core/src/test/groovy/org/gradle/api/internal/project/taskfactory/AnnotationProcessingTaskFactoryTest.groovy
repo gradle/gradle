@@ -618,7 +618,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INPUT_DOES_NOT_EXIST
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
     )
     def validationActionFailsWhenInputDirectoryDoesNotExist() {
         given:
@@ -637,7 +637,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNEXPECTED_INPUT_TYPE
+        ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
     )
     def validationActionFailsWhenInputDirectoryIsAFile() {
         given:

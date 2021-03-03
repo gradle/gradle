@@ -663,7 +663,7 @@ task someTask(type: SomeTask) {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INPUT_DOES_NOT_EXIST
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
     )
     @Unroll
     def "missing input files registered via TaskInputs.#method are not allowed"() {
@@ -693,7 +693,7 @@ task someTask(type: SomeTask) {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNEXPECTED_INPUT_TYPE
+        ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
     )
     @Unroll
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {

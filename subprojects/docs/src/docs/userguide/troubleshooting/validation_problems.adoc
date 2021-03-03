@@ -268,8 +268,8 @@ someTask {
 }
 ```
 
-[[input_does_not_exist]]
-== Input doesn't exist
+[[input_file_does_not_exist]]
+== Input file doesn't exist
 
 This error occurs whenever a file (or a directory) is declared as an input of a task, but at the moment the task is executed, the file (or directory) doesn't exist.
 
@@ -279,8 +279,25 @@ The symptoms are similar to <<implicit_dependency>> except that in this case the
 
 Please refer to the <<implicit_dependency>> section for possible solutions.
 If the file isn't produced by another task, you may want to make sure that it exists before the task is called.
+If what you want to declare is that it doesn't matter that the file exists or not when the task is executed, you can configure the input as `@Optional` and make it return null when the file is absent:
 
-[[unexpected_input_type]]
+```
+public abstract class SomeTask extends DefaultTask {
+    @InputFile
+    @Optional
+    public abstract RegularFileProperty getSomeOptionalFile();
+
+    @TaskAction
+    public void run() {
+        RegularFile optionalFile = getSomeOptionalFile().getOrNull();
+        if (optionalFile != null) {
+           ...
+        }
+    }
+}
+```
+
+[[unexpected_input_file_type]]
 == Unexpected input file or directory
 
 This error indicates that a property expected a regular file as an input but that it was provided with a directory (or the other way around).
@@ -305,7 +322,8 @@ To fix this problem, you have two options:
 This error indicates that :
 
 - an output directory cannot be written because the directory property which has been configured actually refers to a regular file (or something else than an actual directory).
-- or that an output file cannot be written because the file property which has been configured actually refers to a directory
+- or that an output file cannot be written because the file property which has been configured actually refers to a directory.
+- or the parent of the output location exists and is a file.
 
 For example, you've set an output directory to `/some/path/file.txt` instead of `/some/path`.
 It's also possible that you have configured an output directory like `/some/path` but that an ancestor `/some` is a regular file.
@@ -322,9 +340,9 @@ If you did this intentionally, this is a mistake because those directories shoul
 If you didn't intend to write in this directory, you should simply setup your task to write in a different location.
 
 [[unsupported_notation]]
-== Unsupported notation in file collection
+== Unsupported notation in file inputs
 
-This error indicates that a collection of files, or a nested collection of files, contains an element that Gradle cannot convert to a file.
+This error indicates that a file, directory, collection of files, or a nested collection of files property, refers to an element that Gradle cannot convert to a file.
 
 To fix this, look at the error message which indicates the list of supported file notations and make sure to pick one of them.
 

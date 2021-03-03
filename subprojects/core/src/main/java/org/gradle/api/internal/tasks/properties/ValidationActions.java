@@ -19,10 +19,13 @@ package org.gradle.api.internal.tasks.properties;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
@@ -116,28 +119,28 @@ public enum ValidationActions implements ValidationAction {
     private static void reportMissingInput(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
-            problem.withId(ValidationProblemId.INPUT_DOES_NOT_EXIST)
+            problem.withId(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST)
                 .forProperty(propertyName)
                 .reportAs(ERROR)
-                .withDescription(() -> lowerKind + " '" + input + "' doesn't exist")
-                .happensBecause("An input is missing")
+                .withDescription(() -> "specifies " + lowerKind + " '" + input + "' which doesn't exist")
+                .happensBecause("An input file was expected to be present but it doesn't exist")
                 .addPossibleSolution(() -> "Make sure the " + lowerKind + " exists before the task is called")
                 .addPossibleSolution(() -> "Make sure that the task which produces the " + lowerKind + " is declared as an input")
-                .documentedAt("validation_problems", "input_does_not_exist");
+                .documentedAt("validation_problems", "input_file_does_not_exist");
         });
     }
 
     private static void reportUnexpectedInputKind(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
-            problem.withId(ValidationProblemId.UNEXPECTED_INPUT_TYPE)
+            problem.withId(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE)
                 .forProperty(propertyName)
                 .reportAs(ERROR)
                 .withDescription(() -> lowerKind + " '" + input + "' is not a " + lowerKind)
-                .happensBecause(() -> "Expected an input to be a " + kind.toLowerCase() + " but it was a " + actualKindOf(input))
+                .happensBecause(() -> "Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
                 .addPossibleSolution(() -> "Use a " + lowerKind + " as an input")
                 .addPossibleSolution(() -> "Declare the input as a " + actualKindOf(input) + " instead")
-                .documentedAt("validation_problems", "unexpected_input_type");
+                .documentedAt("validation_problems", "unexpected_input_file_type");
         });
     }
 
@@ -183,7 +186,7 @@ public enum ValidationActions implements ValidationAction {
                 problem.withId(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION)
                     .forProperty(propertyName)
                     .reportAs(ERROR)
-                    .withDescription(() -> "points to '" + location + "' which is a not writable")
+                    .withDescription(() -> "points to '" + location + "' which is managed by Gradle")
                     .happensBecause("Trying to write an output to a read-only location which is for Gradle internal use only")
                     .addPossibleSolution("Select a different output location")
                     .documentedAt("validation_problems", "cannot_write_to_reserved_location")
@@ -208,8 +211,8 @@ public enum ValidationActions implements ValidationAction {
                     problem.withId(ValidationProblemId.UNSUPPORTED_NOTATION)
                         .forProperty(propertyName)
                         .reportAs(ERROR)
-                        .withDescription(() -> "has value '" + value + "' which cannot be converted to a " + targetType)
-                        .happensBecause("Automatic conversion of value notation failed");
+                        .withDescription(() -> "has unsupported value '" + value + "'")
+                        .happensBecause(() -> "Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
                     Collection<String> candidates = ignored.getCandidates();
                     if (candidates.isEmpty()) {
                         problem.addPossibleSolution(() -> "Use a value of type '" + targetType + "'");
@@ -220,6 +223,16 @@ public enum ValidationActions implements ValidationAction {
                 }
             );
         }
+    }
+
+    private static String typeOf(@Nullable Object instance) {
+        if (instance == null) {
+            return Object.class.getSimpleName();
+        }
+        if (instance instanceof GeneratedSubclass) {
+            return ModelType.of(((GeneratedSubclass) instance).publicType()).getDisplayName();
+        }
+        return ModelType.typeOf(instance).getDisplayName();
     }
 
     private static String toCandidateSolution(String conversionCandidate) {
