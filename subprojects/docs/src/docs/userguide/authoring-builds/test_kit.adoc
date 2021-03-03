@@ -30,8 +30,6 @@ include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradl
 
 The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<third_party_integration.adoc#embedding,Gradle Tooling API client>>. It does not include a version of http://junit.org[JUnit], http://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
 
-// TODO (donat) we might want to mention junit platform here
-
 .Declaring the JUnit dependency
 ====
 include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-junit-dependency]"]

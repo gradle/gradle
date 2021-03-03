@@ -193,8 +193,6 @@ include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifi
 === Configuring a test framework
 
 Gradle does not dictate the use of a specific test framework.
-// TODO maybe extend this section
-
 Popular choices include link:https://junit.org/[JUnit], link:https://testng.org/[TestNG] and link:http://spockframework.org/[Spock].
 Once you choose an option, you have to add its dependency to the compile classpath for your tests.
 The following code snippet shows how to use Spock for implementing tests.
