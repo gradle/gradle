@@ -23,11 +23,7 @@ import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
 
 internal
-class ConfigurationCacheBuildScopeListenerManagerAction(
-
-    private
-    val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
-
+class ConfigurationCacheProblemsListenerManagerAction(
     private
     val problemsListener: ConfigurationCacheProblemsListener,
 
@@ -37,9 +33,6 @@ class ConfigurationCacheBuildScopeListenerManagerAction(
 ) : BuildScopeListenerManagerAction {
 
     override fun execute(manager: ListenerManager) {
-        if (buildEnablement.isEnabledForClassLoaderScopeRegistry) {
-            scopeRegistryListener.attach(manager)
-        }
         if (buildEnablement.isEnabledForCurrentBuild) {
             manager.addListener(problemsListener)
         }

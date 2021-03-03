@@ -19,6 +19,8 @@ package org.gradle.javadoc
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.IgnoreIf
@@ -79,6 +81,9 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         result.assertTasksSkipped(":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IMPLICIT_DEPENDENCY
+    )
     def "order of upstream jar entries does not matter"() {
         given:
         file("a/build.gradle") << '''

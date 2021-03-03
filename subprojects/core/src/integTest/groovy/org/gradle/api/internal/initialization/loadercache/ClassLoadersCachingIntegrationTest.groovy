@@ -418,4 +418,30 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached("a")
         isNotCached("a:a")
     }
+
+    @ToBeFixedForConfigurationCache(because = "test relies on static state")
+    def "reuses classloader when included build settings has no classpath but root build does"() {
+        given:
+        createJarWithProperties("thing.jar", [source: 1])
+        settingsFile << """
+            buildscript {
+                dependencies { classpath files("thing.jar") }
+            }
+            includeBuild "include"
+        """
+
+        and:
+        file("include/settings.gradle") << """
+            // no export path changes
+        """
+        addIsCachedCheck()
+
+        when:
+        run()
+        run()
+
+        then:
+        isCached()
+    }
+
 }

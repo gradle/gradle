@@ -48,10 +48,10 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
     public void prepareProjects(GradleInternal gradle) {
         // Setup classloader for root project, all other projects will be derived from this.
         SettingsInternal settings = gradle.getSettings();
-        ClassLoaderScope parentClassLoaderScope = settings.getClassLoaderScope();
-        ClassLoaderScope baseProjectClassLoaderScope = parentClassLoaderScope.createChild(settings.getBuildSrcDir().getAbsolutePath());
-        gradle.setBaseProjectClassLoaderScope(baseProjectClassLoaderScope);
-        generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, baseProjectClassLoaderScope);
+        ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
+        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]");
+        gradle.setBaseProjectClassLoaderScope(buildSrcClassLoaderScope);
+        generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, buildSrcClassLoaderScope);
         // attaches root project
         buildLoader.load(gradle.getSettings(), gradle);
         // Makes included build substitutions available
@@ -59,7 +59,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
             buildStateRegistry.beforeConfigureRootBuild();
         }
         // Build buildSrc and export classpath to root project
-        buildBuildSrcAndLockClassloader(gradle, baseProjectClassLoaderScope);
+        buildBuildSrcAndLockClassloader(gradle, buildSrcClassLoaderScope);
 
         delegate.prepareProjects(gradle);
 

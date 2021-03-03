@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
@@ -28,32 +29,14 @@ import javax.annotation.Nullable;
 /**
  * Listens to changes to the ClassLoaderScope tree.
  *
- * Must be registered with the {@link org.gradle.internal.event.ListenerManager} during
- * a {@link org.gradle.internal.service.scopes.BuildScopeListenerManagerAction}.
- *
  * @see ClassLoaderScopeRegistry
- * @see org.gradle.api.internal.initialization.ClassLoaderScope
+ * @see ClassLoaderScope
  */
-@EventScope(Scopes.Build.class)
+@EventScope(Scopes.UserHome.class)
 public interface ClassLoaderScopeRegistryListener {
-
-    void rootScopeCreated(ClassLoaderScopeId rootScopeId);
 
     void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId);
 
     void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash);
 
-    ClassLoaderScopeRegistryListener NULL = new ClassLoaderScopeRegistryListener() {
-        @Override
-        public void rootScopeCreated(ClassLoaderScopeId rootScopeId) {
-        }
-
-        @Override
-        public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId) {
-        }
-
-        @Override
-        public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash) {
-        }
-    };
 }

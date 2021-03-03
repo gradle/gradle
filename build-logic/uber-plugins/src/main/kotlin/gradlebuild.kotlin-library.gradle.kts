@@ -17,7 +17,7 @@
 import gradlebuild.basics.accessors.kotlin
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
+import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 
 
 plugins {
@@ -44,13 +44,13 @@ tasks {
         }
     }
 
-    val ktlintCheckTasks = withType<KtlintCheckTask>()
+    val ktlintCheckTasks = withType<KtLintCheckTask>()
 
     named("codeQuality") {
         dependsOn(ktlintCheckTasks)
     }
 
-    ktlintKotlinScriptCheck {
+    runKtlintCheckOverKotlinScripts {
         // Only check the build files, not all *.kts files in the project
         setIncludes(listOf("*.gradle.kts"))
     }

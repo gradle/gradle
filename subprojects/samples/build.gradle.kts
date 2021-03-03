@@ -16,6 +16,7 @@ dependencies {
         exclude(module = "slf4j-simple")
     }
     integTestImplementation(testFixtures(project(":core")))
+    integTestImplementation(testFixtures(project(":model-core")))
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
