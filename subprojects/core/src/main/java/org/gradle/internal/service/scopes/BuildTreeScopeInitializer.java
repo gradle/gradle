@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
-
-import javax.annotation.Nullable;
+package org.gradle.internal.service.scopes;
 
 /**
- * Uniquely identifies a {@link org.gradle.api.internal.initialization.ClassLoaderScope} in
- * the {@link ClassLoaderScopeRegistry}.
+ * All implementations registered at build tree scope are run immediately after creation of that scope.
  */
-public interface ClassLoaderScopeId {
+public interface BuildTreeScopeInitializer {
 
-    @Nullable
-    ClassLoaderScopeId getParent();
+    default void initializeBuildTreeScope() {
+    }
 
-    String getName();
-
-    boolean equals(Object other);
-
-    int hashCode();
 }

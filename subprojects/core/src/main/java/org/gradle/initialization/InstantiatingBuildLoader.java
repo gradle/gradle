@@ -52,7 +52,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
 
     private void createProjects(GradleInternal gradle, ProjectDescriptor rootProjectDescriptor) {
         ClassLoaderScope baseProjectClassLoaderScope = gradle.baseProjectClassLoaderScope();
-        ClassLoaderScope rootProjectClassLoaderScope = baseProjectClassLoaderScope.createChild("root-project");
+        ClassLoaderScope rootProjectClassLoaderScope = baseProjectClassLoaderScope.createChild("root-project[" + gradle.getIdentityPath() + "]");
 
         ProjectInternal rootProject = projectFactory.createProject(gradle, rootProjectDescriptor, null, rootProjectClassLoaderScope, baseProjectClassLoaderScope);
         gradle.setRootProject(rootProject);
