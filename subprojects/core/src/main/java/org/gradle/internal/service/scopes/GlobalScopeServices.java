@@ -51,6 +51,7 @@ import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.execution.DefaultWorkValidationWarningRecorder;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.ClassLoaderScopeRegistryListenerGlobalRef;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
 import org.gradle.initialization.FlatClassLoaderRegistry;
@@ -132,6 +133,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
+        registration.add(ClassLoaderScopeRegistryListenerGlobalRef.class);
         final List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
             registration.add(PluginServiceRegistry.class, pluginServiceRegistry);

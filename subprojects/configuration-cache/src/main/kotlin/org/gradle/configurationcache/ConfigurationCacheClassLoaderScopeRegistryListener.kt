@@ -87,9 +87,10 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
             return
         }
 
-        // We may not know of the parent if it is from another build
-        // https://github.com/gradle/gradle/pull/16351
-        val parent = scopeSpecs[parentId] ?: return
+        val parent = scopeSpecs[parentId]
+        require(parent != null) {
+            "Cannot find parent $parentId for child scope $childId"
+        }
 
         val child = ClassLoaderScopeSpec(parent, childId.name)
         scopeSpecs[childId] = child
