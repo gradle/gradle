@@ -184,6 +184,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
             context.visitTypeProblem { it.reportAs(WARNING)
+                .withId(ValidationProblemId.TEST_PROBLEM)
                 .forType(type)
                 .withDescription("type is broken")
                 .happensBecause("Test")
