@@ -31,19 +31,20 @@ import org.gradle.internal.service.scopes.BuildTreeScopeInitializer
 
 internal
 class ConfigurationCacheClassLoaderScopeRegistryListener(
-    private val startParameter: ConfigurationCacheStartParameter,
-    private val listenerManager: ClassLoaderScopeRegistryListenerManager
-) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeScopeInitializer, AutoCloseable {
+
     private
-    val scopeSpecs = LinkedHashMap<ClassLoaderScopeId, ClassLoaderScopeSpec>()
+    val startParameter: ConfigurationCacheStartParameter,
+
+    private
+    val listenerManager: ClassLoaderScopeRegistryListenerManager
+
+) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeScopeInitializer, AutoCloseable {
+
+    private
+    val scopeSpecs = mutableMapOf<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
     private
     val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
-
-    val scopes: Collection<ClassLoaderScopeSpec>
-        get() = scopeSpecs.values
-
-    var closed = false
 
     override fun initializeBuildTreeScope() {
         if (startParameter.isEnabled) {
@@ -60,7 +61,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
         //  from DefaultConfigurationCacheHost so a decision based on the configured
         //  configuration cache strategy (none, store or load) can be taken early on.
         //  The listener only needs to be attached in the `store` state.
-        closed = true
         scopeSpecs.clear()
         loaders.clear()
         listenerManager.remove(this)
@@ -75,10 +75,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
-        if (closed || !startParameter.isEnabled) {
-            return
-        }
-
         if (scopeSpecs.containsKey(childId)) {
             // scope is being reused
             return
@@ -100,10 +96,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     }
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
-        if (closed || !startParameter.isEnabled) {
-            return
-        }
-
         val spec = scopeSpecs[scopeId]
         require(spec != null)
         // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
@@ -114,7 +106,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
             spec.localImplementationHash = implementationHash
         } else {
             spec.exportClassPath = classPath
-            spec.exportImplementationHash = implementationHash
         }
         loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
     }
@@ -129,7 +120,6 @@ class ClassLoaderScopeSpec(
     var localClassPath: ClassPath = ClassPath.EMPTY
     var localImplementationHash: HashCode? = null
     var exportClassPath: ClassPath = ClassPath.EMPTY
-    var exportImplementationHash: HashCode? = null
 
     override fun toString(): String {
         return if (parent != null) {
