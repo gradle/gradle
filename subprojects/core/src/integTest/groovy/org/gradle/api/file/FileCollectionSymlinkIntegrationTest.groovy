@@ -362,7 +362,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INPUT_DOES_NOT_EXIST
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
     )
     def "broken symlink in #inputType.simpleName fails validation"() {
         def brokenInputFile = file('brokenInput').createLink("brokenInputFileTarget")

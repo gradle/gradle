@@ -94,12 +94,12 @@ trait ValidationMessageChecker {
     }
 
     String inputDoesNotExist(@DelegatesTo(value=IncorrectInputMessage, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        def config = display(IncorrectInputMessage, 'input_does_not_exist', spec)
-        config.render "${config.kind} '${config.file}' doesn't exist. An input is missing. Possible solutions: Make sure the ${config.kind} exists before the task is called or make sure that the task which produces the ${config.kind} is declared as an input."
+        def config = display(IncorrectInputMessage, 'input_file_does_not_exist', spec)
+        config.render "specifies ${config.kind} '${config.file}' which doesn't exist. An input file was expected to be present but it doesn't exist. Possible solutions: Make sure the ${config.kind} exists before the task is called or make sure that the task which produces the ${config.kind} is declared as an input."
     }
 
     String unexpectedInputType(@DelegatesTo(value=IncorrectInputMessage, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        def config = display(IncorrectInputMessage, 'unexpected_input_type', spec)
+        def config = display(IncorrectInputMessage, 'unexpected_input_file_type', spec)
         config.render "${config.kind} '${config.file}' is not a ${config.kind}. Expected an input to be a ${config.kind} but it was a ${config.oppositeKind}. Possible solutions: Use a ${config.kind} as an input or declare the input as a ${config.oppositeKind} instead."
     }
 
@@ -115,12 +115,12 @@ trait ValidationMessageChecker {
 
     String cannotWriteToReservedLocation(@DelegatesTo(value=ForbiddenPath, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(ForbiddenPath, 'cannot_write_to_reserved_location', spec)
-        config.render "points to '${config.location}' which is a not writable. Trying to write an output to a read-only location which is for Gradle internal use only. Possible solution: Select a different output location."
+        config.render "points to '${config.location}' which is managed by Gradle. Trying to write an output to a read-only location which is for Gradle internal use only. Possible solution: Select a different output location."
     }
 
     String unsupportedNotation(@DelegatesTo(value=UnsupportedNotation, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(UnsupportedNotation, 'unsupported_notation', spec)
-        config.render "has value '${config.value}' which cannot be converted to a ${config.targetType}. Automatic conversion of value notation failed. ${config.solution}"
+        config.render "has unsupported value '${config.value}'. Type '${config.type}' cannot be converted to a ${config.targetType}. ${config.solution}"
     }
 
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
@@ -132,6 +132,7 @@ trait ValidationMessageChecker {
     }
 
     static class UnsupportedNotation extends ValidationMessageDisplayConfiguration<UnsupportedNotation> {
+        String type
         String value
         String targetType
         List<String> candidates = []
@@ -140,8 +141,9 @@ trait ValidationMessageChecker {
             super(checker)
         }
 
-        UnsupportedNotation value(String value) {
+        UnsupportedNotation value(String value, String type = 'DefaultTask') {
             this.value = value
+            this.type = type
             this
         }
 

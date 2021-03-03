@@ -380,7 +380,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INPUT_DOES_NOT_EXIST
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
     )
     def "failsBecauseOfMissingConfigFile"() {
         Assume.assumeFalse(versionLowerThan("2.1"))

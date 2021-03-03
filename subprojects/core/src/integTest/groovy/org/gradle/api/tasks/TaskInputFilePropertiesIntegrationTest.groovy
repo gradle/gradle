@@ -62,6 +62,9 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         annotation << [InputFile, InputDirectory, InputFiles]
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNSUPPORTED_NOTATION
+    )
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/3193")
     @ToBeFixedForConfigurationCache(because = "multiple build failures")
@@ -102,6 +105,9 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         "file" | "file"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNSUPPORTED_NOTATION
+    )
     @Unroll
     @ToBeFixedForConfigurationCache(because = "multiple build failures")
     def "#annotation.simpleName shows error message when used with complex input"() {
