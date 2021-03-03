@@ -241,7 +241,13 @@ public class GUtil {
         try {
             URLConnection uc = url.openConnection();
             uc.setUseCaches(false);
-            return loadProperties(uc.getInputStream());
+
+            InputStream inputStream = uc.getInputStream();
+            try {
+                return loadProperties(inputStream);
+            } finally {
+                if (inputStream != null) inputStream.close();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
