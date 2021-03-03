@@ -23,6 +23,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
@@ -204,6 +205,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
         if (!classpath.isEmpty()) {
             argumentList.addAll(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
         }
+        argumentList.addAll(JpmsConfiguration.GRADLE_WORKER_JPMS_ARGS);
         return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).transform(argumentList);
     }
 }

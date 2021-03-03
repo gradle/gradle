@@ -182,7 +182,18 @@ fun Test.configureJvmForTest() {
     javaLauncher.set(launcher)
     if (jvmVersionForTest().canCompileOrRun(9)) {
         if (isUnitTest() || usesEmbeddedExecuter()) {
+            // TODO: replace the next three invocations of jvmArgs below with jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS) once wrapper is updated
             jvmArgs(org.gradle.internal.jvm.GroovyJpmsConfiguration.GROOVY_JPMS_JVM_ARGS)
+            // used by Configuration Cache
+            jvmArgs(
+                listOf(
+                    "--add-opens", "java.base/java.net=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
+                    "--add-opens", "java.base/java.nio.charset=ALL-UNNAMED" // required by BeanSchemaKt
+                )
+            )
+            // Workaround until external kotlin-dsl plugins support JDK16 properly
+            // https://youtrack.jetbrains.com/issue/KT-43704 - should be in 1.5.x line
+            jvmArgs(listOf("-Dkotlin.daemon.jvm.options=--illegal-access=permit"))
         } else {
             jvmArgs(listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")) // Used in tests by native platform library: WrapperProcess.getEnv
             jvmArgs(listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")) // Used in tests by ClassLoaderUtils
