@@ -67,7 +67,7 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
         return new TypeValidationProblem(
             problemId,
             severity,
-            TypeValidationProblemLocation.forProperty(rootType, parentProperty, property),
+            TypeValidationProblemLocation.forProperty(typeIrrelevantInErrorMessage ? null : rootType, parentProperty, property),
             shortProblemDescription,
             longDescription,
             reason,

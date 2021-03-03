@@ -235,6 +235,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
                 .addPossibleSolution(() -> "Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
                 .documentedAt("validation_problems", "implicit_dependency")
+                .typeIsIrrelevantInErrorMessage()
         );
     }
 

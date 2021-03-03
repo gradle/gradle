@@ -35,6 +35,7 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     protected UserManualReference userManualReference;
     protected final List<Supplier<Solution>> possibleSolutions = Lists.newArrayListWithExpectedSize(1);
     protected boolean cacheabilityProblemOnly = false;
+    protected boolean typeIrrelevantInErrorMessage = false;
 
     public AbstractValidationProblemBuilder(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
@@ -87,6 +88,12 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     @Override
     public T onlyAffectsCacheableWork() {
         this.cacheabilityProblemOnly = true;
+        return Cast.uncheckedCast(this);
+    }
+
+    @Override
+    public PropertyProblemBuilder typeIsIrrelevantInErrorMessage() {
+        this.typeIrrelevantInErrorMessage = true;
         return Cast.uncheckedCast(this);
     }
 

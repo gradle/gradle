@@ -29,6 +29,10 @@ public class TypeValidationProblemLocation implements Location {
         this.propertyName = property;
     }
 
+    public static TypeValidationProblemLocation irrelevant() {
+        return new TypeValidationProblemLocation(null, null, null);
+    }
+
     public static TypeValidationProblemLocation inType(Class<?> type) {
         return new TypeValidationProblemLocation(type, null, null);
     }

@@ -23,6 +23,9 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@ValidationTestFor(
+    ValidationProblemId.IMPLICIT_DEPENDENCY
+)
 @Unroll
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
 
@@ -312,7 +315,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         """
 
         when:
-        expectMissingDependencyDeprecation(":producer", ":consumer", testDirectory, 'Zip')
+        expectMissingDependencyDeprecation(":producer", ":consumer", testDirectory)
         run("producer", "consumer")
         then:
         executedAndNotSkipped(":producer", ":consumer")

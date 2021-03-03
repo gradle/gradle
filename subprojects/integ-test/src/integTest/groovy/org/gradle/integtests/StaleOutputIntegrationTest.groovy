@@ -475,8 +475,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
         }
 
         when:
-        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'), 'Copy')
-        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'), 'Copy')
+        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
+        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
         run 'backup', 'restore'
 
         then:
@@ -493,8 +493,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
         //
         // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
         invalidateBuildOutputCleanupState()
-        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'), 'Copy')
-        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'), 'Copy')
+        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
+        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
         run 'backup', 'restore', '--info'
 
         then:
