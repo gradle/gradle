@@ -186,7 +186,7 @@ public enum ValidationActions implements ValidationAction {
                 problem.withId(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION)
                     .forProperty(propertyName)
                     .reportAs(ERROR)
-                    .withDescription(() -> "points to '" + location + "' which managed by Gradle")
+                    .withDescription(() -> "points to '" + location + "' which is managed by Gradle")
                     .happensBecause("Trying to write an output to a read-only location which is for Gradle internal use only")
                     .addPossibleSolution("Select a different output location")
                     .documentedAt("validation_problems", "cannot_write_to_reserved_location")
