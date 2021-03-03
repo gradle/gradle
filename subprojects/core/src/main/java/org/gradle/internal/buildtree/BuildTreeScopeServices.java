@@ -17,15 +17,9 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.BuildType;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.initialization.ClassLoaderScopeRegistry;
-import org.gradle.initialization.ClassLoaderScopeRegistryListener;
-import org.gradle.initialization.ClassLoaderScopeRegistryListenerGlobalRef;
-import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
@@ -74,24 +68,6 @@ public class BuildTreeScopeServices {
 
     public DefaultProjectStateRegistry createProjectPathRegistry(WorkerLeaseService workerLeaseService) {
         return new DefaultProjectStateRegistry(workerLeaseService);
-    }
-
-    // See ClassLoaderScopeRegistryListenerGlobalRef for why this is needed
-    protected ClassLoaderScopeRegistryListenerGlobalRef.BuildTreeScopeHandle createClassLoaderScopeRegistryListenerGlobalRefBuildTreeScopeHandle(
-        ClassLoaderScopeRegistryListenerGlobalRef globalRef,
-        ClassLoaderScopeRegistryListener listener
-    ) {
-        return globalRef.set(listener);
-    }
-
-    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(
-        ClassLoaderRegistry classLoaderRegistry,
-        ClassLoaderCache classLoaderCache,
-        ClassLoaderScopeRegistryListenerGlobalRef listenerRef,
-        // Include as param to force creation
-        @SuppressWarnings("unused") ClassLoaderScopeRegistryListenerGlobalRef.BuildTreeScopeHandle buildTreeScopeHandle
-    ) {
-        return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, classLoaderCache, listenerRef.get());
     }
 
 }

@@ -41,6 +41,12 @@ public class ClassLoaderScopeIdentifier implements ClassLoaderScopeId {
     }
 
     @Override
+    @Nullable
+    public ClassLoaderScopeIdentifier getParent() {
+        return parent;
+    }
+
+    @Override
     public String getName() {
         return name;
     }

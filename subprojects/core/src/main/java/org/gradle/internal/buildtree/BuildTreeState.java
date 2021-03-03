@@ -20,6 +20,7 @@ import org.gradle.api.internal.BuildType;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.BuildTreeScopeInitializer;
 
 import java.io.Closeable;
 import java.util.function.Function;
@@ -36,6 +37,9 @@ public class BuildTreeState implements Closeable {
             .parent(parent)
             .provider(new BuildTreeScopeServices(this, buildType))
             .build();
+
+        // This initialization construct should be generalized for all types of service registries.
+        services.getAll(BuildTreeScopeInitializer.class).forEach(BuildTreeScopeInitializer::initializeBuildTreeScope);
     }
 
     public ServiceRegistry getServices() {

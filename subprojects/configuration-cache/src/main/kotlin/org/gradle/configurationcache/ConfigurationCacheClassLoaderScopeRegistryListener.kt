@@ -23,14 +23,17 @@ import org.gradle.configurationcache.serialization.ClassLoaderRole
 import org.gradle.configurationcache.serialization.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
+import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.scopes.BuildTreeScopeInitializer
 
 
 internal
 class ConfigurationCacheClassLoaderScopeRegistryListener(
-    private val startParameter: ConfigurationCacheStartParameter
-) : ClassLoaderScopeRegistryListener, ScopeLookup, AutoCloseable {
+    private val startParameter: ConfigurationCacheStartParameter,
+    private val listenerManager: ClassLoaderScopeRegistryListenerManager
+) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeScopeInitializer, AutoCloseable {
     private
     val scopeSpecs = LinkedHashMap<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
@@ -41,6 +44,12 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
         get() = scopeSpecs.values
 
     var closed = false
+
+    override fun initializeBuildTreeScope() {
+        if (startParameter.isEnabled) {
+            listenerManager.add(this)
+        }
+    }
 
     /**
      * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
@@ -54,6 +63,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
         closed = true
         scopeSpecs.clear()
         loaders.clear()
+        listenerManager.remove(this)
     }
 
     override fun close() {
@@ -62,19 +72,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
         return loaders[classLoader]
-    }
-
-    override fun rootScopeCreated(rootScopeId: ClassLoaderScopeId) {
-        if (closed || !startParameter.isEnabled) {
-            return
-        }
-
-        if (scopeSpecs.containsKey(rootScopeId)) {
-            // scope is being reused
-            return
-        }
-        val root = ClassLoaderScopeSpec(null, rootScopeId.name)
-        scopeSpecs[rootScopeId] = root
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
@@ -87,9 +84,15 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
             return
         }
 
-        val parent = scopeSpecs[parentId]
-        require(parent != null) {
-            "Cannot find parent $parentId for child scope $childId"
+        val parentIsRoot = parentId.parent == null
+        val parent = if (parentIsRoot) {
+            null
+        } else {
+            val lookupParent = scopeSpecs[parentId]
+            require(lookupParent != null) {
+                "Cannot find parent $parentId for child scope $childId"
+            }
+            lookupParent
         }
 
         val child = ClassLoaderScopeSpec(parent, childId.name)
