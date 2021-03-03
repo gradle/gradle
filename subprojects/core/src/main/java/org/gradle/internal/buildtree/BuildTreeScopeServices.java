@@ -69,5 +69,4 @@ public class BuildTreeScopeServices {
     public DefaultProjectStateRegistry createProjectPathRegistry(WorkerLeaseService workerLeaseService) {
         return new DefaultProjectStateRegistry(workerLeaseService);
     }
-
 }
