@@ -65,6 +65,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BIG_DECIMAL_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BIG_INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.CHAR_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.DOUBLE_SERIALIZER
@@ -284,7 +285,17 @@ class Codecs(
         bind(concurrentHashMapCodec)
         bind(ImmutableMapCodec)
 
-        bind(arrayCodec)
+        // Arrays
+        bind(BYTE_ARRAY_SERIALIZER)
+        bind(ShortArrayCodec)
+        bind(IntArrayCodec)
+        bind(LongArrayCodec)
+        bind(FloatArrayCodec)
+        bind(DoubleArrayCodec)
+        bind(BooleanArrayCodec)
+        bind(CharArrayCodec)
+        bind(NonPrimitiveArrayCodec)
+
         bind(EnumCodec)
         bind(RegexpPatternCodec)
 
