@@ -27,8 +27,8 @@ import static java.lang.String.format;
 
 public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
-    public ParallelForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
-        super(stdinPipe, isDaemon, resultAssertion, outputEncoding, execHandleFactory, durationMeasurement);
+    public ParallelForkingGradleHandle(PipedOutputStream stdinPipe, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
+        super(stdinPipe, resultAssertion, outputEncoding, execHandleFactory, durationMeasurement);
     }
 
     @Override

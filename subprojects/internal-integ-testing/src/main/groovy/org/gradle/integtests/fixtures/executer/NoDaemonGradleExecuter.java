@@ -193,7 +193,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
-        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
+        return new ForkingGradleHandle(getStdinPipe(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
     }
 
     @Override
