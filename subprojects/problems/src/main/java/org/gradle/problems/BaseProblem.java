@@ -21,11 +21,10 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class BaseProblem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, CONTEXT, PAYLOAD> implements Problem<ID, SEVERITY, CONTEXT, PAYLOAD> {
+public class BaseProblem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, CONTEXT> implements Problem<ID, SEVERITY, CONTEXT> {
     private final ID id;
     private final SEVERITY severity;
     private final CONTEXT context;
-    private final PAYLOAD payload;
     private final Supplier<String> shortDescription;
     private final Supplier<String> longDescription;
     private final Supplier<String> reason;
@@ -35,7 +34,6 @@ public class BaseProblem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, C
     public BaseProblem(ID id,
                           SEVERITY severity,
                           CONTEXT context,
-                          PAYLOAD payload,
                           Supplier<String> shortDescription,
                           Supplier<String> longDescription,
                           Supplier<String> reason,
@@ -44,7 +42,6 @@ public class BaseProblem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, C
         this.id = id;
         this.severity = severity;
         this.context = Objects.requireNonNull(context, "context must not be null");
-        this.payload = payload;
         this.shortDescription = Objects.requireNonNull(shortDescription, "short description supplier must not be null");
         this.longDescription = Objects.requireNonNull(longDescription, "long description supplier must not be null");
         this.reason = Objects.requireNonNull(reason, "reason supplier must not be null");
@@ -85,11 +82,6 @@ public class BaseProblem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, C
     @Override
     public Optional<String> getLongDescription() {
         return Optional.ofNullable(longDescription.get());
-    }
-
-    @Override
-    public Optional<PAYLOAD> getPayload() {
-        return Optional.ofNullable(payload);
     }
 
     @Override

@@ -24,9 +24,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation, TypeValidationProblem.Payload> {
+public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation> {
     @Nullable
     private final UserManualReference userManualReference;
+    private final boolean isCacheabilityProblemOnly;
 
     public TypeValidationProblem(ValidationProblemId id,
                                  Severity severity,
@@ -34,45 +35,26 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
                                  Supplier<String> shortDescription,
                                  Supplier<String> longDescription,
                                  Supplier<String> reason,
-                                 TypeValidationProblem.Payload payload,
+                                 boolean isCacheabilityProblemOnly,
                                  @Nullable UserManualReference userManualReference,
                                  List<Supplier<Solution>> solutions) {
         super(id,
             severity,
             where,
-            payload,
             shortDescription,
             longDescription,
             reason,
             () -> userManualReference == null ? null : userManualReference.toDocumentationLink(),
             solutions);
         this.userManualReference = userManualReference;
+        this.isCacheabilityProblemOnly = isCacheabilityProblemOnly;
     }
 
     public Optional<UserManualReference> getUserManualReference() {
         return Optional.ofNullable(userManualReference);
     }
 
-    public static class Payload {
-
-        private static final Payload CACHEABILITY_PROBLEM_ONLY = new Payload(true);
-        private static final Payload STANDARD_PROBLEM = new Payload(false);
-
-        public static Payload of(boolean cacheableProblemOnly) {
-            if (cacheableProblemOnly) {
-                return CACHEABILITY_PROBLEM_ONLY;
-            }
-            return STANDARD_PROBLEM;
-        }
-
-        private final boolean isCacheabilityProblemOnly;
-
-        public Payload(boolean isCacheabilityProblemOnly) {
-            this.isCacheabilityProblemOnly = isCacheabilityProblemOnly;
-        }
-
-        public boolean isCacheabilityProblemOnly() {
-            return isCacheabilityProblemOnly;
-        }
+    public boolean isCacheabilityProblemOnly() {
+        return isCacheabilityProblemOnly;
     }
 }

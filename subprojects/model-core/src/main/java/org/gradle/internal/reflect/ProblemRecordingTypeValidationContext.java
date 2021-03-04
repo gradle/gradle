@@ -27,12 +27,12 @@ import org.gradle.internal.reflect.validation.TypeValidationProblem;
 
 import javax.annotation.Nullable;
 
-abstract public class MessageFormattingTypeValidationContext implements TypeValidationContext {
+abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
     private final DocumentationRegistry documentationRegistry;
     private final Class<?> rootType;
 
-    public MessageFormattingTypeValidationContext(DocumentationRegistry documentationRegistry,
-                                                  @Nullable Class<?> rootType) {
+    public ProblemRecordingTypeValidationContext(DocumentationRegistry documentationRegistry,
+                                                 @Nullable Class<?> rootType) {
         this.documentationRegistry = documentationRegistry;
         this.rootType = rootType;
     }

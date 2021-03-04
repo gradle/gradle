@@ -60,9 +60,8 @@ import java.util.Optional;
  * @param <ID> an ID enumeration. Each problem should be uniquely identified by ID.
  * @param <SEVERITY> the severity type
  * @param <CONTEXT> the type of the context, representing where the problem happened
- * @param <PAYLOAD> the type of the payload associated with this problem
  */
-public interface Problem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, CONTEXT, PAYLOAD> extends WithId<ID>, WithDescription, WithDocumentationLink {
+public interface Problem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, CONTEXT> extends WithId<ID>, WithDescription, WithDocumentationLink {
     /**
      * @return How severe is the problem
      */
@@ -74,18 +73,6 @@ public interface Problem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, C
      * understand where a problem happened
      */
     CONTEXT getWhere();
-
-    /**
-     * An optional payload attached to this problem, which may be used
-     * to carry information about the problem before it is actually
-     * reported to the user. This can typically be an exception which
-     * caused the problem.
-     *
-     * @return this problem payload
-     */
-    default Optional<PAYLOAD> getPayload() {
-        return Optional.empty();
-    }
 
     /**
      * Should return a short, human-understandable description of the problem.
@@ -117,7 +104,7 @@ public interface Problem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, C
      * originating problem.
      * @return a problem which caused the current one to show up, if any.
      */
-    default Optional<Problem<?, ?, ?, ?>> getCause() {
+    default Optional<Problem<?, ?, ?>> getCause() {
         return Optional.empty();
     }
 }

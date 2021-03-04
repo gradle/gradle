@@ -24,7 +24,7 @@ import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nullable;
 
-public class DefaultTypeValidationContext extends MessageFormattingTypeValidationContext {
+public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     private final boolean cacheable;
     private final ImmutableMap.Builder<String, Severity> problems = ImmutableMap.builder();
 
@@ -43,7 +43,7 @@ public class DefaultTypeValidationContext extends MessageFormattingTypeValidatio
 
     @Override
     protected void recordProblem(TypeValidationProblem problem) {
-        boolean cacheableProblemOnly = problem.getPayload().map(TypeValidationProblem.Payload::isCacheabilityProblemOnly).orElse(false);
+        boolean cacheableProblemOnly = problem.isCacheabilityProblemOnly();
         if (cacheableProblemOnly && !cacheable) {
             return;
         }
