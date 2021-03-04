@@ -25,8 +25,9 @@ public interface InternalBuildFinishedListener {
      * Called after all user buildFinished hooks have been executed, but before
      * services are shutdown.
      * @param gradle the Gradle instance being finalized
+     * @param failed
      */
-    default void buildFinished(GradleInternal gradle) {
+    default void buildFinished(GradleInternal gradle, boolean failed) {
 
     }
 }

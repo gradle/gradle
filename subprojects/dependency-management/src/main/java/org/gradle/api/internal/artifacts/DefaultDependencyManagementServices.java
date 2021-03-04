@@ -429,8 +429,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             if (startParameter.isWriteDependencyLocks()) {
                 listenerManager.addListener(new InternalBuildFinishedListener() {
                     @Override
-                    public void buildFinished(GradleInternal gradle) {
-                        dependencyLockingProvider.buildFinished();
+                    public void buildFinished(GradleInternal gradle, boolean failed) {
+                        if (!failed) {
+                            dependencyLockingProvider.buildFinished();
+                        }
                     }
                 });
             }

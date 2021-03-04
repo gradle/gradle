@@ -686,7 +686,7 @@ class DependencyManagementBuildScopeServices {
         if (cacheDecoratorFactory instanceof CleaningInMemoryCacheDecoratorFactory) {
             listenerManager.addListener(new InternalBuildFinishedListener() {
                 @Override
-                public void buildFinished(GradleInternal build) {
+                public void buildFinished(GradleInternal build, boolean failed) {
                     ((CleaningInMemoryCacheDecoratorFactory) cacheDecoratorFactory).clearCaches(ComponentMetadataRuleExecutor::isMetadataRuleExecutorCache);
                 }
             });
@@ -719,7 +719,7 @@ class DependencyManagementBuildScopeServices {
     private void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
         listenerManager.addListener(new InternalBuildFinishedListener() {
             @Override
-            public void buildFinished(GradleInternal build) {
+            public void buildFinished(GradleInternal build, boolean failed) {
                 dependencyVerificationOverride.buildFinished(build);
             }
         });

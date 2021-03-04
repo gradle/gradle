@@ -193,7 +193,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         includedBuildControllers.finishBuild(failures);
         try {
             buildListener.buildFinished(buildResult);
-            buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle());
+            buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);
         } catch (Throwable t) {
             failures.add(t);
         }
