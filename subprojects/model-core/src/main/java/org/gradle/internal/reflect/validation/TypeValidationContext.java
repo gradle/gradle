@@ -18,14 +18,7 @@ package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.Action;
 
-import javax.annotation.Nullable;
-
 public interface TypeValidationContext {
-
-    /**
-     * Visits a validation problem associated with the given type.
-     */
-    void visitTypeProblem(Severity severity, Class<?> type, String message);
 
     /**
      * Visits a validation problem associated with the given type.
@@ -36,25 +29,6 @@ public interface TypeValidationContext {
     void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec);
 
     /**
-     * Visits a validation problem associated with the given property of the validated type.
-     */
-    default void visitPropertyProblem(Severity severity, String message) {
-        visitPropertyProblem(severity, null, null, message);
-    }
-
-    /**
-     * Visits a validation problem associated with the given property of the validated type.
-     */
-    default void visitPropertyProblem(Severity severity, @Nullable String property, String message) {
-        visitPropertyProblem(severity, null, property, message);
-    }
-
-    /**
-     * Visits a validation problem associated with the given (child) property of the validated type.
-     */
-    void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message);
-
-    /**
      * Visits a validation problem associated with the given property.
      * Callers are encourages to provide as much information as they can on
      * the problem following the problem builder instructions.
@@ -63,12 +37,6 @@ public interface TypeValidationContext {
     void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec);
 
     TypeValidationContext NOOP = new TypeValidationContext() {
-        @Override
-        public void visitTypeProblem(Severity severity, Class<?> type, String message) {}
-
-        @Override
-        public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {}
-
         @Override
         public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {}
 

@@ -18,6 +18,7 @@ package org.gradle.internal.reflect.validation
 
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.internal.reflect.JavaReflectionUtil
 
 @CompileStatic
 trait ValidationMessageChecker {
@@ -123,12 +124,58 @@ trait ValidationMessageChecker {
         config.render "has unsupported value '${config.value}'. Type '${config.type}' cannot be converted to a ${config.targetType}. ${config.solution}"
     }
 
+    String invalidUseOfCacheableAnnotation(@DelegatesTo(value=InvalidUseOfCacheable, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(InvalidUseOfCacheable, 'invalid_use_of_cacheable_annotation', spec)
+        config.render "Using @${config.invalidAnnotation} here is incorrect. This annotation only makes sense on ${config.correctType} types. Possible solution: Remove the annotation"
+    }
+
+    String optionalOnPrimitive(@DelegatesTo(value=OptionalOnPrimitive, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(OptionalOnPrimitive, 'cannot_use_optional_on_primitive_types', spec)
+        config.render "of type ${config.primitiveType.name} shouldn't be annotated with @Optional. Properties of primitive type cannot be optional. Possible solutions: Remove the @Optional annotation or use the ${config.wrapperType.name} type instead"
+    }
+
     private <T extends ValidationMessageDisplayConfiguration> T display(Class<T> clazz, String docSection, @DelegatesTo(value = ValidationMessageDisplayConfiguration, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def conf = clazz.newInstance(this)
         conf.section = docSection
         spec.delegate = conf
         spec()
         return (T) conf
+    }
+
+    static class OptionalOnPrimitive extends ValidationMessageDisplayConfiguration<OptionalOnPrimitive> {
+        Class<?> primitiveType
+
+        OptionalOnPrimitive(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        OptionalOnPrimitive primitive(Class<?> primitiveType) {
+            this.primitiveType = primitiveType
+            this
+        }
+
+        Class<?> getWrapperType() {
+            JavaReflectionUtil.getWrapperTypeForPrimitiveType(primitiveType)
+        }
+    }
+
+    static class InvalidUseOfCacheable extends ValidationMessageDisplayConfiguration<InvalidUseOfCacheable> {
+        String invalidAnnotation
+        String correctType
+
+        InvalidUseOfCacheable(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        InvalidUseOfCacheable invalidAnnotation(String type) {
+            this.invalidAnnotation = type
+            this
+        }
+
+        InvalidUseOfCacheable onlyMakesSenseOn(String type) {
+            this.correctType = type
+            this
+        }
     }
 
     static class UnsupportedNotation extends ValidationMessageDisplayConfiguration<UnsupportedNotation> {

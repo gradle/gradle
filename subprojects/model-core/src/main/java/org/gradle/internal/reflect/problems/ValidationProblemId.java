@@ -18,10 +18,12 @@ package org.gradle.internal.reflect.problems;
 public enum ValidationProblemId {
     // This enum value should go away as soon as possible!
     UNCLASSIFIED_PROBLEM,
+    // A problem id used only for test purposes
+    TEST_PROBLEM,
 
     // Now every time you add a new validation problem, you need
     // to assign it an id, so that it can be referenced in tests
-    INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION,
+    INVALID_USE_OF_CACHEABLE_ANNOTATION,
     MISSING_NORMALIZATION_ANNOTATION,
     VALUE_NOT_SET,
     CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
@@ -44,4 +46,5 @@ public enum ValidationProblemId {
     CANNOT_WRITE_OUTPUT,
     CANNOT_WRITE_TO_RESERVED_LOCATION,
     UNSUPPORTED_NOTATION,
+    CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE,
 }

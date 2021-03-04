@@ -60,6 +60,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -281,7 +282,12 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def invalidWork = builder
             .withValidator {context -> context
                 .forType(UnitOfWork, false)
-                .visitPropertyProblem(WARNING, "Validation problem")
+                .visitPropertyProblem{
+                    it.withId(ValidationProblemId.TEST_PROBLEM)
+                        .reportAs(WARNING)
+                        .withDescription("Validation problem")
+                        .happensBecause("Test")
+                }
             }
             .build()
         when:
@@ -583,7 +589,13 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def "invalid work is not executed"() {
         def invalidWork = builder
             .withValidator { validationContext ->
-                validationContext.forType(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
+                validationContext.forType(Object, true).visitTypeProblem {
+                    it.withId(ValidationProblemId.TEST_PROBLEM)
+                        .reportAs(ERROR)
+                        .forType(Object)
+                        .withDescription("Validation error")
+                        .happensBecause("Test")
+                }
             }
             .withWork({ throw new RuntimeException("Should not get executed") })
             .build()
@@ -594,7 +606,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            hasProblem "Type '$Object.simpleName': Validation error."
+            hasProblem "Type '$Object.simpleName': Validation error. Test."
         }
     }
 
