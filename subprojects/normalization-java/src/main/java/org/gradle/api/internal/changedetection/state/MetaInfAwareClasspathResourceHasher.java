@@ -90,7 +90,7 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     private HashCode tryHashWithFallback(ZipEntryContext zipEntryContext) throws IOException {
-        try(InputStream is = zipEntryContext.getEntry().getInputStream()) {
+        try (InputStream is = zipEntryContext.getEntry().getInputStream()) {
             return hashManifest(is);
         } catch (IOException e) {
             LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
