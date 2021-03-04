@@ -18,9 +18,12 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
+
+import static org.gradle.internal.reflect.validation.Severity.ERROR
 
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
@@ -30,7 +33,7 @@ import org.gradle.util.VersionNumber
  * https://androidstudio.googleblog.com/
  *
  */
-class AndroidPluginsSmokeTest extends AbstractSmokeTest {
+class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead."
 
@@ -364,5 +367,59 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                 }
             }
         """.stripIndent()
+    }
+
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        return [
+            'com.android.application': TestedVersions.androidGradle,
+            'com.android.library': TestedVersions.androidGradle,
+        ]
+    }
+
+    @Override
+    void configureValidation(String testedPluginId, String version) {
+        buildFile << """
+            android {
+                compileSdkVersion 24
+                buildToolsVersion '${TestedVersions.androidTools}'
+            }
+        """
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    google()
+                }
+                resolutionStrategy.eachPlugin {
+                    if (pluginRequest.id.id.startsWith('com.android')) {
+                        useModule('com.android.tools.build:gradle:${version}')
+                    }
+                }
+            }
+        """
+        validatePlugins {
+            boolean failsValidation = version.startsWith('4.2.0') || version.startsWith('7.0')
+            if (failsValidation) {
+                def failingPlugins = ['com.android.internal.version-check']
+                if (testedPluginId == 'com.android.application') {
+                    failingPlugins.addAll('com.android.application', 'com.android.internal.application')
+                }
+                if (testedPluginId == 'com.android.library') {
+                    failingPlugins.addAll('com.android.library', 'com.android.internal.library')
+                }
+                passing {
+                    it !in failingPlugins
+                }
+                onPlugins(failingPlugins) {
+                    failsWith([
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('consumable').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('resolvable').missingInputOrOutput().includeLink() }): ERROR,
+                    ])
+                }
+            } else {
+                alwaysPasses()
+            }
+        }
     }
 }
