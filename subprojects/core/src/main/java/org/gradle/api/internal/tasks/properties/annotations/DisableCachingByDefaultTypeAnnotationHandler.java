@@ -23,9 +23,9 @@ import org.gradle.work.DisableCachingByDefault;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
+import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfCacheableAnnotation;
 
-public class DoNotCacheByDefaultTypeAnnotationHandler implements TypeAnnotationHandler {
+public class DisableCachingByDefaultTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return DisableCachingByDefault.class;
@@ -34,10 +34,10 @@ public class DoNotCacheByDefaultTypeAnnotationHandler implements TypeAnnotationH
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
         if (!Task.class.isAssignableFrom(classWithAnnotationAttached) && !TransformAction.class.isAssignableFrom(classWithAnnotationAttached)) {
-            visitor.visitTypeProblem(ERROR,
-                classWithAnnotationAttached,
-                String.format("Cannot use @%s on type. This annotation can only be used with %s or %s types",
-                    getAnnotationType().getSimpleName(), Task.class.getSimpleName(),  TransformAction.class.getSimpleName()));
+            reportInvalidUseOfCacheableAnnotation(classWithAnnotationAttached,
+                visitor,
+                getAnnotationType(),
+                Task.class, TransformAction.class);
         }
     }
 }
