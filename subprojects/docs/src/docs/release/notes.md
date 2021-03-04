@@ -62,6 +62,15 @@ File system watching and configuration caching is enabled for the comparison.
 
 You can find the performance test project [here](https://github.com/gradle/santa-tracker-performance).
 
+### Native support for Apple silicon
+
+With previous Gradle versions there were two options to run Gradle builds on the new Macs equipped with the M1 chip:
+
+* run with a native ARM JDK, but lose support for the rich console and file system watching, or
+* use an Intel JDK with Rosetta, but run at about half the performance.
+
+With Gradle 7.0 there is no need to sacrifice functionality or performance, as every feature is now fully supported using a native ARM JDK, too.
+
 ## Groovy 3 upgrade
 
 Gradle has been upgraded to use Groovy 3. Groovy 3 comes with a brand new parser (code-named Parrot) and host of other new features and capabilities. In order to learn more about the improvements and new features in Groovy, please refer to [their release notes](https://groovy-lang.org/releasenotes/groovy-3.0.html).
