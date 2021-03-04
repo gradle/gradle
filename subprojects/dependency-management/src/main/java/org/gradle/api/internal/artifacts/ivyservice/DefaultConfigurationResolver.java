@@ -171,6 +171,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         if (resolutionStrategy.isDependencyLockingEnabled()) {
             lockingVisitor = new DependencyLockingArtifactVisitor(configuration.getName(), resolutionStrategy.getDependencyLockingProvider());
             visitors.add(lockingVisitor);
+        } else {
+            resolutionStrategy.confirmUnlockedConfigurationResolved(configuration.getName());
         }
         ImmutableList<DependencyArtifactsVisitor> allVisitors = visitors.build();
         CompositeDependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(allVisitors);

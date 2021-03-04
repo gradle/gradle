@@ -112,6 +112,39 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
+    def 'clears lock state for no longer locked configuration'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+
+configurations {
+    unlockedConf
+    lockedConf {
+        extendsFrom unlockedConf
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+
+dependencies {
+    unlockedConf 'org:foo:1.+'
+}
+"""
+        lockfileFixture.createLockfile('unlockedConf', ['org:foo:1.0'])
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0'])
+    }
+
+    @ToBeFixedForConfigurationCache
     def 'writes dependency lock file when requested'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()

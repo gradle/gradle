@@ -237,6 +237,14 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         return ignoredDependencies;
     }
 
+    @Override
+    public void confirmConfigurationNotLocked(String configurationName) {
+        if (writeLocks) {
+            loadLockState();
+            allLockState.remove(configurationName);
+        }
+    }
+
     private static class LockingDependencySubstitution implements DependencySubstitutionInternal {
 
         private final ComponentSelector selector;

@@ -1032,7 +1032,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def rootProject(String name, String revision = '1.0', List<String> extraConfigs = []) {
-        def metaData = new RootLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema, NoOpDependencyLockingProvider.getInstance())
+        def metaData = new RootLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema, NoOpDependencyLockingProvider.instance)
         metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ImmutableSet.of("default"), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
         extraConfigs.each { String config ->
             metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ImmutableSet.of("default", config), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)

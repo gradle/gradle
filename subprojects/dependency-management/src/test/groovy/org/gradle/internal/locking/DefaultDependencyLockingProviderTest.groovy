@@ -84,7 +84,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
         provider.buildFinished()
 
         then:
-        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        uniqueLockFile.text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
 org:bar:1.3=conf
 org:foo:1.0=conf
 empty=
@@ -257,6 +257,25 @@ empty=
         ',org:foo'      | ''
         'org:foo:1.0'   | 'org:foo:1.0'
         '*:*'           | '*:*'
+    }
+
+    def 'can drop lock state for no longer locked configuration'() {
+        uniqueLockFile << """
+org:foo:1.0=conf,otherConf
+empty=
+"""
+        startParameter.isWriteDependencyLocks() >> true
+        provider = newProvider()
+
+        when:
+        provider.confirmConfigurationNotLocked('conf')
+        provider.buildFinished()
+
+        then:
+        uniqueLockFile.text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+org:foo:1.0=otherConf
+empty=
+""".denormalize()
     }
 
     private DefaultDependencyLockingProvider newProvider() {

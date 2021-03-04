@@ -339,6 +339,11 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    public void confirmUnlockedConfigurationResolved(String configurationName) {
+        dependencyLockingProvider.confirmConfigurationNotLocked(configurationName);
+    }
+
+    @Override
     public CapabilitiesResolutionInternal getCapabilitiesResolutionRules() {
         return capabilitiesResolution;
     }
