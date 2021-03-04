@@ -231,7 +231,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     version == '1.4.31' ? 'android' : 'com.android.application'
                 ]
                 passing {
-                    it !in failingAndroidPlugins
+                    !(it in failingAndroidPlugins)
                 }
                 onPlugins(failingAndroidPlugins) {
                     // This is not a problem, since the task is only used for internal testing

@@ -415,7 +415,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                     failingPlugins.addAll('com.android.library', 'com.android.internal.library')
                 }
                 passing {
-                    it !in failingPlugins
+                    !(it in failingPlugins)
                 }
                 onPlugins(failingPlugins) {
                     failsWith([
