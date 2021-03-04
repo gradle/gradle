@@ -64,11 +64,6 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
             }
         }
 
-        // Workaround for https://issues.gradle.org/browse/GRADLE-2625
-        if (getUserHomeDir() != null) {
-            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
-        }
-
         return args;
     }
 

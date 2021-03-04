@@ -1030,6 +1030,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (disableToolchainDetection) {
             allArgs.add("-Porg.gradle.java.installations.auto-detect=false");
         }
+        if (userHomeDir != null) {
+            allArgs.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
+        }
 
         allArgs.addAll(args);
         allArgs.addAll(tasks);
