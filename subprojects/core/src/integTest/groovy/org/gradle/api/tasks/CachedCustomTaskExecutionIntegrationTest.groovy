@@ -59,7 +59,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
         configureCacheForBuildSrc()
-        file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << defineCachedTask()
         file("input.txt") << "input"
         buildFile << """
             task customTask(type: CustomTask) {
@@ -85,7 +85,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     def "changing custom Groovy task implementation in buildSrc invalidates its cached result"() {
         configureCacheForBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
-        taskSourceFile << customGroovyTask()
+        taskSourceFile << defineCachedTask()
         file("input.txt") << "input"
         buildFile << """
             task customTask(type: CustomTask) {
@@ -100,7 +100,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build/output.txt").text == "input"
 
         when:
-        taskSourceFile.text = customGroovyTask(" modified")
+        taskSourceFile.text = defineCachedTask(" modified")
 
         cleanBuildDir()
         withBuildCache().run "customTask"
@@ -109,32 +109,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build/output.txt").text == "input modified"
     }
 
-    private static String customGroovyTask(String suffix = "") {
-        """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @InputFile
-                @PathSensitive(PathSensitivity.NONE)
-                File inputFile
-
-                @OutputFile
-                File outputFile
-
-                @TaskAction
-                void doSomething() {
-                    outputFile.text = inputFile.text + "$suffix"
-                }
-            }
-        """
-    }
-
     def "cacheable task with cache disabled doesn't get cached"() {
         configureCacheForBuildSrc()
         file("input.txt") << "data"
-        file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << defineCachedTask()
         buildFile << """
             task customTask(type: CustomTask) {
                 inputFile = file("input.txt")
@@ -953,6 +931,28 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """.stripMargin())
         executedAndNotSkipped(":invalid")
         listCacheFiles().isEmpty()
+    }
+
+    private static String defineCachedTask(String suffix = "") {
+        """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile
+                @PathSensitive(PathSensitivity.NONE)
+                File inputFile
+
+                @OutputFile
+                File outputFile
+
+                @TaskAction
+                void doSomething() {
+                    outputFile.text = inputFile.text + "$suffix"
+                }
+            }
+        """
     }
 
     private static String defineProducerTask() {

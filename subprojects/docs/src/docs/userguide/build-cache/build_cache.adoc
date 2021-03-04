@@ -192,6 +192,20 @@ We suggest adding tests to ensure that the task inputs are relocatable, i.e. tha
 
 In order to handle volatile inputs for your tasks consider <<more_about_tasks.adoc#sec:configure_input_normalization,configuring input normalization>>.
 
+=== Marking tasks as non-cacheable by default
+
+There are certain tasks that don't benefit from using the build cache.
+One example is a task that only moves data around the file system, like a `Copy` task.
+You can signify that a task is not to be cached by adding the `@DisableCachingByDefault` annotation to it.
+You can also give a human-readable reason for not caching the task by default.
+The annotation can be used on its own, or together with `@CacheableTask`.
+
+[NOTE]
+====
+This annotation is only for documenting the reason behind not caching the task by default.
+Build logic can override this decision via the runtime API (see below).
+====
+
 == Enable caching of non-cacheable tasks
 
 As we have seen, built-in tasks, or tasks provided by plugins, are cacheable if their class is annotated with the `Cacheable` annotation.

@@ -45,6 +45,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.DoNotCacheByDefaultTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilesPropertyAnnotationHandler;
@@ -229,6 +230,10 @@ public class ExecutionGlobalServices {
 
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new DefaultTaskClassInfoStore(cacheFactory);
+    }
+
+    TypeAnnotationHandler createDoNotCacheByDefaultTypeAnnotationHandler() {
+        return new DoNotCacheByDefaultTypeAnnotationHandler();
     }
 
     TypeAnnotationHandler createCacheableTaskAnnotationHandler() {
