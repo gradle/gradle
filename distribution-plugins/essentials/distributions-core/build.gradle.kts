@@ -32,4 +32,7 @@ dependencies {
     pluginsRuntimeOnly(project(":kotlin-dsl-provider-plugins")) {
         because("We need a KotlinScriptBasePluginsApplicator service implementation to use Kotlin DSL scripts.")
     }
+    pluginsRuntimeOnly(project(":plugin-development")) {
+        because("Dragged in by 'kotlin-dsl-provider-plugins'.")
+    }
 }
