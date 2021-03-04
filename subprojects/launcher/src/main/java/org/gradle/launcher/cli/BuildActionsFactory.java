@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.cli;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -36,19 +35,16 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
-import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 
 import java.lang.management.ManagementFactory;
@@ -98,9 +94,6 @@ class BuildActionsFactory implements CommandLineAction {
         if (parameters.getDaemonParameters().isEnabled()) {
             return runBuildWithDaemon(parameters.getStartParameter(), parameters.getDaemonParameters());
         }
-        if (canUseCurrentProcess(parameters.getDaemonParameters())) {
-            return runBuildInProcess(parameters.getStartParameter(), parameters.getDaemonParameters());
-        }
 
         return runBuildInSingleUseDaemon(parameters.getStartParameter(), parameters.getDaemonParameters());
     }
@@ -125,24 +118,6 @@ class BuildActionsFactory implements CommandLineAction {
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
-    }
-
-    @VisibleForTesting
-    boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
-        BuildProcess currentProcess = new BuildProcess(fileCollectionFactory);
-        return currentProcess.configureForBuild(requiredBuildParameters);
-    }
-
-    private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
-        ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
-            .displayName("Global services")
-            .parent(loggingServices)
-            .parent(NativeServices.getInstance())
-            .provider(new GlobalScopeServices(startParameter.isContinuous()))
-            .build();
-
-        // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
-        return runBuildAndCloseServices(startParameter, daemonParameters, globalServices.get(BuildExecuter.class), globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
     }
 
     private Runnable runBuildInSingleUseDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters) {

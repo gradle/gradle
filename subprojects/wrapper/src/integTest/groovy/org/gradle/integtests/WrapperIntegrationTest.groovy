@@ -53,14 +53,19 @@ defaultTasks 'hello'
         }
     }
 
+    // On Windows the distribution jars will be kept open by the daemon.
+    // We could test with --no-daemon and implement some polling to wait for
+    // files to be released after the single-use daemon is stopped, but the
+    // functionality under test is the same regardless of the OS, so it is
+    // simpler to skip this test on Windows
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can recover from a broken distribution"() {
         buildFile << "task hello"
         prepareWrapper()
         def gradleUserHome = testDirectory.file('some-custom-user-home')
         when:
         def executer = wrapperExecuter.withGradleUserHomeDir(null)
-        // We can't use a daemon since on Windows the distribution jars will be kept open by the daemon
-        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath", "--no-daemon")
+        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath")
         result = executer.withTasks("hello").run()
         then:
         result.assertTaskExecuted(":hello")
@@ -75,7 +80,7 @@ defaultTasks 'hello'
             }
         }
         and:
-        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath", "--no-daemon")
+        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath")
         result = executer.withTasks("hello").run()
         then:
         deletedSomething

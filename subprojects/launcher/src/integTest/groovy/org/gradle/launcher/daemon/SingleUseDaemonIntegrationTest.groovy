@@ -24,9 +24,7 @@ import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import spock.lang.IgnoreIf
 
-import java.nio.charset.Charset
-
-@IgnoreIf({ GradleContextualExecuter.isDaemon() })
+@IgnoreIf({ GradleContextualExecuter.isEmbedded() })
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -87,10 +85,10 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         file('gradle.properties').writeProperties("org.gradle.java.home": javaHome.path)
 
         file('build.gradle') << """
-println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx512m')
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-XX:+HeapDumpOnOutOfMemoryError')
-"""
+            println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath
+            assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx512m')
+            assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-XX:+HeapDumpOnOutOfMemoryError')
+        """
 
         when:
         succeeds()
@@ -102,7 +100,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
-    def "does not fork build when java home from gradle properties matches current process"() {
+    def "forks build when java home from gradle properties matches current process"() {
         def javaHome = AvailableJavaHomes.differentJdk.javaHome
 
         file('gradle.properties').writeProperties("org.gradle.java.home": javaHome.canonicalPath)
@@ -114,7 +112,8 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         succeeds()
 
         then:
-        wasNotForked()
+        wasForked()
+        daemons.daemon.stops()
     }
 
     def "forks build to run when immutable jvm args set regardless of the environment"() {
@@ -124,8 +123,8 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
         and:
         file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx64m')
-"""
+            assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx64m')
+        """
 
         then:
         succeeds()
@@ -135,39 +134,21 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         daemons.daemon.stops()
     }
 
-    def "does not fork build when only mutable system properties requested in gradle properties"() {
+    def "forks build when only mutable system properties requested in gradle properties"() {
         when:
         requireJvmArg('-Dsome-prop=some-value')
 
         and:
         file('build.gradle') << """
-assert System.getProperty('some-prop') == 'some-value'
-"""
+            assert System.getProperty('some-prop') == 'some-value'
+        """
 
         then:
         succeeds()
 
         and:
-        wasNotForked()
-    }
-
-    def "does not fork build when immutable system property is set on command line with same value as current JVM"() {
-        def encoding = Charset.defaultCharset().name()
-
-        given:
-        buildScript """
-            task encoding {
-                doFirst { println "encoding = " + java.nio.charset.Charset.defaultCharset().name() }
-            }
-        """
-        when:
-        run "encoding", "-Dfile.encoding=$encoding"
-
-        then:
-        outputContains "encoding = $encoding"
-
-        and:
-        wasNotForked()
+        wasForked()
+        daemons.daemon.stops()
     }
 
     def "does not print daemon startup message for a single use daemon"() {

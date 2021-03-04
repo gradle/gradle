@@ -148,11 +148,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
 
         try {
             stdinPipe.write(4);
-            if (isDaemon) {
-                // When running a test in a daemon executer, the input is buffered until a
-                // newline char is received
-                stdinPipe.write(getPlatformLineSeparator().getBytes());
-            }
+            stdinPipe.write(getPlatformLineSeparator().getBytes());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

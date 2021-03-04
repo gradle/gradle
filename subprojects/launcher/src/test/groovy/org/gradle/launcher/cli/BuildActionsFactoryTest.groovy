@@ -25,9 +25,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.provider.SetupLoggingActionExecuter
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -40,14 +38,8 @@ class BuildActionsFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     ServiceRegistry loggingServices = new DefaultServiceRegistry()
-    boolean useCurrentProcess
 
-    BuildActionsFactory factory = new BuildActionsFactory(loggingServices) {
-        @Override
-        def boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
-            return useCurrentProcess
-        }
-    }
+    BuildActionsFactory factory = new BuildActionsFactory(loggingServices)
 
     def setup() {
         def factory = Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
@@ -83,15 +75,12 @@ class BuildActionsFactoryTest extends Specification {
         isDaemon action
     }
 
-    def "does not use daemon when no-daemon command line option issued"() {
-        given:
-        useCurrentProcess = true
-
+    def "uses single-use daemon when no-daemon command line option issued"() {
         when:
         def action = convert('--no-daemon', 'args')
 
         then:
-        isInProcess action
+        isSingleUseDaemon action
     }
 
     def "shows status of daemons"() {
@@ -118,17 +107,6 @@ class BuildActionsFactoryTest extends Specification {
         action instanceof ForegroundDaemonAction
     }
 
-    def "executes with single use daemon if current process cannot be used"() {
-        given:
-        useCurrentProcess = false
-
-        when:
-        def action = convert('--no-daemon')
-
-        then:
-        isSingleUseDaemon action
-    }
-
     def convert(String... args) {
         def parser = new CommandLineParser()
         factory.configureCommandLineParser(parser)
@@ -136,17 +114,12 @@ class BuildActionsFactoryTest extends Specification {
         return factory.createAction(parser, cl)
     }
 
-    void isDaemon(def action) {
+    private static void isDaemon(def action) {
         assert action instanceof RunBuildAction
         assert action.executer instanceof DaemonClient
     }
 
-    void isInProcess(def action) {
-        assert action instanceof RunBuildAction
-        assert action.executer instanceof SetupLoggingActionExecuter
-    }
-
-    void isSingleUseDaemon(def action) {
+    private static void isSingleUseDaemon(def action) {
         assert action instanceof RunBuildAction
         assert action.executer instanceof SingleUseDaemonClient
     }
