@@ -27,6 +27,7 @@ class BuildLogicFunctionalTest extends Specification {
                 }
             }
         """
+        settingsFile << ""
 
         when:
         def result = GradleRunner.create()
