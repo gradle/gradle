@@ -140,7 +140,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         file('build.gradle') << """
-            assert System.getProperty('some-prop') == 'some-value'
+            assert providers.systemProperty('some-prop').forUseAtConfigurationTime().get() == 'some-value'
         """
 
         then:
