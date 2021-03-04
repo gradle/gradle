@@ -45,14 +45,8 @@ public class JpmsConfiguration {
 
     static {
         List<String> gradleDaemonJvmArgs = new ArrayList<String>();
-        gradleDaemonJvmArgs.addAll(GROOVY_JPMS_ARGS);
 
-        List<String> configurationCacheJpmsArgs = Collections.unmodifiableList(Arrays.asList(
-            "--add-opens", "java.prefs/java.util.prefs=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
-            "--add-opens", "java.base/java.nio.charset=ALL-UNNAMED", // required by BeanSchemaKt
-            "--add-opens", "java.base/java.net=ALL-UNNAMED" // required by JavaObjectSerializationCodec
-        ));
-        gradleDaemonJvmArgs.addAll(configurationCacheJpmsArgs);
+        gradleDaemonJvmArgs.add("--illegal-access=permit"); // configuration cache can cause anything to be accessed reflectively
 
         // Workaround until external kotlin-dsl plugins support JDK16 properly
         // https://youtrack.jetbrains.com/issue/KT-43704 - should be in 1.5.x line
