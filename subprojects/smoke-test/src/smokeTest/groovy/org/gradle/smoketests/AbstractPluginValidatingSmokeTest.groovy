@@ -64,9 +64,10 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
 
             $buildScriptConfigurationForValidation
         """
+        configureValidation(id, version)
 
         expect:
-        performValidation(id, version)
+        performValidation()
 
         where:
         iterations << iterations()
@@ -77,8 +78,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         allPlugins.alwaysPasses = true
     }
 
-    void performValidation(String pluginId, String version) {
-        configureValidation(pluginId, version)
+    void performValidation() {
         allPlugins.performValidation()
     }
 

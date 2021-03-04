@@ -378,13 +378,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     @Override
-    Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(version)
-        return super.getExtraPluginsRequiredForValidation(testedPluginId, version)
-    }
-
-    @Override
     void configureValidation(String testedPluginId, String version) {
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(version)
         buildFile << """
             android {
                 compileSdkVersion 24
