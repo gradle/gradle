@@ -9,6 +9,7 @@ def functionalTestTask = tasks.register('functionalTest', Test) {
     group = 'verification'
     testClassesDirs = sourceSets.functionalTest.output.classesDirs
     classpath = sourceSets.functionalTest.runtimeClasspath
+    useJUnitPlatform()
 }
 
 tasks.named("check") {

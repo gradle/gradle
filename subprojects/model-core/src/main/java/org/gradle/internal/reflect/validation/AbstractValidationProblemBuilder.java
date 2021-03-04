@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuilder<T>> implements ValidationProblemBuilder<T> {
     protected final DocumentationRegistry documentationRegistry;
-    protected ValidationProblemId problemId = ValidationProblemId.UNCLASSIFIED_PROBLEM;
+    protected ValidationProblemId problemId = null;
     protected Severity severity = Severity.WARNING;
     protected Supplier<String> shortProblemDescription;
     protected Supplier<String> longDescription = () -> null;
@@ -35,6 +35,7 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     protected UserManualReference userManualReference;
     protected final List<Supplier<Solution>> possibleSolutions = Lists.newArrayListWithExpectedSize(1);
     protected boolean cacheabilityProblemOnly = false;
+    protected boolean typeIrrelevantInErrorMessage = false;
 
     public AbstractValidationProblemBuilder(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
@@ -42,9 +43,6 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
 
     @Override
     public T withId(ValidationProblemId id) {
-        if (id == ValidationProblemId.UNCLASSIFIED_PROBLEM) {
-            throw new IllegalStateException("Problems are by default unclassified. If you call this method, you must provide a different id.");
-        }
         this.problemId = id;
         return Cast.uncheckedCast(this);
     }
@@ -90,6 +88,12 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     @Override
     public T onlyAffectsCacheableWork() {
         this.cacheabilityProblemOnly = true;
+        return Cast.uncheckedCast(this);
+    }
+
+    @Override
+    public PropertyProblemBuilder typeIsIrrelevantInErrorMessage() {
+        this.typeIrrelevantInErrorMessage = true;
         return Cast.uncheckedCast(this);
     }
 

@@ -132,7 +132,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitPropertyProblem(WARNING, metadata.propertyName, "is broken")
+            context.visitPropertyProblem {
+                it.withId(ValidationProblemId.TEST_PROBLEM)
+                    .reportAs(WARNING)
+                    .forProperty(metadata.propertyName)
+                    .withDescription("is broken")
+                    .happensBecause("Test")
+            }
         }
 
         def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
@@ -145,7 +151,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         propertiesMetadata.size() == 1
         def propertyMetadata = propertiesMetadata.first()
         propertyMetadata.propertyName == 'searchPath'
-        collectProblems(typeMetadata) == ["Property 'searchPath' is broken."]
+        collectProblems(typeMetadata) == ["Property 'searchPath' is broken. Test."]
     }
 
     def "custom annotation that is not relevant can have validation problems"() {
@@ -153,7 +159,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * annotationHandler.propertyRelevant >> false
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitPropertyProblem(WARNING, metadata.propertyName, "is broken")
+            context.visitPropertyProblem {
+                it.withId(ValidationProblemId.TEST_PROBLEM)
+                    .reportAs(WARNING)
+                    .forProperty(metadata.propertyName)
+                    .withDescription("is broken")
+                    .happensBecause("Test")
+            }
         }
 
         def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
@@ -164,14 +176,19 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
         then:
         propertiesMetadata.empty
-        collectProblems(typeMetadata) == ["Property 'searchPath' is broken."]
+        collectProblems(typeMetadata) == ["Property 'searchPath' is broken. Test."]
     }
 
     def "custom type annotation handler can inspect for static type problems"() {
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
-            context.visitTypeProblem(WARNING, type, "type is broken")
+            context.visitTypeProblem { it.reportAs(WARNING)
+                .withId(ValidationProblemId.TEST_PROBLEM)
+                .forType(type)
+                .withDescription("type is broken")
+                .happensBecause("Test")
+            }
         }
 
         def metadataStore = new DefaultTypeMetadataStore([typeAnnotationHandler], [], [], typeAnnotationMetadataStore, cacheFactory)
@@ -186,7 +203,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == ["Type 'DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation': type is broken." as String]
+        collectProblems(typeMetadata) == ["Type 'DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation': type is broken. Test." as String]
     }
 
     @Unroll

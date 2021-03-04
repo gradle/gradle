@@ -58,17 +58,20 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
     }
 
     public TypeValidationProblem build() {
+        if (problemId == null) {
+            throw new IllegalStateException("You must set the problem id");
+        }
         if (shortProblemDescription == null) {
             throw new IllegalStateException("You must provide at least a short description of the problem");
         }
         return new TypeValidationProblem(
             problemId,
             severity,
-            TypeValidationProblemLocation.forProperty(rootType, parentProperty, property),
+            TypeValidationProblemLocation.forProperty(typeIrrelevantInErrorMessage ? null : rootType, parentProperty, property),
             shortProblemDescription,
             longDescription,
             reason,
-            TypeValidationProblem.Payload.of(cacheabilityProblemOnly),
+            cacheabilityProblemOnly,
             userManualReference,
             possibleSolutions
         );

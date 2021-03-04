@@ -18,12 +18,12 @@ In this guide, we'll discuss how to configure link:https://travis-ci.org/[Travis
 == Setup a typical project
 
 As example, this guide is going to focus on a Java-based project.
-More specifically, a Gradle plugin written in Java and tested with Spock.
+More specifically, a Gradle plugin written in Java and tested with https://www.spekframework.org/[Spek].
 First, we'll get the project set up on your local machine before covering the same steps on CI.
 
 Just follow these steps:
 
-=== Clone https://github.com/gradle/gradle-site-plugin[Gradle Site Plugin] repository
+=== Clone the https://github.com/gradle/gradle-site-plugin[Gradle Site Plugin] repository
 
 [listing.terminal.sample-command]
 ----

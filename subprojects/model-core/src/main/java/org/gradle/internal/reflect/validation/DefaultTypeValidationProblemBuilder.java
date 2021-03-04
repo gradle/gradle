@@ -31,6 +31,9 @@ public class DefaultTypeValidationProblemBuilder extends AbstractValidationProbl
     }
 
     public TypeValidationProblem build() {
+        if (problemId == null) {
+            throw new IllegalStateException("You must set the problem id");
+        }
         if (type == null) {
             throw new IllegalStateException("The type on which the problem should be reported hasn't been set");
         }
@@ -40,11 +43,11 @@ public class DefaultTypeValidationProblemBuilder extends AbstractValidationProbl
         return new TypeValidationProblem(
             problemId,
             severity,
-            TypeValidationProblemLocation.inType(type),
+            typeIrrelevantInErrorMessage ? TypeValidationProblemLocation.irrelevant() :  TypeValidationProblemLocation.inType(type),
             shortProblemDescription,
             longDescription,
             reason,
-            TypeValidationProblem.Payload.of(cacheabilityProblemOnly),
+            cacheabilityProblemOnly,
             userManualReference,
             possibleSolutions
         );

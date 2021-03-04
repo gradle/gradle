@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
@@ -57,6 +58,7 @@ class ValidationProblemPropertyAnnotationHandler implements PropertyAnnotationHa
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validationContext.visitPropertyProblem(problem ->
             problem.forProperty(propertyMetadata.getPropertyName())
+                .withId(ValidationProblemId.TEST_PROBLEM)
                 .reportAs(annotationValue(propertyMetadata))
                 .withDescription("test problem")
                 .happensBecause("this is a test")

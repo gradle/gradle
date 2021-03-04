@@ -22,7 +22,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
+import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfCacheableAnnotation;
 
 public class CacheableTaskTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
@@ -33,10 +33,8 @@ public class CacheableTaskTypeAnnotationHandler implements TypeAnnotationHandler
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
         if (!Task.class.isAssignableFrom(classWithAnnotationAttached)) {
-            visitor.visitTypeProblem(ERROR,
-                classWithAnnotationAttached,
-                String.format("Cannot use @%s on type. This annotation can only be used with %s types",
-                    getAnnotationType().getSimpleName(), Task.class.getSimpleName()));
+            reportInvalidUseOfCacheableAnnotation(classWithAnnotationAttached, visitor, getAnnotationType(), Task.class);
         }
     }
+
 }

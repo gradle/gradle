@@ -28,7 +28,7 @@ include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradl
 include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
 ====
 
-The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<third_party_integration.adoc#embedding,Gradle Tooling API client>>. It does not include a version of http://junit.org[JUnit], http://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
+The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<third_party_integration.adoc#embedding,Gradle Tooling API client>>. It does not include a version of https://junit.org[JUnit], https://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
 
 .Declaring the JUnit dependency
 ====
@@ -57,16 +57,6 @@ The following demonstrates the usage of the Gradle runner in a Java JUnit test:
 .BuildLogicFunctionalTest.java
 ----
 include::{snippetsPath}/testKit/junitQuickstart/groovy/src/test/java/org/gradle/sample/BuildLogicFunctionalTest.java[tag=functional-test-junit]
-----
-
-The following demonstrates the usage of the Gradle runner in a Kotlin JUnit test:
-
-=== Example: Using GradleRunner with Kotlin and JUnit
-
-[source,kotlin,indent=0]
-.BuildLogicFunctionalTest.kt
-----
-include::{snippetsPath}/testKit/junitQuickstart/kotlin/src/test/kotlin/org/gradle/sample/BuildLogicFunctionalTest.kt[tag=functional-test-junit]
 ----
 
 Any test execution framework can be used.

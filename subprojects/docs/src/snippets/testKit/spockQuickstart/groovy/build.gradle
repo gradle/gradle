@@ -16,6 +16,10 @@ dependencies {
 }
 // end::declare-spock-dependency[]
 
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
 repositories {
     mavenCentral()
 }

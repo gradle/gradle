@@ -447,6 +447,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Cannot query the parameters of an instance of TransformAction that takes no parameters.")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+    )
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -486,8 +489,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        failure.assertHasCause("Type 'MakeGreen.Parameters': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
-        failure.assertHasCause("Type 'MakeGreen.Parameters': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.")
+        failure.assertHasCause(invalidUseOfCacheableAnnotation {
+            type('MakeGreen.Parameters').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
+        })
+        failure.assertHasCause(invalidUseOfCacheableAnnotation {
+            type('MakeGreen.Parameters').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction').includeLink()
+        })
     }
 
     @ValidationTestFor(
@@ -662,6 +669,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         )
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+    )
     def "transform action type cannot use cacheable task annotation"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -689,7 +699,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        failure.assertHasCause("Type 'MakeGreen': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
+        failure.assertHasCause(invalidUseOfCacheableAnnotation {
+            type('MakeGreen').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
+        })
     }
 
     @ValidationTestFor(
@@ -988,7 +1000,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
     )
     def "task implementation cannot use cacheable transform annotation"() {
         buildFile << """
@@ -1003,11 +1015,13 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         expect:
         fails('broken')
         failure.assertHasDescription("A problem was found with the configuration of task ':broken' (type 'MyTask').")
-        failure.assertThatDescription(containsString("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation."))
+        failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
+            type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction').includeLink()
+        }))
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
     )
     def "task @Nested bean cannot use cacheable annotations"() {
         buildFile << """
@@ -1030,8 +1044,12 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         // Probably should be eager
         fails('broken')
         failure.assertHasDescription("Some problems were found with the configuration of task ':broken' (type 'MyTask').")
-        failure.assertThatDescription(containsString("Type 'Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types."))
-        failure.assertThatDescription(containsString("Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation."))
+        failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
+            type('Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
+        }))
+        failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
+            invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction').includeLink()
+        }))
     }
 
     @Unroll

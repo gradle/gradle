@@ -23,6 +23,9 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@ValidationTestFor(
+    ValidationProblemId.IMPLICIT_DEPENDENCY
+)
 @Unroll
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
 
@@ -312,7 +315,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         """
 
         when:
-        expectMissingDependencyDeprecation(":producer", ":consumer", testDirectory, 'Zip')
+        expectMissingDependencyDeprecation(":producer", ":consumer", testDirectory)
         run("producer", "consumer")
         then:
         executedAndNotSkipped(":producer", ":consumer")
@@ -416,12 +419,8 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
             }
         """
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "${unresolvableInput { includeLink() }} " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-        )
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, unresolvableInput { includeLink() })
+
         run "broken"
         then:
         executedAndNotSkipped ":broken"

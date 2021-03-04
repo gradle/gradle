@@ -58,4 +58,14 @@ public interface ValidationProblemBuilder<T extends ValidationProblemBuilder<T>>
     }
 
     T onlyAffectsCacheableWork();
+
+
+    /**
+     * Indicates that whenever this error is reported to the user,
+     * it's not important, or even sometimes confusing, to report the type
+     * on which it happened. This is the case for ad-hoc types (DefaultTask)
+     * or, for example, when a problem happens because of ordering issues
+     * and that it can be reported on multiple types.
+     */
+    PropertyProblemBuilder typeIsIrrelevantInErrorMessage();
 }

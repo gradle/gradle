@@ -9,6 +9,7 @@ val functionalTestTask = tasks.register<Test>("functionalTest") {
     group = "verification"
     testClassesDirs = functionalTest.output.classesDirs
     classpath = functionalTest.runtimeClasspath
+    useJUnitPlatform()
 }
 
 tasks.check {
