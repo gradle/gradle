@@ -60,8 +60,9 @@ class JdkZipEntry implements ZipEntry {
         } finally {
             if (closeAction != null) {
                 closeAction.run();
+            } else {
+                is.close();
             }
-            else is.close();
         }
     }
 

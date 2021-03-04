@@ -109,7 +109,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
             ZipEntryContext zipEntryContext = new ZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
-                try(ZipInput zipInputStream = new StreamZipInput(zipEntry.getInputStream())) {
+                try (ZipInput zipInputStream = new StreamZipInput(zipEntry.getInputStream())) {
                     fingerprintZipEntries(fullName, rootParentName, fingerprints, zipInputStream);
                 }
             } else {
