@@ -246,9 +246,7 @@ public class GUtil {
             try {
                 return loadProperties(inputStream);
             } finally {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
+                inputStream.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
