@@ -40,6 +40,8 @@ dependencies {
     integTestImplementation(testFixtures("org.gradle:model-core"))
     integTestImplementation(libs.groovyTest)
 
+    testFixturesImplementation("org.gradle:model-core")
+
     integTestLocalRepository("org.gradle:tooling-api") {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
     }
