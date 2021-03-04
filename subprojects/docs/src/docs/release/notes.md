@@ -69,7 +69,7 @@ With previous Gradle versions there were two options to run Gradle builds on the
 * run with a native ARM JDK, but lose support for the rich console and file system watching, or
 * use an Intel JDK with Rosetta, but run at about half the performance.
 
-With Gradle 7.0 these limitations are gone, and Gradle now fully supports Apple silicon using a native ARM JDK.
+With Gradle 7.0 there is no need to sacrifice functionality or performance, as every feature is now fully supported using a native ARM JDK, too.
 
 ## Groovy 3 upgrade
 
