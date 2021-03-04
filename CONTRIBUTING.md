@@ -113,7 +113,7 @@ specific JDK installations.
 
 All code contributions should contain the following:
 
-* Unit Tests (using [Spock](http://spockframework.org/spock/docs/1.1-rc-2/index.html)) for any logic introduced
+* Unit Tests (using [Spock](https://spockframework.org/spock/docs/2.0-M4/index.html)) for any logic introduced
 * Integration Test coverage of the bug/feature at the level of build execution. Please annotate tests guarding against a specific GitHub issue `@Issue("gradle/gradle#123")`.
 * Documentation in the User Manual and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
 

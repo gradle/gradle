@@ -12,6 +12,10 @@ dependencies {
 }
 // end::automatic-classpath[]
 
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
 repositories {
     mavenCentral()
 }

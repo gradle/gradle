@@ -19,7 +19,7 @@ In this guide, we'll discuss how to configure link:https://www.jetbrains.com/tea
 == Setup a typical project
 
 For demonstration purposes, this guide is going to focus on building a Java-based project; however, this setup will work with any Gradle-compatible project.
-More specifically, a Gradle plugin written in Java and tested with Spock.
+More specifically, a Gradle plugin written in Java and tested with https://www.spekframework.org/[Spek].
 First, we'll get the project set up on your local machine before covering the same steps on CI.
 
 Just follow these steps:
