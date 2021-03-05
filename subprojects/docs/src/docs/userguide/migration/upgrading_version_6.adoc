@@ -264,6 +264,11 @@ Gradle 6.x warns users about the wrong behavior and then returns a possibly inco
 Starting with 7.0 the same case will produce an error.
 Plugins and build scripts should be adjusted to query the mapped value of a provider, for example a task output property, after the task has completed.
 
+==== Task validation problems are now errors
+
+Gradle 6.0 started warning about problems with task definitions (such as incorrectly defined inputs or outputs).
+For Gradle 7.0, those warnings are now errors and will fail the build.
+
 === Deprecations
 
 [[missing_dependencies]]
