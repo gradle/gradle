@@ -47,16 +47,26 @@ class JdkZipEntry implements ZipEntry {
 
     @Override
     public byte[] getContent() throws IOException {
-        int size = size();
-        InputStream is = getInputStream();
-        try {
-            if (size >= 0) {
-                byte[] content = new byte[size];
-                ByteStreams.readFully(is, content);
-                return content;
-            } else {
-                return ByteStreams.toByteArray(is);
+        return withInputStream(new InputStreamAction<byte[]>() {
+            @Override
+            public byte[] run(InputStream inputStream) throws IOException {
+                int size = size();
+                if (size >= 0) {
+                    byte[] content = new byte[size];
+                    ByteStreams.readFully(inputStream, content);
+                    return content;
+                } else {
+                    return ByteStreams.toByteArray(inputStream);
+                }
             }
+        });
+    }
+
+    @Override
+    public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
+        InputStream is = inputStreamSupplier.get();
+        try {
+            return action.run(is);
         } finally {
             if (closeAction != null) {
                 closeAction.run();
@@ -64,11 +74,6 @@ class JdkZipEntry implements ZipEntry {
                 is.close();
             }
         }
-    }
-
-    @Override
-    public InputStream getInputStream() {
-        return inputStreamSupplier.get();
     }
 
     @Override
