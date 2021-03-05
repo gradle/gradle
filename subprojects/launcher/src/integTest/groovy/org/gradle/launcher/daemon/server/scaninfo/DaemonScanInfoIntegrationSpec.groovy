@@ -119,9 +119,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
-        if (JavaVersion.current().isJava9Compatible() && GradleContextualExecuter.isConfigCache()) {
-            executer.withArgument('-Dorg.gradle.jvmargs=--add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED')
-        }
+        openJpmsModulesForConfigurationCache()
         executer.withArgument('waitForExpiration').run()
 
         then:
@@ -279,7 +277,8 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
     private void openJpmsModulesForConfigurationCache() {
         if (JavaVersion.current().isJava9Compatible() && GradleContextualExecuter.isConfigCache()) {
-            executer.withArgument('-Dorg.gradle.jvmargs=--add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED')
+            // For java.util.concurrent.CountDownLatch being serialized reflectively by configuration cache
+            executer.withArgument('-Dorg.gradle.jvmargs=--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED')
         }
     }
 
