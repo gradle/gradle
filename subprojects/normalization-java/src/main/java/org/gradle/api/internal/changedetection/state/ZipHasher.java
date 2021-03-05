@@ -109,9 +109,10 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
             ZipEntryContext zipEntryContext = new ZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
-                try (ZipInput zipInputStream = new StreamZipInput(zipEntry.getInputStream())) {
-                    fingerprintZipEntries(fullName, rootParentName, fingerprints, zipInputStream);
-                }
+                zipEntryContext.getEntry().withInputStream((ZipEntry.InputStreamAction<Void>) inputStream -> {
+                    fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
+                    return null;
+                });
             } else {
                 fingerprintZipEntry(zipEntryContext, fingerprints);
             }

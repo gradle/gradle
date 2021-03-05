@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.internal.hash.HashCode;
@@ -71,7 +72,7 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
         if (resourceEntryFilter == null) {
             return delegate.hash(snapshotContext);
         } else {
-            try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())) {
+            try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
                 return hashProperties(propertiesFileInputStream, resourceEntryFilter);
             } catch (Exception e) {
                 LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
@@ -87,8 +88,15 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
         if (resourceEntryFilter == null) {
             return delegate.hash(zipEntryContext);
         } else {
-            try (InputStream is = zipEntryContext.getEntry().getInputStream()) {
-                return hashProperties(is, resourceEntryFilter);
+            try {
+//                return hashProperties(zipEntryContext.getEntry().getInputStream(), resourceEntryFilter);
+                return zipEntryContext.getEntry().withInputStream(new ZipEntry.InputStreamAction<HashCode>() {
+                    @Override
+                    public HashCode run(InputStream inputStream) throws IOException {
+                        return hashProperties(inputStream, resourceEntryFilter);
+                    }
+                });
+
             } catch (Exception e) {
                 LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
                 return delegate.hash(zipEntryContext);
