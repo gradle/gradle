@@ -127,7 +127,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
         final Jvm current = Jvm.current();
-        if (getJavaHome().equals(current.getJavaHome()) && JavaVersion.current().isJava9Compatible()) {
+        if (getJavaHome().equals(current.getJavaHome()) && JavaVersion.current().isJava9Compatible() && !isUseDaemon()) {
             buildJvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
         }
         return buildJvmOptions;
