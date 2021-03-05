@@ -26,9 +26,9 @@ class CppMainUsesGreeter extends SourceFileElement implements AppElement {
         this.greeter = greeter
     }
 
-    final SourceFile sourceFile = sourceFile("cpp", "main.cpp", """
+    final SourceFile sourceFile = new SourceFile("cpp", "main.cpp", """
     #include "greeter.h"
-    
+
     int main(int argc, char** argv) {
         Greeter greeter;
         greeter.sayHello();

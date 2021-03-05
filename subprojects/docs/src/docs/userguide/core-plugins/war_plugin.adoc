@@ -15,7 +15,7 @@
 [[war_plugin]]
 = The War Plugin
 
-The War plugin extends the <<java_plugin.adoc#,Java plugin>> to add support for assembling web application WAR files.
+The War plugin extends the <<java_plugin.adoc#java_plugin,Java plugin>> to add support for assembling web application WAR files.
 It disables the default JAR archive generation of the Java plugin and adds a default WAR archive task.
 
 [[sec:war_usage]]

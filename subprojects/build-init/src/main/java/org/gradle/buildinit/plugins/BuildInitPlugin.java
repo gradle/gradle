@@ -20,6 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -48,6 +49,9 @@ public class BuildInitPlugin implements Plugin<Project> {
 
                 initBuild.onlyIf(new InitBuildOnlyIfSpec(buildFile, hasSubProjects, project.getLayout(), initBuild.getLogger()));
                 initBuild.dependsOn(new InitBuildDependsOnCallable(buildFile, hasSubProjects, project.getLayout()));
+
+                ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();
+                initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(detachedResolver, project.getObjects());
             });
         }
     }

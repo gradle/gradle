@@ -30,6 +30,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.CacheRepositoryServices;
@@ -47,6 +48,9 @@ import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
+import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
@@ -142,6 +146,18 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return cache;
     }
 
+    protected ClassLoaderScopeRegistryListenerManager createClassLoaderScopeRegistryListenerManager(ListenerManager listenerManager) {
+        return new ClassLoaderScopeRegistryListenerManager(listenerManager);
+    }
+
+    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(
+        ClassLoaderRegistry classLoaderRegistry,
+        ClassLoaderCache classLoaderCache,
+        ClassLoaderScopeRegistryListenerManager listenerManager
+    ) {
+        return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, classLoaderCache, listenerManager.getBroadcaster());
+    }
+
     ClasspathTransformerCacheFactory createClasspathTransformerCache(
         CacheScopeMapping cacheScopeMapping,
         UsedGradleVersions usedGradleVersions
@@ -164,7 +180,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         ExecutorFactory executorFactory,
-        GlobalCacheLocations globalCacheLocations
+        GlobalCacheLocations globalCacheLocations,
+        FileLockManager fileLockManager
     ) {
         return new DefaultCachedClasspathTransformer(
             cacheRepository,
@@ -174,7 +191,9 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             classpathBuilder,
             fileSystemAccess,
             executorFactory,
-            globalCacheLocations);
+            globalCacheLocations,
+            fileLockManager
+        );
     }
 
     ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {

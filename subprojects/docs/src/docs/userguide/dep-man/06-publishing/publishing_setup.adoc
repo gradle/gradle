@@ -39,7 +39,7 @@ For example, a publication destined for a Maven repository includes:
 The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
 
 +
-In addition, Gradle will publish checksums for all of the above, and <<publishing_signing.adoc#,signatures>> when configured to do so.
+In addition, Gradle will publish checksums for all of the above, and <<publishing_signing.adoc#publishing_maven:signing,signatures>> when configured to do so.
 From Gradle 6.0 onwards, this includes `SHA256` and `SHA512` checksums.
 
 [[publishing_overview:where]]

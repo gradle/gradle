@@ -21,13 +21,13 @@ java {
 // end::java-cross-compilation[]
 
 tasks.withType<Test>().configureEach {
-    systemProperty("targetJavaVersion", targetJavaVersion)
+    systemProperty("targetJavaVersion", project.findProperty("targetJavaVersion"))
 }
 
 tasks.register("checkJavadocOutput") {
     dependsOn(tasks.javadoc)
     doLast {
-        require(File(the<JavaPluginConvention>().docsDir, "javadoc/org/gradle/Person.html").readText().contains("<p>Represents a person.</p>"))
+        require(File(project.the<JavaPluginConvention>().docsDir, "javadoc/org/gradle/Person.html").readText().contains("<p>Represents a person.</p>"))
     }
 }
 

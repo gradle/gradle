@@ -56,11 +56,23 @@ The migration can be performed per configuration and does not have to be done in
 The `buildId` field will not be populated by default to ensure that the produced metadata file remains unchanged when no build inputs are changed.
 Users can still opt in to have this unique identifier part of the produced metadata if they want to, see <<publishing_gradle_module_metadata.adoc#sub:gmm-reproducible,the documentation>>.
 
+[[jcenter_deprecation]]
+=== The `jcenter()` convenience method is now deprecated
+
+JFrog recently link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[announced] the decommission of JCenter.
+Gradle emits a deprecation warning when `jcenter()` is used in the repository configuration.
+Consider <<declaring_repositories.adoc#declaring-repositories,using>> `mavenCentral()`, `google()` or a private `maven` repository instead.
+
 === Potential breaking changes
 
 ==== Updates to bundled Gradle dependencies
 
-- Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.30].
+- Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.31].
+- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.7].
+
+==== Updates to default tool integration versions
+
+- PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.31.0[PMD 6.31.0].
 
 ==== Removal of `compile` and `runtime` configurations
 
@@ -110,7 +122,7 @@ An external replacement, the link:https://gradle.github.io/playframework[Play Fr
 These unmaintained alternative JVM plugins have been removed:
 `java-lang`, `scala-lang`, `junit-test-suite`, `jvm-component`, `jvm-resources`.
 
-Please use the stable <<java_library_plugin.adoc#,Java Library>> and <<scala_plugin.adoc#,Scala>> plugins instead.
+Please use the stable <<java_library_plugin.adoc#java_library_plugin,Java Library>> and <<scala_plugin.adoc#scala_plugin,Scala>> plugins instead.
 
 ==== Removal of experimental JavaScript plugins
 
@@ -135,6 +147,11 @@ Gradle 6.x warns users about the wrong behavior and ignores the target action in
 Starting from 7.0 the same case will produce an error. Plugins and build scripts should be adjusted to call `afterEvaluate` only at configuration time.
 If you have such a build failure and the related `afterEvaluate` statement is declared in your build sources then you can simply delete it.
 If `afterEvaluate` is declared in a plugin then report the issue to the plugin maintainers.
+
+=== Modifying file collections after values finalized is now an error
+
+Calling any mutator methods (i.e. `clear()`, `add()`, `remove()`, etc.) on `ConfigurableFileCollection` after the stored value calculated throws an exception.
+Users and plugin authors should adjust their code such that all configuration on `ConfigurableFileCollection` happens during configuration time, before the values are read.
 
 Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
 
@@ -180,7 +197,7 @@ The following APIs, which were not usable via command line options anymore since
 
 Gradle no longer supports discovering the settings file in a directory named `master` in a sibling directory.
 If your build still uses this deprecated feature, consider refactoring the build to have the root directory match the physical root of the project hierarchy.
-You can find more information about <<multi_project_builds.adoc#,how to structure a Gradle build>> or a <<structuring_software_products.adoc#,composition of builds>> in the user manual.
+You can find more information about <<multi_project_builds.adoc#multi_project_builds,how to structure a Gradle build>> or a <<structuring_software_products.adoc#structure_large_projects,composition of builds>> in the user manual.
 Alternatively, you can still run tasks in builds like this by invoking the build from the `master` directory only using a
 <<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
 
@@ -225,6 +242,27 @@ The local build cache configuration now needs to be done via link:{javadocPath}/
 
 This internal API was used in plugins, amongst other the https://github.com/nebula-plugins[Nebula plugins], and was deprecated in the Gradle 5.x timeline and is now removed.
 Latest plugins version should no longer reference it.
+
+==== Setting the `config_loc` config property on the `checkstyle` plugin is now an error
+
+The `checkstyle` plugin now fails for the following configuration
+```
+checkstyle {
+    configProperties['config_loc'] = file("path/to/checkstyle-config-dir")
+}
+```
+Builds should declare the checkstyle configuration with the `checkstyle` block:
+```
+checkstyle {
+    configDirectory = file("path/to/checkstyle-config-dir")
+}
+```
+
+==== Querying the mapped value of a provider before the producer has completed is now an error
+
+Gradle 6.x warns users about the wrong behavior and then returns a possibly incorrect provider value.
+Starting with 7.0 the same case will produce an error.
+Plugins and build scripts should be adjusted to query the mapped value of a provider, for example a task output property, after the task has completed.
 
 === Deprecations
 
@@ -389,7 +427,7 @@ configurations.implementation.extendsFrom(configurations.myConfiguration)
 ==== Dependency substitutions and variant aware dependency resolution
 
 While adding support for expressing <<resolution_rules#sec:variant_aware_substitutions, variant support>> in dependency substitutions, a bug fix introduced a behaviour change that some builds may rely upon.
-Previously a substituted dependency would still use the <<variant_attributes#, attributes>> of the original selector instead of the ones from the replacement selector.
+Previously a substituted dependency would still use the <<variant_attributes#variant_attributes, attributes>> of the original selector instead of the ones from the replacement selector.
 
 With that change, existing substitutions around dependencies with richer selectors, such as for platform dependencies, will no longer work as they did.
 It becomes mandatory to define the variant aware part in the target selector.
@@ -398,7 +436,7 @@ You can be affected by this change if you:
 
 * have dependencies on platforms, like `implementation platform("org:platform:1.0")`
 * _or_ if you specify attributes on dependencies,
-* _and_ you use <<resolution_rules#, resolution rules>> on these dependencies.
+* _and_ you use <<resolution_rules#resolution_rules, resolution rules>> on these dependencies.
 
 See the <<resolution_rules#sec:variant_aware_substitutions, documentation>> for resolving issues if you are impacted.
 
@@ -531,7 +569,7 @@ Gradle will continue building projects on 32-bit systems but will no longer show
 ==== Using default and archives configurations
 
 Almost every Gradle project has the _default_ and _archives_ configurations which are added by the _base_ plugin.
-These configurations are no longer used in modern Gradle builds that use <<variant_model.adoc#,variant aware dependency management>> and the <<publishing_setup.adoc#,new publishing plugins>>.
+These configurations are no longer used in modern Gradle builds that use <<variant_model.adoc#understanding-variant-selection,variant aware dependency management>> and the <<publishing_setup.adoc#publishing_components,new publishing plugins>>.
 
 While the configurations will stay in Gradle for backwards compatibility for now, using them to declare dependencies or to resolve dependencies is now deprecated.
 
@@ -604,7 +642,9 @@ The following methods have been discontinued and should no longer be used. They 
 [[upgrading_jvm_plugins]]
 ==== Alternative JVM plugins (a.k.a "Software Model")
 
-A set of alternative plugins for Java and Scala development were introduced in Gradle 2.x as an experiment based on the "software model".  These plugins are now deprecated and will eventually be removed.  If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm-component`, `jvm-resources`, `junit-test-suite`) please consult the documentation on <<building_java_projects.adoc#,Building Java & JVM projects>> to determine which of the stable JVM plugins are appropriate for your project.
+A set of alternative plugins for Java and Scala development were introduced in Gradle 2.x as an experiment based on the "software model".
+These plugins are now deprecated and will eventually be removed.
+If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm-component`, `jvm-resources`, `junit-test-suite`) please consult the documentation on <<building_java_projects.adoc#building_java_projects,Building Java & JVM projects>> to determine which of the stable JVM plugins are appropriate for your project.
 
 === Potential breaking changes
 

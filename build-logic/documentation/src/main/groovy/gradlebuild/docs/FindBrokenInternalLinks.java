@@ -97,7 +97,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     private void writeHeader(PrintWriter fw) {
         fw.println("# Valid links are:");
         fw.println("# * Inside the same file: <<(#)section-name(,text)>>");
-        fw.println("# * To a different file: <<other-file(.adoc)#(section-name),text>> - Note that the # is mandatory, otherwise the link is considered to be inside the file!");
+        fw.println("# * To a different file: <<other-file(.adoc)#section-name,text>> - Note that the # and section are mandatory, otherwise the link is invalid in the single page output");
         fw.println("#");
         fw.println("# The checker does not handle implicit section names, so they must be explicit and declared as: [[section-name]]");
     }
@@ -124,7 +124,9 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                                 errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
                             } else {
                                 String idName = result.group(2);
-                                if (!idName.isEmpty()) {
+                                if (idName.isEmpty()) {
+                                    errorsForFile.add(new Error(lineNumber, line, "Missing section reference for link to " + fileName));
+                                } else {
                                     if (!fileContainsText(referencedFile, "[[" + idName + "]]")) {
                                         errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + idName + " in " + fileName));
                                     }

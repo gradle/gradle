@@ -1,6 +1,6 @@
-class GreetingPluginExtension {
-    String message
-    String greeter
+interface GreetingPluginExtension {
+    Property<String> getMessage()
+    Property<String> getGreeter()
 }
 
 class GreetingPlugin implements Plugin<Project> {
@@ -8,7 +8,7 @@ class GreetingPlugin implements Plugin<Project> {
         def extension = project.extensions.create('greeting', GreetingPluginExtension)
         project.task('hello') {
             doLast {
-                println "${extension.message} from ${extension.greeter}"
+                println "${extension.message.get()} from ${extension.greeter.get()}"
             }
         }
     }

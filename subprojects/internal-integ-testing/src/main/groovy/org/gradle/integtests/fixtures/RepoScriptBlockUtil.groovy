@@ -69,25 +69,27 @@ class RepoScriptBlockUtil {
 
         String originalUrl
         String mirrorUrl
-        String name
         String type
 
         private MirroredRepository(String originalUrl, String mirrorUrl, String type) {
             this.originalUrl = originalUrl
             this.mirrorUrl = mirrorUrl ?: originalUrl
-            this.name = mirrorUrl ? name() + "_MIRROR" : name()
             this.type = type
         }
 
         String getRepositoryDefinition(GradleDsl dsl = GROOVY) {
-            repositoryDefinition(dsl, type, name, mirrorUrl)
+            repositoryDefinition(dsl, type, getName(), mirrorUrl)
         }
 
         void configure(RepositoryHandler repositories) {
             repositories.maven { MavenArtifactRepository repo ->
-                repo.name = name
+                repo.name = getName()
                 repo.url = mirrorUrl
             }
+        }
+
+        String getName() {
+            return mirrorUrl ? name() + "_MIRROR" : name()
         }
     }
 

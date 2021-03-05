@@ -104,7 +104,7 @@ It can be a complete `group:name`, or part of it.
 If multiple dependencies match, they are all printed in the report.
 `--configuration <name>` (mandatory)::
 Indicates which configuration to resolve for showing the dpendency information.
-Note that the <<java_plugin#, Java plugin>> wires a convention with the value `compileClasspath`, making the parameter optional.
+Note that the <<java_plugin#java_plugin, Java plugin>> wires a convention with the value `compileClasspath`, making the parameter optional.
 `--singlepath` (optional)::
 Indicates to render only a single path to the dependency.
 This might be useful to trim down the output in large graphs.
@@ -153,7 +153,7 @@ Have a look at the table below to understand the meaning of the different terms 
 This can also be followed by a `because` text.
 
 | Was requested : reject version <versions>
-| The dependency appears in the graph, with a <<rich_versions#, rich version>> containing one or more `reject`.
+| The dependency appears in the graph, with a <<rich_versions#rich-version-constraints, rich version>> containing one or more `reject`.
 This can also be followed by a `because` text.
 
 | By conflict resolution : between versions <version>
@@ -165,10 +165,10 @@ This resulted in <<dependency_resolution#sec:version-conflict, conflict resoluti
 This can also be followed by a `because` text.
 
 | By ancestor
-| There is a <<rich_versions#, rich version>> with a `strictly` in the graph which enforces the version of this dependency.
+| There is a <<rich_versions#rich-version-constraints, rich version>> with a `strictly` in the graph which enforces the version of this dependency.
 
 | Selected by rule
-| A <<resolution_rules#, dependency resolution rule>> overruled the default selection process.
+| A <<resolution_rules#resolution_rules, dependency resolution rule>> overruled the default selection process.
 This can also be followed by a `because` text.
 
 | Rejection : <version> by rule because <text>
@@ -187,29 +187,31 @@ Note that if multiple selection reasons exist in the graph, they will all be lis
 [[sec:resolving-version-conflict]]
 == Resolving version conflicts
 
-If the selected version does not match your expectation, Gradle offers a series of tools to help you <<dependency_constraints.adoc#,control transitive dependencies>>.
+If the selected version does not match your expectation, Gradle offers a series of tools to help you <<dependency_constraints.adoc#dependency-constraints,control transitive dependencies>>.
 
 [[sec:resolving-variant-aware-errors]]
 == Resolving variant selection errors
 
-Sometimes a selection error will happen at the <<variant_model.adoc#,variant selection level>>.
+Sometimes a selection error will happen at the <<variant_model.adoc#understanding-variant-selection,variant selection level>>.
 Have a look at the <<variant_model.adoc#sec:variant-select-errors,dedicated section>> to understand these errors and how to resolve them.
 
 [[sub:resolving-unsafe-configuration-resolution-errors]]
 == Resolving unsafe configuration resolution errors
 
-Configurations need to be resolved safely when crossing project boundaries because resolving a configuration can have side effects on Gradle's project model.
-Gradle can manage this safe access, but the configuration needs to be accessed in a way that enables Gradle to do so.
-There are a number of ways a configuration might be resolved unsafely and Gradle will produce a deprecation warning for each unsafe access.
+Resolving a configuration can have side effects on Gradle's project model, so Gradle needs manage access to each project's configurations.
+There are a number of ways a configuration might be resolved unsafely. Gradle will produce a deprecation warning for each unsafe access.
+Each of these are bad practices and can cause strange and indeterminate errors.
+
+If your build has an unsafe access deprecation warning, it needs to be fixed.
 
 For example:
 
-* A task from one project directly resolves a configuration in another project.
+* A task from one project directly resolves a configuration in another project in the task's action.
 * A task specifies a configuration from another project as an input file collection.
-* A build script for a project resolves a configuration in another project during evaluation.
+* A build script for one project resolves a configuration in another project during evaluation.
+* Project configurations are resolved in the settings file.
 
-If your build has an unsafe access deprecation warning, it needs to be fixed.
-It's a symptom of these bad practices and can cause strange and indeterminate errors.
+In most cases, this issue can be resolved by creating a cross-project dependency on the other project.
+See the documentation for <<cross_project_publications.adoc#cross_project_publications, sharing outputs between projects>> for more information.
 
-In most cases, this issue can be resolved by creating a cross-project dependency on the other project.  See the documentation for <<cross_project_publications.adoc#cross_project_publications, sharing outputs between projects>> for more information.
 If you find a use case that can't be resolved using these techniques, please let us know by filing a https://github.com/gradle/gradle/issues[GitHub Issue] adhering to our issue guidelines.

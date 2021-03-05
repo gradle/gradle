@@ -29,6 +29,17 @@ class GroovyCoverage {
     static final List<String> SUPPORTS_PARAMETERS
 
     static {
+        SUPPORTED_BY_JDK = groovyVersionsSupportedByJdk(JavaVersion.current())
+        SUPPORTS_GROOVYDOC = versionsAbove(SUPPORTED_BY_JDK, "1.6.9")
+        SUPPORTS_TIMESTAMP = versionsAbove(SUPPORTED_BY_JDK, "2.4.6")
+        SUPPORTS_PARAMETERS = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
+    }
+
+    static boolean supportsJavaVersion(String groovyVersion, JavaVersion javaVersion) {
+        return groovyVersionsSupportedByJdk(javaVersion).contains(groovyVersion)
+    }
+
+    private static List<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
         def allVersions = [*PREVIOUS]
 
         // Only test current Groovy version if it isn't a SNAPSHOT
@@ -36,15 +47,13 @@ class GroovyCoverage {
             allVersions += GroovySystem.version
         }
 
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
-            SUPPORTED_BY_JDK = versionsBetween(allVersions, '2.2.2', '2.5.10')
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_16)) {
+            return versionsAbove(allVersions, '3.0.0')
+        } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_14)) {
+            return versionsBetween(allVersions, '2.2.2', '2.5.10')
         } else {
-            SUPPORTED_BY_JDK = allVersions
+            return allVersions
         }
-
-        SUPPORTS_GROOVYDOC = versionsAbove(SUPPORTED_BY_JDK, "1.6.9")
-        SUPPORTS_TIMESTAMP = versionsAbove(SUPPORTED_BY_JDK, "2.4.6")
-        SUPPORTS_PARAMETERS = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
     }
 
     private static List<String> versionsAbove(List<String> versionsToFilter, String threshold) {

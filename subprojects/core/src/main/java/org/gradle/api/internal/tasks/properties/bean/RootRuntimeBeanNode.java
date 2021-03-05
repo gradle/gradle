@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.properties.bean;
 
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Queue;
 

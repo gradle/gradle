@@ -1,3 +1,4 @@
+[[publishing_portal]]
 = Publishing Plugins to the Gradle Plugin Portal
 :portal: Gradle Plugin Portal
 :plugin: Greeting Plugin
@@ -57,8 +58,8 @@ Add the {publishplugin} to the `plugins` block.
 include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugins_block]"]
 ====
-<1> Use the <<java_gradle_plugin.adoc#,Java Gradle Plugin Development Plugin>>, which comes with the Gradle distribution, to author your Gradle plugin.
-<2> Use the <<publishing_maven.adoc#, Maven Publish Plugin>> to generate the published metadata for your plugin
+<1> Use the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, which comes with the Gradle distribution, to author your Gradle plugin.
+<2> Use the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>> to generate the published metadata for your plugin
 <3> The latest version of the {publishplugin} can be found on the https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{portal}].
 
 == Configure the {publishplugin}

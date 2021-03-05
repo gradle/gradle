@@ -265,8 +265,8 @@ This is equivalent to running `gradle clean run`. In a multi-project build every
 [[sec:build_script_external_dependencies]]
 == External dependencies for the build script
 
-NOTE: Instead of manipulating the script classpath directly, it is recommended to <<plugins.adoc#,apply plugins>> that come with their own classpath.
-For custom build logic, the recommendation is to <<sharing_build_logic_between_subprojects.adoc#,use a custom plugin>>.
+NOTE: Instead of manipulating the script classpath directly, it is recommended to <<plugins.adoc#plugins,apply plugins>> that come with their own classpath.
+For custom build logic, the recommendation is to <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,use a custom plugin>>.
 
 If your build script needs to use external libraries, you can add them to the script's classpath in the build script itself. You do this using the `buildscript()` method, passing in a block which declares the build script classpath.
 

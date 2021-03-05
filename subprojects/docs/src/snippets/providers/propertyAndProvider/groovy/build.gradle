@@ -1,8 +1,8 @@
 // A task that displays a greeting
-class Greeting extends DefaultTask {
+abstract class Greeting extends DefaultTask {
     // A configurable greeting
     @Input
-    final Property<String> greeting = project.objects.property(String)
+    abstract Property<String> getGreeting()
 
     // Read-only property calculated from the greeting
     @Internal
@@ -14,10 +14,8 @@ class Greeting extends DefaultTask {
     }
 }
 
-task greeting(type: Greeting) {
+tasks.register("greeting", Greeting) {
     // Configure the greeting
     greeting.set('Hi')
-
-    // Note that an assignment statement can be used instead of calling Property.set()
-    greeting = 'Hi'
+    greeting = 'Hi' // Alternative notation to calling Property.set() - only available in Groovy DSL
 }

@@ -20,6 +20,8 @@ import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -437,6 +439,9 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
         skipped(taskWithLocalState.taskPath)
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IMPLICIT_DEPENDENCY
+    )
     def "up-to-date checks detect removed stale outputs"() {
 
         given:

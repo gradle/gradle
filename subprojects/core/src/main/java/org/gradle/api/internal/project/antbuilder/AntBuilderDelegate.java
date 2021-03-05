@@ -19,12 +19,12 @@ import com.google.common.collect.ImmutableSet;
 import groovy.util.BuilderSupport;
 import groovy.util.Node;
 import groovy.util.NodeList;
-import groovy.util.XmlParser;
-import org.gradle.internal.metaobject.DynamicObjectUtil;
+import groovy.xml.XmlParser;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 
 import java.io.InputStream;
 import java.util.Collections;

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.processing
 
-import com.sun.tools.javac.code.Symbol
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
@@ -24,11 +23,12 @@ import spock.lang.Specification
 
 import javax.annotation.processing.Processor
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.element.Element
+import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.Name
 import javax.lang.model.element.TypeElement
-import javax.tools.JavaFileObject
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
-import com.sun.tools.javac.util.Name
 
 class AggregatingProcessorTest extends Specification {
 
@@ -86,7 +86,7 @@ class AggregatingProcessorTest extends Specification {
         roundEnvironment = Stub(RoundEnvironment) {
             getRootElements() >> ([type("A"), type("B"), type("C")] as Set)
             getElementsAnnotatedWith(_ as TypeElement) >> { TypeElement annotationType ->
-                [method("foo", type("A")), type("C")] as Set
+                [method(type("A")), type("C")] as Set
             }
         }
 
@@ -124,19 +124,14 @@ class AggregatingProcessorTest extends Specification {
         }
     }
 
-    Symbol method(String name, Symbol parent) {
-        Stub(Symbol.MethodSymbol) {
+    Element method(Element parent) {
+        Stub(ExecutableElement) {
             getEnclosingElement() >> parent
-            getQualifiedName()  >> {
-                Stub(Name) {
-                    toString() >> name
-                }
-            }
         }
     }
 
-    TypeElement type(String name, boolean withSource = true) {
-        def stub = Stub(Symbol.ClassSymbol) {
+    TypeElement type(String name) {
+        Stub(TypeElement) {
             getEnclosingElement() >> null
             getQualifiedName() >> {
                 Stub(Name) {
@@ -144,10 +139,6 @@ class AggregatingProcessorTest extends Specification {
                 }
             }
         }
-        if (withSource) {
-            stub.sourcefile = Stub(JavaFileObject)
-        }
-        stub
     }
 
 

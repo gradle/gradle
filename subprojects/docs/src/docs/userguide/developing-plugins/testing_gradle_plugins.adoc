@@ -7,7 +7,7 @@ In this section you will learn effective techniques for testing plugin code.
 This section assumes you have:
 
 - Basic understanding of software engineering practices
-- Knowledge of <<implementing_gradle_plugins.adoc#,Gradle plugin implementation techniques>>
+- Knowledge of <<implementing_gradle_plugins.adoc#implemention_plugins,Gradle plugin implementation techniques>>
 - Working knowledge in writing Java code
 
 == The sample project
@@ -82,16 +82,16 @@ For a detailed discussion and code example please refer to the dedicated section
 [cols="20%,80%",options="header"]
 |======================
 |Test type                               |Tooling support
-|<<manual-tests,Manual tests>>           |<<composite_builds.adoc#,Gradle composite builds>>
+|<<manual-tests,Manual tests>>           |<<composite_builds.adoc#composite_builds,Gradle composite builds>>
 |<<unit-tests,Unit tests>>               |Any JVM-based test framework
 |<<integration-tests,Integration tests>> |Any JVM-based test framework
-|<<functional-tests,Functional tests>>   |Any JVM-based test framework and <<test_kit.adoc#,Gradle TestKit>>
+|<<functional-tests,Functional tests>>   |Any JVM-based test framework and <<test_kit.adoc#test_kit,Gradle TestKit>>
 |======================
 
 [[manual-tests]]
 == Setting up manual tests
 
-The <<composite_builds.adoc#,composite builds>> feature of Gradle makes it very easy to test a plugin manually.
+The <<composite_builds.adoc#composite_builds,composite builds>> feature of Gradle makes it very easy to test a plugin manually.
 The standalone plugin project and the consuming project can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of re-publishing the binary file.
 
 ----
@@ -271,7 +271,7 @@ As you can see, the implementation exposes an extension and a task instance that
 include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/main/java/org/myorg/UrlVerifierPlugin.java[]
 ----
 
-Every Gradle plugin project should apply the <<java_gradle_plugin.adoc#,plugin development plugin>> to reduce boilerplate code.
+Every Gradle plugin project should apply the <<java_gradle_plugin.adoc#java_gradle_plugin,plugin development plugin>> to reduce boilerplate code.
 By applying the plugin development plugin, the test source set is preconfigured for the use with TestKit.
 If we want to use a custom source set for functional tests and leave the default test source set for only unit tests, we can configure the plugin development plugin to look for TestKit tests elsewhere.
 
@@ -283,7 +283,7 @@ include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifi
 Functional tests for Gradle plugins use an instance of `GradleRunner` to execute the build under test.
 `GradleRunner` is an API provided by TestKit which internally uses the Tooling API to execute the build.
 The following example applies the plugin to the build script under test, configures the extension and executes the build with the task `verifyUrl`.
-Please see the <<test_kit.adoc#,TestKit documentation>> to get more familiar with the functionality of TestKit.
+Please see the <<test_kit.adoc#test_kit,TestKit documentation>> to get more familiar with the functionality of TestKit.
 
 .UrlVerifierPluginFunctionalTest.groovy
 [source,groovy]

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.reflect.annotations;
 
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 /**
  * A validating metadata store that handles annotations on types and their JavaBeans properties.

@@ -1,3 +1,4 @@
+[[structure_large_projects]]
 = Structuring Large Projects
 
 As software projects grow, it is common to organize large systems into components that are connected following a certain software architecture.
@@ -40,7 +41,7 @@ Apart from the production code, there are also components that deal with buildin
 
 - The _build-logic_ component contains the configuration details about building the software.
 For example, defining a Java version to use or configuring a test framework.
-It may also contain additional build logic for Gradle (<<custom_plugins.adoc#,custom plugins>> with <<custom_tasks.adoc#,custom tasks>>) that is not covered by commonly available Gradle plugins.
+It may also contain additional build logic for Gradle (<<custom_plugins.adoc#custom_plugins,custom plugins>> with <<custom_tasks.adoc#custom_tasks,custom tasks>>) that is not covered by commonly available Gradle plugins.
 - The _platforms_ component is a central place to define which versions of external components are to be used in all of our own components.
 By that, it defines the constraints for the environments – that is, _the platforms_ – to build, test and run the software product.
 - The _aggregation_ component contains the setup of the delivery pipeline that is required to push the product to production and
@@ -147,7 +148,7 @@ include::sample[dir="samples/build-organization/structuring-software-projects/ko
 ====
 
 Once included, you may create a folder matching the project name and create a `build.gradle(.kts)` file in it to configure that part of the component.
-You can find more information in the chapter about <<multi_project_builds.adoc#,structuring Gradle builds for a single software component>>.
+You can find more information in the chapter about <<multi_project_builds.adoc#multi_project_builds,structuring Gradle builds for a single software component>>.
 
 == Assigning types to components
 
@@ -174,7 +175,7 @@ The project is of no specific type and does not offer any useful content.
 If we add more files to the `domain-model/release` folder now, for example Java source files, Gradle won't know what to do with these files and just ignore them.
 We need to assign a type to the project to make Gradle aware of the purpose of such files in the project.
 
-In Gradle, you assgn a type to a project by <<plugins.adoc#,applying a plugin>>.
+In Gradle, you assign a type to a project by <<plugins.adoc#plugins,applying a plugin>>.
 The simplest thing you can do is applying one of Gradle's core plugins, like `base` or `java-library`.
 
 However, usually you have additional configuration to do in the context of the product you are building.
@@ -255,8 +256,8 @@ Furthermore, we add two dependencies that Spring Boot projects should always hav
 Similarly, we define convention plugins for "Java Libraries", "Kotlin Libraries" and "Android Applications".
 With that, we have four different project types defined that we assign to the projects of our production code components.
 
-You can find more information about writing convention plugins in section on <<sharing_build_logic_between_subprojects.adoc#,sharing build logic>> and the link:../samples/sample_convention_plugins.html[associated sample].
-For using classes to implement plugins, and for writing more advanced custom build logic, consult the chapter on <<custom_plugins.adoc#,Gradle plugin developmet>>.
+You can find more information about writing convention plugins in section on <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,sharing build logic>> and the link:../samples/sample_convention_plugins.html[associated sample].
+For using classes to implement plugins, and for writing more advanced custom build logic, consult the chapter on <<custom_plugins.adoc#custom_plugins,Gradle plugin developmet>>.
 
 == Connecting components
 
@@ -274,7 +275,7 @@ It just makes the physical location of one component known to another.
 In that sense it is similar to repository declarations to discover binary components.
 Consult <<composite_builds.adoc#defining_composite_builds,the section on defining composite builds>> for more information about how to include builds.
 2. _Declare dependencies between (projects of) components._
-This is done similarly to <<declaring_dependencies.adoc#,declaring dependencies to binary components>> by using GA (_group_ and _artifact_) coordinates in the `dependencies { }` block of a `build.gradle(.kts)` file:
+This is done similarly to <<declaring_dependencies.adoc#declaring-dependencies,declaring dependencies to binary components>> by using GA (_group_ and _artifact_) coordinates in the `dependencies { }` block of a `build.gradle(.kts)` file:
 `implementation("com.example.platform:product-platform")`.
 Or, if the included component provides a plugin, you <<plugins.adoc#sec:plugins_block,apply the plugin by ID>> similar to how you would apply a plugin from the plugin portal:
 `plugins { id("com.example.java-library") }`
@@ -301,8 +302,8 @@ include::sample[dir="samples/build-organization/structuring-software-projects/ko
 That's it.
 This chapter gave an overview of which techniques to use to structure a software project into components with Gradle by following a sample.
 Download link:../samples/sample_structuring_software_projects.html[the full sample] to explore further details.
-The <<structuring_software_products_details.adoc#,next chapter>> covers more details about how to work with and evolve this kind of project structure.
-The <<composite_builds.adoc#,chapter on composite builds>> gives you more technical background about the capabilities build composition offers.
+The <<structuring_software_products_details.adoc#tweaking_structure,next chapter>> covers more details about how to work with and evolve this kind of project structure.
+The <<composite_builds.adoc#composite_builds,chapter on composite builds>> gives you more technical background about the capabilities build composition offers.
 
 To summarize, if you follow the suggestions from this chapter, your setup should clearly separate the following concerns to give you a flexible and clean model of your software product:
 
@@ -322,5 +323,5 @@ To summarize, if you follow the suggestions from this chapter, your setup should
    Note that <<structuring_software_products_details.adoc#settings_convention_plugins,there are different strategies to avoid duplicating this information>> in each `settings.gradle(.kts)` of each of your components.
 4. _Declare platforms in a central place._
    Having a platform component as in the example is optional.
-   You could do things without, e.g. by declaring <<dependency_constraints.adoc#,dependency constraints>> directly in your convention plugins.
-   However, <<platforms.adoc#,platforms>> are a good option to have all the boundaries for the environment in which your software operates defined in a central place.
+   You could do things without, e.g. by declaring <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> directly in your convention plugins.
+   However, <<platforms.adoc#sec:sharing-dep-versions-between-projects,platforms>> are a good option to have all the boundaries for the environment in which your software operates defined in a central place.

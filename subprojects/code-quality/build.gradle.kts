@@ -15,12 +15,14 @@ dependencies {
     implementation(project(":reporting"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.ant)
 
     testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":model-core")))
 
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":core-api"))

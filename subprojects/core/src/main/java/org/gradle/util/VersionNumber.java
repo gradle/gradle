@@ -125,7 +125,11 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     public static VersionNumber version(int major) {
-        return new VersionNumber(major, 0, 0, 0, null, DEFAULT_SCHEME);
+        return version(major, 0);
+    }
+
+    public static VersionNumber version(int major, int minor) {
+        return new VersionNumber(major, minor, 0, 0, null, DEFAULT_SCHEME);
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 package org.gradle.javadoc
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
@@ -82,7 +83,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         file('build/docs/javadoc/Foo.html').text.contains("'some text'")
 
         where:
-        option << ['header', 'footer']
+        option << (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? ['header'] : ['header', 'footer'])
     }
 
     def "can configure options with an Action"() {
@@ -183,10 +184,10 @@ Joe!""")
         buildFile << """
             apply plugin: 'java'
             import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
-            
+
             class CustomJavadocOptionFileOption implements JavadocOptionFileOption<String> {
                 private String value = "foo"
-                
+
                 public String getValue() {
                     return value
                 }
@@ -205,7 +206,7 @@ Joe!""")
                     writerContext.newLine()
                 }
             }
-            
+
             javadoc {
                 options {
                     addOption(new CustomJavadocOptionFileOption())
@@ -222,7 +223,7 @@ Joe!""")
     def "can use various multi-value options"() {
         buildFile << """
             apply plugin: 'java'
-            
+
             javadoc {
                 options {
                     addMultilineStringsOption("addMultilineStringsOption").setValue([
@@ -247,16 +248,16 @@ Joe!""")
         executer.expectDeprecationWarning() // Error output triggers are "deprecated" warning check
         fails("javadoc") // we're using unsupported options to verify that we do the right thing
 
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineStringsOption 'a'
--addMultilineStringsOption 'b'
--addMultilineStringsOption 'c'"""))
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-addMultilineStringsOption 'a'\n" +
+            "-addMultilineStringsOption 'b'\n" +
+            "-addMultilineStringsOption 'c'"))
 
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
 
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 
-'a' 
--addMultilineMultiValueOption 
-'b' 'c' """))
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-addMultilineMultiValueOption \n" +
+            "'a' \n" +
+            "-addMultilineMultiValueOption \n" +
+            "'b' 'c' "))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1502")
@@ -275,7 +276,7 @@ Joe!""")
     def "can pass offline links"() {
         buildFile << """
             apply plugin: 'java'
-            
+
             javadoc {
                 options {
                     linksOffline 'https://docs.oracle.com/javase/8/docs/api/', 'gradle/javadocs/jdk'

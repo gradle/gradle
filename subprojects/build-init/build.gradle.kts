@@ -14,19 +14,20 @@ dependencies {
     implementation(project(":platform-base"))
     implementation(project(":platform-native"))
     implementation(project(":plugins"))
+    implementation(project(":workers"))
     implementation(project(":wrapper"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyTemplates)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.inject)
-    implementation(libs.plexusContainer)
-    implementation(libs.maven3Compat) {
-        because("maven sub-components are loaded via reflection internally")
-    }
-    implementation(libs.maven3PluginApi) {
-        because("maven sub-components are loaded via reflection internally")
-    }
+    implementation(libs.maven3SettingsBuilder)
+
+    compileOnly(libs.maven3Compat)
+    compileOnly(libs.maven3PluginApi)
+    testRuntimeOnly(libs.maven3Compat)
+    testRuntimeOnly(libs.maven3PluginApi)
 
     testImplementation(project(":cli"))
     testImplementation(project(":base-services-groovy"))

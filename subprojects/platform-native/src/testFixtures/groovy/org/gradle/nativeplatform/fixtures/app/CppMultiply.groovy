@@ -16,10 +16,12 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
 class CppMultiply extends CppSourceFileElement implements MultiplyElement {
-    final SourceFileElement header = ofFile(sourceFile("headers", "multiply.h", """
+    final SourceFileElement header = ofFile(new SourceFile("headers", "multiply.h", """
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
@@ -32,7 +34,7 @@ public:
 };
 """))
 
-    final SourceFileElement source = ofFile(sourceFile("cpp", "multiply.cpp", """
+    final SourceFileElement source = ofFile(new SourceFile("cpp", "multiply.cpp", """
 #include "multiply.h"
 
 int Multiply::multiply(int a, int b) {

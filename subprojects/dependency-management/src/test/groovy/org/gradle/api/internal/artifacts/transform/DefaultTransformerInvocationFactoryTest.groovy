@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -71,6 +72,7 @@ import spock.lang.Unroll
 import java.util.function.BiFunction
 
 class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec {
+    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     def immutableTransformsStoreDirectory = temporaryFolder.file("output")
     def mutableTransformsStoreDirectory = temporaryFolder.file("child/build/transforms")
@@ -144,11 +146,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         Mock(TimeoutHandler),
         { String behavior ->
             DeprecationLogger.deprecateBehaviour(behavior)
-                .willBeRemovedInGradle7()
+                .willBeRemovedInGradle8()
                 .undocumented()
                 .nagUser()
         },
-        virtualFileSystem
+        virtualFileSystem,
+        documentationRegistry
     )
 
     def invoker = new DefaultTransformerInvocationFactory(

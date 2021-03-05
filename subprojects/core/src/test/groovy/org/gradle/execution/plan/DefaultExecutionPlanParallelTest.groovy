@@ -55,7 +55,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * lease.tryLock() >> true
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs))
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs))
     }
 
     TaskInternal task(Map<String, ?> options = [:], String name) {

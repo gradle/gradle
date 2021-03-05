@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project.ant;
 
-import groovy.util.AntBuilder;
 import org.apache.tools.ant.ComponentHelper;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
@@ -28,6 +27,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("deprecation")
 public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closeable {
     private final Field nodeField;
     private final List children;
@@ -36,9 +36,9 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         // These are used to discard references to tasks so they can be garbage collected
         Field collectorField;
         try {
-            nodeField = AntBuilder.class.getDeclaredField("lastCompletedNode");
+            nodeField = groovy.util.AntBuilder.class.getDeclaredField("lastCompletedNode");
             nodeField.setAccessible(true);
-            collectorField = AntBuilder.class.getDeclaredField("collectorTarget");
+            collectorField = groovy.util.AntBuilder.class.getDeclaredField("collectorTarget");
             collectorField.setAccessible(true);
             Target target = (Target) collectorField.get(this);
             Field childrenField = Target.class.getDeclaredField("children");

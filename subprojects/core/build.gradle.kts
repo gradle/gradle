@@ -41,6 +41,18 @@ dependencies {
     implementation(project(":normalization-java"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyAnt)
+    implementation(libs.groovyAstbuilder)
+    implementation(libs.groovyConsole)
+    implementation(libs.groovyDateUtil)
+    implementation(libs.groovyDatetime)
+    implementation(libs.groovyDoc)
+    implementation(libs.groovyJson)
+    implementation(libs.groovyNio)
+    implementation(libs.groovySql)
+    implementation(libs.groovyTemplates)
+    implementation(libs.groovyTest)
+    implementation(libs.groovyXml)
     implementation(libs.ant)
     implementation(libs.guava)
     implementation(libs.inject)
@@ -52,6 +64,9 @@ dependencies {
     implementation(libs.nativePlatform)
     implementation(libs.xmlApis)
     implementation(libs.tomlj)
+    implementation(libs.javaParser) {
+        because("The Groovy compiler inspects the dependencies at compile time")
+    }
 
     testImplementation(project(":plugins"))
     testImplementation(project(":testing-base"))
@@ -104,6 +119,7 @@ dependencies {
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.ant)
+    testFixturesImplementation(libs.groovyAnt)
 
     testFixturesRuntimeOnly(project(":plugin-use")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")

@@ -30,5 +30,5 @@ tasks.register<Copy>("copyLibs") {
     from(configurations["antContrib"])
     from(configurations["externalLibs"])
     from(configurations["deploymentTools"])
-    into("$buildDir/libs")
+    into(layout.buildDirectory.dir("libs"))
 }

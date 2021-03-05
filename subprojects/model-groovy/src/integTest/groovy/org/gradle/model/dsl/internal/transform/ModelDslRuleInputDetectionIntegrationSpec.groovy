@@ -59,7 +59,6 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             '$("thing").value',
             '$("thing").getValue()',
             "(\$('thing')).value",
-            "(\$('thing')).(value)",
             '$("thing")."${"value"}"',
             "\$('thing').'value'",
             "\$('thing').value.toUpperCase().toLowerCase()",

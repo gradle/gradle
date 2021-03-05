@@ -75,7 +75,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaResolutionRules = "7.8.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "5.2.0", "6.0.0", "6.1.0")
+        static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = Versions.of("3.3.1")
@@ -164,7 +164,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.30")
+        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp

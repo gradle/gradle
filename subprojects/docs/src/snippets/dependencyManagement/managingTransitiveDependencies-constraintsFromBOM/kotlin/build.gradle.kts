@@ -20,5 +20,5 @@ dependencies {
 //Note: dom4j also brings in xml-apis as transitive dependency
 tasks.register<Copy>("copyLibs") {
     from(configurations.compileClasspath)
-    into("$buildDir/libs")
+    into(layout.buildDirectory.dir("libs"))
 }

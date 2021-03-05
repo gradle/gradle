@@ -4,9 +4,8 @@ import org.gradle.api.tasks.TaskAction;
 
 // tag::download[]
 public abstract class Download extends DefaultTask {
-    // Use an abstract getter method annotated with @Nested
     @Nested
-    abstract Resource getResource();
+    public abstract Resource getResource(); // Use an abstract getter method annotated with @Nested
 
     @TaskAction
     void run() {

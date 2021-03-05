@@ -26,10 +26,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
+import spock.lang.Requires
 import spock.lang.Unroll
 
-class TaskParametersIntegrationTest extends AbstractIntegrationSpec {
+class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def "reports which properties are not serializable"() {
         buildFile << """
@@ -373,10 +377,14 @@ task someTask {
         "123"                | "123 as short"
     }
 
+    @Requires({ GradleContextualExecuter.embedded })
+    // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task causes VFS to drop"() {
         buildFile << """
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
+
             class InvalidTask extends DefaultTask {
-                @Optional @Input File inputFile
+                @ValidationProblem inputFile
 
                 @TaskAction void execute() {
                     println "Executed"
@@ -386,10 +394,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        executer.expectDocumentedDeprecationWarning("Property 'inputFile' has @Input annotation used on property of type 'File'. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidTask': property 'inputFile' test problem. this is a test.")
 
         when:
         run "invalid", "--info"
@@ -398,10 +403,14 @@ task someTask {
         outputContains("Invalidating VFS because task ':invalid' failed validation")
     }
 
+    @Requires({ GradleContextualExecuter.embedded })
+    // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are displayed once"() {
         buildFile << """
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
+
             class InvalidTask extends DefaultTask {
-                @Optional @Input File inputFile
+                @ValidationProblem File inputFile
 
                 @TaskAction void execute() {
                     println "Executed"
@@ -411,22 +420,23 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        executer.expectDocumentedDeprecationWarning("Property 'inputFile' has @Input annotation used on property of type 'File'. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidTask': property 'inputFile' test problem. this is a test.")
 
         when:
         run "invalid"
         then:
         executedAndNotSkipped(":invalid")
-        output.count("- Property 'inputFile' has @Input annotation used on property of type 'File'.") == 1
+        output.count("- Type 'InvalidTask': property 'inputFile' test problem. this is a test.") == 1
     }
 
+    @Requires({ GradleContextualExecuter.embedded })
+    // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are reported even when task is skipped"() {
         buildFile << """
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
+
             class InvalidTask extends SourceTask {
-                @Optional @Input File inputFile
+                @ValidationProblem File inputFile
 
                 @TaskAction void execute() {
                     println "Executed"
@@ -436,10 +446,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        executer.expectDocumentedDeprecationWarning("Property 'inputFile' has @Input annotation used on property of type 'File'. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-            "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidTask': property 'inputFile' test problem. this is a test.")
 
         when:
         run "invalid"
@@ -447,6 +454,10 @@ task someTask {
         skipped(":invalid")
     }
 
+    @ValidationTestFor([
+        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER,
+        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
+    ])
     @Unroll
     def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
@@ -478,56 +489,47 @@ task someTask(type: SomeTask) {
     d = file("build/out")
 }
 """
-        if (expectedValidationProblem) {
-            executer.beforeExecute {
-                executer.expectDocumentedDeprecationWarning(expectedValidationProblem + " " +
-                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                    "Execution optimizations are disabled to ensure correctness. " +
-                    "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-                )
-            }
-        }
-
-        given:
-        succeeds "someTask"
+        def isError = expectedValidationProblem != null
 
         when:
-        run "someTask"
+        if (isError) {
+            fails 'someTask'
+        } else {
+            succeeds "someTask"
+        }
 
         then:
-        if (expectedValidationProblem) {
-            executedAndNotSkipped(":someTask")
-        } else {
-            skipped(":someTask")
+        if (isError) {
+            failure.error.contains(expectedValidationProblem)
         }
 
         when:
         buildFile.replace("v = $initialValue", "v = $newValue")
         executer.withArgument("--info")
-        run "someTask"
+        if (isError) {
+            fails 'someTask'
+        } else {
+            succeeds "someTask"
+        }
 
         then:
-        executedAndNotSkipped(":someTask")
-        if (expectedValidationProblem) {
-            outputContains("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
+        if (isError) {
+            failure.error.contains(expectedValidationProblem)
         } else {
             outputContains("Value of input property 'v' has changed for task ':someTask'")
         }
 
-        when:
-        run "someTask"
-
-        then:
-        if (expectedValidationProblem) {
-            executedAndNotSkipped(":someTask")
+        and:
+        if (isError) {
+            fails 'someTask'
         } else {
-            skipped(":someTask")
+            succeeds "someTask"
         }
 
         where:
         type                                  | initialValue                                          | newValue                                                     | expectedValidationProblem
         "String"                              | "'value 1'"                                           | "'value 2'"                                                  | null
-        "java.io.File"                        | "file('file1')"                                       | "file('file2')"                                              | "Property 'v' has @Input annotation used on property of type 'File'."
+        "java.io.File"                        | "file('file1')"                                       | "file('file2')"                                              | incorrectUseOfInputAnnotation { type('SomeTask') property('v') propertyType('File') }
         "boolean"                             | "true"                                                | "false"                                                      | null
         "Boolean"                             | "Boolean.TRUE"                                        | "Boolean.FALSE"                                              | null
         "int"                                 | "123"                                                 | "-45"                                                        | null
@@ -545,15 +547,18 @@ task someTask(type: SomeTask) {
         "java.util.Collection<String>"        | "['value1', 'value2']"                                | "['value1'] as SortedSet"                                    | null
         "java.util.Set<String>"               | "['value1', 'value2'] as Set"                         | "['value1'] as Set"                                          | null
         "Iterable<java.io.File>"              | "[file('1'), file('2')] as Set"                       | "files('1')"                                                 | null
-        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"                             | "Property 'v' has @Input annotation used on property of type 'FileCollection'."
+        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"                             | incorrectUseOfInputAnnotation { type('SomeTask') property('v') propertyType('FileCollection') }
         "java.util.Map<String, Boolean>"      | "[a: true, b: false]"                                 | "[a: true, b: true]"                                         | null
         "${Provider.name}<String>"            | "providers.provider { 'a' }"                          | "providers.provider { 'b' }"                                 | null
-        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"                     | "Property 'v' of mutable type 'org.gradle.api.provider.Property' is writable. Properties of this type should be read-only and mutated via the value itself."
+        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"                     | "Type 'SomeTask': property 'v' of mutable type 'org.gradle.api.provider.Property' is writable. Properties of type 'org.gradle.api.provider.Property' are already mutable. Possible solution: Remove the 'setV' method. ${learnAt("validation_problems", "mutable_type_with_setter")}."
         "${ListProperty.name}<String>"        | "objects.listProperty(String); v.set(['abc'])"        | "objects.listProperty(String); v.set(['123'])"               | null
         "${SetProperty.name}<String>"         | "objects.setProperty(String); v.set(['abc'])"         | "objects.setProperty(String); v.set(['123'])"                | null
         "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"        | null
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     def "null input properties registered via TaskInputs.property are not allowed"() {
         buildFile << """
             task test {
@@ -564,7 +569,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("No value has been specified for property 'input'.")
+        failureDescriptionContains(missingValueMessage { type('DefaultTask').property('input') })
     }
 
     def "optional null input properties registered via TaskInputs.property are allowed"() {
@@ -578,6 +583,9 @@ task someTask(type: SomeTask) {
         succeeds "test"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     @Unroll
     def "null input files registered via TaskInputs.#method are not allowed"() {
         buildFile << """
@@ -589,7 +597,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("No value has been specified for property 'input'.")
+        failureDescriptionContains(missingValueMessage { type('DefaultTask').property('input') })
 
         where:
         method << ["file", "files", "dir"]
@@ -610,6 +618,9 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir"]
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     @Unroll
     def "null output files registered via TaskOutputs.#method are not allowed"() {
         buildFile << """
@@ -621,7 +632,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("No value has been specified for property 'output'.")
+        failureDescriptionContains(missingValueMessage { type('DefaultTask').property('output') })
 
         where:
         method << ["file", "files", "dir", "dirs"]
@@ -642,6 +653,9 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir", "dirs"]
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
+    )
     @Unroll
     def "missing input files registered via TaskInputs.#method are not allowed"() {
         buildFile << """
@@ -652,16 +666,26 @@ task someTask(type: SomeTask) {
         """
 
         expect:
+        def missingFile = file('missing')
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("$type '${file("missing")}' specified for property 'input' does not exist.")
+        failureDescriptionContains(inputDoesNotExist {
+            type('DefaultTask')
+                .property('input')
+                .kind(fileType)
+                .missing(missingFile)
+                .includeLink()
+        })
 
         where:
-        method | type
+        method | fileType
         "file" | "File"
         "dir"  | "Directory"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
+    )
     @Unroll
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
         file("input-file.txt").touch()
@@ -674,20 +698,29 @@ task someTask(type: SomeTask) {
         """
 
         expect:
+        def unexpected = file(path)
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains("${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type.")
+        failureDescriptionContains(unexpectedInputType {
+            type('DefaultTask').property('input')
+                .kind(fileType)
+                .missing(unexpected)
+                .includeLink()
+        })
 
         where:
-        method | path             | type
+        method | path             | fileType
         "file" | "input-dir"      | "file"
         "dir"  | "input-file.txt" | "directory"
     }
 
+    @ValidationTestFor(
+
+    )
     @Unroll
-    def "wrong output file type registered via TaskOutputs.#method is not allowed"() {
-        file("output-file.txt").touch()
-        file("output-dir").createDir()
+    def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
+        def outputDir = file("output-dir")
+        outputDir.createDir()
         buildFile << """
             task test {
                 outputs.${method}({ "$path" }) withPropertyName "output"
@@ -697,14 +730,46 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failureDescriptionContains(message.replace("<PATH>", file(path).absolutePath))
+        failureDescriptionContains(cannotWriteToFile {
+            type('DefaultTask').property('output')
+                .file(outputDir)
+                .isNotFile()
+                .includeLink()
+        })
 
         where:
-        method  | path              | message
-        "file"  | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
-        "files" | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
-        "dir"   | "output-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
-        "dirs"  | "output-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
+        method  | path
+        "file"  | "output-dir"
+        "files" | "output-dir"
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    @Unroll
+    def "wrong output file type registered via TaskOutputs.#method is not allowed (directories)"() {
+        def outputFile = file("output-file.txt")
+        outputFile.touch()
+        buildFile << """
+            task test {
+                outputs.${method}({ "$path" }) withPropertyName "output"
+                doLast {}
+            }
+        """
+
+        expect:
+        fails "test"
+        failureDescriptionContains(cannotWriteToDir {
+            type('DefaultTask').property('output')
+                .dir(outputFile)
+                .isNotDirectory()
+                .includeLink()
+        })
+
+        where:
+        method  | path
+        "dir"   | "output-file.txt"
+        "dirs"  | "output-file.txt"
     }
 
     def "can specify null as an input property in ad-hoc task"() {

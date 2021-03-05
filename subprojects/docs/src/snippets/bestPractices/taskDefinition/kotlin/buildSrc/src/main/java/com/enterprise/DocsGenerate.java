@@ -1,33 +1,19 @@
 package com.enterprise;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
-import java.io.File;
-
-public class DocsGenerate extends DefaultTask {
-    private String title;
-    private File outputDir;
+public abstract class DocsGenerate extends DefaultTask {
 
     @Input
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public abstract Property<String> getTitle();
 
     @OutputDirectory
-    public File getOutputDir() {
-        return outputDir;
-    }
-
-    public void setOutputDir(File outputDir) {
-        this.outputDir = outputDir;
-    }
+    public abstract DirectoryProperty getOutputDir();
 
     @TaskAction
     public void generate() {

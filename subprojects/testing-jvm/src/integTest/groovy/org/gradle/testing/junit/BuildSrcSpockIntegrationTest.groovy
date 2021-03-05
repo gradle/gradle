@@ -22,62 +22,61 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
+import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
 
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
+@TargetCoverage({ [JUPITER] })
 class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def "can run spock tests with mock of class using gradleApi"() {
         file("build.gradle") << """
-        apply plugin: 'groovy'
+            plugins {
+                id("groovy")
+            }
 
-        ${mavenCentralRepository()}
+            ${mavenCentralRepository()}
 
-        dependencies {
-            implementation gradleApi()
-            implementation localGroovy()
+            dependencies {
+                implementation gradleApi()
+                implementation localGroovy()
 
-            testImplementation '$dependencyNotation',
-                'org.spockframework:spock-core:1.0-groovy-2.4@jar',
-                'cglib:cglib:3.2.6',
-                'org.objenesis:objenesis:1.2'
-        }
+                testImplementation '$dependencyNotation',
+                    'org.spockframework:spock-core:2.0-M4-groovy-3.0'
+            }
         """
         file("src/main/groovy/MockIt.groovy") << """
-class MockIt {
-    void call() {
-    }
-}
-"""
+            class MockIt {
+                void call() {
+                }
+            }
+        """
 
         file("src/main/groovy/Caller.groovy") << """
-class Caller {
-    private MockIt callable
+            class Caller {
+                private MockIt callable
 
-    Caller(MockIt callable) {
-        this.callable = callable
-    }
+                Caller(MockIt callable) {
+                    this.callable = callable
+                }
 
-    void call() {
-       callable.call()
-    }
-}
-"""
+                void call() {
+                   callable.call()
+                }
+            }
+        """
         file("src/test/groovy/TestSpec.groovy") << """
-import spock.lang.Specification
+            import spock.lang.Specification
 
-class TestSpec extends Specification {
-    def testMethod() {
-        final callable = Mock(MockIt)
-        def caller = new Caller(callable)
-        when:
-        caller.call()
-        then:
-        1 * callable.call()
-        0 * _
-    }
-}
-"""
+            class TestSpec extends Specification {
+                def testMethod() {
+                    final callable = Mock(MockIt)
+                    def caller = new Caller(callable)
+                    when:
+                    caller.call()
+                    then:
+                    1 * callable.call()
+                    0 * _
+                }
+            }
+        """
         expect:
         succeeds("test")
     }
@@ -90,7 +89,7 @@ class TestSpec extends Specification {
 
             dependencies {
                 testImplementation localGroovy()
-                testImplementation '$dependencyNotation', 'org.spockframework:spock-core:1.0-groovy-2.4@jar'
+                testImplementation '$dependencyNotation', 'org.spockframework:spock-core:2.0-M4-groovy-3.0@jar'
             }
         """
     }
@@ -100,19 +99,19 @@ class TestSpec extends Specification {
         given:
         writeSpockDependencies()
         file('src/test/groovy/UnrollTest.groovy') << '''
-import spock.lang.Specification
-import spock.lang.Unroll
+            import spock.lang.Specification
+            import spock.lang.Unroll
 
-class UnrollTest extends Specification {
-    @Unroll
-    def "can test #type"() {
-        expect: type
+            class UnrollTest extends Specification {
+                @Unroll
+                def "can test #type"() {
+                    expect: type
 
-        where:
-        type << ['1', '2']
-    }
-}
-'''
+                    where:
+                    type << ['1', '2']
+                }
+            }
+        '''
         when:
         succeeds('test')
 
@@ -129,20 +128,20 @@ class UnrollTest extends Specification {
         given:
         writeSpockDependencies()
         file('src/test/groovy/Base.groovy') << '''
-import spock.lang.Specification
+            import spock.lang.Specification
 
-abstract class Base extends Specification {
-    def ok() {
-        expect: "success"
-    }
-}
+            abstract class Base extends Specification {
+                def ok() {
+                    expect: "success"
+                }
+            }
 
-class Sub extends Base {
-    def ok() {
-        expect: "success"
-    }
-}
-'''
+            class Sub extends Base {
+                def ok() {
+                    expect: "success"
+                }
+            }
+        '''
         when:
         succeeds('test')
 

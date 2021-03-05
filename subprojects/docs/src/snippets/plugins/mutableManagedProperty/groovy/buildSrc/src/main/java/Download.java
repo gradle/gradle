@@ -1,18 +1,19 @@
 import org.gradle.api.DefaultTask;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 
 import java.net.URI;
 
+// tag::download[]
 public abstract class Download extends DefaultTask {
-    // Use an abstract getter and setter method
+
     @Input
-    abstract URI getUri();
-    abstract void setUri(URI uri);
+    public abstract Property<URI> getUri(); // abstract getter of type Property<T>
 
     @TaskAction
     void run() {
-        // Use the `uri` property
-        System.out.println("Downloading " + getUri());
+        System.out.println("Downloading " + getUri().get()); // Use the `uri` property
     }
 }
+// end::download[]

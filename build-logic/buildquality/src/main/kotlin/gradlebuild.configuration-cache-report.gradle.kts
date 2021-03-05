@@ -16,7 +16,7 @@
 import gradlebuild.configcachereport.tasks.MergeReportAssets
 import gradlebuild.configcachereport.tasks.VerifyDevWorkflow
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
-import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
+import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 
 plugins {
     kotlin("js")
@@ -96,7 +96,7 @@ fun webpackFile(fileName: String) =
         projectFile((it as KotlinWebpack).destinationDirectory.resolve(fileName))
     }
 
-tasks.named<KtlintCheckTask>("ktlintKotlinScriptCheck") {
+tasks.named<KtLintCheckTask>("runKtlintCheckOverKotlinScripts") {
     // Only check the build files, not all *.kts files in the project
     setIncludes(listOf("*.gradle.kts"))
 }

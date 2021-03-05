@@ -36,12 +36,12 @@ application {
 // end::executableDir-conf[]
 
 // tag::distribution-spec[]
-task createDocs {
-    def docs = file("$buildDir/docs")
+tasks.register('createDocs') {
+    def docs = layout.buildDirectory.dir('docs')
     outputs.dir docs
     doLast {
-        docs.mkdirs()
-        new File(docs, 'readme.txt').write('Read me!')
+        docs.get().asFile.mkdirs()
+        docs.get().file('readme.txt').asFile.write('Read me!')
     }
 }
 

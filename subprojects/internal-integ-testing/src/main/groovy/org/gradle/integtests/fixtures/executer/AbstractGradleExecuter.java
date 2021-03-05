@@ -36,6 +36,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
+import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
@@ -101,6 +102,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         .displayName("Global services")
         .parent(newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())
+        .parent(ValidationServicesFixture.getServices())
         .provider(new GlobalScopeServices(true))
         .build();
 
@@ -1292,6 +1294,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                 int i = 0;
                 boolean insideVariantDescriptionBlock = false;
                 boolean insideKotlinCompilerFlakyStacktrace = false;
+                boolean sawVmPluginLoadFailure = false;
                 while (i < lines.size()) {
                     String line = lines.get(i);
                     if (insideVariantDescriptionBlock && line.contains("]")) {
@@ -1304,6 +1307,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     if (line.contains("Compilation with Kotlin compile daemon was not successful")) {
                         insideKotlinCompilerFlakyStacktrace = true;
                         i++;
+                    } else if (line.contains("Trying to create VM plugin `org.codehaus.groovy.vmplugin.v9.Java9` by checking `java.lang.Module`")) {
+                        // a groovy warning when running on Java < 9
+                        // https://issues.apache.org/jira/browse/GROOVY-9933
+                        i++; // full stracktrace skipped in next branch
+                        sawVmPluginLoadFailure = true;
+                    } else if (line.contains("java.lang.ClassNotFoundException: java.lang.Module") && sawVmPluginLoadFailure) {
+                        // a groovy warning when running on Java < 9
+                        // https://issues.apache.org/jira/browse/GROOVY-9933
+                        i++;
+                        i = skipStackTrace(lines, i);
                     } else if (insideKotlinCompilerFlakyStacktrace &&
                         (line.contains("java.rmi.UnmarshalException") ||
                             line.contains("java.io.EOFException")) ||
@@ -1329,7 +1342,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {
                         i++;
-                    } else if (expectedDeprecationWarnings.remove(line)) {
+                    } else if (expectedDeprecationWarnings.removeIf(warning -> line.contains(warning))) {
                         // Deprecation warning is expected
                         i++;
                         i = skipStackTrace(lines, i);

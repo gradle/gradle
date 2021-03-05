@@ -24,7 +24,7 @@ import java.lang.reflect.Array
 @CompileStatic
 @PackageScope
 abstract class BuilderSupport {
-    static <T> T applyConfiguration(Closure<?> cl, T target) {
+    static <T> T applyConfiguration(@DelegatesTo(strategy = Closure.DELEGATE_FIRST) Closure<?> cl, T target) {
         Closure<?> clone = (Closure<?>) cl.clone()
         clone.resolveStrategy = Closure.DELEGATE_FIRST
         clone.delegate = target

@@ -17,15 +17,17 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
+import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
-class KotlinPluginSmokeTest extends AbstractSmokeTest {
+class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
 
@@ -99,15 +101,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """
-            buildscript {
-                ext.kotlin_version = '$kotlinVersion'
-                repositories { mavenCentral() }
-                dependencies {
-                    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-                }
+            plugins {
+                id 'groovy'
+                id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
             }
-            apply plugin: 'kotlin'
-            apply plugin: 'groovy'
 
             repositories {
                 mavenCentral()
@@ -140,6 +137,42 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
+    @Unroll
+    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-gradle-plugin'
+                id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+            }
+        """
+        file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
+
+        when:
+        def result = build(false, 'build')
+
+        then:
+        result.task(':compileKotlin').outcome == SUCCESS
+
+        when:
+        result = build(false, 'build')
+
+        then:
+        result.task(':compileKotlin').outcome == UP_TO_DATE
+
+        where:
+        kotlinVersion << TestedVersions.kotlin.versions
+    }
+
     private BuildResult build(boolean workers, String... tasks) {
         return runner(workers, *tasks).build()
     }
@@ -147,5 +180,94 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     private GradleRunner runner(boolean workers, String... tasks) {
         return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
             .forwardOutput()
+    }
+
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        [
+            'org.jetbrains.kotlin.jvm': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.js': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.multiplatform': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.android': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.android.extensions': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.kapt': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.plugin.scripting': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.native.cocoapods': TestedVersions.kotlin,
+        ]
+    }
+
+    @Override
+    Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
+        def androidVersion = TestedVersions.androidGradle.latest()
+        if (testedPluginId == 'org.jetbrains.kotlin.kapt') {
+            return ['org.jetbrains.kotlin.jvm': version]
+        }
+        if (isAndroidKotlinPlugin(testedPluginId)) {
+            AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidVersion)
+            def extraPlugins = ['com.android.application': androidVersion]
+            if (testedPluginId == 'org.jetbrains.kotlin.android.extensions') {
+                extraPlugins.put('org.jetbrains.kotlin.android', version)
+            }
+            return extraPlugins
+        }
+        return [:]
+    }
+
+    @Override
+    void configureValidation(String testedPluginId, String version) {
+        validatePlugins {
+            if (isAndroidKotlinPlugin(testedPluginId)) {
+                buildFile << """
+                    android {
+                        compileSdkVersion 24
+                        buildToolsVersion '${TestedVersions.androidTools}'
+                    }
+                """
+
+                def failingAndroidPlugins = [
+                    'com.android.internal.application', 'com.android.internal.version-check',
+                    // For 1.4.30 we seem to detect the id android for the android application plugin.
+                    // It seems like this change caused this: https://github.com/JetBrains/kotlin/commit/96352b9c8c16dce9f9d6c4c68314163583fe0628#diff-87838cc076c7f5e1aa28563cc605bfbebd9c36718fd3aaee3da7ebcd638ef641R220
+                    version == '1.4.31' ? 'android' : 'com.android.application'
+                ]
+                passing {
+                    it !in failingAndroidPlugins
+                }
+                onPlugins(failingAndroidPlugins) {
+                    // This is not a problem, since the task is only used for internal testing
+                    failsWith([
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('consumable').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('resolvable').missingInputOrOutput().includeLink() }): ERROR,
+                    ])
+                }
+            } else {
+                alwaysPasses()
+            }
+            if (testedPluginId == 'org.jetbrains.kotlin.js' && version != '1.3.72') {
+                buildFile << """
+                    kotlin { js { browser() } }
+                """
+            }
+            if (testedPluginId == 'org.jetbrains.kotlin.multiplatform') {
+                buildFile << """
+                    kotlin {
+                        jvm()
+                        js { browser() }
+                    }
+                """
+            }
+            settingsFile << """
+                pluginManagement {
+                    repositories {
+                        gradlePluginPortal()
+                        google()
+                    }
+                }
+            """
+        }
+    }
+
+    private static boolean isAndroidKotlinPlugin(String pluginId) {
+        return pluginId.contains('android')
     }
 }

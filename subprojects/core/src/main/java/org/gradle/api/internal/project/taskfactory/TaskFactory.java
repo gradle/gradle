@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.TaskInstantiationException;
@@ -64,16 +65,21 @@ public class TaskFactory implements ITaskFactory {
             implType = DefaultTask.class;
         } else if (DefaultTask.class.isAssignableFrom(identity.type)) {
             implType = identity.type.asSubclass(DefaultTask.class);
+        } else if (identity.type == org.gradle.api.internal.AbstractTask.class || identity.type == TaskInternal.class) {
+            throw new InvalidUserDataException(String.format(
+                "Cannot create task '%s' of type '%s' as this type is not supported for task registration.",
+                identity.identityPath.toString(),
+                identity.type.getSimpleName()));
         } else {
             throw new InvalidUserDataException(String.format(
-                "Cannot create task '%s' of type '%s' as it does not extend DefaultTask.",
+                "Cannot create task '%s' of type '%s' as directly extending AbstractTask is not supported.",
                 identity.identityPath.toString(),
                 identity.type.getSimpleName()));
         }
 
         Describable displayName = Describables.withTypeAndName("task", identity.getIdentityPath());
 
-        return DefaultTask.injectIntoNewInstance(project, identity, new Callable<S>() {
+        return org.gradle.api.internal.AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
             @Override
             public S call() {
                 try {
@@ -81,7 +87,7 @@ public class TaskFactory implements ITaskFactory {
                     if (constructorArgs != null) {
                         instance = instantiationScheme.instantiator().newInstanceWithDisplayName(implType, displayName, constructorArgs);
                     } else {
-                        instance = instantiationScheme.deserializationInstantiator().newInstance(implType, DefaultTask.class);
+                        instance = instantiationScheme.deserializationInstantiator().newInstance(implType, org.gradle.api.internal.AbstractTask.class);
                     }
                     return identity.type.cast(instance);
                 } catch (ObjectInstantiationException e) {

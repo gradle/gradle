@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
@@ -172,6 +173,31 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         assertNodesAccessing("/other", root)
     }
 
+    def "can return nodes accessing some path taking includes and excludes into consideration"() {
+        def childNode = Mock(Node)
+
+        hierarchy.recordNodeAccessingLocations(childNode, ["/some/root/child/relative/path"])
+        expect:
+        hierarchy.getNodesAccessing("/some/root", excludes("child")).empty
+        hierarchy.getNodesAccessing("/some/root", includes("child")).empty
+        hierarchy.getNodesAccessing("/some/root", includes("child/**")) == ImmutableSet.of(childNode)
+    }
+
+    def "can record file trees with excludes for parts of paths"() {
+        def excluding = Mock(Node)
+        def including = Mock(Node)
+        def includingWithChildren = Mock(Node)
+        def root = "/some/root/"
+
+        hierarchy.recordNodeAccessingFileTree(excluding, root, excludes("child"))
+        hierarchy.recordNodeAccessingFileTree(including, root, includes("child"))
+        hierarchy.recordNodeAccessingFileTree(includingWithChildren, root, includes("child/**"))
+        expect:
+        assertNodesAccessing(root, excluding, including, includingWithChildren)
+        assertNodesAccessing("${root}/child", including, includingWithChildren)
+        assertNodesAccessing("${root}/child/some/subdir", includingWithChildren)
+    }
+
     def nodesRelatedTo(TestFile location, String includePattern) {
         return hierarchy.getNodesAccessing(location.absolutePath, includes(includePattern))
     }
@@ -182,6 +208,10 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
 
     static Spec<FileTreeElement> includes(String include) {
         return new PatternSet().include(include).asSpec
+    }
+
+    static Spec<FileTreeElement> excludes(String exclude) {
+        return new PatternSet().exclude(exclude).asSpec
     }
 
     void assertNodesAccessing(String location, Node... expectedNodeList) {

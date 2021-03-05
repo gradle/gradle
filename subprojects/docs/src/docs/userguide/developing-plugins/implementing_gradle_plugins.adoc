@@ -1,3 +1,4 @@
+[[implemention_plugins]]
 = Implementing Gradle plugins
 
 Writing plugin code is a routine activity for advanced build authors.
@@ -14,7 +15,7 @@ This section assumes you have:
 == Using the Plugin Development plugin for writing plugins
 
 Setting up a Gradle plugin project should require as little boilerplate code as possible.
-The <<java_gradle_plugin.adoc#,Java Gradle Plugin Development plugin>> provides aid in this concern.
+The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> provides aid in this concern.
 To get started add the following code to your _build.gradle_ file:
 
 ====
@@ -29,7 +30,7 @@ Every plugin project should apply this plugin.
 [[writing-and-using-custom-task-types]]
 == Prefer writing and using custom task types
 
-Gradle tasks can be defined as ad-hoc tasks, simple task definitions of type `DefaultTask` with one or many actions, or as <<custom_tasks.adoc#,enhanced tasks>>, the ones that use a custom task type and expose its configurability with the help of properties.
+Gradle tasks can be defined as ad-hoc tasks, simple task definitions of type `DefaultTask` with one or many actions, or as <<custom_tasks.adoc#custom_tasks,enhanced tasks>>, the ones that use a custom task type and expose its configurability with the help of properties.
 Generally speaking, custom tasks provide the means for reusability, maintainability, configurability and testability.
 The same principles hold true when providing tasks as part of plugins.
 Always prefer custom task types over ad-hoc tasks.
@@ -263,7 +264,7 @@ Optimally, the plugin implementation doesn’t need to ask the user for the coor
 
 Let’s have a look at an example.
 You wrote a plugin that downloads files containing data for further processing.
-The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#,assigning those external dependencies with dependency coordinates>>.
+The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#declaring-dependencies,assigning those external dependencies with dependency coordinates>>.
 
 .DataProcessingPlugin.java
 [source,java]
@@ -314,3 +315,40 @@ include::sample[dir="snippets/developingPlugins/pluginIdentifier/kotlin",files="
 ====
 
 Note that identifiers for <<custom_plugins.adoc#sec:precompiled_plugins,precompiled script plugins>> are automatically registered based on the file name of the script plugin.
+
+[[plugin-with-variants]]
+== Providing multiple variants of a plugin for different Gradle versions
+
+NOTE: The support for multi-variant plugins currently requires you to use the raw <<variant_model.adoc#understanding-variant-selection,variant aware dependency management>> APIs of Gradle.
+More conveniences around this may be provided in the future.
+
+Currently, the most convenient way to configure additional plugin variants is to use <<feature_variants.adoc#feature_variants,feature variants>>, a concept available in all Gradle projects that apply one of the Java plugins.
+As described in the <<feature_variants.adoc#feature_variants,documentation>>, there are several options to design feature variants.
+They may be bundled inside the same Jar, or each variant may come with its own Jar.
+Here we show how each plugin variant is developed in isolation.
+That is, in a separate source set that is compiled separately and packaged in a separate Jar.
+Other setups are possible though.
+
+The following sample demonstrates how to add a variant that is compatible with Gradle 7+ while the "main" variant is compatible with older versions.
+Note that only Gradle versions 7 or higher can be explicitly targeted by a variant, as support for this was only added in Gradle 7.
+
+====
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=add-plugin-variant]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=add-plugin-variant]"]
+====
+
+First, we declare a separate _source set_, and a _feature variant_ based on that, for our Gradle7 plugin variant.
+We need to do some specific wiring to turn the feature into a proper Gradle plugin variant:
+
+<1> Assign the <<component_capabilities.adoc#declaring-component-capabilities,implicit capability that corresponds to the components GAV>> to the variant.
+<2> Assign the <<variant_attributes.adoc#sub:gradle_plugins_default_attributes,Gradle API version attribute>> to all <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. This information is used by Gradle to determine which variant to select during plugin resolution.
+<3> Configure the `processGradle7Resources` task to make sure the plugin descriptor file is added to the Gradle7 variant Jar.
+<4> Add a dependency to the `gradleApi()` for our new variant so that the API is visible during compilation time.
+
+Note that there is currently no convenient way to access the API of other Gradle versions as the one you are building the plugin with.
+Ideally, every variant should be able to declare a dependency to the API of the minimal Gradle version it supports.
+This will be improved in the future.
+
+The above snippet assumes that all variants of your plugin have the plugin class at the same location.
+That is, if you followed this chapter and your plugin class is `org.example.GreetingPlugin`, you need to create a second variant of that class in `src/gradle7/java/org/example`.
+

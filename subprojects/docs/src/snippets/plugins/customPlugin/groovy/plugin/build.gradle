@@ -24,13 +24,13 @@ dependencies {
     testImplementation 'junit:junit:4.13'
 }
 
-group = 'org.gradle'
+group = 'org.example'
 version = '1.0-SNAPSHOT'
 
 publishing {
     repositories {
         maven {
-            url = uri("$buildDir/repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
     publications {

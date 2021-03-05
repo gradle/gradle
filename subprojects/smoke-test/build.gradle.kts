@@ -28,17 +28,17 @@ dependencies {
     smokeTestImplementation(project(":build-option"))
     smokeTestImplementation(project(":process-services"))
     smokeTestImplementation(libs.commonsIo)
+    smokeTestImplementation(libs.groovyAnt)
+    smokeTestImplementation(libs.groovyJson)
     smokeTestImplementation(libs.commonsHttpclient)
     smokeTestImplementation(libs.jgit)
-    smokeTestImplementation(libs.gradleProfiler) {
-        because("Using build mutators to change a Java file")
-    }
     smokeTestImplementation(libs.spock)
     smokeTestImplementation(libs.junitPlatform)
 
     smokeTestImplementation(testFixtures(project(":core")))
     smokeTestImplementation(testFixtures(project(":plugin-development")))
     smokeTestImplementation(testFixtures(project(":version-control")))
+    smokeTestImplementation(testFixtures(project(":model-core")))
 
     smokeTestDistributionRuntimeOnly(project(":distributions-full"))
 }
@@ -56,7 +56,7 @@ tasks {
     val santaTracker by registering(RemoteProject::class) {
         remoteUri.set(santaGitUri)
         // Pinned from branch main
-        ref.set("6083ad6ff49a7dabd780e46aa024c7c38a9f2191")
+        ref.set("40a2faa8da382e84dee23114d31fec41f553d4d4")
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {

@@ -21,7 +21,7 @@ If you are coming from another native build system, these concepts may be unfami
 We will look at {cpp} projects in detail in this chapter, but most of the topics will apply to other supported native languages as well.
 If you don’t have much experience with building native projects with Gradle, take a look at the {cpp} tutorials for step-by-step instructions on how to build various types of basic {cpp} projects as well as some common use cases.
 
-The {cpp} plugins covered in this chapter were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend users to use those plugins over <<native_software.adoc#,the older Native plugins>> that you may find references to.
+The {cpp} plugins covered in this chapter were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend users to use those plugins over <<native_software.adoc#native_software,the older Native plugins>> that you may find references to.
 
 [[sec:cpp_introduction]]
 == Introduction
@@ -74,14 +74,14 @@ You can also configure sources for each binary build for those cases where sourc
 .Sources and {cpp} compilation
 image::cpp-sourcesets-compilation.png[]
 
-Test sources are configured on each test suite script block. See <<cpp_testing.adoc#,Testing {cpp} projects>> chapter.
+Test sources are configured on each test suite script block. See <<cpp_testing.adoc#cpp_testing,Testing {cpp} projects>> chapter.
 
 [[sec:cpp_dependency_management_overview]]
 == Managing your dependencies
 
 The vast majority of projects rely on other projects, so managing your project's dependencies is an important part of building any project.
 Dependency management is a big topic, so we will only focus on the basics for {cpp} projects here.
-If you’d like to dive into the details, check out the <<core_dependency_management.adoc#,introduction to dependency management>>.
+If you’d like to dive into the details, check out the <<core_dependency_management.adoc#dependency_management_in_gradle,introduction to dependency management>>.
 
 Gradle provides support for consuming pre-built binaries from Maven repositories published by Gradle footnote:[Unfortunately, Conan and Nuget repositories aren’t yet supported as core features].
 
@@ -106,7 +106,7 @@ The Gradle terminology for the three elements is as follows:
  * _Configuration_ (ex: `implementation`) - a named collection of dependencies, grouped together for a specific goal such as compiling or linking a module
  * _Project reference_ (ex: `project(':common')`) - the project referenced by the specified path
 
-You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#,here>>.
+You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#dependency_management_terminology,here>>.
 
 As far as configurations go, the main ones of interest are:
 
@@ -117,16 +117,16 @@ As far as configurations go, the main ones of interest are:
 
 You can learn more about these and how they relate to one another in the <<plugin_reference.adoc#native_languages,native plugin reference chapter>>.
 
-Be aware that the <<cpp_library_plugin.adoc#,{cpp} Library Plugin>> creates an additional configuration — `api` — for dependencies that are required for compiling and linking both the module and any modules that depend on it.
+Be aware that the <<cpp_library_plugin.adoc#cpp_library_plugin,{cpp} Library Plugin>> creates an additional configuration — `api` — for dependencies that are required for compiling and linking both the module and any modules that depend on it.
 
-We have only scratched the surface here, so we recommend that you read the <<core_dependency_management.adoc#,dedicated dependency management chapters>> once you’re comfortable with the basics of building {cpp} projects with Gradle.
+We have only scratched the surface here, so we recommend that you read the <<core_dependency_management.adoc#dependency_management_in_gradle,dedicated dependency management chapters>> once you’re comfortable with the basics of building {cpp} projects with Gradle.
 
 Some common scenarios that require further reading include:
 
  * Defining a custom <<declaring_repositories.adoc#sec:maven_repo,Maven-compatible>> repository
  * Declaring dependencies with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
  * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
- * <<dependency_constraints.adoc#,Controlling transitive dependencies and their versions>>
+ * <<dependency_constraints.adoc#dependency-constraints,Controlling transitive dependencies and their versions>>
  * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)
 
 You’ll discover that Gradle has a rich API for working with dependencies — one that takes time to master, but is straightforward to use for common scenarios.
@@ -245,7 +245,7 @@ Gradle comes with defaults, but custom packaging can be implemented without any 
 [[sec:cleaning_cpp_build]]
 == Cleaning the build
 
-The {cpp} Application and Library Plugins add a `clean` task to you project by using the <<base_plugin.adoc#,base plugin>>.
+The {cpp} Application and Library Plugins add a `clean` task to you project by using the <<base_plugin.adoc#base_plugin,base plugin>>.
 This task simply deletes everything in the `$buildDir` directory, hence why you should always put files generated by the build in there.
 The task is an instance of Delete and you can change what directory it deletes by setting its `dir` property.
 
@@ -256,7 +256,7 @@ The unique aspect of library projects is that they are used (or "consumed") by o
 That means the dependency metadata published with the binaries and headers — in the form of Gradle Module Metadata — is crucial.
 In particular, consumers of your library should be able to distinguish between two different types of dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
 
-Gradle manages this distinction via the <<cpp_library_plugin.adoc#,{cpp} Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ once covered in this chapter.
+Gradle manages this distinction via the <<cpp_library_plugin.adoc#cpp_library_plugin,{cpp} Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ once covered in this chapter.
 If the types from a dependency appear as unresolved symbols of the static library or within the public headers then that dependency is exposed via your library’s public API and should, therefore, be added to the _api_ configuration.
 Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
@@ -266,7 +266,7 @@ In addition, you can see a basic, practical example of building a {cpp} library 
 [[sec:building_cpp_applications]]
 == Building {cpp} applications
 
-See the <<cpp_application_plugin.adoc#,{cpp} Application Plugin>> chapter for more details, but here’s a quick summary of what you get:
+See the <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application Plugin>> chapter for more details, but here’s a quick summary of what you get:
 
  * `install` create a directory containing everything needed to run it
  * Shell and Windows Batch scripts to start the application

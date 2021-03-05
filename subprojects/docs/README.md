@@ -145,7 +145,7 @@ To run tests for a single snippet:
 
 Let's say you want to run the snippet found at `src/snippets/dependencyManagement/customizingResolution-consistentResolution`.
 
-then you can run the followng command line:
+then you can run the following command line:
 
 ```
    ./gradlew :docs:docsTest --tests "*.snippet-dependency-management-customizing-resolution-consistent-resolution*"

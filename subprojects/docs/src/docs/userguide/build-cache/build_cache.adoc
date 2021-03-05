@@ -32,7 +32,7 @@ When using a shared build cache for task output caching this even works across d
 
 Apart from tasks, <<artifact_transforms.adoc#sec:abm_artifact_transforms,artifact transforms>> can also leverage the build cache and re-use their outputs similarly to task output caching.
 
-TIP: For a hands-on approach to learning how to use the build cache, start with reading through the <<build_cache_use_cases.adoc#,use cases for the build cache>> and the follow up sections.
+TIP: For a hands-on approach to learning how to use the build cache, start with reading through the <<build_cache_use_cases.adoc#use_cases_cache,use cases for the build cache>> and the follow up sections.
 It covers the different scenarios that caching can improve and has detailed discussions of the different caveats you need to be aware of when enabling caching for a build.
 
 [[sec:build_cache_enable]]
@@ -191,6 +191,20 @@ In order to ensure that the inputs and outputs are properly declared use integra
 We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive]).
 
 In order to handle volatile inputs for your tasks consider <<more_about_tasks.adoc#sec:configure_input_normalization,configuring input normalization>>.
+
+=== Marking tasks as non-cacheable by default
+
+There are certain tasks that don't benefit from using the build cache.
+One example is a task that only moves data around the file system, like a `Copy` task.
+You can signify that a task is not to be cached by adding the `@DisableCachingByDefault` annotation to it.
+You can also give a human-readable reason for not caching the task by default.
+The annotation can be used on its own, or together with `@CacheableTask`.
+
+[NOTE]
+====
+This annotation is only for documenting the reason behind not caching the task by default.
+Build logic can override this decision via the runtime API (see below).
+====
 
 == Enable caching of non-cacheable tasks
 

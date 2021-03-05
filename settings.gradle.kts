@@ -13,6 +13,8 @@ plugins {
     id("com.gradle.enterprise").version("3.5.2")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
     id("gradlebuild.base.allprojects")
+    // Keep version with `build-logic/build-platform/buildSrc.gradle.kts` in sync
+    id("com.gradle.enterprise.test-distribution").version("2.0-rc-5")
 }
 
 includeBuild("build-logic-commons")
@@ -122,6 +124,7 @@ include("security")
 include("normalization-java")
 include("enterprise")
 include("build-operations")
+include("problems")
 
 // Plugin portal projects
 include("kotlin-dsl-plugins")

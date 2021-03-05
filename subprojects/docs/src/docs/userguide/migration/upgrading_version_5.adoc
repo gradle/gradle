@@ -51,10 +51,10 @@ See <<java_library_plugin.adoc#sec:java_library_configurations_graph, the relati
 
 The `uploadArchives` task and the `maven` plugin are deprecated.
 
-Users should migrate to the <<publishing_setup.adoc#,publishing system>> of Gradle by using either the <<publishing_maven.adoc#,`maven-publish`>> or <<publishing_ivy.adoc#,`ivy-publish`>> plugins.
+Users should migrate to the <<publishing_setup.adoc#publishing_components,publishing system>> of Gradle by using either the <<publishing_maven.adoc#publishing_maven,`maven-publish`>> or <<publishing_ivy.adoc#publishing_ivy,`ivy-publish`>> plugins.
 These plugins have been stable since Gradle 4.8.
 
-The publishing system is also the only way to ensure the publication of <<publishing_gradle_module_metadata.adoc#,Gradle Module Metadata>>.
+The publishing system is also the only way to ensure the publication of <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.
 
 ==== Problems with tasks emit deprecation warnings
 
@@ -240,7 +240,7 @@ Officially introduced in Gradle 5.3, https://blog.gradle.org/gradle-metadata-1.0
 
 With Gradle 6.0, Gradle Module Metadata is enabled by default.
 
-This means, if you are publishing libraries with Gradle and using the <<publishing_maven.adoc#,maven-publish>> or <<publishing_ivy.adoc#,ivy-publish>> plugin, the Gradle Module Metadata file is always published *in addition* to traditional metadata.
+This means, if you are publishing libraries with Gradle and using the <<publishing_maven.adoc#publishing_maven,maven-publish>> or <<publishing_ivy.adoc#publishing_ivy,ivy-publish>> plugin, the Gradle Module Metadata file is always published *in addition* to traditional metadata.
 
 The traditional metadata file will contain a marker so that Gradle knows that there is additional metadata to consume.
 
@@ -249,9 +249,9 @@ The traditional metadata file will contain a marker so that Gradle knows that th
 The following rules are verified when publishing Gradle Module Metadata:
 
 * Variant names must be unique,
-* Each variant must have at least <<variant_attributes.adoc#,one attribute>>,
-* Two variants cannot have the <<variant_model.adoc#,exact same attributes and capabilities>>,
-* If there are dependencies, at least one, across all variants, must carry <<rich_versions.adoc#,version information>>.
+* Each variant must have at least <<variant_attributes.adoc#variant_attributes,one attribute>>,
+* Two variants cannot have the <<variant_model.adoc#understanding-variant-selection,exact same attributes and capabilities>>,
+* If there are dependencies, at least one, across all variants, must carry <<rich_versions.adoc#rich-version-constraints,version information>>.
 
 These are documented in the link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification] as well.
 
@@ -508,7 +508,7 @@ This will become an error in Gradle 6.0.
 
 The `WorkerExecutor.submit()` method is now deprecated.
 The new `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods should now be used to submit work.
-See <<worker_api.adoc#,the section on the Worker API>> for more information on using these methods.
+See <<worker_api.adoc#tasks_parallel_worker,the section on the Worker API>> for more information on using these methods.
 
 `WorkerExecutor.submit()` will be removed in Gradle 8.0.
 
@@ -762,14 +762,14 @@ Please pass files and directories as arguments instead. See examples in the <<cu
 
 ==== Changes to native linking tasks
 
-To expand our idiomatic <<lazy_configuration.adoc#, Provider API>> practices, the install name property from `org.gradle.nativeplatform.tasks.LinkSharedLibrary` is affected by this change.
+To expand our idiomatic <<lazy_configuration.adoc#lazy_configuration, Provider API>> practices, the install name property from `org.gradle.nativeplatform.tasks.LinkSharedLibrary` is affected by this change.
 
 - `getInstallName()` was changed to return a `Property`.
 - `setInstallName(String)` was removed. Use `Property.set()` instead.
 
 ==== Passing arguments to Windows Resource Compiler
 
-To expand our idiomatic <<lazy_configuration.adoc#, Provider API>> practices, the `WindowsResourceCompile` task has been converted to use the Provider API.
+To expand our idiomatic <<lazy_configuration.adoc#lazy_configuration, Provider API>> practices, the `WindowsResourceCompile` task has been converted to use the Provider API.
 
 Passing additional compiler arguments now follow the same pattern as the `CppCompile` and other tasks.
 

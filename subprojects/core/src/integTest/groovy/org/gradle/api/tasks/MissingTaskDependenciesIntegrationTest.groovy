@@ -18,9 +18,14 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@ValidationTestFor(
+    ValidationProblemId.IMPLICIT_DEPENDENCY
+)
 @Unroll
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
 
@@ -359,6 +364,50 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped(":assemble")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/16061")
+    def "missing dependency detection takes excludes into account"() {
+        file("src/main/java/my/JavaClass.java").text = """
+            package my;
+
+            public class JavaClass {}
+        """
+
+        buildFile """
+            task produceInBuild {
+                def outputFile = file("build/app/foo.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = "output"
+                }
+            }
+
+            task showSources {
+                def sources = fileTree(projectDir) {
+                    exclude "build"
+                    exclude ".gradle"
+                    exclude "build.gradle"
+                    exclude "settings.gradle"
+                }
+                inputs.files(sources)
+                doLast {
+                    sources.each {
+                        println it.name
+                        assert it.name == "JavaClass.java"
+                    }
+                }
+            }
+        """
+
+        when:
+        run("produceInBuild", "showSources")
+        then:
+        outputContains("JavaClass.java")
+        executedAndNotSkipped(":produceInBuild", ":showSources")
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNRESOLVABLE_INPUT
+    )
     def "emits a deprecation warning when an input file collection can't be resolved"() {
         buildFile """
             task "broken" {
@@ -370,18 +419,14 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
             }
         """
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "Consider using Task.dependsOn instead of an input file collection. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-        )
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, unresolvableInput { includeLink() })
+
         run "broken"
         then:
         executedAndNotSkipped ":broken"
         outputContains("""
             Execution optimizations have been disabled for task ':broken' to ensure correctness due to the following reasons:
-              - Property 'invalidInputFileCollection' cannot be resolved:
+              - Type 'DefaultTask': property 'invalidInputFileCollection' cannot be resolved:
               Cannot convert the provided notation to a File or URI: 5.
               The following types/formats are supported:
                 - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
@@ -392,6 +437,6 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 - A RegularFile instance.
                 - A URI or URL instance.
                 - A TextResource instance.
-            Consider using Task.dependsOn instead of an input file collection.""".stripIndent())
+             ${unresolvableInput { includeLink() } }""".stripIndent())
     }
 }

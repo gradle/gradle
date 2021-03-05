@@ -62,6 +62,20 @@ File system watching and configuration caching is enabled for the comparison.
 
 You can find the performance test project [here](https://github.com/gradle/santa-tracker-performance).
 
+### Native support for Apple silicon
+
+With previous Gradle versions there were two options to run Gradle builds on the new Macs equipped with the M1 chip:
+
+* run with a native ARM JDK, but lose support for the rich console and file system watching, or
+* use an Intel JDK with Rosetta, but run at about half the performance.
+
+With Gradle 7.0 there is no need to sacrifice functionality or performance, as every feature is now fully supported using a native ARM JDK, too.
+
+## Groovy 3 upgrade
+
+Gradle has been upgraded to use Groovy 3. Groovy 3 comes with a brand new parser (code-named Parrot) and host of other new features and capabilities. In order to learn more about the improvements and new features in Groovy, please refer to [their release notes](https://groovy-lang.org/releasenotes/groovy-3.0.html).
+While we're integrating the various improvements of Groovy into the Gradle codebase, you might experience unexpected problems related to the Groovy classpath, the Groovy DSL and the usage of `withGroovyBuilder`. If you experience any issues, please report an issue for us to look into this before the final release.
+ 
 ## Ignore empty `buildSrc` project
 
 In earlier Gradle versions, the mere presence of a `buildSrc` directory was enough to trigger Gradle to execute all `buildSrc` tasks and to add the resulting `buildSrc.jar` to the buildscript class path.
@@ -129,6 +143,13 @@ includeBuild("../project-with-plugin-and-library")
 ```
 This distinction reflects what Gradle offers for repository declarations - 
 repositories are specified separately for plugin dependencies and for production dependencies.
+
+### Support for plugins with multiple variants
+
+Gradle 7 recognizes the [org.gradle.plugin.api-version](userguide/variant_attributes.html#sub:gradle_plugins_default_attributes) attribute during plugin resolution.
+This allows plugin authors to publish different variants of their plugins for different Gradle versions.
+[This user manual section](userguide/implementing_gradle_plugins.html#plugin-with-variants)
+describes how the new attribute can be used with [feature variants](userguide/feature_variants.html) to add additional variants to a plugin.
 
 <!-- 
 

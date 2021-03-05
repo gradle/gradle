@@ -78,7 +78,7 @@ class SourcesRepository(
 
     fun <T : Any?> executeQuery(apiSourceFile: ApiSourceFile.Java, query: JavaSourceQuery<T>): T =
         openJavaCompilationUnitsByFile
-            .computeIfAbsent(apiSourceFile.currentFile) { JavaParser.parse(it) }
+            .computeIfAbsent(apiSourceFile.currentFile) { JavaParser().parse(it).getResult().get() }
             .accept(query.visitor, null)
             ?: query.defaultValue
 

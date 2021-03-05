@@ -28,7 +28,8 @@ In this context, `libs` is a catalog and `groovy` represents a dependency availa
 
 Adding a dependency using the `libs.someLib` notation works exactly like if you had hardcoded the group, artifact and version directly in the build script.
 
-WARNING: A dependency catalog doesn't enforce the version of a dependency: like a regular dependency notation, it declares the requested version or a <<rich_versions.adoc#rich-version-constraints,rich version>>. That version is not necessarily the version that is selected during <<dependency_resolution#,conflict resolution>>.
+WARNING: A dependency catalog doesn't enforce the version of a dependency: like a regular dependency notation, it declares the requested version or a <<rich_versions.adoc#rich-version-constraints,rich version>>.
+That version is not necessarily the version that is selected during <<dependency_resolution#understanding_dependency_resolution,conflict resolution>>.
 
 [[sub:version-catalog-declaration]]
 === Declaring a version catalog
@@ -142,25 +143,25 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",fil
 The semantics are again equivalent: adding a single bundle is equivalent to adding all dependencies which are part of the bundle individually.
 
 [[sub:conventional-dependencies-toml]]
-=== The dependencies.toml file
+=== The libs.versions.toml file
 
 In addition to the settings API above, Gradle offers a conventional file to declare a catalog.
-If a `dependencies.toml` file is found in the `gradle` subdirectory of the root build, then a catalog will be automatically declared with the contents of this file.
+If a `libs.versions.toml` file is found in the `gradle` subdirectory of the root build, then a catalog will be automatically declared with the contents of this file.
 Additionally, this file can be used to declare the default plugin versions for plugins applied in the build.
 
 [WARNING]
 ====
-Declaring a `dependencies.toml` file doesn't make it the single source of truth for dependencies: it's a conventional location where dependencies can be declared.
+Declaring a `libs.versions.toml` file doesn't make it the single source of truth for dependencies: it's a conventional location where dependencies can be declared.
 As soon as you start using catalogs, it's strongly recommended to declare all your dependencies in a catalog and not hardcode group/artifact/version strings in build scripts.
 Be aware that it may happen that plugins add dependencies, which are dependencies defined outside of this file.
 
-Just like `src/main/java` is a convention to find the Java sources, which doesn't prevent additional source directories to be declared (either in a build script or a plugin), the presence of the `dependencies.toml` file doesn't prevent the declaration of dependencies elsewhere.
+Just like `src/main/java` is a convention to find the Java sources, which doesn't prevent additional source directories to be declared (either in a build script or a plugin), the presence of the `libs.versions.toml` file doesn't prevent the declaration of dependencies elsewhere.
 
 The presence of this file does, however, suggest that most dependencies, if not all, will be declared in this file.
 Therefore, updating a dependency version, for most users, should only consists of changing a line in this file.
 ====
 
-By default, the `dependencies.toml` file will be an input to the `libs` catalog.
+By default, the `libs.versions.toml` file will be an input to the `libs` catalog.
 It is possible to change the name of the default catalog, for example if you already have an extension with the same name:
 
 .Changing the default extension name
@@ -170,20 +171,20 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin",files="
 ====
 
 [[sub::toml-dependencies-format]]
-==== The dependencies.toml file format
+==== The version catalog TOML file format
 
 The https://toml.io/[TOML] file consists of 4 major sections:
 
 - the `[versions]` section is used to declare versions which can be referenced by dependencies
-- the `[dependencies]` section is used to declare the aliases to coordinates
+- the `[libraries]` section is used to declare the aliases to coordinates
 - the `[bundles]` section is used to declare dependency bundles
 - the `[plugins]` section is used to declare default plugin versions
 
 For example:
 
-.The dependencies.toml file
+.The libs.versions.toml file
 ----
-include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/dependencies.toml[]
+include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/libs.versions.toml[]
 ----
 
 Versions can be declared either as a single string, in which case they are interpreted as a _required_ version, or as a <<rich_versions.adoc#rich-version-constraints,rich versions>>:
@@ -205,7 +206,7 @@ Dependency declaration can either be declared as a simple string, in which case 
 
 .Different dependency notations
 ----
-include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/test-dependencies.toml[]
+include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/test-libs.versions.toml[]
 ----
 
 In case you want to reference a version declared in the `[versions]` section, you should use the `version.ref` property:
@@ -214,7 +215,7 @@ In case you want to reference a version declared in the `[versions]` section, yo
 [versions]
 some = "1.4"
 
-[dependencies]
+[libraries]
 my-lib = { group = "com.mycompany", name="mylib", version.ref="some" }
 ```
 
@@ -313,7 +314,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin
 include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin/kotlin",files="build.gradle.kts[tags=catalog_publish]"]
 ====
 
-When publishing such a project, a `dependencies.toml` file will automatically be generated (and uploaded), which can then be <<platforms.adoc#sec:importing-published-catalog,consumed from other Gradle builds>>.
+When publishing such a project, a `libs.versions.toml` file will automatically be generated (and uploaded), which can then be <<platforms.adoc#sec:importing-published-catalog,consumed from other Gradle builds>>.
 
 [[sec:java-platform-plugin-as-catalog]]
 ==== Integration with the Java Platform plugin

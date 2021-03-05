@@ -16,35 +16,46 @@
 
 package org.gradle.internal.execution.impl;
 
-import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
 
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final ImmutableMultimap.Builder<TypeValidationContext.Severity, String> problems = ImmutableMultimap.builder();
+    private final ImmutableList.Builder<TypeValidationProblem> problems = ImmutableList.builder();
+    private final DocumentationRegistry documentationRegistry;
+
+    public DefaultWorkValidationContext(DocumentationRegistry documentationRegistry) {
+        this.documentationRegistry = documentationRegistry;
+    }
 
     @Override
     public TypeValidationContext forType(Class<?> type, boolean cacheable) {
         types.add(type);
-        return new MessageFormattingTypeValidationContext(null) {
+        return new ProblemRecordingTypeValidationContext(documentationRegistry, type) {
+
             @Override
-            protected void recordProblem(Severity severity, String message) {
-                if (severity == Severity.CACHEABILITY_WARNING && !cacheable) {
+            protected void recordProblem(TypeValidationProblem problem) {
+                boolean cacheableProblemOnly = problem.isCacheabilityProblemOnly();
+                if (cacheableProblemOnly && !cacheable) {
                     return;
                 }
-                problems.put(severity.toReportableSeverity(), message);
+                problems.add(problem);
             }
         };
     }
 
-    public ImmutableMultimap<TypeValidationContext.Severity, String> getProblems() {
+    @Override
+    public List<TypeValidationProblem> getProblems() {
         return problems.build();
     }
 

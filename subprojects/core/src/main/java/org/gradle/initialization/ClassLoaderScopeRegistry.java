@@ -20,7 +20,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scopes.UserHome.class)
 public interface ClassLoaderScopeRegistry {
 
     ClassLoaderScope getCoreAndPluginsScope();

@@ -28,6 +28,7 @@ dependencies {
     }
 
     implementation(libs.groovy)
+    implementation(libs.groovyTemplates)
     implementation(libs.ant)
     implementation(libs.guava)
     implementation(libs.commonsLang)
@@ -59,6 +60,8 @@ dependencies {
     testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(libs.guava)
+
+    integTestImplementation(testFixtures(project(":model-core")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

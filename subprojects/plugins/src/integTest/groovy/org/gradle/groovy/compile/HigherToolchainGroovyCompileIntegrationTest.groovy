@@ -25,7 +25,7 @@ class HigherToolchainGroovyCompileIntegrationTest extends AbstractToolchainGroov
     @Override
     Jvm computeJdkForTest() {
         AvailableJavaHomes.getAvailableJdk {
-            it.languageVersion > Jvm.current().javaVersion && JavaVersion.VERSION_15.isCompatibleWith(it.languageVersion)
+            it.languageVersion > Jvm.current().javaVersion && JavaVersion.VERSION_16.isCompatibleWith(it.languageVersion)
         }
     }
 }

@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.groovy)
+    implementation(libs.groovyAnt)
+    implementation(libs.groovyJson)
     implementation(libs.hikariCP)
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonCore)

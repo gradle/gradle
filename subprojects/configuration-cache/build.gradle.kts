@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":build-option"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyJson)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
@@ -76,6 +77,7 @@ dependencies {
 
     integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":jacoco")))
+    integTestImplementation(testFixtures(project(":model-core")))
 
     crossVersionTestImplementation(project(":cli"))
 

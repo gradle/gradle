@@ -209,7 +209,7 @@ And that's it! Now we have:
 - explained that the consumer needs this variant _only for test runtime_
 
 Gradle therefore offers a powerful mechanism to select the right variants based on preferences and compatibility.
-More details can be found in the <<variant_attributes.adoc#, variant aware plugins section of the documentation>>.
+More details can be found in the <<variant_attributes.adoc#variant_attributes, variant aware plugins section of the documentation>>.
 
 [WARNING]
 ====

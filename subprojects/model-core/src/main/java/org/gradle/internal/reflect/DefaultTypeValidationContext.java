@@ -17,35 +17,42 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nullable;
 
-public class DefaultTypeValidationContext extends MessageFormattingTypeValidationContext {
+public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     private final boolean cacheable;
     private final ImmutableMap.Builder<String, Severity> problems = ImmutableMap.builder();
 
-    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable) {
-        return new DefaultTypeValidationContext(rootType, cacheable);
+    public static DefaultTypeValidationContext withRootType(DocumentationRegistry documentationRegistry, Class<?> rootType, boolean cacheable) {
+        return new DefaultTypeValidationContext(documentationRegistry, rootType, cacheable);
     }
 
-    public static DefaultTypeValidationContext withoutRootType(boolean cacheable) {
-        return new DefaultTypeValidationContext(null, cacheable);
+    public static DefaultTypeValidationContext withoutRootType(DocumentationRegistry documentationRegistry, boolean cacheable) {
+        return new DefaultTypeValidationContext(documentationRegistry, null, cacheable);
     }
 
-    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean cacheable) {
-        super(rootType);
+    private DefaultTypeValidationContext(DocumentationRegistry documentationRegistry, @Nullable Class<?> rootType, boolean cacheable) {
+        super(documentationRegistry, rootType);
         this.cacheable = cacheable;
     }
 
     @Override
-    protected void recordProblem(Severity severity, String message) {
-        if (severity == Severity.CACHEABILITY_WARNING && !cacheable) {
+    protected void recordProblem(TypeValidationProblem problem) {
+        boolean cacheableProblemOnly = problem.isCacheabilityProblemOnly();
+        if (cacheableProblemOnly && !cacheable) {
             return;
         }
-        problems.put(message, severity.toReportableSeverity());
+        problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), problem.getSeverity());
     }
 
     public ImmutableMap<String, Severity> getProblems() {
         return problems.build();
     }
+
+
 }

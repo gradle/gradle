@@ -44,6 +44,7 @@ import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -62,7 +63,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     public static final int DEFAULT_LOCK_TIMEOUT = 60000;
 
-    private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
+    private final Set<File> lockedFiles = new CopyOnWriteArraySet<>();
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
     private final IdGenerator<Long> generator;
@@ -130,7 +131,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private java.nio.channels.FileLock lock;
         private LockFileAccess lockFileAccess;
         private LockState lockState;
-        private int port;
+        private final int port;
         private final long lockId;
 
         public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Action<FileLockReleasedSignal> whenContended) throws Throwable {
@@ -352,6 +353,7 @@ public class DefaultFileLockManager implements FileLockManager {
             return out;
         }
 
+        @Nullable
         private java.nio.channels.FileLock lockStateRegion(final LockMode lockMode) throws IOException, InterruptedException {
             final ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff = newExponentialBackoff(lockTimeoutMs);
             return backoff.retryUntil(new IOQuery<java.nio.channels.FileLock>() {
@@ -385,13 +387,9 @@ public class DefaultFileLockManager implements FileLockManager {
             });
         }
 
+        @Nullable
         private java.nio.channels.FileLock lockInformationRegion(final LockMode lockMode, ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff) throws IOException, InterruptedException {
-            return backoff.retryUntil(new IOQuery<java.nio.channels.FileLock>() {
-                @Override
-                public java.nio.channels.FileLock run() throws IOException {
-                    return lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
-                }
-            });
+            return backoff.retryUntil(() -> lockFileAccess.tryLockInfo(lockMode == LockMode.Shared));
         }
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionPlugin
+import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.tasks.ClasspathManifest
@@ -113,6 +113,10 @@ fun addDependencies() {
         testCompileOnly(libs.junit)
         testRuntimeOnly(libs.junit5Vintage)
         testImplementation(libs.groovy)
+        testImplementation(libs.groovyAnt)
+        testImplementation(libs.groovyJson)
+        testImplementation(libs.groovyTest)
+        testImplementation(libs.groovyXml)
         testImplementation(libs.spock)
         testImplementation(libs.junit5Vintage)
         testImplementation(libs.spockJUnit4)
@@ -177,10 +181,23 @@ fun Test.configureJvmForTest() {
     }
     javaLauncher.set(launcher)
     if (jvmVersionForTest().canCompileOrRun(9)) {
-        // allow embedded executer to modify environment variables
-        jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
-        // allow embedded executer to inject legacy types into the system classloader
-        jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+        if (isUnitTest() || usesEmbeddedExecuter()) {
+            // TODO: replace the next three invocations of jvmArgs below with jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS) once wrapper is updated
+            jvmArgs(org.gradle.internal.jvm.GroovyJpmsConfiguration.GROOVY_JPMS_JVM_ARGS)
+            // used by Configuration Cache
+            jvmArgs(
+                listOf(
+                    "--add-opens", "java.base/java.net=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
+                    "--add-opens", "java.base/java.nio.charset=ALL-UNNAMED" // required by BeanSchemaKt
+                )
+            )
+            // Workaround until external kotlin-dsl plugins support JDK16 properly
+            // https://youtrack.jetbrains.com/issue/KT-43704 - should be in 1.5.x line
+            jvmArgs(listOf("-Dkotlin.daemon.jvm.options=--illegal-access=permit"))
+        } else {
+            jvmArgs(listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")) // Used in tests by native platform library: WrapperProcess.getEnv
+            jvmArgs(listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")) // Used in tests by ClassLoaderUtils
+        }
     }
 }
 
@@ -190,6 +207,10 @@ fun Test.addOsAsInputs() {
     inputs.property("operatingSystem", "${OperatingSystem.current().name} ${System.getProperty("os.arch")}")
 }
 
+fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
+
+fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
+
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -197,12 +218,6 @@ fun configureTests() {
             ignore("org/gradle/build-receipt.properties")
         }
     }
-
-    if (project.testDistributionEnabled()) {
-        plugins.apply(TestDistributionPlugin::class.java)
-    }
-
-    fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
 
     tasks.withType<Test>().configureEach {
         filterEnvironmentVariables()
@@ -229,6 +244,10 @@ fun configureTests() {
             println("Test distribution has been enabled for $testName")
             distribution {
                 enabled.set(true)
+
+                // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
+                (this as TestDistributionExtensionInternal).server.set(uri("https://ge-experiment.grdev.net"))
+
                 if (BuildEnvironment.isCiServer) {
                     when {
                         OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux", "gbt-dogfooding"))

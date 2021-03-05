@@ -30,11 +30,12 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.internal.reflect.TypeValidationContext;
-import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -43,11 +44,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;
@@ -106,19 +108,30 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             Annotation normalizationAnnotation = propertyAnnotations.get(NORMALIZATION);
             Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
             if (propertyType == null) {
-                validationContext.visitPropertyProblem(WARNING,
-                    propertyAnnotationMetadata.getPropertyName(),
-                    String.format("is not annotated with %s", displayName)
+                validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.MISSING_ANNOTATION)
+                        .forProperty(propertyAnnotationMetadata.getPropertyName())
+                        .reportAs(ERROR)
+                        .withDescription(() -> "is missing " + displayName)
+                        .happensBecause("A property without annotation isn't considered during up-to-date checking")
+                        .addPossibleSolution(() -> "Add " + displayName)
+                        .addPossibleSolution("Mark it as @Internal")
+                        .documentedAt("validation_problems", "missing_annotation")
                 );
                 continue;
             }
 
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
-                validationContext.visitPropertyProblem(ERROR,
-                    propertyAnnotationMetadata.getPropertyName(),
-                    String.format("is annotated with invalid property type @%s",
-                        propertyType.getSimpleName())
+                validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
+                        .forProperty(propertyAnnotationMetadata.getPropertyName())
+                        .reportAs(ERROR)
+                        .withDescription(() -> String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
+                        .happensBecause(() -> "The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
+                        .addPossibleSolution("Remove the property")
+                        .addPossibleSolution(() -> "Use a different annotation, e.g one of " + toListOfAnnotations(propertyAnnotationHandlers.keySet()))
+                        .documentedAt("validation_problems", "annotation_invalid_in_context")
                 );
                 continue;
             }
@@ -131,16 +144,24 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationCategory)) {
-                    validationContext.visitPropertyProblem(WARNING,
-                        propertyAnnotationMetadata.getPropertyName(),
-                        String.format("is annotated with @%s that is not allowed for @%s properties",
-                            annotationType.getSimpleName(), propertyType.getSimpleName())
-                    );
+                    validationContext.visitPropertyProblem(problem ->
+                        problem.withId(ValidationProblemId.INCOMPATIBLE_ANNOTATIONS)
+                            .forProperty(propertyAnnotationMetadata.getPropertyName())
+                            .reportAs(ERROR)
+                            .withDescription(() -> "is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
+                            .happensBecause(() -> "This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
+                            .withLongDescription(() -> "The list of allowed modifiers for '" + propertyType.getSimpleName() + "' is " + toListOfAnnotations(allowedPropertyModifiers))
+                            .addPossibleSolution(() -> "Remove the '@" + annotationType.getSimpleName() + "' annotation")
+                            .documentedAt("validation_problems", "incompatible_annotations"));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
-                    validationContext.visitPropertyProblem(ERROR,
-                        propertyAnnotationMetadata.getPropertyName(),
-                        String.format("has invalid annotation @%s",
-                            annotationType.getSimpleName())
+                    validationContext.visitPropertyProblem(problem ->
+                        problem.withId(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
+                            .forProperty(propertyAnnotationMetadata.getPropertyName())
+                            .reportAs(ERROR)
+                            .withDescription(() -> String.format("has invalid annotation @%s", annotationType.getSimpleName()))
+                            .happensBecause(() -> "The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
+                            .addPossibleSolution("Remove the property")
+                            .documentedAt("validation_problems", "annotation_invalid_in_context")
                     );
                 }
             }
@@ -155,13 +176,21 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         return new DefaultTypeMetadata(effectiveProperties.build(), validationContext, propertyAnnotationHandlers);
     }
 
+    private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
+        return classes.stream()
+            .map(Class::getSimpleName)
+            .map(s -> "@" + s)
+            .sorted()
+            .collect(forDisplay());
+    }
+
     @Nullable
     private Class<? extends Annotation> determinePropertyType(@Nullable Annotation typeAnnotation, @Nullable Annotation normalizationAnnotation) {
         if (typeAnnotation != null) {
             return typeAnnotation.annotationType();
         } else if (normalizationAnnotation != null) {
             if (normalizationAnnotation.annotationType().equals(Classpath.class)
-            || normalizationAnnotation.annotationType().equals(CompileClasspath.class)) {
+                || normalizationAnnotation.annotationType().equals(CompileClasspath.class)) {
                 return InputFiles.class;
             }
         }
@@ -249,5 +278,18 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         public String toString() {
             return String.format("@%s %s", propertyType.getSimpleName(), getPropertyName());
         }
+    }
+
+    private static Collector<? super String, ?, String> forDisplay() {
+        return Collectors.collectingAndThen(Collectors.toList(), stringList -> {
+                if (stringList.isEmpty()) {
+                    return "";
+                }
+                if (stringList.size() == 1) {
+                    return stringList.get(0);
+                }
+            int bound = stringList.size() - 1;
+            return String.join(", ", stringList.subList(0, bound)) + " or " + stringList.get(bound);
+        });
     }
 }

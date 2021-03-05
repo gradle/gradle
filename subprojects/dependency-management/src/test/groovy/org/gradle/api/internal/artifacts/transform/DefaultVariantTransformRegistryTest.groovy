@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -50,6 +51,8 @@ import spock.lang.Specification
 import javax.inject.Inject
 
 class DefaultVariantTransformRegistryTest extends Specification {
+    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
+
     public static final TEST_ATTRIBUTE = Attribute.of("TEST", String)
 
     @Rule
@@ -94,7 +97,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
             inspectionScheme,
             instantiatorFactory.injectScheme()
         ),
-        Stub(ServiceLookup)
+        Stub(ServiceLookup),
+        documentationRegistry
     )
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
 

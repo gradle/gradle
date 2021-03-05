@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNodeFactory;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.ArrayDeque;
 import java.util.Queue;

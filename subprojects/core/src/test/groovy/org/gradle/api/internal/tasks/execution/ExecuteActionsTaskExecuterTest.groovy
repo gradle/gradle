@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
@@ -89,6 +90,7 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
 
 class ExecuteActionsTaskExecuterTest extends Specification {
+    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
     def task = Mock(TaskInternal)
     def taskOutputs = Mock(TaskOutputsInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
@@ -108,7 +110,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         getInputFileProperties() >> ImmutableSortedMap.of()
         getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
     }
-    def validationContext = new DefaultWorkValidationContext()
+    def validationContext = new DefaultWorkValidationContext(documentationRegistry)
     def executionContext = Mock(TaskExecutionContext)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
@@ -151,7 +153,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
 
     // @formatter:off
-    def executionEngine = new DefaultExecutionEngine(
+    def executionEngine = new DefaultExecutionEngine(documentationRegistry,
         new IdentifyStep<>(inputFingerprinter,
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(

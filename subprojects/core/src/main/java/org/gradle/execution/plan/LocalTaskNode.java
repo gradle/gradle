@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -49,9 +50,9 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task) {
+    public LocalTaskNode(TaskInternal task, DocumentationRegistry documentationRegistry) {
         this.task = task;
-        this.validationContext = new DefaultWorkValidationContext();
+        this.validationContext = new DefaultWorkValidationContext(documentationRegistry);
     }
 
     /**

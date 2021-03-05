@@ -17,6 +17,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.BuildType;
+import org.gradle.internal.buildtree.BuildTreeBuildPath;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.session.BuildSessionContext;
@@ -28,7 +29,7 @@ public class BuildTreeScopeLifecycleBuildActionExecuter implements BuildActionEx
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
         BuildType buildType = action.isRunTasks() ? BuildType.TASKS : BuildType.MODEL;
-        try (BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), buildType)) {
+        try (BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), buildType, BuildTreeBuildPath.ROOT)) {
             return buildTree.run(context ->
                 context.getBuildTreeServices().get(BuildTreeBuildActionExecutor.class).execute(action, actionParameters, context));
         }

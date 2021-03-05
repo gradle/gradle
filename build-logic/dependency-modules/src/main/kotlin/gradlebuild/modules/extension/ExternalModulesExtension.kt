@@ -20,16 +20,11 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension {
 
-    val groovyVersion = "2.5.12"
-    val kotlinVersion = "1.4.30"
+    val groovyVersion = "3.0.7"
+    val kotlinVersion = "1.4.31"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
-    val aetherApi = "org.sonatype.aether:aether-api"
-    val aetherConnector = "org.sonatype.aether:aether-connector-wagon"
-    val aetherImpl = "org.sonatype.aether:aether-impl"
-    val aetherSpi = "org.sonatype.aether:aether-spi"
-    val aetherUtil = "org.sonatype.aether:aether-util"
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
     val antLauncher = "org.apache.ant:ant-launcher"
@@ -43,6 +38,7 @@ abstract class ExternalModulesExtension {
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
     val awsS3Sts = "com.amazonaws:aws-java-sdk-sts"
     val bouncycastlePgp = "org.bouncycastle:bcpg-jdk15on"
+    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk15on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val commonsCodec = "commons-codec:commons-codec"
@@ -58,7 +54,19 @@ abstract class ExternalModulesExtension {
     val googleHttpClientJackson2 = "com.google.http-client:google-http-client-jackson2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
-    val groovy = "org.gradle.groovy:groovy-all"
+    val groovy = "org.codehaus.groovy:groovy"
+    val groovyAnt = "org.codehaus.groovy:groovy-ant"
+    val groovyAstbuilder = "org.codehaus.groovy:groovy-astbuilder"
+    val groovyConsole = "org.codehaus.groovy:groovy-console"
+    val groovyDateUtil = "org.codehaus.groovy:groovy-dateutil"
+    val groovyDatetime = "org.codehaus.groovy:groovy-datetime"
+    val groovyDoc = "org.codehaus.groovy:groovy-groovydoc"
+    val groovyJson = "org.codehaus.groovy:groovy-json"
+    val groovyNio = "org.codehaus.groovy:groovy-nio"
+    val groovySql = "org.codehaus.groovy:groovy-sql"
+    val groovyTemplates = "org.codehaus.groovy:groovy-templates"
+    val groovyTest = "org.codehaus.groovy:groovy-test"
+    val groovyXml = "org.codehaus.groovy:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
     val hamcrest = "org.hamcrest:hamcrest-core"
@@ -68,9 +76,12 @@ abstract class ExternalModulesExtension {
     val jacksonAnnotations = "com.fasterxml.jackson.core:jackson-annotations"
     val jacksonCore = "com.fasterxml.jackson.core:jackson-core"
     val jacksonDatabind = "com.fasterxml.jackson.core:jackson-databind"
+    val jakartaActivation = "com.sun.activation:jakarta.activation"
+    val jakartaXmlBind = "jakarta.xml.bind:jakarta.xml.bind-api"
     val jansi = "org.fusesource.jansi:jansi"
     val jatl = "com.googlecode.jatl:jatl"
-    val jaxb = "com.sun.xml.bind:jaxb-impl"
+    val jaxbCore = "com.sun.xml.bind:jaxb-core"
+    val jaxbImpl = "com.sun.xml.bind:jaxb-impl"
     val jcifs = "org.samba.jcifs:jcifs"
     val jclToSlf4j = "org.slf4j:jcl-over-slf4j"
     val jcommander = "com.beust:jcommander"
@@ -86,29 +97,17 @@ abstract class ExternalModulesExtension {
     val jzlib = "com.jcraft:jzlib"
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
-    val maven3 = "org.apache.maven:maven-core"
-    val maven3AetherProvider = "org.apache.maven:maven-aether-provider"
-    val maven3Artifact = "org.apache.maven:maven-artifact"
-    val maven3Compat = "org.apache.maven:maven-compat"
+    val maven3BuilderSupport = "org.apache.maven:maven-builder-support"
     val maven3Model = "org.apache.maven:maven-model"
-    val maven3ModelBuilder = "org.apache.maven:maven-model-builder"
-    val maven3PluginApi = "org.apache.maven:maven-plugin-api"
     val maven3RepositoryMetadata = "org.apache.maven:maven-repository-metadata"
     val maven3Settings = "org.apache.maven:maven-settings"
     val maven3SettingsBuilder = "org.apache.maven:maven-settings-builder"
-    val maven3WagonFile = "org.apache.maven.wagon:wagon-file"
-    val maven3WagonHttp = "org.apache.maven.wagon:wagon-http"
-    val maven3WagonHttpShared = "org.apache.maven.wagon:wagon-http-shared"
-    val maven3WagonProviderApi = "org.apache.maven.wagon:wagon-provider-api"
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
     val nekohtml = "net.sourceforge.nekohtml:nekohtml"
     val objenesis = "org.objenesis:objenesis"
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"
-    val plexusClassworlds = "org.codehaus.plexus:plexus-classworlds"
-    val plexusComponentAnnotations = "org.codehaus.plexus:plexus-component-annotations"
-    val plexusContainer = "org.codehaus.plexus:plexus-container-default"
     val plexusInterpolation = "org.codehaus.plexus:plexus-interpolation"
     val plexusSecDispatcher = "org.codehaus.plexus:plexus-sec-dispatcher"
     val plexusUtils = "org.codehaus.plexus:plexus-utils"
@@ -124,12 +123,17 @@ abstract class ExternalModulesExtension {
     val xerces = "xerces:xercesImpl"
     val xmlApis = "xml-apis:xml-apis"
 
+    // Compile only dependencies (dynamically downloaded if needed)
+    val maven3Compat = "org.apache.maven:maven-compat"
+    val maven3PluginApi = "org.apache.maven:maven-plugin-api"
+
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
     val archunit = "com.tngtech.archunit:archunit"
     val archunitJunit4 = "com.tngtech.archunit:archunit-junit4"
     val awaitility = "org.awaitility:awaitility-kotlin"
     val bytebuddy = "net.bytebuddy:byte-buddy"
+    val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
     val flightrecorder = "org.gradle.org.openjdk.jmc:flightrecorder"
@@ -138,16 +142,17 @@ abstract class ExternalModulesExtension {
     val httpmime = "org.apache.httpcomponents:httpmime"
     val jacksonKotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
     val javaParser = "com.github.javaparser:javaparser-core"
-    val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jetty = "org.eclipse.jetty:jetty-http"
     val jettySecurity = "org.eclipse.jetty:jetty-security"
     val jettyWebApp = "org.eclipse.jetty:jetty-webapp"
+    val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jsoup = "org.jsoup:jsoup"
     val jtar = "org.kamranzafar:jtar"
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
     val littleproxy = "org.gradle.org.littleshoot:littleproxy"
     val mina = "org.apache.mina:mina-core"
+    val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "com.nhaarman:mockito-kotlin"
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
     val mySqlConnector = "mysql:mysql-connector-java"
@@ -160,14 +165,10 @@ abstract class ExternalModulesExtension {
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
+    val typesafeConfig = "com.typesafe:config"
     val xmlunit = "xmlunit:xmlunit"
 
     val licenses = mapOf(
-        aetherApi to License.EPL,
-        aetherConnector to License.EPL,
-        aetherImpl to License.EPL,
-        aetherSpi to License.EPL,
-        aetherUtil to License.EPL,
         ansiControlSequenceUtil to License.Apache2,
         ant to License.Apache2,
         antLauncher to License.Apache2,
@@ -207,9 +208,12 @@ abstract class ExternalModulesExtension {
         jacksonAnnotations to License.Apache2,
         jacksonCore to License.Apache2,
         jacksonDatabind to License.Apache2,
+        jakartaActivation to License.EDL,
+        jakartaXmlBind to License.EDL,
         jansi to License.Apache2,
         jatl to License.Apache2,
-        jaxb to License.CDDL,
+        jaxbCore to License.EDL,
+        jaxbImpl to License.EDL,
         jcifs to License.LGPL21,
         jclToSlf4j to License.MIT,
         jcommander to License.Apache2,
@@ -225,28 +229,17 @@ abstract class ExternalModulesExtension {
         jzlib to License.BSDStyle,
         kryo to License.BSD3,
         log4jToSlf4j to License.MIT,
-        maven3 to License.Apache2,
-        maven3AetherProvider to License.Apache2,
-        maven3Artifact to License.Apache2,
-        maven3Compat to License.Apache2,
+        maven3BuilderSupport to License.Apache2,
         maven3Model to License.Apache2,
-        maven3ModelBuilder to License.Apache2,
-        maven3PluginApi to License.Apache2,
         maven3RepositoryMetadata to License.Apache2,
         maven3Settings to License.Apache2,
         maven3SettingsBuilder to License.Apache2,
-        maven3WagonFile to License.Apache2,
-        maven3WagonHttp to License.Apache2,
-        maven3WagonHttpShared to License.Apache2,
-        maven3WagonProviderApi to License.Apache2,
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
+        nativePlatformFileEvents to License.Apache2,
         nekohtml to License.Apache2,
         objenesis to License.Apache2,
         plexusCipher to License.Apache2,
-        plexusClassworlds to License.Apache2,
-        plexusComponentAnnotations to License.Apache2,
-        plexusContainer to License.Apache2,
         plexusInterpolation to License.Apache2,
         plexusSecDispatcher to License.Apache2,
         plexusUtils to License.Apache2,

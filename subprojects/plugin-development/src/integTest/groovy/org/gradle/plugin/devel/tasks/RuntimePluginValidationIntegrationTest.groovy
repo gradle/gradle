@@ -16,11 +16,12 @@
 
 package org.gradle.plugin.devel.tasks
 
-import org.gradle.internal.reflect.TypeValidationContext
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 
 class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -49,23 +50,14 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         result.assertTaskNotSkipped(":run")
     }
 
-    @Override
-    void assertValidationFailsWith(boolean expectDeprecationsForErrors, Map<String, TypeValidationContext.Severity> messages) {
+    void assertValidationFailsWith(List<DocumentedProblem> messages) {
         def expectedDeprecations = messages
-            .findAll { message, severity -> expectDeprecationsForErrors || severity == WARNING }
-            .keySet()
-            .collect { removeTypeForProperties(it) }
+            .findAll { problem -> problem.severity == WARNING }
         def expectedFailures = messages
-            .findAll { message, severity -> severity == ERROR }
-            .keySet()
-            .collect { removeTypeForProperties(it) }
+            .findAll { problem -> problem.severity == ERROR }
 
         expectedDeprecations.forEach { warning ->
-            executer.expectDocumentedDeprecationWarning(warning + " " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-            )
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, warning.message, warning.id, warning.section)
         }
         if (expectedFailures) {
             fails "run"
@@ -85,12 +77,8 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
                 break
         }
         expectedFailures.forEach { error ->
-            failureDescriptionContains(error)
+            failureDescriptionContains(error.message)
         }
-    }
-
-    static String removeTypeForProperties(String message) {
-        message.replaceAll(/Type '.*?': property/, "Property")
     }
 
     @Override
@@ -98,6 +86,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         return file("buildSrc/$path")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -125,10 +116,10 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         """
 
         expect:
-        assertValidationFailsWith(
-            "Property 'tree.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Property 'tree.left.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Property 'tree.right.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
-        )
+        assertValidationFailsWith([
+                error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.left.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.right.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+        ])
     }
 }

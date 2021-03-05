@@ -45,6 +45,7 @@ import org.gradle.buildinit.plugins.internal.TemplateLibraryVersionProvider;
 import org.gradle.buildinit.plugins.internal.TemplateOperationFactory;
 import org.gradle.buildinit.plugins.internal.maven.PomProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.model.Description;
+import org.gradle.workers.WorkerExecutor;
 
 import java.util.List;
 
@@ -53,10 +54,12 @@ public class ProjectLayoutSetupRegistryFactory {
     private final MavenSettingsProvider mavenSettingsProvider;
     private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final TemplateOperationFactory templateOperationBuilder;
+    private final WorkerExecutor workerExecutor;
 
-    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry) {
+    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor) {
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.documentationRegistry = documentationRegistry;
+        this.workerExecutor = workerExecutor;
         scriptBuilderFactory = new BuildScriptBuilderFactory();
         templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", documentationRegistry);
     }
@@ -71,7 +74,7 @@ public class ProjectLayoutSetupRegistryFactory {
         List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, gitAttributesGenerator, resourcesGenerator);
         List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, gitAttributesGenerator);
         BuildInitializer basicType = of(new BasicProjectGenerator(scriptBuilderFactory, documentationRegistry), commonGenerators);
-        PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(mavenSettingsProvider, scriptBuilderFactory, documentationRegistry);
+        PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(mavenSettingsProvider, documentationRegistry, workerExecutor);
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter, templateOperationBuilder);
         registry.add(of(new JvmApplicationProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
         registry.add(of(new JvmLibraryProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));

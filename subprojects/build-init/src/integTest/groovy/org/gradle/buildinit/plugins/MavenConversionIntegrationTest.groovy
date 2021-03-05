@@ -561,7 +561,6 @@ Root project 'webinar-parent'
         MavenHttpModule module = repo.module('util.util.parent', 'util-parent', '3')
         module.pom.expectGet()
         module.pom.sha1.expectGet()
-        module.pom.md5.expectGet()
         module.pom
     }
 

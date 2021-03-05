@@ -54,7 +54,6 @@ import org.gradle.execution.CompositeAwareTaskSelector;
 import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
 import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
-import org.gradle.execution.UndefinedBuildWorkExecutor;
 import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ExcludedTaskFilteringBuildConfigurationAction;
 import org.gradle.execution.IncludedBuildLifecycleBuildWorkExecutor;
@@ -63,6 +62,7 @@ import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolver;
 import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
+import org.gradle.execution.UndefinedBuildWorkExecutor;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.DefaultExecutionPlan;
@@ -205,8 +205,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     LocalTaskNodeExecutor createLocalTaskNodeExecutor(ExecutionNodeAccessHierarchies executionNodeAccessHierarchies) {
         return new LocalTaskNodeExecutor(
-            executionNodeAccessHierarchies.getOutputHierarchy(),
-            executionNodeAccessHierarchies.getInputHierarchy()
+            executionNodeAccessHierarchies.getInputHierarchy(),
+            executionNodeAccessHierarchies.getOutputHierarchy()
         );
     }
 
@@ -245,8 +245,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             taskNodeFactory,
             dependencyResolver,
             new DefaultNodeValidator(),
+            executionNodeAccessHierarchies.getInputHierarchy(),
             executionNodeAccessHierarchies.getOutputHierarchy(),
-            executionNodeAccessHierarchies.getInputHierarchy()
+            executionNodeAccessHierarchies.getDestroyableHierarchy()
         );
     }
 

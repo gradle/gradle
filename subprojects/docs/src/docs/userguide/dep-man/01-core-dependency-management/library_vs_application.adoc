@@ -26,7 +26,7 @@ Or, a project may produce artifacts which are for consumption by other projects 
 A typical example in the Java world is the Guava library which is published in different versions: one for Java projects, and one for Android projects.
 
 However, it's the consumer responsibility to tell what version to use, and it's the dependency management engine responsibility to ensure _consistency of the graph_ (for example making sure that you don't end up with both Java and Android versions of Guava on your classpath).
-This is where the <<variant_model.adoc#,variant model>> of Gradle comes into play.
+This is where the <<variant_model.adoc#understanding-variant-selection,variant model>> of Gradle comes into play.
 
 In Gradle, _producer variants_ are exposed via <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>>.
 
@@ -44,7 +44,7 @@ On the other hand, a dependency which is assigned to the `api` configuration of 
 At _runtime_, however, all dependencies are required.
 Gradle makes the difference between different kinds of consumer even within a single project: the Java compile task, for example, is a different consumer than the Java exec task.
 
-More details on the segregation of API and runtime dependencies in the Java world <<java_library_plugin.adoc#,can be found here>>.
+More details on the segregation of API and runtime dependencies in the Java world <<java_library_plugin.adoc#java_library_plugin,can be found here>>.
 
 [[sub:being-respectful-consumers]]
 == Being respectful of consumers

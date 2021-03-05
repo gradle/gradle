@@ -1335,7 +1335,7 @@ All of them match the consumer attributes:
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
                     doLast {
-                       assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar', , 'c-bar.jar']
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar', 'c-bar.jar']
                     }
                 }
             }
@@ -1573,8 +1573,8 @@ The following variants were also considered but didn't match the requested attri
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    _compileFreeDebug fooJar
-                    _compileFreeRelease barJar
+                    _compileFreeDebug(fooJar)
+                    _compileFreeRelease(barJar)
                 }
             }
 

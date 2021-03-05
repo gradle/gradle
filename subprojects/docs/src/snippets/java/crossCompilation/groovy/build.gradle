@@ -21,10 +21,10 @@ java {
 // end::java-cross-compilation[]
 
 tasks.withType(Test) {
-    systemProperty 'targetJavaVersion', targetJavaVersion
+    systemProperty('targetJavaVersion', project.findProperty('targetJavaVersion'))
 }
 
-task checkJavadocOutput {
+tasks.register('checkJavadocOutput') {
     dependsOn javadoc
     doLast {
         assert new File(docsDir, 'javadoc/org/gradle/Person.html').text.contains('<p>Represents a person.</p>')

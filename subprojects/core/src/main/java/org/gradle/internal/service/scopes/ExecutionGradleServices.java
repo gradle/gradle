@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.api.invocation.Gradle;
@@ -153,11 +154,12 @@ public class ExecutionGradleServices {
         OverlappingOutputDetector overlappingOutputDetector,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
-        VirtualFileSystem virtualFileSystem
+        VirtualFileSystem virtualFileSystem,
+        DocumentationRegistry documentationRegistry
     ) {
         // @formatter:off
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(inputFingerprinter,
+                documentationRegistry, new IdentifyStep<>(inputFingerprinter,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(

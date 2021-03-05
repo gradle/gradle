@@ -1,14 +1,14 @@
 // A project extension
-open class MessageExtension(objects: ObjectFactory) {
+interface MessageExtension {
     // A configurable greeting
-    val greeting: Property<String> = objects.property()
+    abstract val greeting: Property<String>
 }
 
 // A task that displays a greeting
-open class Greeting : DefaultTask() {
+abstract class Greeting : DefaultTask() {
     // Configurable by the user
-    @Input
-    val greeting: Property<String> = project.objects.property()
+    @get:Input
+    abstract val greeting: Property<String>
 
     // Read-only property calculated from the greeting
     @Internal
@@ -21,7 +21,7 @@ open class Greeting : DefaultTask() {
 }
 
 // Create the project extension
-val messages = project.extensions.create("messages", MessageExtension::class)
+val messages = project.extensions.create<MessageExtension>("messages")
 
 // Create the greeting task
 tasks.register<Greeting>("greeting") {
@@ -30,7 +30,7 @@ tasks.register<Greeting>("greeting") {
     greeting.set(messages.greeting)
 }
 
-configure<MessageExtension> {
+messages.apply {
     // Configure the greeting on the extension
     // Note that there is no need to reconfigure the task's `greeting` property. This is automatically updated as the extension property changes
     greeting.set("Hi")

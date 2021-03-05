@@ -15,7 +15,7 @@
  */
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
-import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
+import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 
 plugins {
     kotlin("js")
@@ -48,7 +48,7 @@ tasks {
         }
     }
 
-    val ktlintCheckTasks = withType<KtlintCheckTask>()
+    val ktlintCheckTasks = withType<KtLintCheckTask>()
 
     withType<Test>().configureEach {
         shouldRunAfter(ktlintCheckTasks)

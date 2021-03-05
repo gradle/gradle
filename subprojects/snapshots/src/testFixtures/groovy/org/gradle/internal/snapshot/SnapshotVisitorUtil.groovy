@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot
 
+import org.gradle.internal.RelativePathSupplier
+
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 class SnapshotVisitorUtil {
@@ -34,13 +36,25 @@ class SnapshotVisitorUtil {
     }
 
     static List<String> getRelativePaths(FileSystemSnapshot snapshot, boolean includeRoots = false) {
-        def relativePaths = []
-        snapshot.accept(new RelativePathTracker()) { entrySnapshot, relativePath ->
+        def visitor = new RelativePathVisitor(includeRoots)
+        snapshot.accept(new RelativePathTracker(), visitor)
+        return visitor.relativePaths
+    }
+
+    private static class RelativePathVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
+        private final boolean includeRoots
+        List<String> relativePaths = []
+
+        RelativePathVisitor(boolean includeRoots) {
+            this.includeRoots = includeRoots
+        }
+
+        @Override
+        SnapshotVisitResult visitEntry(FileSystemLocationSnapshot entrySnapshot, RelativePathSupplier relativePath) {
             if (includeRoots || !relativePath.root) {
                 relativePaths << relativePath.toRelativePath()
             }
             CONTINUE
         }
-        return relativePaths
     }
 }

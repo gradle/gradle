@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -111,10 +112,12 @@ class FileSystemSnapshotFilterTest extends Specification {
     private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
         def filtered = FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered)
-        filtered.accept({ FileSystemLocationSnapshot snapshot ->
-            result << new File(snapshot.absolutePath)
-            return CONTINUE
-        } as FileSystemSnapshotHierarchyVisitor)
+        filtered.accept(new FileSystemSnapshotHierarchyVisitor() {
+            SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
+                result << new File(snapshot.absolutePath)
+                return CONTINUE
+            }
+        })
         return result
     }
 

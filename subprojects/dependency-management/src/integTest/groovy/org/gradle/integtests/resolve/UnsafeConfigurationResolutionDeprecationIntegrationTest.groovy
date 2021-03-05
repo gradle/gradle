@@ -57,7 +57,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
 
         then:
-        outputContains("The configuration :bar:bar was resolved without accessing the project in a safe manner.")
+        outputContains("Resolution of the configuration :bar:bar was attempted from a context different than the project context.")
     }
 
     @ToBeFixedForConfigurationCache
@@ -140,7 +140,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":bar:help")
 
         then:
-        outputContains("The configuration :baz:baz was resolved without accessing the project in a safe manner.")
+        outputContains("Resolution of the configuration :baz:baz was attempted from a context different than the project context.")
     }
 
     def "no deprecation warning when configuration is resolved while evaluating same project"() {

@@ -19,11 +19,11 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
+import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfCacheableAnnotation;
 
 public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
@@ -34,10 +34,11 @@ public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHa
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
         if (!TransformAction.class.isAssignableFrom(classWithAnnotationAttached)) {
-            visitor.visitTypeProblem(ERROR,
-                classWithAnnotationAttached,
-                String.format("Cannot use @%s on type. This annotation can only be used with %s types",
-                    getAnnotationType().getSimpleName(), TransformAction.class.getSimpleName()));
+            reportInvalidUseOfCacheableAnnotation(classWithAnnotationAttached,
+                visitor,
+                getAnnotationType(),
+                TransformAction.class);
         }
     }
+
 }

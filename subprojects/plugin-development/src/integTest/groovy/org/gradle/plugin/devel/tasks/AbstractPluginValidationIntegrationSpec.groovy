@@ -37,17 +37,23 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.TypeValidationContext
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.Severity
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import javax.inject.Inject
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
+import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 
-abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "detects missing annotations on Java properties"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -125,12 +131,12 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'ter' is not annotated with an input or output annotation.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('oldThing').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('ter').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+        ])
     }
 
     @Unroll
@@ -179,15 +185,18 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         Nested            | '@Nested'                                                  | List           | "new ArrayList()"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE
+    )
     @Unroll
-    def "detects optional primitive type #type"() {
+    def "detects optional primitive type #primitiveType"() {
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
 
             public class MyTask extends DefaultTask {
                 @Optional @Input
-                ${type.name} getPrimitive() {
+                ${primitiveType.name} getPrimitive() {
                     return ${value};
                 }
 
@@ -196,17 +205,27 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'primitive' @Input properties with primitive type '${type.name}' cannot be @Optional.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(optionalOnPrimitive {
+                type('MyTask').property('primitive')
+                .primitive(primitiveType)
+            }, "validation_problems", "cannot_use_optional_on_primitive_types"),
+        ])
 
         where:
-        type    | value
-        boolean | true
-        int     | 1
-        double  | 1
+        primitiveType | value
+        boolean       | "true"
+        int           | "1"
+        double        | "1"
+        float         | "2f"
+        double        | "2d"
+        char          | "'c'"
+        short         | "(short) 5"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+    )
     def "validates task caching annotations"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -233,13 +252,16 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(true, [
-            "Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
-            "Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types.": ERROR,
-            "Type 'MyTask.Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
+        assertValidationFailsWith([
+            error(invalidUseOfCacheableAnnotation { type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
         ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "detects missing annotation on Groovy properties"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -272,10 +294,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+        ])
     }
 
     def "no problems with Copy task"() {
@@ -363,6 +385,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
+    @ValidationTestFor(
+        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
+    )
     def "reports setters for property of mutable type #type"() {
         file("input.txt").text = "input"
 
@@ -391,9 +416,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself.": WARNING,
-        )
+        def typeDesc = type.replaceAll("<.+>", "")
+        def errorMessage = "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '$typeDesc' is writable. Properties of type '$typeDesc' are already mutable. Possible solution: Remove the 'setMutablePropertyWithSetter' method."
+        assertValidationFailsWith([
+            error(errorMessage, 'validation_problems', 'mutable_type_with_setter')
+        ])
 
         where:
         type                            | init
@@ -402,6 +429,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
     }
 
+    @ValidationTestFor([
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
+    ])
     def "detects problems with file inputs"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -462,17 +493,21 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'file' has @Input annotation used on property of type 'File'.": WARNING,
-            "Type 'MyTask': property 'fileCollection' has @Input annotation used on property of type 'FileCollection'.": WARNING,
-            "Type 'MyTask': property 'filePath' has @Input annotation used on property of type 'Path'.": WARNING,
-            "Type 'MyTask': property 'fileTree' has @Input annotation used on property of type 'FileTree'.": WARNING,
-            "Type 'MyTask': property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'inputFile' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'inputFiles' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-        )
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
+        assertValidationFailsWith([
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('file').propertyType('File') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('fileCollection').propertyType('FileCollection') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('filePath').propertyType('Path') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('fileTree').propertyType('FileTree') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('inputDirectory').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('inputFile').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('inputFiles').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     def "detects problems on nested collections"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -573,18 +608,22 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'iterableOptions${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'mappedOptions${getKeySymbolFor("alma")}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'namedIterable${getNameSymbolFor("tibor")}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'options.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'optionsList${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'providedOptions.notAnnotated' is not annotated with an input or output annotation.": WARNING,
-        )
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
+        assertValidationFailsWith([
+            error(missingAnnotationMessage { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     def "detects annotations on private getter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -620,13 +659,16 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'badTime' is private and annotated with @Input.": WARNING,
-            "Type 'MyTask': property 'options.badNested' is private and annotated with @Input.": WARNING,
-            "Type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(privateGetterAnnotatedMessage { type('MyTask').property('badTime').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage { type('MyTask').property('options.badNested').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage { type('MyTask').property('outputDir').annotation('OutputDirectory') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+    )
     def "detects annotations on non-property methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -657,12 +699,16 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask.Options': non-property method 'notANestedGetter()' should not be annotated with: @Input.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('method').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('method').method('notANestedGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+        ])
     }
 
+    @ValidationTestFor([
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD,
+        ValidationProblemId.MISSING_ANNOTATION
+    ])
     def "detects annotations on setter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -708,15 +754,18 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask.Options': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
-            "Type 'MyTask.Options': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(missingAnnotationMessage { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
     def "reports conflicting types when property is replaced"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -747,11 +796,14 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'oldProperty' annotated with @ReplacedBy should not be also annotated with @Input.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(ignoredAnnotatedPropertyMessage { type('MyTask').property('oldProperty').ignoring('ReplacedBy').alsoAnnotatedWith('Input') }, 'validation_problems', 'ignored_property_must_not_be_annotated')
+        ])
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     def "reports both input and output annotation applied to the same property"() {
         javaTaskSource << """
             import java.io.File;
@@ -773,9 +825,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'file' has conflicting type annotations declared: @InputFile, @OutputFile; assuming @InputFile.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(conflictingAnnotationsMessage { type('MyTask').property('file').inConflict('InputFile', 'OutputFile') }, 'validation_problems', 'conflicting_annotations'),
+        ])
     }
 
     abstract String getIterableSymbol()
@@ -786,9 +838,24 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract void assertValidationSucceeds()
 
-    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, TypeValidationContext.Severity> messages)
+    @Deprecated
+    final void assertValidationFailsWith(Map<String, Severity> messages) {
+        assertValidationFailsWith(messages.collect { message, severity ->
+            new DocumentedProblem(message, severity)
+        })
+    }
+
+    abstract void assertValidationFailsWith(List<DocumentedProblem> messages)
 
     abstract TestFile source(String path)
+
+    static DocumentedProblem error(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+        new DocumentedProblem(message, ERROR, id, section)
+    }
+
+    static DocumentedProblem warning(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+        new DocumentedProblem(message, WARNING, id, section)
+    }
 
     TestFile getJavaTaskSource() {
         source("src/main/java/MyTask.java")
@@ -799,5 +866,21 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             apply plugin: "groovy"
         """
         source("src/main/groovy/MyTask.groovy")
+    }
+
+    static class DocumentedProblem {
+        final String message
+        final Severity severity
+        final String id
+        final String section
+        final boolean defaultDocLink
+
+        DocumentedProblem(String message, Severity severity, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+            this.message = message
+            this.severity = severity
+            this.id = id
+            this.section = section
+            this.defaultDocLink = (id == "more_about_tasks") && (section == "sec:up_to_date_checks")
+        }
     }
 }

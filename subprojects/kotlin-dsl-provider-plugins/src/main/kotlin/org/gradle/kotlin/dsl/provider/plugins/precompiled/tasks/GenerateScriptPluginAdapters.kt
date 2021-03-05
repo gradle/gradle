@@ -75,6 +75,7 @@ fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
         $packageDeclaration
 
+
         /**
          * Precompiled [$scriptFileName][$compiledScriptTypeName] script plugin.
          *

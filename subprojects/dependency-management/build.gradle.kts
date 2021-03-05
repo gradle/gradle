@@ -42,6 +42,7 @@ dependencies {
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.nekohtml)
+    testImplementation(libs.groovyXml)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":core-api")))
@@ -54,7 +55,9 @@ dependencies {
     integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
+    integTestImplementation(libs.groovyJson)
     integTestImplementation(testFixtures(project(":security")))
+    integTestImplementation(testFixtures(project(":model-core")))
 
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
@@ -72,6 +75,7 @@ dependencies {
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.inject)
+    testFixturesImplementation(libs.groovyJson)
     testFixturesImplementation(libs.guava) {
         because("Groovy compiler reflects on private field on TextUtil")
     }

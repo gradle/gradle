@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.execution.UnitOfWork;
@@ -26,20 +26,29 @@ import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.reflect.TypeValidationContext.Severity;
+import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.problems.BaseProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+
 public class ValidateStep<R extends Result> implements Step<AfterPreviousExecutionContext, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
+    private static final String MAX_NB_OF_ERRORS = "org.gradle.internal.max.validation.errors";
 
     private final VirtualFileSystem virtualFileSystem;
     private final ValidationWarningRecorder warningReporter;
@@ -60,18 +69,23 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
 
-        ImmutableMultimap<Severity, String> problems = validationContext.getProblems();
-        ImmutableCollection<String> warnings = problems.get(Severity.WARNING);
-        ImmutableCollection<String> errors = problems.get(Severity.ERROR);
+        Map<Severity, List<String>> problems = validationContext.getProblems()
+            .stream()
+            .collect(
+                groupingBy(BaseProblem::getSeverity,
+                mapping(TypeValidationProblemRenderer::renderMinimalInformationAbout, toList())));
+        ImmutableCollection<String> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
+        ImmutableCollection<String> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
         }
 
         if (!errors.isEmpty()) {
+            int maxErrCount = Integer.getInteger(MAX_NB_OF_ERRORS, 5);
             ImmutableSortedSet<String> uniqueSortedErrors = ImmutableSortedSet.copyOf(errors);
             throw WorkValidationException.forProblems(uniqueSortedErrors)
-                .limitTo(5)
+                .limitTo(maxErrCount)
                 .withSummary(helper ->
                     String.format("%s found with the configuration of %s (%s).",
                         helper.size() == 1

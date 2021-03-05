@@ -20,7 +20,7 @@ dependencies {
 }
 // end::artifact-only-dependency-declaration[]
 
-task copyLibs(type: Copy) {
+tasks.register('copyLibs', Copy) {
     from configurations.js
-    into "$buildDir/libs"
+    into layout.buildDirectory.dir('libs')
 }

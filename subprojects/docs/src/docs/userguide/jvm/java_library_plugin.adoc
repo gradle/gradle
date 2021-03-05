@@ -15,7 +15,7 @@
 [[java_library_plugin]]
 = The Java Library Plugin
 
-The Java Library plugin expands the capabilities of the <<java_plugin.adoc#,Java plugin>> by providing specific knowledge about Java libraries.
+The Java Library plugin expands the capabilities of the <<java_plugin.adoc#java_plugin,Java plugin>> by providing specific knowledge about Java libraries.
 In particular, a Java library exposes an API to consumers (i.e., other projects using the Java or the Java Library plugin).
 All the source sets, tasks and configurations exposed by the Java plugin are implicitly available when using this plugin.
 
@@ -357,7 +357,7 @@ While a real module cannot directly depend on the unnamed module (only by adding
 Thus, if you cannot avoid to rely on a library without module information, you can wrap that library in an automatic module as part of your project.
 How you do that is described in the next section.
 
-Another way to deal with non-modules is to enrich existing Jars with module descriptors yourself using <<artifact_transforms.adoc#,artifact transforms>>.
+Another way to deal with non-modules is to enrich existing Jars with module descriptors yourself using <<artifact_transforms.adoc#sec:abm_artifact_transforms,artifact transforms>>.
 link:../samples/sample_java_modules_with_transform.html[This sample] contains a small _buildSrc_ plugin registering such a transform which you may use and adjust to your needs.
 This can be interesting if you want to build a fully <<application_plugin.adoc#sec:application_modular,modular application>> and want the java runtime to treat everything as a real module.
 
@@ -430,5 +430,5 @@ Note, since this has other performance impacts and potentially side effects, by 
 [[sec:library_distribution]]
 == Distributing a library
 
-Aside from <<publishing_setup.adoc#,publishing>> a library to a component repository, you may sometimes need to package a library and its dependencies in a distribution deliverable.
-The <<java_library_distribution_plugin.adoc#,Java Library Distribution Plugin>> is there to help you do just that.
+Aside from <<publishing_setup.adoc#publishing_components,publishing>> a library to a component repository, you may sometimes need to package a library and its dependencies in a distribution deliverable.
+The <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution Plugin>> is there to help you do just that.

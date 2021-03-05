@@ -4,10 +4,10 @@
 [WARNING]
 ====
 This section covers mechanisms Gradle offers to directly influence the behavior of the dependency resolution engine.
-In contrast to the other concepts covered in this chapter, like <<dependency_constraints.adoc#,dependency constraints>> or <<component_metadata_rules.adoc#,component metadata rules>>, which are all *inputs* to resolution, the following mechanisms allow you to write rules which are directly injected into the resolution engine.
+In contrast to the other concepts covered in this chapter, like <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> or <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rules>>, which are all *inputs* to resolution, the following mechanisms allow you to write rules which are directly injected into the resolution engine.
 Because of this, they can be seen as _brute force_ solutions, that may hide future problems (e.g. if new dependencies are added).
 Therefore, the general advice is to only use the following mechanisms if other means are not sufficient.
-If you are authoring a <<library_vs_application.adoc#,library>>, you should always prefer <<dependency_constraints.adoc#,dependency constraints>> as they are published for your consumers.
+If you are authoring a <<library_vs_application.adoc#sec:understanding-diff-libraries-and-apps,library>>, you should always prefer <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> as they are published for your consumers.
 ====
 
 [[sec:dependency_resolve_rules]]
@@ -283,7 +283,7 @@ Execution failed for task ':resolve'.
 > Could not resolve all files for configuration ':runtimeClasspath'.
    > Could not find quasar-core-0.8.0-jdk8.jar (co.paralleluniverse:quasar-core:0.8.0).
      Searched in the following locations:
-         https://jcenter.bintray.com/co/paralleluniverse/quasar-core/0.8.0/quasar-core-0.8.0-jdk8.jar
+         https://repo1.maven.org/maven2/co/paralleluniverse/quasar-core/0.8.0/quasar-core-0.8.0-jdk8.jar
 ----
 
 That's because there's a dependency on another project, `lib`, which itself depends on a different version of `quasar-core`:

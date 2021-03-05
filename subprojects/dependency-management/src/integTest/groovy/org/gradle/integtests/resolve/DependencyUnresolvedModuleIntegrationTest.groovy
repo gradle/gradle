@@ -311,9 +311,9 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         """
 
         when:
-        mavenHttpRepo.getModuleMetaData('group', 'a')"$action"()
+        mavenHttpRepo.getModuleMetaData('group', 'a')."$action"()
         if (!abort) {
-            backupMavenHttpRepo.getModuleMetaData('group', 'a')"$action"()
+            backupMavenHttpRepo.getModuleMetaData('group', 'a')."$action"()
         }
         fails('resolve')
 

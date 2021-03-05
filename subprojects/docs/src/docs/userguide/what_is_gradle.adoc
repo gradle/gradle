@@ -108,7 +108,7 @@ It would be great if you could build your project using only the build logic bun
 
 Gradle provides several mechanisms that allow you to extend it, such as:
 
- * <<custom_tasks#,Custom task types>>.
+ * <<custom_tasks#custom_tasks,Custom task types>>.
 +
 When you want the build to do some work that an existing task can't do, you can simply write your own task type. It's typically best to put the source file for a custom task type in the <<organizing_gradle_projects#sec:build_sources,_buildSrc_>> directory or in a packaged plugin. Then you can use the custom task type just like any of the Gradle-provided ones.
 

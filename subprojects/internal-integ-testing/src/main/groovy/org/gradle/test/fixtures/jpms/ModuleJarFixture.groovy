@@ -131,7 +131,7 @@ class ModuleJarFixture {
         }
 
         @Override
-        String getName() { return uri.getRawSchemeSpecificPart() }
+        String getName() { return super.uri.getRawSchemeSpecificPart() }
 
         @Override
         OutputStream openOutputStream() throws IOException {

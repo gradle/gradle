@@ -39,8 +39,8 @@ publishing {
 publishing {
     repositories {
         maven {
-            val releasesRepoUrl = "$buildDir/repos/releases"
-            val snapshotsRepoUrl = "$buildDir/repos/snapshots"
+            val releasesRepoUrl = layout.buildDirectory.dir("repos/releases")
+            val snapshotsRepoUrl = layout.buildDirectory.dir("repos/snapshots")
 // end::repo-url-from-variable[]
             url = uri(if (project.hasProperty("release")) releasesRepoUrl else snapshotsRepoUrl)
 // end::repo-url-from-project-property[]

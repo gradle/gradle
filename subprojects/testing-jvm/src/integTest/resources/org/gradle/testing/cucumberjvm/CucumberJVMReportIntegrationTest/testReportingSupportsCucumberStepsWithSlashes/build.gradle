@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-apply plugin: 'java'
+plugins {
+    id("java")
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation "junit:junit:4.13"
-    testImplementation "info.cukes:cucumber-java:1.1.2"
-    testImplementation "info.cukes:cucumber-junit:1.1.2"
+    testImplementation "io.cucumber:cucumber-java:6.8.1"
+    testImplementation "io.cucumber:cucumber-junit:6.8.1"
 }
 
 test {

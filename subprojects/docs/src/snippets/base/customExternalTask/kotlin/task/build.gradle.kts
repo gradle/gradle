@@ -25,7 +25,7 @@ version = "1.0-SNAPSHOT"
 publishing {
     repositories {
         maven {
-            url = uri("$buildDir/repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
     publications {

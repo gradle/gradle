@@ -34,6 +34,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildtree.BuildTreeBuildPath;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
@@ -242,7 +243,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             StartParameter startParameter = buildDefinition.getStartParameter();
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
             BuildSessionState buildSessionState = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-            BuildTreeState nestedBuildTree = new BuildTreeState(buildSessionState.getServices(), BuildType.TASKS);
+            BuildTreeState nestedBuildTree = new BuildTreeState(buildSessionState.getServices(), BuildType.TASKS, new BuildTreeBuildPath(build.getIdentityPath()));
             return doNewInstance(buildDefinition, build, parent, nestedBuildTree, ImmutableList.of(nestedBuildTree, buildSessionState));
         }
 

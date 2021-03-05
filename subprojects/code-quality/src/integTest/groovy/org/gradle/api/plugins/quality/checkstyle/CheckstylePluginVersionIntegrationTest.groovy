@@ -19,6 +19,9 @@ package org.gradle.api.plugins.quality.checkstyle
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.util.Matchers
 import org.gradle.util.Resources
@@ -34,7 +37,7 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
-class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
+class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
 
     @Rule
     public final Resources resources = new Resources()
@@ -60,8 +63,12 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
+    )
     def "does not support fallback when configDirectory does not exist"() {
         goodCode()
+        def missing = file("config/does-not-exist")
         buildFile << """
             checkstyle {
                 config = project.resources.text.fromString('''<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
@@ -82,7 +89,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         expect:
         fails('check')
-        failureDescriptionContains('specified for property \'configDirectory\' does not exist.')
+        failureDescriptionContains(inputDoesNotExist {
+            type('Checkstyle').property('configDirectory').dir(missing)
+        })
     }
 
     @ToBeImplemented
@@ -346,11 +355,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         skipped(":checkstyleMain")
     }
 
-    def "behaves if config_loc is already defined"() {
+    def "fails when config_loc is set"() {
         given:
         goodCode()
-        def suppressionsXml = file("config/checkstyle/suppressions.xml")
-        suppressionsXml.moveToDirectory(file("custom"))
 
         buildFile << """
             checkstyle {
@@ -358,15 +365,11 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
             }
         """
         when:
-        // config_loc points to the location of suppressions.xml
-        // while the default configDirectory does not.
-        // The build should fail because we ignore the user provided value
-        executer.expectDocumentedDeprecationWarning("Adding 'config_loc' to checkstyle.configProperties has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "This property is now ignored and the value of configDirectory is always used for 'config_loc'. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#user_provided_config_loc_properties_are_ignored_by_checkstyle")
         fails "checkstyleMain"
+
         then:
         executedAndNotSkipped(":checkstyleMain")
+        result.assertHasErrorOutput("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")

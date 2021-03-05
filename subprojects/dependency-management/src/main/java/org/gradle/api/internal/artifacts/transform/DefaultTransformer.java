@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -76,7 +77,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -93,7 +96,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING;
+import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
 
 public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> {
 
@@ -128,7 +131,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         InstantiationScheme actionInstantiationScheme,
         DomainObjectContext owner,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        ServiceLookup internalServices
+        ServiceLookup internalServices,
+        DocumentationRegistry documentationRegistry
     ) {
         super(implementationClass, fromAttributes);
         this.fileNormalizer = inputArtifactNormalizer;
@@ -143,7 +147,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.dependenciesDirectorySensitivity = dependenciesDirectorySensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
             new IsolateTransformerParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
-                valueSnapshotter, fileCollectionFactory));
+                valueSnapshotter, fileCollectionFactory, documentationRegistry));
     }
 
     /**
@@ -178,10 +182,15 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == AbsolutePathInputNormalizer.class) {
-                validationContext.visitPropertyProblem(WARNING,
-                    propertyName,
-                    "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms"
-                );
+                validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
+                        .reportAs(Severity.ERROR)
+                        .forProperty(propertyName)
+                        .withDescription("is declared to be sensitive to absolute paths")
+                        .happensBecause("This is not allowed for cacheable transforms")
+                        .withLongDescription("Absolute path sensitivity does not allow sharing the transform result between different machines, although that is the goal of cacheable transforms.")
+                        .addPossibleSolution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath")
+                        .documentedAt("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"));
             }
         }
     }
@@ -250,6 +259,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     }
 
     private static void fingerprintParameters(
+        DocumentationRegistry documentationRegistry,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         FileCollectionFactory fileCollectionFactory,
@@ -260,7 +270,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> inputParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, cacheable);
         propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
             @Override
             public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
@@ -268,10 +278,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                     Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                     if (preparedValue == null && !optional) {
-                        validationContext.visitPropertyProblem(WARNING,
-                            propertyName,
-                            "does not have a value specified"
-                        );
+                        reportValueNotSet(propertyName, validationContext);
                     }
 
                     inputParameterFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
@@ -286,9 +293,14 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
             @Override
             public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                validationContext.visitPropertyProblem(WARNING,
-                    propertyName,
-                    "is annotated with an output annotation"
+                validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
+                        .reportAs(Severity.ERROR)
+                        .forProperty(propertyName)
+                        .withDescription("declares an output")
+                        .happensBecause("is annotated with an output annotation")
+                        .addPossibleSolution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
+                        .documentedAt("validation_problems", "artifact_transform_should_not_declare_output")
                 );
             }
 
@@ -303,7 +315,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             }
         });
 
-        ImmutableMap<String, TypeValidationContext.Severity> validationMessages = validationContext.getProblems();
+        ImmutableMap<String, Severity> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1
@@ -483,6 +495,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
         private final ValueSnapshotter valueSnapshotter;
         private final FileCollectionFactory fileCollectionFactory;
+        private final DocumentationRegistry documentationRegistry;
         private final boolean cacheable;
         private final Class<?> implementationClass;
 
@@ -495,7 +508,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                                             BuildOperationExecutor buildOperationExecutor,
                                             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                             ValueSnapshotter valueSnapshotter,
-                                            FileCollectionFactory fileCollectionFactory) {
+                                            FileCollectionFactory fileCollectionFactory,
+                                            DocumentationRegistry documentationRegistry) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
             this.cacheable = cacheable;
@@ -506,6 +520,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.valueSnapshotter = valueSnapshotter;
             this.fileCollectionFactory = fileCollectionFactory;
+            this.documentationRegistry = documentationRegistry;
         }
 
         @Nullable
@@ -606,6 +621,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                     public void run(BuildOperationContext context) {
                         // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
                         fingerprintParameters(
+                            documentationRegistry,
                             valueSnapshotter,
                             fingerprinterRegistry,
                             fileCollectionFactory,

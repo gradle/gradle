@@ -258,6 +258,8 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         result.assertTestClassesExecuted("TestCaseExtendsAbstractClass")
     }
 
+    @Requires(TestPrecondition.JDK15_OR_EARLIER) // java.lang.IncompatibleClassChangeError: class com.google.common.collect.ImmutableCollection$EmptyImmutableCollection
+                                                 // overrides final method com.google.common.collect.ImmutableCollection.toArray()[Ljava/lang/Object;
     @Issue("https://issues.gradle.org/browse/GRADLE-2962")
     def "incompatible user versions of classes that we also use don't affect test execution"() {
 

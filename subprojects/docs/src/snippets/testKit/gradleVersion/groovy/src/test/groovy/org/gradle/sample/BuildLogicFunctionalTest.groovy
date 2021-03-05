@@ -3,19 +3,18 @@ package org.gradle.sample
 // tag::functional-test-spock-gradle-version[]
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import spock.lang.TempDir
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class BuildLogicFunctionalTest extends Specification {
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir File testProjectDir
     File settingsFile
     File buildFile
 
     def setup() {
-        settingsFile = testProjectDir.newFile('settings.gradle')
-        buildFile = testProjectDir.newFile('build.gradle')
+        settingsFile = new File(testProjectDir, 'settings.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
     }
 
     @Unroll
@@ -28,11 +27,12 @@ class BuildLogicFunctionalTest extends Specification {
                 }
             }
         """
+        settingsFile << ""
 
         when:
         def result = GradleRunner.create()
             .withGradleVersion(gradleVersion)
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .withArguments('helloWorld')
             .build()
 
@@ -41,7 +41,7 @@ class BuildLogicFunctionalTest extends Specification {
         result.task(":helloWorld").outcome == SUCCESS
 
         where:
-        gradleVersion << ['2.6', '2.7']
+        gradleVersion << ['5.0', '6.0.1']
     }
 }
 // end::functional-test-spock-gradle-version[]

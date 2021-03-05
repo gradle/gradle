@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -38,6 +39,7 @@ class TaskNodeFactoryTest extends Specification {
         def services = Stub(ServiceRegistry)
         gradle.services >> services
         services.get(BuildState) >> Stub(BuildState)
+        services.get(DocumentationRegistry) >> new DocumentationRegistry()
         project.gradle >> gradle
 
         graph = new TaskNodeFactory(gradle, Stub(IncludedBuildTaskGraph))

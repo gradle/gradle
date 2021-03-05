@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
+import org.gradle.internal.reflect.validation.TypeProblemBuilder;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultTaskValidationContext implements TaskValidationContext, TypeValidationContext {
@@ -35,13 +37,13 @@ public class DefaultTaskValidationContext implements TaskValidationContext, Type
     }
 
     @Override
-    public void visitTypeProblem(Severity severity, Class<?> type, String message) {
-        delegate.visitTypeProblem(severity, type, message);
+    public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {
+        delegate.visitTypeProblem(problemSpec);
     }
 
     @Override
-    public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
-        delegate.visitPropertyProblem(severity, parentProperty, property, message);
+    public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {
+        delegate.visitPropertyProblem(problemSpec);
     }
 
     @Override

@@ -15,7 +15,7 @@
 [[scala_plugin]]
 = The Scala Plugin
 
-The Scala plugin extends the <<java_plugin.adoc#,Java plugin>> to add support for https://www.scala-lang.org/[Scala] projects.
+The Scala plugin extends the <<java_plugin.adoc#java_plugin,Java plugin>> to add support for https://www.scala-lang.org/[Scala] projects.
 It can deal with Scala code, mixed Scala and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter).
 The plugin supports _joint compilation_, which allows you to freely mix and match Scala and Java code, with dependencies in both directions.
 For example, a Scala class can extend a Java class that in turn extends a Scala class.
@@ -163,7 +163,7 @@ The Zinc compiler itself needs a compatible version of `scala-library` that may 
 Gradle takes care of specifying a compatible version of `scala-library` for you.
 footnote:[Gradle does not support running the Zinc compiler v1.2.0 with Scala 2.11.]
 
-You can diagnose problems with the version of the Zinc compiler selected by running <<viewing_debugging_dependencies.adoc#,dependencyInsight>> for the `zinc` configuration.
+You can diagnose problems with the version of the Zinc compiler selected by running <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,dependencyInsight>> for the `zinc` configuration.
 
 .Zinc compatibility table
 [%header%autowidth,compact]
@@ -253,24 +253,6 @@ The Zinc-based Scala Compiler supports joint compilation of Java and Scala code.
 Incremental compilation requires dependency analysis of the source code. The results of this analysis are stored in the file designated by `scalaCompileOptions.incrementalOptions.analysisFile` (which has a sensible default). In a multi-project build, analysis files are passed on to downstream `ScalaCompile` tasks to enable incremental compilation across project boundaries. For `ScalaCompile` tasks added by the Scala plugin, no configuration is necessary to make this work. For other `ScalaCompile` tasks that you might add, the property `scalaCompileOptions.incrementalOptions.publishedCode` needs to be configured to point to the classes folder or Jar archive by which the code is passed on to compile class paths of downstream `ScalaCompile` tasks. Note that if `publishedCode` is not set correctly, downstream tasks may not recompile code affected by upstream changes, leading to incorrect compilation results.
 
 Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to enhance Gradle's own compiler daemon to stay alive across Gradle invocations, reusing the same Scala compiler. This is expected to yield another significant speedup for Scala compilation.
-
-[[sec:scala_cross_compilation]]
-== Compiling and testing for Java 6 or Java 7
-
-The Scala compiler ignores Gradle's `targetCompatibility` and `sourceCompatibility` settings. In Scala 2.11, the Scala compiler always compiles to Java 6 compatible bytecode. In Scala 2.12, the Scala compiler always compiles to Java 8 compatible bytecode. If you also have Java source, you can follow the same steps as for the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
-
-.Configure Java 6 build for Scala
-
-[source,properties]
-.gradle.properties
-----
-include::{snippetsPath}/scala/crossCompilation/groovy/gradle.properties[]
-----
-
-====
-include::sample[dir="snippets/scala/crossCompilation/groovy",files="build.gradle[tags=scala-cross-compilation]"]
-include::sample[dir="snippets/scala/crossCompilation/kotlin",files="build.gradle.kts[tags=scala-cross-compilation]"]
-====
 
 [[sec:eclipse_integration]]
 == Eclipse Integration

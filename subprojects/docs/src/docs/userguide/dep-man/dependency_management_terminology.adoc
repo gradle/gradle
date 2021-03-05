@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[dependency_management_terminology]]
 = Dependency Management Terminology
 
 Dependency management comes with a wealth of terminology.
@@ -33,7 +34,7 @@ A capability identifies a feature offered by one or multiple components.
 A capability is identified by coordinates similar to the coordinates used for <<sub:terminology_module_version,module versions>>.
 By default, each module version offers a capability that matches its coordinates, for example `com.google:guava:18.0`.
 Capabilities can be used to express that a component provides multiple <<sub:terminology_feature_variant,feature variants>> or that two different components implement the same feature (and thus cannot be used together).
-For more details, see the section on <<component_capabilities.adoc#,capabilities>>.
+For more details, see the section on <<component_capabilities.adoc#declaring-component-capabilities,capabilities>>.
 
 [[sub:terminology_component]]
 == Component
@@ -63,7 +64,7 @@ The word "configuration" is an overloaded term and has a different meaning outsi
 == Dependency
 
 A dependency is a pointer to another piece of software required to build, test or run a <<#sub:terminology_module,module>>.
-For more information, see the section on <<declaring_dependencies.adoc#,declaring dependencies>>.
+For more information, see the section on <<declaring_dependencies.adoc#declaring-dependencies,declaring dependencies>>.
 
 [[sub:terminology_dependency_constraint]]
 == Dependency constraint
@@ -71,14 +72,14 @@ For more information, see the section on <<declaring_dependencies.adoc#,declarin
 A dependency constraint defines requirements that need to be met by a module to make it a valid resolution result for the dependency.
 For example, a dependency constraint can narrow down the set of supported module versions.
 Dependency constraints can be used to express such requirements for transitive dependencies.
-For more information, see the sections on <<dependency_constraints.adoc#,upgrading>> and <<dependency_downgrade_and_exclude.adoc#,downgrading>> transitive dependencies.
+For more information, see the sections on <<dependency_constraints.adoc#dependency-constraints,upgrading>> and <<dependency_downgrade_and_exclude.adoc#downgrading_versions_and_excluding_dependencies,downgrading>> transitive dependencies.
 
 [[sub:terminology_feature_variant]]
 == Feature Variant
 
 A feature variant is a <<#sub:terminology_variant,variant>> representing a feature of a component that can be individually selected or not.
 A feature variant is identified by one or more <<#sub:terminology_capability,capabilities>>.
-For more information, see the sections on <<feature_variants.adoc#,modeling feature variants and optional dependencies>>.
+For more information, see the sections on <<feature_variants.adoc#feature_variants,modeling feature variants and optional dependencies>>.
 
 [[sub:terminology_module]]
 == Module
@@ -93,14 +94,14 @@ For convenient consumption, modules can be hosted in a <<#sub:terminology_reposi
 Releases of a <<#sub:terminology_module,module>> provide metadata.
 Metadata is the data that describes the module in more detail e.g. information about the location of artifacts or required <<#sub:terminology_transitive_dependency,transitive dependencies>>.
 Gradle offers its own metadata format called link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[Gradle Module Metadata] (`.module` file) but also supports Maven (`.pom`) and Ivy (`ivy.xml`) metadata.
-See the section on <<publishing_gradle_module_metadata.adoc#,understanding Gradle Module Metadata>> for more information on the supported metadata formats.
+See the section on <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,understanding Gradle Module Metadata>> for more information on the supported metadata formats.
 
 == Component metadata rule
 
 A component metadata rule is a rule that modifies a component's metadata after it was fetched from a repository, e.g. to add missing information or to correct wrong information.
 In contrast to <<#sub:terminology_resolution_rule,resolution rules>>, component metadata rules are applied *before* resolution starts.
 Component metadata rules are defined as part of the build logic and can be shared through plugins.
-For more information, see the section on <<component_metadata_rules.adoc#,fixing metadata with component metadata rules>>.
+For more information, see the section on <<component_metadata_rules.adoc#sec:component_metadata_rules,fixing metadata with component metadata rules>>.
 
 [[sub:terminology_module_version]]
 == Module version
@@ -139,14 +140,14 @@ A publication has a name and consists of one or more artifacts plus information 
 
 A repository hosts a set of <<#sub:terminology_module,modules>>, each of which may provide one or many releases (components) indicated by a <<#sub:terminology_module_version,module version>>.
 The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem.
-For more information, see <<declaring_repositories.adoc#,Declaring Repositories>>.
+For more information, see <<declaring_repositories.adoc#declaring-repositories,Declaring Repositories>>.
 
 [[sub:terminology_resolution_rule]]
 == Resolution rule
 
 A resolution rule influences the behavior of how a <<#sub:terminology_dependency,dependency>> is resolved directly.
 Resolution rules are defined as part of the build logic.
-For more information, see the section on <<resolution_rules.adoc#,customizing resolution of a dependency directly>>.
+For more information, see the section on <<resolution_rules.adoc#resolution_rules,customizing resolution of a dependency directly>>.
 
 [[sub:terminology_transitive_dependency]]
 == Transitive dependency
@@ -154,7 +155,7 @@ For more information, see the section on <<resolution_rules.adoc#,customizing re
 A variant of a <<#sub:terminology_component,component>> can have dependencies on other modules to work properly, so-called transitive dependencies.
 Releases of a module hosted on a <<#sub:terminology_repository,repository>> can provide <<#sub:terminology_module_metadata,metadata>> to declare those transitive dependencies.
 By default, Gradle resolves transitive dependencies automatically.
-The version selection for transitive dependencies can be influenced by declaring <<dependency_constraints.adoc#,dependency constraints>>.
+The version selection for transitive dependencies can be influenced by declaring <<dependency_constraints.adoc#dependency-constraints,dependency constraints>>.
 
 [[sub:terminology_variant]]
 == Variant (of a component)
@@ -168,7 +169,7 @@ It may also fail if the variant selection result is ambiguous, meaning that Grad
 In that case, more information can be provided through <<#sub:terminology_attribute,variant attributes>>.
 Examples of variants each Java components typically offers are _api_ and _runtime_ variants.
 Others examples are JDK8 and JDK11 variants.
-For more information, see the section on <<variant_model.adoc#,variant selection>>.
+For more information, see the section on <<variant_model.adoc#understanding-variant-selection,variant selection>>.
 
 [[sub:terminology_attribute]]
 == Variant Attribute
@@ -178,4 +179,4 @@ A variant has one or more attributes defined, for example `org.gradle.usage=java
 When dependencies are resolved, a set of attributes are requested and Gradle finds the best fitting variant(s) for each component in the dependency graph.
 Compatibility and disambiguation rules can be implemented for an attribute to express compatibility between values (e.g. Java 8 is compatible with Java 11, but Java 11 should be preferred if the requested version is 11 or higher).
 Such rules are typically provided by plugins.
-For more information, see the sections on <<variant_model.adoc#,variant selection>> and <<variant_attributes.adoc#,declaring attributes>>.
+For more information, see the sections on <<variant_model.adoc#understanding-variant-selection,variant selection>> and <<variant_attributes.adoc#variant_attributes,declaring attributes>>.

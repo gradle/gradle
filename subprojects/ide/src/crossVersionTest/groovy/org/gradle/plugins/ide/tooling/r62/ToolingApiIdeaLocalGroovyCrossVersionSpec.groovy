@@ -48,7 +48,7 @@ class ToolingApiIdeaLocalGroovyCrossVersionSpec extends ToolingApiSpecification 
 
         then:
         def ideaModule = ideaProject.modules.find { it.name == 'root' }
-        def dependency = ideaModule.dependencies.find { it.file.name.contains("groovy-all-") }
+        def dependency = ideaModule.dependencies.find { it.file.name.contains("groovy-") }
         dependency instanceof IdeaSingleEntryLibraryDependency
     }
 }

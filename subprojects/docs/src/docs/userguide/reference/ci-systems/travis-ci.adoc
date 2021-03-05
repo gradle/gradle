@@ -1,3 +1,4 @@
+[[build_travis]]
 = Executing Gradle builds on Travis CI
 
 TIP: Top engineering teams using Travis CI have been able to reduce CI build time by up to 90% by using the Gradle Build Cache. https://gradle.com/training/build-cache-deep-dive/?bid=guides-execute-travisci[Register here] for our Build Cache training session to learn how your team can achieve similar results.
@@ -17,12 +18,12 @@ In this guide, we'll discuss how to configure link:https://travis-ci.org/[Travis
 == Setup a typical project
 
 As example, this guide is going to focus on a Java-based project.
-More specifically, a Gradle plugin written in Java and tested with Spock.
+More specifically, a Gradle plugin written in Java and tested with https://www.spekframework.org/[Spek].
 First, we'll get the project set up on your local machine before covering the same steps on CI.
 
 Just follow these steps:
 
-=== Clone https://github.com/gradle/gradle-site-plugin[Gradle Site Plugin] repository
+=== Clone the https://github.com/gradle/gradle-site-plugin[Gradle Site Plugin] repository
 
 [listing.terminal.sample-command]
 ----

@@ -20,7 +20,7 @@ To avoid this, Gradle provides the concept of _dependency constraints_.
 
 Dependency constraints allow you to define the version or the version range of both dependencies declared in the build script and transitive dependencies.
 It is the preferred method to express constraints that should be applied to all dependencies of a configuration.
-When Gradle attempts to resolve a dependency to a module version, all <<rich_versions.adoc#,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration.
+When Gradle attempts to resolve a dependency to a module version, all <<rich_versions.adoc#rich-version-constraints,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration.
 The highest version that matches all conditions is selected.
 If no such version is found, Gradle fails with an error showing the conflicting declarations.
 If this happens you can adjust your dependencies or dependency constraints declarations, or make other adjustments to the transitive dependencies if needed.
@@ -37,7 +37,7 @@ In the example, all versions are omitted from the dependency declaration.
 Instead, the versions are defined in the constraints block.
 The version definition for `commons-codec:1.11` is only taken into account if `commons-codec` is brought in as transitive dependency, since `commons-codec` is not defined as dependency in the project.
 Otherwise, the constraint has no effect.
-Dependency constraints can also define a <<rich_versions.adoc#,rich version constraint>> and support <<rich_versions.adoc#sec:strict-version,strict versions>> to enforce a version even if it contradicts with the version defined by a transitive dependency (e.g. if the version needs to be downgraded).
+Dependency constraints can also define a <<rich_versions.adoc#rich-version-constraints,rich version constraint>> and support <<rich_versions.adoc#sec:strict-version,strict versions>> to enforce a version even if it contradicts with the version defined by a transitive dependency (e.g. if the version needs to be downgraded).
 
 [NOTE]
 ====

@@ -19,7 +19,7 @@ class NpmTask extends DefaultTask {
 }
 
 // tag::bundle-task[]
-task bundle(type: NpmTask) {
+tasks.register('bundle', NpmTask) {
     args = ['run', 'bundle']
 
     outputs.cacheIf { true }
@@ -37,7 +37,7 @@ task bundle(type: NpmTask) {
 }
 // end::bundle-task[]
 
-task printBundle {
+tasks.register('printBundle') {
     dependsOn bundle
     doLast {
         println file("$buildDir/bundle.js").text

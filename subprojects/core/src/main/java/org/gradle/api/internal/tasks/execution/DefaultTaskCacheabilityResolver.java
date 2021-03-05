@@ -24,6 +24,7 @@ import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.file.RelativeFilePathResolver;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -31,6 +32,7 @@ import java.util.Optional;
 
 public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver {
     private static final CachingDisabledReason CACHING_NOT_ENABLED = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching has not been enabled for the task");
+    private static final CachingDisabledReason CACHING_DISABLED = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching has been disabled for the task");
     private static final CachingDisabledReason NO_OUTPUTS_DECLARED = new CachingDisabledReason(CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final RelativeFilePathResolver relativeFilePathResolver;
@@ -49,6 +51,16 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
         @Nullable OverlappingOutputs overlappingOutputs
     ) {
         if (cacheIfSpecs.isEmpty()) {
+            if (task.getClass().isAnnotationPresent(DisableCachingByDefault.class)) {
+                DisableCachingByDefault doNotCacheAnnotation = task.getClass().getAnnotation(DisableCachingByDefault.class);
+                String reason = doNotCacheAnnotation.because();
+                if (reason.isEmpty()) {
+                    return Optional.of(CACHING_DISABLED);
+                } else {
+                    return Optional.of(new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, reason));
+                }
+            }
+
             return Optional.of(CACHING_NOT_ENABLED);
         }
 

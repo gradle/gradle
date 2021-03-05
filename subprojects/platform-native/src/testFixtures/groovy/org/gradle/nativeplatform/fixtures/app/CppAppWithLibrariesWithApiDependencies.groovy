@@ -24,8 +24,8 @@ import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.*
  * An app that uses a library with 2 dependencies, one an API dependency and the other an implementation dependency.
  */
 class CppAppWithLibrariesWithApiDependencies implements AppElement {
-    def main = new SourceFileElement() {
-        final SourceFile sourceFile = sourceFile("cpp", "main.cpp", """
+    final SourceFileElement main = new SourceFileElement() {
+        final SourceFile sourceFile = new SourceFile("cpp", "main.cpp", """
 #include <iostream>
 #include "deck.h"
 
@@ -39,8 +39,8 @@ int main() {
 """)
     }
 
-    def deck = new CppSourceFileElement() {
-        final SourceFileElement header = ofFile(sourceFile("public", "deck.h", """
+    final CppSourceFileElement deck = new CppSourceFileElement() {
+        final SourceFileElement header = ofFile(new SourceFile("public", "deck.h", """
 #include "card.h"
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
@@ -55,7 +55,7 @@ public:
     Card& draw();
 };
 """))
-        final SourceFileElement source = ofFile(sourceFile("cpp", "deck.cpp", """
+        final SourceFileElement source = ofFile(new SourceFile("cpp", "deck.cpp", """
 #include "deck.h"
 #include "shuffle.h"
 
@@ -71,7 +71,7 @@ Card& Deck::draw() {
     }
 
     def card = new CppSourceFileElement() {
-        final SourceFileElement header = ofFile(sourceFile("public", "card.h", """
+        final SourceFileElement header = ofFile(new SourceFile("public", "card.h", """
 #include <string>
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
@@ -86,7 +86,7 @@ public:
     std::string& getName();
 };
 """))
-        final SourceFileElement source = ofFile(sourceFile("cpp", "card.cpp", """
+        final SourceFileElement source = ofFile(new SourceFile("cpp", "card.cpp", """
 #include "card.h"
 
 Card::Card() {
@@ -101,7 +101,7 @@ Card::getName() {
     }
 
     def shuffle = new CppSourceFileElement() {
-        final SourceFileElement header = ofFile(sourceFile("public", "shuffle.h", """
+        final SourceFileElement header = ofFile(new SourceFile("public", "shuffle.h", """
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
@@ -113,7 +113,7 @@ public:
     void shuffle();
 };
 """))
-        final SourceFileElement source = ofFile(sourceFile("cpp", "shuffle.cpp", """
+        final SourceFileElement source = ofFile(new SourceFile("cpp", "shuffle.cpp", """
 #include "shuffle.h"
 
 void ShuffleAlgorithm::shuffle() {

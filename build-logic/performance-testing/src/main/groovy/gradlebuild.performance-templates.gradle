@@ -395,7 +395,7 @@ performanceTest.registerTestProject("largeAndroidBuild", RemoteProject) {
 performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch
-    ref = '6083ad6ff49a7dabd780e46aa024c7c38a9f2191'
+    ref = 'b51d338057d025229154ee5a39f59aa4d4498f11'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
@@ -406,10 +406,16 @@ performanceTest.registerTestProject("uberMobileApp", RemoteProject) {
     subdirectory = 'mobile_app1'
     // Pinned from PR https://github.com/uber-common/android-build-eval/pull/17
     ref = '18ff193198010064e43e9244edde91ab54c2da70'
-    def fileSystemOperations = gradle.services.get(FileSystemOperations)
-    doLast {
+    doLast(objects.newInstance(DeleteOkBuckDirectory))
+}
+
+abstract class DeleteOkBuckDirectory implements Action<RemoteProject> {
+    @Inject
+    abstract FileSystemOperations getFileSystemOperations()
+
+    void execute(RemoteProject remoteProject) {
         fileSystemOperations.delete {
-            delete(new File(outputDirectory, ".okbuck"))
+            delete(new File(remoteProject.outputDirectory, ".okbuck"))
         }
     }
 }
