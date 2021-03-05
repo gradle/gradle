@@ -354,14 +354,15 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         build.assertProjectPluginApplied()
     }
 
-    def "Including a build as both plugin build and regular build does not lead to an error in the presence of include cycles"() {
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin", iterationMatchers = [".*Kotlin.*"])
+    def "Including a build as both plugin build and regular build does not lead to an error in the presence of include cycles - #dsl DSL"() {
         given:
-        def commonsPluginBuild = pluginBuild("commons-plugin-build")
+        def commonsPluginBuild = pluginBuild("commons-plugin-build", dsl == 'Kotlin')
         def mainPluginBuild = pluginBuild("main-plugin-build")
 
         commonsPluginBuild.settingsFile.text = """
             pluginManagement {
-                includeBuild('../${mainPluginBuild.buildName}')
+                includeBuild("../${mainPluginBuild.buildName}")
             }
         """
         commonsPluginBuild.projectPluginFile.text = """
@@ -372,7 +373,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
         mainPluginBuild.settingsFile.text = """
             pluginManagement {
-                includeBuild('../${commonsPluginBuild.buildName}')
+                includeBuild("../${commonsPluginBuild.buildName}")
             }
         """
         mainPluginBuild.buildFile.text = """
@@ -383,20 +384,23 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
         settingsFile << """
             pluginManagement {
-                includeBuild('${mainPluginBuild.buildName}')
+                includeBuild("${mainPluginBuild.buildName}")
             }
-            includeBuild('${mainPluginBuild.buildName}')
+            includeBuild("${mainPluginBuild.buildName}")
         """
 
         when:
         buildFile << """
             plugins {
-                id('${mainPluginBuild.projectPluginId}')
+                id("${mainPluginBuild.projectPluginId}")
             }
         """
 
         then:
         succeeds("help")
+
+        where:
+        dsl << ['Groovy', 'Kotlin']
     }
 
     def "a build can be included both as a plugin build and as regular build and can contribute both settings plugins and library components"() {
@@ -574,5 +578,57 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         succeeds("check")
         settingsPluginBuild.assertSettingsPluginApplied()
         projectPluginBuild.assertProjectPluginApplied()
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    def "plugin builds can include each other without consequences - Kotlin DSL"() {
+        // This won't work in Groovy DSL due to https://github.com/gradle/gradle/issues/15416
+
+        given:
+        def settingsPluginBuild = pluginBuild("settings-plugin", true)
+        def buildLogicBuild = pluginBuild("build-logic", true)
+        def mainBuild = createDir('main')
+
+        executer.inDirectory(mainBuild)
+
+        settingsPluginBuild.settingsPluginFile.text = """
+            pluginManagement {
+                includeBuild("../${buildLogicBuild.buildName}")
+            }
+
+            println("settings plugin applied in \${rootDir.name}")
+        """
+
+        buildLogicBuild.settingsFile.text = """
+            pluginManagement {
+                includeBuild("../${settingsPluginBuild.buildName}")
+            }
+            plugins {
+                id("${settingsPluginBuild.settingsPluginId}")
+            }
+        """
+
+        // make sure both settings and project plugins are still found despite the include cycle
+        mainBuild.file('settings.gradle') << """
+            pluginManagement {
+                includeBuild("../${settingsPluginBuild.buildName}")
+            }
+            plugins {
+                id("${settingsPluginBuild.settingsPluginId}")
+            }
+        """
+        mainBuild.file('build.gradle') << """
+            plugins {
+                id("${buildLogicBuild.projectPluginId}")
+            }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        outputContains("settings plugin applied in build-logic")
+        outputContains("settings plugin applied in main")
+        buildLogicBuild.assertProjectPluginApplied()
     }
 }
