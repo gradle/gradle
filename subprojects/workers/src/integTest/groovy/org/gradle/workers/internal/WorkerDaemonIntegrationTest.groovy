@@ -17,7 +17,6 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestPrecondition
@@ -37,14 +36,6 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
     def setup() {
         workActionThatPrintsWorkingDirectory = fixture.getWorkActionThatCreatesFiles("WorkingDirAction")
         workActionThatPrintsWorkingDirectory.with {
-            constructorAction = """
-                Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        println "Shutdown working dir: " + System.getProperty("user.dir")
-                    }
-                }));
-            """
             action += """
                 println "Execution working dir: " + System.getProperty("user.dir")
             """
@@ -76,9 +67,6 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
 
         and:
         gradle.standardOutput.contains("Execution working dir: " + workerHomeDir)
-
-        and:
-        GradleContextualExecuter.isLongLivingProcess() || gradle.standardOutput.contains("Shutdown working dir: " + workerHomeDir)
     }
 
     def "setting the working directory of a worker is not supported"() {
