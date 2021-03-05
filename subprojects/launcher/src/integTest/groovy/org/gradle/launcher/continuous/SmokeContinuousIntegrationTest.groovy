@@ -18,6 +18,7 @@ package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
@@ -260,7 +261,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         succeeds("echo")
-        output.contains "isLongLivingProcess: true"
+        output.contains "isLongLivingProcess: ${GradleContextualExecuter.isLongLivingProcess()}"
     }
 
     def "failure to determine inputs has a reasonable message"() {
