@@ -66,6 +66,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         assumeNonEmbeddedGradleExecuter() // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
 
+        ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16InNoDaemonMode()
+
         withBuildScript(
             """
 
@@ -129,6 +131,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
         assumeNonEmbeddedGradleExecuter() // requires a full distribution to run tests with test kit
+        ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16InNoDaemonMode()
 
         withBuildScript(
             """
@@ -231,7 +234,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
     @Test
     fun `sam-with-receiver kotlin compiler plugin is applied to production code`() {
-
         withKotlinDslPlugin()
 
         withFile(
