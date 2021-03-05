@@ -34,11 +34,11 @@ class JUnitPlatformTestRewriterTest extends Specification {
 dependencies { testCompile 'junit:junit:4.13' }
 '''
         when:
-        JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory,'5.7.0')
+        JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory,'5.7.1')
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text.contains(
-            "testCompile 'org.junit.jupiter:junit-jupiter-api:5.7.0','org.junit.jupiter:junit-jupiter-engine:5.7.0'")
+            "testCompile 'org.junit.jupiter:junit-jupiter-api:5.7.1','org.junit.jupiter:junit-jupiter-engine:5.7.1'")
     }
 
     def 'modular build.gradle should be rewritten'() {
@@ -57,12 +57,12 @@ test {
 }
 '''
         when:
-        JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory,'5.7.0')
+        JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory,'5.7.1')
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text == '''
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0','org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1','org.junit.jupiter:junit-jupiter-engine:5.7.1'
 }
 compileTestJava {
     def args = ["--add-modules", "org.junit.jupiter.api",
