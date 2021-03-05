@@ -531,23 +531,13 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
                 implementation("${pluginLibraryBuild.group}:${pluginLibraryBuild.buildName}")
             }
         """
-        def settingsPluginBuild = pluginBuild("settings-plugin")
-
-        // workaround to use Kotlin precompiled script plugin because Groovy version does not support pluginManagement {} in settings plugins (https://github.com/gradle/gradle/issues/15416)
-        settingsPluginBuild.buildFile.setText("""
-            plugins {
-                id("org.gradle.kotlin.kotlin-dsl") version "2.1.4"
-            }
-            repositories {
-                gradlePluginPortal()
-            }
-        """)
-        file("${settingsPluginBuild.buildName}/src/main/kotlin/${settingsPluginBuild.settingsPluginId}.settings.gradle.kts") << """
+        // use Kotlin precompiled script plugin because Groovy version does not support pluginManagement {} in settings plugins (https://github.com/gradle/gradle/issues/15416)
+        def settingsPluginBuild = pluginBuild("settings-plugin", true)
+        settingsPluginBuild.settingsPluginFile.text = """
             pluginManagement {
                 includeBuild("../${projectPluginBuild.buildName}")
             }
-            println("${settingsPluginBuild.settingsPluginId} applied")
-        """
+        """ + settingsPluginBuild.settingsPluginFile.text
 
         def projectLibrary = pluginAndLibraryBuild("project-lib")
         projectLibrary.settingsFile.setText("""
