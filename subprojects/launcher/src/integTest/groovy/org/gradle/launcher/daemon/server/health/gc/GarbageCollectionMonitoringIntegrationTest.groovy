@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
 
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE
@@ -57,6 +58,11 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     def "expires daemon immediately when garbage collector is thrashing"() {
         given:
+        if (JavaVersion.current().isJava9Compatible() && GradleContextualExecuter.isConfigCache()) {
+            // For java.util.concurrent.CountDownLatch being serialized reflectively by configuration cache
+            executer.withArgument('-Dorg.gradle.jvmargs=--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED')
+        }
+
         configureGarbageCollectionHeapEventsFor(256, 512, 100, garbageCollector.monitoringStrategy.thrashingThreshold + 0.2)
         waitForImmediateDaemonExpiration()
 
