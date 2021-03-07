@@ -68,7 +68,7 @@ public class ZincScalaCompilerFactory {
         Class<?> abstractCacheClass;
         Class<?> checkingClass;
         try {
-            abstractCacheClass = ZincScalaCompilerFactory.class.getClassLoader().loadClass("sbt.internal.classpath.inc.AbstractClassLoaderCache");
+            abstractCacheClass = ZincScalaCompilerFactory.class.getClassLoader().loadClass("sbt.internal.inc.classpath.AbstractClassLoaderCache");
             checkingClass = ZincScalaCompilerFactory.class.getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.TimeCheckingClassLoaderCache");
         } catch (ClassNotFoundException ex) {
             abstractCacheClass = null;
