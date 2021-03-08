@@ -84,6 +84,9 @@ class SwiftDepsHandler {
         IoActions.writeTextFile(moduleSwiftDeps, new Action<BufferedWriter>() {
             @Override
             public void execute(BufferedWriter bufferedWriter) {
+                // Rewrite swiftc generated YAML file with our understanding of the current state of
+                // swift sources. This doesn't use Yaml.dump because snakeyaml produces a YAML file
+                // that swiftc cannot read. 
                 PrintWriter pw = new PrintWriter(bufferedWriter);
                 pw.println("version: \"" + swiftDeps.version + "\"");
                 pw.println("options: \"" + swiftDeps.options + "\"");
