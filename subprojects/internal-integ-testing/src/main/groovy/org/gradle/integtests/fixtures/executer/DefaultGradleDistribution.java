@@ -120,7 +120,14 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_14) <= 0;
         }
 
-        return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_15);
+        // 7.0 added official support for JDK16
+        // milestone 2 was published with Groovy 3 upgrade and without asm upgrade yet
+        // subsequent milestones and RCs will support JDK16
+        if (isSameOrOlder("7.0-milestone-2")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_15) <= 0;
+        }
+
+        return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_16);
     }
 
     @Override
