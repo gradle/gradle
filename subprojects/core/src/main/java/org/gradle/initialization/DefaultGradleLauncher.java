@@ -181,6 +181,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
         if (stage == Stage.Finished) {
+            if (stageFailure != null) {
+                throw exceptionAnalyser.transform(stageFailure);
+            }
             return;
         }
 
