@@ -19,7 +19,10 @@ class CheckProject(
 
     params {
         param("credentialsStorageType", "credentialsJSON")
+        // Disallow Web UI changes to TeamCity settings
         param("teamcity.ui.settings.readOnly", "true")
+        // Avoid rebuilding same revision if it's already built on another branch (pre-tested commit)
+        param("teamcity.vcsTrigger.runBuildOnSameRevisionInEveryBranch", "false")
         param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
     }
 
