@@ -54,8 +54,6 @@ import static org.gradle.integtests.fixtures.compatibility.AbstractContextualMul
 public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutionContext> {
 
     private final TestEngine delegateEngine = new SpockEngine();
-    private final List<TestVariant> variants = new ArrayList<TestVariant>();
-
     @Override
     public String getId() {
         return "cross-version-test-engine";
@@ -68,8 +66,8 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
             return new EngineDescriptor(uniqueId, "skip");
         }
 
-        buildTestVariants(uniqueId, discoveryRequest);
-        return discoverTests(uniqueId);
+        List<TestVariant> testVariants = buildTestVariants(uniqueId, discoveryRequest);
+        return discoverTests(uniqueId, testVariants);
     }
 
     @Override
@@ -77,13 +75,16 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
         return new SpockExecutionContext(request.getEngineExecutionListener());
     }
 
-    private void buildTestVariants(UniqueId rootId, EngineDiscoveryRequest discoveryRequest) {
+    private List<TestVariant> buildTestVariants(UniqueId rootId, EngineDiscoveryRequest discoveryRequest) {
+        List<TestVariant> variants = new ArrayList<TestVariant>();
         variants.add(TestVariant.tapiCurrent(rootId, discoveryRequest));
         variants.add(TestVariant.selected(rootId, discoveryRequest));
         variants.add(TestVariant.tapiTargetLoaded(rootId, discoveryRequest));
+
+        return variants;
     }
 
-    private TestDescriptor discoverTests(UniqueId uniqueId) {
+    private TestDescriptor discoverTests(UniqueId uniqueId, List<TestVariant> variants) {
         EngineDescriptor rootDescriptor = new SpockEngineDescriptor(uniqueId, RunContext.get());
         for (TestVariant testVariant : variants) {
             for (TestDescriptor test : testVariant.discover(delegateEngine).getChildren()) {
