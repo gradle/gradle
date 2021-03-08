@@ -88,17 +88,11 @@ public class SubsetScriptTransformer extends AbstractScriptTransformer {
         ClassNode scriptClass = AstUtils.getScriptClass(source);
 
         // Remove all the classes other than the main class
-        Iterator<ClassNode> classes = source.getAST().getClasses().iterator();
-        while (classes.hasNext()) {
-            ClassNode classNode = classes.next();
-            if (classNode != scriptClass) {
-                classes.remove();
-            }
-        }
+        source.getAST().getClasses().removeIf(classNode -> classNode != scriptClass);
 
         // Remove all the methods from the main class
         if (scriptClass != null) {
-            for (MethodNode methodNode : new ArrayList<MethodNode>(scriptClass.getMethods())) {
+            for (MethodNode methodNode : new ArrayList<>(scriptClass.getMethods())) {
                 if (!methodNode.getName().equals("run")) {
                     AstUtils.removeMethod(scriptClass, methodNode);
                 }
