@@ -59,11 +59,10 @@ public class SubsetScriptTransformer extends AbstractScriptTransformer {
             ImportNode importedClass = iter.next();
             if (!AstUtils.isVisible(source, importedClass.getClassName())) {
                 try {
-                    final ImportNode importNode = source.getAST().getImport(importedClass.getAlias());
                     Field field = ModuleNode.class.getDeclaredField("imports");
                     field.setAccessible(true);
-                    List<?> value = (List<?>) field.get(source.getAST());
-                    value.remove(importNode);
+                    @SuppressWarnings("unchecked") List<ImportNode> value = (List<ImportNode>) field.get(source.getAST());
+                    value.removeIf(i -> i.getAlias().equals(importedClass.getAlias()));
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
