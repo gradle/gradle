@@ -92,8 +92,8 @@ include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-pl
 ====
 
 NOTE: Including plugin builds via the plugin management block is an incubating feature.
-You may also use the normal `includeBuild` mechanism to include plugin builds.
-However, this does not support all use cases and will be deprecated once the new mechanism is stable.
+You may also use the stable `includeBuild` mechanism outside `pluginManagement` to include plugin builds.
+However, this does not support all use cases and including plugin builds like that will be deprecated once the new mechanism is stable.
 
 [[included_builds]]
 === Restrictions on included builds
