@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -23,6 +24,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.junit.Rule
 
@@ -58,10 +60,23 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected GradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runner = runner(*[["-DagpVersion=$agpVersion", "-DkotlinVersion=${TestedVersions.kotlin.latest()}"], tasks].flatten())
+        def runner = runner(*[["-DagpVersion=$agpVersion", "-DkotlinVersion=${TestedVersions.kotlin.latest()}", "--stacktrace"], tasks].flatten())
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
-            .forwardOutput()
+            .forwardOutput() as DefaultGradleRunner
+        if (JavaVersion.current().isJava9Compatible()) {
+            runner.withJvmArguments(
+                "-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError",
+                "--add-opens", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+                "--add-opens", "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+                "--add-opens", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+                "--add-opens", "jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED",
+                "--add-opens", "jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+                "--add-opens", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
+                "--add-opens", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+                "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
+            )
+        }
         if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             runner.withArguments([runner.arguments, ['-I', init.canonicalPath]].flatten())
