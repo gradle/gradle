@@ -29,7 +29,7 @@ public class TypeAnnotationHandlerSupport {
     public static void reportInvalidUseOfCacheableAnnotation(Class<?> classWithAnnotationAttached,
                                                              TypeValidationContext visitor,
                                                              Class<? extends Annotation> annotationType,
-                                                             @SuppressWarnings("unchcked") Class<?>... appliesOnlyTo) {
+                                                             Class<?>... appliesOnlyTo) {
         visitor.visitTypeProblem(problem ->
             problem.forType(classWithAnnotationAttached)
                 .reportAs(ERROR)
