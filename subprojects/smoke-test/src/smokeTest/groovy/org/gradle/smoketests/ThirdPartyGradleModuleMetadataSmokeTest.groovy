@@ -17,9 +17,11 @@
 package org.gradle.smoketests
 
 import groovy.json.JsonSlurper
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
@@ -91,13 +93,13 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         ]
 
         when:
-        result = consumer('android-app:assembleFullDebug')
+        result = consumerWithJdk16WorkaroundForAndroidManifest('android-app:assembleFullDebug')
 
         then:
         trimmedOutput(result) == []
 
         when:
-        result = consumer('android-kotlin-app:assembleFullDebug')
+        result = consumerWithJdk16WorkaroundForAndroidManifest('android-kotlin-app:assembleFullDebug')
 
         then:
         trimmedOutput(result) == []
@@ -124,6 +126,17 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     private BuildResult consumer(String runTask) {
         runner(runTask, '-q').withProjectDir(
             new File(testProjectDir.root, 'consumer')).forwardOutput().build()
+    }
+
+    // Reevaluate if this is still needed when upgrading android plugin. Currently required with version 4.1.2
+    private BuildResult consumerWithJdk16WorkaroundForAndroidManifest(String runTask) {
+        def runner = runner(runTask, '-q')
+            .withProjectDir(new File(testProjectDir.root, 'consumer'))
+            .forwardOutput() as DefaultGradleRunner
+        if (JavaVersion.current().isJava9Compatible()) {
+            runner.withJvmArguments("--add-opens", "java.base/java.io=ALL-UNNAMED")
+        }
+        return runner.build()
     }
 
 
