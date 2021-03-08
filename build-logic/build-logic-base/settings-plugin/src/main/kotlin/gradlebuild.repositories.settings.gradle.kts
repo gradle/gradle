@@ -25,8 +25,10 @@ pluginManagement {
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
         maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
     }
-    includeBuild(location("build-logic/build-logic-commons"))
-    includeBuild(location("build-logic/build-logic"))
+    if (rootDir.name != "build-logic-commons") {
+        includeBuild(location("build-logic/build-logic-commons"))
+        includeBuild(location("build-logic/build-logic"))
+    }
 }
 
 fun location(path: String): String = when {
