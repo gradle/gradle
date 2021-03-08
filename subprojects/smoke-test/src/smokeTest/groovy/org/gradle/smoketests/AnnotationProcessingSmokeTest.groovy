@@ -16,6 +16,8 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
+import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Unroll
 
 class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
@@ -24,11 +26,13 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
     def 'project lombok works when options.fork=#fork'() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java")
+            }
             ${mavenCentralRepository()}
             dependencies {
-                compileOnly 'org.projectlombok:lombok:1.18.2'
-                annotationProcessor 'org.projectlombok:lombok:1.18.2'
+                compileOnly 'org.projectlombok:lombok:1.18.18'
+                annotationProcessor 'org.projectlombok:lombok:1.18.18'
             }
             compileJava.options.fork = $fork
         """
@@ -55,9 +59,13 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
               }
             }
         """
+        GradleRunner gradleRunner = runner("compileJava")
+        if (JavaVersion.current().isJava9Compatible()) {
+            gradleRunner.withArguments("-Dorg.gradle.jvmargs=--add-opens jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED")
+        }
 
         expect:
-        runner("compileJava").build()
+        gradleRunner.build()
 
         where:
         fork << [true, false]
