@@ -96,8 +96,13 @@ public class WarPlugin implements Plugin<Project> {
         Configuration provideRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
             extendsFrom(provideCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
-        configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
+        configurationContainer.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
+        configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+        configurationContainer.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+        configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+        configurationContainer.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+        configurationContainer.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {
