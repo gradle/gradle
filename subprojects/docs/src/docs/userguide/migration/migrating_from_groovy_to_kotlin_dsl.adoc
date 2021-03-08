@@ -39,7 +39,7 @@ Builds with slow configuration time might affect the IDE responsiveness, please 
 * The Kotlin DSL will not support `model {}` elements. This is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
 * Enabling the incubating link:{user-manual}multi_project_builds.html#sec:configuration_on_demand[configuration on demand] feature is not recommended as it can lead to very hard-to-diagnose problems.
 
-Read more in the link:{user-manual}kotlin_dsl.html[Gradle Kotlin DSL Primer].
+Read more in the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>>.
 
 If you run to trouble or a suspected bug, please take advantage of the `gradle/gradle` link:{gradle-issues}[issue tracker].
 
