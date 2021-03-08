@@ -228,6 +228,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     )
     def "validates task caching annotations"() {
         javaTaskSource << """
+            import org.gradle.work.*;
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
@@ -239,7 +240,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     return new Options();
                 }
 
-                @CacheableTask @CacheableTransform
+                @CacheableTask
+                @CacheableTransform
+                @DisableCachingByDefault
                 public static class Options {
                     @Input
                     String getNestedThing() {
@@ -256,6 +259,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             error(invalidUseOfCacheableAnnotation { type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
             error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
             error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('DisableCachingByDefault').onlyMakesSenseOn('Task', 'TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
         ])
     }
 
