@@ -28,18 +28,23 @@ class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements 
             //'com.moowork.grunt': TestedVersions.node,
             //'com.moowork.gulp': TestedVersions.node,
             'com.moowork.node': TestedVersions.node,
+            'com.github.node-gradle.node': TestedVersions.newNode
         ]
     }
 
     @Override
     void configureValidation(String testedPluginId, String version) {
         validatePlugins {
-            onPlugin('com.moowork.node') {
-                failsWith([
-                    (missingAnnotationMessage { type('NpmSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
-                    "Type 'NpmSetupTask': setter 'setArgs()' should not be annotated with: @Internal. Input/Output annotations are ignored if they are placed on something else than a getter. Possible solutions: Remove the annotations or rename the method. ${learnAt("validation_problems", "ignored_annotations_on_method")}.": ERROR,
-                    (missingAnnotationMessage { type('YarnSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
-                ])
+            if (testedPluginId == 'com.moowork.node') {
+                onPlugin('com.moowork.node') {
+                    failsWith([
+                        (missingAnnotationMessage { type('NpmSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
+                        "Type 'NpmSetupTask': setter 'setArgs()' should not be annotated with: @Internal. Input/Output annotations are ignored if they are placed on something else than a getter. Possible solutions: Remove the annotations or rename the method. ${learnAt("validation_problems", "ignored_annotations_on_method")}.": ERROR,
+                        (missingAnnotationMessage { type('YarnSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
+                    ])
+                }
+            } else {
+                alwaysPasses()
             }
         }
     }
