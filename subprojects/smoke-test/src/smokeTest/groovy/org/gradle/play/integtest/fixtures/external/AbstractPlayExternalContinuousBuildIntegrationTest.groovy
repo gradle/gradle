@@ -42,7 +42,7 @@ abstract class AbstractPlayExternalContinuousBuildIntegrationTest extends Abstra
         playRunBuildFile << """
             runPlay {
                 httpPort = 0
-                ${java9AddJavaSqlModuleArgs()}
+                ${jpmsForkOptions()}
             }
         """
 
@@ -62,7 +62,7 @@ abstract class AbstractPlayExternalContinuousBuildIntegrationTest extends Abstra
         return super.succeeds(tasks)
     }
 
-    static java9AddJavaSqlModuleArgs() {
+    static jpmsForkOptions() {
         if (JavaVersion.current().isJava9Compatible()) {
             return "forkOptions.jvmArgs += ['--add-modules', 'java.sql', '--add-opens', 'java.base/sun.net.www.protocol.file=ALL-UNNAMED']"
         } else {
