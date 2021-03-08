@@ -64,7 +64,7 @@ abstract class AbstractPlayExternalContinuousBuildIntegrationTest extends Abstra
 
     static java9AddJavaSqlModuleArgs() {
         if (JavaVersion.current().isJava9Compatible()) {
-            return "forkOptions.jvmArgs += ['--add-modules', 'java.sql']"
+            return "forkOptions.jvmArgs += ['--add-modules', 'java.sql', '--add-opens', 'java.base/sun.net.www.protocol.file=ALL-UNNAMED']"
         } else {
             return ""
         }
