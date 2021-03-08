@@ -80,6 +80,23 @@ include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",f
 
 More details about tasks that depend on included build tasks are below.
 
+[[included_plugin_builds]]
+=== Including builds that define Gradle plugins
+
+A special case of included builds are builds that define Gradle plugins.
+These builds should be included using the `includeBuild` statement inside the `pluginManagement {}` block of the settings file.
+Using this mechanism, the included build may also contribute a settings plugin that can be applied in the settings file itself.
+
+.Including a plugin build
+====
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="settings.gradle.kts[tags=include-build]"]
+====
+
+NOTE: Including plugin builds via the plugin management block is an incubating feature.
+You may also use the normal `includeBuild` mechanism to include plugin builds.
+However, this does not support all use cases and will be deprecated once the new mechanism is stable.
+
 [[included_builds]]
 === Restrictions on included builds
 
