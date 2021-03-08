@@ -3,9 +3,8 @@ pluginManagement {
     repositories {
         gradlePluginPortal() // if pluginManagement.repositories looks like this, it can be omitted as this is the default
     }
+    includeBuild("../build-logic")
 }
-includeBuild("../platforms")
-includeBuild("../build-logic")
 
 // == Define locations for components ==
 dependencyResolutionManagement {
@@ -13,6 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+includeBuild("../platforms")
 includeBuild("../domain-model")
 includeBuild("../state")
 

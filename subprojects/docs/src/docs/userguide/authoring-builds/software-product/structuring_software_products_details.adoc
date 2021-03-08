@@ -119,9 +119,4 @@ Similar as for build scripts, you can define _settings convention plugins_ for t
 For that, you should create a separate build.
 _Settings convention plugins_ can be <<custom_plugins.adoc#sec:precompiled_plugins,written in Groovy DSL or Kotlin DSL similar to other convention plugins>>.
 The script file name has to end with `.settings.gradle(.kts)`.
-
-[WARNING]
-As of Gradle 6.8, settings plugins cannot be directly used from included builds.
-This will be resolved in future Gradle versions.
-For now, you have to  link:../samples/sample_publishing_convention_plugins.html#publishing_convention_plugins[publish the settings convention plugins to a repository of your choice].
-You may publish to a local folder if you do not use a remote repository.
+A build providing a settings plugin needs to be <<composite_builds.adoc#included_plugin_builds,included as plugin builds in the `pluginManagement {}` block>>.
