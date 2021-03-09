@@ -5,6 +5,10 @@ import gradlebuild.buildutils.tasks.UpdateReleasedVersions
 import gradlebuild.buildutils.model.ReleasedVersion
 import java.net.URL
 
+plugins {
+    id("gradlebuild.module-identity")
+}
+
 tasks.withType<UpdateReleasedVersions>().configureEach {
     releasedVersionsFile.set(layout.projectDirectory.file("released-versions.json"))
     group = "Versioning"

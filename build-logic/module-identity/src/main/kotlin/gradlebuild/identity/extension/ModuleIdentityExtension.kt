@@ -35,7 +35,19 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
     abstract val snapshot: Property<Boolean>
     abstract val promotionBuild: Property<Boolean>
 
+    /**
+     * The actual build branch.
+     */
     abstract val gradleBuildBranch: Property<String>
+
+    /**
+     * The base branch for pre-tested commit, i.e. the branch is not `master`/`release`,
+     * but it's tested in the same way of `master`/`release`.
+     *
+     * The pre-tested commit branch name looks like "pre-tested-commit/master/alice/personal-branch".
+     */
+    abstract val preTestedCommitBaseBranch: Property<String>
+
     abstract val gradleBuildCommitId: Property<String>
 
     abstract val releasedVersions: Property<ReleasedVersionsDetails>

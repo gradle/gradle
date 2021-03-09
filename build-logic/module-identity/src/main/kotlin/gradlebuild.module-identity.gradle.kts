@@ -17,13 +17,10 @@
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
+import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.identity.provider.BuildTimestampFromBuildReceiptValueSource
 import gradlebuild.identity.provider.BuildTimestampValueSource
 import gradlebuild.identity.tasks.BuildReceipt
-import gradlebuild.identity.extension.ReleasedVersionsDetails
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
-import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 import java.io.ByteArrayOutputStream
@@ -84,6 +81,7 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     moduleIdentity.promotionBuild.convention(isPromotionBuild())
 
     moduleIdentity.gradleBuildBranch.convention(environmentVariable(BuildEnvironment.BUILD_BRANCH).orElse(currentGitBranch()))
+    moduleIdentity.preTestedCommitBaseBranch.convention(moduleIdentity.gradleBuildBranch.map { toPreTestedCommitBaseBranch(it) })
     moduleIdentity.gradleBuildCommitId.convention(
         environmentVariable(BuildEnvironment.BUILD_COMMIT_ID)
             .orElse(gradleProperty("promotionCommitId"))
@@ -101,6 +99,11 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     )
 
     return versionNumber
+}
+
+fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
+    actualBranch.startsWith("pre-tested-commit/") -> actualBranch.substringAfter("/").substringBefore("/")
+    else -> actualBranch
 }
 
 /**

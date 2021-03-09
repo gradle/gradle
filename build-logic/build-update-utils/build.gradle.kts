@@ -5,4 +5,5 @@ plugins {
 
 dependencies {
     implementation("com.google.code.gson:gson")
+    implementation(project(":module-identity"))
 }
