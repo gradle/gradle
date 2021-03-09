@@ -277,6 +277,9 @@ class GroovyBuilderScopeForGroovyObject(override val delegate: GroovyObject) : G
     override fun setMetaClass(metaClass: MetaClass?) {
         delegate.metaClass = metaClass
     }
+
+    override fun invokeMethod(name: String, args: Any?): Any? =
+        delegate.invokeMethod(name, args)
 }
 
 
