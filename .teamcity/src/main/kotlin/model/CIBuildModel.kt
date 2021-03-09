@@ -34,155 +34,155 @@ data class CIBuildModel(
     val buildScanTags: List<String> = emptyList(),
     val stages: List<Stage> = listOf(
         Stage(
-            StageNames.QUICK_FEEDBACK_LINUX_ONLY,
-            specificBuilds = listOf(
-                SpecificBuild.CompileAll, SpecificBuild.SanityCheck
-            ),
-            functionalTests = listOf(
-                TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION)
-            )
-        ),
-        Stage(
-            StageNames.QUICK_FEEDBACK,
-            functionalTests = listOf(
-                TestCoverage(2, TestType.quick, Os.WINDOWS, JvmCategory.MIN_VERSION)
-            ),
-            functionalTestsDependOnSpecificBuilds = true,
-            dependsOnSanityCheck = true
-        ),
-        Stage(
-            StageNames.READY_FOR_MERGE,
-            specificBuilds = listOf(
-                SpecificBuild.BuildDistributions,
-                SpecificBuild.Gradleception,
-                SpecificBuild.SmokeTestsMaxJavaVersion,
-                SpecificBuild.GradleBuildSmokeTests,
-                SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
-                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
-            ),
-            functionalTests = listOf(
-                TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION),
-                TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
-                TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION)
-            ),
-            performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX, numberOfBuckets = 40, oldUuid = "PerformanceTestTestLinux"))
-        ),
-        Stage(
             StageNames.READY_FOR_NIGHTLY,
-            trigger = Trigger.eachCommit,
             specificBuilds = listOf(
-                SpecificBuild.SmokeTestsMinJavaVersion
-            ),
-            functionalTests = listOf(
-                TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION),
-                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION)
-            ),
-            performanceTests = listOf(
-                PerformanceTestCoverage(6, PerformanceTestType.per_commit, Os.WINDOWS, numberOfBuckets = 5, failsStage = false),
-                PerformanceTestCoverage(7, PerformanceTestType.per_commit, Os.MACOS, numberOfBuckets = 5, failsStage = false)
+                SpecificBuild.CompileAll
             )
-        ),
-        Stage(
-            StageNames.READY_FOR_RELEASE,
-            trigger = Trigger.daily,
-            specificBuilds = listOf(SpecificBuild.TestPerformanceTest),
-            functionalTests = listOf(
-                TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_VERSION),
-                TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_VERSION),
-                TestCoverage(9, TestType.soak, Os.WINDOWS, JvmCategory.MIN_VERSION),
-                TestCoverage(35, TestType.soak, Os.MACOS, JvmCategory.MIN_VERSION),
-                TestCoverage(10, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION),
-                TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION),
-                TestCoverage(12, TestType.noDaemon, Os.LINUX, JvmCategory.MIN_VERSION),
-                TestCoverage(13, TestType.noDaemon, Os.WINDOWS, JvmCategory.MAX_VERSION),
-                TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 20),
-                TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION),
-                TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, expectedBucketNumber = 10),
-                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, expectedBucketNumber = 10)
-            ),
-            performanceTests = listOf(
-                PerformanceTestCoverage(2, PerformanceTestType.per_day, Os.LINUX, numberOfBuckets = 30, oldUuid = "PerformanceTestSlowLinux")
-            )
-        ),
-        Stage(
-            StageNames.HISTORICAL_PERFORMANCE,
-            trigger = Trigger.weekly,
-            performanceTests = listOf(
-                PerformanceTestCoverage(3, PerformanceTestType.historical, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestHistoricalLinux"),
-                PerformanceTestCoverage(4, PerformanceTestType.flakinessDetection, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestFlakinessDetectionLinux"),
-                PerformanceTestCoverage(15, PerformanceTestType.flakinessDetection, Os.WINDOWS, numberOfBuckets = 10),
-                PerformanceTestCoverage(16, PerformanceTestType.flakinessDetection, Os.MACOS, numberOfBuckets = 10),
-                PerformanceTestCoverage(5, PerformanceTestType.per_week, Os.LINUX, numberOfBuckets = 20, oldUuid = "PerformanceTestExperimentLinux"),
-                PerformanceTestCoverage(8, PerformanceTestType.per_week, Os.WINDOWS, numberOfBuckets = 5),
-                PerformanceTestCoverage(9, PerformanceTestType.per_week, Os.MACOS, numberOfBuckets = 5)
-            )
-        ),
-        Stage(
-            StageNames.EXPERIMENTAL,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            functionalTests = listOf(
-                TestCoverage(16, TestType.quick, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(17, TestType.quick, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(18, TestType.platform, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(19, TestType.platform, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(21, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.MAX_VERSION)
-            )
-        ),
-        Stage(
-            StageNames.EXPERIMENTAL_VFS_RETENTION,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            flameGraphs = listOf(
-                FlameGraphGeneration(14, "File System Watching", listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
-                    PerformanceScenario(
-                        Scenario(
-                            "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest",
-                            "assemble for non-abi change with file system watching and configuration caching"
-                        ), it
-                    )
-                })
-            )
-        ),
-        Stage(
-            StageNames.EXPERIMENTAL_JDK,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            specificBuilds = listOf(
-                SpecificBuild.SmokeTestsExperimentalJDK,
-                SpecificBuild.ConfigCacheSmokeTestsExperimentalJDK
-            ),
-            functionalTests = listOf(
-                TestCoverage(55, TestType.quick, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(56, TestType.quick, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(57, TestType.platform, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(58, TestType.platform, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(59, TestType.configCache, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(60, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(61, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(62, TestType.parallel, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(63, TestType.soak, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(64, TestType.soak, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(65, TestType.soak, Os.MACOS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(66, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(67, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(68, TestType.noDaemon, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(69, TestType.noDaemon, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(70, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(71, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION)
-            )
-        ),
-        Stage(
-            StageNames.EXPERIMENTAL_PERFORMANCE,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            performanceTests = listOf(
-                PerformanceTestCoverage(10, PerformanceTestType.per_commit, Os.LINUX, numberOfBuckets = 40, withoutDependencies = true),
-                PerformanceTestCoverage(11, PerformanceTestType.per_commit, Os.WINDOWS, numberOfBuckets = 5, withoutDependencies = true),
-                PerformanceTestCoverage(12, PerformanceTestType.per_commit, Os.MACOS, numberOfBuckets = 5, withoutDependencies = true),
-                PerformanceTestCoverage(13, PerformanceTestType.per_day, Os.LINUX, numberOfBuckets = 30, withoutDependencies = true)
-            )
+//            functionalTests = listOf(
+//                TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION)
+//            )
         )
+//        Stage(
+//            StageNames.QUICK_FEEDBACK,
+//            functionalTests = listOf(
+//                TestCoverage(2, TestType.quick, Os.WINDOWS, JvmCategory.MIN_VERSION)
+//            ),
+//            functionalTestsDependOnSpecificBuilds = true,
+//            dependsOnSanityCheck = true
+//        ),
+//        Stage(
+//            StageNames.READY_FOR_MERGE,
+//            specificBuilds = listOf(
+//                SpecificBuild.BuildDistributions,
+//                SpecificBuild.Gradleception,
+//                SpecificBuild.SmokeTestsMaxJavaVersion,
+//                SpecificBuild.GradleBuildSmokeTests,
+//                SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
+//                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
+//            ),
+//            functionalTests = listOf(
+//                TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION),
+//                TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
+//                TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION)
+//            ),
+//            performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX, numberOfBuckets = 40, oldUuid = "PerformanceTestTestLinux"))
+//        ),
+//        Stage(
+//            StageNames.READY_FOR_NIGHTLY,
+//            trigger = Trigger.eachCommit,
+//            specificBuilds = listOf(
+//                SpecificBuild.SmokeTestsMinJavaVersion
+//            ),
+//            functionalTests = listOf(
+//                TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION),
+//                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION)
+//            ),
+//            performanceTests = listOf(
+//                PerformanceTestCoverage(6, PerformanceTestType.per_commit, Os.WINDOWS, numberOfBuckets = 5, failsStage = false),
+//                PerformanceTestCoverage(7, PerformanceTestType.per_commit, Os.MACOS, numberOfBuckets = 5, failsStage = false)
+//            )
+//        ),
+//        Stage(
+//            StageNames.READY_FOR_RELEASE,
+//            trigger = Trigger.daily,
+//            specificBuilds = listOf(SpecificBuild.TestPerformanceTest),
+//            functionalTests = listOf(
+//                TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_VERSION),
+//                TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_VERSION),
+//                TestCoverage(9, TestType.soak, Os.WINDOWS, JvmCategory.MIN_VERSION),
+//                TestCoverage(35, TestType.soak, Os.MACOS, JvmCategory.MIN_VERSION),
+//                TestCoverage(10, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION),
+//                TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION),
+//                TestCoverage(12, TestType.noDaemon, Os.LINUX, JvmCategory.MIN_VERSION),
+//                TestCoverage(13, TestType.noDaemon, Os.WINDOWS, JvmCategory.MAX_VERSION),
+//                TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 20),
+//                TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION),
+//                TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, expectedBucketNumber = 10),
+//                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, expectedBucketNumber = 10)
+//            ),
+//            performanceTests = listOf(
+//                PerformanceTestCoverage(2, PerformanceTestType.per_day, Os.LINUX, numberOfBuckets = 30, oldUuid = "PerformanceTestSlowLinux")
+//            )
+//        ),
+//        Stage(
+//            StageNames.HISTORICAL_PERFORMANCE,
+//            trigger = Trigger.weekly,
+//            performanceTests = listOf(
+//                PerformanceTestCoverage(3, PerformanceTestType.historical, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestHistoricalLinux"),
+//                PerformanceTestCoverage(4, PerformanceTestType.flakinessDetection, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestFlakinessDetectionLinux"),
+//                PerformanceTestCoverage(15, PerformanceTestType.flakinessDetection, Os.WINDOWS, numberOfBuckets = 10),
+//                PerformanceTestCoverage(16, PerformanceTestType.flakinessDetection, Os.MACOS, numberOfBuckets = 10),
+//                PerformanceTestCoverage(5, PerformanceTestType.per_week, Os.LINUX, numberOfBuckets = 20, oldUuid = "PerformanceTestExperimentLinux"),
+//                PerformanceTestCoverage(8, PerformanceTestType.per_week, Os.WINDOWS, numberOfBuckets = 5),
+//                PerformanceTestCoverage(9, PerformanceTestType.per_week, Os.MACOS, numberOfBuckets = 5)
+//            )
+//        ),
+//        Stage(
+//            StageNames.EXPERIMENTAL,
+//            trigger = Trigger.never,
+//            runsIndependent = true,
+//            functionalTests = listOf(
+//                TestCoverage(16, TestType.quick, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(17, TestType.quick, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(18, TestType.platform, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(19, TestType.platform, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(21, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.MAX_VERSION)
+//            )
+//        ),
+//        Stage(
+//            StageNames.EXPERIMENTAL_VFS_RETENTION,
+//            trigger = Trigger.never,
+//            runsIndependent = true,
+//            flameGraphs = listOf(
+//                FlameGraphGeneration(14, "File System Watching", listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
+//                    PerformanceScenario(
+//                        Scenario(
+//                            "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest",
+//                            "assemble for non-abi change with file system watching and configuration caching"
+//                        ), it
+//                    )
+//                })
+//            )
+//        ),
+//        Stage(
+//            StageNames.EXPERIMENTAL_JDK,
+//            trigger = Trigger.never,
+//            runsIndependent = true,
+//            specificBuilds = listOf(
+//                SpecificBuild.SmokeTestsExperimentalJDK,
+//                SpecificBuild.ConfigCacheSmokeTestsExperimentalJDK
+//            ),
+//            functionalTests = listOf(
+//                TestCoverage(55, TestType.quick, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(56, TestType.quick, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(57, TestType.platform, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(58, TestType.platform, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(59, TestType.configCache, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(60, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(61, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(62, TestType.parallel, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(63, TestType.soak, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(64, TestType.soak, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(65, TestType.soak, Os.MACOS, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(66, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(67, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(68, TestType.noDaemon, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(69, TestType.noDaemon, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(70, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+//                TestCoverage(71, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION)
+//            )
+//        ),
+//        Stage(
+//            StageNames.EXPERIMENTAL_PERFORMANCE,
+//            trigger = Trigger.never,
+//            runsIndependent = true,
+//            performanceTests = listOf(
+//                PerformanceTestCoverage(10, PerformanceTestType.per_commit, Os.LINUX, numberOfBuckets = 40, withoutDependencies = true),
+//                PerformanceTestCoverage(11, PerformanceTestType.per_commit, Os.WINDOWS, numberOfBuckets = 5, withoutDependencies = true),
+//                PerformanceTestCoverage(12, PerformanceTestType.per_commit, Os.MACOS, numberOfBuckets = 5, withoutDependencies = true),
+//                PerformanceTestCoverage(13, PerformanceTestType.per_day, Os.LINUX, numberOfBuckets = 30, withoutDependencies = true)
+//            )
+//        )
     ),
     val subprojects: GradleSubprojectProvider
 )

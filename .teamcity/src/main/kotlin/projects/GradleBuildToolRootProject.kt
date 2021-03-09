@@ -20,7 +20,7 @@ class GradleBuildToolRootProject(branch: VersionedSettingsBranch) : Project({
     val gradleBuildBucketProvider = StatisticBasedFunctionalTestBucketProvider(model, File("./test-class-data.json"))
     subProject(CheckProject(model, gradleBuildBucketProvider))
 
-    subProject(PromotionProject(model.branch))
-    subProject(UtilProject)
-    subProject(UtilPerformanceProject)
+//    subProject(PromotionProject(model.branch))
+//    subProject(UtilProject)
+//    subProject(UtilPerformanceProject)
 })
