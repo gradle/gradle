@@ -222,7 +222,7 @@ gradle.settingsEvaluated {
 }
 
 FeaturePreviews.Feature.values().forEach { feature ->
-    if (feature.isActive) {
+    if (feature.isActive && feature != FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS) {
         enableFeaturePreview(feature.name)
     }
 }
