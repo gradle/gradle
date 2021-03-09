@@ -35,6 +35,7 @@ data class CIBuildModel(
     val stages: List<Stage> = listOf(
         Stage(
             StageNames.READY_FOR_NIGHTLY,
+            trigger = Trigger.eachCommit,
             specificBuilds = listOf(
                 SpecificBuild.CompileAll
             )
