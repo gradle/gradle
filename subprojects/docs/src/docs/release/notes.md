@@ -76,6 +76,10 @@ With Gradle 7.0 there is no need to sacrifice functionality or performance, as e
 
 Gradle has been upgraded to use Groovy 3. Groovy 3 comes with a brand new parser (code-named Parrot) and host of other new features and capabilities. In order to learn more about the improvements and new features in Groovy, please refer to [their release notes](https://groovy-lang.org/releasenotes/groovy-3.0.html).
 While we're integrating the various improvements of Groovy into the Gradle codebase, you might experience unexpected problems related to the Groovy classpath, the Groovy DSL and the usage of `withGroovyBuilder`. If you experience any issues, please report an issue for us to look into this before the final release.
+
+## Support for Java 16
+
+Gradle now supports running on and building with [Java 16](https://openjdk.java.net/projects/jdk/16/).
  
 ## Ignore empty `buildSrc` project
 
