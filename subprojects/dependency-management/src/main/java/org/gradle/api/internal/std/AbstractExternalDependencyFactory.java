@@ -29,29 +29,36 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     private final DefaultVersionCatalog config;
     private final ProviderFactory providers;
 
-    protected abstract class SubDependencyFactory implements ExternalModuleDependencyFactory {
+    @SuppressWarnings("unused")
+    public static abstract class SubDependencyFactory implements ExternalModuleDependencyFactory {
+        protected final AbstractExternalDependencyFactory owner;
+
+        protected SubDependencyFactory(AbstractExternalDependencyFactory owner) {
+            this.owner = owner;
+        }
+
         protected Provider<MinimalExternalModuleDependency> create(String alias) {
-            return AbstractExternalDependencyFactory.this.create(alias);
+            return owner.create(alias);
         }
 
         @Override
         public Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias) {
-            return AbstractExternalDependencyFactory.this.findDependency(alias);
+            return owner.findDependency(alias);
         }
 
         @Override
         public Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle) {
-            return AbstractExternalDependencyFactory.this.findBundle(bundle);
+            return owner.findBundle(bundle);
         }
 
         @Override
         public Optional<VersionConstraint> findVersion(String name) {
-            return AbstractExternalDependencyFactory.this.findVersion(name);
+            return owner.findVersion(name);
         }
 
         @Override
         public String getName() {
-            return AbstractExternalDependencyFactory.this.getName();
+            return owner.getName();
         }
     }
 
@@ -79,7 +86,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     @Override
     public final Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle) {
         if (config.getBundleAliases().contains(bundle)) {
-            return Optional.of(new BundleFactory().createBundle(bundle));
+            return Optional.of(new BundleFactory(providers, config).createBundle(bundle));
         }
         return Optional.empty();
     }
@@ -87,7 +94,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     @Override
     public final Optional<VersionConstraint> findVersion(String name) {
         if (config.getVersionAliases().contains(name)) {
-            return Optional.of(new VersionFactory().findVersionConstraint(name));
+            return Optional.of(new VersionFactory(providers, config).findVersionConstraint(name));
         }
         return Optional.empty();
     }
@@ -97,7 +104,15 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         return config.getName();
     }
 
-    protected class VersionFactory {
+    public static class VersionFactory {
+        private final ProviderFactory providers;
+        private final DefaultVersionCatalog config;
+
+        public VersionFactory(ProviderFactory providers, DefaultVersionCatalog config) {
+            this.providers = providers;
+            this.config = config;
+        }
+
         /**
          * Returns a single version string from a rich version
          * constraint, assuming the user knows what they are doing.
@@ -127,7 +142,15 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         }
     }
 
-    protected class BundleFactory {
+    public static class BundleFactory {
+        private final ProviderFactory providers;
+        private final DefaultVersionCatalog config;
+
+        public BundleFactory(ProviderFactory providers, DefaultVersionCatalog config) {
+            this.providers = providers;
+            this.config = config;
+        }
+
         protected Provider<ExternalModuleDependencyBundle> createBundle(String name) {
             return providers.of(DependencyBundleValueSource.class,
                 spec -> spec.parameters(params -> {
