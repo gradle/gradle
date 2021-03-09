@@ -32,7 +32,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
     private static final String CRASHLYTICS_PLUGIN_ID = 'com.google.firebase.crashlytics'
     private static final String FIREBASE_PERF_PLUGIN_ID = 'com.google.firebase.firebase-perf'
     private static final String BUGSNAG_PLUGIN_ID = 'com.bugsnag.android.gradle'
-    private static final String PROGUARD_PLUGIN_ID = 'io.sentry.android.gradle'
+    private static final String SENTRY_PLUGIN_ID = 'io.sentry.android.gradle'
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
@@ -45,7 +45,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.3.0-agp4.2'),
             (SAFEARGS_PLUGIN_ID): Versions.of('2.3.3'),
             (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.33-beta'),
-            (PROGUARD_PLUGIN_ID): Versions.of('1.7.36'),
+            (SENTRY_PLUGIN_ID): Versions.of('1.7.36'),
         ]
     }
 
@@ -76,11 +76,11 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                         ])
                     }
                     break
-                case PROGUARD_PLUGIN_ID:
+                case SENTRY_PLUGIN_ID:
                     passing {
-                        it !in (failingAndroidPlugins + PROGUARD_PLUGIN_ID)
+                        it !in (failingAndroidPlugins + SENTRY_PLUGIN_ID)
                     }
-                    onPlugins([PROGUARD_PLUGIN_ID]) {
+                    onPlugins([SENTRY_PLUGIN_ID]) {
                         failsWith([
                             (missingAnnotationMessage { type('SentryProguardConfigTask').property('applicationVariant').missingInputOrOutput().includeLink() }): ERROR,
                         ])
@@ -126,7 +126,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                     if (pluginRequest.id.id == '${DAGGER_HILT_ANDROID_PLUGIN_ID}') {
                         useModule("com.google.dagger:hilt-android-gradle-plugin:\${pluginRequest.version}")
                     }
-                    if (pluginRequest.id.id == '${PROGUARD_PLUGIN_ID}') {
+                    if (pluginRequest.id.id == '${SENTRY_PLUGIN_ID}') {
                         useModule("io.sentry:sentry-android-gradle-plugin:\${pluginRequest.version}")
                     }
                 }
