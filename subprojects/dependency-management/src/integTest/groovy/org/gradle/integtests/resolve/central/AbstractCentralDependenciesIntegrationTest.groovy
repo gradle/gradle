@@ -30,6 +30,8 @@ abstract class AbstractCentralDependenciesIntegrationTest extends AbstractHttpDe
         settingsFile << """
             rootProject.name = 'test'
 
+            enableFeaturePreview("VERSION_CATALOGS")
+
             dependencyResolutionManagement {
                 repositories {
                     maven {

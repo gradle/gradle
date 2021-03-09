@@ -15,6 +15,8 @@
  */
 rootProject.name = "platform"
 
+enableFeaturePreview("VERSION_CATALOGS")
+
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+enableFeaturePreview("VERSION_CATALOGS")
+
 // tag::import_main_catalog[]
 dependencyResolutionManagement {
     versionCatalogs {

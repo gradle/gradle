@@ -4,7 +4,11 @@
 [[sub:central-declaration-of-dependencies]]
 == Central declaration of dependencies
 
-WARNING: Central declaration of dependencies is an incubating feature.
+[WARNING]
+====
+Central declaration of dependencies is an incubating feature.
+It requires the activation of the `VERSION_CATALOGS` <<feature_lifecycle#feature_preview,feature preview>>.
+====
 
 [[sub:version-catalog]]
 === Using a version catalog
