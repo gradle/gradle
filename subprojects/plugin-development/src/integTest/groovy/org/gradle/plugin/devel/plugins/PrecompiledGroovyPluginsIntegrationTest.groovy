@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -394,6 +395,22 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             plugins {
                 id 'my-plugin'
+            }
+        """
+
+        then:
+        succeeds(SAMPLE_TASK)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16459")
+    def "can have .gradle substring within plugin id"() {
+        when:
+        enablePrecompiledPluginsInBuildSrc()
+        pluginWithSampleTask("buildSrc/src/main/groovy/dev.gradlefoo.some-plugin.gradle")
+
+        buildFile << """
+            plugins {
+                id 'dev.gradlefoo.some-plugin'
             }
         """
 
