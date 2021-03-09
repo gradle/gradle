@@ -27,6 +27,7 @@ public abstract class AbstractSourceGenerator {
     private static final Pattern SEPARATOR_PATTERN = Pattern.compile("[.\\-_]");
     protected final Writer writer;
     private final String ln = System.getProperty("line.separator", "\n");
+    private int indent = 0;
 
     public AbstractSourceGenerator(Writer writer) {
         this.writer = writer;
@@ -44,6 +45,10 @@ public abstract class AbstractSourceGenerator {
         return Splitter.on(SEPARATOR_PATTERN);
     }
 
+    protected void addImport(Class<?> clazz) throws IOException {
+        addImport(clazz.getCanonicalName());
+    }
+
     protected void addImport(String clazz) throws IOException {
         writeLn("import " + clazz + ";");
     }
@@ -53,6 +58,27 @@ public abstract class AbstractSourceGenerator {
     }
 
     public void writeLn(String source) throws IOException {
+        writeIndent();
         writer.write(source + ln);
+    }
+
+    protected void writeIndent() throws IOException {
+        for (int i = 0; i < indent; i++) {
+            writer.write("    ");
+        }
+    }
+
+    public void indent(WriteAction action) throws IOException {
+        try {
+            indent++;
+            action.run();
+        } finally {
+            indent--;
+        }
+    }
+
+    @FunctionalInterface
+    interface WriteAction {
+        void run() throws IOException;
     }
 }
