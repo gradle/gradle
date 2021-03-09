@@ -16,6 +16,8 @@
 
 rootProject.name = 'consumer'
 
+enableFeaturePreview("VERSION_CATALOGS")
+
 dependencyResolutionManagement {
     repositories {
         maven {

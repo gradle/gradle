@@ -33,6 +33,8 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
         settingsKotlinFile << """
             rootProject.name = "test"
 
+            enableFeaturePreview("VERSION_CATALOGS")
+
             dependencyResolutionManagement {
                 repositories {
                     maven {

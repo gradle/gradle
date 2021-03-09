@@ -263,7 +263,8 @@ class DependencyManagementBuildScopeServices {
                                                                                     DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                                     ObjectFactory objects,
                                                                                     ProviderFactory providers,
-                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+                                                                                    FeaturePreviews featurePreviews) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
@@ -272,7 +273,8 @@ class DependencyManagementBuildScopeServices {
             dependencyMetaDataProvider,
             objects,
             providers,
-            collectionCallbackActionDecorator
+            collectionCallbackActionDecorator,
+            featurePreviews
         );
     }
 

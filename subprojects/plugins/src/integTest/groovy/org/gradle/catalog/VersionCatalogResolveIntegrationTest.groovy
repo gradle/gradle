@@ -24,6 +24,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
+            enableFeaturePreview('VERSION_CATALOGS')
         """
         buildFile << """
             plugins {
