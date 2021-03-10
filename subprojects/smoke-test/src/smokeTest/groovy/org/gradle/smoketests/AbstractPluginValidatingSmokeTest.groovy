@@ -58,7 +58,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         buildFile << """
             plugins {
                 $extraPluginsBlock
-                id '$id' version '$version'
+                id '$id'${version ? " version '$version'" : ""}
                 id 'validate-external-gradle-plugin'
             }
 
