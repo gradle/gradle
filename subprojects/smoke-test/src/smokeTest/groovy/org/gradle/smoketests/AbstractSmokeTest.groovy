@@ -173,6 +173,8 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
         static ktlint = Versions.of("9.4.1")
+
+        static newNode = Versions.of("3.0.1")
     }
 
     static class Versions implements Iterable<String> {
