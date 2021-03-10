@@ -41,7 +41,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
 
     @Override
     public File createTemporaryFile(String prefix, @Nullable String suffix, String... path) {
-        File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
+        File dir = newTemporaryFile(path);
         GFileUtils.mkdirs(dir);
         try {
             return TempFiles.createTempFile(prefix, suffix, dir);
@@ -52,7 +52,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
 
     @Override
     public File createTemporaryDirectory(String prefix, @Nullable String suffix, String... path) {
-        File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
+        File dir = newTemporaryFile(path);
         GFileUtils.mkdirs(dir);
         try {
             // TODO: This is not a great paradigm for creating a temporary directory.
