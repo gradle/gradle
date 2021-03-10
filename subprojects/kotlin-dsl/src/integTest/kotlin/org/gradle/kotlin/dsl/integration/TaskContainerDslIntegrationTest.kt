@@ -26,6 +26,7 @@ import org.gradle.kotlin.dsl.fixtures.DslTestFixture
 import org.gradle.kotlin.dsl.fixtures.newProjectBuilderProjectWith
 import org.gradle.kotlin.dsl.fixtures.testInstallationGradleApiExtensionsClasspathFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
@@ -405,6 +406,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     )
                 }
             }
+            ProjectBuilderImpl.stop(this)
         }
     }
 
