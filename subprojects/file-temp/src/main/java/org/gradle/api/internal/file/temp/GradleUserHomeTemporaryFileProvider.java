@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.temp;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 

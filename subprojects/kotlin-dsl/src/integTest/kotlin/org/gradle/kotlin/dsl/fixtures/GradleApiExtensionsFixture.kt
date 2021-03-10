@@ -39,7 +39,6 @@ val testInstallationGradleApiExtensionsJars =
 private
 fun testInstallationGradleApiExtensionsJarFor(testInstallation: File, tmpDir: File) =
     testInstallationGradleApiExtensionsJars.getOrPut(testInstallation) {
-        val fixturesDir = File("build/tmp/fixtures").also { it.mkdirs() }
         File(tmpDir, "gradle-api-extensions-fixture.jar").also { jar ->
             generateTestInstallationGradleApiExtensionsJarTo(jar, testInstallation)
             jar.deleteOnExit()

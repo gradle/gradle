@@ -17,14 +17,11 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.temp.TempFiles;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
 
 public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
 
@@ -39,7 +36,7 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
         String hashCode = key.getHashCode();
         File tempFile = null;
         try {
-            tempFile = temporaryFileProvider.createTemporaryFile(hashCode + "-", PARTIAL_FILE_SUFFIX)
+            tempFile = temporaryFileProvider.createTemporaryFile(hashCode + "-", PARTIAL_FILE_SUFFIX);
             action.execute(tempFile);
         } finally {
             GFileUtils.deleteQuietly(tempFile);

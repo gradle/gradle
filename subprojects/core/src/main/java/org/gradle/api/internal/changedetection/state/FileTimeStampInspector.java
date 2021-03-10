@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
-import org.gradle.api.internal.file.temp.TempFiles;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 
 import java.io.File;

@@ -36,7 +36,6 @@ public final class TempFiles {
      */
     @CheckReturnValue
     static File createTempFile(String prefix, String suffix, File directory) throws IOException {
-        //noinspection ConstantConditions
         if (directory == null) {
             throw new NullPointerException("The `directory` argument must not be null as this will default to the system temporary directory");
         }
