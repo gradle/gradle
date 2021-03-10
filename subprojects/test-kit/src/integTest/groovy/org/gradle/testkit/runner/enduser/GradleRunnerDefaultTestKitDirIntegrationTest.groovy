@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner.enduser
 
-import org.gradle.api.internal.file.temp.FilePermissionsCheckerFixture
+
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
@@ -47,22 +47,21 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
 
             dependencies {
                 implementation localGroovy()
-                testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
-                    exclude module: 'groovy-all'
-                }
+                testImplementation(platform("org.spockframework:spock-bom:2.0-M4-groovy-3.0"))
+                testImplementation("org.spockframework:spock-core")
+                testImplementation("org.spockframework:spock-junit4")
+                testImplementation("junit:junit:4.13.1")
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             tasks.withType(Test).configureEach {
+                useJUnitPlatform()
                 testLogging.exceptionFormat = 'full'
                 testLogging.showStandardStreams = true
                 testLogging.events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
             }
         """
-
-
-        file("src/test/groovy/FilePermissionsChecker.groovy") << FilePermissionsCheckerFixture.createFileContents()
     }
 
 
@@ -70,29 +69,19 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
         when:
         buildFile << gradleTestKitDependency()
 
+        def workerTmpDir = file("build/tmp/test/test files")
         groovyTestSourceFile("""
             import org.gradle.testkit.runner.GradleRunner
             import org.gradle.testkit.runner.internal.DefaultGradleRunner
-            import java.io.File
             import spock.lang.Specification
 
             class Test extends Specification {
-
-                def "the test kit system property is set by default"() {
-                    expect:
-                    System.getProperty(DefaultGradleRunner.TEST_KIT_DIR_SYS_PROP) != null
-                }
-
                 def "default test kit provider value is derived from system property"() {
                     when:
                     def runner = GradleRunner.create() as DefaultGradleRunner
                     def dir = runner.testKitDirProvider.dir
-                    def absolutePath = dir.absolutePath.replace(File.separatorChar, '/' as char)
                     then:
-                    dir.exists()
-                    absolutePath.contains("/build/tmp/")
-                    absolutePath.endsWith("/gradle-test-kit")
-                    FilePermissionsChecker.assertSafeParentFile(dir)
+                    dir.toPath().startsWith("${TextUtil.normaliseFileSeparators(workerTmpDir.absolutePath)}")
                 }
             }
         """)
@@ -110,6 +99,7 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
         }
         '''
 
+        def customTestKitDir = file("my-custom-testkit-dir")
         groovyTestSourceFile("""
             import org.gradle.testkit.runner.GradleRunner
             import org.gradle.testkit.runner.internal.DefaultGradleRunner
@@ -120,17 +110,15 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
 
                 def "the test kit system property is set by default"() {
                     expect:
-                    System.getProperty(DefaultGradleRunner.TEST_KIT_DIR_SYS_PROP).endsWith(File.separator + "my-custom-testkit-dir")
+                    new File(System.getProperty(DefaultGradleRunner.TEST_KIT_DIR_SYS_PROP)) == new File("${TextUtil.normaliseFileSeparators(customTestKitDir.absolutePath)}")
                 }
 
                 def "default test kit provider value is derived from system property"() {
                     when:
                     def runner = GradleRunner.create() as DefaultGradleRunner
                     def dir = runner.testKitDirProvider.dir
-                    def absolutePath = dir.absolutePath.replace(File.separatorChar, '/' as char)
                     then:
-                    absolutePath.endsWith("/my-custom-testkit-dir")
-                    FilePermissionsChecker.assertSafeParentFile(dir)
+                    dir == new File("${TextUtil.normaliseFileSeparators(customTestKitDir.absolutePath)}")
                 }
             }
         """)
@@ -138,27 +126,4 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
         then:
         succeeds 'test'
     }
-
-    def "gradle test kit directory exists before GradleRunner is created for first time"() {
-        when:
-        buildFile << gradleTestKitDependency()
-        groovyTestSourceFile("""
-            import org.gradle.testkit.runner.internal.DefaultGradleRunner
-            import java.io.File
-            import spock.lang.Specification
-
-            class Test extends Specification {
-                def "test kit directory already exists"() {
-                    when:
-                    File testKitDir = new File(System.getProperty(DefaultGradleRunner.TEST_KIT_DIR_SYS_PROP))
-                    then:
-                    assert testKitDir.exists() : "Should already exist because Test task created it already"
-                }
-            }
-        """)
-        then:
-        succeeds 'test'
-    }
-
-
 }
