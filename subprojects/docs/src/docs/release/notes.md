@@ -18,6 +18,7 @@ We would like to thank the following community members for their contributions t
 [Rene Groeschke](https://github.com/breskeby),
 [Niels Doucet](https://github.com/NielsDoucet),
 [Tobias Hermann](https://github.com/Dobiasd),
+[Rishaba-Jain](https://github.com/Rishaba-Jain),
 [Ståle Undheim](https://github.com/staale).
 
 
