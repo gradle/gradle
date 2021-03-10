@@ -35,6 +35,7 @@ Some plugins will break with this new version of Gradle, for example because the
 
 [[changes_7.0]]
 == Upgrading from 6.8
+
 === Changes in the IDE integration
 
 ==== Changes in the IDEA model
@@ -70,10 +71,83 @@ Consider <<declaring_repositories.adoc#declaring-repositories,using>> `mavenCent
 - Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.31].
 - Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.7].
 
+==== Updates to Groovy and Groovy DSL
+
+Due to the nature of the changes in the new Groovy version (new parser), you may experience minor issues when upgrading to Gradle 7.0.
+The new Groovy parser is stricter in some cases than older Groovy versions. In case you see any syntax errors, ensure to check with the https://groovy.apache.org/#reporting-issues[Groovy issue tracker].
+Depending on the size if your project and the number of Groovy build scripts you have, you might see slight performance regressions for cold daemons or full rebuilds.
+The Groovy team is already working on some improvements to the parser to mitigate these.
+
+===== Groovy 3 modularization
+
+Groovy used to be packaged as a `groovy-all` artifact including all groovy modules. With the upgrade to Groovy 3, Gradle has changed to only pull in the neccessary modules.
+While `gradleApi` and `localGroovy` include a set of most commonly used Groovy modules as listed below
+
+- `groovy`
+- `groovy-ant`
+- `groovy-astbuilder`
+- `groovy-console`
+- `groovy-datetime`
+- `groovy-dateutil`
+- `groovy-groovydoc`
+- `groovy-json`
+- `groovy-nio`
+- `groovy-sql`
+- `groovy-templates`
+- `groovy-test`
+- `groovy-xml`
+
+The following Groovy modules are *not* included in the Gradle distribution and may need to be added manually to the buildscript classpath if neccessary.
+
+- `groovy-cli-picocli`
+- `groovy-docgenerator`
+- `groovy-groovysh`
+- `groovy-jmx`
+- `groovy-jsr223`
+- `groovy-macro`
+- `groovy-servlet`
+- `groovy-swing`
+- `groovy-test-junit5`
+- `groovy-testng`
+
+===== Building Gradle plugins with Groovy 3
+
+With the upgrade to Groovy 3, plugin build for Gradle using `gradleApi` or `localGroovy` as dependency will now have Groovy 3 on their classpath. This mostly affects tests written in Spock as Spock 1.x is not compatible with Groovy 3 anymore. Instead, Spock tests need to be upgraded to use Spock 2.x.
+
+Ensure you're using the Groovy 3 variant of Spock 2. Note that Spock 2 is based on JUnit Platform which needs to be enabled as well. At the time of writing, Spock 2.0 Milestone 4 was the most recent version.
+
+```
+dependencies {
+    testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+        exclude group: 'org.codehaus.groovy'
+    }
+    testImplementation('org.junit.jupiter:junit-jupiter-api')
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+```
+
+===== Performance
+
+While generally, Groovy 3 is on par with Groovy 2, certain usecases (especially cold daemons) may see slight performance regressions. Some specific regressions are already fixed in an upcoming Groovy version which Gradle will upgrade to once released.
+
+===== Encountering 'Could not find method X for arguments Y on DefaultDependencyHandler'
+
+While the following error initially looks like a compile error, it is actually due to the fact that specific `Configuration`s have been removed.
+Please refer to <<sec:configuration_removal>> for more details.
+
+```
+Could not find method testCompile() for arguments [DefaultExternalModuleDependency{group='org.junit', name='junit-bom', version='5.7.0', configuration='default'}] on object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler.
+```
+
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.31.0[PMD 6.31.0].
+- Groovy and GroovyDoc have been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.7].
 
+[[sec:configuration_removal]]
 ==== Removal of `compile` and `runtime` configurations
 
 Since its inception, Gradle provided the `compile` and `runtime` configurations to declare dependencies.
@@ -85,6 +159,31 @@ These however did not support a fine grained scoping of dependencies. Hence, bet
 In Gradle 7, both the `compile` and `runtime` configurations are removed.
 Therefore, you have to migrate to the `implementation` and `api` configurations above.
 If you are still using the `java` plugin for a Java library, you will need to apply the `java-library` plugin instead.
+
+
+.Common configuration upgradxes
+|===
+|Removed Configuration | New Configuration
+
+|`compile`
+|`api` or `implementation`
+
+|`runtime`
+|`runtimeOnly`
+
+|`testRuntime`
+|`testRuntimeOnly`
+
+|`testCompile`
+|`testImplementation`
+
+
+|`<sourceSet>Runtime`
+|`<sourceSet>RuntimeOnly`
+
+|`<sourceSet>Compile`
+|`<sourceSet>Implementation`
+|===
 
 You can find more details about the benefits of the new configurations and which one to use in place of `compile` and `runtime` by reading the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> documentation.
 
