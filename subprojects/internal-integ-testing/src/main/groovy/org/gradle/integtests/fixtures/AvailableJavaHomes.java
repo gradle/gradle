@@ -22,9 +22,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.api.internal.file.temp.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
@@ -41,10 +40,10 @@ import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -210,7 +209,7 @@ public abstract class AvailableJavaHomes {
 
     private static List<JvmInstallationMetadata> discoverLocalInstallations() {
         ExecHandleFactory execHandleFactory = TestFiles.execHandleFactory();
-        TemporaryFileProvider temporaryFileProvider = TmpDirTemporaryFileProvider.createLegacy();
+        TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(DISTRIBUTION.getGradleHomeDir().file("tmp"));
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);

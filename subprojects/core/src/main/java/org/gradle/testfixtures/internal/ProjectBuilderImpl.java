@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.file.temp.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -44,7 +43,9 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorRegistry;
+import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -217,7 +218,13 @@ public class ProjectBuilderImpl {
             return newProjectDirectory;
         } else {
             // TODO: This logic will be removed once Gradle is built with latest nightly.
-            TemporaryFileProvider temporaryFileProvider = TmpDirTemporaryFileProvider.createLegacy();
+            TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(new Factory<File>() {
+                @Override
+                public File create() {
+                    @SuppressWarnings("deprecation") final String tempDirLocation = SystemProperties.getInstance().getJavaIoTmpDir();
+                    return FileUtils.canonicalize(new File(tempDirLocation));
+                }
+            });
             File tempDirectory = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");
             // TODO deleteOnExit won't clean up non-empty directories (and it leaks memory for long-running processes).
             tempDirectory.deleteOnExit();

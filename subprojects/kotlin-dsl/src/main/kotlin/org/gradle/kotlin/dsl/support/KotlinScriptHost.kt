@@ -59,7 +59,7 @@ class KotlinScriptHost<out T : Any>(
 
     internal
     val temporaryFileProvider: TemporaryFileProvider by unsafeLazy {
-        // TmpDirTemporaryFileProvider must be used instead of the TemporaryFileProvider.
+        // GradleUserHomeTemporaryFileProvider must be used instead of the TemporaryFileProvider.
         // In this scope the TemporaryFileProvider would be provided by the ProjectScopeServices.
         // That would generate this temporary directory inside of the project build directory.
         serviceRegistry.get<GradleUserHomeTemporaryFileProvider>()

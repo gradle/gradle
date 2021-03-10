@@ -16,15 +16,14 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
-import org.gradle.api.internal.file.temp.TmpDirTemporaryFileProvider
+import org.assertj.core.util.Files.newFolder
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
+import org.gradle.api.internal.file.temp.TempFiles
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.api.internal.file.temp.TempFiles
-
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
 import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
-
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -66,7 +65,7 @@ fun generateTestInstallationGradleApiExtensionsJarTo(jar: File, testInstallation
         .single()
 
     generateApiExtensionsJar(
-        TmpDirTemporaryFileProvider.createLegacy(),
+        DefaultTemporaryFileProvider { newFolder("tmp") },
         jar,
         gradleJars,
         gradleApiMetadataJar

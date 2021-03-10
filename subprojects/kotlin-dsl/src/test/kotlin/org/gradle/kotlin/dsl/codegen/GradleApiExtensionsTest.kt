@@ -21,36 +21,27 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import org.gradle.api.internal.file.temp.TmpDirTemporaryFileProvider
 import org.gradle.api.internal.file.pattern.PatternMatcher
-
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.internal.hash.HashUtil
-
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
-
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType
 import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-
 import org.slf4j.Logger
-
 import java.io.File
-
 import java.util.Properties
 import java.util.function.Consumer
 import java.util.jar.Attributes
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
-
 import kotlin.reflect.KClass
 
 
@@ -373,7 +364,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
     fun GradleApiExtensionsTest.ApiKotlinExtensionsGeneration.assertGeneratedJarHash(hash: String) =
         file("api-extensions.jar").let { generatedJar ->
             generateApiExtensionsJar(
-                TmpDirTemporaryFileProvider.createLegacy(),
+                DefaultTemporaryFileProvider { newFolder("tmp") },
                 generatedJar,
                 apiJars,
                 apiMetadataJar
