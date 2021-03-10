@@ -71,17 +71,20 @@ Consider <<declaring_repositories.adoc#declaring-repositories,using>> `mavenCent
 - Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.31].
 - Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.7].
 
-==== Updates to Groovy and Groovy DSL
+==== Changes to Groovy and Groovy DSL
 
-Due to the nature of the changes in the new Groovy version (new parser), you may experience minor issues when upgrading to Gradle 7.0.
-The new Groovy parser is stricter in some cases than older Groovy versions. In case you see any syntax errors, ensure to check with the https://groovy.apache.org/#reporting-issues[Groovy issue tracker].
-Depending on the size if your project and the number of Groovy build scripts you have, you might see slight performance regressions for cold daemons or full rebuilds.
-The Groovy team is already working on some improvements to the parser to mitigate these.
+Due to the update to the next major version of Groovy, you may experience minor issues when upgrading to Gradle 7.0.
 
-===== Groovy 3 modularization
+The new version of Groovy has a stricter parser that fails to compile code that may have been accepted in previous Groovy versions.
+If you encounter syntax errors, check the https://groovy.apache.org/#reporting-issues[Groovy issue tracker] and https://blogs.apache.org/groovy/entry/groovy-3-highlights[Groovy 3 release highlights].
 
-Groovy used to be packaged as a `groovy-all` artifact including all groovy modules. With the upgrade to Groovy 3, Gradle has changed to only pull in the neccessary modules.
-While `gradleApi` and `localGroovy` include a set of most commonly used Groovy modules as listed below
+https://issues.apache.org/jira/browse/GROOVY-9936[Some very specific regressions] have already been fixed in the next minor version of Groovy.
+
+===== Groovy modularization
+
+Gradle no longer embeds a copy of `groovy-all` that bundles all Groovy modules into a single jar--only the most important modules are distributed in the Gradle distribution.
+
+The `localGroovy()` dependency will include these Groovy modules:
 
 - `groovy`
 - `groovy-ant`
@@ -97,7 +100,7 @@ While `gradleApi` and `localGroovy` include a set of most commonly used Groovy m
 - `groovy-test`
 - `groovy-xml`
 
-The following Groovy modules are *not* included in the Gradle distribution and may need to be added manually to the buildscript classpath if neccessary.
+But the following Groovy modules are *not* included:
 
 - `groovy-cli-picocli`
 - `groovy-docgenerator`
@@ -110,20 +113,24 @@ The following Groovy modules are *not* included in the Gradle distribution and m
 - `groovy-test-junit5`
 - `groovy-testng`
 
+You can pull these dependencies into your build like any other external dependency.
+
 ===== Building Gradle plugins with Groovy 3
 
-With the upgrade to Groovy 3, plugin build for Gradle using `gradleApi` or `localGroovy` as dependency will now have Groovy 3 on their classpath. This mostly affects tests written in Spock as Spock 1.x is not compatible with Groovy 3 anymore. Instead, Spock tests need to be upgraded to use Spock 2.x.
+Plugins built with Gradle 7.0 will now have Groovy 3 on their classpath when using `gradleApi()` or `localGroovy()`.
 
-Ensure you're using the Groovy 3 variant of Spock 2. Note that Spock 2 is based on JUnit Platform which needs to be enabled as well. At the time of writing, Spock 2.0 Milestone 4 was the most recent version.
+NOTE: If you use https://spockframework.org/[Spock] to test your plugins, you will need to use Spock 2.x. There are no compatible versions of Spock 1.x and Groovy 3. At the time of writing, Spock 2.0 Milestone 4 was the most recent version.
 
 ```
 dependencies {
+    // Ensure you use the Groovy 3.x variant
     testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'
     }
     testImplementation('org.junit.jupiter:junit-jupiter-api')
 }
 
+// Spock 2 is based on JUnit Platform and needs to be enabled explicitly.
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
@@ -131,7 +138,10 @@ tasks.withType(Test).configureEach {
 
 ===== Performance
 
-While generally, Groovy 3 is on par with Groovy 2, certain usecases (especially cold daemons) may see slight performance regressions. Some specific regressions are already fixed in an upcoming Groovy version which Gradle will upgrade to once released.
+Depending on the number of subprojects and Groovy DSL build scripts, you may notice a performance regression when compiling build scripts for the first time or when changes are made to the build script's classpath.
+This is due to the slower performance of the Groovy 3 parser, but the Groovy team is aware of the issue and trying to mitigate the regression.
+
+In general, we are also looking at how we can improve the performance of build script compilation for both Groovy DSL and Kotlin DSL.
 
 ===== Encountering 'Could not find method X for arguments Y on DefaultDependencyHandler'
 
@@ -161,7 +171,7 @@ Therefore, you have to migrate to the `implementation` and `api` configurations 
 If you are still using the `java` plugin for a Java library, you will need to apply the `java-library` plugin instead.
 
 
-.Common configuration upgradxes
+.Common configuration upgrades
 |===
 |Removed Configuration | New Configuration
 
