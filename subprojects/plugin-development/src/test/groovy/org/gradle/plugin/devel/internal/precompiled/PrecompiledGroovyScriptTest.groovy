@@ -16,11 +16,9 @@
 
 package org.gradle.plugin.devel.internal.precompiled
 
-
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.plugin.internal.InvalidPluginIdException
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class PrecompiledGroovyScriptTest extends Specification {
     private TextFileResourceLoader loader = Mock()
@@ -33,20 +31,20 @@ class PrecompiledGroovyScriptTest extends Specification {
         thrown InvalidPluginIdException
     }
 
-    @Unroll
-    def "creates valid java classname '#javaClass' from script filename based plugin id: #filename"() {
+    def "creates valid java classname from script filename based plugin id"() {
         expect:
         def script = new PrecompiledGroovyScript(new File("/foo/bar/$filename"), loader)
         script.pluginAdapterClassName == javaClass
 
         where:
-        filename                     | javaClass
-        "foo.gradle"                 | "FooPlugin"
-        "foo.bar.gradle"             | "FooBarPlugin"
-        "test-plugin.gradle"         | "TestPluginPlugin"
-        "foo.bar.test-plugin.gradle" | "FooBarTestPluginPlugin"
-        "foo.bar.-foo.gradle"        | "FooBarFooPlugin"
-        "foo.bar._foo.gradle"        | "FooBar_fooPlugin"
-        "123.gradle"                 | "_123Plugin"
+        filename                               | javaClass
+        "foo.gradle"                           | "FooPlugin"
+        "foo.bar.gradle"                       | "FooBarPlugin"
+        "test-plugin.gradle"                   | "TestPluginPlugin"
+        "foo.bar.test-plugin.gradle"           | "FooBarTestPluginPlugin"
+        "foo.bar.-foo.gradle"                  | "FooBarFooPlugin"
+        "foo.bar._foo.gradle"                  | "FooBar_fooPlugin"
+        "123.gradle"                           | "_123Plugin"
+        "dev.gradleplugins.some-plugin.gradle" | "DevGradlepluginsSomePluginPlugin"
     }
 }
