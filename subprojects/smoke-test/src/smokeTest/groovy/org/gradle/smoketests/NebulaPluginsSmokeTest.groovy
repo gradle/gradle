@@ -79,7 +79,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('groovydoc').build()
     }
 
-    @Ignore("TODO: BM Part of groovy 3 upgrade")
+    @Ignore("Waiting for Groovy3 compatibility https://github.com/gradle/gradle/issues/16358")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
     @ToBeFixedForConfigurationCache
     def 'nebula lint plugin'() {
