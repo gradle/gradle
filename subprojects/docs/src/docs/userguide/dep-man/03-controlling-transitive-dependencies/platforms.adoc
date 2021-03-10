@@ -151,7 +151,6 @@ The semantics are again equivalent: adding a single bundle is equivalent to addi
 
 In addition to the settings API above, Gradle offers a conventional file to declare a catalog.
 If a `libs.versions.toml` file is found in the `gradle` subdirectory of the root build, then a catalog will be automatically declared with the contents of this file.
-Additionally, this file can be used to declare the default plugin versions for plugins applied in the build.
 
 [WARNING]
 ====
@@ -182,7 +181,6 @@ The https://toml.io/[TOML] file consists of 4 major sections:
 - the `[versions]` section is used to declare versions which can be referenced by dependencies
 - the `[libraries]` section is used to declare the aliases to coordinates
 - the `[bundles]` section is used to declare dependency bundles
-- the `[plugins]` section is used to declare default plugin versions
 
 For example:
 
@@ -240,24 +238,6 @@ or
 
 See the https://toml.io[TOML specification] for details.
 ====
-
-Plugin declarations are expected in the `pluginId = "pluginVersion"` format.
-For example, using this declaration:
-
-```
-[plugins]
-my.awesome.plugin = "1.4"
-```
-
-the `my.awesome-plugin` plugin can be applied in any build script without version:
-
-```
-plugins {
-   id 'my.awesome.plugin'
-}
-```
-
-offering a convenient way to share the versions of plugins between subprojects.
 
 [[sec:sharing-catalogs]]
 == Sharing catalogs

@@ -21,7 +21,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
-import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,7 +31,7 @@ import java.util.function.Supplier
 class DefaultVersionCatalogBuilderTest extends Specification {
 
     @Subject
-    DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
+    DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(Supplier))
 
     @Unroll("#notation is an invalid notation")
     def "reasonable error message if notation is invalid"() {

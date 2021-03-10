@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
-import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlInvalidTypeException;
@@ -43,24 +42,21 @@ public class TomlCatalogFileParser {
     private static final String METADATA_KEY = "metadata";
     private static final String LIBRARIES_KEY = "libraries";
     private static final String BUNDLES_KEY = "bundles";
-    private static final String PLUGINS_KEY = "plugins";
     private static final String VERSIONS_KEY = "versions";
     private static final Set<String> TOP_LEVEL_ELEMENTS = ImmutableSet.of(
         METADATA_KEY,
         LIBRARIES_KEY,
         BUNDLES_KEY,
-        PLUGINS_KEY,
         VERSIONS_KEY
     );
 
-    public static void parse(InputStream in, VersionCatalogBuilder builder, PluginDependenciesSpec plugins, ImportConfiguration importConfig) throws IOException {
+    public static void parse(InputStream in, VersionCatalogBuilder builder, ImportConfiguration importConfig) throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
         TomlParseResult result = Toml.parse(in);
         TomlTable metadataTable = result.getTable(METADATA_KEY);
         verifyMetadata(metadataTable);
         TomlTable librariesTable = result.getTable(LIBRARIES_KEY);
         TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
-        TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
         TomlTable versionsTable = result.getTable(VERSIONS_KEY);
         Sets.SetView<String> unknownTle = Sets.difference(result.keySet(), TOP_LEVEL_ELEMENTS);
         if (!unknownTle.isEmpty()) {
@@ -68,7 +64,6 @@ public class TomlCatalogFileParser {
         }
         parseLibraries(librariesTable, builder, strictVersionParser, importConfig);
         parseBundles(bundlesTable, builder, importConfig);
-        parsePlugins(pluginsTable, plugins, importConfig);
         parseVersions(versionsTable, builder, strictVersionParser, importConfig);
     }
 
@@ -124,18 +119,6 @@ public class TomlCatalogFileParser {
                     .map(String::valueOf)
                     .collect(Collectors.toList());
                 builder.bundle(alias, bundled);
-            }
-        }
-    }
-
-    private static void parsePlugins(@Nullable TomlTable pluginsTable, PluginDependenciesSpec builder, ImportConfiguration importConfig) {
-        if (pluginsTable == null) {
-            return;
-        }
-        List<String> keys = pluginsTable.dottedKeySet().stream().sorted().collect(Collectors.toList());
-        for (String id : keys) {
-            if (importConfig.includePlugin(id)) {
-                builder.id(id).version(expectString("plugin", id, pluginsTable, null));
             }
         }
     }

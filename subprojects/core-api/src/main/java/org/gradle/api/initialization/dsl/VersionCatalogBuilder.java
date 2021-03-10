@@ -216,18 +216,5 @@ public interface VersionCatalogBuilder extends Named {
          */
         void excludeVersion(String... aliases);
 
-        /**
-         * Only versions from the supplied list will be imported.
-         * Multiple calls to this method adds to the list of allowed aliases.
-         * @param ids plugin ids to include when importing
-         */
-        void includePlugin(String... ids);
-
-        /**
-         * Versions which are in the supplied list will not be imported.
-         * Multiple calls to this method adds to the list of disallowed aliases.
-         * @param ids plugin ids to exclude when importing
-         */
-        void excludePlugin(String... ids);
     }
 }

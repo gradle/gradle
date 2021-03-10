@@ -10,6 +10,3 @@ guava = "com.google.guava:guava:17.0-jre"
 [bundles]
 groovy = ["groovy", "groovy-json"]
 
-[plugins]
-my.awesome.plugin = "1.9"
-my.other.plugin = "1.1"

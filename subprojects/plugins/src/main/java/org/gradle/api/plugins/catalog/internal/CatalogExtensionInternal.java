@@ -19,9 +19,6 @@ import org.gradle.api.internal.catalog.DefaultVersionCatalog;
 import org.gradle.api.plugins.catalog.CatalogPluginExtension;
 import org.gradle.api.provider.Provider;
 
-import java.util.Map;
-
 public interface CatalogExtensionInternal extends CatalogPluginExtension {
     Provider<DefaultVersionCatalog> getVersionCatalog();
-    Provider<Map<String, String>> getPluginVersions();
 }

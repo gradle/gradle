@@ -24,7 +24,6 @@ class ImportConfigurationTest extends Specification {
                 IncludeExcludePredicate.of(["lib1", "lib2"] as Set, null),
             IncludeExcludePredicate.of(["bundle1", "bundle2"] as Set, null),
             IncludeExcludePredicate.of(["v1", "v2"] as Set, null),
-            IncludeExcludePredicate.of(["plugin1", "plugin2"] as Set, null),
         )
 
         expect:
@@ -38,11 +37,6 @@ class ImportConfigurationTest extends Specification {
         and:
         config.includeVersion('v1')
         !config.includeVersion('v3')
-
-
-        and:
-        config.includePlugin('plugin1')
-        !config.includePlugin('plugin3')
 
     }
 }

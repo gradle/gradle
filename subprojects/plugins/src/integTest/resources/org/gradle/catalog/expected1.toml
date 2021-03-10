@@ -15,6 +15,3 @@ other = {group = "org", name = "bar", version.ref = "lib" }
 [bundles]
 test = ["my-lib", "junit4"]
 
-[plugins]
-my.awesome.plugin = "1.5"
-

@@ -15,11 +15,8 @@
  */
 package org.gradle.api.plugins.catalog.internal;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interners;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
@@ -28,45 +25,31 @@ import org.gradle.api.internal.catalog.DefaultVersionCatalog;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.plugin.use.PluginDependenciesSpec;
-import org.gradle.plugin.use.PluginDependencySpec;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class DefaultVersionCatalogPluginExtension implements CatalogExtensionInternal {
     private final DependenciesAwareVersionCatalogBuilder builder;
-    private final SimplifiedPluginDependenciesSpec plugins;
     private final Provider<DefaultVersionCatalog> model;
-    private final Provider<Map<String, String>> pluginsModel;
 
     @Inject
     public DefaultVersionCatalogPluginExtension(ObjectFactory objects, ProviderFactory providers, DependencyResolutionServices drs, Configuration dependenciesConfiguration) {
-        this.plugins = new SimplifiedPluginDependenciesSpec();
         this.builder = objects.newInstance(DependenciesAwareVersionCatalogBuilder.class,
             "versionCatalog",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             objects,
             providers,
-            plugins,
             (Supplier<DependencyResolutionServices>) () -> drs,
             dependenciesConfiguration
         );
         this.model = providers.provider(builder::build);
-        this.pluginsModel = providers.provider(() -> ImmutableMap.copyOf(plugins.pluginVersions));
     }
 
     @Override
     public void versionCatalog(Action<? super VersionCatalogBuilder> spec) {
         spec.execute(builder);
-    }
-
-    @Override
-    public void plugins(Action<? super PluginDependenciesSpec> spec) {
-        spec.execute(plugins);
     }
 
     @Override
@@ -79,31 +62,4 @@ public class DefaultVersionCatalogPluginExtension implements CatalogExtensionInt
         return model;
     }
 
-    @Override
-    public Provider<Map<String, String>> getPluginVersions() {
-        return pluginsModel;
-    }
-
-    private static class SimplifiedPluginDependenciesSpec implements PluginDependenciesSpec {
-        private final Map<String, String> pluginVersions = Maps.newHashMap();
-
-        @Override
-        public PluginDependencySpec id(String id) {
-            return new PluginDependencySpec() {
-                @Override
-                public PluginDependencySpec version(@Nullable String version) {
-                    if (version == null || version.isEmpty()) {
-                        throw new InvalidUserDataException("Plugin version shouldn't be null or empty");
-                    }
-                    pluginVersions.put(id, version);
-                    return this;
-                }
-
-                @Override
-                public PluginDependencySpec apply(boolean apply) {
-                    throw new UnsupportedOperationException("Plugin application cannot be configured in a platform");
-                }
-            };
-        }
-    }
 }

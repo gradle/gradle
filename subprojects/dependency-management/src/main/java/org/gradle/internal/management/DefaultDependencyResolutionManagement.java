@@ -54,7 +54,6 @@ import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.lazy.Lazy;
-import org.gradle.plugin.management.PluginManagementSpec;
 
 import java.util.List;
 
@@ -224,11 +223,6 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private static ProjectFinder makeUnknownProjectFinder() {
         return new UnknownProjectFinder("Project dependencies are not allowed in shared dependency resolution services");
-    }
-
-    @Override
-    public void setPluginsSpec(PluginManagementSpec pluginManagementSpec) {
-        this.versionCatalogs.setPlugins(pluginManagementSpec.getPlugins());
     }
 
     @Override

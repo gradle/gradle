@@ -235,9 +235,6 @@ org.gradle.test:my-platform:1.0
                     from('org.gradle.test:my-platform:1.0')
                     alias('other').to('org:other:1.5')
                 }
-                plugins {
-                    id('my-plugin') version '0.6'
-                }
             }
 
             publishing {
@@ -282,11 +279,6 @@ org.gradle.test:my-platform:1.0
                 bundle('mix', ['hello', 'world'])
                 bundle('ignored-too', ['hello', 'ignored'])
             }
-            plugins {
-                id 'awesome' version '1.1'
-                id 'bof' version '0.3'
-                id 'not.interested' version 'boring'
-            }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
 
@@ -311,13 +303,9 @@ org.gradle.test:my-platform:1.0
                 versionCatalog {
                     from('org.gradle.test:my-platform:1.0') {
                         includeDependency('hello')
-                        excludePlugin('bof', 'not.interested')
                         excludeBundle 'ignored-too'
                     }
                     alias('world').to('org.world:company:1.5')
-                }
-                plugins {
-                    id('bof') version '0.6'
                 }
             }
 

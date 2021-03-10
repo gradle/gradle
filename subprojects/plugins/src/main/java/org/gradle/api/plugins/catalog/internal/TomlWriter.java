@@ -51,13 +51,12 @@ class TomlWriter {
         return this;
     }
 
-    public void generate(DefaultVersionCatalog model, Map<String, String> plugins) {
+    public void generate(DefaultVersionCatalog model) {
         writeHeader();
         writeMetadata();
         writeVersions(model);
         writeLibraries(model);
         writeBundles(model);
-        writePlugins(plugins);
     }
 
     private void writeVersions(DefaultVersionCatalog model) {

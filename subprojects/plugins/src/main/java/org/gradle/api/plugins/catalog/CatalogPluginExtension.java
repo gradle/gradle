@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.plugin.use.PluginDependenciesSpec;
 
 /**
  * Allows configuring a version catalog.
@@ -34,15 +33,6 @@ public interface CatalogPluginExtension {
      * @param spec the spec used to configure the dependencies
      */
     void versionCatalog(Action<? super VersionCatalogBuilder> spec);
-
-    /**
-     * Configures the plugins model of this catalog.
-     * Currently it's only possible to configure the default versions
-     * of plugins.
-     *
-     * @param spec the spec used to configure the plugins
-     */
-    void plugins(Action<? super PluginDependenciesSpec> spec);
 
     /**
      * Configures an explicit alias for a dependency in case of name clash

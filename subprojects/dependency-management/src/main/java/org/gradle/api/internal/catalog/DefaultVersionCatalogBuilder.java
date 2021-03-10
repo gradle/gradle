@@ -50,7 +50,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
-import org.gradle.plugin.use.PluginDependenciesSpec;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -74,7 +73,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
     private final ObjectFactory objects;
     private final ProviderFactory providers;
-    private final PluginDependenciesSpec plugins;
     private final String name;
     private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
@@ -93,14 +91,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                                         Interner<ImmutableVersionConstraint> versionConstraintInterner,
                                         ObjectFactory objects,
                                         ProviderFactory providers,
-                                        PluginDependenciesSpec plugins,
                                         Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier) {
         this.name = name;
         this.strings = strings;
         this.versionConstraintInterner = versionConstraintInterner;
         this.objects = objects;
         this.providers = providers;
-        this.plugins = plugins;
         this.dependencyResolutionServicesSupplier = dependencyResolutionServicesSupplier;
         this.strictVersionParser = new StrictVersionParser(strings);
         this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the `" + name + "` extension.");
@@ -209,7 +205,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         try {
             DefaultImportSpec spec = new DefaultImportSpec();
             configurationAction.execute(spec);
-            TomlCatalogFileParser.parse(new ByteArrayInputStream(dataSource.get()), this, plugins, spec.toConfiguration());
+            TomlCatalogFileParser.parse(new ByteArrayInputStream(dataSource.get()), this, spec.toConfiguration());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -425,9 +421,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         private Set<String> includedVersions;
         private Set<String> excludedVersions;
 
-        private Set<String> includedPlugins;
-        private Set<String> excludedPlugins;
-
         @Override
         public void includeDependency(String... aliases) {
             if (includedAliases == null) {
@@ -476,28 +469,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             Collections.addAll(excludedVersions, aliases);
         }
 
-        @Override
-        public void includePlugin(String... ids) {
-            if (includedPlugins == null) {
-                includedPlugins = Sets.newHashSet();
-            }
-            Collections.addAll(includedPlugins, ids);
-        }
-
-        @Override
-        public void excludePlugin(String... ids) {
-            if (excludedPlugins == null) {
-                excludedPlugins = Sets.newHashSet();
-            }
-            Collections.addAll(excludedPlugins, ids);
-        }
-
         ImportConfiguration toConfiguration() {
             return new ImportConfiguration(
                 IncludeExcludePredicate.of(includedAliases, excludedAliases),
                 IncludeExcludePredicate.of(includedBundles, excludedBundles),
-                IncludeExcludePredicate.of(includedVersions, excludedVersions),
-                IncludeExcludePredicate.of(includedPlugins, excludedPlugins)
+                IncludeExcludePredicate.of(includedVersions, excludedVersions)
             );
         }
     }

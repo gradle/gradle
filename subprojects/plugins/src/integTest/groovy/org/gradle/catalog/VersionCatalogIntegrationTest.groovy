@@ -240,9 +240,6 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
                     alias('foo').to('org:from-model:1.0')
                     bundle('my', ['foo', 'foo2', 'from-script'])
                 }
-                plugins {
-                    id('my.plugin') version '1.7'
-                }
             }
             dependencies {
                 versionCatalog 'org:from-script:1.0'
@@ -314,9 +311,6 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
                     version("lib", "1.1")
                     alias("other").to("org", "bar").versionRef("lib")
                     bundle("test", ["my-lib", "junit4"])
-                }
-                plugins {
-                    id("my.awesome.plugin") version "1.5"
                 }
             }
         """

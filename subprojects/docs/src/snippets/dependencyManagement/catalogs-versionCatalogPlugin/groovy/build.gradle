@@ -30,11 +30,6 @@ catalog {
     versionCatalog {
         alias('my-lib').to('com.mycompany:mylib:1.2')
     }
-
-    // declare the plugin versions with in this block
-    plugins {
-        id 'my.awesome.plugin' version '1.5'
-    }
 }
 // end::catalog_spec[]
 
