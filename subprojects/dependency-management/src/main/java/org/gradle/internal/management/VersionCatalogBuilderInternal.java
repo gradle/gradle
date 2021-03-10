@@ -16,7 +16,7 @@
 package org.gradle.internal.management;
 
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
-import org.gradle.api.internal.std.DefaultVersionCatalog;
+import org.gradle.api.internal.catalog.DefaultVersionCatalog;
 
 public interface VersionCatalogBuilderInternal extends VersionCatalogBuilder {
     DefaultVersionCatalog build();

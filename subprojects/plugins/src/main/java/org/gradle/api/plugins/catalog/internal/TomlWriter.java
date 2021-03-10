@@ -17,9 +17,9 @@ package org.gradle.api.plugins.catalog.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.std.DefaultVersionCatalog;
-import org.gradle.api.internal.std.DependencyModel;
-import org.gradle.api.internal.std.TomlCatalogFileParser;
+import org.gradle.api.internal.catalog.DefaultVersionCatalog;
+import org.gradle.api.internal.catalog.DependencyModel;
+import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 
 import java.io.IOException;
 import java.io.Writer;

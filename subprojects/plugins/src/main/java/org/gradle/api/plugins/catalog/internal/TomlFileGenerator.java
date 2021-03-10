@@ -18,7 +18,7 @@ package org.gradle.api.plugins.catalog.internal;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.std.DefaultVersionCatalog;
+import org.gradle.api.internal.catalog.DefaultVersionCatalog;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
