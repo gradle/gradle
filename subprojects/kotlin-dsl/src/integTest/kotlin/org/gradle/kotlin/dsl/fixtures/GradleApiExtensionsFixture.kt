@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.fixtures
 
 import org.assertj.core.util.Files.newFolder
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
-import org.gradle.api.internal.file.temp.TempFiles
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
@@ -28,8 +27,8 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 
-fun testInstallationGradleApiExtensionsClasspathFor(testInstallation: File): ClassPath =
-    DefaultClassPath.of(testInstallationGradleApiExtensionsJarFor(testInstallation))
+fun testInstallationGradleApiExtensionsClasspathFor(testInstallation: File, tmpDir: File): ClassPath =
+    DefaultClassPath.of(testInstallationGradleApiExtensionsJarFor(testInstallation, tmpDir))
 
 
 private
@@ -38,10 +37,10 @@ val testInstallationGradleApiExtensionsJars =
 
 
 private
-fun testInstallationGradleApiExtensionsJarFor(testInstallation: File) =
+fun testInstallationGradleApiExtensionsJarFor(testInstallation: File, tmpDir: File) =
     testInstallationGradleApiExtensionsJars.getOrPut(testInstallation) {
         val fixturesDir = File("build/tmp/fixtures").also { it.mkdirs() }
-        TempFiles.createTempFile("gradle-api-extensions", "fixture", fixturesDir).also { jar ->
+        File(tmpDir, "gradle-api-extensions-fixture.jar").also { jar ->
             generateTestInstallationGradleApiExtensionsJarTo(jar, testInstallation)
             jar.deleteOnExit()
         }

@@ -35,12 +35,11 @@ public final class TempFiles {
      * @see File#createTempFile(String, String, File)
      */
     @CheckReturnValue
-    public static File createTempFile(String prefix, String suffix, File directory) throws IOException {
+    static File createTempFile(String prefix, String suffix, File directory) throws IOException {
         //noinspection ConstantConditions
         if (directory == null) {
             throw new NullPointerException("The `directory` argument must not be null as this will default to the system temporary directory");
         }
         return File.createTempFile(prefix, suffix, directory);
     }
-
 }

@@ -389,7 +389,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
             dslTestFixture.evalScript(
                 script,
                 target = this,
-                scriptCompilationClassPath = testRuntimeClassPath + testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir)
+                scriptCompilationClassPath = testRuntimeClassPath + testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir, file("tmp"))
             )
 
             tasksAssertions.forEach { taskAssertion ->

@@ -221,13 +221,6 @@ public class ScalaDoc extends SourceTask {
      */
     @Nullable
     private File createOptionsFile() {
-        try {
-            File taskTempDir = getTemporaryDir();
-            File optionsFile = TempFiles.createTempFile("scaladoc", "options", taskTempDir);
-            optionsFile.deleteOnExit();
-            return optionsFile;
-        } catch (IOException e) {
-            return null;
-        }
+        return new File(getTemporaryDir(), "scaladoc.options");
     }
 }

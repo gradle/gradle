@@ -17,7 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TempFiles;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,11 +41,13 @@ import java.io.IOException;
 public abstract class FileTimeStampInspector {
     private final File workDir;
     private final File markerFile;
+    private final TemporaryFileProvider temporaryFileProvider;
     private long lastBuildTimestamp;
 
     protected FileTimeStampInspector(File workDir) {
         this.workDir = workDir;
-        markerFile = new File(workDir, "last-build.bin");
+        this.markerFile = new File(workDir, "last-build.bin");
+        this.temporaryFileProvider = new DefaultTemporaryFileProvider(() -> workDir);
     }
 
     public long getLastBuildTimestamp() {
@@ -74,15 +78,11 @@ public abstract class FileTimeStampInspector {
     }
 
     protected long currentTimestamp() {
+        File file = temporaryFileProvider.createTemporaryFile("this-build", "bin");
         try {
-            File file = TempFiles.createTempFile("this-build", "bin", workDir);
-            try {
-                return file.lastModified();
-            } finally {
-                file.delete();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not calculate current default file timestamp.", e);
+            return file.lastModified();
+        } finally {
+            file.delete();
         }
     }
 
