@@ -56,11 +56,11 @@ Dependencies appearing in the `api` configurations will be transitively exposed 
 
 [NOTE]
 ====
-The `compile` configuration still exists but should not be used as it will not offer the guarantees that the `api` and `implementation` configurations provide.
+The `compile` and `runtime` configurations have been removed with Gradle 7.0. Please refer to the <<upgrading_version_6.adoc#sec:configuration_removal, upgrade guide>> how to migrate to `implementation` and `api` configurations`.
 ====
 
-If your build consumes a published module with POM metadata, the Java and Java Library plugins both honor api and implementation separation through the scopes used in the pom.
-Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well.
+If your build consumes a published module with POM metadata, the Java and Java Library plugins both honor api and implementation separation through the scopes used in the POM.
+Meaning that the compile classpath only includes Maven `compile` scoped dependencies, while the runtime classpath adds the Maven `runtime` scoped dependencies as well.
 
 This often does not have an effect on modules published with Maven, where the POM that defines the project is directly published as metadata.
 There, the compile scope includes both dependencies that were required to compile the project (i.e. implementation dependencies) and dependencies required to compile against the published library (i.e. API dependencies).
@@ -134,11 +134,6 @@ image::java-library-ignore-deprecated-main.png[]
 And the next graph describes the test configurations setup:
 
 image::java-library-ignore-deprecated-test.png[]
-
-[NOTE]
-====
-The _compile_, _testCompile_, _runtime_ and _testRuntime_ configurations inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only kept for backwards compatibility.
-====
 
 The role of each configuration is described in the following tables:
 
