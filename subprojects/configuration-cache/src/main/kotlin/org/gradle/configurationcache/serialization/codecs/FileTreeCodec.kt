@@ -80,8 +80,8 @@ class FileTreeCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): FileTreeInternal? {
-        return decodePreservingIdentity { id ->
+    override suspend fun ReadContext.decode(): FileTreeInternal? =
+        decodePreservingIdentity { id ->
             val specs = readNonNull<List<FileTreeSpec>>()
             val fileTrees = specs.map {
                 when (it) {
@@ -98,7 +98,6 @@ class FileTreeCodec(
             isolate.identities.putInstance(id, tree)
             tree
         }
-    }
 
     private
     fun rootSpecOf(value: FileTreeInternal): List<FileTreeSpec> {
@@ -111,21 +110,24 @@ class FileTreeCodec(
     class FileTreeVisitor : FileCollectionStructureVisitor {
         var roots = mutableListOf<FileTreeSpec>()
 
-        override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean {
-            if (fileCollection is FileCollectionBackedFileTree) {
+        override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean = when {
+            fileCollection is FileCollectionBackedFileTree -> {
                 roots.add(WrappedFileCollectionTreeSpec(fileCollection.collection))
-                return false
-            } else if (fileCollection is FilteredFileTree && fileCollection.patterns.isEmpty) {
+                false
+            }
+            fileCollection is FilteredFileTree && fileCollection.patterns.isEmpty -> {
                 // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used, eg in SourceTask and in CopySpec
                 // Skip applying the filters to the tree
                 fileCollection.tree.visitStructure(this)
-                return false
-            } else {
-                return true
+                false
+            }
+            else -> {
+                true
             }
         }
 
-        override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) = throw UnsupportedOperationException()
+        override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) =
+            throw UnsupportedOperationException()
 
         override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
             // Visit the contents to create the mirror
