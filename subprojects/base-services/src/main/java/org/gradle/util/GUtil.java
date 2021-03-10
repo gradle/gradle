@@ -22,7 +22,9 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.io.IoUtils;
 import org.gradle.internal.io.StreamByteBuffer;
 
 import javax.annotation.Nullable;
@@ -251,9 +253,10 @@ public class GUtil {
         Properties properties = new Properties();
         try {
             properties.load(inputStream);
-            inputStream.close();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            IoActions.closeQuietly(inputStream);
         }
         return properties;
     }

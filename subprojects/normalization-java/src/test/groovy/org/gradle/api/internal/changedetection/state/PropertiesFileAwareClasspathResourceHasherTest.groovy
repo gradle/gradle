@@ -329,8 +329,8 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
             }
 
             @Override
-            InputStream getInputStream() {
-                return new ByteArrayInputStream(bytes)
+            <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
+                action.run(new ByteArrayInputStream(bytes))
             }
 
             @Override
