@@ -16,11 +16,13 @@
 
 package org.gradle.plugin.devel.plugins
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -345,6 +347,33 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains('my-settings-plugin applied!')
     }
 
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/15416")
+    def "precompiled settings plugin can use pluginManagement block"() {
+        when:
+        def pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
+            pluginManagement {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            println('my-settings-plugin applied!')
+        """)
+
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath(files('$pluginJar'))
+                }
+            }
+            apply plugin: 'my-settings-plugin'
+        """
+
+        then:
+        succeeds('help')
+        outputContains('my-settings-plugin applied!')
+    }
+
     @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can apply a precompiled init plugin"() {
         given:
@@ -394,6 +423,22 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             plugins {
                 id 'my-plugin'
+            }
+        """
+
+        then:
+        succeeds(SAMPLE_TASK)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16459")
+    def "can have .gradle substring within plugin id"() {
+        when:
+        enablePrecompiledPluginsInBuildSrc()
+        pluginWithSampleTask("buildSrc/src/main/groovy/dev.gradlefoo.some-plugin.gradle")
+
+        buildFile << """
+            plugins {
+                id 'dev.gradlefoo.some-plugin'
             }
         """
 
