@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
-import org.gradle.api.internal.std.DefaultVersionCatalogBuilder;
+import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reflect.TypeOf;

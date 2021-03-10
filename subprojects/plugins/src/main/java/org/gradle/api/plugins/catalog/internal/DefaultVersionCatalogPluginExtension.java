@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.std.DefaultVersionCatalog;
+import org.gradle.api.internal.catalog.DefaultVersionCatalog;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;

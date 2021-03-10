@@ -32,8 +32,8 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.std.DefaultVersionCatalog;
-import org.gradle.api.internal.std.DefaultVersionCatalogBuilder;
+import org.gradle.api.internal.catalog.DefaultVersionCatalog;
+import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -45,7 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static org.gradle.api.internal.std.DependenciesModelHelper.ALIAS_PATTERN;
+import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_PATTERN;
 
 public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalogBuilder {
     private final static Logger LOGGER = Logging.getLogger(DependenciesAwareVersionCatalogBuilder.class);

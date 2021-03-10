@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
-import org.gradle.api.internal.std.StrictVersionParser;
+import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;

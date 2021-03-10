@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.std.DependenciesAccessorsWorkspaceProvider;
+import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;

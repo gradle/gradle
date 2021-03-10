@@ -18,10 +18,10 @@ package org.gradle.api.plugins.catalog.internal
 
 import com.google.common.collect.Interners
 import groovy.transform.Canonical
-import org.gradle.api.internal.std.DefaultVersionCatalog
-import org.gradle.api.internal.std.DefaultVersionCatalogBuilder
-import org.gradle.api.internal.std.ImportConfiguration
-import org.gradle.api.internal.std.TomlCatalogFileParser
+import org.gradle.api.internal.catalog.DefaultVersionCatalog
+import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
+import org.gradle.api.internal.catalog.parser.ImportConfiguration
+import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import org.gradle.util.TestUtil
@@ -32,7 +32,7 @@ import spock.lang.Unroll
 
 import java.util.function.Supplier
 
-import static org.gradle.api.internal.std.IncludeExcludePredicate.acceptAll
+import static org.gradle.api.internal.catalog.parser.IncludeExcludePredicate.acceptAll
 
 class TomlWriterTest extends Specification {
 

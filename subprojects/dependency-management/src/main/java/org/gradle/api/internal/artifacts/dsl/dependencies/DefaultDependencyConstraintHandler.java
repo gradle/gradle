@@ -33,7 +33,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
-import org.gradle.api.internal.std.DependencyBundleValueSource;
+import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;

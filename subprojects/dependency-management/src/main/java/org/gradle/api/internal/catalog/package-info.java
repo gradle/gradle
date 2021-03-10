@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.catalog.internal;
 
-import org.gradle.api.internal.catalog.DefaultVersionCatalog;
-import org.gradle.api.plugins.catalog.CatalogPluginExtension;
-import org.gradle.api.provider.Provider;
+@NonNullApi
+package org.gradle.api.internal.catalog;
 
-import java.util.Map;
-
-public interface CatalogExtensionInternal extends CatalogPluginExtension {
-    Provider<DefaultVersionCatalog> getVersionCatalog();
-    Provider<Map<String, String>> getPluginVersions();
-}
+import org.gradle.api.NonNullApi;
