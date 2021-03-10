@@ -74,7 +74,7 @@ fun BuildSteps.substDirOnWindows(os: Os) {
         script {
             name = "SETUP_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """subst p: "%teamcity.build.checkoutDir%" """
+            scriptContent = """dir p: || subst p: "%teamcity.build.checkoutDir%" """
         }
         cleanBuildLogicBuild("P:/build-logic-commons", os)
         cleanBuildLogicBuild("P:/build-logic", os)
@@ -86,7 +86,7 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os) {
         script {
             name = "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """subst p: /d"""
+            scriptContent = """dir p: && subst p: /d"""
         }
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons", os)
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic", os)

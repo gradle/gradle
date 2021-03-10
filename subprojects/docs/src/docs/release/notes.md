@@ -8,6 +8,7 @@ Some features in this milestone may not make it to the first release candidate a
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+[Aidar Nugmanoff](https://github.com/nugmanoff),
 [Martin d'Anjou](https://github.com/martinda),
 [Till Krullmann](https://github.com/tkrullmann),
 [Andreas Axelsson](https://github.com/judgeaxl),
@@ -119,7 +120,7 @@ This allows libraries to clearly distinguish variants optimized for `standard-jv
 Developing plugins as part of a composite build was so far only possible for project plugins.
 Settings plugins always had to be developed in isolation and published to a binary repository.
 
-This release introduces a new DSL construct in the settings file for including plugin builds.
+This release introduces a new DSL construct in the settings file for [including plugin builds](userguide/composite_builds.html#included_plugin_builds).
 Build included like that can provide both project and settings plugins.
 ```
 pluginManagement {

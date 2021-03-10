@@ -127,7 +127,7 @@ trait ValidationMessageChecker {
 
     String invalidUseOfCacheableAnnotation(@DelegatesTo(value=InvalidUseOfCacheable, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(InvalidUseOfCacheable, 'invalid_use_of_cacheable_annotation', spec)
-        config.render "Using @${config.invalidAnnotation} here is incorrect. This annotation only makes sense on ${config.correctType} types. Possible solution: Remove the annotation"
+        config.render "Using @${config.invalidAnnotation} here is incorrect. This annotation only makes sense on ${config.correctTypes.join(", ")} types. Possible solution: Remove the annotation"
     }
 
     String optionalOnPrimitive(@DelegatesTo(value=OptionalOnPrimitive, strategy=Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -169,7 +169,7 @@ trait ValidationMessageChecker {
 
     static class InvalidUseOfCacheable extends ValidationMessageDisplayConfiguration<InvalidUseOfCacheable> {
         String invalidAnnotation
-        String correctType
+        List<String> correctTypes
 
         InvalidUseOfCacheable(ValidationMessageChecker checker) {
             super(checker)
@@ -180,8 +180,8 @@ trait ValidationMessageChecker {
             this
         }
 
-        InvalidUseOfCacheable onlyMakesSenseOn(String type) {
-            this.correctType = type
+        InvalidUseOfCacheable onlyMakesSenseOn(String... types) {
+            this.correctTypes = types as List
             this
         }
     }

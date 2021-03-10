@@ -91,6 +91,7 @@ import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadat
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
@@ -136,8 +137,9 @@ public class ExecutionGlobalServices {
         annotationRegistry.registerPropertyTypeAnnotations(builder);
         return new DefaultTypeAnnotationMetadataStore(
             ImmutableSet.of(
-            CacheableTask.class,
-            CacheableTransform.class
+                CacheableTask.class,
+                CacheableTransform.class,
+                DisableCachingByDefault.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
             ImmutableSet.of(

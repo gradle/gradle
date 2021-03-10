@@ -44,7 +44,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final int CACHE_FORMAT = 3;
+    private static final int CACHE_FORMAT = 4;
 
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
@@ -85,7 +85,8 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             return transformed;
         }
 
-        final FileLock fileLock = exclusiveLockFor(transformed);
+        final File lockFile = new File(destDir, destFileName + ".lock");
+        final FileLock fileLock = exclusiveLockFor(lockFile);
         try {
             if (receipt.isFile()) {
                 // Lock was acquired after a concurrent writer had already finished.

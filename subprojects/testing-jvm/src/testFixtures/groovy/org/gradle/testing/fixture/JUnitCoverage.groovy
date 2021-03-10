@@ -17,12 +17,12 @@
 package org.gradle.testing.fixture
 /**
  * NEWEST is JUnit 4 series, i.e. junit:junit:4.13
- * JUPITER is JUnit Jupiter engine, i.e. org.junit.jupiter:junit-jupiter:5.7.0
- * VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:5.7.0
+ * JUPITER is JUnit Jupiter engine, i.e. org.junit.jupiter:junit-jupiter:5.7.1
+ * VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:5.7.1
  */
 class JUnitCoverage {
     final static String NEWEST = '4.13'
-    final static String LATEST_JUNIT5_VERSION = '5.7.0'
+    final static String LATEST_JUNIT5_VERSION = '5.7.1'
     final static String LATEST_JUPITER_VERSION = LATEST_JUNIT5_VERSION
     final static String LATEST_VINTAGE_VERSION = LATEST_JUNIT5_VERSION
     final static String LATEST_LAUNCHER_VERSION = '1.7.0'

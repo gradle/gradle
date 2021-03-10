@@ -8,5 +8,5 @@ group = 'com.example.platform'
 javaPlatform.allowDependencies()
 
 dependencies {
-    api(platform('org.junit:junit-bom:5.7.0'))
+    api(platform('org.junit:junit-bom:5.7.1'))
 }

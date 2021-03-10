@@ -37,7 +37,7 @@ class TestDisplayNameCrossVersionSpec extends TestLauncherSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
+                testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
             }
 
             test {

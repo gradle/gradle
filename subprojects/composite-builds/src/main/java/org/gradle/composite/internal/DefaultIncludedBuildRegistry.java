@@ -47,8 +47,10 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
@@ -68,6 +70,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private boolean registerSubstitutionsForRootBuild = false;
 
     private final Map<Path, IncludedBuildState> libraryBuilds = new LinkedHashMap<>();
+    private final Set<IncludedBuildState> currentlyConfiguring = new HashSet<>();
 
     public DefaultIncludedBuildRegistry(BuildTreeState owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager) {
         this.owner = owner;
@@ -178,7 +181,9 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     private void registerSubstitutions() {
         for (IncludedBuildState includedBuild : libraryBuilds.values()) {
+            currentlyConfiguring.add(includedBuild);
             dependencySubstitutionsBuilder.build(includedBuild);
+            currentlyConfiguring.remove(includedBuild);
         }
     }
 
@@ -217,6 +222,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public void ensureConfigured(IncludedBuildState buildToConfigure) {
+        if (currentlyConfiguring.contains(buildToConfigure)) {
+            return;
+        }
+        currentlyConfiguring.add(buildToConfigure);
         GradleInternal gradle = buildToConfigure.getConfiguredBuild();
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
             for (IncludedBuildState buildState : libraryBuilds.values()) {
@@ -225,6 +234,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
                 }
             }
         }
+        currentlyConfiguring.remove(buildToConfigure);
     }
 
     private void validateNameIsNotBuildSrc(String name, File dir) {

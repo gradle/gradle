@@ -374,18 +374,30 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         return [
             'com.android.application': TestedVersions.androidGradle,
             'com.android.library': TestedVersions.androidGradle,
+            'com.android.test': TestedVersions.androidGradle,
+            'com.android.reporting': TestedVersions.androidGradle,
+            'com.android.dynamic-feature': TestedVersions.androidGradle,
         ]
     }
 
     @Override
     void configureValidation(String testedPluginId, String version) {
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(version)
-        buildFile << """
-            android {
-                compileSdkVersion 24
-                buildToolsVersion '${TestedVersions.androidTools}'
-            }
-        """
+        if (testedPluginId != 'com.android.reporting') {
+            buildFile << """
+                android {
+                    compileSdkVersion 24
+                    buildToolsVersion '${TestedVersions.androidTools}'
+                }
+            """
+        }
+        if (testedPluginId == 'com.android.test') {
+            buildFile << """
+                android {
+                    targetProjectPath ':'
+                }
+            """
+        }
         settingsFile << """
             pluginManagement {
                 repositories {
@@ -402,13 +414,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         validatePlugins {
             boolean failsValidation = version.startsWith('4.2.0') || version.startsWith('7.0')
             if (failsValidation) {
-                def failingPlugins = ['com.android.internal.version-check']
-                if (testedPluginId == 'com.android.application') {
-                    failingPlugins.addAll('com.android.application', 'com.android.internal.application')
-                }
-                if (testedPluginId == 'com.android.library') {
-                    failingPlugins.addAll('com.android.library', 'com.android.internal.library')
-                }
+                def pluginSuffix = testedPluginId.substring('com.android.'.length())
+                def failingPlugins = ['com.android.internal.version-check', testedPluginId, 'com.android.internal.' + pluginSuffix]
                 passing {
                     it !in failingPlugins
                 }

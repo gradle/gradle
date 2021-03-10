@@ -35,7 +35,7 @@ class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec 
             apply plugin:'java-library'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.1'
+                testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
                 testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
             }
 
@@ -96,7 +96,7 @@ class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec 
             apply plugin:'java-library'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.1'
+                testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
                 testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
             }
 

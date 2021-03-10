@@ -50,7 +50,8 @@ public class JpmsConfiguration {
         List<String> configurationCacheJpmsArgs = Collections.unmodifiableList(Arrays.asList(
             "--add-opens", "java.prefs/java.util.prefs=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
             "--add-opens", "java.base/java.nio.charset=ALL-UNNAMED", // required by BeanSchemaKt
-            "--add-opens", "java.base/java.net=ALL-UNNAMED" // required by JavaObjectSerializationCodec
+            "--add-opens", "java.base/java.net=ALL-UNNAMED", // required by JavaObjectSerializationCodec
+            "--add-opens", "java.base/java.util.concurrent.atomic=ALL-UNNAMED" // serialized from org.gradle.internal.file.StatStatistics$Collector
         ));
         gradleDaemonJvmArgs.addAll(configurationCacheJpmsArgs);
 

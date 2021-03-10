@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-
+import org.gradle.api.JavaVersion
 import spock.lang.Issue
 
 class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
@@ -42,11 +42,12 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             }
 
             dependencies {
-                errorprone("com.google.errorprone:error_prone_core:2.3.3")
+                errorprone("com.google.errorprone:error_prone_core:2.5.1")
             }
 
             tasks.withType(JavaCompile).configureEach {
                 options.fork = true
+                ${jpmsJvmArgs()}
                 options.errorprone {
                     check("DoubleBraceInitialization", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
                 }
@@ -76,5 +77,23 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         [
             'net.ltgt.errorprone': Versions.of(TestedVersions.errorProne)
         ]
+    }
+
+    private static String jpmsJvmArgs() {
+        if (JavaVersion.current().isJava9Compatible()) {
+            return """
+                options.forkOptions.jvmArgs += [
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED"
+                ]
+            """
+        }
+        return ""
     }
 }
