@@ -41,7 +41,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             (CRASHLYTICS_PLUGIN_ID): Versions.of('2.5.1'),
             (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.3.5'),
             (BUGSNAG_PLUGIN_ID): Versions.of('5.7.4'),
-            (FLADLE_PLUGIN_ID): Versions.of('0.6.7'),
+            (FLADLE_PLUGIN_ID): Versions.of('0.14.1'),
             (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.3.0-agp4.2'),
             (SAFEARGS_PLUGIN_ID): Versions.of('2.3.3'),
             (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.33-beta'),
@@ -64,18 +64,6 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                 ])
             }
             switch (testedPluginId) {
-                case FLADLE_PLUGIN_ID:
-                    passing {
-                        it !in (failingAndroidPlugins + FLADLE_PLUGIN_ID)
-                    }
-                    onPlugins([FLADLE_PLUGIN_ID]) {
-                        failsWith([
-                            (missingAnnotationMessage { type('YamlConfigWriterTask').property('description').missingInputOrOutput().includeLink() }): ERROR,
-                            (missingAnnotationMessage { type('YamlConfigWriterTask').property('group').missingInputOrOutput().includeLink() }): ERROR,
-
-                        ])
-                    }
-                    break
                 case SENTRY_PLUGIN_ID:
                     passing {
                         it !in (failingAndroidPlugins + SENTRY_PLUGIN_ID)
