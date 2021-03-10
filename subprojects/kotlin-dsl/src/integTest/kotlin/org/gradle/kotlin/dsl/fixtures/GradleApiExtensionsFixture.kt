@@ -40,14 +40,14 @@ private
 fun testInstallationGradleApiExtensionsJarFor(testInstallation: File, tmpDir: File) =
     testInstallationGradleApiExtensionsJars.getOrPut(testInstallation) {
         File(tmpDir, "gradle-api-extensions-fixture.jar").also { jar ->
-            generateTestInstallationGradleApiExtensionsJarTo(jar, testInstallation)
+            generateTestInstallationGradleApiExtensionsJarTo(jar, testInstallation, tmpDir)
             jar.deleteOnExit()
         }
     }
 
 
 private
-fun generateTestInstallationGradleApiExtensionsJarTo(jar: File, testInstallation: File) {
+fun generateTestInstallationGradleApiExtensionsJarTo(jar: File, testInstallation: File, tmpDir: File) {
 
     val gradleJars = testInstallation
         .let { listOf(it.resolve("lib"), it.resolve("lib/plugins")) }
@@ -63,7 +63,7 @@ fun generateTestInstallationGradleApiExtensionsJarTo(jar: File, testInstallation
         .single()
 
     generateApiExtensionsJar(
-        DefaultTemporaryFileProvider { newFolder("tmp") },
+        DefaultTemporaryFileProvider { tmpDir },
         jar,
         gradleJars,
         gradleApiMetadataJar

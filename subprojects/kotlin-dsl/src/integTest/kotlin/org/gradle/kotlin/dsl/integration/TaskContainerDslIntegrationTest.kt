@@ -33,7 +33,9 @@ import org.hamcrest.Matcher
 
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
+import java.io.File
 
 import kotlin.reflect.KClass
 
@@ -51,6 +53,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Ignore
     fun `polymorphic named domain object container api`() {
 
         testTaskContainerVia(
@@ -378,7 +381,8 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
         script: String,
         tasksAssertions: List<TaskAssertion> = tasksConfigurationAssertions
     ) {
-        newProjectBuilderProjectWith(newDir(name)).run {
+        val projectDir = newDir(name)
+        newProjectBuilderProjectWith(projectDir).run {
 
             preRegisteredTasks.forEach {
                 tasks.register(it.name, it.type.java)
@@ -389,7 +393,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
             dslTestFixture.evalScript(
                 script,
                 target = this,
-                scriptCompilationClassPath = testRuntimeClassPath + testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir, file("tmp"))
+                scriptCompilationClassPath = testRuntimeClassPath + testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir, File(projectDir, "tmp"))
             )
 
             tasksAssertions.forEach { taskAssertion ->
