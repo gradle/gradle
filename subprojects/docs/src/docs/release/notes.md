@@ -17,7 +17,9 @@ We would like to thank the following community members for their contributions t
 [Jeff](https://github.com/mathjeff),
 [Rene Groeschke](https://github.com/breskeby),
 [Niels Doucet](https://github.com/NielsDoucet),
+[Tobias Hermann](https://github.com/Dobiasd),
 [Ståle Undheim](https://github.com/staale).
+
 
 ## Upgrade Instructions
 
