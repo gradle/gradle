@@ -209,7 +209,7 @@ public abstract class AvailableJavaHomes {
 
     private static List<JvmInstallationMetadata> discoverLocalInstallations() {
         ExecHandleFactory execHandleFactory = TestFiles.execHandleFactory();
-        TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(DISTRIBUTION.getGradleHomeDir().file("tmp"));
+        TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
