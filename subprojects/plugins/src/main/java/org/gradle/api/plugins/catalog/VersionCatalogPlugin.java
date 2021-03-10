@@ -96,7 +96,6 @@ public class VersionCatalogPlugin implements Plugin<Project> {
         task.setDescription("Generates a TOML file for a version catalog");
         task.getOutputFile().convention(project.getLayout().getBuildDirectory().file("version-catalog/libs.versions.toml"));
         task.getDependenciesModel().convention(extension.getVersionCatalog());
-        task.getPluginVersions().convention(extension.getPluginVersions());
     }
 
     private CatalogExtensionInternal createExtension(Project project, Configuration dependenciesConfiguration) {

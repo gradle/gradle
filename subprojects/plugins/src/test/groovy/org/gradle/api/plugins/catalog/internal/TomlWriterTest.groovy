@@ -22,10 +22,7 @@ import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.parser.ImportConfiguration
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
-import org.gradle.plugin.use.PluginDependenciesSpec
-import org.gradle.plugin.use.PluginDependencySpec
 import org.gradle.util.TestUtil
-import org.jetbrains.annotations.Nullable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -62,7 +59,7 @@ class TomlWriterTest extends Specification {
 
     def "generated file contains model version"() {
         when:
-        writer.generate(Stub(DefaultVersionCatalog), Stub(Map))
+        writer.generate(Stub(DefaultVersionCatalog))
 
         then:
         output.toString().contains """#
@@ -74,7 +71,7 @@ format.version = "1.0"
     }
 
     private void generateFromModel() {
-        writer.generate(sourceModel.deps, sourceModel.plugins)
+        writer.generate(sourceModel.deps)
         outputModel = parse(new ByteArrayInputStream(output.toString().getBytes("utf-8")))
     }
 
@@ -83,40 +80,21 @@ format.version = "1.0"
     }
 
     private Model parse(InputStream ins) {
-        Map<String, String> plugins = [:]
-        def pluginsSpec = new PluginDependenciesSpec() {
-            @Override
-            PluginDependencySpec id(String id) {
-                return new PluginDependencySpec() {
-                    @Override
-                    PluginDependencySpec version(@Nullable String version) {
-                        plugins[id] = version
-                        this
-                    }
-
-                    @Override
-                    PluginDependencySpec apply(boolean apply) {
-                        this
-                    }
-                }
-            }
-        }
         def builder = new DefaultVersionCatalogBuilder("libs",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
-            TestUtil.providerFactory(),
-            pluginsSpec,
+            TestUtil.providerFactory()
+            ,
             Stub(Supplier))
         ins.withCloseable {
-            TomlCatalogFileParser.parse(it, builder, pluginsSpec, new ImportConfiguration(acceptAll(), acceptAll(), acceptAll(), acceptAll()))
+            TomlCatalogFileParser.parse(it, builder, new ImportConfiguration(acceptAll(), acceptAll(), acceptAll()))
         }
-        return new Model(builder.build(), plugins)
+        return new Model(builder.build())
     }
 
     @Canonical
     private static class Model {
         DefaultVersionCatalog deps
-        Map<String, String> plugins
     }
 }

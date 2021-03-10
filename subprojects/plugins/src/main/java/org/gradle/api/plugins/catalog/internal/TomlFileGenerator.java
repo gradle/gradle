@@ -19,7 +19,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.catalog.DefaultVersionCatalog;
-import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
@@ -31,15 +30,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 
 @CacheableTask
 public abstract class TomlFileGenerator extends DefaultTask {
     @Input
     public abstract Property<DefaultVersionCatalog> getDependenciesModel();
-
-    @Input
-    public abstract MapProperty<String, String> getPluginVersions();
 
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
@@ -47,21 +42,19 @@ public abstract class TomlFileGenerator extends DefaultTask {
     @TaskAction
     void generateToml() throws IOException {
         DefaultVersionCatalog model = getDependenciesModel().get();
-        Map<String, String> plugins = getPluginVersions().get();
         File outputFile = getOutputFile().getAsFile().get();
         File outputDir = outputFile.getParentFile();
         if (outputDir.exists() || outputFile.mkdirs()) {
-            doGenerate(model, plugins, outputFile);
+            doGenerate(model, outputFile);
         } else {
             throw new GradleException("Unable to generate TOML dependencies file into " + outputDir);
         }
     }
 
-    private void doGenerate(DefaultVersionCatalog model, Map<String, String> plugins, File outputFile) throws FileNotFoundException, UnsupportedEncodingException {
+    private void doGenerate(DefaultVersionCatalog model, File outputFile) throws FileNotFoundException, UnsupportedEncodingException {
         try (PrintWriter writer = new PrintWriter(outputFile, "UTF-8")) {
             TomlWriter ctx = new TomlWriter(writer);
-            ctx.generate(model, plugins);
-
+            ctx.generate(model);
         }
     }
 

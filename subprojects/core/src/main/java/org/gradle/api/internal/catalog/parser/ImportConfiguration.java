@@ -19,16 +19,13 @@ public class ImportConfiguration {
     private final IncludeExcludePredicate<String> libraries;
     private final IncludeExcludePredicate<String> bundles;
     private final IncludeExcludePredicate<String> versions;
-    private final IncludeExcludePredicate<String> plugins;
 
     public ImportConfiguration(IncludeExcludePredicate<String> libraries,
                                IncludeExcludePredicate<String> bundles,
-                               IncludeExcludePredicate<String> versions,
-                               IncludeExcludePredicate<String> plugins) {
+                               IncludeExcludePredicate<String> versions) {
         this.libraries = libraries;
         this.bundles = bundles;
         this.versions = versions;
-        this.plugins = plugins;
     }
 
     public boolean includeLibrary(String name) {
@@ -43,7 +40,4 @@ public class ImportConfiguration {
         return versions.test(version);
     }
 
-    public boolean includePlugin(String id) {
-        return plugins.test(id);
-    }
 }

@@ -36,7 +36,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.use.PluginDependenciesSpec;
 
 import javax.inject.Inject;
 import java.util.function.Supplier;
@@ -56,8 +55,6 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
     private final ObjectFactory objects;
     private final ProviderFactory providers;
     private final UserCodeApplicationContext context;
-
-    private PluginDependenciesSpec plugins;
 
     @Inject
     public DefaultVersionCatalogBuilderContainer(Instantiator instantiator,
@@ -101,7 +98,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
 
     @Override
     protected VersionCatalogBuilder doCreate(String name) {
-        return objects.newInstance(DefaultVersionCatalogBuilder.class, name, strings, versions, objects, providers, plugins, dependencyResolutionServices);
+        return objects.newInstance(DefaultVersionCatalogBuilder.class, name, strings, versions, objects, providers, dependencyResolutionServices);
     }
 
     @Override
@@ -109,7 +106,4 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
         return typeOf(MutableVersionCatalogContainer.class);
     }
 
-    void setPlugins(PluginDependenciesSpec plugins) {
-        this.plugins = plugins;
-    }
 }

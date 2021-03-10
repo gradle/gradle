@@ -26,34 +26,23 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.DependencyModel
-import org.gradle.plugin.use.PluginDependenciesSpec
-import org.gradle.plugin.use.PluginDependencySpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import javax.annotation.Nullable
 import java.util.function.Supplier
 
 import static org.gradle.api.internal.catalog.parser.IncludeExcludePredicate.acceptAll
 
 class TomlCatalogFileParserTest extends Specification {
-    final ImportConfiguration importConf = new ImportConfiguration(acceptAll(), acceptAll(), acceptAll(), acceptAll())
+    final ImportConfiguration importConf = new ImportConfiguration(acceptAll(), acceptAll(), acceptAll())
     final VersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs",
         Interners.newStrongInterner(),
         Interners.newStrongInterner(),
         TestUtil.objectFactory(),
         TestUtil.providerFactory(),
-        Stub(PluginDependenciesSpec),
         Stub(Supplier),
     )
-    final Map<String, TestPlugin> plugins = [:].withDefault { new TestPlugin() }
-    final PluginDependenciesSpec pluginsSpec = new PluginDependenciesSpec() {
-        @Override
-        PluginDependencySpec id(String id) {
-            plugins[id]
-        }
-    }
     DefaultVersionCatalog model
 
     def "parses a file with a single dependency and nothing else"() {
@@ -77,14 +66,6 @@ class TomlCatalogFileParserTest extends Specification {
         then:
         InvalidUserDataException ex = thrown()
         ex.message == "A bundle with name 'guava' declares a dependency on 'hello' which doesn't exist"
-    }
-
-    def "parses a file with a single plugin and nothing else"() {
-        when:
-        parse('one-plugin')
-
-        then:
-        hasPlugin('org.gradle.test.my-plugin', '1.0')
     }
 
     def "parses a file with a single version and nothing else"() {
@@ -248,8 +229,7 @@ class TomlCatalogFileParserTest extends Specification {
         'invalid11' | "On alias 'test' expected an array but value of 'reject' is a table"
         'invalid12' | "Unknown top level elements [toto, tata]"
         'invalid13' | "On bundle 'groovy' expected an array but value of 'groovy' is a string"
-        'invalid14' | "On plugin 'my.awesome.plugin' expected a string but value of 'my.awesome.plugin' is a boolean"
-        'invalid15' | "Referenced version 'nope' doesn't exist on dependency com:foo"
+        'invalid14' | "Referenced version 'nope' doesn't exist on dependency com:foo"
     }
 
     def "supports dependencies without version"() {
@@ -292,10 +272,6 @@ class TomlCatalogFileParserTest extends Specification {
         assert bundle == expectedElements
     }
 
-    void hasPlugin(String id, String version = '1.0') {
-        assert plugins.containsKey(id) && plugins[id].version == version
-    }
-
     void hasVersion(String id, String version) {
         def versionConstraint = model.getVersion(id)?.version
         assert versionConstraint != null : "Expected a version constraint with name $id but didn't find one"
@@ -304,7 +280,7 @@ class TomlCatalogFileParserTest extends Specification {
     }
 
     private void parse(String name) {
-        TomlCatalogFileParser.parse(toml(name), builder, pluginsSpec, importConf)
+        TomlCatalogFileParser.parse(toml(name), builder, importConf)
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
     }
@@ -314,24 +290,6 @@ class TomlCatalogFileParserTest extends Specification {
             String text = it.text
             // we're using an in-memory input stream to make sure we don't accidentally leak descriptors in tests
             return new ByteArrayInputStream(text.getBytes("utf-8"))
-        }
-    }
-
-    @CompileStatic
-    private static class TestPlugin implements PluginDependencySpec {
-        String version
-        String apply
-
-        @Override
-        PluginDependencySpec version(@Nullable String version) {
-            this.version = version
-            return this
-        }
-
-        @Override
-        PluginDependencySpec apply(boolean apply) {
-            this.apply = apply
-            this
         }
     }
 

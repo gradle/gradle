@@ -12,6 +12,3 @@ from-script = {group = "org", name = "from-script", version = "1.0" }
 [bundles]
 my = ["foo", "foo2", "from-script"]
 
-[plugins]
-my.plugin = "1.7"
-

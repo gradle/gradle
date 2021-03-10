@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.resolve.PluginDslSupport
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -495,29 +494,6 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
                 module('org.gradle.test:lib:1.1')
             }
         }
-    }
-
-    def "can use the TOML file to declare the versions of the plugins used in project build scripts"() {
-        String taskName = 'greet'
-        String message = 'Hello from plugin!'
-        String pluginId = 'com.acme.greeter'
-        String pluginVersion = '1.5'
-        def plugin = new PluginBuilder(file("greeter"))
-            .addPluginWithPrintlnTask(taskName, message, pluginId)
-            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
-
-        tomlFile << """[plugins]
-$pluginId="$pluginVersion"
-"""
-
-        withPlugin pluginId
-
-        when:
-        plugin.allowAll()
-        succeeds taskName
-
-        then:
-        outputContains message
     }
 
     @IgnoreIf({ GradleContextualExecuter.configCache })

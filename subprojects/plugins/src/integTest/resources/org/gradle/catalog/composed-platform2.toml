@@ -11,7 +11,3 @@ world = {group = "org.world", name = "company", version = "1.5" }
 [bundles]
 mix = ["hello", "world"]
 
-[plugins]
-awesome = "1.1"
-bof = "0.6"
-
