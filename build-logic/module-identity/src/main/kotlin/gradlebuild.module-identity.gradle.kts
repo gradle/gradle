@@ -101,8 +101,10 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     return versionNumber
 }
 
+// pre-test/master/queue/alice/feature -> master
+// pre-test/release/current/bob/bugfix -> release
 fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
-    actualBranch.startsWith("pre-tested-commit/") -> actualBranch.substringAfter("/").substringBefore("/")
+    actualBranch.startsWith("pre-test/") -> actualBranch.substringAfter("/").substringBefore("/")
     else -> actualBranch
 }
 

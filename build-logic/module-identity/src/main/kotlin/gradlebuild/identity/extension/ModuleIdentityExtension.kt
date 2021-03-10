@@ -44,7 +44,7 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
      * The base branch for pre-tested commit, i.e. the branch is not `master`/`release`,
      * but it's tested in the same way of `master`/`release`.
      *
-     * The pre-tested commit branch name looks like "pre-tested-commit/master/alice/personal-branch".
+     * The pre-tested commit branch name looks like "pre-test/master/queue/alice/personal-branch".
      */
     abstract val preTestedCommitBaseBranch: Property<String>
 
