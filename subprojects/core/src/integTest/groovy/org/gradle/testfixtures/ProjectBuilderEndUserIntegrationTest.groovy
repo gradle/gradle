@@ -16,13 +16,14 @@
 
 package org.gradle.testfixtures
 
-import org.gradle.api.internal.file.temp.FilePermissionsCheckerFixture
+
+import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.embedded })
-// These tests run builds that themselves run a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+@IgnoreIf({ GradleContextualExecuter.isEmbedded()}) // this requires a full distribution
 class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -32,84 +33,45 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         dependencies {
             implementation localGroovy()
             implementation gradleApi()
-            testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
-                exclude module: 'groovy-all'
-            }
+            testImplementation(platform("org.spockframework:spock-bom:2.0-M4-groovy-3.0"))
+            testImplementation("org.spockframework:spock-core")
+            testImplementation("org.spockframework:spock-junit4")
+            testImplementation("junit:junit:4.13.1")
         }
 
-        ${jcenterRepository()}
+        ${mavenCentralRepository()}
 
-        test.testLogging.exceptionFormat = 'full'
+        test {
+            useJUnitPlatform()
+            testLogging.exceptionFormat = 'full'
+        }
+
         """
-        file("src/test/groovy/FilePermissionsChecker.groovy") << FilePermissionsCheckerFixture.createFileContents()
     }
 
     def "project builder has correctly set working directory"() {
         when:
-        groovyTestSourceFile '''
+        def workerTmpDir = file("build/tmp/test/test files")
+        groovyTestSourceFile """
         import org.gradle.testfixtures.ProjectBuilder
-        import org.gradle.testfixtures.internal.ProjectBuilderImpl
-
-        import java.io.File
         import spock.lang.Specification
 
         class Test extends Specification {
 
             def "system property is set"() {
                 expect:
-                System.getProperty(ProjectBuilderImpl.PROJECT_BUILDER_SYS_PROP) != null
+                System.getProperty("${TestWorker.WORKER_TMPDIR_SYS_PROPERTY}") != null
             }
 
             def "project builder has expected user home"() {
                 when:
-                String userHome = new File(System.getProperty("user.home")).absolutePath.replace(File.separatorChar, '/' as char)
-                File gradleUserHome = ProjectBuilder.builder().build().gradle.gradleUserHomeDir
-                String gradleUserHomeAbsolutePath = gradleUserHome.absolutePath
+                def gradleUserHome = ProjectBuilder.builder().build().gradle.gradleUserHomeDir
                 then:
-                gradleUserHomeAbsolutePath.contains("/build/tmp/")
-                gradleUserHomeAbsolutePath.contains("/gradle-project-builder/")
-                // Comes from FilePermissionsCheckerFixture
-                FilePermissionsChecker.assertSafeParentFile(gradleUserHome)
+                gradleUserHome.toPath().startsWith("${TextUtil.normaliseFileSeparators(workerTmpDir.absolutePath)}")
+                gradleUserHome.absolutePath.endsWith("userHome")
             }
         }
-        '''
-        then:
-        succeeds('test')
-    }
-
-    def "project builder working directory can be changed by the user"() {
-        when:
-        buildFile << '''
-        test {
-            File customTestKitDir = file('my-custom-project-builder-dir')
-            systemProperty('org.gradle.project.builder.dir', customTestKitDir)
-        }
-        '''
-        groovyTestSourceFile '''
-        import org.gradle.testfixtures.ProjectBuilder
-        import org.gradle.testfixtures.internal.ProjectBuilderImpl
-
-        import java.io.File
-        import spock.lang.Specification
-
-        class Test extends Specification {
-
-            def "system property is set"() {
-                expect:
-                System.getProperty(ProjectBuilderImpl.PROJECT_BUILDER_SYS_PROP).endsWith('my-custom-project-builder-dir')
-            }
-
-            def "project builder has expected user home"() {
-                when:
-                File gradleUserHome = ProjectBuilder.builder().build().gradle.gradleUserHomeDir
-                String gradleUserHomeAbsolutePath = gradleUserHome.absolutePath
-                then:
-                gradleUserHomeAbsolutePath.contains("/my-custom-project-builder-dir/")
-                // Comes from FilePermissionsCheckerFixture
-                FilePermissionsChecker.assertSafeParentFile(gradleUserHome)
-            }
-        }
-        '''
+        """
         then:
         succeeds('test')
     }

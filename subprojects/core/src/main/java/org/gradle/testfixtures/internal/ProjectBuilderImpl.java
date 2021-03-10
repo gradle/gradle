@@ -52,6 +52,7 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeBuildPath;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -65,6 +66,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
@@ -73,6 +75,8 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
+
+import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
@@ -141,7 +145,24 @@ public class ProjectBuilderImpl {
         WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease, project.getMutationState().getAccessLock()));
 
+        project.getExtensions().getExtraProperties().set(
+                "ProjectBuilder.stoppable",
+                stoppable(
+                        (Stoppable) workerLeaseService::releaseCurrentProjectLocks,
+                        (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
+                        buildServices,
+                        buildTreeState,
+                        buildSessionState,
+                        crossBuildSessionState
+                )
+        );
+
         return project;
+    }
+
+    public static void stop(Project rootProject) {
+        ((Stoppable) rootProject.getExtensions().getExtraProperties().get("ProjectBuilder.stoppable"))
+                .stop();
     }
 
     private GradleUserHomeScopeServiceRegistry userHomeServicesOf(ServiceRegistry globalServices) {

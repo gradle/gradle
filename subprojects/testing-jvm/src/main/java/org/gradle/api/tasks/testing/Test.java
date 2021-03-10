@@ -38,6 +38,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
+import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -665,7 +666,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         if (getDebug()) {
             getLogger().info("Running tests for remote debugging.");
         }
-        forkOptions.systemProperty("org.gradle.internal.worker.tmpdir", new File(getTemporaryDir(), "test files"));
+        forkOptions.systemProperty(TestWorker.WORKER_TMPDIR_SYS_PROPERTY, new File(getTemporaryDir(), "test files"));
 
         try {
             super.executeTests();
