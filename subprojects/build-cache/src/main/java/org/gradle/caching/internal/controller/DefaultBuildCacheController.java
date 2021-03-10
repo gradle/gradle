@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.controller.operations.PackOperationDetails;
@@ -69,7 +70,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     public DefaultBuildCacheController(
         BuildCacheServicesConfiguration config,
         BuildOperationExecutor buildOperationExecutor,
-        File gradleUserHomeDir,
+        TemporaryFileProvider temporaryFileProvider,
         boolean logStackTraces,
         boolean emitDebugLogging,
         boolean disableRemoteOnError
@@ -78,7 +79,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         this.emitDebugLogging = emitDebugLogging;
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush());
         this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces, disableRemoteOnError);
-        this.tmp = toTempFileStore(config.getLocal(), gradleUserHomeDir);
+        this.tmp = toTempFileStore(config.getLocal(), temporaryFileProvider);
     }
 
     @Override
@@ -240,9 +241,9 @@ public class DefaultBuildCacheController implements BuildCacheController {
             : new DefaultLocalBuildCacheServiceHandle(local, localPush);
     }
 
-    private static BuildCacheTempFileStore toTempFileStore(@Nullable LocalBuildCacheService local, File gradleUserHomeDir) {
+    private static BuildCacheTempFileStore toTempFileStore(@Nullable LocalBuildCacheService local, TemporaryFileProvider temporaryFileProvider) {
         return local != null
             ? local
-            : new DefaultBuildCacheTempFileStore(new File(gradleUserHomeDir, "build-cache-tmp"));
+            : new DefaultBuildCacheTempFileStore(temporaryFileProvider);
     }
 }

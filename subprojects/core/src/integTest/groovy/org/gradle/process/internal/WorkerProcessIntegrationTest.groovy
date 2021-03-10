@@ -17,7 +17,7 @@
 package org.gradle.process.internal
 
 import org.gradle.api.Action
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.internal.Actions
@@ -97,7 +97,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             classPathRegistry,
             new LongIdGenerator(),
             gradleUserHome(),
-            TmpDirTemporaryFileProvider.createFromCustomBase({ gradleUserHome() }),
+            new GradleUserHomeTemporaryFileProvider({ gradleUserHome() }),
             execHandleFactory,
             new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
             outputEventListener,
@@ -116,7 +116,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             classPathRegistry,
             new LongIdGenerator(),
             gradleUserHome(),
-            TmpDirTemporaryFileProvider.createFromCustomBase({ gradleUserHome() }),
+            new GradleUserHomeTemporaryFileProvider({ gradleUserHome() }),
             execHandleFactory,
             new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
             outputEventListener,

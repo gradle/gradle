@@ -18,7 +18,7 @@ package org.gradle.internal.nativeintegration.filesystem.services;
 
 import net.rubygrapefruit.platform.file.PosixFiles;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;

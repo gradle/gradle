@@ -22,7 +22,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.loadercache.CompileClasspathHasher
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.cache.internal.GeneratedGradleJarCache

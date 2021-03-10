@@ -28,8 +28,8 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -42,7 +42,9 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorRegistry;
+import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -50,6 +52,7 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeBuildPath;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -63,6 +66,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
@@ -71,6 +75,8 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
+
+import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
@@ -94,7 +100,7 @@ public class ProjectBuilderImpl {
         return project;
     }
 
-    public Project createProject(String name, @Nullable File inputProjectDir, File gradleUserHomeDir) {
+    public ProjectInternal createProject(String name, File inputProjectDir, File gradleUserHomeDir) {
 
         final File projectDir = prepareProjectDir(inputProjectDir);
         final File homeDir = new File(projectDir, "gradleHome");
@@ -139,7 +145,24 @@ public class ProjectBuilderImpl {
         WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease, project.getMutationState().getAccessLock()));
 
+        project.getExtensions().getExtraProperties().set(
+                "ProjectBuilder.stoppable",
+                stoppable(
+                        (Stoppable) workerLeaseService::releaseCurrentProjectLocks,
+                        (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
+                        buildServices,
+                        buildTreeState,
+                        buildSessionState,
+                        crossBuildSessionState
+                )
+        );
+
         return project;
+    }
+
+    public static void stop(Project rootProject) {
+        ((Stoppable) rootProject.getExtensions().getExtraProperties().get("ProjectBuilder.stoppable"))
+                .stop();
     }
 
     private GradleUserHomeScopeServiceRegistry userHomeServicesOf(ServiceRegistry globalServices) {
@@ -170,16 +193,27 @@ public class ProjectBuilderImpl {
             .build();
     }
 
-    public File prepareProjectDir(@Nullable File projectDir) {
-        if (projectDir == null) {
-            TemporaryFileProvider temporaryFileProvider = TmpDirTemporaryFileProvider.createLegacy();
-            projectDir = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");
-            // TODO deleteOnExit won't clean up non-empty directories (and it leaks memory for long-running processes).
-            projectDir.deleteOnExit();
-        } else {
-            projectDir = FileUtils.canonicalize(projectDir);
+    public File prepareProjectDir(@Nullable final File projectDir) {
+        if (projectDir != null) {
+            return FileUtils.canonicalize(projectDir);
         }
-        return projectDir;
+
+        TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(new Factory<File>() {
+            @Override
+            public File create() {
+                String rootTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
+                if (rootTmpDir == null) {
+                    @SuppressWarnings("deprecation")
+                    String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+                    rootTmpDir = javaIoTmpDir;
+                }
+                return FileUtils.canonicalize(new File(rootTmpDir));
+            }
+        });
+        File tempDirectory = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");
+        // TODO deleteOnExit won't clean up non-empty directories (and it leaks memory for long-running processes).
+        tempDirectory.deleteOnExit();
+        return tempDirectory;
     }
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {

@@ -17,6 +17,7 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -54,16 +55,18 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
     private final CleanupActionFactory cleanupActionFactory;
     private final FileAccessTimeJournal fileAccessTimeJournal;
+    private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
     public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
-                                             CleanupActionFactory cleanupActionFactory, FileAccessTimeJournal fileAccessTimeJournal) {
+                                             CleanupActionFactory cleanupActionFactory, FileAccessTimeJournal fileAccessTimeJournal, TemporaryFileProvider temporaryFileProvider) {
         this.cacheRepository = cacheRepository;
         this.cacheScopeMapping = cacheScopeMapping;
         this.resolver = resolver;
         this.fileStoreFactory = fileStoreFactory;
         this.cleanupActionFactory = cleanupActionFactory;
         this.fileAccessTimeJournal = fileAccessTimeJournal;
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     @Override
@@ -90,7 +93,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             .withLockOptions(mode(OnDemand))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
-        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target);
+        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(temporaryFileProvider);
         FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
 
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);

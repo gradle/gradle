@@ -19,7 +19,7 @@ package org.gradle.internal.resource.transfer
 import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.hash.Hashing

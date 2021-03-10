@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal;
+package org.gradle.testkit.runner.enduser
 
-import org.gradle.internal.SystemProperties;
+trait TestKitDependencyBlock {
 
-import java.io.File;
-
-public class TempTestKitDirProvider extends ConstantTestKitDirProvider {
-
-    @SuppressWarnings("deprecation")
-    public TempTestKitDirProvider(SystemProperties systemProperties) {
-        super(new File(systemProperties.getJavaIoTmpDir(), ".gradle-test-kit-".concat(systemProperties.getUserName())));
+    String gradleTestKitDependency() {
+        """
+            dependencies {
+                testImplementation gradleTestKit()
+            }
+        """
     }
 
 }

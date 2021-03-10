@@ -30,7 +30,8 @@ import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
@@ -72,6 +73,7 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
  */
 public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
+    private static File userHomeDir;
     private static boolean useNativeIntegrations;
     private static boolean useFileSystemWatching;
     private static final NativeServices INSTANCE = new NativeServices();
@@ -95,6 +97,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     public static synchronized void initialize(File userHomeDir, boolean initializeAdditionalNativeLibraries) {
         try {
             if (!initialized) {
+                NativeServices.userHomeDir = userHomeDir;
                 useNativeIntegrations = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
                 if (useNativeIntegrations) {
                     File nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
@@ -164,7 +167,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         register(new Action<ServiceRegistration>() {
             @Override
             public void execute(ServiceRegistration registration) {
-                registration.add(TmpDirTemporaryFileProvider.class);
+                registration.add(GradleUserHomeTemporaryFileProvider.class);
             }
         });
     }
@@ -172,6 +175,15 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     @Override
     public void close() {
         // Don't close
+    }
+
+    protected GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
+        return new GradleUserHomeDirProvider() {
+            @Override
+            public File getGradleUserHomeDirectory() {
+                return userHomeDir;
+            }
+        };
     }
 
     protected OperatingSystem createOperatingSystem() {

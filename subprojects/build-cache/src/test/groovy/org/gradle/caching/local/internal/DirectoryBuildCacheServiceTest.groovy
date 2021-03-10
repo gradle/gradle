@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal
 
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.cache.PersistentCache
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
@@ -39,7 +40,7 @@ class DirectoryBuildCacheServiceTest extends Specification {
         getBaseDir() >> cacheDir
         withFileLock(_) >> { Runnable r -> r.run() }
     }
-    def tempFileStore = new DefaultBuildCacheTempFileStore(cacheDir)
+    def tempFileStore = new DefaultBuildCacheTempFileStore(new DefaultTemporaryFileProvider(() -> cacheDir))
     def fileAccessTracker = Mock(FileAccessTracker)
     def service = new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, ".failed")
     def hashCode = "1234abcd"

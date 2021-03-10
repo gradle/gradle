@@ -42,7 +42,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.GFileUtils.moveFile
 
 import com.google.common.annotations.VisibleForTesting
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 
 import java.io.File
 

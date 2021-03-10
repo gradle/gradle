@@ -18,7 +18,7 @@ package org.gradle.internal.jvm.inspection;
 
 import com.google.common.io.Files;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecResult;

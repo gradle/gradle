@@ -18,7 +18,10 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
@@ -81,7 +84,19 @@ public class DefaultGradleRunner extends GradleRunner {
                 if (System.getProperties().containsKey(TEST_KIT_DIR_SYS_PROP)) {
                     return new ConstantTestKitDirProvider(new File(System.getProperty(TEST_KIT_DIR_SYS_PROP)));
                 } else {
-                    return new TempTestKitDirProvider(systemProperties);
+                    TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(new Factory<File>() {
+                        @Override
+                        public File create() {
+                            String rootTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
+                            if (rootTmpDir == null) {
+                                @SuppressWarnings("deprecation")
+                                String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+                                rootTmpDir = javaIoTmpDir;
+                            }
+                            return FileUtils.canonicalize(new File(rootTmpDir));
+                        }
+                    });
+                    return new ConstantTestKitDirProvider(temporaryFileProvider.newTemporaryFile(".gradle-test-kit-" + systemProperties.getUserName()));
                 }
             }
         });

@@ -47,6 +47,8 @@ import java.util.concurrent.CountDownLatch;
 public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     public static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
+    public static final String WORKER_TMPDIR_SYS_PROPERTY = "org.gradle.internal.worker.tmpdir";
+
     private final WorkerTestClassProcessorFactory factory;
     private CountDownLatch completed;
     private TestClassProcessor processor;

@@ -19,6 +19,7 @@ package org.gradle.caching.internal.services;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -42,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -65,7 +65,7 @@ public final class BuildCacheControllerFactory {
     public static BuildCacheController create(
         final BuildOperationExecutor buildOperationExecutor,
         final Path buildIdentityPath,
-        final File gradleUserHomeDir,
+        final TemporaryFileProvider temporaryFileProvider,
         final BuildCacheConfigurationInternal buildCacheConfiguration,
         final BuildCacheMode buildCacheState,
         final RemoteAccessMode remoteAccessMode,
@@ -120,7 +120,7 @@ public final class BuildCacheControllerFactory {
                     return new DefaultBuildCacheController(
                         config,
                         buildOperationExecutor,
-                        gradleUserHomeDir,
+                        temporaryFileProvider,
                         logStackTraces,
                         emitDebugLogging,
                         !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY)

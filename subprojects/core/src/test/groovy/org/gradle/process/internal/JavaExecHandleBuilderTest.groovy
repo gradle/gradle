@@ -18,7 +18,7 @@ package org.gradle.process.internal
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.jvm.JavaModuleDetector
 import org.gradle.internal.jvm.Jvm
@@ -37,7 +37,7 @@ import static java.util.Arrays.asList
 class JavaExecHandleBuilderTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    final TmpDirTemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.root)
+    final TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.root)
     JavaExecHandleBuilder builder = new JavaExecHandleBuilder(
         TestFiles.resolver(),
         TestFiles.fileCollectionFactory(),

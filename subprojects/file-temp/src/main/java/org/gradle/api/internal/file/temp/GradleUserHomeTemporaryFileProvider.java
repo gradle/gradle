@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.temp;
 
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -26,33 +26,14 @@ import javax.inject.Inject;
 import java.io.File;
 
 @ServiceScope(Scopes.UserHome.class)
-public class TmpDirTemporaryFileProvider extends DefaultTemporaryFileProvider {
-
+public class GradleUserHomeTemporaryFileProvider extends DefaultTemporaryFileProvider {
     @Inject
-    TmpDirTemporaryFileProvider() {
+    public GradleUserHomeTemporaryFileProvider(final GradleUserHomeDirProvider gradleUserHomeDirProvider) {
         super(new Factory<File>() {
             @Override
             public File create() {
-                @SuppressWarnings("deprecation") final String tempDirLocation = SystemProperties.getInstance().getJavaIoTmpDir();
-                return FileUtils.canonicalize(new File(tempDirLocation));
+                return FileUtils.canonicalize(new File(gradleUserHomeDirProvider.getGradleUserHomeDirectory(), ".tmp"));
             }
         });
-    }
-
-    private TmpDirTemporaryFileProvider(final Factory<File> tempDirProvider) {
-        super(new Factory<File>() {
-            @Override
-            public File create() {
-                return FileUtils.canonicalize(tempDirProvider.create());
-            }
-        });
-    }
-
-    public static TmpDirTemporaryFileProvider createLegacy() {
-        return new TmpDirTemporaryFileProvider();
-    }
-
-    public static TmpDirTemporaryFileProvider createFromCustomBase(Factory<File> tempDirProvider) {
-        return new TmpDirTemporaryFileProvider(tempDirProvider);
     }
 }

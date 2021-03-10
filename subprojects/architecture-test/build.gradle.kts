@@ -7,6 +7,7 @@ dependencies {
     currentClasspath(project(":distributions-full"))
     testImplementation(project(":base-services"))
     testImplementation(project(":model-core"))
+    testImplementation(project(":file-temp"))
 
     testImplementation(libs.archunitJunit4)
     testImplementation(libs.guava)

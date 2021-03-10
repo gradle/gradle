@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.controller
 
 import org.gradle.api.Action
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
@@ -92,7 +93,7 @@ class DefaultBuildCacheControllerTest extends Specification {
                 remotePush
             ),
             operations,
-            tmpDir.file("dir"),
+            TestFiles.tmpDirTemporaryFileProvider(tmpDir.root),
             false,
             false,
             disableRemoteOnError

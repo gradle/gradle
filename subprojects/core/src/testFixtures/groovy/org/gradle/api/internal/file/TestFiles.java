@@ -19,6 +19,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
@@ -66,7 +68,7 @@ public class TestFiles {
     private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
     private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup();
     private static final DefaultExecActionFactory EXEC_FACTORY =
-        DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory(), TmpDirTemporaryFileProvider.createLegacy());
+        DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory(), NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class));
 
     public static FileCollectionInternal empty() {
         return fileCollectionFactory().empty();
@@ -265,7 +267,7 @@ public class TestFiles {
         return new File(path).getAbsolutePath();
     }
 
-    public static TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider(File baseDir) {
-        return TmpDirTemporaryFileProvider.createFromCustomBase(() -> baseDir);
+    public static TemporaryFileProvider tmpDirTemporaryFileProvider(File baseDir) {
+        return new DefaultTemporaryFileProvider(() -> baseDir);
     }
 }
