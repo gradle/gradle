@@ -103,10 +103,11 @@ fun isExpectedAsciidoctorCacheMiss() =
 // 3. buildScanPerformance test, which doesn't depend on compileAll
     // 4. buildScanPerformance test, which doesn't depend on compileAll
     isInBuild(
-        "Gradle_Check_CompileAll",
-        "Gradle_Check_BuildDistributions",
-        "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux",
-        "Enterprise_Release_Components_BuildScansPlugin_Performance_PerformanceLinux"
+        "Check_CompileAll",
+        "Check_BuildDistributions",
+        "Check_CompileAll",
+        "Check_BuildDistributions",
+        "Components_GradleBuildScansPlugin_Performance_PerformanceLinux"
     )
 
 fun isExpectedCompileCacheMiss() =
@@ -116,13 +117,15 @@ fun isExpectedCompileCacheMiss() =
 // 3. buildScanPerformance test, which doesn't depend on compileAll
     // 4. buildScanPerformance test, which doesn't depend on compileAll
     isInBuild(
-        "Gradle_Check_CompileAll",
-        "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux",
-        "Enterprise_Release_Components_BuildScansPlugin_Performance_PerformanceLinux",
-        "Gradle_Check_Gradleception"
+        "Check_CompileAll",
+        "Check_CompileAll",
+        "Components_GradleBuildScansPlugin_Performance_PerformanceLinux",
+        "Check_Gradleception"
     )
 
-fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID") in buildTypeIds
+fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID")?.let { currentBuildTypeId ->
+    buildTypeIds.any { currentBuildTypeId.endsWith(it) }
+} ?: false
 
 fun extractCheckstyleAndCodenarcData() {
     gradle.taskGraph.afterTask {
