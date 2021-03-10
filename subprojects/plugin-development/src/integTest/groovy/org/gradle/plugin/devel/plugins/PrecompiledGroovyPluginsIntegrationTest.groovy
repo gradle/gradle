@@ -16,11 +16,13 @@
 
 package org.gradle.plugin.devel.plugins
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -342,6 +344,33 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds('help')
         outputContains('base-settings-plugin applied!')
+        outputContains('my-settings-plugin applied!')
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/15416")
+    def "precompiled settings plugin can use pluginManagement block"() {
+        when:
+        def pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
+            pluginManagement {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            println('my-settings-plugin applied!')
+        """)
+
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath(files('$pluginJar'))
+                }
+            }
+            apply plugin: 'my-settings-plugin'
+        """
+
+        then:
+        succeeds('help')
         outputContains('my-settings-plugin applied!')
     }
 
