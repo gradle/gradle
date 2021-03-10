@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":wrapper"))
     implementation(project(":tooling-api"))
+    implementation(project(":file-temp"))
     implementation(libs.commonsIo)
     api(libs.groovyTest)
 
