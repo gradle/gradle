@@ -24,7 +24,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.IoUtils;
 import org.gradle.internal.io.StreamByteBuffer;
 
 import javax.annotation.Nullable;
