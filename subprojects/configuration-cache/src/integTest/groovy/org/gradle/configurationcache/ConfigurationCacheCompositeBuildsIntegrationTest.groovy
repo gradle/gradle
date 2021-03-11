@@ -21,27 +21,34 @@ import org.gradle.test.fixtures.file.TestFile
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "can publish build scan with composite build"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        withAppBuild()
+        withLibBuild()
+
+        when:
+        inDirectory 'app'
+        configurationCacheRun 'assemble', '--scan', '-Dscan.dump'
+
+        then:
+        postBuildOutputContains 'Build scan written to'
+        configurationCache.assertStateStored()
+
+        when:
+        inDirectory 'app'
+        configurationCacheRun 'assemble', '--scan', '-Dscan.dump'
+
+        then:
+        postBuildOutputContains 'Build scan written to'
+        configurationCache.assertStateLoaded()
+    }
+
     def "can use lib produced by included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         withAppBuild()
-        createDir('lib') {
-            file('settings.gradle') << """
-                rootProject.name = 'lib'
-            """
-
-            file('build.gradle') << """
-                plugins { id 'java' }
-                group = 'org.test'
-                version = '1.0'
-            """
-
-            file('src/main/java/Lib.java') << """
-                public class Lib { public static void main() {
-                    System.out.println("Before!");
-                } }
-            """
-        }
+        withLibBuild()
 
         when:
         inDirectory 'app'
@@ -138,31 +145,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         configurationCache.assertStateLoaded()
     }
 
-    private TestFile withAppBuild() {
-        createDir('app') {
-            file('settings.gradle') << """
-                includeBuild '../lib'
-            """
-            file('build.gradle') << """
-                plugins {
-                    id 'java'
-                    id 'application'
-                }
-                application {
-                   mainClass = 'Main'
-                }
-                dependencies {
-                    implementation 'org.test:lib:1.0'
-                }
-            """
-            file('src/main/java/Main.java') << """
-                class Main { public static void main(String[] args) {
-                    Lib.main();
-                } }
-            """
-        }
-    }
-
     def "reports a problem when source dependencies are present"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -217,6 +199,51 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         problems.assertResultHasProblems(result) {
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
+        }
+    }
+
+    private TestFile withLibBuild() {
+        createDir('lib') {
+            file('settings.gradle') << """
+                rootProject.name = 'lib'
+            """
+
+            file('build.gradle') << """
+                plugins { id 'java' }
+                group = 'org.test'
+                version = '1.0'
+            """
+
+            file('src/main/java/Lib.java') << """
+                public class Lib { public static void main() {
+                    System.out.println("Before!");
+                } }
+            """
+        }
+    }
+
+    private TestFile withAppBuild() {
+        createDir('app') {
+            file('settings.gradle') << """
+                includeBuild '../lib'
+            """
+            file('build.gradle') << """
+                plugins {
+                    id 'java'
+                    id 'application'
+                }
+                application {
+                   mainClass = 'Main'
+                }
+                dependencies {
+                    implementation 'org.test:lib:1.0'
+                }
+            """
+            file('src/main/java/Main.java') << """
+                class Main { public static void main(String[] args) {
+                    Lib.main();
+                } }
+            """
         }
     }
 }
