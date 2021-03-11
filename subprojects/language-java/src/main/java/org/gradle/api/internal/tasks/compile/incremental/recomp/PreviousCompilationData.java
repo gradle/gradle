@@ -21,25 +21,16 @@ import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnap
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotDataSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.internal.serialize.AbstractSerializer;
-import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.File;
-
 public class PreviousCompilationData {
-    private final File destinationDir;
     private final AnnotationProcessingData annotationProcessingData;
     private final ClasspathSnapshotData classpathSnapshot;
 
-    public PreviousCompilationData(File destinationDir, AnnotationProcessingData annotationProcessingData, ClasspathSnapshotData classpathSnapshot) {
-        this.destinationDir = destinationDir;
+    public PreviousCompilationData(AnnotationProcessingData annotationProcessingData, ClasspathSnapshotData classpathSnapshot) {
         this.annotationProcessingData = annotationProcessingData;
         this.classpathSnapshot = classpathSnapshot;
-    }
-
-    public File getDestinationDir() {
-        return destinationDir;
     }
 
     public AnnotationProcessingData getAnnotationProcessingData() {
@@ -61,15 +52,13 @@ public class PreviousCompilationData {
 
         @Override
         public PreviousCompilationData read(Decoder decoder) throws Exception {
-            File destinationDir = BaseSerializerFactory.FILE_SERIALIZER.read(decoder);
             ClasspathSnapshotData classpathSnapshot = classpathSnapshotDataSerializer.read(decoder);
             AnnotationProcessingData annotationProcessingData = annotationProcessingDataSerializer.read(decoder);
-            return new PreviousCompilationData(destinationDir, annotationProcessingData, classpathSnapshot);
+            return new PreviousCompilationData(annotationProcessingData, classpathSnapshot);
         }
 
         @Override
         public void write(Encoder encoder, PreviousCompilationData value) throws Exception {
-            BaseSerializerFactory.FILE_SERIALIZER.write(encoder, value.destinationDir);
             classpathSnapshotDataSerializer.write(encoder, value.classpathSnapshot);
             annotationProcessingDataSerializer.write(encoder, value.annotationProcessingData);
         }

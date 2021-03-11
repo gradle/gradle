@@ -30,14 +30,12 @@ import java.util.Set;
 public class PreviousCompilation {
     private final PreviousCompilationData data;
     private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
-    private final PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer;
+    private final ClassSetAnalysis classAnalysis;
 
-    private ClassSetAnalysis classAnalysis;
-
-    public PreviousCompilation(PreviousCompilationData data, ClasspathEntrySnapshotCache classpathEntrySnapshotCache, PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer) {
+    public PreviousCompilation(PreviousCompilationData data, ClassSetAnalysis classAnalysis, ClasspathEntrySnapshotCache classpathEntrySnapshotCache) {
         this.data = data;
+        this.classAnalysis = classAnalysis;
         this.classpathEntrySnapshotCache = classpathEntrySnapshotCache;
-        this.previousCompilationOutputAnalyzer = previousCompilationOutputAnalyzer;
     }
 
     public DependentsSet getDependents(Set<String> allClasses, IntSet constants) {
@@ -45,9 +43,6 @@ public class PreviousCompilation {
     }
 
     private ClassSetAnalysis getClassAnalysis() {
-        if (classAnalysis == null) {
-            classAnalysis = previousCompilationOutputAnalyzer.getAnalysis(data.getDestinationDir()).withAnnotationProcessingData(data.getAnnotationProcessingData());
-        }
         return classAnalysis;
     }
 

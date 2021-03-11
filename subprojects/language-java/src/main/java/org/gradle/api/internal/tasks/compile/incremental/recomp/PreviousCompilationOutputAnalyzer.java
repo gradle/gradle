@@ -31,7 +31,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-//TODO reuse cached result from downstream users of our classes directory
+/**
+ * We can't use {@link org.gradle.api.internal.tasks.compile.incremental.classpath.CachingClasspathEntrySnapshotter}
+ * because that would update the virtual file system with a snapshot of our output directory before the compiler
+ * has actually run.
+ */
 public class PreviousCompilationOutputAnalyzer {
     private static final Logger LOG = LoggerFactory.getLogger(PreviousCompilationOutputAnalyzer.class);
 

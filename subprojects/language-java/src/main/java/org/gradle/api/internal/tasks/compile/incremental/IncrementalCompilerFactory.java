@@ -67,8 +67,8 @@ public class IncrementalCompilerFactory {
         ClasspathEntrySnapshotter classpathEntrySnapshotter = new CachingClasspathEntrySnapshotter(fileHasher, streamHasher, fileSystemAccess, analyzer, compileCaches.getClasspathEntrySnapshotCache(), fileOperations);
         ClasspathSnapshotMaker classpathSnapshotMaker = new ClasspathSnapshotMaker(new ClasspathSnapshotFactory(classpathEntrySnapshotter, buildOperationExecutor));
         PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer = new PreviousCompilationOutputAnalyzer(fileHasher, streamHasher, analyzer, fileOperations);
-        IncrementalCompilerDecorator<T> incrementalSupport = new IncrementalCompilerDecorator<>(classpathSnapshotMaker, compileCaches, cleaningJavaCompiler, rebuildAllCompiler, previousCompilationOutputAnalyzer, interner);
-        return incrementalSupport.prepareCompiler(recompilationSpecProvider);
+        Compiler<T> compiler = new SelectiveCompiler<>(cleaningJavaCompiler, rebuildAllCompiler, recompilationSpecProvider, classpathSnapshotMaker, compileCaches, previousCompilationOutputAnalyzer);
+        return new IncrementalResultStoringCompiler<>(compiler, classpathSnapshotMaker, compileCaches.getPreviousCompilationStore(), interner);
     }
 
     private TaskScopedCompileCaches createCompileCaches(String path) {
