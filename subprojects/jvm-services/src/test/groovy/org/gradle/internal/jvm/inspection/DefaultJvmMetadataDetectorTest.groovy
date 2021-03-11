@@ -23,6 +23,7 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.process.internal.ExecHandleFactory
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.spockframework.runtime.SpockAssertionError
@@ -34,11 +35,30 @@ class DefaultJvmMetadataDetectorTest extends Specification {
     @Rule
     TemporaryFolder temporaryFolder
 
+    TestFile tmpDir
+    def setup() {
+        tmpDir = new TestFile(temporaryFolder.newFolder("tmp"))
+    }
+
     private DefaultJvmMetadataDetector createDefaultJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
         return new DefaultJvmMetadataDetector(
             execHandleFactory,
-            TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root)
+            TestFiles.tmpDirTemporaryFileProvider(tmpDir)
         )
+    }
+
+    def "cleans up generated Probe class"() {
+        given:
+        def execHandleFactory = createExecHandleFactory(currentGradle())
+
+        when:
+        def detector = createDefaultJvmMetadataDetector(execHandleFactory)
+        def javaHome = temporaryFolder.newFolder("localGradle")
+        def metadata = detector.getMetadata(javaHome)
+
+        then:
+        metadata
+        tmpDir.assertIsEmptyDir()
     }
 
     @Unroll
