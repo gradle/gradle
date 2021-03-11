@@ -429,11 +429,11 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
             }
 
             @Override
-            InputStream getInputStream() {
+            <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
                 if (exception) {
                     throw exception
                 }
-                return new ByteArrayInputStream(bos.toByteArray())
+                return action.run(new ByteArrayInputStream(bos.toByteArray()))
             }
 
             @Override

@@ -88,7 +88,7 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
             return delegate.hash(zipEntryContext);
         } else {
             try {
-                return hashProperties(zipEntryContext.getEntry().getInputStream(), resourceEntryFilter);
+                return zipEntryContext.getEntry().withInputStream(inputStream -> hashProperties(inputStream, resourceEntryFilter));
             } catch (Exception e) {
                 LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
                 return delegate.hash(zipEntryContext);
