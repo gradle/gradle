@@ -24,4 +24,6 @@ public interface ArtifactRepositoryInternal extends ArtifactRepository, Describa
     void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container);
 
     RepositoryContentDescriptorInternal createRepositoryDescriptor();
+
+    RepositoryContentDescriptorInternal getRepositoryDescriptorCopy();
 }

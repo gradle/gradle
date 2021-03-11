@@ -23,12 +23,14 @@ import org.gradle.api.artifacts.repositories.ExclusiveContentRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
 
 /**
  * A {@code RepositoryHandler} manages a set of repositories, allowing repositories to be defined and queried.
  */
+@HasInternalProtocol
 public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**

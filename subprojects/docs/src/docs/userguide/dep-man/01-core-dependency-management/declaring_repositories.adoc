@@ -362,6 +362,14 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-filteri
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
 See link:{javadocPath}/org/gradle/api/artifacts/repositories/InclusiveRepositoryContentDescriptor.html[InclusiveRepositoryContentDescriptor] for details.
 
+[NOTE]
+====
+If you leverage exclusive content filtering in the <<plugins.adoc#sec:custom_plugin_repositories,`pluginManagement` section of the `settings.gradle(.kts)`>>, it becomes illegal to add more repositories through the project `buildscript.repositories`.
+In that case, the build configuration will fail.
+
+Your options are either to declare all repositories in settings or to use non-exclusive content filtering.
+====
+
 === Maven repository filtering
 
 For <<sec:maven_repo,Maven repositories>>, it's often the case that a repository would either contain releases or snapshots.

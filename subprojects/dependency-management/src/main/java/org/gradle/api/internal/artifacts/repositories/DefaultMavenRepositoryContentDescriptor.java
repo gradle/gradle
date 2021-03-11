@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.internal.Actions;
 
 import java.util.function.Supplier;
@@ -26,7 +27,7 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
     private boolean snapshots = true;
     private boolean releases = true;
 
-    public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier, FeaturePreviews featurePreviews) {
+    public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier) {
         super(repositoryNameSupplier);
     }
 
@@ -64,5 +65,26 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
             return Actions.composite(filter, action);
         }
         return filter;
+    }
+
+    @Override
+    public RepositoryContentDescriptorInternal asMutableCopy() {
+        DefaultMavenRepositoryContentDescriptor copy = new DefaultMavenRepositoryContentDescriptor(getRepositoryNameSupplier());
+        if (getIncludedConfigurations() != null) {
+            copy.setIncludedConfigurations(Sets.newHashSet(getIncludedConfigurations()));
+        }
+        if (getExcludedConfigurations() != null) {
+            copy.setExcludedConfigurations(Sets.newHashSet(getExcludedConfigurations()));
+        }
+        if (getIncludeSpecs() != null) {
+            copy.setIncludeSpecs(Sets.newHashSet(getIncludeSpecs()));
+        }
+        if (getExcludeSpecs() != null) {
+            copy.setExcludeSpecs(Sets.newHashSet(getExcludeSpecs()));
+        }
+        if (getRequiredAttributes() != null) {
+            copy.setRequiredAttributes(Maps.newHashMap(getRequiredAttributes()));
+        }
+        return copy;
     }
 }

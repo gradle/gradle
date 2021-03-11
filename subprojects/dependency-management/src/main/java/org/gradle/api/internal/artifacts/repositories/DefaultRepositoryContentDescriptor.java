@@ -85,6 +85,27 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         return cachedAction;
     }
 
+    @Override
+    public RepositoryContentDescriptorInternal asMutableCopy() {
+        DefaultRepositoryContentDescriptor copy = new DefaultRepositoryContentDescriptor(repositoryNameSupplier);
+        if (includedConfigurations != null) {
+            copy.includedConfigurations = Sets.newHashSet(includedConfigurations);
+        }
+        if (excludedConfigurations != null) {
+            copy.excludedConfigurations = Sets.newHashSet(excludedConfigurations);
+        }
+        if (includeSpecs != null) {
+            copy.includeSpecs = Sets.newHashSet(includeSpecs);
+        }
+        if (excludeSpecs != null) {
+            copy.excludeSpecs = Sets.newHashSet(excludeSpecs);
+        }
+        if (requiredAttributes != null) {
+            copy.requiredAttributes = Maps.newHashMap(requiredAttributes);
+        }
+        return copy;
+    }
+
     @Nullable
     private static ImmutableList<SpecMatcher> createSpecMatchers(@Nullable Set<ContentSpec> specs) {
         ImmutableList<SpecMatcher> matchers = null;
@@ -227,6 +248,55 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             requiredAttributes = Maps.newHashMap();
         }
         requiredAttributes.put(Cast.uncheckedCast(attribute), ImmutableSet.copyOf(validValues));
+    }
+
+    Supplier<String> getRepositoryNameSupplier() {
+        return repositoryNameSupplier;
+    }
+
+    @Nullable
+    Set<String> getIncludedConfigurations() {
+        return includedConfigurations;
+    }
+
+    void setIncludedConfigurations(@Nullable Set<String> includedConfigurations) {
+        this.includedConfigurations = includedConfigurations;
+    }
+
+    @Nullable
+    Set<String> getExcludedConfigurations() {
+        return excludedConfigurations;
+    }
+
+    void setExcludedConfigurations(@Nullable Set<String> excludedConfigurations) {
+        this.excludedConfigurations = excludedConfigurations;
+    }
+
+    @Nullable
+    Set<ContentSpec> getIncludeSpecs() {
+        return includeSpecs;
+    }
+
+    void setIncludeSpecs(@Nullable Set<ContentSpec> includeSpecs) {
+        this.includeSpecs = includeSpecs;
+    }
+
+    @Nullable
+    Set<ContentSpec> getExcludeSpecs() {
+        return excludeSpecs;
+    }
+
+    void setExcludeSpecs(@Nullable Set<ContentSpec> excludeSpecs) {
+        this.excludeSpecs = excludeSpecs;
+    }
+
+    @Nullable
+    Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
+        return requiredAttributes;
+    }
+
+    void setRequiredAttributes(@Nullable Map<Attribute<Object>, Set<Object>> requiredAttributes) {
+        this.requiredAttributes = requiredAttributes;
     }
 
     private static class ContentSpec {

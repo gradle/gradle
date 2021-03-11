@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
-import org.gradle.api.internal.FeaturePreviews
+
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
@@ -26,7 +26,7 @@ import spock.lang.Unroll
 class DefaultRepositoryContentDescriptorTest extends Specification {
 
     @Subject
-    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor({ throw new RuntimeException("only required in error cases") }, new FeaturePreviews())
+    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor({ throw new RuntimeException("only required in error cases") })
 
     @Unroll
     def "reasonable error message when input is incorrect (include string)"() {

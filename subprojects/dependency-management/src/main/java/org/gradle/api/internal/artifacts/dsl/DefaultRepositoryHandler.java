@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 
 import static org.gradle.util.CollectionUtils.flattenCollections;
 
-public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler {
+public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandlerInternal {
 
     public static final String GRADLE_PLUGIN_PORTAL_REPO_NAME = "Gradle Central Plugin Repository";
     public static final String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";
@@ -60,6 +60,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     private final BaseRepositoryFactory repositoryFactory;
     private final Instantiator instantiator;
+    private boolean exclusiveContentInUse = false;
 
     public DefaultRepositoryHandler(BaseRepositoryFactory repositoryFactory, Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
         super(instantiator, decorator);
@@ -181,6 +182,12 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public void exclusiveContent(Action<? super ExclusiveContentRepository> action) {
         ExclusiveContentRepositorySpec spec = Cast.uncheckedCast(instantiator.newInstance(ExclusiveContentRepositorySpec.class, this));
         spec.apply(action);
+        exclusiveContentInUse = true;
+    }
+
+    @Override
+    public boolean isExclusiveContentInUse() {
+        return exclusiveContentInUse;
     }
 
     private static Action<? super RepositoryContentDescriptor> transformForExclusivity(Action<? super InclusiveRepositoryContentDescriptor> config) {

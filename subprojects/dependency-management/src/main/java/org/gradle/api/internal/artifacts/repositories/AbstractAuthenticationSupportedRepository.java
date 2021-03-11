@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
@@ -39,8 +38,8 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     private final AuthenticationSupporter delegate;
     private final ProviderFactory providerFactory;
 
-    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, ProviderFactory providerFactory, FeaturePreviews featurePreviews) {
-        super(objectFactory, featurePreviews);
+    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, ProviderFactory providerFactory) {
+        super(objectFactory);
         this.delegate = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
         this.providerFactory = providerFactory;
     }
