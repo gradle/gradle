@@ -20,6 +20,7 @@ import com.google.common.base.Supplier;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.file.archive.ZipEntry;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -29,7 +30,7 @@ class JdkZipEntry implements ZipEntry {
     private final Supplier<InputStream> inputStreamSupplier;
     private final Runnable closeAction;
 
-    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier, Runnable closeAction) {
+    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier, @Nullable Runnable closeAction) {
         this.entry = entry;
         this.inputStreamSupplier = inputStreamSupplier;
         this.closeAction = closeAction;

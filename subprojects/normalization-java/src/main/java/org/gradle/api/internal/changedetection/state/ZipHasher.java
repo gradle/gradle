@@ -54,9 +54,10 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     private final HashingExceptionReporter hashingExceptionReporter;
 
     public ZipHasher(ResourceHasher resourceHasher) {
-        this(resourceHasher, (s, e) -> {
-            LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e);
-        });
+        this(
+            resourceHasher,
+            (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e)
+        );
     }
 
     public ZipHasher(ResourceHasher resourceHasher, HashingExceptionReporter hashingExceptionReporter) {

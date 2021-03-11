@@ -56,7 +56,7 @@ public class StreamZipInput implements ZipInput {
                     public void run()  {
                         try {
                             in.closeEntry();
-                        } catch(IOException e) {
+                        } catch (IOException e) {
                             throw new FileException(e);
                         }
                     }
