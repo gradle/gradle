@@ -22,8 +22,8 @@ import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpec {
 
-    PluginBuildFixture pluginBuild(String buildName) {
-        return new PluginBuildFixture(buildName)
+    PluginBuildFixture pluginBuild(String buildName, boolean useKotlinDSL = false) {
+        return new PluginBuildFixture(buildName, useKotlinDSL)
     }
 
     PluginAndLibraryBuildFixture pluginAndLibraryBuild(String buildName) {
@@ -41,28 +41,35 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
         final TestFile settingsPluginFile
         final TestFile projectPluginFile
 
-        PluginBuildFixture(String buildName) {
+        PluginBuildFixture(String buildName, boolean useKotlinDSL) {
+            def fileExtension = useKotlinDSL ? '.gradle.kts' : '.gradle'
+            def sourceDirectory = useKotlinDSL ? 'kotlin' : 'groovy'
+            def pluginPluginId = useKotlinDSL ? '`kotlin-dsl`' : 'id("groovy-gradle-plugin")'
+
             this.buildName = buildName
             this.settingsPluginId = "${buildName}.settings-plugin"
             this.projectPluginId = "${buildName}.project-plugin"
-            this.settingsFile = file("$buildName/settings.gradle")
-            this.buildFile = file("$buildName/build.gradle")
+            this.settingsFile = file("$buildName/settings${fileExtension}")
+            this.buildFile = file("$buildName/build${fileExtension}")
 
             settingsFile << """
                 rootProject.name = "$buildName"
             """
             buildFile << """
                 plugins {
-                    id("groovy-gradle-plugin")
+                    $pluginPluginId
+                }
+                repositories {
+                    gradlePluginPortal()
                 }
             """
-            settingsPluginFile = file("$buildName/src/main/groovy/${settingsPluginId}.settings.gradle")
+            settingsPluginFile = file("$buildName/src/main/$sourceDirectory/${settingsPluginId}.settings${fileExtension}")
             settingsPluginFile << """
-                println('$settingsPluginId applied')
+                println("$settingsPluginId applied")
             """
-            projectPluginFile = file("$buildName/src/main/groovy/${projectPluginId}.gradle")
+            projectPluginFile = file("$buildName/src/main/$sourceDirectory/${projectPluginId}${fileExtension}")
             projectPluginFile << """
-                println('$projectPluginId applied')
+                println("$projectPluginId applied")
             """
         }
 

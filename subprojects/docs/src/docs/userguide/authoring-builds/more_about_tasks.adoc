@@ -764,11 +764,11 @@ In the same way, this kind of modelling is available to custom tasks.
 When executing the build Gradle checks if task types are declared with the proper annotations.
 It tries to identify problems where e.g. annotations are used on incompatible types, or on setters etc.
 Any getter not annotated with an input/output annotation is also flagged.
-These problems are then turned into deprecation warnings when the task is executed.
+These problems then fail the build or are turned into deprecation warnings when the task is executed.
 
 [NOTE]
 ====
-Tasks that fail validation are executed without any optimizations.
+Tasks that have a validation warning are executed without any optimizations.
 Specifically, they never can be:
 
 * <<#sec:up_to_date_checks,up-to-date>>,

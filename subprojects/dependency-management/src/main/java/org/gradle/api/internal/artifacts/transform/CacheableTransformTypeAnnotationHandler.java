@@ -19,12 +19,11 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
+import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfCacheableAnnotation;
 
 public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
@@ -35,15 +34,10 @@ public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHa
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
         if (!TransformAction.class.isAssignableFrom(classWithAnnotationAttached)) {
-            visitor.visitTypeProblem(problem ->
-                problem.forType(classWithAnnotationAttached)
-                    .reportAs(ERROR)
-                    .withId(ValidationProblemId.INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION)
-                    .withDescription(() -> String.format("Using %s here is incorrect", getAnnotationType().getSimpleName()))
-                    .happensBecause(() -> String.format("This annotation only makes sense on %s types", TransformAction.class.getSimpleName()))
-                    .documentedAt("validation_problems", "invalid_use_of_cacheable_transform_annotation")
-                    .addPossibleSolution("Remove the annotation")
-            );
+            reportInvalidUseOfCacheableAnnotation(classWithAnnotationAttached,
+                visitor,
+                getAnnotationType(),
+                TransformAction.class);
         }
     }
 

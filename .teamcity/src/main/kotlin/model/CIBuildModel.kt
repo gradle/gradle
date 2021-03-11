@@ -167,7 +167,9 @@ data class CIBuildModel(
                 TestCoverage(66, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
                 TestCoverage(67, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
                 TestCoverage(68, TestType.noDaemon, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(69, TestType.noDaemon, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION)
+                TestCoverage(69, TestType.noDaemon, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(70, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(71, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION)
             )
         ),
         Stage(

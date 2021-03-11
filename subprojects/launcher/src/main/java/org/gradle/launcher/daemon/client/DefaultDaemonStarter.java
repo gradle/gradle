@@ -134,7 +134,12 @@ public class DefaultDaemonStarter implements DaemonStarter {
         }
         InputStream stdInput = buffer.getInputStream();
 
-        return startProcess(daemonArgs, daemonDir.getVersionedDir(), stdInput);
+        return startProcess(
+            daemonArgs,
+            daemonDir.getVersionedDir(),
+            daemonParameters.getGradleUserHomeDir().getAbsoluteFile(),
+            stdInput
+        );
     }
 
     private List<String> getPriorityArgs(DaemonParameters.Priority priority) {
@@ -151,7 +156,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         }
     }
 
-    private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {
+    private DaemonStartupInfo startProcess(List<String> args, File workingDir, File gradleUserHome, InputStream stdInput) {
         LOGGER.debug("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         Timer clock = Time.startTimer();
         try {
@@ -161,7 +166,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
             // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
             @SuppressWarnings("deprecation")
-            DefaultExecActionFactory execActionFactory = DefaultExecActionFactory.root();
+            DefaultExecActionFactory execActionFactory = DefaultExecActionFactory.root(gradleUserHome);
             try {
                 ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExec());
 

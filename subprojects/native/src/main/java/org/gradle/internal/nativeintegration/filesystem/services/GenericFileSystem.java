@@ -18,7 +18,7 @@ package org.gradle.internal.nativeintegration.filesystem.services;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileMetadata;

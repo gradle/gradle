@@ -16,13 +16,20 @@
 
 package org.gradle.internal.operations
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Matchers
 import spock.lang.Issue
 
 class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
 
     def "produces sensible error when there are failures both enqueuing and running operations" () {
+        if (JavaVersion.current().isJava9Compatible() && GradleContextualExecuter.isConfigCache()) {
+            // For java.util.concurrent.CountDownLatch being serialized reflectively by configuration cache
+            executer.withArgument('-Dorg.gradle.jvmargs=--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED')
+        }
+
         buildFile << """
             import org.gradle.internal.operations.BuildOperationExecutor
             import org.gradle.internal.operations.RunnableBuildOperation

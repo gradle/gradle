@@ -43,20 +43,26 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         buildFile """
             import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory
 
-            class NotCacheable extends DefaultTask {
+            class UnspecifiedCacheabilityTask extends DefaultTask {
                 @Input
                 String message = "Hello World"
                 @OutputFile
                 File outputFile = new File(temporaryDir, "output.txt")
 
                 @TaskAction
-                public void generate() {
+                void generate() {
                     outputFile.text = message
                 }
             }
 
+            @DisableCachingByDefault
+            class NotCacheableByDefault extends UnspecifiedCacheabilityTask {}
+
+            @DisableCachingByDefault(because = 'do-not-cache-by-default reason')
+            class NotCacheableByDefaultWithReason extends UnspecifiedCacheabilityTask {}
+
             @CacheableTask
-            class Cacheable extends NotCacheable {}
+            class Cacheable extends UnspecifiedCacheabilityTask {}
 
             class NoOutputs extends DefaultTask {
                 @TaskAction
@@ -69,7 +75,8 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
     def "default cacheability is BUILD_CACHE_DISABLED"() {
         buildFile << """
             task cacheable(type: Cacheable) {}
-            task notcacheable(type: NotCacheable) {}
+            task notCacheableByDefault(type: NotCacheableByDefault) {}
+            task unspecified(type: UnspecifiedCacheabilityTask) {}
             task noOutputs(type: NoOutputs) {}
         """
         when:
@@ -78,7 +85,12 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor BUILD_CACHE_DISABLED, "Build cache is disabled"
 
         when:
-        run "notcacheable"
+        run "notCacheableByDefault"
+        then:
+        assertCachingDisabledFor BUILD_CACHE_DISABLED, "Build cache is disabled"
+
+        when:
+        run "unspecified"
         then:
         assertCachingDisabledFor BUILD_CACHE_DISABLED, "Build cache is disabled"
 
@@ -88,12 +100,12 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor BUILD_CACHE_DISABLED, "Build cache is disabled"
     }
 
-    def "cacheability for non-cacheable task is NOT_ENABLED_FOR_TASK"() {
+    def "cacheability for task with unspecified cacheability is NOT_ENABLED_FOR_TASK"() {
         buildFile << """
-            task notcacheable(type: NotCacheable) {}
+            task unspecified(type: UnspecifiedCacheabilityTask) {}
         """
         when:
-        withBuildCache().run "notcacheable"
+        withBuildCache().run "unspecified"
         then:
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
@@ -106,6 +118,26 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         withBuildCache().run "cacheable"
         then:
         assertCachingDisabledFor null, null
+    }
+
+    def "cacheability for a non-cacheable task is NOT_ENABLED_FOR_TASK"() {
+        buildFile << """
+            task notCacheableByDefault(type: NotCacheableByDefault) {}
+        """
+        when:
+        withBuildCache().run "notCacheableByDefault"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has been disabled for the task"
+    }
+
+    def "cacheability for a non-cacheable task with reason is NOT_ENABLED_FOR_TASK"() {
+        buildFile << """
+            task notCacheableByDefault(type: NotCacheableByDefaultWithReason) {}
+        """
+        when:
+        withBuildCache().run "notCacheableByDefault"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "do-not-cache-by-default reason"
     }
 
     def "cacheability for a cacheable task with no outputs is NO_OUTPUTS_DECLARED"() {
@@ -124,7 +156,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor NO_OUTPUTS_DECLARED, "No outputs declared"
     }
 
-    def "cacheability for a non-cacheable task with no outputs is NOT_ENABLED_FOR_TASK"() {
+    def "cacheability for a task with no outputs is NOT_ENABLED_FOR_TASK"() {
         buildFile """
             task noOutputs(type: NoOutputs) {}
         """
@@ -234,16 +266,16 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
     def "cacheability for a task with no sources is UNKNOWN"() {
         buildFile """
             @CacheableTask
-            class NoSources extends NotCacheable {
+            class NoSources extends UnspecifiedCacheabilityTask {
                 @InputFiles
                 @SkipWhenEmpty
                 FileCollection empty = project.layout.files()
             }
 
-            task cacheable(type: NoSources)
+            task noSources(type: NoSources)
         """
         when:
-        withBuildCache().run "cacheable"
+        withBuildCache().run "noSources"
         then:
         assertCachingDisabledFor UNKNOWN, "Cacheability was not determined"
     }
@@ -267,18 +299,18 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
     def "cacheability for a non-cacheable task that's up-to-date"() {
         buildFile """
-            task notcacheable(type: NotCacheable)
+            task unspecified(type: UnspecifiedCacheabilityTask)
         """
         when:
-        withBuildCache().run "notcacheable"
+        withBuildCache().run "unspecified"
         then:
-        executedAndNotSkipped(":notcacheable")
+        executedAndNotSkipped(":unspecified")
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
 
         when:
-        withBuildCache().run "notcacheable"
+        withBuildCache().run "unspecified"
         then:
-        skipped(":notcacheable")
+        skipped(":unspecified")
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
 
@@ -297,16 +329,16 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor null, null
     }
 
-    def "cacheability for a failing non-cacheable task is NOT_ENABLED_FOR_TASK"() {
+    def "cacheability for a failing task with unspecified cacheability is NOT_ENABLED_FOR_TASK"() {
         buildFile """
-            task cacheable(type: NotCacheable) {
+            task failing(type: UnspecifiedCacheabilityTask) {
                 doLast {
                     throw new GradleException("boom")
                 }
             }
         """
         when:
-        withBuildCache().fails "cacheable"
+        withBuildCache().fails "failing"
         failure.assertHasCause("boom")
         then:
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
@@ -340,6 +372,39 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         then:
         withBuildCache().succeeds("producer", "consumer")
         assertCachingDisabledFor VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.", ":consumer"
+    }
+
+    def "cacheability for a cacheable task can be disabled via #condition"() {
+        buildFile << """
+            task cacheable(type: Cacheable) {
+                outputs.$condition
+            }
+        """
+        when:
+        withBuildCache().run "cacheable"
+        then:
+        assertCachingDisabledFor expectedReason, expectedMessage
+
+        where:
+        condition                                         | expectedReason                 | expectedMessage
+        "cacheIf { false }"                               | CACHE_IF_SPEC_NOT_SATISFIED    | "'Task outputs cacheable' not satisfied"
+        "cacheIf('cache-if reason') { false }"            | CACHE_IF_SPEC_NOT_SATISFIED    | "'cache-if reason' not satisfied"
+        "doNotCacheIf('do-not-cache-if reason') { true }" | DO_NOT_CACHE_IF_SPEC_SATISFIED | "'do-not-cache-if reason' satisfied"
+    }
+
+    def "cacheability for a #taskType task can be enabled via #condition"() {
+        buildFile << """
+            task custom(type: ${taskType}) {
+                outputs.$condition
+            }
+        """
+        when:
+        withBuildCache().run "custom"
+        then:
+        assertCachingDisabledFor null, null
+
+        where:
+        [taskType, condition] << [["UnspecifiedCacheabilityTask", "NotCacheableByDefault", "NotCacheableByDefaultWithReason"], ["cacheIf { true }", "cacheIf('cache-if reason') { true }"]].combinations()
     }
 
     private void assertCachingDisabledFor(@Nullable TaskOutputCachingDisabledReasonCategory category, @Nullable String message, @Nullable String taskPath = null) {

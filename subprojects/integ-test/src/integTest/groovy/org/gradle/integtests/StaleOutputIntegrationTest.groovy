@@ -20,6 +20,8 @@ import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -437,6 +439,9 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
         skipped(taskWithLocalState.taskPath)
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IMPLICIT_DEPENDENCY
+    )
     def "up-to-date checks detect removed stale outputs"() {
 
         given:
@@ -470,8 +475,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
         }
 
         when:
-        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'), 'Copy')
-        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'), 'Copy')
+        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
+        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
         run 'backup', 'restore'
 
         then:
@@ -488,8 +493,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
         //
         // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
         invalidateBuildOutputCleanupState()
-        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'), 'Copy')
-        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'), 'Copy')
+        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
+        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
         run 'backup', 'restore', '--info'
 
         then:

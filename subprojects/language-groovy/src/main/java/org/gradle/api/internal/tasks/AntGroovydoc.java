@@ -26,7 +26,7 @@ import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
-import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.util.VersionNumber;

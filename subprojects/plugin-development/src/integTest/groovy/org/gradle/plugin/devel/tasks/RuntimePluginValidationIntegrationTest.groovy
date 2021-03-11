@@ -50,18 +50,14 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         result.assertTaskNotSkipped(":run")
     }
 
-    void assertValidationFailsWith(boolean expectDeprecationsForErrors, List<DocumentedProblem> messages) {
+    void assertValidationFailsWith(List<DocumentedProblem> messages) {
         def expectedDeprecations = messages
-            .findAll { problem -> expectDeprecationsForErrors || problem.severity == WARNING }
+            .findAll { problem -> problem.severity == WARNING }
         def expectedFailures = messages
             .findAll { problem -> problem.severity == ERROR }
 
         expectedDeprecations.forEach { warning ->
-            String expectedMessage = "${warning.message} " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "Execution optimizations are disabled to ensure correctness. " +
-                "See https://docs.gradle.org/current/userguide/${warning.id}.html#${warning.section} for more details."
-            executer.expectDocumentedDeprecationWarning(expectedMessage)
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, warning.message, warning.id, warning.section)
         }
         if (expectedFailures) {
             fails "run"
@@ -121,9 +117,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('tree.left.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('tree.right.nonAnnotated').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.left.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property('tree.right.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 }

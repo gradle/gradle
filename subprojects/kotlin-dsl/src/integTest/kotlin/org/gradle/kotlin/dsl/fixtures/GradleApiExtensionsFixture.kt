@@ -16,21 +16,19 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.assertj.core.util.Files.newFolder
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.file.TempFiles
-
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
 import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
-
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 
-fun testInstallationGradleApiExtensionsClasspathFor(testInstallation: File): ClassPath =
-    DefaultClassPath.of(testInstallationGradleApiExtensionsJarFor(testInstallation))
+fun testInstallationGradleApiExtensionsClasspathFor(testInstallation: File, tmpDir: File): ClassPath =
+    DefaultClassPath.of(testInstallationGradleApiExtensionsJarFor(testInstallation, tmpDir))
 
 
 private
@@ -39,18 +37,17 @@ val testInstallationGradleApiExtensionsJars =
 
 
 private
-fun testInstallationGradleApiExtensionsJarFor(testInstallation: File) =
+fun testInstallationGradleApiExtensionsJarFor(testInstallation: File, tmpDir: File) =
     testInstallationGradleApiExtensionsJars.getOrPut(testInstallation) {
-        val fixturesDir = File("build/tmp/fixtures").also { it.mkdirs() }
-        TempFiles.createTempFile("gradle-api-extensions", "fixture", fixturesDir).also { jar ->
-            generateTestInstallationGradleApiExtensionsJarTo(jar, testInstallation)
+        File(tmpDir, "gradle-api-extensions-fixture.jar").also { jar ->
+            generateTestInstallationGradleApiExtensionsJarTo(jar, testInstallation, tmpDir)
             jar.deleteOnExit()
         }
     }
 
 
 private
-fun generateTestInstallationGradleApiExtensionsJarTo(jar: File, testInstallation: File) {
+fun generateTestInstallationGradleApiExtensionsJarTo(jar: File, testInstallation: File, tmpDir: File) {
 
     val gradleJars = testInstallation
         .let { listOf(it.resolve("lib"), it.resolve("lib/plugins")) }
@@ -66,7 +63,7 @@ fun generateTestInstallationGradleApiExtensionsJarTo(jar: File, testInstallation
         .single()
 
     generateApiExtensionsJar(
-        TmpDirTemporaryFileProvider.createLegacy(),
+        DefaultTemporaryFileProvider { tmpDir },
         jar,
         gradleJars,
         gradleApiMetadataJar

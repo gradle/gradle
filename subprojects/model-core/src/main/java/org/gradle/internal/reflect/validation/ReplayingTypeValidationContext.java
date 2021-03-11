@@ -26,11 +26,6 @@ public class ReplayingTypeValidationContext implements TypeValidationContext {
     private final List<BiConsumer<String, TypeValidationContext>> problems = new ArrayList<>();
 
     @Override
-    public void visitTypeProblem(Severity kind, Class<?> type, String message) {
-        problems.add((ownerProperty, validationContext) -> validationContext.visitTypeProblem(kind, type, message));
-    }
-
-    @Override
     public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {
         problems.add((ownerProperty, validationContext) -> validationContext.visitTypeProblem(problemSpec));
     }
@@ -41,16 +36,6 @@ public class ReplayingTypeValidationContext implements TypeValidationContext {
             problemSpec.execute(builder);
             ((PropertyProblemBuilderInternal)builder).forOwner(ownerProperty);
         }));
-    }
-
-    @Override
-    public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
-        problems.add((ownerProperty, validationContext) -> validationContext.visitPropertyProblem(
-            severity,
-            combineParents(ownerProperty, parentProperty),
-            property,
-            message
-        ));
     }
 
     public void replay(@Nullable String ownerProperty, TypeValidationContext target) {

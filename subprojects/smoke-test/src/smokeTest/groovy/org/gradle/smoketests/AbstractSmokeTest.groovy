@@ -164,7 +164,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.30")
+        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -173,6 +173,8 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
         static ktlint = Versions.of("9.4.1")
+
+        static newNode = Versions.of("3.0.1")
     }
 
     static class Versions implements Iterable<String> {

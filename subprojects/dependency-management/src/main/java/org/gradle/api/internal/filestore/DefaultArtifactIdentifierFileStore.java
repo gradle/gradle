@@ -18,8 +18,7 @@ package org.gradle.api.internal.filestore;
 
 import org.gradle.api.Namer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ChecksumService;
@@ -55,13 +54,13 @@ public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFil
 
     @ServiceScope(Scopes.Build.class)
     public static class Factory {
-        private final TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider;
+        private final TemporaryFileProvider temporaryFileProvider;
         private final FileAccessTimeJournal fileAccessTimeJournal;
         private final ChecksumService checksumService;
 
         @Inject
-        public Factory(TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
-            this.tmpDirTemporaryFileProvider = tmpDirTemporaryFileProvider;
+        public Factory(TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+            this.temporaryFileProvider = temporaryFileProvider;
             this.fileAccessTimeJournal = fileAccessTimeJournal;
             this.checksumService = checksumService;
         }
@@ -69,7 +68,7 @@ public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFil
         public DefaultArtifactIdentifierFileStore create(ArtifactCacheMetadata artifactCacheMetadata) {
             return new DefaultArtifactIdentifierFileStore(
                 artifactCacheMetadata.getFileStoreDirectory(),
-                tmpDirTemporaryFileProvider,
+                temporaryFileProvider,
                 fileAccessTimeJournal,
                 checksumService
             );

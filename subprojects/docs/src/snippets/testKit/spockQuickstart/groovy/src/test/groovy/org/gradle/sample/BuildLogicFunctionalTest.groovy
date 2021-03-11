@@ -3,7 +3,7 @@ package org.gradle.sample
 // tag::functional-test-spock[]
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.jupiter.api.io.TempDir;
+import spock.lang.TempDir
 import spock.lang.Specification
 
 class BuildLogicFunctionalTest extends Specification {
@@ -12,8 +12,8 @@ class BuildLogicFunctionalTest extends Specification {
     File buildFile
 
     def setup() {
-        settingsFile = testProjectDir.newFile('settings.gradle')
-        buildFile = testProjectDir.newFile('build.gradle')
+        settingsFile = new File(testProjectDir, 'settings.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
     }
 
     def "hello world task prints hello world"() {

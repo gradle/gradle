@@ -25,6 +25,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -47,7 +48,7 @@ class InstantiatingBuildLoaderTest extends Specification {
 
     def rootProjectClassLoaderScope = Mock(ClassLoaderScope)
     def baseProjectClassLoaderScope = Mock(ClassLoaderScope) {
-        1 * createChild("root-project") >> rootProjectClassLoaderScope
+        1 * createChild("root-project[:]") >> rootProjectClassLoaderScope
     }
 
     @Rule
@@ -68,6 +69,7 @@ class InstantiatingBuildLoaderTest extends Specification {
             getStartParameter() >> startParameter
             getRootProject() >> rootProject
             baseProjectClassLoaderScope() >> baseProjectClassLoaderScope
+            getIdentityPath() >> Path.ROOT
         }
         settingsInternal = Mock(SettingsInternal) {
             getRootProject() >> rootDescriptor

@@ -399,10 +399,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         String missingNormalizationDetails = "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}"
         assertPropertyValidationErrors(
             absolutePathSensitivity: invalidUseOfAbsoluteNormalizationMessage,
-            extension: missingAnnotationMessage { property('extension').kind('an input annotation').includeLink().noIntro() },
+            extension: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
             fileInput: [
                 missingValueMessage { property('fileInput').includeLink().noIntro() },
-                'has @Input annotation used on property of type \'File\'',
+                incorrectUseOfInputAnnotation { property('fileInput').propertyType('File').includeLink().noIntro() },
             ],
             incrementalNonFileInput: [
                 missingValueMessage { property('incrementalNonFileInput').includeLink().noIntro() },
@@ -411,7 +411,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             missingInput: missingValueMessage { property('missingInput').includeLink().noIntro() },
             'nested.outputDirectory': annotationInvalidInContext { annotation('OutputDirectory').includeLink() },
             'nested.inputFile': "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
-            'nested.stringProperty': missingAnnotationMessage { property('nested.stringProperty').kind('an input annotation').includeLink().noIntro() },
+            'nested.stringProperty': missingAnnotationMessage { property('nested.stringProperty').missingInput().includeLink().noIntro() },
             noPathSensitivity: "is annotated with @InputFiles but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityDir: "is annotated with @InputDirectory but missing a normalization strategy. $missingNormalizationDetails",
             noPathSensitivityFile: "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
@@ -447,6 +447,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Cannot query the parameters of an instance of TransformAction that takes no parameters.")
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+    )
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -486,8 +489,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        failure.assertHasCause("Type 'MakeGreen.Parameters': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
-        failure.assertHasCause("Type 'MakeGreen.Parameters': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.")
+        failure.assertHasCause(invalidUseOfCacheableAnnotation {
+            type('MakeGreen.Parameters').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
+        })
+        failure.assertHasCause(invalidUseOfCacheableAnnotation {
+            type('MakeGreen.Parameters').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction').includeLink()
+        })
     }
 
     @ValidationTestFor(
@@ -654,14 +661,17 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             absolutePathSensitivityDependencies: invalidUseOfAbsoluteNormalizationMessage,
             'conflictingAnnotations': [
                 conflictingAnnotationsMessage,
-                annotationInvalidInContext { annotation('InputFile') }
+                annotationInvalidInContext { annotation('InputFile').forTransformAction() }
             ],
-            inputFile: annotationInvalidInContext { annotation('InputFile') },
+            inputFile: annotationInvalidInContext { annotation('InputFile').forTransformAction() },
             noPathSensitivity: 'is annotated with @InputArtifact but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
-            notAnnotated: missingAnnotationMessage { property('extension').kind('an input annotation').includeLink().noIntro() },
+            notAnnotated: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
         )
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+    )
     def "transform action type cannot use cacheable task annotation"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -689,7 +699,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        failure.assertHasCause("Type 'MakeGreen': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
+        failure.assertHasCause(invalidUseOfCacheableAnnotation {
+            type('MakeGreen').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
+        })
     }
 
     @ValidationTestFor(
@@ -735,7 +747,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName) })
+        assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName).forTransformAction() })
 
         where:
         ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
@@ -988,7 +1000,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
     )
     def "task implementation cannot use cacheable transform annotation"() {
         buildFile << """
@@ -1003,11 +1015,13 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         expect:
         fails('broken')
         failure.assertHasDescription("A problem was found with the configuration of task ':broken' (type 'MyTask').")
-        failure.assertThatDescription(containsString("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation."))
+        failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
+            type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction').includeLink()
+        }))
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
     )
     def "task @Nested bean cannot use cacheable annotations"() {
         buildFile << """
@@ -1030,8 +1044,12 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         // Probably should be eager
         fails('broken')
         failure.assertHasDescription("Some problems were found with the configuration of task ':broken' (type 'MyTask').")
-        failure.assertThatDescription(containsString("Type 'Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types."))
-        failure.assertThatDescription(containsString("Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation."))
+        failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
+            type('Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
+        }))
+        failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
+            invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction').includeLink()
+        }))
     }
 
     @Unroll

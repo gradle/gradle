@@ -77,13 +77,7 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
         } else {
             cachingState = context.getBeforeExecutionState()
                 .map(beforeExecutionState -> calculateCachingState(beforeExecutionState, work))
-                .orElseGet(() -> (buildCache.isEnabled()
-                        ? work.shouldDisableCaching(null)
-                        : Optional.of(BUILD_CACHE_DISABLED_REASON)
-                    )
-                    .map(CachingState::disabledWithoutInputs)
-                    .orElse(CachingState.NOT_DETERMINED)
-                );
+                .orElseGet(() -> calculateCachingStateWithNoCapturedInputs(work));
         }
 
         ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
@@ -198,6 +192,15 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
         builder.withOutputPropertyNames(executionState.getOutputFileLocationSnapshots().keySet());
 
         return builder.build();
+    }
+
+    private CachingState calculateCachingStateWithNoCapturedInputs(UnitOfWork work) {
+        if (!buildCache.isEnabled()) {
+            return BUILD_CACHE_DISABLED_STATE;
+        }
+        return work.shouldDisableCaching(null)
+            .map(CachingState::disabledWithoutInputs)
+            .orElse(CachingState.NOT_DETERMINED);
     }
 
     private void logCacheKey(BuildCacheKey cacheKey, UnitOfWork work) {

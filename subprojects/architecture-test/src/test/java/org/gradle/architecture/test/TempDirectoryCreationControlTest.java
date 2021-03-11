@@ -63,11 +63,11 @@ public class TempDirectoryCreationControlTest {
     @ArchTest
     public static final ArchRule forbid_illegal_calls_to_File_createTempFile_overload =
         classes()
-            .that(doNot(belongToAnyOf(org.gradle.internal.file.TempFiles.class)))
+            .that(doNot(belongToAnyOf(org.gradle.api.internal.file.temp.TempFiles.class)))
             .should(not(callMethod(File.class, "createTempFile", String.class, String.class, File.class)))
             .because(String.format(
                 "for security reasons, all createTempFile calls taking a 'directory' argument must go through `%s`",
-                org.gradle.internal.file.TempFiles.class
+                org.gradle.api.internal.file.temp.TempFiles.class
             ));
 
     @ArchTest

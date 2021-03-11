@@ -3,12 +3,8 @@ pluginManagement {
     repositories {
         gradlePluginPortal() // if pluginManagement.repositories looks like this, it can be omitted as this is the default
     }
+    includeBuild("../build-logic")
 }
-includeBuild("../platforms")
-includeBuild("../build-logic")
-
-includeBuild("../admin-feature")
-includeBuild("../user-feature")
 
 // == Define locations for components ==
 dependencyResolutionManagement {
@@ -16,6 +12,9 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+includeBuild("../platforms")
+includeBuild("../admin-feature")
+includeBuild("../user-feature")
 
 
 // == Define the inner structure of this component ==

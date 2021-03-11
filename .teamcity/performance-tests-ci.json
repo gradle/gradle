@@ -715,7 +715,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.assemble for abi change",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for abi change",
     "groups" : [ {
       "testProject" : "largeGroovyMultiProject",
       "coverage" : {
@@ -738,7 +738,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.assemble for abi change with configuration caching",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for abi change with configuration caching",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {
@@ -746,7 +746,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.assemble for non-abi change",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for non-abi change",
     "groups" : [ {
       "testProject" : "largeGroovyMultiProject",
       "coverage" : {
@@ -769,7 +769,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.assemble for non-abi change with configuration caching",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for non-abi change with configuration caching",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {
@@ -777,7 +777,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.test for non-abi change",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.test for non-abi change",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {
@@ -795,7 +795,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.up-to-date assemble (parallel false)",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.up-to-date assemble (parallel false)",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {
@@ -808,7 +808,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.up-to-date assemble (parallel true)",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.up-to-date assemble (parallel true)",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {
@@ -816,7 +816,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.up-to-date assemble with local build cache enabled (parallel false)",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.up-to-date assemble with local build cache enabled (parallel false)",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {
@@ -829,7 +829,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionIntegrationTest.up-to-date assemble with local build cache enabled (parallel true)",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.up-to-date assemble with local build cache enabled (parallel true)",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {

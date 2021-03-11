@@ -31,6 +31,10 @@ class GroovyInteroperabilityIntegrationTest : AbstractKotlinIntegrationTest() {
             """
             class MyExtension {
                 String server = 'default'
+
+                def configureServerName(serverName) {
+                    this.server = serverName
+                }
             }
 
             class MyPlugin implements Plugin<Project> {
@@ -51,6 +55,7 @@ class GroovyInteroperabilityIntegrationTest : AbstractKotlinIntegrationTest() {
                 getProperty("server")
                 setProperty("server", "newValue")
                 setMetaClass(getMetaClass())
+                invokeMethod("configureServerName", "myservername")
             }
             """
         )

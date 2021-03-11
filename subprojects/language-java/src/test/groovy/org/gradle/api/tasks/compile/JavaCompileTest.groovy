@@ -47,7 +47,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         e.message == "Must not use `javaHome` property on `ForkOptions` together with `javaCompiler` property"
     }
 
-    def "disallow using custom exectuable with compiler present"() {
+    def "disallow using custom executable with compiler present"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
 
         when:
@@ -57,7 +57,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Must not use `exectuable` property on `ForkOptions` together with `javaCompiler` property"
+        e.message == "Must not use `executable` property on `ForkOptions` together with `javaCompiler` property"
     }
 
     def 'uses release property combined with toolchain compiler'() {

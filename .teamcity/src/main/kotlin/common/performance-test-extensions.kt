@@ -41,7 +41,7 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
 }
 
 fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
-    "$task${if (extraParameters.isEmpty()) "" else " $extraParameters" }",
+    "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
     "-PperformanceBaselines=$baselines",
     "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
     "-PtestJavaVendor=${os.perfTestJavaVendor}",
@@ -74,7 +74,10 @@ fun BuildSteps.substDirOnWindows(os: Os) {
         script {
             name = "SETUP_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """subst p: "%teamcity.build.checkoutDir%" """
+            scriptContent = """
+                subst p: /d
+                subst p: "%teamcity.build.checkoutDir%"
+                """.trimIndent()
         }
         cleanBuildLogicBuild("P:/build-logic-commons", os)
         cleanBuildLogicBuild("P:/build-logic", os)
@@ -86,7 +89,7 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os) {
         script {
             name = "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """subst p: /d"""
+            scriptContent = """dir p: && subst p: /d"""
         }
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons", os)
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic", os)

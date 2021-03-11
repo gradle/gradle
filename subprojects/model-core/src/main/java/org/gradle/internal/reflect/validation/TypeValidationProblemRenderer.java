@@ -81,7 +81,7 @@ public class TypeValidationProblemRenderer {
     }
 
     private static String maybeAppendDot(String txt) {
-        if (txt.endsWith(".")) {
+        if (txt.endsWith(".") || txt.endsWith("\n")) {
             return txt;
         }
         return txt + ".";

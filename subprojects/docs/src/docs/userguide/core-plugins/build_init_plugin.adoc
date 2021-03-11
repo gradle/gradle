@@ -125,8 +125,8 @@ It has the following features:
 Alternative test framework can be specified by supplying a `--test-framework` argument value. To use a different test framework, execute one of the following commands:
 
 * `gradle init --type java-application --test-framework junit-jupiter`: Uses https://junit.org[JUnit Jupiter] for testing instead of JUnit 4
-* `gradle init --type java-application --test-framework spock`: Uses http://code.google.com/p/spock/[Spock] for testing instead of JUnit 4
-* `gradle init --type java-application --test-framework testng`: Uses http://testng.org/doc/index.html[TestNG] for testing instead of JUnit 4
+* `gradle init --type java-application --test-framework spock`: Uses https://spockframework.org[Spock] for testing instead of JUnit 4
+* `gradle init --type java-application --test-framework testng`: Uses https://testng.org/doc/index.html[TestNG] for testing instead of JUnit 4
 
 
 [[sec:java_library]]

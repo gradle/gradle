@@ -17,21 +17,18 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.internal.file.TempFiles;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
 
 public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
 
-    private final File dir;
+    private final TemporaryFileProvider temporaryFileProvider;
 
-    public DefaultBuildCacheTempFileStore(File dir) {
-        this.dir = dir;
-        GFileUtils.mkdirs(this.dir);
+    public DefaultBuildCacheTempFileStore(TemporaryFileProvider temporaryFileProvider) {
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     @Override
@@ -39,11 +36,7 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
         String hashCode = key.getHashCode();
         File tempFile = null;
         try {
-            try {
-                tempFile = TempFiles.createTempFile(hashCode + "-", PARTIAL_FILE_SUFFIX, dir);
-            } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
-            }
+            tempFile = temporaryFileProvider.createTemporaryFile(hashCode + "-", PARTIAL_FILE_SUFFIX);
             action.execute(tempFile);
         } finally {
             GFileUtils.deleteQuietly(tempFile);

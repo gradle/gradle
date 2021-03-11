@@ -23,9 +23,11 @@ import java.lang.annotation.*;
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
- * <p>This will cause the task to be considered out-of-date when the property has changed. When used on a
- * {@link java.io.File} object that refers to a file or directory, the up-to-date check is only dependent on the
- * path and not the contents of the file or directory. To make it depend on the contents, use
+ * <p>This will cause the task to be considered out-of-date when the property has changed.
+ * This annotation cannot be used on a {@link java.io.File} object. If you want to refer to the file path,
+ * independently of its contents, return a {@link java.lang.String String} instead which returns the absolute
+ * path.
+ * If, instead, you want to refer to the contents and path of a file or a directory, use
  * {@link org.gradle.api.tasks.InputFile} or {@link org.gradle.api.tasks.InputDirectory} respectively.
  */
 @Documented

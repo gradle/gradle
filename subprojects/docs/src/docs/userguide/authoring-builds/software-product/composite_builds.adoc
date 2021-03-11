@@ -34,8 +34,8 @@ Instead, it declares binary dependencies on the libraries produced by `my-utils`
 
 .Dependencies of my-app
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/app/build.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
 ====
 
 
@@ -43,8 +43,6 @@ include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",f
 === Defining a composite build via `--include-build`
 
 The `--include-build` command-line argument turns the executed build into a composite, substituting dependencies from the included build into the executed build.
-
-=== Example: Declaring a command-line composite
 
 .Output of **`gradle --include-build ../my-utils run`**
 ----
@@ -79,6 +77,23 @@ include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",f
 ====
 
 More details about tasks that depend on included build tasks are below.
+
+[[included_plugin_builds]]
+=== Including builds that define Gradle plugins
+
+A special case of included builds are builds that define Gradle plugins.
+These builds should be included using the `includeBuild` statement inside the `pluginManagement {}` block of the settings file.
+Using this mechanism, the included build may also contribute a settings plugin that can be applied in the settings file itself.
+
+.Including a plugin build
+====
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="settings.gradle.kts[tags=include-build]"]
+====
+
+NOTE: Including plugin builds via the plugin management block is an incubating feature.
+You may also use the stable `includeBuild` mechanism outside `pluginManagement` to include plugin builds.
+However, this does not support all use cases and including plugin builds like that will be deprecated once the new mechanism is stable.
 
 [[included_builds]]
 === Restrictions on included builds
@@ -214,9 +229,6 @@ include::sample[dir="samples/build-organization/composite-builds/hierarchical-mu
 [[current_limitations_and_future_work]]
 == Current limitations and future plans for composite builds
 
-We think composite builds are pretty useful already.
-However, there are some things that don't yet work the way we'd like, and other improvements that we think will make things work even better.
-
 Limitations of the current implementation include:
 
 * No support for included builds that have publications that don't mirror the project default configuration. See <<#included_build_substitution_limitations,Cases where composite builds won't work>>.
@@ -225,5 +237,4 @@ Limitations of the current implementation include:
 
 Improvements we have planned for upcoming releases include:
 
-* Better detection of dependency substitution, for builds that publish with custom coordinates, builds that produce multiple components, etc. This will reduce the cases where dependency substitution needs to be explicitly declared for an included build.
 * Making the implicit `buildSrc` project an included build.

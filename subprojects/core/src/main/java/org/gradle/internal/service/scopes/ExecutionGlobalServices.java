@@ -45,6 +45,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.DisableCachingByDefaultTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilesPropertyAnnotationHandler;
@@ -90,9 +91,11 @@ import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadat
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -122,15 +125,23 @@ public class ExecutionGlobalServices {
         ReplacedBy.class
     );
 
-    TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory) {
+    AnnotationHandlerRegistar createAnnotationRegistry(List<AnnotationHandlerRegistration> registrations) {
+        return builder -> registrations.forEach(registration -> builder.addAll(registration.getAnnotations()));
+    }
+
+    TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
         @SuppressWarnings("deprecation")
         Class<?> deprecatedAbstractTask = org.gradle.api.internal.AbstractTask.class;
+        ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
+        builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
+        annotationRegistry.registerPropertyTypeAnnotations(builder);
         return new DefaultTypeAnnotationMetadataStore(
             ImmutableSet.of(
                 CacheableTask.class,
-                CacheableTransform.class
+                CacheableTransform.class,
+                DisableCachingByDefault.class
             ),
-            ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
+            ModifierAnnotationCategory.asMap(builder.build()),
             ImmutableSet.of(
                 "java",
                 "groovy",
@@ -179,26 +190,29 @@ public class ExecutionGlobalServices {
         return new InspectionSchemeFactory(typeHandlers, propertyHandlers, typeAnnotationMetadataStore, cacheFactory);
     }
 
-    TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+    TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory, AnnotationHandlerRegistar annotationRegistry) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
+        ImmutableSet.Builder<Class<? extends Annotation>> allPropertyTypes = ImmutableSet.builder();
+        allPropertyTypes.addAll(ImmutableSet.of(
+            Input.class,
+            InputFile.class,
+            InputFiles.class,
+            InputDirectory.class,
+            OutputFile.class,
+            OutputFiles.class,
+            OutputDirectory.class,
+            OutputDirectories.class,
+            Destroys.class,
+            LocalState.class,
+            Nested.class,
+            Console.class,
+            ReplacedBy.class,
+            Internal.class,
+            OptionValues.class
+        ));
+        annotationRegistry.registerPropertyTypeAnnotations(allPropertyTypes);
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
-            ImmutableSet.of(
-                Input.class,
-                InputFile.class,
-                InputFiles.class,
-                InputDirectory.class,
-                OutputFile.class,
-                OutputFiles.class,
-                OutputDirectory.class,
-                OutputDirectories.class,
-                Destroys.class,
-                LocalState.class,
-                Nested.class,
-                Console.class,
-                ReplacedBy.class,
-                Internal.class,
-                OptionValues.class
-            ),
+            allPropertyTypes.build(),
             ImmutableSet.of(
                 Classpath.class,
                 CompileClasspath.class,
@@ -218,6 +232,10 @@ public class ExecutionGlobalServices {
 
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new DefaultTaskClassInfoStore(cacheFactory);
+    }
+
+    TypeAnnotationHandler createDoNotCacheByDefaultTypeAnnotationHandler() {
+        return new DisableCachingByDefaultTypeAnnotationHandler();
     }
 
     TypeAnnotationHandler createCacheableTaskAnnotationHandler() {
@@ -282,5 +300,13 @@ public class ExecutionGlobalServices {
 
     PropertyAnnotationHandler createNestedBeanPropertyAnnotationHandler() {
         return new NestedBeanAnnotationHandler();
+    }
+
+    public interface AnnotationHandlerRegistration {
+        Collection<Class<? extends Annotation>> getAnnotations();
+    }
+
+    interface AnnotationHandlerRegistar {
+        void registerPropertyTypeAnnotations(ImmutableSet.Builder<Class<? extends Annotation>> builder);
     }
 }

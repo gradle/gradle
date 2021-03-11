@@ -35,6 +35,7 @@ Some plugins will break with this new version of Gradle, for example because the
 
 [[changes_7.0]]
 == Upgrading from 6.8
+
 === Changes in the IDE integration
 
 ==== Changes in the IDEA model
@@ -67,13 +68,96 @@ Consider <<declaring_repositories.adoc#declaring-repositories,using>> `mavenCent
 
 ==== Updates to bundled Gradle dependencies
 
-- Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.30].
+- Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.31].
 - Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.7].
+
+==== Changes to Groovy and Groovy DSL
+
+Due to the update to the next major version of Groovy, you may experience minor issues when upgrading to Gradle 7.0.
+
+The new version of Groovy has a stricter parser that fails to compile code that may have been accepted in previous Groovy versions.
+If you encounter syntax errors, check the https://groovy.apache.org/#reporting-issues[Groovy issue tracker] and https://blogs.apache.org/groovy/entry/groovy-3-highlights[Groovy 3 release highlights].
+
+https://issues.apache.org/jira/browse/GROOVY-9936[Some very specific regressions] have already been fixed in the next minor version of Groovy.
+
+===== Groovy modularization
+
+Gradle no longer embeds a copy of `groovy-all` that bundles all Groovy modules into a single jar--only the most important modules are distributed in the Gradle distribution.
+
+The `localGroovy()` dependency will include these Groovy modules:
+
+- `groovy`
+- `groovy-ant`
+- `groovy-astbuilder`
+- `groovy-console`
+- `groovy-datetime`
+- `groovy-dateutil`
+- `groovy-groovydoc`
+- `groovy-json`
+- `groovy-nio`
+- `groovy-sql`
+- `groovy-templates`
+- `groovy-test`
+- `groovy-xml`
+
+But the following Groovy modules are *not* included:
+
+- `groovy-cli-picocli`
+- `groovy-docgenerator`
+- `groovy-groovysh`
+- `groovy-jmx`
+- `groovy-jsr223`
+- `groovy-macro`
+- `groovy-servlet`
+- `groovy-swing`
+- `groovy-test-junit5`
+- `groovy-testng`
+
+You can pull these dependencies into your build like any other external dependency.
+
+===== Building Gradle plugins with Groovy 3
+
+Plugins built with Gradle 7.0 will now have Groovy 3 on their classpath when using `gradleApi()` or `localGroovy()`.
+
+NOTE: If you use https://spockframework.org/[Spock] to test your plugins, you will need to use Spock 2.x. There are no compatible versions of Spock 1.x and Groovy 3. At the time of writing, Spock 2.0 Milestone 4 was the most recent version.
+
+```
+dependencies {
+    // Ensure you use the Groovy 3.x variant
+    testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+        exclude group: 'org.codehaus.groovy'
+    }
+    testImplementation('org.junit.jupiter:junit-jupiter-api')
+}
+
+// Spock 2 is based on JUnit Platform and needs to be enabled explicitly.
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+```
+
+===== Performance
+
+Depending on the number of subprojects and Groovy DSL build scripts, you may notice a performance regression when compiling build scripts for the first time or when changes are made to the build script's classpath.
+This is due to the slower performance of the Groovy 3 parser, but the Groovy team is aware of the issue and trying to mitigate the regression.
+
+In general, we are also looking at how we can improve the performance of build script compilation for both Groovy DSL and Kotlin DSL.
+
+===== Encountering 'Could not find method X for arguments Y on DefaultDependencyHandler'
+
+While the following error initially looks like a compile error, it is actually due to the fact that specific `Configuration`s have been removed.
+Please refer to <<sec:configuration_removal>> for more details.
+
+```
+Could not find method testCompile() for arguments [DefaultExternalModuleDependency{group='org.junit', name='junit-bom', version='5.7.0', configuration='default'}] on object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler.
+```
 
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.31.0[PMD 6.31.0].
+- Groovy and GroovyDoc have been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.7].
 
+[[sec:configuration_removal]]
 ==== Removal of `compile` and `runtime` configurations
 
 Since its inception, Gradle provided the `compile` and `runtime` configurations to declare dependencies.
@@ -85,6 +169,31 @@ These however did not support a fine grained scoping of dependencies. Hence, bet
 In Gradle 7, both the `compile` and `runtime` configurations are removed.
 Therefore, you have to migrate to the `implementation` and `api` configurations above.
 If you are still using the `java` plugin for a Java library, you will need to apply the `java-library` plugin instead.
+
+
+.Common configuration upgrades
+|===
+|Removed Configuration | New Configuration
+
+|`compile`
+|`api` or `implementation`
+
+|`runtime`
+|`runtimeOnly`
+
+|`testRuntime`
+|`testRuntimeOnly`
+
+|`testCompile`
+|`testImplementation`
+
+
+|`<sourceSet>Runtime`
+|`<sourceSet>RuntimeOnly`
+
+|`<sourceSet>Compile`
+|`<sourceSet>Implementation`
+|===
 
 You can find more details about the benefits of the new configurations and which one to use in place of `compile` and `runtime` by reading the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> documentation.
 
@@ -257,6 +366,17 @@ checkstyle {
     configDirectory = file("path/to/checkstyle-config-dir")
 }
 ```
+
+==== Querying the mapped value of a provider before the producer has completed is now an error
+
+Gradle 6.x warns users about the wrong behavior and then returns a possibly incorrect provider value.
+Starting with 7.0 the same case will produce an error.
+Plugins and build scripts should be adjusted to query the mapped value of a provider, for example a task output property, after the task has completed.
+
+==== Task validation problems are now errors
+
+Gradle 6.0 started warning about problems with task definitions (such as incorrectly defined inputs or outputs).
+For Gradle 7.0, those warnings are now errors and will fail the build.
 
 === Deprecations
 

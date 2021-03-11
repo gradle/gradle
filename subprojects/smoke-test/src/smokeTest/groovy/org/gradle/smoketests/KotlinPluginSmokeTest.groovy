@@ -228,7 +228,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     'com.android.internal.application', 'com.android.internal.version-check',
                     // For 1.4.30 we seem to detect the id android for the android application plugin.
                     // It seems like this change caused this: https://github.com/JetBrains/kotlin/commit/96352b9c8c16dce9f9d6c4c68314163583fe0628#diff-87838cc076c7f5e1aa28563cc605bfbebd9c36718fd3aaee3da7ebcd638ef641R220
-                    version == '1.4.30' ? 'android' : 'com.android.application'
+                    version == '1.4.31' ? 'android' : 'com.android.application'
                 ]
                 passing {
                     it !in failingAndroidPlugins
@@ -236,8 +236,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 onPlugins(failingAndroidPlugins) {
                     // This is not a problem, since the task is only used for internal testing
                     failsWith([
-                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('consumable').kind('an input or output annotation').includeLink() }): ERROR,
-                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('resolvable').kind('an input or output annotation').includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('consumable').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('resolvable').missingInputOrOutput().includeLink() }): ERROR,
                     ])
                 }
             } else {

@@ -154,6 +154,7 @@ dependencies {
     integTestImplementation(libs.jetty)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(testFixtures(project(":native")))
+    integTestImplementation(testFixtures(project(":file-temp")))
 
 
     testRuntimeOnly(project(":distributions-core")) {

@@ -21,8 +21,8 @@ import groovy.transform.CompileStatic
 import java.util.function.Supplier
 
 @CompileStatic
-class TestProblem<C, P> extends BaseProblem<TestProblemId, TestSeverity, TestContext, P> {
-    protected TestProblem(TestProblemId testProblemId, TestSeverity testSeverity, TestContext context, P payload, Supplier<String> shortDescription, Supplier<String> longDescription, Supplier<String> reason, Supplier<String> docUrl, List<Supplier<Solution>> solutions) {
-        super(testProblemId, testSeverity, context, payload, shortDescription, longDescription, reason, docUrl, solutions)
+class TestProblem extends BaseProblem<TestProblemId, TestSeverity, TestContext> {
+    protected TestProblem(TestProblemId testProblemId, TestSeverity testSeverity, TestContext context, Supplier<String> shortDescription, Supplier<String> longDescription, Supplier<String> reason, Supplier<String> docUrl, List<Supplier<Solution>> solutions) {
+        super(testProblemId, testSeverity, context, shortDescription, longDescription, reason, docUrl, solutions)
     }
 }

@@ -4,9 +4,8 @@ pluginManagement {
         gradlePluginPortal()
         google()
     }
+    includeBuild('../build-logic')
 }
-includeBuild('../platforms')
-includeBuild('../build-logic')
 
 // == Define locations for components ==
 dependencyResolutionManagement {
@@ -15,6 +14,7 @@ dependencyResolutionManagement {
         google()
     }
 }
+includeBuild('../platforms')
 includeBuild('../user-feature')
 
 // == Define the inner structure of this component ==

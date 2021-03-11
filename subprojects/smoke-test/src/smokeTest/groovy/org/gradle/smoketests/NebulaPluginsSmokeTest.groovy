@@ -79,7 +79,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('groovydoc').build()
     }
 
-    @Ignore("TODO: BM Part of groovy 3 upgrade")
+    @Ignore("Waiting for Groovy3 compatibility https://github.com/gradle/gradle/issues/16358")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
     @ToBeFixedForConfigurationCache
     def 'nebula lint plugin'() {
@@ -257,9 +257,9 @@ testImplementation('junit:junit:4.7')""")
             if (testedPluginId == 'nebula.plugin-plugin') {
                 onPlugin('com.github.kt3k.coveralls') {
                     failsWith([
-                        (missingAnnotationMessage { type('CoverallsTask').property('env').kind('an input or output annotation').includeLink() }): ERROR,
-                        (missingAnnotationMessage { type('CoverallsTask').property('logger').kind('an input or output annotation').includeLink() }): ERROR,
-                        (missingAnnotationMessage { type('CoverallsTask').property('sourceReportFactoryMap').kind('an input or output annotation').includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('CoverallsTask').property('env').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('CoverallsTask').property('logger').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('CoverallsTask').property('sourceReportFactoryMap').missingInputOrOutput().includeLink() }): ERROR,
                     ])
                 }
                 onPlugins(['com.gradle.plugin-publish',

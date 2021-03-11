@@ -16,9 +16,9 @@
 
 package org.gradle.jvm.toolchain.install.internal
 
-import org.gradle.api.internal.file.DefaultTemporaryFileProvider
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager

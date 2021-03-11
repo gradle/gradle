@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server.scaninfo
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -92,7 +93,14 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
-        executer.withArguments(continuous ? ['waitForExpiration', '--continuous'] : ['waitForExpiration']).run()
+        openJpmsModulesForConfigurationCache()
+        if (continuous) {
+            executer.withArgument('waitForExpiration')
+            executer.withArgument('--continuous')
+        } else {
+            executer.withArgument('waitForExpiration')
+        }
+        executer.run()
 
         then:
         file(EXPIRATION_EVENT).text.startsWith "onExpirationEvent fired with: expiring daemon with TestExpirationStrategy uuid:"
@@ -111,7 +119,8 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
-        executer.withArguments('waitForExpiration').run()
+        openJpmsModulesForConfigurationCache()
+        executer.withArgument('waitForExpiration').run()
 
         then:
         file(EXPIRATION_EVENT).text.startsWith "onExpirationEvent fired with: expiring daemon with TestExpirationStrategy uuid:"
@@ -122,7 +131,8 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
            ${imports()}
            ${waitForExpirationTask()}
         """
-        def waitForExpirationResult = executer.withArguments('waitForExpiration').runWithFailure()
+        openJpmsModulesForConfigurationCache()
+        def waitForExpirationResult = executer.withArgument('waitForExpiration').runWithFailure()
 
         then:
         waitForExpirationResult.assertHasCause("Timed out waiting for expiration event")
@@ -142,6 +152,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
         when:
         startAForegroundDaemon()
+        openJpmsModulesForConfigurationCache()
         executer.withTasks('waitForExpiration').run()
 
         then:
@@ -262,6 +273,13 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
         def latch = new CountDownLatch(1)
         """
+    }
+
+    private void openJpmsModulesForConfigurationCache() {
+        if (JavaVersion.current().isJava9Compatible() && GradleContextualExecuter.isConfigCache()) {
+            // For java.util.concurrent.CountDownLatch being serialized reflectively by configuration cache
+            executer.withArgument('-Dorg.gradle.jvmargs=--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED')
+        }
     }
 
 }

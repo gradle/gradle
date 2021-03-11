@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
-import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -18,9 +18,12 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
+
+import static org.gradle.internal.reflect.validation.Severity.ERROR
 
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
@@ -30,7 +33,7 @@ import org.gradle.util.VersionNumber
  * https://androidstudio.googleblog.com/
  *
  */
-class AndroidPluginsSmokeTest extends AbstractSmokeTest {
+class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead."
 
@@ -364,5 +367,67 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                 }
             }
         """.stripIndent()
+    }
+
+    @Override
+    Map<String, Versions> getPluginsToValidate() {
+        return [
+            'com.android.application': TestedVersions.androidGradle,
+            'com.android.library': TestedVersions.androidGradle,
+            'com.android.test': TestedVersions.androidGradle,
+            'com.android.reporting': TestedVersions.androidGradle,
+            'com.android.dynamic-feature': TestedVersions.androidGradle,
+        ]
+    }
+
+    @Override
+    void configureValidation(String testedPluginId, String version) {
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(version)
+        if (testedPluginId != 'com.android.reporting') {
+            buildFile << """
+                android {
+                    compileSdkVersion 24
+                    buildToolsVersion '${TestedVersions.androidTools}'
+                }
+            """
+        }
+        if (testedPluginId == 'com.android.test') {
+            buildFile << """
+                android {
+                    targetProjectPath ':'
+                }
+            """
+        }
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    google()
+                }
+                resolutionStrategy.eachPlugin {
+                    if (pluginRequest.id.id.startsWith('com.android')) {
+                        useModule('com.android.tools.build:gradle:${version}')
+                    }
+                }
+            }
+        """
+        validatePlugins {
+            boolean failsValidation = version.startsWith('4.2.0') || version.startsWith('7.0')
+            if (failsValidation) {
+                def pluginSuffix = testedPluginId.substring('com.android.'.length())
+                def failingPlugins = ['com.android.internal.version-check', testedPluginId, 'com.android.internal.' + pluginSuffix]
+                passing {
+                    it !in failingPlugins
+                }
+                onPlugins(failingPlugins) {
+                    failsWith([
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('consumable').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('resolvable').missingInputOrOutput().includeLink() }): ERROR,
+                    ])
+                }
+            } else {
+                alwaysPasses()
+            }
+        }
     }
 }

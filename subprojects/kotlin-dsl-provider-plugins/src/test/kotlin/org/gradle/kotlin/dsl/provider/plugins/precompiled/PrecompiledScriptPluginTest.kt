@@ -25,6 +25,15 @@ class PrecompiledScriptPluginTest : TestWithTempFiles() {
     }
 
     @Test
+    fun `plugin id can contain dot gradle dot kts substring within its id`() {
+
+        assertThat(
+            scriptPlugin("dev.gradle.ktscript.plugin.gradle.kts").id,
+            equalTo("dev.gradle.ktscript.plugin")
+        )
+    }
+
+    @Test
     fun `plugin id is prefixed by package name if present`() {
 
         assertThat(

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
+import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
 
@@ -41,11 +41,11 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     @Override
     public TypeValidationContext forType(Class<?> type, boolean cacheable) {
         types.add(type);
-        return new MessageFormattingTypeValidationContext(documentationRegistry, type) {
+        return new ProblemRecordingTypeValidationContext(documentationRegistry, type) {
 
             @Override
             protected void recordProblem(TypeValidationProblem problem) {
-                boolean cacheableProblemOnly = problem.getPayload().map(TypeValidationProblem.Payload::isCacheabilityProblemOnly).orElse(false);
+                boolean cacheableProblemOnly = problem.isCacheabilityProblemOnly();
                 if (cacheableProblemOnly && !cacheable) {
                     return;
                 }

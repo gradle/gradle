@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.resources.DefaultResourceHandler
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher

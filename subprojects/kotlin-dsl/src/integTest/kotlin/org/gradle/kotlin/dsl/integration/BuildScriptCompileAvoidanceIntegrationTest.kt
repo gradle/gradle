@@ -860,6 +860,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     private
     fun configureProjectAndExpectCompileAvoidanceWarnings(vararg tasks: String): BuildOperationsAssertions {
+        ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16InNoDaemonMode()
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
         val output = executer.withArgument("--info").withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output, true)
@@ -876,6 +877,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     // leaving this one as a workaround for test cases that have precompiled script plugins until the underlying issue is fixed
     private
     fun configureProjectWithDebugOutput(vararg tasks: String): DebugOutputFixture {
+        ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16InNoDaemonMode()
         return DebugOutputFixture(executer.withArgument("--debug").withTasks(*tasks).run().normalizedOutput)
     }
 }

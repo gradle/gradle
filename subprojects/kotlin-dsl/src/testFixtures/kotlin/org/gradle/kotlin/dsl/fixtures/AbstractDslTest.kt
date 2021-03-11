@@ -34,6 +34,10 @@ abstract class AbstractDslTest : TestWithTempFiles() {
     val kotlinDslEvalBaseCacheDir: File
         get() = dslTestFixture.kotlinDslEvalBaseCacheDir
 
+    protected
+    val kotlinDslEvalBaseTempDir: File
+        get() = dslTestFixture.kotlinDslEvalBaseTempDir
+
     /**
      * Evaluates the given Kotlin [script] against this [Project] writing compiled classes
      * to sub-directories of [baseCacheDir] using [scriptCompilationClassPath].
@@ -41,6 +45,7 @@ abstract class AbstractDslTest : TestWithTempFiles() {
     fun Project.eval(
         script: String,
         baseCacheDir: File = kotlinDslEvalBaseCacheDir,
+        baseTempDir: File = kotlinDslEvalBaseTempDir,
         scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
         scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
     ) =
@@ -48,6 +53,7 @@ abstract class AbstractDslTest : TestWithTempFiles() {
             script,
             this,
             baseCacheDir,
+            baseTempDir,
             scriptCompilationClassPath,
             scriptRuntimeClassPath
         )
@@ -62,6 +68,12 @@ class DslTestFixture(private val testDirectory: File) {
         }
     }
 
+    val kotlinDslEvalBaseTempDir: File by lazy {
+        testDirectory.resolve("kotlin-dsl-eval-temp").apply {
+            mkdirs()
+        }
+    }
+
     /**
      * Evaluates the given Kotlin [script] against this [Project] writing compiled classes
      * to sub-directories of [baseCacheDir] using [scriptCompilationClassPath].
@@ -70,6 +82,7 @@ class DslTestFixture(private val testDirectory: File) {
         script: String,
         target: Any,
         baseCacheDir: File = kotlinDslEvalBaseCacheDir,
+        baseTempDir: File = kotlinDslEvalBaseTempDir,
         scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
         scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
     ) =
@@ -77,6 +90,7 @@ class DslTestFixture(private val testDirectory: File) {
             script,
             target,
             baseCacheDir,
+            baseTempDir,
             scriptCompilationClassPath,
             scriptRuntimeClassPath
         )

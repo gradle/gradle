@@ -19,6 +19,7 @@ package org.gradle.caching.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
@@ -155,10 +156,11 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 BuildOperationExecutor buildOperationExecutor,
                 InstantiatorFactory instantiatorFactory,
                 GradleInternal gradle,
-                RootBuildCacheControllerRef rootControllerRef
+                RootBuildCacheControllerRef rootControllerRef,
+                TemporaryFileProvider temporaryFileProvider
             ) {
                 if (isRoot(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
-                    return doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle);
+                    return doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle, temporaryFileProvider);
                 } else {
                     // must be an included build or buildSrc
                     return rootControllerRef.getForNonRootBuild();
@@ -178,10 +180,9 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 return gradle.isRootBuild();
             }
 
-            private BuildCacheController doCreateBuildCacheController(ServiceRegistry serviceRegistry, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor, InstantiatorFactory instantiatorFactory, GradleInternal gradle) {
+            private BuildCacheController doCreateBuildCacheController(ServiceRegistry serviceRegistry, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor, InstantiatorFactory instantiatorFactory, GradleInternal gradle, TemporaryFileProvider temporaryFileProvider) {
                 StartParameter startParameter = gradle.getStartParameter();
                 Path buildIdentityPath = gradle.getIdentityPath();
-                File gradleUserHomeDir = gradle.getGradleUserHomeDir();
                 BuildCacheControllerFactory.BuildCacheMode buildCacheMode = startParameter.isBuildCacheEnabled() ? BuildCacheControllerFactory.BuildCacheMode.ENABLED : BuildCacheControllerFactory.BuildCacheMode.DISABLED;
                 BuildCacheControllerFactory.RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? BuildCacheControllerFactory.RemoteAccessMode.OFFLINE : BuildCacheControllerFactory.RemoteAccessMode.ONLINE;
                 boolean logStackTraces = startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
@@ -190,7 +191,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 return BuildCacheControllerFactory.create(
                     buildOperationExecutor,
                     buildIdentityPath,
-                    gradleUserHomeDir,
+                    temporaryFileProvider,
                     buildCacheConfiguration,
                     buildCacheMode,
                     remoteAccessMode,

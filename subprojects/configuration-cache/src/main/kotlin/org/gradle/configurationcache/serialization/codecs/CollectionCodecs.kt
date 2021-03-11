@@ -18,10 +18,8 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.codec
-import org.gradle.configurationcache.serialization.readArray
 import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.readMapInto
-import org.gradle.configurationcache.serialization.writeArray
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeMap
 import java.util.LinkedList
@@ -86,17 +84,4 @@ internal
 fun <T : MutableMap<Any?, Any?>> mapCodec(factory: (Int) -> T): Codec<T> = codec(
     { writeMap(it) },
     { readMapInto(factory) }
-)
-
-
-internal
-val arrayCodec: Codec<Array<*>> = codec(
-    {
-        writeArray(it) { element ->
-            write(element)
-        }
-    },
-    {
-        readArray { read() }
-    }
 )

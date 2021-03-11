@@ -241,4 +241,11 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun assumeNonEmbeddedGradleExecuter() {
         assumeFalse(GradleContextualExecuter.isEmbedded())
     }
+
+    protected
+    fun ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16InNoDaemonMode() {
+        if (GradleContextualExecuter.isNoDaemon() && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            executer.noDeprecationChecks()
+        }
+    }
 }

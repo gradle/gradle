@@ -111,16 +111,16 @@ class DefaultWriteContext(
         } else {
             val newId = scopes.putInstance(scope)
             writeSmallInt(newId)
-            if (scope.parent != null) {
+            if (scope.parent == null) {
+                writeBoolean(false)
+            } else {
                 writeBoolean(true)
                 writeScope(scope.parent)
-                writeString(scope.name)
-                writeClassPath(scope.localClassPath)
-                writeHashCode(scope.localImplementationHash)
-                writeClassPath(scope.exportClassPath)
-            } else {
-                writeBoolean(false)
             }
+            writeString(scope.name)
+            writeClassPath(scope.localClassPath)
+            writeHashCode(scope.localImplementationHash)
+            writeClassPath(scope.exportClassPath)
         }
     }
 
@@ -282,20 +282,24 @@ class DefaultReadContext(
         if (scope != null) {
             return scope as ClassLoaderScope
         }
-        val newScope = if (readBoolean()) {
-            val parent = readScope()
-            val name = readString()
-            val localClassPath = readClassPath()
-            val localImplementationHash = readHashCode()
-            val exportClassPath = readClassPath()
-            if (localImplementationHash != null && exportClassPath.isEmpty) {
-                parent.createLockedChild(name, localClassPath, localImplementationHash, null)
-            } else {
-                parent.createChild(name).local(localClassPath).export(exportClassPath).lock()
-            }
+
+        val parent = if (readBoolean()) {
+            readScope()
         } else {
             ownerService<ClassLoaderScopeRegistry>().coreAndPluginsScope
         }
+
+        val name = readString()
+        val localClassPath = readClassPath()
+        val localImplementationHash = readHashCode()
+        val exportClassPath = readClassPath()
+
+        val newScope = if (localImplementationHash != null && exportClassPath.isEmpty) {
+            parent.createLockedChild(name, localClassPath, localImplementationHash, null)
+        } else {
+            parent.createChild(name).local(localClassPath).export(exportClassPath).lock()
+        }
+
         scopes.putInstance(id, newScope)
         return newScope
     }

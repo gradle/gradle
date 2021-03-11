@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))
     implementation(project(":files"))
+    implementation(project(":file-temp"))
     implementation(project(":native"))
     implementation(project(":persistent-cache"))
     implementation(project(":resources"))

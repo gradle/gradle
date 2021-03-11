@@ -17,7 +17,7 @@ package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.TextResourceInternal;

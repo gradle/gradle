@@ -103,6 +103,11 @@ public class SystemProperties {
         return new File(System.getProperty("user.dir"));
     }
 
+    @Nullable
+    public String getWorkerTmpDir() {
+        return System.getProperty("org.gradle.internal.worker.tmpdir");
+    }
+
     /**
      * Creates an instance for a Factory implementation with a system property set to a given value.  Sets the system property back to the original value (or
      * clears it if it was never set) after the operation.

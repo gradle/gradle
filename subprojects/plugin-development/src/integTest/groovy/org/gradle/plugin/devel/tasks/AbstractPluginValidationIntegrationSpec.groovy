@@ -132,10 +132,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('badTime').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('oldThing').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('options.badNested').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('ter').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('oldThing').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('ter').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -185,15 +185,18 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         Nested            | '@Nested'                                                  | List           | "new ArrayList()"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE
+    )
     @Unroll
-    def "detects optional primitive type #type"() {
+    def "detects optional primitive type #primitiveType"() {
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
 
             public class MyTask extends DefaultTask {
                 @Optional @Input
-                ${type.name} getPrimitive() {
+                ${primitiveType.name} getPrimitive() {
                     return ${value};
                 }
 
@@ -202,22 +205,30 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
-            "Type 'MyTask': property 'primitive' @Input properties with primitive type '${type.name}' cannot be @Optional.": WARNING,
-        )
+        assertValidationFailsWith([
+            error(optionalOnPrimitive {
+                type('MyTask').property('primitive')
+                .primitive(primitiveType)
+            }, "validation_problems", "cannot_use_optional_on_primitive_types"),
+        ])
 
         where:
-        type    | value
-        boolean | true
-        int     | 1
-        double  | 1
+        primitiveType | value
+        boolean       | "true"
+        int           | "1"
+        double        | "1"
+        float         | "2f"
+        double        | "2d"
+        char          | "'c'"
+        short         | "(short) 5"
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_TRANSFORM_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
     )
     def "validates task caching annotations"() {
         javaTaskSource << """
+            import org.gradle.work.*;
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
@@ -229,7 +240,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     return new Options();
                 }
 
-                @CacheableTask @CacheableTransform
+                @CacheableTask
+                @CacheableTransform
+                @DisableCachingByDefault
                 public static class Options {
                     @Input
                     String getNestedThing() {
@@ -243,9 +256,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error("Type 'MyTask': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
-            error("Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types."),
-            error("Type 'MyTask.Options': Using CacheableTransform here is incorrect. This annotation only makes sense on TransformAction types. Possible solution: Remove the annotation.", "validation_problems", "invalid_use_of_cacheable_transform_annotation"),
+            error(invalidUseOfCacheableAnnotation { type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('DisableCachingByDefault').onlyMakesSenseOn('Task', 'TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
         ])
     }
 
@@ -285,8 +299,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('badTime').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('options.badNested').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -419,9 +433,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
-    )
+    @ValidationTestFor([
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
+    ])
     def "detects problems with file inputs"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -482,14 +497,15 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(false, [
-            warning("Type 'MyTask': property 'file' has @Input annotation used on property of type 'File'."),
-            warning("Type 'MyTask': property 'fileCollection' has @Input annotation used on property of type 'FileCollection'."),
-            warning("Type 'MyTask': property 'filePath' has @Input annotation used on property of type 'Path'."),
-            warning("Type 'MyTask': property 'fileTree' has @Input annotation used on property of type 'FileTree'."),
-            error("Type 'MyTask': property 'inputDirectory' is annotated with @InputDirectory but missing a normalization strategy. $normalizationProblemDetails"),
-            error("Type 'MyTask': property 'inputFile' is annotated with @InputFile but missing a normalization strategy. $normalizationProblemDetails"),
-            error("Type 'MyTask': property 'inputFiles' is annotated with @InputFiles but missing a normalization strategy. $normalizationProblemDetails"),
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
+        assertValidationFailsWith([
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('file').propertyType('File') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('fileCollection').propertyType('FileCollection') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('filePath').propertyType('Path') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(incorrectUseOfInputAnnotation { type('MyTask').property('fileTree').propertyType('FileTree') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('inputDirectory').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('inputFile').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
+            error(missingNormalizationStrategy { type('MyTask').property('inputFiles').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
         ])
     }
 
@@ -598,14 +614,14 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor( "alma")}${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -743,7 +759,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('readWrite').kind('an input or output annotation') }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
             error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
             error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
             error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
@@ -827,13 +843,13 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     abstract void assertValidationSucceeds()
 
     @Deprecated
-    final void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, Severity> messages) {
-        assertValidationFailsWith(expectDeprecationsForErrors, messages.collect { message, severity ->
+    final void assertValidationFailsWith(Map<String, Severity> messages) {
+        assertValidationFailsWith(messages.collect { message, severity ->
             new DocumentedProblem(message, severity)
         })
     }
 
-    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, List<DocumentedProblem> messages)
+    abstract void assertValidationFailsWith(List<DocumentedProblem> messages)
 
     abstract TestFile source(String path)
 
@@ -870,9 +886,5 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             this.section = section
             this.defaultDocLink = (id == "more_about_tasks") && (section == "sec:up_to_date_checks")
         }
-    }
-
-    String getNormalizationProblemDetails() {
-        "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}."
     }
 }

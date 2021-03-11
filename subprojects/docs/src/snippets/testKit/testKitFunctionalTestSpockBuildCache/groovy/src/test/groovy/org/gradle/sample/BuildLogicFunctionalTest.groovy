@@ -1,29 +1,28 @@
 package org.gradle.sample
 
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildLogicFunctionalTest extends Specification {
 
     // tag::clean-build-cache[]
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir File testProjectDir
     File buildFile
     File localBuildCacheDirectory
 
     def setup() {
-        localBuildCacheDirectory = testProjectDir.newFolder('local-cache')
-        testProjectDir.newFile('settings.gradle') << """
+        localBuildCacheDirectory = new File(testProjectDir, 'local-cache')
+        buildFile = new File(testProjectDir,'settings.gradle') << """
             buildCache {
                 local {
                     directory '${localBuildCacheDirectory.toURI()}'
                 }
             }
         """
-        buildFile = testProjectDir.newFile('build.gradle')
+        buildFile = new File(testProjectDir,'build.gradle')
     }
     // end::clean-build-cache[]
 
@@ -45,7 +44,7 @@ class BuildLogicFunctionalTest extends Specification {
         result.task(":cacheableTask").outcome == SUCCESS
 
         when:
-        new File(testProjectDir.root, 'build').deleteDir()
+        new File(testProjectDir, 'build').deleteDir()
         result = runner()
             .withArguments( '--build-cache', 'cacheableTask')
             .build()
@@ -57,7 +56,7 @@ class BuildLogicFunctionalTest extends Specification {
 
     def runner() {
         return GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .withPluginClasspath()
     }
 }

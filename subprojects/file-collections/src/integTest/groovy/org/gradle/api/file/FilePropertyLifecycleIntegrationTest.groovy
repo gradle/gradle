@@ -405,7 +405,7 @@ task thing {
         succeeds("after")
     }
 
-    def "querying the value of a mapped task output file property before the task has started is deprecated"() {
+    def "querying the value of a mapped task output file property before the task has started is not supported"() {
         taskTypeWithOutputFileProperty()
         buildFile << """
             task producer(type: FileProducer) {
@@ -416,16 +416,13 @@ task thing {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
-            "This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
-        succeeds("producer")
+        fails("producer")
 
         then:
-        outputContains("prop = (null)")
+        failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
     }
 
-    def "querying the value of a mapped task output file property before the task has completed is deprecated"() {
+    def "querying the value of a mapped task output file property before the task has completed is not supported"() {
         taskTypeWithOutputFileProperty()
         buildFile << """
             task producer(type: FileProducer) {
@@ -438,16 +435,13 @@ task thing {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
-            "This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
-        succeeds("producer")
+        fails("producer")
 
         then:
-        outputContains("prop = (null)")
+        failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
     }
 
-    def "querying the value of a mapped task output directory property before the task has started is deprecated"() {
+    def "querying the value of a mapped task output directory property before the task has started is not supported"() {
         taskTypeWithOutputDirectoryProperty()
         buildFile << """
             task producer(type: DirProducer) {
@@ -459,16 +453,13 @@ task thing {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
-            "This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
-        succeeds("producer")
+        fails("producer")
 
         then:
-        outputContains("prop = -1")
+        failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
     }
 
-    def "querying the value of a mapped task output directory property before the task has completed is deprecated"() {
+    def "querying the value of a mapped task output directory property before the task has completed is not supported"() {
         taskTypeWithOutputDirectoryProperty()
         buildFile << """
             task producer(type: DirProducer) {
@@ -482,13 +473,10 @@ task thing {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
-            "This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
-        succeeds("producer")
+        fails("producer")
 
         then:
-        outputContains("prop = 0")
+        failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
     }
 
     def "cannot query strict property with upstream task output directory property until producer task starts execution"() {
@@ -638,14 +626,10 @@ task thing {
         """
 
         expect:
-        // TODO - should not generate a warning and throw an exception
-        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
-            "This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
         succeeds("after")
         outputContains("get failed: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
         outputContains("get from task failed: Failed to calculate the value of extension 'thing' property 'prop'.")
-        outputContains("get from task failed cause: Cannot query the value of task ':producer' property 'output' because task ':producer' has not completed yet.")
+        outputContains("get from task failed cause: Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
         output.count("prop = 123") == 1
     }
 }

@@ -50,7 +50,7 @@ public class SettingsFactory {
                                            StartParameter startParameter,
                                            ClassLoaderScope baseClassLoaderScope) {
 
-        ClassLoaderScope classLoaderScope = baseClassLoaderScope.createChild("settings");
+        ClassLoaderScope classLoaderScope = baseClassLoaderScope.createChild("settings[" + gradle.getIdentityPath() + "]");
         ScriptHandlerInternal settingsScriptHandler = scriptHandlerFactory.create(settingsScript, classLoaderScope);
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
             serviceRegistryFactory,

@@ -377,6 +377,14 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         "TreeMap<String, Integer>"           | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
         "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])"                         | "[a:1, b:2]"
         "EnumMap<SomeEnum, String>"          | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
+        "byte[]"                             | "[Byte.MIN_VALUE, Byte.MAX_VALUE]"                            | "[-128, 127]"
+        "short[]"                            | "[Short.MIN_VALUE, Short.MAX_VALUE]"                          | "[-32768, 32767]"
+        "int[]"                              | "[Integer.MIN_VALUE, Integer.MAX_VALUE]"                      | "[-2147483648, 2147483647]"
+        "long[]"                             | "[Long.MIN_VALUE, Long.MAX_VALUE]"                            | "[-9223372036854775808, 9223372036854775807]"
+        "float[]"                            | "[Float.MIN_VALUE, Float.NaN, Float.MAX_VALUE]"               | "[1.4E-45, NaN, 3.4028235E38]"
+        "double[]"                           | "[Double.MIN_VALUE, Double.NaN, Double.MAX_VALUE]"            | "[4.9E-324, NaN, 1.7976931348623157E308]"
+        "boolean[]"                          | "[true, false]"                                               | "[true, false]"
+        "char[]"                             | "['a', 'b', 'c']"                                             | "abc"
     }
 
     @Unroll

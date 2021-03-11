@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.Describables
 import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.state.ModelObject
-import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -46,7 +45,7 @@ class TransformBackedProviderTest extends Specification {
         DeprecationLogger.reset()
     }
 
-    def "warns when calling isPresent() before producer task has completed"() {
+    def "fails when calling isPresent() before producer task has completed"() {
         given:
         def property = propertyWithProducer()
         def provider = property.map { Integer.parseInt(it) }
@@ -55,15 +54,12 @@ class TransformBackedProviderTest extends Specification {
         provider.isPresent()
 
         then:
-        1 * progressEventEmitter.emitNowIfCurrent(_) >> { DefaultDeprecatedUsageProgressDetails progressDetails ->
-            assert progressDetails.featureUsage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
-                "This will fail with an error in Gradle 7.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
-        }
+        def ex = thrown(InvalidUserCodeException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
         0 * progressEventEmitter._
     }
 
-    def "warns when calling get() before producer task has completed"() {
+    def "fails when calling get() before producer task has completed"() {
         given:
         def property = propertyWithProducer()
         def provider = property.map { Integer.parseInt(it) }
@@ -72,15 +68,12 @@ class TransformBackedProviderTest extends Specification {
         provider.get()
 
         then:
-        1 * progressEventEmitter.emitNowIfCurrent(_) >> { DefaultDeprecatedUsageProgressDetails progressDetails ->
-            assert progressDetails.featureUsage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
-                "This will fail with an error in Gradle 7.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
-        }
+        def ex = thrown(InvalidUserCodeException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
         0 * progressEventEmitter._
     }
 
-    def "does not warn when calling get() after producer task has completed"() {
+    def "does not fail when calling get() after producer task has completed"() {
         given:
         def property = propertyWithCompletedProducer()
         def provider = property.map { Integer.parseInt(it) }
@@ -92,7 +85,7 @@ class TransformBackedProviderTest extends Specification {
         0 * progressEventEmitter._
     }
 
-    def "warns when calling getOrNull() before producer task has completed"() {
+    def "fails when calling getOrNull() before producer task has completed"() {
         given:
         def property = propertyWithProducer()
         def provider = property.map { Integer.parseInt(it) }
@@ -101,15 +94,12 @@ class TransformBackedProviderTest extends Specification {
         provider.getOrNull()
 
         then:
-        1 * progressEventEmitter.emitNowIfCurrent(_) >> { DefaultDeprecatedUsageProgressDetails progressDetails ->
-            assert progressDetails.featureUsage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
-                "This will fail with an error in Gradle 7.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
-        }
+        def ex = thrown(InvalidUserCodeException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
         0 * progressEventEmitter._
     }
 
-    def "warns when calling getOrElse() before producer task has completed"() {
+    def "fails when calling getOrElse() before producer task has completed"() {
         given:
         def property = propertyWithProducer()
         def provider = property.map { Integer.parseInt(it) }
@@ -118,15 +108,12 @@ class TransformBackedProviderTest extends Specification {
         provider.getOrElse(12)
 
         then:
-        1 * progressEventEmitter.emitNowIfCurrent(_) >> { DefaultDeprecatedUsageProgressDetails progressDetails ->
-            assert progressDetails.featureUsage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
-                "This will fail with an error in Gradle 7.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
-        }
+        def ex = thrown(InvalidUserCodeException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
         0 * progressEventEmitter._
     }
 
-    def "warns when querying chained mapping before producer task has completed"() {
+    def "fails when querying chained mapping before producer task has completed"() {
         given:
         def property = propertyWithProducer()
         def provider = property.map { Integer.parseInt(it) }.map { it + 2 }
@@ -135,20 +122,12 @@ class TransformBackedProviderTest extends Specification {
         provider.get()
 
         then:
-        1 * progressEventEmitter.emitNowIfCurrent(_) >> { DefaultDeprecatedUsageProgressDetails progressDetails ->
-            assert progressDetails.featureUsage.formattedMessage() == "Querying the mapped value of map(<prop>) before <task> has completed has been deprecated. " +
-                "This will fail with an error in Gradle 7.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
-        }
-        1 * progressEventEmitter.emitNowIfCurrent(_) >> { DefaultDeprecatedUsageProgressDetails progressDetails ->
-            assert progressDetails.featureUsage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
-                "This will fail with an error in Gradle 7.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
-        }
+        def ex = thrown(InvalidUserCodeException)
+        ex.message == "Querying the mapped value of map(<prop>) before <task> has completed is not supported"
         0 * progressEventEmitter._
     }
 
-    def "warns when querying orElse() mapping before producer task has completed"() {
+    def "fails when querying orElse() mapping before producer task has completed"() {
         given:
         def property = propertyWithProducer()
         def provider = property.map { Integer.parseInt(it) }.orElse(12)
@@ -157,11 +136,8 @@ class TransformBackedProviderTest extends Specification {
         provider.get()
 
         then:
-        1 * progressEventEmitter.emitNowIfCurrent(_) >> { DefaultDeprecatedUsageProgressDetails progressDetails ->
-            assert progressDetails.featureUsage.formattedMessage() == "Querying the mapped value of <prop> before <task> has completed has been deprecated. " +
-                "This will fail with an error in Gradle 7.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
-        }
+        def ex = thrown(InvalidUserCodeException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
         0 * progressEventEmitter._
     }
 

@@ -68,7 +68,7 @@ class PrecompiledGroovyScript {
         }
 
         PluginId toPluginId(String fileName) {
-            return DefaultPluginId.of(fileName.substring(0, fileName.indexOf(fileExtension)));
+            return DefaultPluginId.of(fileName.substring(0, fileName.lastIndexOf(fileExtension)));
         }
     }
 

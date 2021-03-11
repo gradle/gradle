@@ -16,7 +16,7 @@ dependencies {
         // Gradle Plugins
         api("com.gradle:gradle-enterprise-gradle-plugin:3.5.2")
         // Keep version with `settings.gradle.kts` in sync
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.0-rc-5")
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.0-rc-7")
         api("org.gradle.guides:gradle-guides-plugin:0.18.0")
         api("com.gradle.publish:plugin-publish-plugin:0.13.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0")
@@ -25,7 +25,7 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
         api("org.gradle:test-retry-gradle-plugin:1.2.0")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
-        api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.6.0")
+        api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
         api("com.diffplug.spotless:spotless-plugin-gradle:5.10.2")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
 

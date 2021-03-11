@@ -19,19 +19,27 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Formatter;
 
 public class UnsupportedNotationException extends TypeConversionException {
     private final Object notation;
+    private final Collection<String> candidates;
 
     public UnsupportedNotationException(Object notation) {
         super("Could not convert " + notation);
         this.notation = notation;
+        this.candidates = Collections.emptyList();
     }
 
     public UnsupportedNotationException(Object notation, String failure, @Nullable String resolution, Collection<String> candidateTypes) {
         super(format(failure, resolution, candidateTypes));
         this.notation = notation;
+        this.candidates = candidateTypes;
+    }
+
+    public Collection<String> getCandidates() {
+        return candidates;
     }
 
     private static String format(String failure, String resolution, Collection<String> formats) {

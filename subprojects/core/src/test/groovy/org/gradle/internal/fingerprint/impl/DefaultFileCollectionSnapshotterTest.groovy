@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.impl
 import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.resources.MissingResourceException
