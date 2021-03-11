@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import net.rubygrapefruit.platform.file.FileSystemInfo;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
@@ -23,6 +24,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.vfs.WatchableFileSystemRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +37,19 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.function.Predicate;
 
+import static org.gradle.internal.watch.registry.impl.Combiners.nonCombining;
+
 public class WatchableHierarchies {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchableHierarchies.class);
 
+    private final WatchableFileSystemRegistry watchableFileSystemRegistry;
     private final Predicate<String> watchFilter;
 
     private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
     private final Deque<Path> recentlyUsedHierarchies = new ArrayDeque<>();
 
-    public WatchableHierarchies(Predicate<String> watchFilter) {
+    public WatchableHierarchies(WatchableFileSystemRegistry watchableFileSystemRegistry, Predicate<String> watchFilter) {
+        this.watchableFileSystemRegistry = watchableFileSystemRegistry;
         this.watchFilter = watchFilter;
     }
 
@@ -67,17 +74,11 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchableContent(SnapshotHierarchy root, Predicate<Path> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
-        SnapshotHierarchy newRoot = removeWatchedHierarchiesOverLimit(
-            root,
-            isWatchedHierarchy,
-            maximumNumberOfWatchedHierarchies,
-            invalidator
-        );
-        newRoot = removeUnwatchedSnapshots(
-            newRoot,
-            invalidator
-        );
+    public SnapshotHierarchy removeUnwatchableContent(SnapshotHierarchy root, WatchMode watchMode, Predicate<Path> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
+        SnapshotHierarchy newRoot;
+        newRoot = removeWatchedHierarchiesOverLimit(root, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
+        newRoot = removeUnwatchedSnapshots(newRoot, invalidator);
+        newRoot = removeUnwatchableFileSystems(newRoot, watchMode, invalidator);
         return newRoot;
     }
 
@@ -104,6 +105,35 @@ public class WatchableHierarchies {
         }
         this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies.stream().map(Path::toFile)::iterator);
         return result;
+    }
+
+    private SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, WatchMode watchMode, Invalidator invalidator) {
+        return recentlyUsedHierarchies.stream()
+            .flatMap(watchableFileSystemRegistry::unsupportedFileSystemsUnder)
+            .reduce(
+                root,
+                (updatedRoot, fileSystem) -> removeUnwatchableFileSystemIfNecessary(updatedRoot, watchMode, fileSystem, invalidator),
+                nonCombining()
+            );
+    }
+
+    private static SnapshotHierarchy removeUnwatchableFileSystemIfNecessary(SnapshotHierarchy root, WatchMode watchMode, FileSystemInfo fileSystem, Invalidator invalidator) {
+        switch (watchMode) {
+            case ENABLED:
+                LOGGER.debug("Watching is not supported for {}{} file system at '{}'",
+                    fileSystem.isRemote() ? "remote " : "",
+                    fileSystem.getFileSystemType(),
+                    fileSystem.getMountPoint());
+                return root;
+            case DEFAULT:
+                LOGGER.info("Watching is not supported for {}{} file system at '{}', dropping related state from the virtual file system",
+                    fileSystem.isRemote() ? "remote " : "",
+                    fileSystem.getFileSystemType(),
+                    fileSystem.getMountPoint());
+                return invalidator.invalidate(fileSystem.getMountPoint().getAbsolutePath(), root);
+            default:
+                throw new AssertionError("We shouldn't be here if watching was disabled");
+        }
     }
 
     public Collection<Path> getWatchableHierarchies() {
