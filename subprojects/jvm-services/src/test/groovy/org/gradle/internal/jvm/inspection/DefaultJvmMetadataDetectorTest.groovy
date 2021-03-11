@@ -68,15 +68,12 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
-        File javaHome = new File(jdk)
-        if (exists) {
-            javaHome = temporaryFolder.newFolder(jdk)
-            if (!jre) {
-                def binDir = new File(javaHome, "bin")
-                if (binDir.mkdir()) {
-                    File javac = new File(binDir, OperatingSystem.current().getExecutableName('javac'))
-                    javac << 'dummy'
-                }
+        File javaHome = temporaryFolder.newFolder(jdk)
+        if (!jre) {
+            def binDir = new File(javaHome, "bin")
+            if (binDir.mkdir()) {
+                File javac = new File(binDir, OperatingSystem.current().getExecutableName('javac'))
+                javac << 'dummy'
             }
         }
         def metadata = detector.getMetadata(javaHome)
@@ -87,45 +84,45 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         assert metadata.javaHome != null
 
         where:
-        jdk              | systemProperties       | javaVersion             | displayName                | exists | jre
-        'localGradle'    | currentGradle()        | JavaVersion.current()   | null                       | true   | false
-        'localGradle'    | currentGradle()        | JavaVersion.current()   | null                       | true   | true
-        'openJdk4'       | openJdkJvm('4')        | JavaVersion.VERSION_1_4 | 'OpenJDK 4'                | true   | false
-        'openJdk5'       | openJdkJvm('5')        | JavaVersion.VERSION_1_5 | 'OpenJDK 5'                | true   | false
-        'openJdk6'       | openJdkJvm('6')        | JavaVersion.VERSION_1_6 | 'OpenJDK 6'                | true   | false
-        'openJdk7'       | openJdkJvm('7')        | JavaVersion.VERSION_1_7 | 'OpenJDK 7'                | true   | false
-        'openJdk8'       | openJdkJvm('8')        | JavaVersion.VERSION_1_8 | 'OpenJDK 8'                | true   | false
-        'openJdk9'       | openJdkJvm('9')        | JavaVersion.VERSION_1_9 | 'OpenJDK 9'                | true   | false
-        'openJdk9'       | openJdkJvm('9')        | JavaVersion.VERSION_1_9 | 'OpenJDK JRE 9'            | true   | true
-        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3') | JavaVersion.VERSION_11  | 'AdoptOpenJDK 11'          | true   | false
-        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3') | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true   | true
-        'AdoptOpenJDKJ9' | adoptOpenJDKJ9('14.0.2') | JavaVersion.VERSION_14  | 'AdoptOpenJDK 14'      | true   | false
-        'oracleJdk4'     | oracleJvm('4')         | JavaVersion.VERSION_1_4 | 'Oracle JDK 4'             | true   | false
-        'oracleJre4'     | oracleJvm('4')         | JavaVersion.VERSION_1_4 | 'Oracle JRE 4'             | true   | true
-        'oracleJdk5'     | oracleJvm('5')         | JavaVersion.VERSION_1_5 | 'Oracle JDK 5'             | true   | false
-        'oracleJdk6'     | oracleJvm('6')         | JavaVersion.VERSION_1_6 | 'Oracle JDK 6'             | true   | false
-        'oracleJdk7'     | oracleJvm('7')         | JavaVersion.VERSION_1_7 | 'Oracle JDK 7'             | true   | false
-        'oracleJdk8'     | oracleJvm('8')         | JavaVersion.VERSION_1_8 | 'Oracle JDK 8'             | true   | false
-        'oracleJdk9'     | oracleJvm('9')         | JavaVersion.VERSION_1_9 | 'Oracle JDK 9'             | true   | false
-        'oracleJre9'     | oracleJvm('9')         | JavaVersion.VERSION_1_9 | 'Oracle JRE 9'             | true   | true
-        'ibmJdk4'        | ibmJvm('4')            | JavaVersion.VERSION_1_4 | 'IBM JDK 4'                | true   | false
-        'ibmJre4'        | ibmJvm('4')            | JavaVersion.VERSION_1_4 | 'IBM JRE 4'                | true   | true
-        'ibmJdk5'        | ibmJvm('5')            | JavaVersion.VERSION_1_5 | 'IBM JDK 5'                | true   | false
-        'ibmJdk6'        | ibmJvm('6')            | JavaVersion.VERSION_1_6 | 'IBM JDK 6'                | true   | false
-        'ibmJdk7'        | ibmJvm('7')            | JavaVersion.VERSION_1_7 | 'IBM JDK 7'                | true   | false
-        'ibmJdk8'        | ibmJvm('8')            | JavaVersion.VERSION_1_8 | 'IBM JDK 8'                | true   | false
-        'ibmJdk9'        | ibmJvm('9')            | JavaVersion.VERSION_1_9 | 'IBM JDK 9'                | true   | false
-        'zuluJre6'       | zuluJvm('6')           | JavaVersion.VERSION_1_6 | 'Zulu JRE 6'               | true   | true
-        'zuluJdk8'       | zuluJvm('8')           | JavaVersion.VERSION_1_8 | 'Zulu JDK 8'               | true   | false
-        'hpuxJre6'       | hpuxJvm('6')           | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'              | true   | true
-        'hpuxJdk7'       | hpuxJvm('7')           | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'              | true   | false
-        'sapjdk13'       | sapJvm('13')           | JavaVersion.VERSION_13  | 'SAP SapMachine JDK 13'    | true   | false
-        'sapjre13'       | sapJvm('13')           | JavaVersion.VERSION_13  | 'SAP SapMachine JRE 13'    | true   | true
-        'correttojdk11'  | correttoJvm('11')      | JavaVersion.VERSION_11  | 'Amazon Corretto JDK 11'   | true   | false
-        'correttojre11'  | correttoJvm('11')      | JavaVersion.VERSION_11  | 'Amazon Corretto JRE 11'   | true   | true
-        'bellsoftjdk11'  | bellsoftJvm('15')      | JavaVersion.VERSION_15  | 'BellSoft Liberica JDK 15' | true   | false
-        'bellsoftjre11'  | bellsoftJvm('15')      | JavaVersion.VERSION_15  | 'BellSoft Liberica JRE 15' | true   | true
-        'whitespaces'    | whitespaces('11.0.3')  | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true   | true
+        jdk              | systemProperties         | javaVersion             | displayName                | jre
+        'localGradle'    | currentGradle()          | JavaVersion.current()   | null                       | false
+        'localGradle'    | currentGradle()          | JavaVersion.current()   | null                       | true
+        'openJdk4'       | openJdkJvm('4')          | JavaVersion.VERSION_1_4 | 'OpenJDK 4'                | false
+        'openJdk5'       | openJdkJvm('5')          | JavaVersion.VERSION_1_5 | 'OpenJDK 5'                | false
+        'openJdk6'       | openJdkJvm('6')          | JavaVersion.VERSION_1_6 | 'OpenJDK 6'                | false
+        'openJdk7'       | openJdkJvm('7')          | JavaVersion.VERSION_1_7 | 'OpenJDK 7'                | false
+        'openJdk8'       | openJdkJvm('8')          | JavaVersion.VERSION_1_8 | 'OpenJDK 8'                | false
+        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK 9'                | false
+        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK JRE 9'            | true
+        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK 11'          | false
+        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true
+        'AdoptOpenJDKJ9' | adoptOpenJDKJ9('14.0.2') | JavaVersion.VERSION_14  | 'AdoptOpenJDK 14'          | false
+        'oracleJdk4'     | oracleJvm('4')           | JavaVersion.VERSION_1_4 | 'Oracle JDK 4'             | false
+        'oracleJre4'     | oracleJvm('4')           | JavaVersion.VERSION_1_4 | 'Oracle JRE 4'             | true
+        'oracleJdk5'     | oracleJvm('5')           | JavaVersion.VERSION_1_5 | 'Oracle JDK 5'             | false
+        'oracleJdk6'     | oracleJvm('6')           | JavaVersion.VERSION_1_6 | 'Oracle JDK 6'             | false
+        'oracleJdk7'     | oracleJvm('7')           | JavaVersion.VERSION_1_7 | 'Oracle JDK 7'             | false
+        'oracleJdk8'     | oracleJvm('8')           | JavaVersion.VERSION_1_8 | 'Oracle JDK 8'             | false
+        'oracleJdk9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JDK 9'             | false
+        'oracleJre9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JRE 9'             | true
+        'ibmJdk4'        | ibmJvm('4')              | JavaVersion.VERSION_1_4 | 'IBM JDK 4'                | false
+        'ibmJre4'        | ibmJvm('4')              | JavaVersion.VERSION_1_4 | 'IBM JRE 4'                | true
+        'ibmJdk5'        | ibmJvm('5')              | JavaVersion.VERSION_1_5 | 'IBM JDK 5'                | false
+        'ibmJdk6'        | ibmJvm('6')              | JavaVersion.VERSION_1_6 | 'IBM JDK 6'                | false
+        'ibmJdk7'        | ibmJvm('7')              | JavaVersion.VERSION_1_7 | 'IBM JDK 7'                | false
+        'ibmJdk8'        | ibmJvm('8')              | JavaVersion.VERSION_1_8 | 'IBM JDK 8'                | false
+        'ibmJdk9'        | ibmJvm('9')              | JavaVersion.VERSION_1_9 | 'IBM JDK 9'                | false
+        'zuluJre6'       | zuluJvm('6')             | JavaVersion.VERSION_1_6 | 'Zulu JRE 6'               | true
+        'zuluJdk8'       | zuluJvm('8')             | JavaVersion.VERSION_1_8 | 'Zulu JDK 8'               | false
+        'hpuxJre6'       | hpuxJvm('6')             | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'              | true
+        'hpuxJdk7'       | hpuxJvm('7')             | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'              | false
+        'sapjdk13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JDK 13'    | false
+        'sapjre13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JRE 13'    | true
+        'correttojdk11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JDK 11'   | false
+        'correttojre11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JRE 11'   | true
+        'bellsoftjdk11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JDK 15' | false
+        'bellsoftjre11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JRE 15' | true
+        'whitespaces'    | whitespaces('11.0.3')    | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true
     }
 
     @Unroll
