@@ -19,6 +19,7 @@ package gradlebuild.identity.extension
 import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.*
@@ -46,7 +47,8 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
      *
      * The pre-tested commit branch name looks like "pre-test/master/queue/alice/personal-branch".
      */
-    abstract val preTestedCommitBaseBranch: Property<String>
+    val gradleBuildLogicBranch: Provider<String>
+        get() = gradleBuildBranch.map(this::toPreTestedCommitBaseBranch)
 
     abstract val gradleBuildCommitId: Property<String>
 
@@ -65,5 +67,12 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
         tasks.named<Jar>("jar").configure {
             from(createBuildReceipt.map { it.receiptFolder })
         }
+    }
+
+    // pre-test/master/queue/alice/feature -> master
+    // pre-test/release/current/bob/bugfix -> release
+    private fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
+        actualBranch.startsWith("pre-test/") -> actualBranch.substringAfter("/").substringBefore("/")
+        else -> actualBranch
     }
 }

@@ -81,7 +81,6 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     moduleIdentity.promotionBuild.convention(isPromotionBuild())
 
     moduleIdentity.gradleBuildBranch.convention(environmentVariable(BuildEnvironment.BUILD_BRANCH).orElse(currentGitBranch()))
-    moduleIdentity.preTestedCommitBaseBranch.convention(moduleIdentity.gradleBuildBranch.map { toPreTestedCommitBaseBranch(it) })
     moduleIdentity.gradleBuildCommitId.convention(
         environmentVariable(BuildEnvironment.BUILD_COMMIT_ID)
             .orElse(gradleProperty("promotionCommitId"))
@@ -99,13 +98,6 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     )
 
     return versionNumber
-}
-
-// pre-test/master/queue/alice/feature -> master
-// pre-test/release/current/bob/bugfix -> release
-fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
-    actualBranch.startsWith("pre-test/") -> actualBranch.substringAfter("/").substringBefore("/")
-    else -> actualBranch
 }
 
 /**

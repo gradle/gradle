@@ -32,7 +32,7 @@ abstract class UpdateBranchStatus : DefaultTask() {
 
     @TaskAction
     fun publishBranchStatus() {
-        when (project.the<ModuleIdentityExtension>().preTestedCommitBaseBranch.get()) {
+        when (project.the<ModuleIdentityExtension>().gradleBuildLogicBranch.get()) {
             "master" -> publishBranchStatus("master")
             "release" -> publishBranchStatus("release")
         }
