@@ -33,6 +33,7 @@ class TaskValidationReportFixture {
                 "$severity: $message"
             }
             .join("\n--------\n")
-        assert reportFile.text == expectedReportContents
+        def reportText = reportFile.text.replaceAll("\r\n", "\n")
+        assert reportText == expectedReportContents
     }
 }

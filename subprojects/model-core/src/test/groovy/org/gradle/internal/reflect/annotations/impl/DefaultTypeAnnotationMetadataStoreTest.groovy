@@ -41,6 +41,7 @@ import java.lang.reflect.Method
 
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE
 import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
     private static final COLOR = { "color" } as AnnotationCategory
@@ -809,7 +810,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         def validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, false)
         metadata.visitValidationFailures(validationContext)
         List<String> actualErrors = validationContext.problems
-            .collect({ message, severity -> ("$message" + (severity == ERROR ? " [STRICT]" : "") as String) })
+            .collect({ message, severity -> (normaliseLineSeparators(message) + (severity == ERROR ? " [STRICT]" : "") as String) })
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors

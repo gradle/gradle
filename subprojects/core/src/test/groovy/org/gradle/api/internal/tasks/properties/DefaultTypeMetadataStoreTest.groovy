@@ -67,6 +67,7 @@ import java.lang.annotation.Annotation
 
 import static ModifierAnnotationCategory.NORMALIZATION
 import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DefaultTypeMetadataStoreTest extends Specification implements ValidationMessageChecker {
     static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
@@ -423,7 +424,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     private static List<String> collectProblems(TypeMetadata metadata) {
         def validationContext = DefaultTypeValidationContext.withoutRootType(DOCUMENTATION_REGISTRY, false)
         metadata.visitValidationFailures(null, validationContext)
-        return validationContext.problems.keySet().toList()
+        return validationContext.problems.keySet().collect { normaliseLineSeparators(it) }
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {
