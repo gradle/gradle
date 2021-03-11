@@ -99,13 +99,14 @@ fun isMonitoredAsciidoctorTask() = false // No asciidoctor tasks are cacheable f
 fun isExpectedAsciidoctorCacheMiss() =
 // Expected cache-miss for asciidoctor task:
 // 1. CompileAll is the seed build for docs:distDocs
-// 2. Gradle_Check_BuildDistributions is the seed build for other asciidoctor tasks
+// 2. BuildDistributions is the seed build for other asciidoctor tasks
 // 3. buildScanPerformance test, which doesn't depend on compileAll
-    // 4. buildScanPerformance test, which doesn't depend on compileAll
+// 4. buildScanPerformance test, which doesn't depend on compileAll
     isInBuild(
         "Check_CompileAll",
         "Check_BuildDistributions",
-        "Components_GradleBuildScansPlugin_Performance_PerformanceLinux"
+        "Enterprise_Master_Component_GradlePlugin_Performance_PerformanceLatestMaster",
+        "Enterprise_Master_Component_GradlePlugin_Performance_PerformanceLatestReleased"
     )
 
 fun isExpectedCompileCacheMiss() =
@@ -113,10 +114,11 @@ fun isExpectedCompileCacheMiss() =
 // 1. CompileAll is the seed build
 // 2. Gradleception which re-builds Gradle with a new Gradle version
 // 3. buildScanPerformance test, which doesn't depend on compileAll
-    // 4. buildScanPerformance test, which doesn't depend on compileAll
+// 4. buildScanPerformance test, which doesn't depend on compileAll
     isInBuild(
         "Check_CompileAll",
-        "Components_GradleBuildScansPlugin_Performance_PerformanceLinux",
+        "Enterprise_Master_Component_GradlePlugin_Performance_PerformanceLatestMaster",
+        "Enterprise_Master_Component_GradlePlugin_Performance_PerformanceLatestReleased"
         "Check_Gradleception"
     )
 
