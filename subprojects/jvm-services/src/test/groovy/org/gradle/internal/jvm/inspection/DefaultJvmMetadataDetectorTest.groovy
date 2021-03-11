@@ -39,13 +39,6 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         tmpDir = new TestFile(temporaryFolder.newFolder("tmp"))
     }
 
-    private DefaultJvmMetadataDetector createDefaultJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
-        return new DefaultJvmMetadataDetector(
-            execHandleFactory,
-            TestFiles.tmpDirTemporaryFileProvider(tmpDir)
-        )
-    }
-
     def "cleans up generated Probe class"() {
         given:
         def execHandleFactory = createExecHandleFactory(currentGradle())
@@ -177,7 +170,12 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'binary that returns unknown version' | invalidVersion() | true   |  "Cannot parse version number: bad luck"
     }
 
-
+    private DefaultJvmMetadataDetector createDefaultJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
+        return new DefaultJvmMetadataDetector(
+                execHandleFactory,
+                TestFiles.tmpDirTemporaryFileProvider(tmpDir)
+        )
+    }
 
     private static Map<String, String> invalidOutput() {
         // emulates a binary that would not return the correct number of outputs
