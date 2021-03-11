@@ -105,8 +105,6 @@ fun isExpectedAsciidoctorCacheMiss() =
     isInBuild(
         "Check_CompileAll",
         "Check_BuildDistributions",
-        "Check_CompileAll",
-        "Check_BuildDistributions",
         "Components_GradleBuildScansPlugin_Performance_PerformanceLinux"
     )
 
@@ -117,7 +115,6 @@ fun isExpectedCompileCacheMiss() =
 // 3. buildScanPerformance test, which doesn't depend on compileAll
     // 4. buildScanPerformance test, which doesn't depend on compileAll
     isInBuild(
-        "Check_CompileAll",
         "Check_CompileAll",
         "Components_GradleBuildScansPlugin_Performance_PerformanceLinux",
         "Check_Gradleception"
