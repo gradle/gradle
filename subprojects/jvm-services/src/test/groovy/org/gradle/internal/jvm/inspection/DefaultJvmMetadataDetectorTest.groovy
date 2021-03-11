@@ -28,7 +28,6 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.spockframework.runtime.SpockAssertionError
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultJvmMetadataDetectorTest extends Specification {
 
@@ -61,7 +60,6 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         tmpDir.assertIsEmptyDir()
     }
 
-    @Unroll
     def "can detect metadata of #displayName"() {
         given:
         def execHandleFactory = createExecHandleFactory(systemProperties)
@@ -125,7 +123,6 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'whitespaces'    | whitespaces('11.0.3')    | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true
     }
 
-    @Unroll
     def "probes whether #jdk is a j9 virtual machine"() {
         given:
         def execHandleFactory = createExecHandleFactory(systemProperties)
@@ -153,7 +150,6 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'ibmJdk9'        | ibmJvm('9')              | true
     }
 
-    @Unroll
     def "detects invalid installation because #errorMessage"() {
         given:
         def execHandleFactory = createExecHandleFactory(systemProperties)
