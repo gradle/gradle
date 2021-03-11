@@ -16,8 +16,6 @@
 
 package org.gradle.internal.reflect.validation
 
-import org.gradle.util.TextUtil
-
 class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayConfiguration<T>> {
     private final ValidationMessageChecker checker
     boolean hasIntro = true
@@ -94,7 +92,7 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     }
 
     String render(boolean renderSolutions = true) {
-        def newLine = TextUtil.getPlatformLineSeparator() + checker.messageIndent
+        def newLine = "\n${checker.messageIndent}"
         StringBuilder sb = new StringBuilder(intro)
         sb.append(description)
             .append(description.endsWith(".") ? '' : '.')
