@@ -94,8 +94,8 @@ import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.WatchableHierarchies;
 import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
-import org.gradle.internal.watch.vfs.WatchableFileSystemRegistry;
-import org.gradle.internal.watch.vfs.impl.DefaultWatchableFileSystemRegistry;
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
+import org.gradle.internal.watch.vfs.impl.DefaultWatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.LocationsWrittenByCurrentBuild;
 import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
@@ -206,14 +206,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return locationsWrittenByCurrentBuild;
         }
 
-        WatchableFileSystemRegistry createWatchableFileSystemRegistry() {
-            return DefaultWatchableFileSystemRegistry.create();
+        WatchableFileSystemDetector createWatchableFileSystemDetector() {
+            return DefaultWatchableFileSystemDetector.create();
         }
 
-        WatchableHierarchies createWatchableHierarchies(GlobalCacheLocations globalCacheLocations, WatchableFileSystemRegistry watchableFileSystemRegistry) {
+        WatchableHierarchies createWatchableHierarchies(GlobalCacheLocations globalCacheLocations, WatchableFileSystemDetector watchableFileSystemDetector) {
             // All the changes in global caches should be done by Gradle itself, so in order
             // to minimize the number of watches we don't watch anything within the global caches.
-            return new WatchableHierarchies(watchableFileSystemRegistry, path -> !globalCacheLocations.isInsideGlobalCache(path));
+            return new WatchableHierarchies(watchableFileSystemDetector, path -> !globalCacheLocations.isInsideGlobalCache(path));
         }
 
         BuildLifecycleAwareVirtualFileSystem createVirtualFileSystem(
@@ -222,7 +222,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
             FileSystem fileSystem,
-            WatchableFileSystemRegistry watchableFileSystemRegistry,
+            WatchableFileSystemDetector watchableFileSystemDetector,
             WatchableHierarchies watchableHierarchies
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
@@ -234,7 +234,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     rootReference,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     locationsWrittenByCurrentBuild,
-                    watchableFileSystemRegistry
+                    watchableFileSystemDetector
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState ->

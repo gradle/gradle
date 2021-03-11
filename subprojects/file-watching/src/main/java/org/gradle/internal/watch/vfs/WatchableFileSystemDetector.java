@@ -21,7 +21,7 @@ import net.rubygrapefruit.platform.file.FileSystemInfo;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-public interface WatchableFileSystemRegistry {
+public interface WatchableFileSystemDetector {
     /**
      * Returns all file systems mounted at or under the given path for which file system watching is not supported.
      */

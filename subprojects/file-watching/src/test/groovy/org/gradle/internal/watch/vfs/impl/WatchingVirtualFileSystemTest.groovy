@@ -27,7 +27,7 @@ import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
 import org.gradle.internal.watch.vfs.WatchMode
-import org.gradle.internal.watch.vfs.WatchableFileSystemRegistry
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector
 import spock.lang.Specification
 
 class WatchingVirtualFileSystemTest extends Specification {
@@ -41,13 +41,13 @@ class WatchingVirtualFileSystemTest extends Specification {
     def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
     def locationsUpdatedByCurrentBuild = Mock(LocationsWrittenByCurrentBuild)
     def buildOperationRunner = new TestBuildOperationExecutor()
-    def watchableFileSystemRegistry = Stub(WatchableFileSystemRegistry)
+    def watchableFileSystemDetector = Stub(WatchableFileSystemDetector)
     def watchingVirtualFileSystem = new WatchingVirtualFileSystem(
         watcherRegistryFactory,
         rootReference,
         daemonDocumentationIndex,
         locationsUpdatedByCurrentBuild,
-        watchableFileSystemRegistry
+        watchableFileSystemDetector
     )
 
     def "invalidates the virtual file system before and after the build when watching is disabled"() {

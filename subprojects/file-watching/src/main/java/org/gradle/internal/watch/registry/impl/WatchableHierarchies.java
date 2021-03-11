@@ -25,7 +25,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.watch.vfs.WatchMode;
-import org.gradle.internal.watch.vfs.WatchableFileSystemRegistry;
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +42,14 @@ import static org.gradle.internal.watch.registry.impl.Combiners.nonCombining;
 public class WatchableHierarchies {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchableHierarchies.class);
 
-    private final WatchableFileSystemRegistry watchableFileSystemRegistry;
+    private final WatchableFileSystemDetector watchableFileSystemDetector;
     private final Predicate<String> watchFilter;
 
     private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
     private final Deque<Path> recentlyUsedHierarchies = new ArrayDeque<>();
 
-    public WatchableHierarchies(WatchableFileSystemRegistry watchableFileSystemRegistry, Predicate<String> watchFilter) {
-        this.watchableFileSystemRegistry = watchableFileSystemRegistry;
+    public WatchableHierarchies(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) {
+        this.watchableFileSystemDetector = watchableFileSystemDetector;
         this.watchFilter = watchFilter;
     }
 
@@ -109,7 +109,7 @@ public class WatchableHierarchies {
 
     private SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, WatchMode watchMode, Invalidator invalidator) {
         return recentlyUsedHierarchies.stream()
-            .flatMap(watchableFileSystemRegistry::unsupportedFileSystemsUnder)
+            .flatMap(watchableFileSystemDetector::unsupportedFileSystemsUnder)
             .reduce(
                 root,
                 (updatedRoot, fileSystem) -> removeUnwatchableFileSystemIfNecessary(updatedRoot, watchMode, fileSystem, invalidator),
