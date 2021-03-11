@@ -25,6 +25,7 @@ import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.exception.ExceptionAnalyser
+import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

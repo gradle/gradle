@@ -110,7 +110,7 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.InternalBuildFinishedListener;
+import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;

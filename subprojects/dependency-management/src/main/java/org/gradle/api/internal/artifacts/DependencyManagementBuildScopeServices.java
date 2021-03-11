@@ -140,7 +140,7 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DependenciesAccessors;
-import org.gradle.initialization.InternalBuildFinishedListener;
+import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.ProjectCacheDir;
