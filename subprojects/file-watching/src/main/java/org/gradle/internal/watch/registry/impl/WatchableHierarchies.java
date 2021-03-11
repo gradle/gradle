@@ -109,7 +109,7 @@ public class WatchableHierarchies {
 
     private SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, WatchMode watchMode, Invalidator invalidator) {
         return recentlyUsedHierarchies.stream()
-            .flatMap(watchableFileSystemDetector::unsupportedFileSystemsUnder)
+            .flatMap(watchableFileSystemDetector::detectUnsupportedFileSystemsUnder)
             .reduce(
                 root,
                 (updatedRoot, fileSystem) -> removeUnwatchableFileSystemIfNecessary(updatedRoot, watchMode, fileSystem, invalidator),

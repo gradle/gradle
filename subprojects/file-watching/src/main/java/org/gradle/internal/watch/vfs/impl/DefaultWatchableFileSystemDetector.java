@@ -68,7 +68,7 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
     }
 
     @Override
-    public Stream<FileSystemInfo> unsupportedFileSystemsUnder(Path root) {
+    public Stream<FileSystemInfo> detectUnsupportedFileSystemsUnder(Path root) {
         return fileSystems.getFileSystems().stream()
             .filter(fileSystem -> {
                 LOGGER.debug("Detected {}: {} from {} (remote: {}, case-sensitive: {}, case-preserving: {})",
@@ -83,8 +83,10 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
                 if (fileSystem.isRemote()) {
                     return true;
                 }
-                return !SUPPORTED_FILE_SYSTEM_TYPES.contains(fileSystem.getFileSystemType());
-            })
-            .filter(fileSystem -> root.startsWith(fileSystem.getMountPoint().toPath()));
+                if (SUPPORTED_FILE_SYSTEM_TYPES.contains(fileSystem.getFileSystemType())) {
+                    return false;
+                }
+                return root.startsWith(fileSystem.getMountPoint().toPath());
+            });
     }
 }

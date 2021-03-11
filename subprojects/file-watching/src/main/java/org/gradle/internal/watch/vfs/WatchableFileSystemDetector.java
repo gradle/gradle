@@ -25,5 +25,5 @@ public interface WatchableFileSystemDetector {
     /**
      * Returns all file systems mounted at or under the given path for which file system watching is not supported.
      */
-    Stream<FileSystemInfo> unsupportedFileSystemsUnder(Path root);
+    Stream<FileSystemInfo> detectUnsupportedFileSystemsUnder(Path root);
 }
