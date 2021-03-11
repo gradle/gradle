@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 public class DefaultWatchableFileSystemRegistry implements WatchableFileSystemRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWatchableFileSystemRegistry.class);
 
+    // !IMPORTANT! If changed, make sure to update the documentation in gradle_damon.adoc
     private static final ImmutableSet<String> SUPPORTED_FILE_SYSTEM_TYPES = ImmutableSet.of(
         // APFS on macOS
         "apfs",
