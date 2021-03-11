@@ -24,6 +24,10 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Unroll
 
 class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, ValidationMessageChecker {
+    def setup() {
+        expectReindentedValidationMessage()
+    }
+
     def "can attach a calculated directory to task property"() {
         buildFile """
             class SomeTask extends DefaultTask {

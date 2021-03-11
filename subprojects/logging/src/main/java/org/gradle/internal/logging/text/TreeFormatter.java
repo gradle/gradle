@@ -32,6 +32,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
     private final StringBuilder buffer = new StringBuilder();
     private final AbstractStyledTextOutput original;
     private Node current;
+    private Prefixer prefixer = new DefaultPrefixer();
 
     public TreeFormatter() {
         this.original = new AbstractStyledTextOutput() {
@@ -199,6 +200,12 @@ public class TreeFormatter implements DiagnosticsVisitor {
         return this;
     }
 
+    public TreeFormatter startNumberedChildren() {
+        startChildren();
+        prefixer = new NumberedPrefixer();
+        return this;
+    }
+
     @Override
     public TreeFormatter startChildren() {
         if (current.state == State.CollectValue) {
@@ -226,6 +233,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
         }
         current.state = State.Done;
         current = current.parent;
+        prefixer = new DefaultPrefixer();
         return this;
     }
 
@@ -237,7 +245,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
         StyledTextOutput output = new LinePrefixingStyledTextOutput(original, node.prefix, false);
         if (!node.valueWritten) {
             output.append(node.parent.prefix);
-            output.append("  - ");
+            output.append(prefixer.nextPrefix());
             output.append(node.value);
         }
 
@@ -340,6 +348,26 @@ public class TreeFormatter implements DiagnosticsVisitor {
 
         boolean isTopLevelNode() {
             return parent.parent == null;
+        }
+    }
+
+    private interface Prefixer {
+        String nextPrefix();
+    }
+
+    private static class DefaultPrefixer implements Prefixer {
+        @Override
+        public String nextPrefix() {
+            return "  - ";
+        }
+    }
+
+    private static class NumberedPrefixer implements Prefixer {
+        private int cur = 0;
+
+        @Override
+        public String nextPrefix() {
+            return "  " + (++cur) + ". ";
         }
     }
 }

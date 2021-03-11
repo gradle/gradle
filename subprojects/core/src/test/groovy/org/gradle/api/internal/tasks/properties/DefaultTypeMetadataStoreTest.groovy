@@ -151,7 +151,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         propertiesMetadata.size() == 1
         def propertyMetadata = propertiesMetadata.first()
         propertyMetadata.propertyName == 'searchPath'
-        collectProblems(typeMetadata) == ["Property 'searchPath' is broken. Test."]
+        collectProblems(typeMetadata) == [dummyValidationProblem(null, 'searchPath', 'is broken', 'Test').trim()]
     }
 
     def "custom annotation that is not relevant can have validation problems"() {
@@ -176,7 +176,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
         then:
         propertiesMetadata.empty
-        collectProblems(typeMetadata) == ["Property 'searchPath' is broken. Test."]
+        collectProblems(typeMetadata) == [dummyValidationProblem(null, 'searchPath', 'is broken', 'Test').trim()]
     }
 
     def "custom type annotation handler can inspect for static type problems"() {
@@ -203,7 +203,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == ["Type 'DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation': type is broken. Test." as String]
+        collectProblems(typeMetadata) == [dummyValidationProblem('DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation', null, 'type is broken', 'Test').trim()]
     }
 
     @Unroll

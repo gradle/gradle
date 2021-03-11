@@ -27,6 +27,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
 
     @Override
     def setup() {
+        expectReindentedValidationMessage()
         buildFile << """
             tasks.register("run", MyTask)
         """

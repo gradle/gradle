@@ -23,6 +23,8 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
+
 @ValidationTestFor(
     ValidationProblemId.IMPLICIT_DEPENDENCY
 )
@@ -170,10 +172,10 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         succeeds("producer", "b", "c", "consumer")
 
         where:
-        dependency            | _
-        "c.dependsOn(b)"      | _
-        "c.mustRunAfter(b)"   | _
-        "b.finalizedBy(c)"    | _
+        dependency          | _
+        "c.dependsOn(b)"    | _
+        "c.mustRunAfter(b)" | _
+        "b.finalizedBy(c)"  | _
     }
 
     def "only having shouldRunAfter causes a validation warning"() {
@@ -418,15 +420,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 }
             }
         """
-        when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, unresolvableInput { includeLink() })
-
-        run "broken"
-        then:
-        executedAndNotSkipped ":broken"
-        outputContains("""
-            Execution optimizations have been disabled for task ':broken' to ensure correctness due to the following reasons:
-              - Type 'DefaultTask': property 'invalidInputFileCollection' cannot be resolved:
+        def rootCause = """
               Cannot convert the provided notation to a File or URI: 5.
               The following types/formats are supported:
                 - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
@@ -436,7 +430,22 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 - A Directory instance.
                 - A RegularFile instance.
                 - A URI or URL instance.
-                - A TextResource instance.
-             ${unresolvableInput { includeLink() } }""".stripIndent())
+                - A TextResource instance."""
+
+        def expectedWarning = unresolvableInput({
+            type('DefaultTask').property('invalidInputFileCollection')
+            conversionProblem(rootCause.stripIndent())
+            includeLink()
+        }, false)
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, expectedWarning)
+
+        run "broken"
+
+        then:
+        executedAndNotSkipped ":broken"
+        outputContains("""Execution optimizations have been disabled for task ':broken' to ensure correctness due to the following reasons:
+  - ${convertToSingleLine(expectedWarning)}""")
     }
 }

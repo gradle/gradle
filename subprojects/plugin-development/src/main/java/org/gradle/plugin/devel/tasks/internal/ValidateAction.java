@@ -53,6 +53,7 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public abstract class ValidateAction implements WorkAction<ValidateAction.Params> {
     private final static Logger LOGGER = Logging.getLogger(ValidateAction.class);
+    public static final String PROBLEM_SEPARATOR = "--------";
 
     public interface Params extends WorkParameters {
         ConfigurableFileCollection getClasses();
@@ -125,7 +126,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             try {
                 //noinspection ResultOfMethodCallIgnored
                 output.createNewFile();
-                Files.asCharSink(output, Charsets.UTF_8).write(Joiner.on('\n').join(problemMessages));
+                Files.asCharSink(output, Charsets.UTF_8).write(Joiner.on("\n" + PROBLEM_SEPARATOR + "\n").join(problemMessages));
             } catch (IOException ex) {
                 throw new java.io.UncheckedIOException(ex);
             }

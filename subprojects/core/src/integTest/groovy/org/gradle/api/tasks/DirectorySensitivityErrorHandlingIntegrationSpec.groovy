@@ -25,6 +25,10 @@ import spock.lang.Unroll
 
 class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
+    def setup() {
+        expectReindentedValidationMessage()
+    }
+
     @ValidationTestFor(
         ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
     )

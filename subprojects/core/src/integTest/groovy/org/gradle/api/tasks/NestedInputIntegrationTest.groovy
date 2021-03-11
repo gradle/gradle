@@ -33,6 +33,10 @@ import spock.lang.Unroll
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
+    def setup() {
+        expectReindentedValidationMessage()
+    }
+
     @Unroll
     def "nested #type.simpleName input adds a task dependency"() {
         buildFile << """

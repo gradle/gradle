@@ -27,7 +27,6 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.reflect.validation.Severity;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;
@@ -45,6 +44,8 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
 public class ValidateStep<R extends Result> implements Step<AfterPreviousExecutionContext, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
@@ -73,7 +74,7 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
             .stream()
             .collect(
                 groupingBy(BaseProblem::getSeverity,
-                mapping(TypeValidationProblemRenderer::renderMinimalInformationAbout, toList())));
+                mapping(ValidateStep::renderedMessage, toList())));
         ImmutableCollection<String> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
         ImmutableCollection<String> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
@@ -149,6 +150,13 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
                 return context.getValidationContext();
             }
         });
+    }
+
+    private static String renderedMessage(org.gradle.internal.reflect.validation.TypeValidationProblem p) {
+        if (p.getSeverity().isWarning()) {
+            return convertToSingleLine(renderMinimalInformationAbout(p, true, false));
+        }
+        return renderMinimalInformationAbout(p);
     }
 
     private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {

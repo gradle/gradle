@@ -38,13 +38,13 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
-
     @Rule
     public final Resources resources = new Resources()
 
     def setup() {
         writeBuildFile()
         writeConfigFile()
+        expectReindentedValidationMessage()
     }
 
     def "analyze good code"() {

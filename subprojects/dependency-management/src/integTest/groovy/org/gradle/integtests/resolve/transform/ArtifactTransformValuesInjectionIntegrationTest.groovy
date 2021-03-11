@@ -396,9 +396,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        String missingNormalizationDetails = "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'missing_normalization_annotation')}"
         assertPropertyValidationErrors(
-            absolutePathSensitivity: invalidUseOfAbsoluteNormalizationMessage,
+            absolutePathSensitivity: invalidUseOfAbsoluteSensitivity { includeLink().noIntro() },
             extension: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
             fileInput: [
                 missingValueMessage { property('fileInput').includeLink().noIntro() },
@@ -410,11 +409,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             ],
             missingInput: missingValueMessage { property('missingInput').includeLink().noIntro() },
             'nested.outputDirectory': annotationInvalidInContext { annotation('OutputDirectory').includeLink() },
-            'nested.inputFile': "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
+            'nested.inputFile': missingNormalizationStrategy { annotatedWith('InputFile').includeLink().noIntro() },
             'nested.stringProperty': missingAnnotationMessage { property('nested.stringProperty').missingInput().includeLink().noIntro() },
-            noPathSensitivity: "is annotated with @InputFiles but missing a normalization strategy. $missingNormalizationDetails",
-            noPathSensitivityDir: "is annotated with @InputDirectory but missing a normalization strategy. $missingNormalizationDetails",
-            noPathSensitivityFile: "is annotated with @InputFile but missing a normalization strategy. $missingNormalizationDetails",
+            noPathSensitivity: missingNormalizationStrategy { annotatedWith('InputFiles').includeLink().noIntro() },
+            noPathSensitivityDir: missingNormalizationStrategy { annotatedWith('InputDirectory').includeLink().noIntro() },
+            noPathSensitivityFile: missingNormalizationStrategy { annotatedWith('InputFile').includeLink().noIntro() },
             outputDir: annotationInvalidInContext { annotation('OutputDirectory').includeLink() }
         )
     }
@@ -658,13 +657,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             inConflict('InputFile', 'InputArtifact', 'InputArtifactDependencies')
         }
         assertPropertyValidationErrors(
-            absolutePathSensitivityDependencies: invalidUseOfAbsoluteNormalizationMessage,
+            absolutePathSensitivityDependencies: invalidUseOfAbsoluteSensitivity { includeLink().noIntro() },
             'conflictingAnnotations': [
                 conflictingAnnotationsMessage,
                 annotationInvalidInContext { annotation('InputFile').forTransformAction() }
             ],
             inputFile: annotationInvalidInContext { annotation('InputFile').forTransformAction() },
-            noPathSensitivity: 'is annotated with @InputArtifact but missing a normalization strategy. If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly. Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath',
+            noPathSensitivity: missingNormalizationStrategy { annotatedWith('InputArtifact').noIntro() },
             notAnnotated: missingAnnotationMessage { property('extension').missingInput().includeLink().noIntro() },
         )
     }
@@ -1003,6 +1002,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
     )
     def "task implementation cannot use cacheable transform annotation"() {
+        expectReindentedValidationMessage()
         buildFile << """
             @CacheableTransform
             class MyTask extends DefaultTask {
@@ -1024,6 +1024,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
     )
     def "task @Nested bean cannot use cacheable annotations"() {
+        expectReindentedValidationMessage()
         buildFile << """
             class MyTask extends DefaultTask {
                 @Nested
@@ -1081,17 +1082,10 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
             errorMessages.each { errorMessage ->
                 count++
                 System.err.println("Verifying assertion for $propertyName")
-                if (!errorMessage.endsWith('.')) {
-                    // be tolerant with the missing dot at the end of expected error messages
-                    errorMessage = "${errorMessage}."
-                }
                 failure.assertHasCause("Property '${propertyName}' ${errorMessage}")
             }
         }
         assert errorOutput.count("> Property") == count
     }
 
-    private String getInvalidUseOfAbsoluteNormalizationMessage() {
-        "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms. Possible solution: Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath. ${learnAt('validation_problems', 'cacheable_transform_cant_use_absolute_sensitivity')}"
-    }
 }

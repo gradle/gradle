@@ -392,7 +392,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     @ValidationTestFor(
         ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
     )
-    def "reports setters for property of mutable type #type"() {
+    def "reports setters for property of mutable type #testedType"() {
         file("input.txt").text = "input"
 
         javaTaskSource << """
@@ -400,16 +400,16 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.tasks.*;
 
             public class MyTask extends DefaultTask {
-                private final ${type} mutableProperty = ${init};
+                private final ${testedType} mutableProperty = ${init};
 
                 // getter and setter
                 @InputFiles @PathSensitive(PathSensitivity.NONE)
-                public ${type} getMutablePropertyWithSetter() { return mutableProperty; }
-                public void setMutablePropertyWithSetter(${type} value) {}
+                public ${testedType} getMutablePropertyWithSetter() { return mutableProperty; }
+                public void setMutablePropertyWithSetter(${testedType} value) {}
 
                 // just getter
                 @InputFiles @PathSensitive(PathSensitivity.NONE)
-                public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; }
+                public ${testedType} getMutablePropertyWithoutSetter() { return mutableProperty; }
 
                 // just setter
                 // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
@@ -420,14 +420,15 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        def typeDesc = type.replaceAll("<.+>", "")
-        def errorMessage = "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '$typeDesc' is writable. Properties of type '$typeDesc' are already mutable. Possible solution: Remove the 'setMutablePropertyWithSetter' method."
         assertValidationFailsWith([
-            error(errorMessage, 'validation_problems', 'mutable_type_with_setter')
+            error(mutableSetter {
+                type('MyTask').property('mutablePropertyWithSetter')
+                propertyType(testedType.replaceAll("<.+>", ""))
+            }, 'validation_problems', 'mutable_type_with_setter')
         ])
 
         where:
-        type                            | init
+        testedType                      | init
         ConfigurableFileCollection.name | "getProject().getObjects().fileCollection()"
         "${Property.name}<String>"      | "getProject().getObjects().property(String.class).convention(\"value\")"
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"

@@ -394,7 +394,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidTask': property 'inputFile' test problem. this is a test.")
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'))
 
         when:
         run "invalid", "--info"
@@ -420,13 +420,13 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidTask': property 'inputFile' test problem. this is a test.")
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'))
 
         when:
         run "invalid"
         then:
         executedAndNotSkipped(":invalid")
-        output.count("- Type 'InvalidTask': property 'inputFile' test problem. this is a test.") == 1
+        output.count("- Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test.") == 1
     }
 
     @Requires({ GradleContextualExecuter.embedded })
@@ -446,7 +446,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidTask': property 'inputFile' test problem. this is a test.")
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'))
 
         when:
         run "invalid"
@@ -560,6 +560,7 @@ task someTask(type: SomeTask) {
         ValidationProblemId.VALUE_NOT_SET
     )
     def "null input properties registered via TaskInputs.property are not allowed"() {
+        expectReindentedValidationMessage()
         buildFile << """
             task test {
                 inputs.property("input", { null })
@@ -588,6 +589,7 @@ task someTask(type: SomeTask) {
     )
     @Unroll
     def "null input files registered via TaskInputs.#method are not allowed"() {
+        expectReindentedValidationMessage()
         buildFile << """
             task test {
                 inputs.${method}({ null }) withPropertyName "input"
@@ -623,6 +625,7 @@ task someTask(type: SomeTask) {
     )
     @Unroll
     def "null output files registered via TaskOutputs.#method are not allowed"() {
+        expectReindentedValidationMessage()
         buildFile << """
             task test {
                 outputs.${method}({ null }) withPropertyName "output"
@@ -658,6 +661,7 @@ task someTask(type: SomeTask) {
     )
     @Unroll
     def "missing input files registered via TaskInputs.#method are not allowed"() {
+        expectReindentedValidationMessage()
         buildFile << """
             task test {
                 inputs.${method}({ "missing" }) withPropertyName "input"
@@ -688,6 +692,7 @@ task someTask(type: SomeTask) {
     )
     @Unroll
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
+        expectReindentedValidationMessage()
         file("input-file.txt").touch()
         file("input-dir").createDir()
         buildFile << """
@@ -719,6 +724,7 @@ task someTask(type: SomeTask) {
     )
     @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
+        expectReindentedValidationMessage()
         def outputDir = file("output-dir")
         outputDir.createDir()
         buildFile << """
@@ -748,6 +754,7 @@ task someTask(type: SomeTask) {
     )
     @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed (directories)"() {
+        expectReindentedValidationMessage()
         def outputFile = file("output-file.txt")
         outputFile.touch()
         buildFile << """

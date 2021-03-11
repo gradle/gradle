@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.tasks;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -68,7 +69,7 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<String> problemMessages = Files.readAllLines(getOutputFile().get().getAsFile().toPath());
+        List<String> problemMessages = parseMessageList(Files.readAllLines(getOutputFile().get().getAsFile().toPath()));
 
         if (problemMessages.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
@@ -89,6 +90,26 @@ public abstract class ValidatePlugins extends DefaultTask {
                     toMessageList(problemMessages));
             }
         }
+    }
+
+    private static List<String> parseMessageList(List<String> lines) {
+        List<String> list = Lists.newArrayList();
+        StringBuilder sb = new StringBuilder();
+        for (String line : lines) {
+            if (line.equals(ValidateAction.PROBLEM_SEPARATOR)) {
+                list.add(sb.toString());
+                sb.setLength(0);
+            } else {
+                if (sb.length() > 0) {
+                    sb.append("\n");
+                }
+                sb.append(line);
+            }
+        }
+        if (sb.length() > 0) {
+            list.add(sb.toString());
+        }
+        return list;
     }
 
     private static CharSequence toMessageList(List<String> problemMessages) {

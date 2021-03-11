@@ -32,7 +32,7 @@ class TaskValidationReportFixture {
             .collect { message, severity ->
                 "$severity: $message"
             }
-            .join("\n")
+            .join("\n--------\n")
         assert reportFile.text == expectedReportContents
     }
 }

@@ -40,7 +40,7 @@ class WorkValidationExceptionChecker {
         verified = [] as Set
         problems = error.problems.collect {
             // assertions do not verify the type name
-            ignoreType ? it.substring(it.indexOf(': ') + 2).capitalize() : it.capitalize()
+            ignoreType ? it.substring(it.indexOf("' ") + 2).capitalize() : it.capitalize()
         } as Set
     }
 

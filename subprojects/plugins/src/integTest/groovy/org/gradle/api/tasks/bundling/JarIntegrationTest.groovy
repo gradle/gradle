@@ -30,6 +30,9 @@ import java.util.jar.Manifest
 
 @TestReproducibleArchives
 class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+    def setup() {
+        expectReindentedValidationMessage()
+    }
 
     def canCreateAnEmptyJar() {
         given:

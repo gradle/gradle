@@ -61,6 +61,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -83,7 +84,7 @@ import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INC
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 
-class IncrementalExecutionIntegrationTest extends Specification {
+class IncrementalExecutionIntegrationTest extends Specification implements ValidationMessageChecker {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     @Rule
@@ -606,7 +607,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            hasProblem "Type '$Object.simpleName': Validation error. Test."
+            hasProblem dummyValidationProblem('Object', null, 'Validation error', 'Test').trim()
         }
     }
 

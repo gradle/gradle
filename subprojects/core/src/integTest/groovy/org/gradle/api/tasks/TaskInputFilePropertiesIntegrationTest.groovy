@@ -29,6 +29,9 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+    def setup() {
+        expectReindentedValidationMessage()
+    }
 
     @Unroll
     def "allows optional @#annotation.simpleName to have null value"() {
@@ -91,7 +94,8 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 .candidates(
                     "a String or CharSequence path, for example 'src/main/java' or '/usr/include'",
                     "a String or CharSequence URI, for example 'file:/usr/include'",
-                    "a File instance or use a Path instance",
+                    "a File instance",
+                    "a Path instance",
                     "a Directory instance",
                     "a RegularFile instance",
                     "a URI or URL instance",
@@ -141,7 +145,8 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 .candidates(
                     "a String or CharSequence path, for example 'src/main/java' or '/usr/include'",
                     "a String or CharSequence URI, for example 'file:/usr/include'",
-                    "a File instance or use a Path instance",
+                    "a File instance",
+                    "a Path instance",
                     "a Directory instance",
                     "a RegularFile instance",
                     "a URI or URL instance",

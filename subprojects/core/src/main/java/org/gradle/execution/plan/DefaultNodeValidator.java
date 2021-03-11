@@ -21,11 +21,13 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.reflect.validation.UserManualReference;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
 public class DefaultNodeValidator implements NodeValidator {
     @Override
@@ -49,12 +51,15 @@ public class DefaultNodeValidator implements NodeValidator {
                         docId = docref.getId();
                         section = docref.getSection();
                     }
-                        String warning = TypeValidationProblemRenderer.renderMinimalInformationAbout(problem, false);
-                        DeprecationLogger.deprecateBehaviour(warning)
-                            .withContext("Execution optimizations are disabled to ensure correctness.")
-                            .willBeRemovedInGradle8()
-                            .withUserManual(docId, section)
-                            .nagUser();
+                    // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
+                    // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
+                    // and rendering
+                    String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
+                    DeprecationLogger.deprecateBehaviour(warning)
+                        .withContext("Execution optimizations are disabled to ensure correctness.")
+                        .willBeRemovedInGradle8()
+                        .withUserManual(docId, section)
+                        .nagUser();
                 });
             return !problems.isEmpty();
         } else {

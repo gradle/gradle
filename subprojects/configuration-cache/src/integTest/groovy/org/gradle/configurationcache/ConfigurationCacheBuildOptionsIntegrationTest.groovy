@@ -26,6 +26,10 @@ import static org.junit.Assume.assumeFalse
 
 class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ValidationMessageChecker {
 
+    def setup() {
+        expectReindentedValidationMessage()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/13333")
     @Unroll
     def "absent #operator orElse #orElseKind used as task input"() {
