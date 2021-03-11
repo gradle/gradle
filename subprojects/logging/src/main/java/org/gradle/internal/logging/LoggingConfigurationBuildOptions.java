@@ -30,13 +30,13 @@ import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
+import org.gradle.util.TextUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConfiguration> {
@@ -186,7 +186,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         @Override
         public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
-            String consoleValue = StringUtils.capitalize(value.toLowerCase(Locale.ENGLISH));
+            String consoleValue = StringUtils.capitalize(TextUtil.toLowerCaseLocaleSafe(value));
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 settings.setConsoleOutput(consoleOutput);
@@ -207,7 +207,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         @Override
         public void applyTo(String value, LoggingConfiguration settings, final Origin origin) {
             try {
-                settings.setWarningMode(WarningMode.valueOf(StringUtils.capitalize(value.toLowerCase(Locale.ENGLISH))));
+                settings.setWarningMode(WarningMode.valueOf(StringUtils.capitalize(TextUtil.toLowerCaseLocaleSafe(value))));
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }
