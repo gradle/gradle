@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 public interface WatchableFileSystemRegistry {
     /**
-     * Visits the absolute path of any file systems mounted at or under the given path.
+     * Returns all file systems mounted at or under the given path for which file system watching is not supported.
      */
     Stream<FileSystemInfo> unsupportedFileSystemsUnder(Path root);
 }
