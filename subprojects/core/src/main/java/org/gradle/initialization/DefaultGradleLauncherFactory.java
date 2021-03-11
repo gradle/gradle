@@ -29,6 +29,7 @@ import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.NestedBuildState;

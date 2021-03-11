@@ -112,6 +112,39 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
+    def 'clears lock state for no longer locked configuration'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+
+configurations {
+    unlockedConf
+    lockedConf {
+        extendsFrom unlockedConf
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+
+dependencies {
+    unlockedConf 'org:foo:1.+'
+}
+"""
+        lockfileFixture.createLockfile('unlockedConf', ['org:foo:1.0'])
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0'])
+    }
+
+    @ToBeFixedForConfigurationCache
     def 'writes dependency lock file when requested'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -143,6 +176,43 @@ dependencies {
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+    }
+
+    def 'does not write lock file when build fails'() {
+        mavenRepo.module('org', 'bar', '1.1').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    conf
+}
+
+dependencies {
+    conf 'org:bar:1.+'
+}
+
+task copyDeps(type: Copy) {
+    from configurations.conf
+    into "\$buildDir/output"
+    doLast {
+        throw new RuntimeException("Build failed")
+    }
+}
+"""
+
+        when:
+        fails 'copyDeps', '--write-locks'
+
+        then:
+        lockfileFixture.expectLockStateMissing('conf')
     }
 
     @ToBeFixedForConfigurationCache
@@ -284,9 +354,52 @@ dependencies {
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'])
+        lockfileFixture.assertLegacyLockfileMissing('lockedConf')
 
         where:
         unique << [true, false]
+    }
+
+    @ToBeFixedForConfigurationCache
+    def 'deletes legacy lock files on upgrade'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'foo', '2.0').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+    otherLockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+    otherLockedConf 'org:foo:2.+'
+}
+"""
+
+
+        lockfileFixture.createLockfile('lockedConf', ["org:foo:1.0"], false)
+        lockfileFixture.createLockfile('otherLockedConf', ["org:foo:1.1"], false)
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile([lockedConf: ['org:foo:1.1'], otherLockedConf: ['org:foo:2.0']])
+        lockfileFixture.assertLegacyLockfileMissing('lockedConf')
+        lockfileFixture.assertLegacyLockfileMissing('otherLockedConf')
     }
 
     @ToBeFixedForConfigurationCache

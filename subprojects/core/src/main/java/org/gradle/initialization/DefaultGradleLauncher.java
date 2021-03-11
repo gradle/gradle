@@ -25,6 +25,7 @@ import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -193,7 +194,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         includedBuildControllers.finishBuild(failures);
         try {
             buildListener.buildFinished(buildResult);
-            buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle());
+            buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);
         } catch (Throwable t) {
             failures.add(t);
         }

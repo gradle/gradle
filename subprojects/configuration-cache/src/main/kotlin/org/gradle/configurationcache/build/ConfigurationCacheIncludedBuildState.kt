@@ -30,7 +30,7 @@ import org.gradle.initialization.ConfigurationCache
 import org.gradle.initialization.DefaultGradleLauncher
 import org.gradle.initialization.DefaultGradleLauncherFactory
 import org.gradle.initialization.GradleLauncher
-import org.gradle.initialization.InternalBuildFinishedListener
+import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.exception.ExceptionAnalyser

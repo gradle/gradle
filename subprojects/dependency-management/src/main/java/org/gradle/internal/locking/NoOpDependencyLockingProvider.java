@@ -67,4 +67,9 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     public ListProperty<String> getIgnoredDependencies() {
         throw new IllegalStateException("Should not be invoked on the no-op instance");
     }
+
+    @Override
+    public void confirmConfigurationNotLocked(String configurationName) {
+        // No-op
+    }
 }

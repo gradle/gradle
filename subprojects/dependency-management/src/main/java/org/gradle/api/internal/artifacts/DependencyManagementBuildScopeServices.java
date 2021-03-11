@@ -140,7 +140,7 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DependenciesAccessors;
-import org.gradle.initialization.InternalBuildFinishedListener;
+import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.ProjectCacheDir;
@@ -686,7 +686,7 @@ class DependencyManagementBuildScopeServices {
         if (cacheDecoratorFactory instanceof CleaningInMemoryCacheDecoratorFactory) {
             listenerManager.addListener(new InternalBuildFinishedListener() {
                 @Override
-                public void buildFinished(GradleInternal build) {
+                public void buildFinished(GradleInternal build, boolean failed) {
                     ((CleaningInMemoryCacheDecoratorFactory) cacheDecoratorFactory).clearCaches(ComponentMetadataRuleExecutor::isMetadataRuleExecutorCache);
                 }
             });
@@ -719,7 +719,7 @@ class DependencyManagementBuildScopeServices {
     private void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
         listenerManager.addListener(new InternalBuildFinishedListener() {
             @Override
-            public void buildFinished(GradleInternal build) {
+            public void buildFinished(GradleInternal build, boolean failed) {
                 dependencyVerificationOverride.buildFinished(build);
             }
         });
