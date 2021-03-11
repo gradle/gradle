@@ -49,6 +49,13 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
         return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, watchFilter);
     }
 
+    /**
+     * The macOS native watcher reports the canonical path for watched paths.
+     * That means that we would not invalidate the right locations in the virtual file system on macOS.
+     * Therefore, we disable file system watching when we try to watch a directory whose parent is a symlink.
+     *
+     * Note that the project directory is canonicalized by Gradle, so the project directory can always be watched.
+     */
     private static void validateLocationToWatch(File location) {
         try {
             String canonicalPath = location.getCanonicalPath();
