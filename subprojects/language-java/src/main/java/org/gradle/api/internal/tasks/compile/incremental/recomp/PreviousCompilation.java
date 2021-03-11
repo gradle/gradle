@@ -69,11 +69,6 @@ public class PreviousCompilation {
         return getClassAnalysis().getTypesToReprocess();
     }
 
-
-    public List<File> getAnnotationProcessorPath() {
-        return data.getAnnotationProcessorPath();
-    }
-
     public String getAnnotationProcessorFullRebuildCause() {
         return data.getAnnotationProcessingData().getFullRebuildCause();
     }
