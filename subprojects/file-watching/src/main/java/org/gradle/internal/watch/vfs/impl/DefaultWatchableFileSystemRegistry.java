@@ -73,7 +73,7 @@ public class DefaultWatchableFileSystemRegistry implements WatchableFileSystemRe
             .map(FileSystemSupport::new)
             .forEach(support -> {
                 FileSystemInfo fileSystem = support.getFileSystem();
-                LOGGER.info("Detected {} {}: {} from {} (remote: {}, case-sensitive: {}, case-preserving: {})",
+                LOGGER.debug("Detected {} {}: {} from {} (remote: {}, case-sensitive: {}, case-preserving: {})",
                     support.isSupported() ? "supported" : "unsupported",
                     fileSystem.getFileSystemType(),
                     fileSystem.getMountPoint(),
