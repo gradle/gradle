@@ -96,14 +96,10 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
             return invalidatedRoot;
         };
-        SnapshotHierarchy newRoot = watchableHierarchies.removeWatchedHierarchiesOverLimit(
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
             root,
             hierarchy -> containsSnapshots(hierarchy, root),
             maximumNumberOfWatchedHierarchies,
-            invalidator
-        );
-        newRoot = watchableHierarchies.removeUnwatchedSnapshots(
-            newRoot,
             invalidator
         );
         LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
