@@ -71,7 +71,8 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
 
     // pre-test/master/queue/alice/feature -> master
     // pre-test/release/current/bob/bugfix -> release
-    private fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
+    private
+    fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
         actualBranch.startsWith("pre-test/") -> actualBranch.substringAfter("/").substringBefore("/")
         else -> actualBranch
     }

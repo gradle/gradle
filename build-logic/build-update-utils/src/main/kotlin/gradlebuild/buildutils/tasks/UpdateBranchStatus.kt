@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import gradlebuild.identity.extension.ModuleIdentityExtension
 
+
 /**
  * When a Ready for Nightly trigger build completes successfully on master/release, we publish a git tag
  * green-master/green-release to remote repository so that developers can checkout new branches from these tags.
@@ -41,7 +42,7 @@ abstract class UpdateBranchStatus : DefaultTask() {
     private
     fun publishBranchStatus(branch: String) {
         val actualBranch = project.the<ModuleIdentityExtension>().gradleBuildBranch.get()
-        println("Publishing branch status of $branch from ${actualBranch}")
+        println("Publishing branch status of $branch from $actualBranch")
         project.execAndGetStdout("git", "push", "https://bot-teamcity:${System.getenv("BOT_TEAMCITY_GITHUB_TOKEN")}@github.com/gradle/gradle.git", "$actualBranch:green-$branch")
     }
 
