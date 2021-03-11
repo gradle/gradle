@@ -210,21 +210,23 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return DefaultWatchableFileSystemRegistry.create();
         }
 
+        WatchableHierarchies createWatchableHierarchies(GlobalCacheLocations globalCacheLocations, WatchableFileSystemRegistry watchableFileSystemRegistry) {
+            // All the changes in global caches should be done by Gradle itself, so in order
+            // to minimize the number of watches we don't watch anything within the global caches.
+            return new WatchableHierarchies(watchableFileSystemRegistry, path -> !globalCacheLocations.isInsideGlobalCache(path));
+        }
+
         BuildLifecycleAwareVirtualFileSystem createVirtualFileSystem(
             LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
             FileSystem fileSystem,
-            GlobalCacheLocations globalCacheLocations,
-            WatchableFileSystemRegistry watchableFileSystemRegistry
+            WatchableFileSystemRegistry watchableFileSystemRegistry,
+            WatchableHierarchies watchableHierarchies
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
-            // All the changes in global caches should be done by Gradle itself, so in order
-            // to minimize the number of watches we don't watch anything within the global caches.
-            Predicate<String> watchFilter = path -> !globalCacheLocations.isInsideGlobalCache(path);
-            WatchableHierarchies watchableHierarchies = new WatchableHierarchies(watchableFileSystemRegistry, watchFilter);
 
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities, watchableHierarchies)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
