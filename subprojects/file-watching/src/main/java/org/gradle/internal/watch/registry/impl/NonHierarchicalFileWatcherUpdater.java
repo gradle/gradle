@@ -43,7 +43,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
@@ -55,9 +54,9 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private final WatchableHierarchies watchableHierarchies;
 
-    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, Predicate<String> watchFilter) {
+    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, WatchableHierarchies watchableHierarchies) {
         this.fileWatcher = fileWatcher;
-        this.watchableHierarchies = new WatchableHierarchies(watchFilter);
+        this.watchableHierarchies = watchableHierarchies;
     }
 
     @Override

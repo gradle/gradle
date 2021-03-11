@@ -25,17 +25,16 @@ import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.function.Predicate;
 
 public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileEventFunctions> implements FileWatcherRegistryFactory {
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
 
     protected final T fileEventFunctions;
-    private final Predicate<String> watchFilter;
+    private final WatchableHierarchies watchableHierarchies;
 
-    public AbstractFileWatcherRegistryFactory(T fileEventFunctions, Predicate<String> watchFilter) {
+    public AbstractFileWatcherRegistryFactory(T fileEventFunctions, WatchableHierarchies watchableHierarchies) {
         this.fileEventFunctions = fileEventFunctions;
-        this.watchFilter = watchFilter;
+        this.watchableHierarchies = watchableHierarchies;
     }
 
     @Override
@@ -43,7 +42,7 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
         BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
         try {
             FileWatcher watcher = createFileWatcher(fileEvents);
-            FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, watchFilter);
+            FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, watchableHierarchies);
             return new DefaultFileWatcherRegistry(
                 fileEventFunctions,
                 watcher,
@@ -59,5 +58,5 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
 
     protected abstract FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException;
 
-    protected abstract FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter);
+    protected abstract FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies);
 }

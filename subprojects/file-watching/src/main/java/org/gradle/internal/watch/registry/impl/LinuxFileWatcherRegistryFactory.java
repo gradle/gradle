@@ -24,12 +24,11 @@ import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.function.Predicate;
 
 public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions> {
 
-    public LinuxFileWatcherRegistryFactory(Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(LinuxFileEventFunctions.class), watchFilter);
+    public LinuxFileWatcherRegistryFactory(WatchableHierarchies watchableHierarchies) throws NativeIntegrationUnavailableException {
+        super(FileEvents.get(LinuxFileEventFunctions.class), watchableHierarchies);
     }
 
     @Override
@@ -39,7 +38,7 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
     }
 
     @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        return new NonHierarchicalFileWatcherUpdater(watcher, watchFilter);
+    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
+        return new NonHierarchicalFileWatcherUpdater(watcher, watchableHierarchies);
     }
 }

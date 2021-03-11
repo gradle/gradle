@@ -22,15 +22,13 @@ import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.test.fixtures.file.TestFile
 
-import java.util.function.Predicate
-
 import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION
 
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
-    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter)
+    FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchableHierarchies)
     }
 
     def "does not watch hierarchy to watch if no snapshot is inside"() {

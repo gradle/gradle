@@ -19,13 +19,11 @@ package org.gradle.internal.watch.registry.impl
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 
-import java.util.function.Predicate
-
 class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
-    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        new NonHierarchicalFileWatcherUpdater(watcher, watchFilter)
+    FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
+        new NonHierarchicalFileWatcherUpdater(watcher, watchableHierarchies)
     }
 
     def "only watches directories in hierarchies to watch"() {
