@@ -118,7 +118,7 @@ public abstract class GradleRunner {
      * <p>
      * The given URI must point to a valid Gradle distribution ZIP file.
      * This method is typically used as an alternative to {@link #withGradleVersion(String)},
-     * where it is preferable to obtain the Gradle runtime from “local” servers.
+     * where it is preferable to obtain the Gradle runtime from "local" servers.
      * <p>
      * Unless previously downloaded, this method will cause the Gradle runtime at the given URI to be downloaded.
      * The download will be cached beneath the Gradle User Home directory, the location of which is determined by the following in order of precedence:
@@ -145,8 +145,12 @@ public abstract class GradleRunner {
      * If no explicit Gradle user home is specified via the build arguments (i.e. the {@code -g «dir»} option}),
      * this directory will also be used for the Gradle user home for the test build.
      * <p>
-     * If no value has been specified when the build is initiated, a directory unique to the current operating system
-     * user will be created and used within the JVM's temporary directory as advertised by the {@code java.io.tmpdir} system property.
+     * If no value has been specified when the build is initiated, a directory will be created within a temporary directory.
+     * <ul>
+     * <li>When executed from a Gradle Test task, the Test task's temporary directory is used (see {@link org.gradle.api.Task#getTemporaryDir()}).</li>
+     * <li>When executed from somewhere else, the system's temporary directory is used (based on {@code java.io.tmpdir}).</li>
+     * </ul>
+     * <p>
      * This directory is not deleted by the runner after the test build.
      * <p>
      * You may wish to specify a location that is within your project and regularly cleaned, such as the project's build directory.
