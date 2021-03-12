@@ -42,7 +42,10 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
     abstract val gradleBuildBranch: Property<String>
 
     /**
-     * The logic branch for pre-tested commit, i.e. the branch is not `master`/`release`,
+     * The logical branch.
+     * For non-pre-tested commit branches this is the same as {@link #gradleBuildBranch}.
+     * For pre-tested commit branches, this is the branch which will be forwarded to the state on this branch when
+     * pre-tested commit passes. For example, for the pre-tested commit branch "pre-test/master/queue/alice/personal-branch" the logical branch is "master".
      * but it's tested in the same way of `master`/`release`.
      *
      * The pre-tested commit branch name looks like "pre-test/master/queue/alice/personal-branch".
