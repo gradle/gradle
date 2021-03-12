@@ -28,8 +28,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
 import org.gradle.internal.io.NullOutputStream;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
 import org.hamcrest.Matcher;
 
@@ -63,10 +61,10 @@ import java.util.jar.Manifest;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -495,15 +493,19 @@ public class TestFile extends File {
     }
 
     public TestFile createLink(File target) {
-        FileSystem fileSystem = NativeServices.getInstance().get(FileSystem.class);
-        if (fileSystem.isSymlink(this)) {
+        if (Files.isSymbolicLink(this.toPath())) {
             try {
                 Files.delete(toPath());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         }
-        fileSystem.createSymbolicLink(this, target);
+        try {
+            getParentFile().mkdirs();
+            Files.createSymbolicLink(this.toPath(), target.toPath());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         clearCanonCaches();
         return this;
     }
