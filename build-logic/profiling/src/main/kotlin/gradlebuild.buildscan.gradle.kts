@@ -99,14 +99,14 @@ fun isMonitoredAsciidoctorTask() = false // No asciidoctor tasks are cacheable f
 fun isExpectedAsciidoctorCacheMiss() =
 // Expected cache-miss for asciidoctor task:
 // 1. CompileAll is the seed build for docs:distDocs
-// 2. Gradle_Check_BuildDistributions is the seed build for other asciidoctor tasks
+// 2. BuildDistributions is the seed build for other asciidoctor tasks
 // 3. buildScanPerformance test, which doesn't depend on compileAll
-    // 4. buildScanPerformance test, which doesn't depend on compileAll
+// 4. buildScanPerformance test, which doesn't depend on compileAll
     isInBuild(
-        "Gradle_Check_CompileAll",
-        "Gradle_Check_BuildDistributions",
-        "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux",
-        "Enterprise_Release_Components_BuildScansPlugin_Performance_PerformanceLinux"
+        "Check_CompileAll",
+        "Check_BuildDistributions",
+        "Component_GradlePlugin_Performance_PerformanceLatestMaster",
+        "Component_GradlePlugin_Performance_PerformanceLatestReleased"
     )
 
 fun isExpectedCompileCacheMiss() =
@@ -114,15 +114,17 @@ fun isExpectedCompileCacheMiss() =
 // 1. CompileAll is the seed build
 // 2. Gradleception which re-builds Gradle with a new Gradle version
 // 3. buildScanPerformance test, which doesn't depend on compileAll
-    // 4. buildScanPerformance test, which doesn't depend on compileAll
+// 4. buildScanPerformance test, which doesn't depend on compileAll
     isInBuild(
-        "Gradle_Check_CompileAll",
-        "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux",
-        "Enterprise_Release_Components_BuildScansPlugin_Performance_PerformanceLinux",
-        "Gradle_Check_Gradleception"
+        "Check_CompileAll",
+        "Component_GradlePlugin_Performance_PerformanceLatestMaster",
+        "Component_GradlePlugin_Performance_PerformanceLatestReleased"
+        "Check_Gradleception"
     )
 
-fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID") in buildTypeIds
+fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID")?.let { currentBuildTypeId ->
+    buildTypeIds.any { currentBuildTypeId.endsWith(it) }
+} ?: false
 
 fun extractCheckstyleAndCodenarcData() {
     gradle.taskGraph.afterTask {
