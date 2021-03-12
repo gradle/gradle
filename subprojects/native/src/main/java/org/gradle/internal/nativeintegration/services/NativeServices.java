@@ -23,6 +23,7 @@ import net.rubygrapefruit.platform.ProcessLauncher;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.file.FileEvents;
+import net.rubygrapefruit.platform.file.FileSystems;
 import net.rubygrapefruit.platform.file.Files;
 import net.rubygrapefruit.platform.file.PosixFiles;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
@@ -337,6 +338,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 return useFileSystemWatching;
             }
         };
+    }
+
+    protected FileSystems createFileSystems() {
+        if (useNativeIntegrations) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(FileSystems.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform file systems information is not available. Continuing with fallback.");
+            }
+        }
+        return notAvailable(FileSystems.class);
     }
 
     private <T> T notAvailable(Class<T> type) {

@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
+import net.rubygrapefruit.platform.file.FileSystems;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
@@ -78,6 +79,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
@@ -206,8 +208,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return locationsWrittenByCurrentBuild;
         }
 
-        WatchableFileSystemDetector createWatchableFileSystemDetector() {
-            return DefaultWatchableFileSystemDetector.create();
+        WatchableFileSystemDetector createWatchableFileSystemDetector(FileSystems fileSystems) {
+            return new DefaultWatchableFileSystemDetector(fileSystems);
         }
 
         WatchableHierarchies createWatchableHierarchies(GlobalCacheLocations globalCacheLocations, WatchableFileSystemDetector watchableFileSystemDetector) {

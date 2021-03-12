@@ -16,7 +16,6 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.file.FileSystemInfo;
@@ -62,8 +61,7 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
         return new DefaultWatchableFileSystemDetector(Native.get(FileSystems.class));
     }
 
-    @VisibleForTesting
-    DefaultWatchableFileSystemDetector(FileSystems fileSystems) {
+    public DefaultWatchableFileSystemDetector(FileSystems fileSystems) {
         this.fileSystems = fileSystems;
     }
 
