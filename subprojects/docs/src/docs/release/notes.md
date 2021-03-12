@@ -19,6 +19,8 @@ We would like to thank the following community members for their contributions t
 [Niels Doucet](https://github.com/NielsDoucet),
 [Tobias Hermann](https://github.com/Dobiasd),
 [Rishaba-Jain](https://github.com/Rishaba-Jain),
+[Vitaly Polonetsky](https://github.com/mvitaly),
+[Naoki Ando](https://github.com/Durun),
 [Ståle Undheim](https://github.com/staale).
 
 
