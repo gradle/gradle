@@ -20,6 +20,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
 
@@ -39,7 +40,7 @@ public abstract class ConfigurationTargetIdentifier {
         SETTINGS,
         PROJECT;
 
-        public final String label = name().toLowerCase();
+        public final String label = TextUtil.toLowerCaseLocaleSafe(name());
     }
 
     public abstract Type getTargetType();
