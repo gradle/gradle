@@ -17,10 +17,13 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisSerializer;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotDataSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClasspathEntrySnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -37,6 +40,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompileCaches, Closeable {
     private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
     private final PersistentCache cache;
+    private final DefaultClassAnalysisCache classAnalysisCache;
 
     public DefaultUserHomeScopedCompileCaches(FileSystemAccess fileSystemAccess, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
         cache = cacheRepository
@@ -47,6 +51,10 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
         PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = PersistentIndexedCacheParameters.of("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotDataSerializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
         this.classpathEntrySnapshotCache = new DefaultClasspathEntrySnapshotCache(fileSystemAccess, cache.createCache(jarCacheParameters));
+
+        PersistentIndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = PersistentIndexedCacheParameters.of("classAnalysis", new HashCodeSerializer(), new ClassAnalysisSerializer(interner))
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
+        this.classAnalysisCache = new DefaultClassAnalysisCache(cache.createCache(classCacheParameters));
     }
 
     @Override
@@ -57,5 +65,10 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
     @Override
     public ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache() {
         return classpathEntrySnapshotCache;
+    }
+
+    @Override
+    public DefaultClassAnalysisCache getClassAnalysisCache() {
+        return classAnalysisCache;
     }
 }

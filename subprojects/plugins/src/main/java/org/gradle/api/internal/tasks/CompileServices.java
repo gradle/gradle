@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultUserHomeSc
 import org.gradle.api.internal.tasks.compile.incremental.cache.UserHomeScopedCompileCaches;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.service.ServiceRegistration;
@@ -48,22 +47,18 @@ public class CompileServices extends AbstractPluginServiceRegistry {
         }
 
         DefaultGeneralCompileCaches createGeneralCompileCaches(
-            GlobalCacheLocations globalCacheLocations,
             CacheRepository cacheRepository,
             Gradle gradle,
             InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
             StringInterner interner,
-            UserHomeScopedCompileCaches userHomeScopedCompileCaches,
-            FileSystemAccess fileSystemAccess
+            UserHomeScopedCompileCaches userHomeScopedCompileCaches
         ) {
             return new DefaultGeneralCompileCaches(
-                globalCacheLocations,
-                cacheRepository,
+                    cacheRepository,
                 gradle,
                 inMemoryCacheDecoratorFactory,
                 interner,
-                userHomeScopedCompileCaches,
-                fileSystemAccess
+                userHomeScopedCompileCaches
             );
         }
     }
