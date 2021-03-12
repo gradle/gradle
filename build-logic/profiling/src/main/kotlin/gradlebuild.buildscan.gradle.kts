@@ -118,7 +118,7 @@ fun isExpectedCompileCacheMiss() =
     isInBuild(
         "Check_CompileAll",
         "Component_GradlePlugin_Performance_PerformanceLatestMaster",
-        "Component_GradlePlugin_Performance_PerformanceLatestReleased"
+        "Component_GradlePlugin_Performance_PerformanceLatestReleased",
         "Check_Gradleception"
     )
 
