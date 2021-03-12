@@ -16,7 +16,6 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import net.rubygrapefruit.platform.file.FileSystemInfo;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
@@ -114,7 +113,7 @@ public class WatchableHierarchies {
         SnapshotHierarchy invalidatedRoot = watchableFileSystemDetector.detectUnsupportedFileSystems()
             .reduce(
                 root,
-                (updatedRoot, fileSystem) -> removeUnwatchableFileSystem(updatedRoot, fileSystem, invalidator),
+                (updatedRoot, fileSystem) -> invalidator.invalidate(fileSystem.getMountPoint().getAbsolutePath(), updatedRoot),
                 nonCombining()
             );
         if (invalidatedRoot != root) {
@@ -123,14 +122,6 @@ public class WatchableHierarchies {
                 "You can override this by enforcing file system watching.");
         }
         return invalidatedRoot;
-    }
-
-    private static SnapshotHierarchy removeUnwatchableFileSystem(SnapshotHierarchy root, FileSystemInfo fileSystem, Invalidator invalidator) {
-        LOGGER.debug("Watching is not supported for {}{} file system at '{}', dropping related state from the virtual file system",
-            fileSystem.isRemote() ? "remote " : "",
-            fileSystem.getFileSystemType(),
-            fileSystem.getMountPoint());
-        return invalidator.invalidate(fileSystem.getMountPoint().getAbsolutePath(), root);
     }
 
     public Collection<Path> getWatchableHierarchies() {
