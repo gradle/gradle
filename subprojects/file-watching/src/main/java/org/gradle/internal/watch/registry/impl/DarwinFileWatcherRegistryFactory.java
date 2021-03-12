@@ -23,6 +23,7 @@ import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +33,8 @@ import java.util.function.Predicate;
 
 public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions> {
 
-    public DarwinFileWatcherRegistryFactory(Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(OsxFileEventFunctions.class), watchFilter);
+    public DarwinFileWatcherRegistryFactory(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
+        super(FileEvents.get(OsxFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
     }
 
     @Override
@@ -45,10 +46,17 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
     }
 
     @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, watchFilter);
+    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
+        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, watchableHierarchies);
     }
 
+    /**
+     * The macOS native watcher reports the canonical path for watched paths.
+     * That means that we would not invalidate the right locations in the virtual file system on macOS.
+     * Therefore, we disable file system watching when we try to watch a directory whose parent is a symlink.
+     *
+     * Note that the project directory is canonicalized by Gradle, so the project directory can always be watched.
+     */
     private static void validateLocationToWatch(File location) {
         try {
             String canonicalPath = location.getCanonicalPath();

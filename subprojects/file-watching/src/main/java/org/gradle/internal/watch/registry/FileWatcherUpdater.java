@@ -18,6 +18,7 @@ package org.gradle.internal.watch.registry;
 
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
@@ -42,10 +43,10 @@ public interface FileWatcherUpdater {
     /**
      * Remove everything from the root which can't be kept after the current build finished.
      *
-     * @see FileWatcherRegistry#buildFinished(SnapshotHierarchy, int)
+     * @see FileWatcherRegistry#buildFinished(SnapshotHierarchy, WatchMode, int)
      */
     @CheckReturnValue
-    SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies);
+    SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies);
 
     Collection<Path> getWatchedHierarchies();
 }

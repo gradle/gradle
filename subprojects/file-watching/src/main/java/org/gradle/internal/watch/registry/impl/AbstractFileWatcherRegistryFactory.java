@@ -22,6 +22,7 @@ import net.rubygrapefruit.platform.internal.jni.AbstractFileEventFunctions;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -31,10 +32,12 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
 
     protected final T fileEventFunctions;
+    private final WatchableFileSystemDetector watchableFileSystemDetector;
     private final Predicate<String> watchFilter;
 
-    public AbstractFileWatcherRegistryFactory(T fileEventFunctions, Predicate<String> watchFilter) {
+    public AbstractFileWatcherRegistryFactory(T fileEventFunctions, WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) {
         this.fileEventFunctions = fileEventFunctions;
+        this.watchableFileSystemDetector = watchableFileSystemDetector;
         this.watchFilter = watchFilter;
     }
 
@@ -43,7 +46,8 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
         BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
         try {
             FileWatcher watcher = createFileWatcher(fileEvents);
-            FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, watchFilter);
+            WatchableHierarchies watchableHierarchies = new WatchableHierarchies(watchableFileSystemDetector, watchFilter);
+            FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, watchableHierarchies);
             return new DefaultFileWatcherRegistry(
                 fileEventFunctions,
                 watcher,
@@ -59,5 +63,5 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
 
     protected abstract FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException;
 
-    protected abstract FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter);
+    protected abstract FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies);
 }

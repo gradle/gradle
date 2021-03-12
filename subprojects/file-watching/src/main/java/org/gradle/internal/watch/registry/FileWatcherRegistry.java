@@ -19,6 +19,7 @@ package org.gradle.internal.watch.registry;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
+import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.CheckReturnValue;
 import java.io.Closeable;
@@ -67,7 +68,7 @@ public interface FileWatcherRegistry extends Closeable {
      * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
      */
     @CheckReturnValue
-    SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies);
+    SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies);
 
     /**
      * Get statistics about the received changes.

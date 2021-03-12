@@ -20,6 +20,7 @@ import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
+import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -63,10 +63,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final WatchableHierarchies watchableHierarchies;
     private final WatchedHierarchies watchedHierarchies = new WatchedHierarchies();
 
-    public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter) {
+    public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, WatchableHierarchies watchableHierarchies) {
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
-        this.watchableHierarchies = new WatchableHierarchies(watchFilter);
+        this.watchableHierarchies = watchableHierarchies;
     }
 
     @Override
@@ -93,16 +93,13 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies) {
+    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
         WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
-        SnapshotHierarchy newRoot = watchableHierarchies.removeWatchedHierarchiesOverLimit(
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
             root,
+            watchMode,
             watchedHierarchies::contains,
             maximumNumberOfWatchedHierarchies,
-            invalidator
-        );
-        newRoot = watchableHierarchies.removeUnwatchedSnapshots(
-            newRoot,
             invalidator
         );
 

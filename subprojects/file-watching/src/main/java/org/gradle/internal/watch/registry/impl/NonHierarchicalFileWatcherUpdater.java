@@ -32,6 +32,7 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
+import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
@@ -55,9 +55,9 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private final WatchableHierarchies watchableHierarchies;
 
-    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, Predicate<String> watchFilter) {
+    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, WatchableHierarchies watchableHierarchies) {
         this.fileWatcher = fileWatcher;
-        this.watchableHierarchies = new WatchableHierarchies(watchFilter);
+        this.watchableHierarchies = watchableHierarchies;
     }
 
     @Override
@@ -89,21 +89,18 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies) {
+    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
         WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
             diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
             return invalidatedRoot;
         };
-        SnapshotHierarchy newRoot = watchableHierarchies.removeWatchedHierarchiesOverLimit(
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
             root,
+            watchMode,
             hierarchy -> containsSnapshots(hierarchy, root),
             maximumNumberOfWatchedHierarchies,
-            invalidator
-        );
-        newRoot = watchableHierarchies.removeUnwatchedSnapshots(
-            newRoot,
             invalidator
         );
         LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());

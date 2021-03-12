@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
+import net.rubygrapefruit.platform.file.FileSystems;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
@@ -93,6 +94,8 @@ import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
+import org.gradle.internal.watch.vfs.impl.DefaultWatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.LocationsWrittenByCurrentBuild;
 import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
@@ -203,13 +206,18 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return locationsWrittenByCurrentBuild;
         }
 
+        WatchableFileSystemDetector createWatchableFileSystemDetector(FileSystems fileSystems) {
+            return new DefaultWatchableFileSystemDetector(fileSystems);
+        }
+
         BuildLifecycleAwareVirtualFileSystem createVirtualFileSystem(
             LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
             FileSystem fileSystem,
-            GlobalCacheLocations globalCacheLocations
+            GlobalCacheLocations globalCacheLocations,
+            WatchableFileSystemDetector watchableFileSystemDetector
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
@@ -217,12 +225,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             // to minimize the number of watches we don't watch anything within the global caches.
             Predicate<String> watchFilter = path -> !globalCacheLocations.isInsideGlobalCache(path);
 
-            BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities, watchFilter)
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities, watchableFileSystemDetector, watchFilter)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     rootReference,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
-                    locationsWrittenByCurrentBuild
+                    locationsWrittenByCurrentBuild,
+                    watchableFileSystemDetector
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState ->
@@ -276,15 +285,15 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileSystemAccess;
         }
 
-        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities, Predicate<String> watchFilter) {
+        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities, WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) {
             if (nativeCapabilities.useFileSystemWatching()) {
                 try {
                     if (operatingSystem.isMacOsX()) {
-                        return Optional.of(new DarwinFileWatcherRegistryFactory(watchFilter));
+                        return Optional.of(new DarwinFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
                     } else if (operatingSystem.isWindows()) {
-                        return Optional.of(new WindowsFileWatcherRegistryFactory(watchFilter));
+                        return Optional.of(new WindowsFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
                     } else if (operatingSystem.isLinux()) {
-                        return Optional.of(new LinuxFileWatcherRegistryFactory(watchFilter));
+                        return Optional.of(new LinuxFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
                     LOGGER.debug("Native file system watching is not available for this operating system.", e);

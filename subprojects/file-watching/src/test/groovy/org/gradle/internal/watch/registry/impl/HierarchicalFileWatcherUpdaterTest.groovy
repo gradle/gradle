@@ -16,21 +16,22 @@
 
 package org.gradle.internal.watch.registry.impl
 
+import net.rubygrapefruit.platform.file.FileSystemInfo
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.test.fixtures.file.TestFile
 
-import java.util.function.Predicate
+import java.util.stream.Stream
 
 import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION
 
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
-    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter)
+    FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchableHierarchies)
     }
 
     def "does not watch hierarchy to watch if no snapshot is inside"() {
@@ -303,6 +304,39 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
+        0 * _
+    }
+
+    def "removes content on unsupported file systems at the end of the build"() {
+        def watchableHierarchy = file("watchable").createDir()
+        def watchableContent = watchableHierarchy.file("some/dir/file.txt").createFile()
+        def unsupportedFileSystemMountPoint = watchableHierarchy.file("unsupported")
+        def unwatchableContent = unsupportedFileSystemMountPoint.file("some/file.txt").createFile()
+        def unsupportedFileSystem = Stub(FileSystemInfo) {
+            getMountPoint() >> unsupportedFileSystemMountPoint
+            getFileSystemType() >> "unsupported"
+        }
+        watchableFileSystemDetector.detectUnsupportedFileSystems() >> Stream.of(unsupportedFileSystem)
+
+        when:
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotRegularFile(watchableContent))
+        then:
+        vfsHasSnapshotsAt(watchableContent)
+        1 * watcher.startWatching([watchableHierarchy])
+        0 * _
+
+        when:
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+
+        when:
+        buildFinished()
+        then:
+        vfsHasSnapshotsAt(watchableContent)
+        !vfsHasSnapshotsAt(unwatchableContent)
         0 * _
     }
 

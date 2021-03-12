@@ -205,31 +205,51 @@ For incremental builds, there are typically only a few changes between builds.
 Therefore, incremental builds can re-use most of the Virtual File System from the last build and benefit the most from watching the file system.
 
 Gradle uses native operating system features for watching the file system.
-It supports the feature on these operating systems and file systems:
+It supports the feature on these operating systems:
 
-- Windows 10 with NTFS,
-- Linux (Ubuntu 16.04 or later, CentOS 8 or later, Red Hat Enterprise Linux 8 or later, Amazon Linux 2) using ext3 and ext4,
-- macOS 10.14 (Mojave) or later on APFS and HFS+.
+- Windows 10 (earlier versions likely work, but are not tested),
+- Linux (Ubuntu 16.04 or later, CentOS 8 or later, Red Hat Enterprise Linux 8 or later, Amazon Linux 2 are tested),
+- macOS 10.14 (Mojave) or later (Intel and ARM Macs included).
 
-Provided the operating system is supported by Gradle file system watching is enabled by default.
+The feature supports the following file system types:
 
-=== Limitations
-File system watching currently has the following limitations:
+- APFS
+- btrfs
+- exFAT
+- ext3
+- ext4
+- FAT32
+- HFS+
+- NTFS
 
-- If you have symlinks in your build, you won’t get the performance benefits for those locations.
-- Network drives like NFS or SMB are not supported
-- FAT file systems are not supported
+File system watching supports working through VirtualBox's shared folders, too.
+
+Network file systems like Samba and NFS are not supported.
+
+[NOTE]
+====
+If you have symlinks in your build, you won’t get the performance benefits for those locations.
+====
+
+=== Enabling and disabling file system watching
+
+File system watching is enabled by default for operating systems supported by Gradle.
+
+When the feature is enabled by default, Gradle acts conservatively when it encounters content on unsupported file systems.
+This can happen for example if a project directory, or one of its subdirectories is mounted from a network drive.
+In default mode information about unsupported file systems will not be retained in the Virtual File System between builds.
+
+To force Gradle to keep information about unsupported file systems between builds, the feature must be enabled explicitly by one of these methods:
+
+Run with `--watch-fs` on the command line::
+This forces watching the file system for this build only.
+Put `org.gradle.vfs.watch=true` in your `gradle.properties`::
+This forces watching the file system for all builds, unless explicitly disabled with `--no-watch-fs`.
+
+File system watching can also be disabled completely regardless of file systems by supplying `--no-watch-fs` on the command-line, or by specifying `org.gradle.vfs.watch=false` in `gradle.properties`.
 
 [[sec:daemon_watch_fs_troubleshooting]]
 === Troubleshooting file system watching
-
-==== Disable file system watching
-Should the need arise, it can be explicitly disabled in the following ways:
-
-Run with `--no-watch-fs` on the command line::
-This disables watching the file system for this build only.
-Put `org.gradle.vfs.watch=false` in your `gradle.properties`::
-This disables watching the file system for all builds, unless explicitly enabled with `--watch-fs`.
 
 ==== Enable verbose logging
 You can instruct Gradle to some more information about the state of the virtual file system, and the events received from the file system using the `org.gradle.vfs.verbose` flag.

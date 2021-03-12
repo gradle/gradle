@@ -33,6 +33,8 @@ import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener
+import org.gradle.internal.watch.vfs.WatchMode
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -52,6 +54,8 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def watcher = Mock(FileWatcher)
     def ignoredForWatching = [] as Set<String>
     Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
+    def watchableFileSystemDetector = Stub(WatchableFileSystemDetector)
+    def watchableHiearchies = new WatchableHierarchies(watchableFileSystemDetector, watchFilter)
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
     FileWatcherUpdater updater
     def virtualFileSystem = new TestVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) {
@@ -67,10 +71,10 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     def setup() {
-        updater = createUpdater(watcher, watchFilter)
+        updater = createUpdater(watcher, watchableHiearchies)
     }
 
-    abstract FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter)
+    abstract FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies)
 
     def "does not watch directories outside of hierarchies to watch"() {
         def watchableHierarchies = ["first", "second", "third"].collect { file(it).createDir() }
@@ -280,7 +284,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE) {
-        virtualFileSystem.root = updater.buildFinished(virtualFileSystem.root, maximumNumberOfWatchedHierarchies)
+        virtualFileSystem.root = updater.buildFinished(virtualFileSystem.root, WatchMode.DEFAULT, maximumNumberOfWatchedHierarchies)
     }
 
     private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
