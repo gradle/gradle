@@ -119,7 +119,7 @@ public class WatchableHierarchies {
         if (invalidatedRoot != root) {
             LOGGER.info("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching. " +
                 "The relevant state was discarded to ensure changes to these locations are properly detected. " +
-                "You can override this by enforcing file system watching.");
+                "You can override this by explicitly enabling file system watching.");
         }
         return invalidatedRoot;
     }
