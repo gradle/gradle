@@ -22,13 +22,15 @@ import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Predicate;
 
 public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions> {
 
-    public LinuxFileWatcherRegistryFactory(WatchableHierarchies watchableHierarchies) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(LinuxFileEventFunctions.class), watchableHierarchies);
+    public LinuxFileWatcherRegistryFactory(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
+        super(FileEvents.get(LinuxFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
     }
 
     @Override

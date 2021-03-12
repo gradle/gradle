@@ -22,8 +22,10 @@ import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Predicate;
 
 import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION;
 
@@ -32,8 +34,8 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
     // See https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw#remarks:~:text=ERROR_INVALID_PARAMETER
     private static final int BUFFER_SIZE = 64 * 1024;
 
-    public WindowsFileWatcherRegistryFactory(WatchableHierarchies watchableHierarchies) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(WindowsFileEventFunctions.class), watchableHierarchies);
+    public WindowsFileWatcherRegistryFactory(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
+        super(FileEvents.get(WindowsFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
     }
 
     @Override
