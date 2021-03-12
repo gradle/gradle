@@ -16,8 +16,11 @@
 package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.internal.specs.ExplainingSpec;
+import org.gradle.internal.jvm.Jvm;
 
-import static org.gradle.internal.FileUtils.canonicalize;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
@@ -55,7 +58,13 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
     }
 
     private boolean javaHomeMatches(DaemonContext potentialContext) {
-        return canonicalize(potentialContext.getJavaHome()).equals(canonicalize(desiredContext.getJavaHome()));
+        try {
+            File potentialJava = Jvm.forHome(potentialContext.getJavaHome()).getJavaExecutable();
+            File desiredJava = Jvm.forHome(desiredContext.getJavaHome()).getJavaExecutable();
+            return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private boolean priorityMatches(DaemonContext context) {

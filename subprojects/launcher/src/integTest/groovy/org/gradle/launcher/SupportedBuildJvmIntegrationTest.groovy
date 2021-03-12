@@ -19,16 +19,30 @@ package org.gradle.launcher
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
-@Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
+
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
+    @Requires(TestPrecondition.SYMLINKS)
+    def "can start Gradle with a JDK that contains symlinks"() {
+        // Zulu sets their Java distribution up like this
+        def installedJdk = Jvm.current().javaHome
+        def symlinkedJdk = file("symlink-jdk")
+        installedJdk.listFiles().each {
+            symlinkedJdk.file(it.name).createLink(it)
+        }
+        file("gradle.properties").writeProperties("org.gradle.java.home": symlinkedJdk.canonicalPath)
+        expect:
+        succeeds("help")
+    }
+
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test requires to start Gradle from scratch with the wrong Java version
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         executer.withJavaHome(jdk.javaHome)
@@ -41,7 +55,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Unroll
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
     def "fails when build is configured to use Java #jdk.javaVersion"() {
         given:
         file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
