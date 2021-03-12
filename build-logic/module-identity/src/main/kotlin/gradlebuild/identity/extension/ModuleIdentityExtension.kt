@@ -47,8 +47,7 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
      *
      * The pre-tested commit branch name looks like "pre-test/master/queue/alice/personal-branch".
      */
-    val gradleBuildLogicBranch: Provider<String>
-        get() = gradleBuildBranch.map(this::toPreTestedCommitBaseBranch)
+    val logicalBranch: Provider<String> = gradleBuildBranch.map(this::toPreTestedCommitBaseBranch)
 
     abstract val gradleBuildCommitId: Property<String>
 
