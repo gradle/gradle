@@ -80,13 +80,11 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
                     fileSystem.isCasePreserving());
 
                 // We don't support network file systems
-                if (fileSystem.isRemote()) {
-                    return true;
-                }
-                if (SUPPORTED_FILE_SYSTEM_TYPES.contains(fileSystem.getFileSystemType())) {
+                if (!fileSystem.isRemote() && SUPPORTED_FILE_SYSTEM_TYPES.contains(fileSystem.getFileSystemType())) {
                     return false;
                 }
-                return root.startsWith(fileSystem.getMountPoint().toPath());
+                Path mountPoint = fileSystem.getMountPoint().toPath();
+                return root.startsWith(mountPoint) || mountPoint.startsWith(root);
             });
     }
 }
