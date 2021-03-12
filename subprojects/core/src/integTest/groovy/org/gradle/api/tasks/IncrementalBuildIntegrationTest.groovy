@@ -1429,7 +1429,7 @@ task generate(type: TransformerTask) {
             ignoredAnnotatedPropertyMessage {
                 type('CustomTask').property('classpath')
                 ignoring('Internal')
-                .alsoAnnotatedWith('InputFiles', 'Classpath')
+                alsoAnnotatedWith('InputFiles', 'Classpath')
             }
         )
     }
