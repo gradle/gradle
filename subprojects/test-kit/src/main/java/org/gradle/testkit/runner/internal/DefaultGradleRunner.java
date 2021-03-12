@@ -96,7 +96,7 @@ public class DefaultGradleRunner extends GradleRunner {
                             return FileUtils.canonicalize(new File(rootTmpDir));
                         }
                     });
-                    return new ConstantTestKitDirProvider(temporaryFileProvider.newTemporaryFile(".gradle-test-kit-" + systemProperties.getUserName()));
+                    return new ConstantTestKitDirProvider(temporaryFileProvider.newTemporaryFile(".gradle-test-kit"));
                 }
             }
         });
