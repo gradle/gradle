@@ -24,6 +24,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
@@ -288,7 +289,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     @LocalState
     protected File getSourceClassesMappingFile() {
         if (sourceClassesMappingFile == null) {
-            sourceClassesMappingFile = new File(getTemporaryDir(), "source-classes-mapping.txt");
+            File tmpDir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
+            sourceClassesMappingFile = new File(tmpDir, "source-classes-mapping.txt");
         }
         return sourceClassesMappingFile;
     }

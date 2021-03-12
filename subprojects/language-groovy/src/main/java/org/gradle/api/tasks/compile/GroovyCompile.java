@@ -28,6 +28,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
@@ -170,7 +171,8 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     @LocalState
     protected File getSourceClassesMappingFile() {
         if (sourceClassesMappingFile == null) {
-            sourceClassesMappingFile = new File(getTemporaryDir(), "source-classes-mapping.txt");
+            File tmpDir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
+            sourceClassesMappingFile = new File(tmpDir, "source-classes-mapping.txt");
         }
         return sourceClassesMappingFile;
     }
