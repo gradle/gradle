@@ -19,7 +19,8 @@ We would like to thank the following community members for their contributions t
 [Niels Doucet](https://github.com/NielsDoucet),
 [Tobias Hermann](https://github.com/Dobiasd),
 [Rishaba-Jain](https://github.com/Rishaba-Jain),
-[Ståle Undheim](https://github.com/staale).
+[Ståle Undheim](https://github.com/staale),
+[Jerome Dochez](https://github.com/jdochez).
 
 
 ## Upgrade Instructions
