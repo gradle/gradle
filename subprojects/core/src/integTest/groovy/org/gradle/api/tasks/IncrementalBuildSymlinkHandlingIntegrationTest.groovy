@@ -29,6 +29,7 @@ import java.nio.file.StandardCopyOption
 @Requires(TestPrecondition.SYMLINKS)
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
+        expectReindentedValidationMessage()
         buildFile << """
 // This is a workaround to bust the JVM's file canonicalization cache
 def f = file("delete-me")

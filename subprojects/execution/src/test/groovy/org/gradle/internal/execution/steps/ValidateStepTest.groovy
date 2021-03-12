@@ -22,12 +22,14 @@ import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 
-class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
+class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> implements ValidationMessageChecker {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
@@ -60,14 +62,16 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     def "fails when there is a single violation"() {
+        expectReindentedValidationMessage()
         when:
         step.execute(work, context)
 
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
+            def validationProblem = dummyValidationProblem('Object', null, 'Validation error', 'Test').trim()
             hasMessage """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
-  - Type 'Object': Validation error. Test."""
+  - ${validationProblem}"""
         }
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
             validationContext.forType(JobType, true).visitTypeProblem {
@@ -82,17 +86,18 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     def "fails when there are multiple violations"() {
+        expectReindentedValidationMessage()
         when:
         step.execute(work, context)
 
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
+            def validationProblem1 = dummyValidationProblem('Object', null, 'Validation error #1', 'Test')
+            def validationProblem2 = dummyValidationProblem('Object', null, 'Validation error #2', 'Test')
             hasMessage """Some problems were found with the configuration of job ':test' (types 'ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType').
-  - Type '$Object.simpleName': Validation error #1. Test.
-  - Type '$Object.simpleName': Validation error #2. Test."""
-            hasProblem "Type '$Object.simpleName': Validation error #1. Test."
-            hasProblem "Type '$Object.simpleName': Validation error #2. Test."
+  - ${validationProblem1.trim()}
+  - ${validationProblem2.trim()}"""
         }
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
@@ -115,7 +120,7 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     def "reports deprecation warning and invalidates VFS for validation warning"() {
-        String expectedWarning = "Type '$Object.simpleName': Validation warning. Test."
+        String expectedWarning = convertToSingleLine(dummyValidationProblem('Object', null, 'Validation warning', 'Test').trim())
         when:
         step.execute(work, context)
 
@@ -140,6 +145,11 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     def "reports deprecation warning even when there's also an error"() {
+        String expectedWarning = convertToSingleLine(dummyValidationProblem('Object', null, 'Validation warning', 'Test').trim())
+        // errors are reindented but not warnings
+        expectReindentedValidationMessage()
+        String expectedError = dummyValidationProblem('Object', null, 'Validation error', 'Test')
+
         when:
         step.execute(work, context)
 
@@ -163,13 +173,13 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
         }
 
         then:
-        1 * warningReporter.recordValidationWarnings(work, { warnings -> warnings == ["Type '$Object.simpleName': Validation warning. Test."]})
+        1 * warningReporter.recordValidationWarnings(work, { warnings -> warnings == [expectedWarning] })
 
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
             hasMessage """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
-  - Type '$Object.simpleName': Validation error. Test."""
+  - ${expectedError}"""
         }
         0 * _
     }

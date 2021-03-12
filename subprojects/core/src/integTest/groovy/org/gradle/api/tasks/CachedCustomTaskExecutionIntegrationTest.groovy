@@ -919,7 +919,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         executer.beforeExecute {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, "Type 'InvalidTask': property 'input' test problem. this is a test.")
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'input'))
         }
 
         when:

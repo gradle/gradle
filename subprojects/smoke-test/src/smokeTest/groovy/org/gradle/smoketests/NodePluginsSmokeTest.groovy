@@ -39,7 +39,7 @@ class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements 
                 onPlugin('com.moowork.node') {
                     failsWith([
                         (missingAnnotationMessage { type('NpmSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
-                        "Type 'NpmSetupTask': setter 'setArgs()' should not be annotated with: @Internal. Input/Output annotations are ignored if they are placed on something else than a getter. Possible solutions: Remove the annotations or rename the method. ${learnAt("validation_problems", "ignored_annotations_on_method")}.": ERROR,
+                        (methodShouldNotBeAnnotatedMessage {type('NpmSetupTask').kind('setter').method('setArgs').annotation('Internal').includeLink()}): ERROR,
                         (missingAnnotationMessage { type('YarnSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
                     ])
                 }

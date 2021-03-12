@@ -22,6 +22,10 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
 class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+    def setup() {
+        expectReindentedValidationMessage()
+    }
+
     def reportsTaskActionExecutionFailsWithError() {
         buildFile << """
             task('do-stuff').doFirst {

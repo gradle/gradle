@@ -57,14 +57,15 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         report.verify(messages.collectEntries {
             def fullMessage = it.message
             if (!it.defaultDocLink) {
-                fullMessage = "${fullMessage} ${learnAt(it.id, it.section)}."
+                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}."
             }
             [(fullMessage): it.severity]
         })
 
         failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size() > 1 ? 's' : ''}"
         messages.forEach { problem ->
-            failure.assertThatCause(containsString("$problem.severity: $problem.message"))
+            String indentedMessage = problem.message.replaceAll('\n', '\n    ').trim()
+            failure.assertThatCause(containsString("$problem.severity: $indentedMessage"))
         }
     }
 

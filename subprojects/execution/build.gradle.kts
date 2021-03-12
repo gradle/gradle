@@ -33,6 +33,7 @@ dependencies {
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":model-core")))
 
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(project(":base-services"))

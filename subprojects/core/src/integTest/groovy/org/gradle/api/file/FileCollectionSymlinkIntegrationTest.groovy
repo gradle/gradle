@@ -35,6 +35,9 @@ import static org.gradle.work.ChangeType.MODIFIED
 @Unroll
 @Requires(TestPrecondition.SYMLINKS)
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+    def setup() {
+        expectReindentedValidationMessage()
+    }
 
     def "#desc can handle symlinks"() {
         def buildScript = file("build.gradle")

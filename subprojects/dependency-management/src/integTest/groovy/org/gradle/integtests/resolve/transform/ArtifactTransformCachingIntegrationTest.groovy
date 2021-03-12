@@ -47,6 +47,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
 
     def setup() {
+        expectReindentedValidationMessage()
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'

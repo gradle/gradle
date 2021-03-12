@@ -19,6 +19,9 @@ package org.gradle.internal.reflect.validation
 class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayConfiguration<T>> {
     private final ValidationMessageChecker checker
     boolean hasIntro = true
+    private String description
+    private String reason
+    private List<String> solutions = []
 
     ValidationMessageDisplayConfiguration(ValidationMessageChecker checker) {
         this.checker = checker
@@ -28,6 +31,21 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     String property
     String section
     boolean includeLink = false
+
+    T description(String description) {
+        this.description = description
+        this
+    }
+
+    T reason(String reason) {
+        this.reason = reason
+        this
+    }
+
+    T solution(String solution) {
+        this.solutions << solution
+        this
+    }
 
     T property(String name) {
         property = name
@@ -49,23 +67,54 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         this
     }
 
+    String getPropertyIntro() {
+        "property"
+    }
+
     private String getIntro() {
         if (hasIntro) {
-            typeName ? "Type '$typeName': ${property ? "property '${property}' " : ''}" : (property ? "Property '${property}' " : "")
+            typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
         } else {
             ''
         }
     }
 
     private String getOutro() {
-        includeLink ? " ${checker.learnAt("validation_problems", section)}." : ""
+        includeLink ? "${checker.learnAt("validation_problems", section)}." : ""
     }
 
-    String render(String mainBody) {
-        if (!(mainBody.endsWith('.'))) {
-            mainBody = "${mainBody}."
+    static String formatEntry(String entry) {
+        if (entry.endsWith(".")) {
+            entry.capitalize()
+        } else {
+            "${entry.capitalize()}."
         }
-        String rendered = "${intro}${mainBody}${outro}"
-        rendered
+    }
+
+    String render(boolean renderSolutions = true) {
+        def newLine = "\n${checker.messageIndent}"
+        StringBuilder sb = new StringBuilder(intro)
+        sb.append(description)
+            .append(description.endsWith(".") ? '' : '.')
+            .append(newLine)
+            .append(newLine)
+        if (reason) {
+            sb.append("Reason: ${formatEntry(reason)}${newLine}${newLine}")
+        }
+        if (renderSolutions && !solutions.empty) {
+            if (solutions.size() > 1) {
+                sb.append("Possible solutions:$newLine")
+                solutions.eachWithIndex { String solution, int i ->
+                    sb.append("  ").append(i + 1).append(". ${formatEntry(solution)}$newLine")
+                }
+            } else {
+                sb.append("Possible solution: ${formatEntry(solutions[0])}$newLine")
+            }
+        }
+        if (outro) {
+            sb.append(newLine)
+            sb.append(outro)
+        }
+        sb.toString()
     }
 }

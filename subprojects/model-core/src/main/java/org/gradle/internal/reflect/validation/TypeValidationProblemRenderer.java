@@ -16,11 +16,11 @@
 package org.gradle.internal.reflect.validation;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.problems.Solution;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.problems.Solution;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class TypeValidationProblemRenderer {
 
@@ -34,25 +34,51 @@ public class TypeValidationProblemRenderer {
     }
 
     public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink) {
-        String introduction = introductionFor(problem.getWhere());
-        StringBuilder details = new StringBuilder(maybeAppendDot(problem.getShortDescription()));
-        problem.getWhy().ifPresent(reason -> details.append(" ").append(maybeAppendDot(reason)));
-        List<Solution> possibleSolutions = problem.getPossibleSolutions();
-        int solutionCount = possibleSolutions.size();
-        if (solutionCount > 0) {
-            details.append(" Possible solution").append(solutionCount > 1 ? "s" : "").append(": ");
-            details.append(StringUtils.capitalize(maybeAppendDot(possibleSolutions.stream()
-                .map(Solution::getShortDescription)
-                .map(StringUtils::uncapitalize)
-                .collect(Collectors.joining(" or "))
-            )));
+        return renderMinimalInformationAbout(problem, renderDocLink, true);
+    }
+
+    public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink, boolean renderSolutions) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node(introductionFor(problem.getWhere()) + maybeAppendDot(problem.getShortDescription()));
+        problem.getWhy().ifPresent(reason -> {
+            formatter.blankLine();
+            formatter.node("Reason: " + StringUtils.capitalize(maybeAppendDot(reason)));
+        });
+        if (renderSolutions) {
+            List<Solution> possibleSolutions = problem.getPossibleSolutions();
+            int solutionCount = possibleSolutions.size();
+            if (solutionCount > 0) {
+                formatter.blankLine();
+                if (solutionCount == 1) {
+                    formatter.node("Possible solution: " + StringUtils.capitalize(maybeAppendDot(possibleSolutions.get(0).getShortDescription())));
+                } else {
+                    formatter.node("Possible solutions");
+                    formatter.startNumberedChildren();
+                    possibleSolutions.forEach(solution ->
+                        formatter.node(StringUtils.capitalize(maybeAppendDot(solution.getShortDescription())))
+                    );
+                    formatter.endChildren();
+                }
+            }
         }
         if (renderDocLink) {
-            problem.getDocumentationLink().ifPresent(docLink ->
-                details.append(" Please refer to ").append(docLink).append(" for more details about this problem.")
-            );
+            problem.getDocumentationLink().ifPresent(docLink -> {
+                formatter.blankLine();
+                formatter.node("Please refer to ").append(docLink).append(" for more details about this problem.");
+            });
         }
-        return introduction + details;
+        return formatter.toString();
+    }
+
+    /**
+     * This is an adhoc reformatting tool which should go away as soon as we have
+     * a better way to display multiline deprecation warnings
+     */
+    public static String convertToSingleLine(String message) {
+        return message.replaceAll("(\\r?\\n)+", ". ")
+            .replaceAll("[.]+", ".")
+            .replaceAll("[ ]+", " ")
+            .replaceAll(": ?[. ]", ": ");
     }
 
     private static String introductionFor(TypeValidationProblemLocation location) {
@@ -61,7 +87,7 @@ public class TypeValidationProblemRenderer {
         if (rootType != null) {
             builder.append("Type '");
             builder.append(ModelType.of(rootType).getDisplayName());
-            builder.append("': ");
+            builder.append("' ");
         }
         String property = location.getPropertyName().orElse(null);
         if (property != null) {

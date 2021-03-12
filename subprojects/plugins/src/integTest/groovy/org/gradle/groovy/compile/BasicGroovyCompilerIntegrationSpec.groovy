@@ -384,6 +384,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     )
     def "failsBecauseOfMissingConfigFile"() {
         Assume.assumeFalse(versionLowerThan("2.1"))
+        expectReindentedValidationMessage()
 
         expect:
         def configFile = file('groovycompilerconfig.groovy')

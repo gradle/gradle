@@ -18,12 +18,17 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 
-class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
+class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+
+    def setup() {
+        expectReindentedValidationMessage()
+    }
 
     private TestFile writeDirTransformerTask() {
         buildFile << '''
@@ -1324,7 +1329,9 @@ task generate(type: TransformerTask) {
         fails 'myTask'
 
         then:
-        failure.assertThatDescription(containsNormalizedString("Type 'MyTask': property 'myPrivateInput' is private and annotated with @Input. Annotations on private getters are ignored."))
+        failureDescriptionContains(
+            privateGetterAnnotatedMessage { type('MyTask').property('myPrivateInput').annotation('Input')}
+        )
     }
 
     @ToBeImplemented("Private getters should be ignored")
@@ -1381,7 +1388,7 @@ task generate(type: TransformerTask) {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.CONFLICTING_ANNOTATIONS
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
     )
     @Issue("https://github.com/gradle/gradle/issues/11805")
     def "Groovy property annotated as @Internal with differently annotated getter is not allowed"() {
@@ -1418,8 +1425,12 @@ task generate(type: TransformerTask) {
         fails "custom"
 
         then:
-        failure.assertThatDescription(containsNormalizedString(
-            "Type 'CustomTask': property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. A property is ignored but also has input annotations. Possible solutions: Remove the input annotations or remove the @Internal annotation."
-        ))
+        failureDescriptionContains(
+            ignoredAnnotatedPropertyMessage {
+                type('CustomTask').property('classpath')
+                ignoring('Internal')
+                alsoAnnotatedWith('InputFiles', 'Classpath')
+            }
+        )
     }
 }

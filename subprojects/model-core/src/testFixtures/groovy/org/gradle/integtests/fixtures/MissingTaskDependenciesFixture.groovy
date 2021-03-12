@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 trait MissingTaskDependenciesFixture extends ValidationMessageChecker {
     void expectMissingDependencyDeprecation(String producer, String consumer, File producedConsumedLocation) {
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
-            implicitDependency { at(producedConsumedLocation).consumer(consumer).producer(producer).includeLink() }
+            implicitDependency({ at(producedConsumedLocation).consumer(consumer).producer(producer).includeLink() }, false)
         )
     }
 }

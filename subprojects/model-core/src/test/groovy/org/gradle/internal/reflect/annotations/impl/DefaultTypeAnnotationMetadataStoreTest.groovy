@@ -41,6 +41,7 @@ import java.lang.reflect.Method
 
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE
 import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
     private static final COLOR = { "color" } as AnnotationCategory
@@ -175,7 +176,11 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     def "warns about annotation on field without getter"() {
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
-            strict("Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large. Annotations on fields are only used if there's a corresponding getter for the field. Possible solutions: Add a getter for field 'property' or remove the annotations on 'property'. ${learnAt('validation_problems', 'ignored_annotations_on_field')}.")
+            strict(ignoredAnnotationOnField {
+                type('DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation').property('property')
+                    .annotatedWith('Large')
+                    .includeLink()
+            })
         ]
     }
 
@@ -210,7 +215,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertProperties TypeWithIsAndGetProperty, [
             bool: [(TYPE): Small],
         ], [
-            strict("Property 'bool' has redundant getters: 'getBool()' and 'isBool()'. Boolean property 'bool' has both an `is` and a `get` getter. Possible solutions: Remove one of the getters or annotate one of the getters with @Internal. ${learnAt("validation_problems", "redundant_getters")}.")
+            strict(redundantGetters {
+                property('bool')
+                    .includeLink()
+            })
         ]
         store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
@@ -612,8 +620,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             mutableSubTypeWithSetter: [(TYPE): Small],
             mutableTypeWithSetter: [(TYPE): Small]
         ], [
-            mutableSetterErrorMessage('mutableSubTypeWithSetter', MutableSubType.name),
-            mutableSetterErrorMessage('mutableTypeWithSetter', MutableType.name),
+            strict(mutableSetter { property('mutableSubTypeWithSetter').propertyType(MutableSubType.name).includeLink() }),
+            strict(mutableSetter { property('mutableTypeWithSetter').propertyType(MutableType.name).includeLink() })
         ]
     }
 
@@ -802,7 +810,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         def validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, false)
         metadata.visitValidationFailures(validationContext)
         List<String> actualErrors = validationContext.problems
-            .collect({ message, severity -> ("$message" + (severity == ERROR ? " [STRICT]" : "") as String) })
+            .collect({ message, severity -> (normaliseLineSeparators(message) + (severity == ERROR ? " [STRICT]" : "") as String) })
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
@@ -812,9 +820,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         "$message [STRICT]"
     }
 
-    private String mutableSetterErrorMessage(String property, String propertyType) {
-        strict("Property '$property' of mutable type '$propertyType' is writable. Properties of type '$propertyType' are already mutable. Possible solution: Remove the 'set${property.capitalize()}' method. ${learnAt("validation_problems", "mutable_type_with_setter")}.")
-    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)

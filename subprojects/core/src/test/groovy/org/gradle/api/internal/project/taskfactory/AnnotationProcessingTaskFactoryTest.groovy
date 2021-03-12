@@ -671,7 +671,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         def e = thrown WorkValidationException
         validateException(task, false, e,
             missingValueMessage { type('AnnotationProcessingTasks.TaskWithNestedBeanWithPrivateClass').property('bean.inputFile').includeLink() },
-            "Type 'AnnotationProcessingTasks.Bean2': field 'inputFile2' without corresponding getter has been annotated with @InputFile. Annotations on fields are only used if there's a corresponding getter for the field. Possible solutions: Add a getter for field 'inputFile2' or remove the annotations on 'inputFile2'. ${learnAt('validation_problems', 'ignored_annotations_on_field')}.")
+            ignoredAnnotationOnField {type('AnnotationProcessingTasks.Bean2').property('inputFile2').annotatedWith('InputFile').includeLink() })
     }
 
     @ValidationTestFor(

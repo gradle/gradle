@@ -67,6 +67,7 @@ import java.lang.annotation.Annotation
 
 import static ModifierAnnotationCategory.NORMALIZATION
 import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DefaultTypeMetadataStoreTest extends Specification implements ValidationMessageChecker {
     static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
@@ -151,7 +152,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         propertiesMetadata.size() == 1
         def propertyMetadata = propertiesMetadata.first()
         propertyMetadata.propertyName == 'searchPath'
-        collectProblems(typeMetadata) == ["Property 'searchPath' is broken. Test."]
+        collectProblems(typeMetadata) == [dummyValidationProblem(null, 'searchPath', 'is broken', 'Test').trim()]
     }
 
     def "custom annotation that is not relevant can have validation problems"() {
@@ -176,7 +177,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
         then:
         propertiesMetadata.empty
-        collectProblems(typeMetadata) == ["Property 'searchPath' is broken. Test."]
+        collectProblems(typeMetadata) == [dummyValidationProblem(null, 'searchPath', 'is broken', 'Test').trim()]
     }
 
     def "custom type annotation handler can inspect for static type problems"() {
@@ -203,7 +204,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == ["Type 'DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation': type is broken. Test." as String]
+        collectProblems(typeMetadata) == [dummyValidationProblem('DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation', null, 'type is broken', 'Test').trim()]
     }
 
     @Unroll
@@ -423,7 +424,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     private static List<String> collectProblems(TypeMetadata metadata) {
         def validationContext = DefaultTypeValidationContext.withoutRootType(DOCUMENTATION_REGISTRY, false)
         metadata.visitValidationFailures(null, validationContext)
-        return validationContext.problems.keySet().toList()
+        return validationContext.problems.keySet().collect { normaliseLineSeparators(it) }
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {
