@@ -16,8 +16,11 @@
 
 package org.gradle.internal.watch.registry.impl
 
+import net.rubygrapefruit.platform.file.FileSystemInfo
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.watch.registry.FileWatcherUpdater
+
+import java.util.stream.Stream
 
 class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
@@ -81,6 +84,41 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         invalidate(rootDirSnapshot.children[2])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
+        0 * _
+    }
+
+    def "removes content on unsupported file systems at the end of the build"() {
+        def watchableHierarchy = file("watchable").createDir()
+        def watchableContent = watchableHierarchy.file("some/dir/file.txt").createFile()
+        def unsupportedFileSystemMountPoint = watchableHierarchy.file("unsupported")
+        def unwatchableContent = unsupportedFileSystemMountPoint.file("some/file.txt").createFile()
+        def unsupportedFileSystem = Stub(FileSystemInfo) {
+            getMountPoint() >> unsupportedFileSystemMountPoint
+            getFileSystemType() >> "unsupported"
+        }
+        watchableFileSystemDetector.detectUnsupportedFileSystems() >> Stream.of(unsupportedFileSystem)
+
+        when:
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotRegularFile(watchableContent))
+        then:
+        vfsHasSnapshotsAt(watchableContent)
+        1 * watcher.startWatching({ it as List == [watchableContent.parentFile] })
+        0 * _
+
+        when:
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        1 * watcher.startWatching({ it as List == [unwatchableContent.parentFile] })
+        0 * _
+
+        when:
+        buildFinished()
+        then:
+        vfsHasSnapshotsAt(watchableContent)
+        !vfsHasSnapshotsAt(unwatchableContent)
+        1 * watcher.stopWatching({ it as List == [unwatchableContent.parentFile] })
         0 * _
     }
 }
