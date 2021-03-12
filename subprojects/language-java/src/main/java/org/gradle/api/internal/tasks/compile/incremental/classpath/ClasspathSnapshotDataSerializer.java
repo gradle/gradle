@@ -22,31 +22,22 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.MapSerializer;
-import org.gradle.internal.serialize.SetSerializer;
+import org.gradle.internal.serialize.ListSerializer;
 
-import java.io.File;
-import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
-import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
+import java.util.List;
 
 public class ClasspathSnapshotDataSerializer extends AbstractSerializer<ClasspathSnapshotData> {
-    private final MapSerializer<File, HashCode> mapSerializer = new MapSerializer<>(FILE_SERIALIZER, new HashCodeSerializer());
-    private final SetSerializer<String> setSerializer = new SetSerializer<>(STRING_SERIALIZER, false);
+    private final ListSerializer<HashCode> hashSerializer = new ListSerializer<>(new HashCodeSerializer());
 
     @Override
     public ClasspathSnapshotData read(Decoder decoder) throws Exception {
-        Set<String> duplicates = setSerializer.read(decoder);
-        Map<File, HashCode> hashes = mapSerializer.read(decoder);
-        return new ClasspathSnapshotData(hashes, duplicates);
+        List<HashCode> hashes = hashSerializer.read(decoder);
+        return new ClasspathSnapshotData(hashes);
     }
 
     @Override
     public void write(Encoder encoder, ClasspathSnapshotData value) throws Exception {
-        setSerializer.write(encoder, value.getDuplicateClasses());
-        mapSerializer.write(encoder, value.getFileHashes());
+        hashSerializer.write(encoder, value.getFileHashes());
     }
 
     @Override
@@ -56,11 +47,11 @@ public class ClasspathSnapshotDataSerializer extends AbstractSerializer<Classpat
         }
 
         ClasspathSnapshotDataSerializer rhs = (ClasspathSnapshotDataSerializer) obj;
-        return Objects.equal(mapSerializer, rhs.mapSerializer) && Objects.equal(setSerializer, rhs.setSerializer);
+        return Objects.equal(hashSerializer, rhs.hashSerializer);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), mapSerializer, setSerializer);
+        return Objects.hashCode(super.hashCode(), hashSerializer);
     }
 }

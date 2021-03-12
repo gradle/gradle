@@ -16,40 +16,23 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.List;
 
 public class ClasspathSnapshot {
 
-    private final LinkedHashMap<File, ClasspathEntrySnapshot> entrySnapshots;
+    private final List<ClasspathEntrySnapshot> entries;
     private final ClasspathSnapshotData data;
 
-    public ClasspathSnapshot(LinkedHashMap<File, ClasspathEntrySnapshot> entrySnapshots, ClasspathSnapshotData data) {
-        this.entrySnapshots = entrySnapshots;
+    public ClasspathSnapshot(List<ClasspathEntrySnapshot> entries, ClasspathSnapshotData data) {
+        this.entries = entries;
         this.data = data;
     }
 
-    public ClasspathEntrySnapshot getSnapshot(File file) {
-        return entrySnapshots.get(file);
-    }
-
-    public Set<File> getEntries() {
-        return entrySnapshots.keySet();
-    }
-
-    public boolean isAnyClassDuplicated(Set<String> classNames) {
-        boolean noCommonElements = Collections.disjoint(data.getDuplicateClasses(), classNames);
-        return !noCommonElements;
+    public List<ClasspathEntrySnapshot> getEntries() {
+        return entries;
     }
 
     public ClasspathSnapshotData getData() {
         return data;
-    }
-
-    public boolean isAnyClassDuplicated(File classpathEntry) {
-        ClasspathEntrySnapshot snapshot = getSnapshot(classpathEntry);
-        return isAnyClassDuplicated(snapshot.getClasses());
     }
 }

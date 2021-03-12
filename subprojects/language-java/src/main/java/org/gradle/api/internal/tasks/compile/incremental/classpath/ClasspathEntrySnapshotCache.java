@@ -25,5 +25,5 @@ public interface ClasspathEntrySnapshotCache extends Cache<File, ClasspathEntryS
     /**
      * Finds the snapshot associated with the file at the time it had the given hash code. May return null if no snapshot was found in the cache.
      */
-    ClasspathEntrySnapshot get(File file, HashCode hash);
+    ClasspathEntrySnapshot get(HashCode hash);
 }

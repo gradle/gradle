@@ -40,12 +40,12 @@ public class SplitClasspathEntrySnapshotCache implements ClasspathEntrySnapshotC
     }
 
     @Override
-    public ClasspathEntrySnapshot get(File file, HashCode hash) {
-        if (globalCacheLocations.isInsideGlobalCache(file.getPath())) {
-            return globalCache.get(file, hash);
-        } else {
-            return localCache.get(file, hash);
+    public ClasspathEntrySnapshot get(HashCode hash) {
+        ClasspathEntrySnapshot snapshot = localCache.get(hash);
+        if (snapshot != null) {
+            return snapshot;
         }
+        return globalCache.get(hash);
     }
 
     @Override

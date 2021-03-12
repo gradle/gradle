@@ -18,25 +18,17 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.internal.hash.HashCode;
 
-import java.io.File;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
 public class ClasspathSnapshotData {
 
-    private final Map<File, HashCode> fileHashes;
-    private final Set<String> duplicateClasses;
+    private final List<HashCode> fileHashes;
 
-    public ClasspathSnapshotData(Map<File, HashCode> fileHashes, Set<String> duplicateClasses) {
+    public ClasspathSnapshotData(List<HashCode> fileHashes) {
         this.fileHashes = fileHashes;
-        this.duplicateClasses = duplicateClasses;
     }
 
-    public Set<String> getDuplicateClasses() {
-        return duplicateClasses;
-    }
-
-    public Map<File, HashCode> getFileHashes() {
+    public List<HashCode> getFileHashes() {
         return fileHashes;
     }
 }

@@ -35,7 +35,7 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
     }
 
     @Override
-    public ClasspathEntrySnapshot get(File file, HashCode hash) {
+    public ClasspathEntrySnapshot get(HashCode hash) {
         ClasspathEntrySnapshotData data = cache.getIfPresent(hash);
         return data != null ? new ClasspathEntrySnapshot(data) : null;
     }

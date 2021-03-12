@@ -27,25 +27,6 @@ class ClasspathSnapshotFactoryTest extends Specification {
     def snapshotter = Mock(ClasspathEntrySnapshotter)
     @Subject factory = new ClasspathSnapshotFactory(snapshotter, new TestBuildOperationExecutor())
 
-    def "creates classpath snapshot with correct duplicate classes"() {
-        def jar1 = stubArchive("f1"); def jar2 = stubArchive("f2"); def jar3 = stubArchive("f3")
-
-        def sn1 = Stub(ClasspathEntrySnapshot) { getClasses() >> ["A", "B", "C"] }
-        def sn2 = Stub(ClasspathEntrySnapshot) { getClasses() >> ["C", "D"] }
-        def sn3 = Stub(ClasspathEntrySnapshot) { getClasses() >> ["B", "E"] }
-
-        when:
-        def s = factory.createSnapshot([jar1, jar2, jar3])
-
-        then:
-        1 * snapshotter.createSnapshot(jar1) >> sn1
-        1 * snapshotter.createSnapshot(jar2) >> sn2
-        1 * snapshotter.createSnapshot(jar3) >> sn3
-        0 * _
-
-        s.data.duplicateClasses == ["B", "C"] as Set
-    }
-
     def "creates classpath snapshot with correct hashes"() {
         def jar1 = stubArchive("f1")
         def jar2 = stubArchive("f2")
@@ -61,8 +42,8 @@ class ClasspathSnapshotFactoryTest extends Specification {
         1 * snapshotter.createSnapshot(jar2) >> sn2
 
         s.data.fileHashes.size() == 2
-        s.data.fileHashes[new File("f1")] == HashCode.fromInt(0x1234)
-        s.data.fileHashes[new File("f2")] == HashCode.fromInt(0x2345)
+        s.data.fileHashes[0] == HashCode.fromInt(0x1234)
+        s.data.fileHashes[1] == HashCode.fromInt(0x2345)
     }
 
     def "doesn't call snapshotter if file doesn't exist"() {

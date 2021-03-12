@@ -64,15 +64,11 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
         if (sourceFileClassNameConverter.isEmpty()) {
-            String fullRebuildCause = previous.getAnnotationProcessorFullRebuildCause();
-            if (fullRebuildCause == null) {
-                fullRebuildCause = "unable to get source-classes mapping relationship from last compilation";
-            }
-            spec.setFullRebuildCause(fullRebuildCause, null);
+            spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation", null);
             return spec;
         }
 
-        processClasspathChanges(current, previous, spec);
+        current.processChangesSince(previous, spec);
         processOtherChanges(current, previous, spec);
         Set<String> typesToReprocess = previous.getTypesToReprocess();
         spec.addClassesToProcess(typesToReprocess);

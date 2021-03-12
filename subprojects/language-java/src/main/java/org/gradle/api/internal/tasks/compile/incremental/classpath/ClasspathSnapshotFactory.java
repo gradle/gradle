@@ -25,10 +25,8 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClasspathSnapshotFactory {
 
@@ -41,33 +39,25 @@ public class ClasspathSnapshotFactory {
     }
 
     ClasspathSnapshot createSnapshot(final Iterable<File> entries) {
-        final Set<CreateSnapshot> snapshotOperations = snapshotAll(entries);
+        final List<CreateSnapshot> snapshotOperations = snapshotAll(entries);
 
-        final LinkedHashMap<File, ClasspathEntrySnapshot> snapshots = new LinkedHashMap<>();
-        final LinkedHashMap<File, HashCode> hashes = new LinkedHashMap<>();
-        final Set<String> allClasses = new HashSet<>();
-        final Set<String> duplicateClasses = new HashSet<>();
+        final List<ClasspathEntrySnapshot> snapshots = new ArrayList<>();
+        final List<HashCode> hashes = new ArrayList<>();
 
         for (CreateSnapshot operation : snapshotOperations) {
-            File entry = operation.entry;
             ClasspathEntrySnapshot snapshot = operation.snapshot;
             if (snapshot != null) {
-                snapshots.put(entry, snapshot);
-                hashes.put(entry, snapshot.getHash());
-                for (String c : snapshot.getClasses()) {
-                    if (!allClasses.add(c)) {
-                        duplicateClasses.add(c);
-                    }
-                }
+                snapshots.add(snapshot);
+                hashes.add(snapshot.getHash());
             }
         }
 
-        ClasspathSnapshotData classpathSnapshotData = new ClasspathSnapshotData(hashes, duplicateClasses);
+        ClasspathSnapshotData classpathSnapshotData = new ClasspathSnapshotData(hashes);
         return new ClasspathSnapshot(snapshots, classpathSnapshotData);
     }
 
-    private Set<CreateSnapshot> snapshotAll(final Iterable<File> entries) {
-        final Set<CreateSnapshot> snapshotOperations = new LinkedHashSet<>();
+    private List<CreateSnapshot> snapshotAll(final Iterable<File> entries) {
+        final List<CreateSnapshot> snapshotOperations = new ArrayList<>();
 
         buildOperationExecutor.runAll((Action<BuildOperationQueue<CreateSnapshot>>) buildOperationQueue -> {
             for (File entry : entries) {

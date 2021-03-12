@@ -1099,6 +1099,7 @@ sourceSets {
 
     def "recompiles all dependents when no jar analysis is present"() {
         given:
+        executer.requireDaemon().requireIsolatedDaemons().requireOwnGradleUserHomeDir()
         source """class A {
             com.google.common.base.Splitter splitter;
         }"""
@@ -1110,8 +1111,11 @@ sourceSets {
         """
         outputs.snapshot { succeeds language.compileTaskName }
 
-        when:
-        executer.requireOwnGradleUserHomeDir()
+        when: "In-memory and on-disk caches are clean"
+        executer.stop()
+        file("user-home").deleteDir()
+
+        and:
         source """class B {
             //some change
         }"""

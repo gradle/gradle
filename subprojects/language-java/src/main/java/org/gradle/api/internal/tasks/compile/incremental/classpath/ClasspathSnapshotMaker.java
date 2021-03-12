@@ -48,9 +48,6 @@ public class ClasspathSnapshotMaker implements ClasspathSnapshotProvider {
         Timer clock = Time.startTimer();
 
         classpathSnapshot = classpathSnapshotFactory.createSnapshot(classpath);
-        int duplicatesCount = classpathSnapshot.getData().getDuplicateClasses().size();
-        String duplicateClassesMessage = duplicatesCount == 0 ? "" : ". " + duplicatesCount + " duplicate classes found in classpath (see all with --debug)";
-        LOG.info("Created classpath snapshot for incremental compilation in {}{}.", clock.getElapsed(), duplicateClassesMessage);
-        LOG.debug("While calculating classpath snapshot {} duplicate classes were found: {}.", duplicatesCount, classpathSnapshot.getData().getDuplicateClasses());
+        LOG.info("Created classpath snapshot for incremental compilation in {}.", clock.getElapsed());
     }
 }

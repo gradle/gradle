@@ -19,14 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.execution.history.changes.DefaultFileChange;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
-import org.gradle.internal.util.Alignment;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.work.FileChange;
 
@@ -58,41 +52,6 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         }
         Set<File> toDelete = fileOperations.fileTree(destinationDir).matching(filesToDelete).getFiles();
         return StaleOutputCleaner.cleanOutputs(deleter, toDelete, destinationDir);
-    }
-
-    protected void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
-        ClasspathEntryChangeProcessor classpathEntryChangeProcessor = new ClasspathEntryChangeProcessor(current.getClasspathSnapshot(), previous);
-        ClasspathSnapshot currentSnapshots = current.getClasspathSnapshot();
-
-        Set<File> previousCompilationEntries = previous.getClasspath();
-        Set<File> currentCompilationEntries = currentSnapshots.getEntries();
-        List<Alignment<File>> alignment = Alignment.align(currentCompilationEntries.toArray(new File[0]), previousCompilationEntries.toArray(new File[0]));
-        for (Alignment<File> fileAlignment : alignment) {
-            switch (fileAlignment.getKind()) {
-                case added:
-                    DefaultFileChange added = DefaultFileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
-                    classpathEntryChangeProcessor.processChange(added, spec);
-                    break;
-                case removed:
-                    DefaultFileChange removed = DefaultFileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
-                    classpathEntryChangeProcessor.processChange(removed, spec);
-                    break;
-                case transformed:
-                    // If we detect a transformation in the classpath, we need to recompile, because we could typically be facing the case where
-                    // 2 entries are reversed in the order of classpath elements, and one class that was shadowing the other is now visible
-                    spec.setFullRebuildCause("Classpath has been changed", null);
-                    return;
-                case identical:
-                    File key = fileAlignment.getPreviousValue();
-                    ClasspathEntrySnapshot previousSnapshot = previous.getClasspathEntrySnapshot(key);
-                    ClasspathEntrySnapshot snapshot = currentSnapshots.getSnapshot(key);
-                    if (previousSnapshot == null || !snapshot.getHash().equals(previousSnapshot.getHash())) {
-                        DefaultFileChange modified = DefaultFileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
-                        classpathEntryChangeProcessor.processChange(modified, spec);
-                    }
-                    break;
-            }
-        }
     }
 
     protected void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {

@@ -455,7 +455,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @NotYetImplemented
     def "doesn't recompile if external dependency has ABI incompatible change but not on class we use"() {
         given:
         buildFile << """
@@ -687,18 +686,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
         then:
         impl.recompiledClasses("A")
-    }
-
-    def "new jar without duplicate class does not trigger compilation"() {
-        source impl: ["class A {}"]
-        impl.snapshot { run("impl:${language.compileTaskName}") }
-
-        when:
-        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.13' }"
-        run("impl:${language.compileTaskName}")
-
-        then:
-        impl.noneRecompiled()
     }
 
     def "changed jar with duplicate class appearing earlier on classpath must trigger compilation"() {

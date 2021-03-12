@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
+import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassChanges;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.internal.hash.HashCode;
@@ -70,10 +70,10 @@ public class ClasspathEntrySnapshot {
         return result;
     }
 
-    public ClassChanges getChangedClassesSince(ClasspathEntrySnapshot other) {
+    public Set<String> getChangedClassesSince(ClasspathEntrySnapshot other) {
         Set<String> modifiedClasses = modifiedSince(other);
         Set<String> addedClasses = addedSince(other);
-        return new ClassChanges(modifiedClasses, addedClasses);
+        return Sets.union(modifiedClasses, addedClasses);
     }
 
     private Set<String> modifiedSince(ClasspathEntrySnapshot other) {
