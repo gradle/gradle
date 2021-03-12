@@ -25,6 +25,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
@@ -84,7 +85,8 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {
-        File probe = writeProbeClass();
+        File tmpDir = temporaryFileProvider.createTemporaryDirectory("jvm", "probe");
+        File probe = writeProbeClass(tmpDir);
         ExecHandleBuilder exec = execHandleFactory.newExec();
         exec.setWorkingDir(probe.getParentFile());
         exec.executable(javaExecutable(jdkPath));
@@ -104,6 +106,8 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             return failure(jdkPath, "Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput);
         } catch (ExecException ex) {
             return failure(jdkPath, ex);
+        } finally {
+            GFileUtils.deleteQuietly(tmpDir);
         }
     }
 
@@ -135,9 +139,8 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
         return JvmInstallationMetadata.failure(jdkPath, cause.getMessage());
     }
 
-    private File writeProbeClass() {
-        File probe = new MetadataProbe().writeClass(temporaryFileProvider.createTemporaryDirectory("meta-data", null));
-        probe.deleteOnExit();
+    private File writeProbeClass(File tmpDir) {
+        File probe = new MetadataProbe().writeClass(tmpDir);
         return probe;
     }
 
