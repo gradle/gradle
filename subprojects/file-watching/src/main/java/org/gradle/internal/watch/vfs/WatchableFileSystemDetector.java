@@ -18,12 +18,11 @@ package org.gradle.internal.watch.vfs;
 
 import net.rubygrapefruit.platform.file.FileSystemInfo;
 
-import java.nio.file.Path;
 import java.util.stream.Stream;
 
 public interface WatchableFileSystemDetector {
     /**
-     * Returns all file systems mounted at or under the given path for which file system watching is not supported.
+     * Returns all file systems for which file system watching is not supported.
      */
-    Stream<FileSystemInfo> detectUnsupportedFileSystemsUnder(Path root);
+    Stream<FileSystemInfo> detectUnsupportedFileSystems();
 }

@@ -32,8 +32,7 @@ class DefaultWatchableFileSystemDetectorTest extends Specification {
         fileSystemsService.fileSystems >> []
 
         expect:
-        detect("/") == []
-        detect("/some/directory") == []
+        detect() == []
     }
 
     def "handles all supported"() {
@@ -43,10 +42,7 @@ class DefaultWatchableFileSystemDetectorTest extends Specification {
         ]
 
         expect:
-        detect("/mnt/supported") == []
-        detect("/mnt/supported/descendant/directory") == []
-        detect("/mnt") == []
-        detect("/unrelated") == []
+        detect() == []
     }
 
     def "handles matching #description"() {
@@ -56,10 +52,7 @@ class DefaultWatchableFileSystemDetectorTest extends Specification {
         ]
 
         expect:
-        detect("/mnt/unsupported") == [unsupported]
-        detect("/mnt/unsupported/descendant/directory") == [unsupported]
-        detect("/mnt") == [unsupported]
-        detect("/unrelated") == []
+        detect() == [unsupported]
 
         where:
         description   | unsupported
@@ -67,8 +60,8 @@ class DefaultWatchableFileSystemDetectorTest extends Specification {
         "remote"      | fs("/dev/remote", "/mnt/unsupported", "ext4", true)
     }
 
-    private List<FileSystemInfo> detect(String path) {
-        detector.detectUnsupportedFileSystemsUnder(Paths.get(path))
+    private List<FileSystemInfo> detect() {
+        detector.detectUnsupportedFileSystems()
             .collect(Collectors.toList())
     }
 

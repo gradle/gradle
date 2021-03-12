@@ -78,7 +78,10 @@ public class WatchableHierarchies {
         SnapshotHierarchy newRoot;
         newRoot = removeWatchedHierarchiesOverLimit(root, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
         newRoot = removeUnwatchedSnapshots(newRoot, invalidator);
-        newRoot = removeUnwatchableFileSystems(newRoot, watchMode, invalidator);
+        // When FSW is enabled by default, we discard any non-watchable file systems, but not if it's enabled explicitly
+        if (watchMode == WatchMode.DEFAULT) {
+            newRoot = removeUnwatchableFileSystems(newRoot, invalidator);
+        }
         return newRoot;
     }
 
@@ -107,33 +110,27 @@ public class WatchableHierarchies {
         return result;
     }
 
-    private SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, WatchMode watchMode, Invalidator invalidator) {
-        return recentlyUsedHierarchies.stream()
-            .flatMap(watchableFileSystemDetector::detectUnsupportedFileSystemsUnder)
+    private SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, Invalidator invalidator) {
+        SnapshotHierarchy invalidatedRoot = watchableFileSystemDetector.detectUnsupportedFileSystems()
             .reduce(
                 root,
-                (updatedRoot, fileSystem) -> removeUnwatchableFileSystemIfNecessary(updatedRoot, watchMode, fileSystem, invalidator),
+                (updatedRoot, fileSystem) -> removeUnwatchableFileSystem(updatedRoot, fileSystem, invalidator),
                 nonCombining()
             );
+        if (invalidatedRoot != root) {
+            LOGGER.info("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching. " +
+                "The relevant state was discarded to ensure changes to these locations are properly detected. " +
+                "You can override this by enforcing file system watching.");
+        }
+        return invalidatedRoot;
     }
 
-    private static SnapshotHierarchy removeUnwatchableFileSystemIfNecessary(SnapshotHierarchy root, WatchMode watchMode, FileSystemInfo fileSystem, Invalidator invalidator) {
-        switch (watchMode) {
-            case ENABLED:
-                LOGGER.debug("Watching is not supported for {}{} file system at '{}'",
-                    fileSystem.isRemote() ? "remote " : "",
-                    fileSystem.getFileSystemType(),
-                    fileSystem.getMountPoint());
-                return root;
-            case DEFAULT:
-                LOGGER.info("Watching is not supported for {}{} file system at '{}', dropping related state from the virtual file system",
-                    fileSystem.isRemote() ? "remote " : "",
-                    fileSystem.getFileSystemType(),
-                    fileSystem.getMountPoint());
-                return invalidator.invalidate(fileSystem.getMountPoint().getAbsolutePath(), root);
-            default:
-                throw new AssertionError("We shouldn't be here if watching was disabled");
-        }
+    private static SnapshotHierarchy removeUnwatchableFileSystem(SnapshotHierarchy root, FileSystemInfo fileSystem, Invalidator invalidator) {
+        LOGGER.debug("Watching is not supported for {}{} file system at '{}', dropping related state from the virtual file system",
+            fileSystem.isRemote() ? "remote " : "",
+            fileSystem.getFileSystemType(),
+            fileSystem.getMountPoint());
+        return invalidator.invalidate(fileSystem.getMountPoint().getAbsolutePath(), root);
     }
 
     public Collection<Path> getWatchableHierarchies() {
