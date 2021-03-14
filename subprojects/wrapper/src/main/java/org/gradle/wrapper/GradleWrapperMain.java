@@ -55,7 +55,7 @@ public class GradleWrapperMain {
 
         File gradleUserHome = gradleUserHome(options);
 
-        addSystemProperties(gradleUserHome, rootDir);
+        addSystemProperties(systemProperties, gradleUserHome, rootDir);
 
         Logger logger = logger(options);
 
@@ -66,9 +66,9 @@ public class GradleWrapperMain {
                 new BootstrapMainStarter());
     }
 
-    private static void addSystemProperties(File gradleHome, File rootDir) {
-        System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(gradleHome, "gradle.properties")));
-        System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
+    private static void addSystemProperties(Properties systemProperties, File gradleHome, File rootDir) {
+        systemProperties.putAll(SystemPropertiesHandler.getSystemProperties(new File(gradleHome, "gradle.properties")));
+        systemProperties.putAll(SystemPropertiesHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
     }
 
     private static File rootDir(File wrapperJar) {
