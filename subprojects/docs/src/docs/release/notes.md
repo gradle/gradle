@@ -133,7 +133,7 @@ Developing plugins as part of a composite build was so far only possible for pro
 Settings plugins always had to be developed in isolation and published to a binary repository.
 
 This release introduces a new DSL construct in the settings file for [including plugin builds](userguide/composite_builds.html#included_plugin_builds).
-Build included like that can provide both project and settings plugins.
+Builds included like that can provide both project and settings plugins.
 ```
 pluginManagement {
     includeBuild("../my-settings-plugin")
