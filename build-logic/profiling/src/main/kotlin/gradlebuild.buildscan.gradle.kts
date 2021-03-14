@@ -78,7 +78,7 @@ extractCheckstyleAndCodenarcData()
 extractWatchFsData()
 
 project.the<ModuleIdentityExtension>().apply {
-    if(logicalBranch.get() != gradleBuildBranch.get()) {
+    if (logicalBranch.get() != gradleBuildBranch.get()) {
         buildScan?.tag("PRE_TESTED_COMMIT")
     }
 }
