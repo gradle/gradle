@@ -38,6 +38,13 @@ import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
+import org.gradle.kotlin.dsl.*
+import gradlebuild.identity.extension.ModuleIdentityExtension
+import java.net.InetAddress
+
+plugins {
+    id("gradlebuild.module-identity")
+}
 
 val serverUrl = "https://ge.gradle.org"
 val gitCommitName = "gitCommitId"
@@ -69,6 +76,12 @@ if (project.testDistributionEnabled()) {
 extractCheckstyleAndCodenarcData()
 
 extractWatchFsData()
+
+project.the<ModuleIdentityExtension>().apply {
+    if (logicalBranch.get() != gradleBuildBranch.get()) {
+        buildScan?.tag("PRE_TESTED_COMMIT")
+    }
+}
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
     buildScan?.tag("SYNC")
@@ -162,7 +175,7 @@ fun extractCheckstyleAndCodenarcData() {
     }
 }
 
-fun isEc2Agent() = java.net.InetAddress.getLocalHost().hostName.startsWith("ip-")
+fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
 
 fun Project.extractCiData() {
     if (isCiServer) {
