@@ -224,4 +224,129 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         succeeds language.compileTaskName
         outputs.recompiledClasses('MyClass', 'Other')
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/14744")
+    @Requires(TestPrecondition.JDK16_OR_LATER)
+    def "recompiles only affected classes when Java records are used"() {
+        given:
+        file("src/main/${languageName}/Person.${languageName}") << """
+            public record Person(String name, int age) {}
+        """
+        file("src/main/${languageName}/Library.${languageName}") << """
+            public class Library {
+                public boolean foo() {
+                    return true;
+                }
+            }
+        """
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/Library.${languageName}").text = """
+            public class Library {
+                public boolean foo() {
+                    return false;
+                }
+            }
+        """
+
+        then:
+        succeeds language.compileTaskName
+        outputs.recompiledClasses('Library')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/14744")
+    @Requires(TestPrecondition.JDK16_OR_LATER)
+    def "recompiles only annotation of record when changed"() {
+        given:
+        file("src/main/${languageName}/MyRecordAnnotation.${languageName}") << """
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Target;
+
+            @Target(ElementType.RECORD_COMPONENT)
+            public @interface MyRecordAnnotation {}
+        """
+        file("src/main/${languageName}/Person.${languageName}") << """
+            public record Person(@MyRecordAnnotation String name, int age) {}
+        """
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/MyRecordAnnotation.${languageName}").text = """
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Target;
+
+            @Target(ElementType.RECORD_COMPONENT)
+            public @interface MyRecordAnnotation {
+                int value() default 42;
+            }
+        """
+
+        then:
+        succeeds language.compileTaskName
+        outputs.recompiledClasses('MyRecordAnnotation')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/14744")
+    @Requires(TestPrecondition.JDK16_OR_LATER)
+    def "recompiles record when changed"() {
+        given:
+        file("src/main/${languageName}/Library.${languageName}") << """
+            public class Library {
+                public boolean foo() {
+                    return true;
+                }
+            }
+        """
+        file("src/main/${languageName}/Person.${languageName}") << """
+            public record Person(String name, int age) {}
+        """
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/Person.${languageName}").text = """
+            public record Person(String firstName, String lastName, int age) {}
+        """
+
+        then:
+        succeeds language.compileTaskName
+        outputs.recompiledClasses('Person')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/14744")
+    @Requires(TestPrecondition.JDK16_OR_LATER)
+    def "recompiles record consumer and record when record is changed"() {
+        given:
+        file("src/main/${languageName}/Library.${languageName}") << """
+            public class Library {
+                public boolean foo() {
+                    return false;
+                }
+            }
+        """
+        file("src/main/${languageName}/Consumer.${languageName}") << """
+            public class Consumer {
+                public int useRecord(Person p) {
+                    return p.age();
+                }
+            }
+        """
+        file("src/main/${languageName}/Person.${languageName}") << """
+            public record Person(String name, int age) {}
+        """
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/Person.${languageName}").text = """
+            public record Person(String firstName, String lastName, int age) {}
+        """
+
+        then:
+        succeeds language.compileTaskName
+        outputs.recompiledClasses('Person', 'Consumer')
+    }
 }
