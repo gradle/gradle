@@ -19,9 +19,6 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
@@ -30,13 +27,14 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.cache.internal.Stash;
 import org.gradle.language.base.internal.compile.Compiler;
 
-import java.util.Map;
+import java.io.File;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -46,14 +44,12 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
 
     private final Compiler<T> delegate;
     private final ClasspathSnapshotProvider classpathSnapshotProvider;
-    private final Stash<PreviousCompilationData> stash;
-    private final StringInterner interner;
+    private final PreviousCompilationAccess previousCompilationAccess;
 
-    IncrementalResultStoringCompiler(Compiler<T> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, Stash<PreviousCompilationData> stash, StringInterner interner) {
+    IncrementalResultStoringCompiler(Compiler<T> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, PreviousCompilationAccess previousCompilationAccess) {
         this.delegate = delegate;
         this.classpathSnapshotProvider = classpathSnapshotProvider;
-        this.stash = stash;
-        this.interner = interner;
+        this.previousCompilationAccess = previousCompilationAccess;
     }
 
     @Override
@@ -70,7 +66,8 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
         ClasspathSnapshotData classpathSnapshot = classpathSnapshotProvider.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath())).getData();
         AnnotationProcessingData annotationProcessingData = getAnnotationProcessingResult(spec, result);
         PreviousCompilationData data = new PreviousCompilationData(annotationProcessingData, classpathSnapshot);
-        stash.put(data);
+        File previousCompilationDataFile = Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
+        previousCompilationAccess.writePreviousCompilationData(data, previousCompilationDataFile);
     }
 
     private AnnotationProcessingData getAnnotationProcessingResult(JavaCompileSpec spec, WorkResult result) {
@@ -89,27 +86,13 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     }
 
     private AnnotationProcessingData convertProcessingResult(AnnotationProcessingResult processingResult) {
-        Map<String, Set<String>> generatedTypesByOrigin = processingResult.getGeneratedTypesWithIsolatedOrigin();
-        Map<String, Set<GeneratedResource>> generatedResourcesByOrigin = processingResult.getGeneratedResourcesWithIsolatedOrigin();
-        Set<String> aggregatedTypes = processingResult.getAggregatedTypes();
-        Set<String> aggregatingTypes = processingResult.getGeneratedAggregatingTypes();
-        Set<GeneratedResource> aggregatingResources = processingResult.getGeneratedAggregatingResources();
-        return new AnnotationProcessingData(intern(generatedTypesByOrigin), intern(aggregatedTypes), intern(aggregatingTypes), generatedResourcesByOrigin, aggregatingResources, processingResult.getFullRebuildCause());
-    }
-
-    private Set<String> intern(Set<String> types) {
-        Set<String> result = Sets.newHashSet();
-        for (String string : types) {
-            result.add(interner.intern(string));
-        }
-        return result;
-    }
-
-    private Map<String, Set<String>> intern(Map<String, Set<String>> types) {
-        Map<String, Set<String>> result = Maps.newHashMap();
-        for (Map.Entry<String, Set<String>> entry : types.entrySet()) {
-            result.put(interner.intern(entry.getKey()), intern(entry.getValue()));
-        }
-        return result;
+        return new AnnotationProcessingData(
+            processingResult.getGeneratedTypesWithIsolatedOrigin(),
+            processingResult.getAggregatedTypes(),
+            processingResult.getGeneratedAggregatingTypes(),
+            processingResult.getGeneratedResourcesWithIsolatedOrigin(),
+            processingResult.getGeneratedAggregatingResources(),
+            processingResult.getFullRebuildCause()
+        );
     }
 }

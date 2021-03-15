@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-import org.gradle.cache.Cache;
 import org.gradle.internal.hash.HashCode;
 
-import java.io.File;
-
-public interface ClasspathEntrySnapshotCache extends Cache<File, ClasspathEntrySnapshot> {
+public interface ClasspathEntrySnapshotCache {
     /**
      * Finds the snapshot associated with the file at the time it had the given hash code. May return null if no snapshot was found in the cache.
      */
     ClasspathEntrySnapshot get(HashCode hash);
+
+    void put(HashCode hash, ClasspathEntrySnapshot snapshot);
 }

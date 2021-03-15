@@ -38,12 +38,13 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
 
     @Override
     public ClasspathEntrySnapshot createSnapshot(final File classpathEntry) {
-        return cache.get(
-            classpathEntry,
-            () -> fileSystemAccess.read(
-                classpathEntry.getAbsolutePath(),
-                snapshot -> snapshotter.createSnapshot(snapshot.getHash(), classpathEntry)
-            )
-        );
+        return fileSystemAccess.read(classpathEntry.getAbsolutePath(), snapshot -> {
+            ClasspathEntrySnapshot entrySnapshot = cache.get(snapshot.getHash());
+            if (entrySnapshot == null) {
+                entrySnapshot = snapshotter.createSnapshot(snapshot.getHash(), classpathEntry);
+                cache.put(snapshot.getHash(), entrySnapshot);
+            }
+            return entrySnapshot;
+        });
     }
 }

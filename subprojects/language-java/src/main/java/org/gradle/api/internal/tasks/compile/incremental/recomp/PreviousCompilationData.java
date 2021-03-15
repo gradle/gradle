@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotDataSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
@@ -45,9 +44,9 @@ public class PreviousCompilationData {
         private final ClasspathSnapshotDataSerializer classpathSnapshotDataSerializer;
         private final AnnotationProcessingData.Serializer annotationProcessingDataSerializer;
 
-        public Serializer(StringInterner interner) {
+        public Serializer() {
             classpathSnapshotDataSerializer = new ClasspathSnapshotDataSerializer();
-            annotationProcessingDataSerializer = new AnnotationProcessingData.Serializer(interner);
+            annotationProcessingDataSerializer = new AnnotationProcessingData.Serializer();
         }
 
         @Override

@@ -19,11 +19,10 @@ package org.gradle.api.internal.tasks.compile.incremental.processing;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.AbstractSerializer;
+import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.InterningStringSerializer;
 import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.SetSerializer;
 
@@ -113,14 +112,13 @@ public class AnnotationProcessingData {
         private final SetSerializer<GeneratedResource> resourcesSerializer;
         private final MapSerializer<String, Set<GeneratedResource>> generatedResourcesSerializer;
 
-        public Serializer(StringInterner interner) {
-            InterningStringSerializer stringSerializer = new InterningStringSerializer(interner);
-            typesSerializer = new SetSerializer<>(stringSerializer);
-            generatedTypesSerializer = new MapSerializer<>(stringSerializer, typesSerializer);
+        public Serializer() {
+            typesSerializer = new SetSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
+            generatedTypesSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, typesSerializer);
 
-            GeneratedResourceSerializer resourceSerializer = new GeneratedResourceSerializer(stringSerializer);
+            GeneratedResourceSerializer resourceSerializer = new GeneratedResourceSerializer(BaseSerializerFactory.STRING_SERIALIZER);
             this.resourcesSerializer = new SetSerializer<>(resourceSerializer);
-            this.generatedResourcesSerializer = new MapSerializer<>(stringSerializer, resourcesSerializer);
+            this.generatedResourcesSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, resourcesSerializer);
         }
 
         @Override

@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +41,7 @@ public class PreviousCompilation {
         this.classpathEntrySnapshotCache = classpathEntrySnapshotCache;
     }
 
+    @Nullable
     public List<ClasspathEntrySnapshot> getClasspath() {
         ClasspathSnapshotData classpathSnapshotData = data.getClasspathSnapshot();
         List<ClasspathEntrySnapshot> entries = new ArrayList<>();
@@ -47,6 +49,8 @@ public class PreviousCompilation {
             ClasspathEntrySnapshot snapshot = classpathEntrySnapshotCache.get(hash);
             if (snapshot != null) {
                 entries.add(snapshot);
+            } else {
+                return null;
             }
         }
         return entries;

@@ -20,13 +20,12 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultUserHomeScopedCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.UserHomeScopedCompileCaches;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.vfs.FileSystemAccess;
 
 public class CompileServices extends AbstractPluginServiceRegistry {
 
@@ -46,26 +45,14 @@ public class CompileServices extends AbstractPluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        DefaultGeneralCompileCaches createGeneralCompileCaches(
-            CacheRepository cacheRepository,
-            Gradle gradle,
-            InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-            StringInterner interner,
-            UserHomeScopedCompileCaches userHomeScopedCompileCaches
-        ) {
-            return new DefaultGeneralCompileCaches(
-                    cacheRepository,
-                gradle,
-                inMemoryCacheDecoratorFactory,
-                interner,
-                userHomeScopedCompileCaches
-            );
+        DefaultGeneralCompileCaches createGeneralCompileCaches(UserHomeScopedCompileCaches userHomeScopedCompileCaches, BuildCacheController buildCache, StringInterner interner) {
+            return new DefaultGeneralCompileCaches(userHomeScopedCompileCaches, buildCache, interner);
         }
     }
 
     private static class UserHomeScopeServices {
-        DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, FileSystemAccess fileSystemAccess, StringInterner interner) {
-            return new DefaultUserHomeScopedCompileCaches(fileSystemAccess, cacheRepository, inMemoryCacheDecoratorFactory, interner);
+        DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+            return new DefaultUserHomeScopedCompileCaches(cacheRepository, inMemoryCacheDecoratorFactory, interner);
         }
     }
 }

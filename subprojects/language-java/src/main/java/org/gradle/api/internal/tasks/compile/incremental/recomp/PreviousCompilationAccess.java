@@ -24,28 +24,27 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
-/**
- * We can't use {@link org.gradle.api.internal.tasks.compile.incremental.classpath.CachingClasspathEntrySnapshotter}
- * because that would update the virtual file system with a snapshot of our output directory before the compiler
- * has actually run.
- */
-public class PreviousCompilationOutputAnalyzer {
-    private static final Logger LOG = LoggerFactory.getLogger(PreviousCompilationOutputAnalyzer.class);
+public class PreviousCompilationAccess {
+    private static final Logger LOG = LoggerFactory.getLogger(PreviousCompilationAccess.class);
 
     private final DefaultClasspathEntrySnapshotter snapshotter;
 
-    public PreviousCompilationOutputAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {
+    public PreviousCompilationAccess(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {
         this.snapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, analyzer, fileOperations);
     }
 
-    public ClassSetAnalysis getAnalysis(File classesDirectory) {
+    public ClassSetAnalysis analyseClasses(File classesDirectory) {
         Timer clock = Time.startTimer();
         HashCode unusedHashCode = HashCode.fromInt(0);
         ClasspathEntrySnapshot snapshot = snapshotter.createSnapshot(unusedHashCode, classesDirectory);
@@ -53,4 +52,19 @@ public class PreviousCompilationOutputAnalyzer {
         return snapshot.getClassAnalysis();
     }
 
+    public PreviousCompilationData readPreviousCompilationData(File source) {
+        try (KryoBackedDecoder encoder = new KryoBackedDecoder(new FileInputStream(source))) {
+            return new PreviousCompilationData.Serializer().read(encoder);
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not read previous compilation result.", e);
+        }
+    }
+
+    public void writePreviousCompilationData(PreviousCompilationData data, File target) {
+        try (KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(target))) {
+            new PreviousCompilationData.Serializer().write(encoder, data);
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not store compilation result", e);
+        }
+    }
 }

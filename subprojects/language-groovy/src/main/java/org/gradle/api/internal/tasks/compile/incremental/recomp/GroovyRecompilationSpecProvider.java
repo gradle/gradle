@@ -63,7 +63,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             return spec;
         }
 
-        current.processChangesSince(previous, spec);
+        current.processClasspathChangesSince(previous, spec);
         processOtherChanges(previous, spec);
 
         spec.addClassesToProcess(previous.getTypesToReprocess());

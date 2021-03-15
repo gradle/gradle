@@ -29,6 +29,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class CurrentCompilation {
@@ -44,20 +45,21 @@ public class CurrentCompilation {
         return spec.getAnnotationProcessorPath();
     }
 
-    public void processChangesSince(PreviousCompilation previous, RecompilationSpec spec) {
+    public void processClasspathChangesSince(PreviousCompilation previous, RecompilationSpec spec) {
         List<ClasspathEntrySnapshot> currentClasspath = getClasspath();
         List<ClasspathEntrySnapshot> previousClasspath = previous.getClasspath();
-        int commonSize = Math.min(currentClasspath.size(), previousClasspath.size());
-        for (int i = 0; i < commonSize; i++) {
+        if (previousClasspath == null) {
+            spec.setFullRebuildCause("classpath data of previous compilation is incomplete", null);
+            return;
+        }
+        if (currentClasspath.size() != previousClasspath.size()) {
+            spec.setFullRebuildCause("length of classpath has changed", null);
+            return;
+        }
+        for (int i = 0; i < currentClasspath.size(); i++) {
             ClasspathEntrySnapshot currentEntry = currentClasspath.get(i);
             ClasspathEntrySnapshot olderEntry = previousClasspath.get(i);
             DependentsSet changes = handleModified(currentEntry, olderEntry, previous);
-            applyChanges(changes, spec);
-        }
-        List<ClasspathEntrySnapshot> longer = currentClasspath.size() > commonSize ? currentClasspath : previousClasspath;
-        List<ClasspathEntrySnapshot> rest = longer.subList(commonSize, longer.size());
-        for (ClasspathEntrySnapshot snapshot : rest) {
-            DependentsSet changes = handleAddedOrRemoved(snapshot, previous);
             applyChanges(changes, spec);
         }
     }
@@ -76,26 +78,13 @@ public class CurrentCompilation {
         }
     }
 
-    private DependentsSet handleAddedOrRemoved(ClasspathEntrySnapshot entry, PreviousCompilation previous) {
-        DependentsSet allClasses = entry.getAllClasses();
-        if (allClasses.isDependencyToAll()) {
-            return allClasses;
-        }
-        DependentsSet affectedOnClasspath = collectDependentsFromClasspath(allClasses.getAllDependentClasses(), previous);
-        if (affectedOnClasspath.isDependencyToAll()) {
-            return affectedOnClasspath;
-        } else {
-            return previous.getDependents(affectedOnClasspath.getAllDependentClasses(), entry.getAllConstants(affectedOnClasspath));
-        }
-    }
-
     private DependentsSet collectDependentsFromClasspath(Set<String> modified, PreviousCompilation older) {
         final Set<String> privateDependentClasses = new HashSet<>(modified);
         final Set<String> accessibleDependentClasses = new HashSet<>(modified);
         final Deque<String> queue = new LinkedList<>(modified);
         while (!queue.isEmpty()) {
             final String dependentClass = queue.poll();
-            for (ClasspathEntrySnapshot entry : older.getClasspath()) {
+            for (ClasspathEntrySnapshot entry : Objects.requireNonNull(older.getClasspath())) {
                 DependentsSet dependents = collectDependentsFromClasspathEntry(dependentClass, entry);
                 if (dependents.isDependencyToAll()) {
                     return dependents;
@@ -124,7 +113,7 @@ public class CurrentCompilation {
     private void applyChanges(DependentsSet changes, RecompilationSpec spec) {
         if (changes.isDependencyToAll()) {
             String description = changes.getDescription();
-            spec.setFullRebuildCause(description != null ? description : "TODO better message", null);
+            spec.setFullRebuildCause(description != null ? description : "a changed class on the classpath was a dependency to all others (e.g. it contained a public constant)", null);
             return;
         }
         spec.addClassesToCompile(changes.getPrivateDependentClasses());

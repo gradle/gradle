@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":build-cache"))
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))

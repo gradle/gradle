@@ -788,6 +788,8 @@ sourceSets {
             ${mavenCentralRepository()}
             if (providers.gradleProperty("withIcu").forUseAtConfigurationTime().isPresent()) {
                 dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
+            } else {
+                dependencies { implementation 'javax.inject:javax.inject:1' }
             }
 
         """
@@ -1101,13 +1103,13 @@ sourceSets {
         given:
         executer.requireDaemon().requireIsolatedDaemons().requireOwnGradleUserHomeDir()
         source """class A {
-            com.google.common.base.Splitter splitter;
+            org.apache.commons.lang3.StringUtils utils;
         }"""
         source """class B {}"""
 
         buildFile << """
             ${mavenCentralRepository()}
-            dependencies { implementation 'com.google.guava:guava:21.0' }
+            dependencies { implementation 'org.apache.commons:commons-lang3:3.8' }
         """
         outputs.snapshot { succeeds language.compileTaskName }
 
@@ -1115,14 +1117,13 @@ sourceSets {
         executer.stop()
         file("user-home").deleteDir()
 
-        and:
-        source """class B {
-            //some change
-        }"""
+        and: "We're no longer using the old dependency"
+        buildFile << "dependencies { implementation 'org.apache.commons:commons-lang3:3.9' }"
 
         then:
-        succeeds language.compileTaskName
+        succeeds language.compileTaskName, "-i"
         outputs.recompiledClasses("A", "B")
+        output.contains("classpath data of previous compilation is incomplete")
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9380')

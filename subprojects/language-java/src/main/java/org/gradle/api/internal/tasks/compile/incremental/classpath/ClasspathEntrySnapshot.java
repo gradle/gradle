@@ -19,12 +19,9 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.internal.hash.HashCode;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -37,27 +34,6 @@ public class ClasspathEntrySnapshot {
     public ClasspathEntrySnapshot(ClasspathEntrySnapshotData data) {
         this.data = data;
         this.analysis = new ClassSetAnalysis(data.getClassAnalysis());
-    }
-
-    public DependentsSet getAllClasses() {
-        final Set<String> result = new HashSet<>();
-        for (Map.Entry<String, HashCode> cls : getHashes().entrySet()) {
-            String className = cls.getKey();
-            DependentsSet dependents = getClassAnalysis().getRelevantDependents(className, IntSets.EMPTY_SET);
-            if (dependents.isDependencyToAll()) {
-                return dependents;
-            }
-            result.add(className);
-        }
-        return DependentsSet.dependentClasses(Collections.emptySet(), result);
-    }
-
-    public IntSet getAllConstants(DependentsSet dependents) {
-        IntSet result = new IntOpenHashSet();
-        for (String cn : dependents.getAllDependentClasses()) {
-            result.addAll(data.getClassAnalysis().getConstants(cn));
-        }
-        return result;
     }
 
     public IntSet getRelevantConstants(ClasspathEntrySnapshot other, Set<String> affectedClasses) {

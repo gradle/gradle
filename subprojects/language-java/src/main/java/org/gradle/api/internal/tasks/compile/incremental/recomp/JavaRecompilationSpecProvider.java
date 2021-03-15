@@ -68,7 +68,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
             return spec;
         }
 
-        current.processChangesSince(previous, spec);
+        current.processClasspathChangesSince(previous, spec);
         processOtherChanges(current, previous, spec);
         Set<String> typesToReprocess = previous.getTypesToReprocess();
         spec.addClassesToProcess(typesToReprocess);
