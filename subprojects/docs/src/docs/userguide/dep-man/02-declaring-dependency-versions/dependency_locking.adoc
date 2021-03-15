@@ -86,6 +86,12 @@ In order to generate or update lock state, you specify the `--write-locks` comma
 This will cause the creation of lock state for each resolved configuration in that build execution.
 Note that if lock state existed previously, it is overwritten.
 
+[NOTE]
+====
+Gradle will not write lock state to disk if the build fails.
+This prevents persisting possibly invalid state.
+====
+
 [[lock_all_configurations_in_one_build_execution]]
 === Lock all configurations in one build execution
 
@@ -140,7 +146,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSing
 If your project uses the legacy lock file format of a file per locked configuration, follow these instructions to migrate to the new format:
 
 * Follow the documentation for <<#lock_all_configurations_in_one_build_execution, writing>> or <<#selectively_updating_lock_state_entries, updating>> dependency lock state.
-* After confirming the single lock file per project contains the lock state for a given configuration, the matching per configuration lock file can be removed from `gradle/dependency-locks`.
+* Upon writing the single lock file per project, Gradle will also delete all lock files per configuration for which the state was transferred.
 
 [NOTE]
 ====
@@ -219,10 +225,9 @@ The resolution may cause other module versions to update, as dictated by the Gra
 == Disabling dependency locking
 
 . Make sure that the configuration for which you no longer want locking is not configured with locking.
-. Remove the file matching the configurations where you no longer want locking.
+. Next time you update the save lock state, Gradle will automatically clean up all stale lock state from it.
 
-If you only perform the second step above, then locking will effectively no longer be applied.
-However, if that configuration happens to be resolved in the future at a time where lock state is persisted, it will once again be locked.
+Gradle needs to resolve a configuration, no longer marked as locked, to detect that associated lock state can be dropped.
 
 [[ignoring_dependencies]]
 == Ignoring specific dependencies from the lock state
