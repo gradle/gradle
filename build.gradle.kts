@@ -11,4 +11,5 @@ plugins {
     id("gradlebuild.quick-check")                // Local development: Convenience task `quickCheck` for running checkstyle/codenarc only on changed files before commit
 }
 
+fail!
 
