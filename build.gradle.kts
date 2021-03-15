@@ -1,3 +1,4 @@
+// useless comment
 plugins {
     id("gradlebuild.root-build")
 
