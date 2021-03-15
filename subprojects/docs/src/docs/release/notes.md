@@ -8,6 +8,7 @@ Some features in this milestone may not make it to the first release candidate a
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+[Sebastian Schuberth](https://github.com/sschuberth),
 [Aidar Nugmanoff](https://github.com/nugmanoff),
 [Martin d'Anjou](https://github.com/martinda),
 [Till Krullmann](https://github.com/tkrullmann),
