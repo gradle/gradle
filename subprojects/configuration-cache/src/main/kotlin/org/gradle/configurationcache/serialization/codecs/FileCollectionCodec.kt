@@ -30,9 +30,7 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
-import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MinimalFileSet
-import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
@@ -83,7 +81,6 @@ class FileCollectionCodec(
                     contents.map { element ->
                         when (element) {
                             is File -> element
-                            is AdaptedFileTreeSpec -> fileCollectionFactory.treeOf(element.tree)
                             is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                             is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                             is ProviderBackedFileCollectionSpec -> element.provider
@@ -104,10 +101,6 @@ class FileCollectionCodec(
 
 
 private
-class AdaptedFileTreeSpec(val tree: MinimalFileTree)
-
-
-private
 class SubtractingFileCollectionSpec(val left: FileCollection, val right: FileCollection)
 
 
@@ -124,10 +117,6 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     val elements: MutableSet<Any> = mutableSetOf()
     override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean =
         when (fileCollection) {
-            is FileTreeAdapter -> {
-                elements.add(AdaptedFileTreeSpec(fileCollection.tree))
-                false
-            }
             is SubtractingFileCollection -> {
                 // TODO - when left and right are both static then we should serialize the current contents of the collection
                 elements.add(SubtractingFileCollectionSpec(fileCollection.left, fileCollection.right))
@@ -148,6 +137,10 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                 } else {
                     true
                 }
+            }
+            is FileTreeInternal -> {
+                elements.add(fileCollection)
+                false
             }
             else -> {
                 true
@@ -183,17 +176,20 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         }
     }
 
-    override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-        elements.add(fileTree)
-    }
+    override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) =
+        unsupportedFileTree(fileTree)
 
-    override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
-        elements.add(fileTree)
-    }
+    override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) =
+        unsupportedFileTree(fileTree)
 
-    override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-        elements.add(fileTree)
-    }
+    override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) =
+        unsupportedFileTree(fileTree)
+
+    private
+    fun unsupportedFileTree(fileTree: FileTreeInternal): Nothing =
+        throw UnsupportedOperationException(
+            "Unexpected file tree '$fileTree' of type '${fileTree.javaClass}' found while serializing a file collection."
+        )
 }
 
 
