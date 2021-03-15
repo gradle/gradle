@@ -10,7 +10,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.5.2")
+    id("com.gradle.enterprise").version("3.6")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
     id("gradlebuild.base.allprojects")
     // Keep version with `build-logic/build-platform/buildSrc.gradle.kts` in sync
