@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
 
@@ -550,6 +551,76 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCache.assertStateLoaded()
     }
 
+    def "jar manifest can use mapped FileCollection elements"() {
+        given:
+        settingsFile << '''
+            include 'lib'
+            include 'app'
+        '''
+        file('lib/build.gradle') << '''
+            plugins { id("java-library") }
+        '''
+        file('app/build.gradle.kts') << '''
+            plugins {
+                `java-library`
+            }
+
+            val manifestClasspath by configurations.creating {
+                isCanBeResolved = true
+                isCanBeConsumed = false
+                isTransitive = false
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+                }
+            }
+
+            tasks.jar.configure {
+                inputs.files(manifestClasspath)
+                val classpath = manifestClasspath.elements.map { classpathDependency ->
+                    classpathDependency.joinToString(" ") {
+                        it.asFile.name
+                    }
+                }
+                manifest.attributes("Class-Path" to classpath)
+            }
+
+            dependencies {
+                implementation(project(":lib"))
+                manifestClasspath(project(":lib"))
+            }
+        '''
+        file('lib/src/main/java/lib/Utils.java') << '''
+            package lib;
+            public class Utils {}
+        '''
+        file('app/src/main/java/launcher/Main.java') << '''
+            package launcher;
+            public class Main {}
+        '''
+
+        when:
+        configurationCacheRun ':app:jar'
+
+        then:
+        assertStateStored()
+
+        when:
+        def jarFile = file('app/build/libs/app.jar')
+        jarFile.delete()
+
+        and:
+        configurationCacheRun ':app:jar'
+
+        then:
+        assertStateLoaded()
+
+        and:
+        def manifest = new JarTestFixture(jarFile).manifest
+        manifest.mainAttributes.getValue('Class-Path') == 'lib.jar'
+    }
+
     def buildWithSingleSourceFile() {
         settingsFile << """
             rootProject.name = 'somelib'
@@ -568,5 +639,13 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         file("src/main/resources/answer.txt") << "42"
         file("src/main/resources/META-INF/some.Service") << "impl"
+    }
+
+    private void assertStateStored() {
+        configurationCache.assertStateStored()
+    }
+
+    private void assertStateLoaded() {
+        configurationCache.assertStateLoaded()
     }
 }

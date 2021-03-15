@@ -30,7 +30,9 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
+import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MinimalFileSet
+import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
@@ -81,6 +83,7 @@ class FileCollectionCodec(
                     contents.map { element ->
                         when (element) {
                             is File -> element
+                            is AdaptedFileTreeSpec -> fileCollectionFactory.treeOf(element.tree)
                             is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                             is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                             is ProviderBackedFileCollectionSpec -> element.provider
@@ -101,6 +104,10 @@ class FileCollectionCodec(
 
 
 private
+class AdaptedFileTreeSpec(val tree: MinimalFileTree)
+
+
+private
 class SubtractingFileCollectionSpec(val left: FileCollection, val right: FileCollection)
 
 
@@ -117,6 +124,10 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     val elements: MutableSet<Any> = mutableSetOf()
     override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean =
         when (fileCollection) {
+            is FileTreeAdapter -> {
+                elements.add(AdaptedFileTreeSpec(fileCollection.tree))
+                false
+            }
             is SubtractingFileCollection -> {
                 // TODO - when left and right are both static then we should serialize the current contents of the collection
                 elements.add(SubtractingFileCollectionSpec(fileCollection.left, fileCollection.right))
