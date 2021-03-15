@@ -583,14 +583,14 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
 
         when:
         render cannotWriteToReservedLocation {
-            type('SomeTransform')
+            type('SomeTransform').property('mixed')
             forbiddenAt(reserved)
             includeLink()
         }
 
         then:
         outputEquals """
-Type 'SomeTransform' points to '${reserved}' which is managed by Gradle.
+Type 'SomeTransform' property 'mixed' points to '${reserved}' which is managed by Gradle.
 
 Reason: Trying to write an output to a read-only location which is for Gradle internal use only.
 
