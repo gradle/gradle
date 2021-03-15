@@ -43,6 +43,11 @@ import java.util.List;
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
  *
+ * This task should be added to a Gradle plugin project for doing static analysis on the plugin classes.
+ *
+ * The <a href="https://docs.gradle.org/current/userguide/java_gradle_plugin.html" target="_top">java-gradle-plugin</a> automatically adds
+ * a {@code validatePlugins} task, so you don't have to do it yourself.
+ *
  * See the user guide for more information on
  * <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks" target="_top">incremental build</a> and
  * <a href="https://docs.gradle.org/current/userguide/build_cache.html#sec:task_output_caching" target="_top">caching task outputs</a>.

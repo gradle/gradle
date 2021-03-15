@@ -76,7 +76,7 @@ include::{snippetsPath}/developingPlugins/incrementalTask/groovy/buildSrc/src/ma
 ----
 
 The first section of this guide talks about the <<plugin-development-plugin,Plugin Development plugin>>.
-As an added benefit of applying the plugin to your project, the task `validateTaskProperties` automatically checks for an existing input/output annotation for every public property defined in a custom task type implementation.
+As an added benefit of applying the plugin to your project, the task `validatePlugins` automatically checks for an existing input/output annotation for every public property defined in a custom task type implementation.
 
 [[modeling_dsl_like_apis]]
 == Modeling DSL-like APIs
