@@ -641,7 +641,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
 
         then:
         outputEquals """
-Type 'SomeTransform' Using @CacheableTask here is incorrect.
+Type 'SomeTransform' is incorrectly annotated with @CacheableTask.
 
 Reason: This annotation only makes sense on Task types.
 

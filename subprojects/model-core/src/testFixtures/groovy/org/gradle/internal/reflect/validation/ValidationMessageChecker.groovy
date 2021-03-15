@@ -269,7 +269,7 @@ trait ValidationMessageChecker {
     )
     String invalidUseOfCacheableAnnotation(@DelegatesTo(value = InvalidUseOfCacheable, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(InvalidUseOfCacheable, 'invalid_use_of_cacheable_annotation', spec)
-        config.description("Using @${config.invalidAnnotation} here is incorrect")
+        config.description("is incorrectly annotated with @${config.invalidAnnotation}")
             .reason("This annotation only makes sense on ${config.correctTypes.join(', ')} types")
             .solution("Remove the annotation")
             .render()
