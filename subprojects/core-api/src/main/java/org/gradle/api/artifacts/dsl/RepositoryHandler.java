@@ -121,7 +121,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param action a configuration action
      * @return the added repository
-     * @deprecated JCenter will soon be <a href="https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter">shut down</a>. Use {@link #mavenCentral()} instead.
+     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">shutdown</a> in February 2021. Use {@link #mavenCentral()} instead.
      */
     @Deprecated
     MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action);
@@ -141,7 +141,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @return the added resolver
      * @see #jcenter(Action)
-     * @deprecated JCenter will soon be <a href="https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter">shut down</a>. Use {@link #mavenCentral()} instead.
+     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">shutdown</a> in February 2021. Use {@link #mavenCentral()} instead.
      */
     @Deprecated
     MavenArtifactRepository jcenter();

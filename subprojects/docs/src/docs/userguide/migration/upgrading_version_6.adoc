@@ -62,7 +62,8 @@ Users can still opt in to have this unique identifier part of the produced metad
 [[jcenter_deprecation]]
 === The `jcenter()` convenience method is now deprecated
 
-JFrog recently link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[announced] the decommission of JCenter.
+JFrog link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[announced] the decommission of JCenter.
+This has the potential to https://blog.gradle.org/jcenter-shutdown[impact many Gradle builds].
 Gradle emits a deprecation warning when `jcenter()` is used in the repository configuration.
 Consider <<declaring_repositories.adoc#declaring-repositories,using>> `mavenCentral()`, `google()` or a private `maven` repository instead.
 
