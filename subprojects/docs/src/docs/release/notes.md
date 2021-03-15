@@ -90,6 +90,11 @@ Please refer to the [Gradle upgrade guide](userguide/upgrading_version_6.html#ch
 
 Gradle now supports running on and building with [Java 16](https://openjdk.java.net/projects/jdk/16/).
 
+## Dependency locking improvements
+
+With the lock file [defaulting to one file per project](userguide/upgrading_version_6.html#locking_single), dependency locking in Gradle is now able to clean up lock state for configuration that are no longer locked.
+In addition, no lock state will be written if the build attempting to update it fails.
+
 ## Ignore empty `buildSrc` project
 
 In earlier Gradle versions, the mere presence of a `buildSrc` directory was enough to trigger Gradle to execute all `buildSrc` tasks and to add the resulting `buildSrc.jar` to the buildscript class path.
