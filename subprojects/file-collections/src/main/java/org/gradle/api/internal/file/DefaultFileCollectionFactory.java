@@ -142,7 +142,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     private FileCollectionInternal resolving(String displayName, ProviderResolutionStrategy providerResolutionStrategy, Object sources) {
-        if (sources.getClass().isArray() && Array.getLength(sources) == 0) {
+        if (isEmptyArray(sources)) {
             return empty(displayName);
         }
         return new ResolvingFileCollection(displayName, fileResolver, patternSetFactory, providerResolutionStrategy, sources);
@@ -162,7 +162,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (sources instanceof FileCollectionInternal) {
             return (FileCollectionInternal) sources;
         }
-        if (sources.getClass().isArray() && Array.getLength(sources) == 0) {
+        if (isEmptyArray(sources)) {
             return empty();
         }
         return resolving(DEFAULT_COLLECTION_DISPLAY_NAME, providerResolutionStrategy, sources);
@@ -352,5 +352,9 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
                 formatter.node(item + " (class: " + item.getClass().getName() + ")");
             }
         }
+    }
+
+    private boolean isEmptyArray(Object sources) {
+        return sources.getClass().isArray() && Array.getLength(sources) == 0;
     }
 }
