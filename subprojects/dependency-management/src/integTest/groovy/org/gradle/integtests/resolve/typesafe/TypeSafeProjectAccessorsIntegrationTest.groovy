@@ -47,27 +47,19 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
-    def "warns if a project doesn't follow convention"() {
+    def "fails if a project doesn't follow convention"() {
         settingsFile << """
             include '1library'
         """
 
-        buildFile << """
-            tasks.register("noExtension") {
-                doLast {
-                    assert extensions.findByName('projects') == null
-                }
-            }
-        """
-
         when:
-        succeeds 'noExtension'
+        fails 'help'
 
         then:
-        outputContains "Cannot generate project dependency accessors because project '1library' doesn't follow the naming convention: [a-zA-Z]([A-Za-z0-9\\-_])*"
+        failureDescriptionContains "Cannot generate project dependency accessors because project '1library' doesn't follow the naming convention: [a-zA-Z]([A-Za-z0-9\\-_])*"
     }
 
-    def "warns if two subprojects have the same java name"() {
+    def "fails if two subprojects have the same java name"() {
         settingsFile << """
             include 'super-cool'
             include 'super--cool'
@@ -82,10 +74,10 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         """
 
         when:
-        succeeds 'noExtension'
+        fails 'noExtension'
 
         then:
-        outputContains "Cannot generate project dependency accessors because subprojects [super-cool, super--cool] of project : map to the same method name getSuperCool()"
+        failureDescriptionContains "Cannot generate project dependency accessors because subprojects [super-cool, super--cool] of project : map to the same method name getSuperCool()"
     }
 
     def "can configure the project extension name"() {

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.artifacts.VersionCatalogsExtension;
 import org.gradle.api.initialization.ProjectDescriptor;
@@ -50,6 +51,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.internal.service.ServiceRegistry;
@@ -179,9 +181,14 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 });
         }
         if (!errors.isEmpty()) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Cannot generate project dependency accessors");
+            formatter.startChildren();
             for (String error : errors) {
-                LOGGER.warn("Cannot generate project dependency accessors because " + error);
+                formatter.node("Cannot generate project dependency accessors because " + error);
             }
+            formatter.endChildren();
+            throw new InvalidUserDataException(formatter.toString());
         }
         return errors.isEmpty();
     }
