@@ -40,7 +40,6 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.process.CommandLineArgumentProvider
-import java.io.File
 
 
 fun Project.addDependenciesAndConfigurations(prefix: String) {
