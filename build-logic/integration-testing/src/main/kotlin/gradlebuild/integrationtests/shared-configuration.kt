@@ -130,10 +130,12 @@ fun Project.getBucketProvider() = gradle.sharedServices.registerIfAbsent("buildB
     parameters.repoRoot.set(repoRoot())
 }
 
+
 internal
 class SamplesBaseDirPropertyProvider(@InputDirectory @PathSensitive(PathSensitivity.RELATIVE) val autoTestedSamplesDir: Directory) : CommandLineArgumentProvider {
     override fun asArguments() = listOf("-DdeclaredSampleInputs=${autoTestedSamplesDir.asFile.absolutePath}")
 }
+
 
 internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
