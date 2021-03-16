@@ -248,10 +248,4 @@ testImplementation('junit:junit:4.7')""")
             'nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
         ]
     }
-
-    @Override
-    Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
-        // TODO: Use newer version of nebula.plugin-plugin which applies the newer coveralls plugin
-        return testedPluginId == 'nebula.plugin-plugin' ? ['com.github.kt3k.coveralls': '2.11.0'] : [:]
-    }
 }
