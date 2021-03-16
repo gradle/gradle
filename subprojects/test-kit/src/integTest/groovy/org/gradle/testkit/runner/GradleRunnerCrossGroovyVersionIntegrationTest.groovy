@@ -18,7 +18,9 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ GradleContextualExecuter.embedded })
 class GradleRunnerCrossGroovyVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def "can run simple build using groovy2"(String testedGradleVersion, Closure<GradleRunner> gradleVersionConfigurator) {
@@ -90,7 +92,6 @@ class BuildLogicFunctionalTest extends Specification {
         def result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments('writeGroovyVersion', '--stacktrace', '--info')
-            .withDebug(true)
             .withGradleInstallation(new File("${buildContext.gradleHomeDir}"))
             .build()
 
@@ -122,7 +123,6 @@ repositories {
         def result = runner()
             .withArguments("test", '--stacktrace', '--info')
             .withGradleVersion("6.8.3")
-            .withDebug(true)
             .build()
 
         then:
