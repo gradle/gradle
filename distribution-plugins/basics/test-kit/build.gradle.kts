@@ -8,7 +8,7 @@ dependencies {
     implementation("org.gradle:base-services")
     implementation("org.gradle:core-api")
     implementation("org.gradle:core")
-    implementation("org.gradle:file-temp"))
+    implementation("org.gradle:file-temp")
     implementation("org.gradle:wrapper")
     implementation("org.gradle:tooling-api")
     implementation(libs.commonsIo)
