@@ -303,6 +303,7 @@ Implementation may change at any time.
 To add support for type-safe project accessors, add this to your `settings.gradle(.kts)` file:
 ```
 enableFeaturePreview("TYPE_SAFE_PROJECT_ACCESSORS")
+```
 ====
 
 One issue with the `project(":some:path")` notation is that you have to remember the path to every project you want to depend on.
