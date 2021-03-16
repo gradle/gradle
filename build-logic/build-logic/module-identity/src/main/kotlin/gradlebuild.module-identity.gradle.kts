@@ -17,10 +17,13 @@
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
-import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.identity.provider.BuildTimestampFromBuildReceiptValueSource
 import gradlebuild.identity.provider.BuildTimestampValueSource
 import gradlebuild.identity.tasks.BuildReceipt
+import gradlebuild.identity.extension.ReleasedVersionsDetails
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
+import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 import java.io.ByteArrayOutputStream
