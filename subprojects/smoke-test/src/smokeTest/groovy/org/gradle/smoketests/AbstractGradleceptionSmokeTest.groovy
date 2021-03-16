@@ -34,9 +34,9 @@ import java.text.SimpleDateFormat
     GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
 })
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
-    private static final List<String> GRADLE_BUILD_TEST_ARGS = [
-        "-PbuildTimestamp=" + newTimestamp()
-    ]
+
+    public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()
+    private static final List<String> GRADLE_BUILD_TEST_ARGS = [TEST_BUILD_TIMESTAMP]
 
     protected BuildResult result
 

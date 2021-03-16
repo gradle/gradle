@@ -32,7 +32,7 @@ import java.util.function.Consumer;
 /**
  * Adapts a {@link MinimalFileTree} into a full {@link FileTree} implementation.
  */
-public class FileTreeAdapter extends AbstractFileTree {
+public final class FileTreeAdapter extends AbstractFileTree {
     private final MinimalFileTree tree;
 
     public FileTreeAdapter(MinimalFileTree tree, Factory<PatternSet> patternSetFactory) {

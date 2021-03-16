@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
 
@@ -43,7 +44,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":jar", ":assemble", ":build")
         def jarFile = file("build/libs/somelib.jar")
@@ -53,7 +54,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped() // everything is up-to-date
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
@@ -62,14 +63,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "clean"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         !file("build").exists()
 
         when:
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":jar", ":assemble", ":build")
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
@@ -93,7 +94,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":jar", ":assemble", ":build")
         def jarFile = file("build/libs/somelib.jar")
@@ -103,14 +104,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "clean"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         !file("build").exists()
 
         when:
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":jar", ":assemble", ":build")
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
@@ -124,7 +125,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -135,7 +136,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
@@ -145,14 +146,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "clean"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         !file("build").exists()
 
         when:
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":compileJava", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
@@ -162,7 +163,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
@@ -177,7 +178,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":compileJava", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
@@ -193,7 +194,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         expect:
         configurationCacheRun "clean"
-        configurationCache.assertStateStored()
+        assertStateStored()
         result.assertTasksExecuted(":clean")
         !buildDir.exists()
 
@@ -202,7 +203,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "clean"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":clean")
         !buildDir.exists()
     }
@@ -215,7 +216,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -226,7 +227,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
@@ -236,14 +237,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "clean"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         !file("build").exists()
 
         when:
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":compileJava", ":processResources", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
@@ -256,7 +257,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
@@ -270,7 +271,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":processResources", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
@@ -303,7 +304,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "assemble"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -314,14 +315,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "clean"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         !file("build").exists()
 
         when:
         configurationCacheRun "assemble"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         classFile.isFile()
         new ZipTestFixture(jarFile).assertContainsFile("Thing.class")
@@ -385,7 +386,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun ":processResources"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         file("build/resources/main/answer.txt").text == "42"
     }
 
@@ -411,7 +412,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -425,7 +426,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
@@ -437,14 +438,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "clean"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         !file("build").exists()
 
         when:
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         this.result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksSkipped(":processResources", ":processTestResources")
         classFile.isFile()
@@ -471,7 +472,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
@@ -482,7 +483,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
@@ -492,14 +493,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCacheRun "clean"
 
         then:
-        configurationCache.assertStateStored()
+        assertStateStored()
         !file("build").exists()
 
         when:
         configurationCacheRun "build"
 
         then:
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped(":compileJava", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble", ":build")
         classFile.isFile()
@@ -525,21 +526,20 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
                 containsString("Created-By: $creator")
             )
         }
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
         configurationCacheRun ":jar", "-Dcreator=creator1"
 
         then:
         assertCreatedBy 'creator1'
-        configurationCache.assertStateStored()
+        assertStateStored()
 
         when:
         configurationCacheRun ":jar", "-Dcreator=creator2"
 
         then:
         assertCreatedBy 'creator2'
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
 
         when:
         manifestFile.delete()
@@ -547,7 +547,77 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertCreatedBy 'creator3'
-        configurationCache.assertStateLoaded()
+        assertStateLoaded()
+    }
+
+    def "jar manifest can use mapped FileCollection elements"() {
+        given:
+        settingsFile << '''
+            include 'lib'
+            include 'app'
+        '''
+        file('lib/build.gradle') << '''
+            plugins { id("java-library") }
+        '''
+        file('app/build.gradle.kts') << '''
+            plugins {
+                `java-library`
+            }
+
+            val manifestClasspath by configurations.creating {
+                isCanBeResolved = true
+                isCanBeConsumed = false
+                isTransitive = false
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+                }
+            }
+
+            tasks.jar.configure {
+                inputs.files(manifestClasspath)
+                val classpath = manifestClasspath.elements.map { classpathDependency ->
+                    classpathDependency.joinToString(" ") {
+                        it.asFile.name
+                    }
+                }
+                manifest.attributes("Class-Path" to classpath)
+            }
+
+            dependencies {
+                implementation(project(":lib"))
+                manifestClasspath(project(":lib"))
+            }
+        '''
+        file('lib/src/main/java/lib/Utils.java') << '''
+            package lib;
+            public class Utils {}
+        '''
+        file('app/src/main/java/launcher/Main.java') << '''
+            package launcher;
+            public class Main {}
+        '''
+
+        when:
+        configurationCacheRun ':app:jar'
+
+        then:
+        assertStateStored()
+
+        when:
+        def jarFile = file('app/build/libs/app.jar')
+        jarFile.delete()
+
+        and:
+        configurationCacheRun ':app:jar'
+
+        then:
+        assertStateLoaded()
+
+        and:
+        def manifest = new JarTestFixture(jarFile).manifest
+        manifest.mainAttributes.getValue('Class-Path') == 'lib.jar'
     }
 
     def buildWithSingleSourceFile() {
@@ -568,5 +638,13 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         file("src/main/resources/answer.txt") << "42"
         file("src/main/resources/META-INF/some.Service") << "impl"
+    }
+
+    private void assertStateStored() {
+        configurationCache.assertStateStored()
+    }
+
+    private void assertStateLoaded() {
+        configurationCache.assertStateLoaded()
     }
 }

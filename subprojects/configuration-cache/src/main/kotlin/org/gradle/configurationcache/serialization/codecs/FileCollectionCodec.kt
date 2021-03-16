@@ -138,6 +138,10 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                     true
                 }
             }
+            is FileTreeInternal -> {
+                elements.add(fileCollection)
+                false
+            }
             else -> {
                 true
             }
@@ -172,17 +176,20 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         }
     }
 
-    override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-        elements.add(fileTree)
-    }
+    override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) =
+        unsupportedFileTree(fileTree)
 
-    override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
-        elements.add(fileTree)
-    }
+    override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) =
+        unsupportedFileTree(fileTree)
 
-    override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-        elements.add(fileTree)
-    }
+    override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) =
+        unsupportedFileTree(fileTree)
+
+    private
+    fun unsupportedFileTree(fileTree: FileTreeInternal): Nothing =
+        throw UnsupportedOperationException(
+            "Unexpected file tree '$fileTree' of type '${fileTree.javaClass}' found while serializing a file collection."
+        )
 }
 
 
