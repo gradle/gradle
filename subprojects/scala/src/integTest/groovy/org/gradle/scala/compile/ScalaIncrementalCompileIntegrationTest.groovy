@@ -110,11 +110,11 @@ dependencies {
         when:
         succeeds "run"
         then:
-        result.assertOutputContains("Hello world")
+        outputContains("Hello world")
 
         when:
         succeeds "cleanCompileScala", "run"
         then:
-        result.assertOutputContains("Hello world")
+        outputContains("Hello world")
     }
 }
