@@ -29,10 +29,10 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
         super(writer);
     }
 
-    protected static String toClassName(String path) {
+    protected static String toClassName(String path, String rootProjectName) {
         String name = toProjectName(path);
         if (name.isEmpty()) {
-            name = "Root";
+            name = toJavaName(rootProjectName);
         }
         return name + "ProjectDependency";
     }
@@ -60,12 +60,20 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
         writeLn();
     }
 
+    protected static String rootProjectName(ProjectDescriptor descriptor) {
+        ProjectDescriptor current = descriptor;
+        while (current.getParent() != null) {
+            current = current.getParent();
+        }
+        return current.getName();
+    }
+
     protected void writeProjectAccessor(String name, ProjectDescriptor descriptor) throws IOException {
         writeLn("    /**");
         String path = descriptor.getPath();
         writeLn("     * Creates a project dependency on the project at path \"" + path + "\"");
         writeLn("     */");
-        String returnType = toClassName(path);
+        String returnType = toClassName(path, rootProjectName(descriptor));
         writeLn("    public " +  returnType + " get" + name + "() { return new " + returnType + "(getFactory(), create(\"" + path + "\")); }");
         writeLn();
     }
