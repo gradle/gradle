@@ -36,6 +36,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.api.internal.std.AbstractSourceGenerator.toJavaName
+
 class ProjectAccessorsSourceGeneratorTest extends Specification {
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
@@ -144,7 +146,7 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
 
     def "generates accessors for snake case project names"() {
         when:
-        generateSources project("root") {
+        generateSources project("foo") {
             project("foo-core")
             project("foo-lib")
             project("foo-utils")
@@ -162,7 +164,12 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
         }
 
         and:
-        compiles()
+        def accessor = compiles()
+        accessor.fooLib instanceof ProjectDependency
+        accessor.fooUtils instanceof ProjectDependency
+        accessor.fooUtils instanceof ProjectDependency
+        accessor.foo.fooLib instanceof ProjectDependency
+        accessor.foo.fooUtils instanceof ProjectDependency
     }
 
     ProjectDescriptor project(String name, @DelegatesTo(value = ProjectDescriptor, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -275,7 +282,7 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
         }
 
         private int lineOfSubAccessor(String projectPath) {
-            String baseName = AbstractProjectAccessorsSourceGenerator.toProjectName(projectPath == ':' ? name : projectPath)
+            String baseName = AbstractProjectAccessorsSourceGenerator.toProjectName(projectPath == ':' ? toJavaName(name) : projectPath)
             String getterPath = baseName.contains('_') ? baseName.substring(baseName.lastIndexOf('_') + 1) : baseName
             int lineOfSubAccessor = lineOf("public ${baseName}ProjectDependency get${getterPath}() { return new ${baseName}ProjectDependency(getFactory(), create(\"${projectPath}\")); }")
             lineOfSubAccessor
