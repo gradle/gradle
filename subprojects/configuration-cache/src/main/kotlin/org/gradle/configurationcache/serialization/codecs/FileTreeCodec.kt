@@ -119,8 +119,10 @@ class FileTreeCodec(
 
         override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean = when {
             fileCollection is FileTreeAdapter -> {
-                roots.add(toSpec(fileCollection.tree))
-                false
+                toSpecOrNull(fileCollection.tree)?.let {
+                    roots.add(it)
+                    false
+                } ?: true
             }
             fileCollection is FileCollectionBackedFileTree -> {
                 roots.add(WrappedFileCollectionTreeSpec(fileCollection.collection))
@@ -165,15 +167,22 @@ class FileTreeCodec(
 
         private
         fun toSpec(tree: MinimalFileTree): FileTreeSpec =
-            when {
-                // TODO - deal with tree that is not backed by a file
-                tree is ZipFileTree && tree.backingFile != null -> ZipTreeSpec(tree.backingFile!!)
-                tree is TarFileTree && tree.backingFile != null -> TarTreeSpec(tree.backingFile!!)
-                // TODO - capture the patterns
-                tree is FilteredMinimalFileTree -> toSpec(tree.tree)
-                tree is GeneratedSingletonFileTree -> GeneratedTreeSpec(tree.toSpec())
-                tree is DirectoryFileTree -> DirectoryTreeSpec(tree.dir, tree.patternSet)
-                else -> throw UnsupportedOperationException("Cannot create spec for file tree '$tree' of type '${tree.javaClass}'.")
-            }
+            toSpecOrNull(tree) ?: cannotCreateSpecFor(tree)
+
+        private
+        fun toSpecOrNull(tree: MinimalFileTree): FileTreeSpec? = when (tree) {
+            // TODO - deal with tree that is not backed by a file
+            is ZipFileTree -> tree.backingFile?.let(::ZipTreeSpec)
+            is TarFileTree -> tree.backingFile?.let(::TarTreeSpec)
+            // TODO - capture the patterns
+            is FilteredMinimalFileTree -> toSpecOrNull(tree.tree)
+            is GeneratedSingletonFileTree -> GeneratedTreeSpec(tree.toSpec())
+            is DirectoryFileTree -> DirectoryTreeSpec(tree.dir, tree.patternSet)
+            else -> null
+        }
+
+        private
+        fun cannotCreateSpecFor(tree: MinimalFileTree): Nothing =
+            throw UnsupportedOperationException("Cannot create spec for file tree '$tree' of type '${tree.javaClass}'.")
     }
 }
