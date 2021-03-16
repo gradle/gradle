@@ -19,4 +19,5 @@
 plugins {
     id("com.gradle.enterprise")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin")
+    id("com.gradle.enterprise.test-distribution")
 }

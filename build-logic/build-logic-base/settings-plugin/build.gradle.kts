@@ -10,5 +10,6 @@ java {
 
 dependencies {
     implementation("com.gradle:gradle-enterprise-gradle-plugin:3.5.2")
+    implementation("com.gradle.enterprise:test-distribution-gradle-plugin:2.0")
     implementation("com.gradle.enterprise:gradle-enterprise-conventions-plugin:0.7.2")
 }
