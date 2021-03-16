@@ -72,8 +72,8 @@ import java.util.stream.Collectors;
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesAccessors.class);
 
-    private final static String KEBAB_CASE = "[a-z]([a-z0-9\\-])*";
-    private final static Pattern KEBAB_PATTERN = Pattern.compile(KEBAB_CASE);
+    private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
+    private final static Pattern SUPPORTED_PATTERN = Pattern.compile(SUPPORTED_PROJECT_NAMES);
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
     private final static String ACCESSORS_CLASSNAME_PREFIX = "LibrariesFor";
     private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
@@ -161,8 +161,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         projectRegistry.getAllProjects()
             .stream()
             .map(ProjectDescriptor::getName)
-            .filter(p -> !KEBAB_PATTERN.matcher(p).matches())
-            .map(name -> "project '" + name + "' doesn't follow the kebab case naming convention: " + KEBAB_CASE)
+            .filter(p -> !SUPPORTED_PATTERN.matcher(p).matches())
+            .map(name -> "project '" + name + "' doesn't follow the naming convention: " + SUPPORTED_PROJECT_NAMES)
             .forEach(errors::add);
         for (ProjectDescriptor project : projectRegistry.getAllProjects()) {
             project.getChildren()

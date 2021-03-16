@@ -16,17 +16,15 @@
 
 package org.gradle.integtests.resolve.typesafe
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "tests make direct access to the projects extension")
-class TypeSafeProjectAccessorsIntegrationTest extends AbstractIntegrationSpec {
+class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAccessorsIntegrationTest {
     def setup() {
         settingsFile << """
             rootProject.name = 'typesafe-project-accessors'
         """
-        FeaturePreviewsFixture.enableTypeSafeProjectAccessors(settingsFile)
     }
 
     def "generates type-safe project accessors for multi-project build"() {
@@ -49,9 +47,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractIntegrationSpec {
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
-    def "warns if a project doesn't follow kebab-case convention"() {
+    def "warns if a project doesn't follow convention"() {
         settingsFile << """
-            include 'oneLibrary'
+            include '1library'
         """
 
         buildFile << """
@@ -66,7 +64,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'noExtension'
 
         then:
-        outputContains "Cannot generate project dependency accessors because project 'oneLibrary' doesn't follow the kebab case naming convention: [a-z]([a-z0-9\\-])*"
+        outputContains "Cannot generate project dependency accessors because project '1library' doesn't follow the naming convention: [a-zA-Z]([A-Za-z0-9\\-_])*"
     }
 
     def "warns if two subprojects have the same java name"() {
@@ -114,4 +112,42 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractIntegrationSpec {
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
+    def "can refer to the root project via its name"() {
+        buildFile << """
+            assert project(":").is(projects.typesafeProjectAccessors.dependencyProject)
+        """
+
+        when:
+        run 'help'
+
+        then:
+        outputContains 'Type-safe project accessors is an incubating feature.'
+    }
+
+    def "buildSrc project accessors are independent from the main build accessors"() {
+        file("buildSrc/build.gradle") << """
+            assert project(":one").is(projects.one.dependencyProject)
+            assert project(":two").is(projects.two.dependencyProject)
+        """
+        file("buildSrc/settings.gradle") << """
+            include 'one'
+            include 'two'
+        """
+        FeaturePreviewsFixture.enableTypeSafeProjectAccessors(file("buildSrc/settings.gradle"))
+        settingsFile << """
+            include 'one'
+            include 'two'
+        """
+
+        buildFile << """
+            assert project(":one").is(projects.one.dependencyProject)
+            assert project(":two").is(projects.two.dependencyProject)
+        """
+
+        when:
+        run 'help'
+
+        then:
+        outputContains 'Type-safe project accessors is an incubating feature.'
+    }
 }
