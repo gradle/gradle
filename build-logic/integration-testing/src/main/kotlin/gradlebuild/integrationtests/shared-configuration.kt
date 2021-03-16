@@ -31,7 +31,7 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.Directory
-import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
@@ -131,8 +131,8 @@ fun Project.getBucketProvider() = gradle.sharedServices.registerIfAbsent("buildB
 }
 
 internal
-class SamplesBaseDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val autoTestedSamplesPath: Directory) : CommandLineArgumentProvider {
-    override fun asArguments() = listOf("-DdeclaredSampleInputs=${autoTestedSamplesPath.asFile.absolutePath}")
+class SamplesBaseDirPropertyProvider(@InputDirectory @PathSensitive(PathSensitivity.RELATIVE) val autoTestedSamplesDir: Directory) : CommandLineArgumentProvider {
+    override fun asArguments() = listOf("-DdeclaredSampleInputs=${autoTestedSamplesDir.asFile.absolutePath}")
 }
 
 internal
