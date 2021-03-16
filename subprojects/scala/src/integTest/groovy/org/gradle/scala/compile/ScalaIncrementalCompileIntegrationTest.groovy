@@ -16,6 +16,7 @@
 
 package org.gradle.scala.compile
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
@@ -75,5 +76,45 @@ dependencies {
         then:
         executedAndNotSkipped(":lib:compileScala", ":compileScala")
         failure.assertHasCause("Compilation failed")
+    }
+
+    @NotYetImplemented
+    def "incremental compiler gracefully handles classes being deleted"() {
+        settingsFile << """            
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id 'scala'
+                id 'application'
+            }
+            application {
+                mainClass = "HelloWorld"
+            }         
+            dependencies {
+               implementation 'org.scala-lang:scala-library:2.11.12'
+            }
+        """
+
+        file("src/main/scala/Hello.scala") << """
+            object HelloWorld {
+              def main(args: Array[String]): Unit = {
+                println("Hello world")
+              }
+            }
+        """
+
+        when:
+        succeeds "run"
+        then:
+        result.assertOutputContains("Hello world")
+
+        when:
+        succeeds "cleanCompileScala", "run"
+        then:
+        result.assertOutputContains("Hello world")
     }
 }
