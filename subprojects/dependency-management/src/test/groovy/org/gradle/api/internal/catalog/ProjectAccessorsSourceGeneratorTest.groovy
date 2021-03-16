@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.std
+package org.gradle.api.internal.catalog
 
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
@@ -36,7 +36,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.std.AbstractSourceGenerator.toJavaName
+import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
 
 class ProjectAccessorsSourceGeneratorTest extends Specification {
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
