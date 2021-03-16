@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.comparing;
+
 public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGenerator {
     public AbstractProjectAccessorsSourceGenerator(Writer writer) {
         super(writer);
@@ -60,10 +62,24 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
 
     protected void writeProjectAccessor(String name, ProjectDescriptor descriptor) throws IOException {
         writeLn("    /**");
-        writeLn("     * Creates a project dependency on the project at path " + descriptor);
+        String path = descriptor.getPath();
+        writeLn("     * Creates a project dependency on the project at path \"" + path + "\"");
         writeLn("     */");
-        String returnType = toClassName(descriptor.getPath());
-        writeLn("    public " +  returnType + " get" + name + "() { return new " + returnType + "(getFactory(), create(\"" + descriptor.getPath() + "\")); }");
+        String returnType = toClassName(path);
+        writeLn("    public " +  returnType + " get" + name + "() { return new " + returnType + "(getFactory(), create(\"" + path + "\")); }");
         writeLn();
+    }
+
+    protected void processChildren(ProjectDescriptor current) {
+        current.getChildren()
+            .stream()
+            .sorted(comparing(ProjectDescriptor::getPath))
+            .forEachOrdered(child -> {
+                try {
+                    writeProjectAccessor(toJavaName(child.getName()), child);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 }

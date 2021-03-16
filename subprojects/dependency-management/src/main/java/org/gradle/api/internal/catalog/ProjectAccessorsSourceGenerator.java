@@ -50,10 +50,7 @@ public class ProjectAccessorsSourceGenerator extends AbstractProjectAccessorsSou
         writeLn("        super(factory, delegate);");
         writeLn("    }");
         writeLn();
-        for (ProjectDescriptor child : current.getChildren()) {
-            writeProjectAccessor(toJavaName(child.getName()), child);
-        }
-
+        processChildren(current);
         writeLn("}");
     }
 
