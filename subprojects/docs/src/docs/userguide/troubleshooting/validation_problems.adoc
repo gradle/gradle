@@ -228,11 +228,7 @@ If you actually declared a file collection as an input in order to infer task de
 
 This error indicates that you have a task which depends on another, but that no explicit or implicit dependency is declared between those two tasks.
 As a consequence, the results of the build are dependent on the order of execution of tasks, often referred to "accidental dependencies between tasks".
-
-The solution is to add an <<more_about_tasks.adoc#sec:ordering_tasks,ordering>> or a <<more_about_tasks.adoc#sec:adding_dependencies_to_tasks,dependency>> between the two tasks.
-For adding an ordering, use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter()].
-
-Often, Gradle reports a missing dependency because you refer directly to the output file of another task instead of using the task directly as an input.
+Often, this is because you refer directly to the output file of another task instead of using the task directly as an input.
 
 For example, imagine that you have a task which takes a `ConfigurableFileCollection` as an input and that you have declared a dependency on the `jar` task using this:
 
@@ -271,6 +267,9 @@ someTask {
     inputFile.from(producer.someFile)
 }
 ```
+
+In some cases, adding a dependency on the producing task is not desired, for example when the consumer generates reports for possible multiple tasks.
+In this case you can introduce an <<more_about_tasks.adoc#sec:ordering_tasks,ordering>> between the two tasks by using link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter()].
 
 [[input_file_does_not_exist]]
 == Input file doesn't exist
