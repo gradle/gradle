@@ -18,6 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
@@ -33,53 +35,67 @@ import org.gradle.util.TestPrecondition
 })
 class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeTest {
 
-    def "can build gradle with configuration cache enabled"() {
-        given:
+    def "can run Gradle unit tests with configuration cache enabled across daemons"() {
+
+        given: "tasks whose configuration can be safely cached across daemons"
         def supportedTasks = [
             ":tooling-api:publishLocalPublicationToLocalRepository",
             ":base-services:test",
-//             TODO: broken by kotlin upgrade
-//             ":distributions-full:binDistributionZip"
-//             ":configuration-cache:embeddedIntegTest", "--tests=org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
         ]
 
         when:
-        configurationCacheRun(supportedTasks, 0)
+        configurationCacheRun supportedTasks, 0
 
         then:
         result.output.count("Calculating task graph as no configuration cache is available") == 1
 
         when: "reusing the configuration cache in the same daemon"
-        configurationCacheRun(supportedTasks, 0)
+        configurationCacheRun supportedTasks, 0
 
         then:
         result.output.count("Reusing configuration cache") == 1
         result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
-//         result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
-//         result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
 
         when:
         run(["clean"])
 
         and: "reusing the configuration cache in a different daemon"
-        configurationCacheRun(supportedTasks + ["--info"], 1)
+        configurationCacheRun supportedTasks + ["--info"], 1
 
         then:
         result.output.count("Reusing configuration cache") == 1
         result.output.contains("Starting build in new daemon")
-
-//        and:
-//        file("subprojects/distributions-full/build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
-//        result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
-//        assertTestClassExecutedIn("subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheIntegrationTest")
+        result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
     }
 
-//    private TestExecutionResult assertTestClassExecutedIn(String subProjectDir, String testClass) {
-//        new DefaultTestExecutionResult(file(subProjectDir), "build", "", "", "embeddedIntegTest")
-//            .assertTestClassesExecuted(testClass)
-//    }
+    def "can run Gradle integ tests with configuration cache enabled (original daemon only)"() {
 
-    private void configurationCacheRun(List<String> tasks, int daemonId) {
+        given: "tasks whose configuration can only be loaded in the original daemon"
+        def supportedTasks = [
+            ":configuration-cache:embeddedIntegTest", "--tests=org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
+        ]
+
+        when:
+        configurationCacheRun supportedTasks, 0
+
+        then:
+        result.output.count("Calculating task graph as no configuration cache is available") == 1
+
+        when: "reusing the configuration cache in the same daemon"
+        configurationCacheRun supportedTasks, 0
+
+        then:
+        result.output.count("Reusing configuration cache") == 1
+        result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
+        assertTestClassExecutedIn "subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
+    }
+
+    private TestExecutionResult assertTestClassExecutedIn(String subProjectDir, String testClass) {
+        new DefaultTestExecutionResult(file(subProjectDir), "build", "", "", "embeddedIntegTest")
+            .assertTestClassesExecuted(testClass)
+    }
+
+    private void configurationCacheRun(List<String> tasks, int daemonId = 0) {
         run(
             tasks + [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
