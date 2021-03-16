@@ -34,7 +34,7 @@ public class TypeAnnotationHandlerSupport {
             problem.forType(classWithAnnotationAttached)
                 .reportAs(ERROR)
                 .withId(INVALID_USE_OF_CACHEABLE_ANNOTATION)
-                .withDescription(() -> String.format("Using @%s here is incorrect", annotationType.getSimpleName()))
+                .withDescription(() -> "is incorrectly annotated with @" + annotationType.getSimpleName())
                 .happensBecause(() -> String.format("This annotation only makes sense on %s types", Arrays.stream(appliesOnlyTo)
                     .map(Class::getSimpleName)
                     .collect(Collectors.joining(", "))

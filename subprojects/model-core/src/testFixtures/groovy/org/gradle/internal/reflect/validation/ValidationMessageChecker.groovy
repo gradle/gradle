@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.gradle.internal.reflect.problems.ValidationProblemId
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 
@@ -41,6 +42,9 @@ trait ValidationMessageChecker {
         "Please refer to ${userguideLink(id, section)} for more details about this problem"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
     String missingValueMessage(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(SimpleMessage, 'value_not_set', spec)
         config.description("doesn't have a configured value")
@@ -50,6 +54,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+    )
     String methodShouldNotBeAnnotatedMessage(@DelegatesTo(value = MethodShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(MethodShouldNotBeAnnotated, 'ignored_annotations_on_method', spec)
         config.description("$config.kind '$config.method()' should not be annotated with: @$config.annotation")
@@ -59,6 +66,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    )
     String privateGetterAnnotatedMessage(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(AnnotationContext, 'private_getter_must_not_be_annotated', spec)
         config.description("is private and annotated with @${config.annotation}")
@@ -68,6 +78,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    )
     String ignoredAnnotatedPropertyMessage(@DelegatesTo(value = IgnoredAnnotationPropertyMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IgnoredAnnotationPropertyMessage, 'ignored_property_must_not_be_annotated', spec)
         config.description("annotated with @${config.ignoringAnnotation} should not be also annotated with ${config.alsoAnnotatedWith.collect { "@$it" }.join(", ")}")
@@ -77,6 +90,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CONFLICTING_ANNOTATIONS
+    )
     String conflictingAnnotationsMessage(@DelegatesTo(value = ConflictingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(ConflictingAnnotation, 'conflicting_annotations', spec)
         String annotations = config.inConflict.collect { "@$it" }.join(", ")
@@ -86,6 +102,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
     String annotationInvalidInContext(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(AnnotationContext, 'annotation_invalid_in_context', spec)
         config.description("is annotated with invalid property type @${config.annotation}")
@@ -95,6 +114,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_ANNOTATION
+    )
     String missingAnnotationMessage(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(MissingAnnotation, 'missing_annotation', spec)
         config.description("is missing ${config.kind}")
@@ -104,6 +126,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD
+    )
     String ignoredAnnotationOnField(@DelegatesTo(value = IgnoredAnnotationOnField, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IgnoredAnnotationOnField, 'ignored_annotations_on_field', spec)
         config.description("without corresponding getter has been annotated with @${config.annotation}")
@@ -113,6 +138,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+    )
     String incompatibleAnnotations(@DelegatesTo(value = IncompatibleAnnotations, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncompatibleAnnotations, 'incompatible_annotations', spec)
         config.description("is annotated with @${config.annotatedWith} but that is not allowed for '${config.incompatibleWith}' properties")
@@ -121,6 +149,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
+    )
     String incorrectUseOfInputAnnotation(@DelegatesTo(value = IncorrectUseOfInputAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncorrectUseOfInputAnnotation, 'incorrect_use_of_input_annotation', spec)
         config.description("has @Input annotation used on property of type '${config.propertyType}'")
@@ -131,6 +162,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
+    )
     String missingNormalizationStrategy(@DelegatesTo(value = MissingNormalization, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(MissingNormalization, 'missing_normalization_annotation', spec)
         config.description("is annotated with @${config.annotatedWith} but missing a normalization strategy")
@@ -139,6 +173,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNRESOLVABLE_INPUT
+    )
     String unresolvableInput(@DelegatesTo(value = UnresolvableInput, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
         def config = display(UnresolvableInput, 'unresolvable_input', spec)
         config.description("cannot be resolved: ${config.conversionProblem}")
@@ -147,6 +184,9 @@ trait ValidationMessageChecker {
             .render(renderSolutions)
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.IMPLICIT_DEPENDENCY
+    )
     String implicitDependency(@DelegatesTo(value = ImplicitDependency, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
         def config = display(ImplicitDependency, 'implicit_dependency', spec)
         config.description("Gradle detected a problem with the following location: '${config.location.absolutePath}'")
@@ -157,6 +197,9 @@ trait ValidationMessageChecker {
             .render(renderSolutions)
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
+    )
     String inputDoesNotExist(@DelegatesTo(value = IncorrectInputMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncorrectInputMessage, 'input_file_does_not_exist', spec)
         config.description("specifies ${config.kind} '${config.file}' which doesn't exist")
@@ -166,6 +209,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
+    )
     String unexpectedInputType(@DelegatesTo(value = IncorrectInputMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncorrectInputMessage, 'unexpected_input_file_type', spec)
         config.description("${config.kind} '${config.file}' is not a ${config.kind}")
@@ -175,6 +221,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
     String cannotWriteToDir(@DelegatesTo(value = CannotWriteToDir, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(CannotWriteToDir, 'cannot_write_output', spec)
         config.description("is not writable because '${config.dir}' ${config.reason}")
@@ -183,6 +232,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
     String cannotWriteToFile(@DelegatesTo(value = CannotWriteToFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(CannotWriteToFile, 'cannot_write_output', spec)
         config.description("is not writable because '${config.file}' ${config.reason}")
@@ -191,6 +243,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION
+    )
     String cannotWriteToReservedLocation(@DelegatesTo(value = ForbiddenPath, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(ForbiddenPath, 'cannot_write_to_reserved_location', spec)
         config.description("points to '${config.location}' which is managed by Gradle")
@@ -199,6 +254,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNSUPPORTED_NOTATION
+    )
     String unsupportedNotation(@DelegatesTo(value = UnsupportedNotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(UnsupportedNotation, 'unsupported_notation', spec)
         config.description("has unsupported value '${config.value}'")
@@ -206,14 +264,20 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+    )
     String invalidUseOfCacheableAnnotation(@DelegatesTo(value = InvalidUseOfCacheable, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(InvalidUseOfCacheable, 'invalid_use_of_cacheable_annotation', spec)
-        config.description("Using @${config.invalidAnnotation} here is incorrect")
+        config.description("is incorrectly annotated with @${config.invalidAnnotation}")
             .reason("This annotation only makes sense on ${config.correctTypes.join(', ')} types")
             .solution("Remove the annotation")
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE
+    )
     String optionalOnPrimitive(@DelegatesTo(value = OptionalOnPrimitive, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(OptionalOnPrimitive, 'cannot_use_optional_on_primitive_types', spec)
         config.description("of type ${config.primitiveType.name} shouldn't be annotated with @Optional")
@@ -223,6 +287,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.REDUNDANT_GETTERS
+    )
     String redundantGetters(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(SimpleMessage, 'redundant_getters', spec)
         config.description("has redundant getters: 'get${config.property.capitalize()}()' and 'is${config.property.capitalize()}()'")
@@ -232,6 +299,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
+    )
     String mutableSetter(@DelegatesTo(value = MutableTypeWithSetter, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(MutableTypeWithSetter, 'mutable_type_with_setter', spec)
         config.description("of mutable type '${config.propertyType}' is writable")
@@ -240,6 +310,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY
+    )
     String invalidUseOfAbsoluteSensitivity(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(SimpleMessage, 'cacheable_transform_cant_use_absolute_sensitivity', spec)
         config.description("is declared to be sensitive to absolute paths")
@@ -248,6 +321,9 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.TEST_PROBLEM
+    )
     String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
         display(SimpleMessage, 'dummy') {
             type(onType).property(onProperty)
@@ -671,7 +747,7 @@ trait ValidationMessageChecker {
 
     static class ConflictingAnnotation extends ValidationMessageDisplayConfiguration<ConflictingAnnotation> {
 
-        List<String> inConflict
+        List<String> inConflict = []
         String kind = 'type annotations declared'
 
         ConflictingAnnotation(ValidationMessageChecker checker) {
