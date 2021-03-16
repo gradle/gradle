@@ -30,12 +30,17 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
+import org.gradle.api.file.Directory
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.process.CommandLineArgumentProvider
+import java.io.File
 
 
 fun Project.addDependenciesAndConfigurations(prefix: String) {
@@ -126,6 +131,10 @@ fun Project.getBucketProvider() = gradle.sharedServices.registerIfAbsent("buildB
     parameters.repoRoot.set(repoRoot())
 }
 
+internal
+class SamplesBaseDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val autoTestedSamplesPath: Directory) : CommandLineArgumentProvider {
+    override fun asArguments() = listOf("-DdeclaredSampleInputs=${autoTestedSamplesPath.asFile.absolutePath}")
+}
 
 internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
@@ -140,10 +149,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         extraConfig.execute(this)
         if (integTest.usesSamples.get()) {
             val samplesDir = layout.projectDirectory.dir("src/main")
-            systemProperty("declaredSampleInputs", samplesDir.asFile.toString())
-            inputs.files(samplesDir)
-                .withPropertyName("autoTestedSamples")
-                .withPathSensitivity(PathSensitivity.RELATIVE)
+            jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }
     }
 
