@@ -1,10 +1,3 @@
-This release is a 7.0 milestone. This is a preview of what Gradle 7.0 may look like.
-
-Milestone releases are unstable like nightly releases, but we are releasing it to gather early feedback on potential changes in Gradle 7.0. 
-
-If you run into problems with this milestone, please [report your feedback on GitHub](https://github.com/gradle/gradle/issues/new?assignees=&labels=a%3Ainvestigation%2C+affects-version%3A7.0&template=feedback-for-7-0.md&title=).
-
-Some features in this milestone may not make it to the first release candidate and future milestones may introduce new features. 
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
@@ -25,40 +18,37 @@ We would like to thank the following community members for their contributions t
 [Naoki Ando](https://github.com/Durun),
 [Ståle Undheim](https://github.com/staale).
 
-
-## Upgrade Instructions
+## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+See the [Gradle upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
-
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
 ## Performance improvements for incremental development
 
 This release contains further improvements for incremental development &mdash; the part of the software development process where you make frequent small changes.
 
 <a name="file-system-watching"></a>
-### File system watching is enabled by default
+### Faster incremental builds
 
 In an [incremental build](userguide/more_about_tasks.html#sec:up_to_date_checks), input and output files are checked to determine what needs to be rebuilt.
 This feature typically saves a lot of time; however, it adds some I/O overhead, which can be noticeable in large projects when not much has changed since the previous build.
 
-In Gradle 6.7 we've introduced _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)_ as an opt-in production-ready feature.
-When enabled, it allows Gradle to keep what it has learned about the file system in memory during and between builds instead of polling the file system on each build.
+In Gradle 6.7, we introduced _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)_ as an opt-in production-ready feature.
+When enabled, Gradle keeps what it has learned about the file system in memory between builds and skips reading from the file system on each build.
 This significantly reduces the amount of disk I/O needed to determine what has changed since the previous build.
 
-This feature is now enabled on all supported platforms.
+This feature is now enabled by default on all supported platforms.
 
-Read more about this feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-file-system-watching)!
+Read more about this feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-file-system-watching).
 
-### Android performance improvements
+### Faster incremental changes in Android projects
 
-This release contains performance improvements for doing incremental development on Android builds, especially when using Jettifier.
+This release contains performance improvements for incremental changes in Android projects, especially those that use Jettifier.
 
 For example, `assembleDebug` for a non-abi change on the Santa Tracker Android project improved by 12% compared to Gradle 6.8:
 
@@ -66,25 +56,26 @@ For example, `assembleDebug` for a non-abi change on the Santa Tracker Android p
 alt=":santa-tracker:assembleDebug with non-abi change performance improvements"
 />
 
-File system watching and configuration caching is enabled for the comparison.
+NOTE: File system watching and [configuration caching](https://blog.gradle.org/introducing-configuration-caching) is enabled for the comparison.
 
 You can find the performance test project [here](https://github.com/gradle/santa-tracker-performance).
 
-### Native support for Apple silicon
+### Native support for Apple Silicon
 
-With previous Gradle versions there were two options to run Gradle builds on the new Macs equipped with the M1 chip:
+Previous Gradle versions were able to run on new Macs with the Apple Silicon M1 chip with some disadvantages:
 
-* run with a native ARM JDK, but lose support for the rich console and file system watching, or
-* use an Intel JDK with Rosetta, but run at about half the performance.
+* With a native ARM JDK, Gradle features like the rich console and file system watching would be disabled.
+* With an Intel JDK, Gradle would run at about half the performance through Rosetta2.
 
-With Gradle 7.0 there is no need to sacrifice functionality or performance, as every feature is now fully supported using a native ARM JDK, too.
+With this release, there is no need to sacrifice functionality or performance, as every feature is now supported using a native ARM JDK.
 
 ## Groovy 3 upgrade
 
-In order to support JDK 16, Gradle has been upgraded to use Groovy 3. Groovy 3 comes with a brand-new parser and host of other new features and capabilities.
+In order to support JDK 16 and keep up to date with the latest Groovy release, Gradle has been upgraded to use Groovy 3. Groovy 3 comes with a brand-new parser and host of other new features and capabilities that make interoperability with new Java features easier.
 
 In order to learn more about the improvements and new features in Groovy, please refer to [their release notes](https://groovy-lang.org/releasenotes/groovy-3.0.html).
-Please refer to the [Gradle upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn more about upgrading your build and plugins to be compatible with Groovy 3.
+
+Please refer to the [Gradle upgrade guide](userguide/upgrading_version_6.html#changes_to_groovy_and_groovy_dsl) to learn more about upgrading your build and plugins to be compatible with Groovy 3.
 
 ## Support for Java 16
 
@@ -94,15 +85,6 @@ Gradle now supports running on and building with [Java 16](https://openjdk.java.
 
 With the lock file [defaulting to one file per project](userguide/upgrading_version_6.html#locking_single), dependency locking in Gradle is now able to clean up lock state for configuration that are no longer locked.
 In addition, no lock state will be written if the build attempting to update it fails.
-
-## Ignore empty `buildSrc` project
-
-In earlier Gradle versions, the mere presence of a `buildSrc` directory was enough to trigger Gradle to execute all `buildSrc` tasks and to add the resulting `buildSrc.jar` to the buildscript class path.
-Gradle will now ignore an empty `buildSrc` directory, and will only generate a `buildSrc.jar` if build files and/or source files are detected.
-
-This has two benefits when an empty `buildSrc` directory is detected:
-- `:buildSrc:*` tasks will not be needlessly executed.
-- The empty `buildSrc.jar` will not be added to the buildscript class path, avoiding cache misses that this can cause.
 
 ## Using dynamic versions in the plugins block
 
@@ -124,16 +106,25 @@ For more information see the [user manual on runtime validation](userguide/more_
 
 One of the potential problems now flagged is a task that consumes the output produced by another without declaring an [explicit or inferred task dependency](userguide/more_about_tasks.html#sec:link_output_dir_to_input_files).
 Gradle now detects the missing dependency between the consumer and the producer and emits a warning in that case.
-For more information see the [user manual on input and output validation](userguide/more_about_tasks.html#sec:task_input_output_validation). 
+For more information see the [user manual on input and output validation](userguide/more_about_tasks.html#sec:task_input_output_validation).
 
 ### Improved support for libraries with standard JVM and Android variants
 
 The Java plugins now recognizes the [`org.gradle.jvm.environment` attribute](userguide/variant_attributes.html#sub:jvm_default_attributes) during dependency resolution.
 This allows libraries to clearly distinguish variants optimized for `standard-jvm` and `android`.
 
+### Ignore empty `buildSrc` project
+
+In earlier Gradle versions, the mere presence of a `buildSrc` directory was enough to trigger Gradle to execute all `buildSrc` tasks and to add the resulting `buildSrc.jar` to the buildscript class path.
+Gradle will now ignore an empty `buildSrc` directory, and will only generate a `buildSrc.jar` if build files and/or source files are detected.
+
+This has two benefits when an empty `buildSrc` directory is detected:
+- `:buildSrc:*` tasks will not be needlessly executed.
+- The empty `buildSrc.jar` will not be added to the buildscript class path, avoiding cache misses that this can cause.
+
 ## Plugin development improvements
 
-### Using included builds for local plugins 
+### Using included builds for local plugins
 
 Developing plugins as part of a composite build was so far only possible for project plugins.
 Settings plugins always had to be developed in isolation and published to a binary repository.
@@ -160,7 +151,7 @@ pluginManagement {
 // contributes libraries
 includeBuild("../project-with-plugin-and-library") 
 ```
-This distinction reflects what Gradle offers for repository declarations - 
+This distinction reflects what Gradle offers for repository declarations -
 repositories are specified separately for plugin dependencies and for production dependencies.
 
 ### Support for plugins with multiple variants
@@ -169,40 +160,6 @@ Gradle 7 recognizes the [org.gradle.plugin.api-version](userguide/variant_attrib
 This allows plugin authors to publish different variants of their plugins for different Gradle versions.
 [This user manual section](userguide/implementing_gradle_plugins.html#plugin-with-variants)
 describes how the new attribute can be used with [feature variants](userguide/feature_variants.html) to add additional variants to a plugin.
-
-<!-- 
-
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details 
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -323,9 +280,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.logging.WarningMode.Fail
         - org.gradle.api.reflect.TypeOf.getConcreteClass()
         - org.gradle.api.resources.TextResourceFactory.fromInsecureUri(Object)
-        - org.gradle.api.tasks.AbstractExecTask.getExecutionResult()  
+        - org.gradle.api.tasks.AbstractExecTask.getExecutionResult()
         - org.gradle.plugin.management.PluginManagementSpec.getPlugins()
-        - org.gradle.plugin.management.PluginManagementSpec.plugins(Action)  
+        - org.gradle.plugin.management.PluginManagementSpec.plugins(Action)
         - org.gradle.testkit.runner.GradleRunner.getEnvironment()
         - org.gradle.testkit.runner.GradleRunner.withEnvironment(Map<String, String>)
         - org.gradle.api.reflect.InjectionPointQualifier
@@ -561,7 +518,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.plugins.quality.PmdExtension.getMaxFailures()
         - org.gradle.plugins.ear.Ear.getGenerateDeploymentDescriptor()
         - org.gradle.plugins.ear.EarPluginConvention.getGenerateDeploymentDescriptor()
-    
+        - org.gradle.api.distribution.Distribution.getDistributionBaseName()
+
 - [Kotlin DSL](userguide/kotlin_dsl.html)
     - org.gradle.kotlin.dsl.KotlinScript
     - org.gradle.kotlin.dsl.KotlinSettingsScript.plugins(block: PluginDependenciesSpecScope.() -> Unit): Unit
@@ -580,11 +538,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
     - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
     - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
-    
+
 - Plugin development
     - org.gradle.plugin.devel.tasks.ValidatePlugins
-
-- org.gradle.api.distribution.Distribution.getDistributionBaseName()
 
 ## Fixed issues
 
@@ -598,7 +554,7 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Reporting Problems
 
-If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

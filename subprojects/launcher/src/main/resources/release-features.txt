@@ -1,4 +1,3 @@
- - Please note this is a milestone release
  - File system watching is enabled by default
  - Groovy DSL build scripts use Groovy 3
  - Apple Silicon/M1 support
