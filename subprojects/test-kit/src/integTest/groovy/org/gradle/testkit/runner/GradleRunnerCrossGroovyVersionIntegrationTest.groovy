@@ -48,9 +48,9 @@ class GradleRunnerCrossGroovyVersionIntegrationTest extends BaseGradleRunnerInte
         testKitDaemons(GradleVersion.version(testedGradleVersion)).killAll()
 
         where:
-        testedGradleVersion               | groovyVersion | gradleVersionConfigurator
-        "6.8.3"                           |  "2.5.12"     |  { it.withGradleVersion("6.8.3") }
-        GradleVersion.current().version   | "3.0.7"       |  { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
+        testedGradleVersion               | groovyVersion         | gradleVersionConfigurator
+        "6.8.3"                           | "2.5.12"              | { it.withGradleVersion("6.8.3") }
+        GradleVersion.current().version   | GroovySystem.version  | { it.withGradleInstallation(buildContext.gradleHomeDir) }
     }
 
     def "groovy2-based gradle can run build via testkit using a groovy3-based gradle"() {
