@@ -386,10 +386,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (version == null) {
             return false;
         }
-        if (version.contains("+")) {
+        if (version.endsWith(".+")) {
             return true;
         }
-        if (version.contains("latest")) {
+        if (version.startsWith("latest.")) {
             return !MavenVersionSelectorScheme.isSubstituableLatest(version);
         }
         return false;
