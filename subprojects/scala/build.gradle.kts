@@ -55,4 +55,4 @@ classycle {
     excludePatterns.add("org/gradle/language/scala/tasks/*")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)

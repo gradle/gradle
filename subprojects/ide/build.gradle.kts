@@ -63,5 +63,5 @@ classycle {
     excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/*")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)
 testFilesCleanup.reportOnly.set(true)

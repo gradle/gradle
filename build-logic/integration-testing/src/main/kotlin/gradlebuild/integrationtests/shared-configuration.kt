@@ -148,7 +148,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         testClassesDirs = sourceSet.output.classesDirs
         classpath = sourceSet.runtimeClasspath
         extraConfig.execute(this)
-        if (integTest.usesSamples.get()) {
+        if (integTest.usesJavadocCodeSnippets.get()) {
             val samplesDir = layout.projectDirectory.dir("src/main")
             jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }

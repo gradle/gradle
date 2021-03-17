@@ -53,4 +53,4 @@ dependencies {
     testFixturesImplementation(project(":model-core"))
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)
