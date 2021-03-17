@@ -21,5 +21,4 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-integTest.usesSamples.set(true)
 testFilesCleanup.reportOnly.set(true)

@@ -54,4 +54,4 @@ classycle {
     excludePatterns.add("org/gradle/jvm/toolchain/internal/**")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)

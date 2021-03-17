@@ -30,12 +30,16 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
+import org.gradle.api.file.Directory
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.process.CommandLineArgumentProvider
 
 
 fun Project.addDependenciesAndConfigurations(prefix: String) {
@@ -128,6 +132,12 @@ fun Project.getBucketProvider() = gradle.sharedServices.registerIfAbsent("buildB
 
 
 internal
+class SamplesBaseDirPropertyProvider(@InputDirectory @PathSensitive(PathSensitivity.RELATIVE) val autoTestedSamplesDir: Directory) : CommandLineArgumentProvider {
+    override fun asArguments() = listOf("-DdeclaredSampleInputs=${autoTestedSamplesDir.asFile.absolutePath}")
+}
+
+
+internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
     tasks.register<IntegrationTest>(name) {
         val integTest = project.the<IntegrationTestExtension>()
@@ -138,12 +148,9 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         testClassesDirs = sourceSet.output.classesDirs
         classpath = sourceSet.runtimeClasspath
         extraConfig.execute(this)
-        if (integTest.usesSamples.get()) {
+        if (integTest.usesJavadocCodeSnippets.get()) {
             val samplesDir = layout.projectDirectory.dir("src/main")
-            systemProperty("declaredSampleInputs", samplesDir.asFile.toString())
-            inputs.files(samplesDir)
-                .withPropertyName("autoTestedSamples")
-                .withPathSensitivity(PathSensitivity.RELATIVE)
+            jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }
     }
 

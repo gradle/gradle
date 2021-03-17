@@ -51,7 +51,7 @@ class AutoTestedSamplesUtil {
 
     static void assertDeclaredAsInput(String dir) {
         String inputs = System.getProperty("declaredSampleInputs")
-        assert inputs: "Must declare samples dir as inputs: 'integTest.usesSamples.set(true)'"
+        assert inputs: "Must declare source directory as input: 'integTest.testJavadocCodeSnippets.set(true)'"
         assert inputs == dir
     }
 

@@ -20,5 +20,5 @@ import org.gradle.api.provider.Property
 
 
 abstract class IntegrationTestExtension {
-    abstract val usesSamples: Property<Boolean>
+    abstract val usesJavadocCodeSnippets: Property<Boolean>
 }

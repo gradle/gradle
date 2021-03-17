@@ -63,4 +63,4 @@ classycle {
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)

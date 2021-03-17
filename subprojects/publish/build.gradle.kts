@@ -26,4 +26,4 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)
