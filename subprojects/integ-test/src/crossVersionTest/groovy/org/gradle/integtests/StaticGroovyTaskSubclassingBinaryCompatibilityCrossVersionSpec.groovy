@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 /**
@@ -36,11 +37,21 @@ class StaticGroovyTaskSubclassingBinaryCompatibilityCrossVersionSpec extends Cro
     @Issue("https://github.com/gradle/gradle/issues/6027")
     def "task can use project.file() from statically typed Groovy"() {
         when:
+        def apiDepConf = "implementation"
+        if (previous.version < GradleVersion.version("7.0-rc-1")) {
+            apiDepConf = "compile"
+        }
+        def groovyDepConf
+        if (previous.version < GradleVersion.version("1.4-rc-1")) {
+            groovyDepConf = "groovy"
+        } else {
+            groovyDepConf = apiDepConf
+        }
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
-                compile localGroovy()
-                compile gradleApi()
+                ${groovyDepConf} localGroovy()
+                ${apiDepConf} gradleApi()
             }
         """
 
