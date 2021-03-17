@@ -293,6 +293,40 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-project
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/kotlin",files="web-service/build.gradle.kts[tags=project-dependencies]"]
 ====
 
+[[sec:type-safe-project-accessors]]
+==== Type-safe project dependencies
+
+[WARNING]
+====
+Type-safe dependency accessors are an incubating feature which must be enabled explicitly.
+Implementation may change at any time.
+To add support for type-safe project accessors, add this to your `settings.gradle(.kts)` file:
+```
+enableFeaturePreview("TYPE_SAFE_PROJECT_ACCESSORS")
+```
+====
+
+One issue with the `project(":some:path")` notation is that you have to remember the path to every project you want to depend on.
+In addition, changing a project path requires you to change all places where the project dependency is used, but it is easy to miss one or more occurrences (because you have to rely on search and replace).
+
+Since Gradle 7, Gradle offers an experimental type-safe API for project dependencies.
+The same example as above can now be rewritten as:
+
+.Declaring project dependencies using the type-safe API
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/groovy",files="web-service/build.gradle[tags=project-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/kotlin",files="web-service/build.gradle.kts[tags=project-dependencies]"]
+====
+
+The type-safe API has the advantage of providing IDE completion so you don't need to figure out the actual names of the projects.
+
+If you add or remove a project and that you use the Kotlin DSL, build script compilation would fail in case you forget to update a dependency.
+
+The project accessors are mapped from the _project path_.
+For example, if a project path is `:commons:utils:some:lib` then the project accessor will be `projects.commons.utils.some.lib` (which is the short-hand notation for `projects.getCommons().getUtils().getSome().getLib()`).
+
+A project name with kebab case (`some-lib`) or snake case (`some_lib`) will be converted to camel case in accessors: `projects.someLib`.
+
 === Local forks of module dependencies
 
 A module dependency can be substituted by a dependency to a local fork of the sources of that module, if the module itself is built with Gradle.

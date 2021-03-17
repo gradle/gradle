@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.artifacts.VersionCatalogsExtension;
 import org.gradle.api.initialization.ProjectDescriptor;
@@ -50,6 +51,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.internal.service.ServiceRegistry;
@@ -72,8 +74,8 @@ import java.util.stream.Collectors;
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesAccessors.class);
 
-    private final static String KEBAB_CASE = "[a-z]([a-z0-9\\-])*";
-    private final static Pattern KEBAB_PATTERN = Pattern.compile(KEBAB_CASE);
+    private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
+    private final static Pattern SUPPORTED_PATTERN = Pattern.compile(SUPPORTED_PROJECT_NAMES);
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
     private final static String ACCESSORS_CLASSNAME_PREFIX = "LibrariesFor";
     private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
@@ -161,8 +163,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         projectRegistry.getAllProjects()
             .stream()
             .map(ProjectDescriptor::getName)
-            .filter(p -> !KEBAB_PATTERN.matcher(p).matches())
-            .map(name -> "project '" + name + "' doesn't follow the kebab case naming convention: " + KEBAB_CASE)
+            .filter(p -> !SUPPORTED_PATTERN.matcher(p).matches())
+            .map(name -> "project '" + name + "' doesn't follow the naming convention: " + SUPPORTED_PROJECT_NAMES)
             .forEach(errors::add);
         for (ProjectDescriptor project : projectRegistry.getAllProjects()) {
             project.getChildren()
@@ -179,9 +181,14 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 });
         }
         if (!errors.isEmpty()) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Cannot generate project dependency accessors");
+            formatter.startChildren();
             for (String error : errors) {
-                LOGGER.warn("Cannot generate project dependency accessors because " + error);
+                formatter.node("Cannot generate project dependency accessors because " + error);
             }
+            formatter.endChildren();
+            throw new InvalidUserDataException(formatter.toString());
         }
         return errors.isEmpty();
     }
