@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
   <webhooks enabled="true">
-    <webhook url="http://dev12.gradle.org:3003/teamcity" enabled="true" format="tailoredjson" template="none">
+    <webhook url="http://dev12.gradle.org:3003/teamcity" enabled="true" template="legacy-tailored-json">
       <states>
+        <state type="buildAddedToQueue" enabled="false" />
+        <state type="buildRemovedFromQueue" enabled="false" />
         <state type="buildStarted" enabled="true" />
         <state type="changesLoaded" enabled="false" />
-        <state type="beforeBuildFinish" enabled="false" />
-        <state type="buildSuccessful" enabled="true" />
-        <state type="buildFixed" enabled="false" />
-        <state type="buildFinished" enabled="true" />
-        <state type="buildFailed" enabled="true" />
         <state type="buildInterrupted" enabled="true" />
-        <state type="responsibilityChanged" enabled="true" />
+        <state type="beforeBuildFinish" enabled="false" />
+        <state type="buildFinished" enabled="true" />
+        <state type="buildSuccessful" enabled="true" />
+        <state type="buildFailed" enabled="true" />
+        <state type="buildFixed" enabled="false" />
         <state type="buildBroken" enabled="false" />
+        <state type="responsibilityChanged" enabled="true" />
+        <state type="buildPinned" enabled="false" />
+        <state type="buildUnpinned" enabled="false" />
       </states>
       <build-types enabled-for-all="false" enabled-for-subprojects="false">
         <build-type id="bt270451" />
@@ -22,18 +26,22 @@
         <build-type id="bt270452" />
       </build-types>
     </webhook>
-    <webhook url="http://dev12.gradle.org:3003/teamcity_slacktemplate" enabled="true" format="jsontemplate" template="slack.com">
+    <webhook url="http://dev12.gradle.org:3003/teamcity_slacktemplate" enabled="true" template="slack.com">
       <states>
+        <state type="buildAddedToQueue" enabled="false" />
+        <state type="buildRemovedFromQueue" enabled="true" />
         <state type="buildStarted" enabled="true" />
-        <state type="changesLoaded" enabled="true" />
-        <state type="beforeBuildFinish" enabled="true" />
-        <state type="buildSuccessful" enabled="true" />
-        <state type="buildFixed" enabled="false" />
-        <state type="buildFinished" enabled="true" />
-        <state type="buildFailed" enabled="true" />
+        <state type="changesLoaded" enabled="false" />
         <state type="buildInterrupted" enabled="true" />
-        <state type="responsibilityChanged" enabled="true" />
+        <state type="beforeBuildFinish" enabled="false" />
+        <state type="buildFinished" enabled="true" />
+        <state type="buildSuccessful" enabled="true" />
+        <state type="buildFailed" enabled="true" />
+        <state type="buildFixed" enabled="false" />
         <state type="buildBroken" enabled="false" />
+        <state type="responsibilityChanged" enabled="false" />
+        <state type="buildPinned" enabled="false" />
+        <state type="buildUnpinned" enabled="false" />
       </states>
       <build-types enabled-for-all="false" enabled-for-subprojects="false">
         <build-type id="bt270451" />
