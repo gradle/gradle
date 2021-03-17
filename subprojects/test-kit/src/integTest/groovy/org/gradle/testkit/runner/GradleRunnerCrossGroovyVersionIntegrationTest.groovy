@@ -65,7 +65,7 @@ import org.gradle.util.GradleVersion
 
 class BuildLogicFunctionalTest extends Specification {
 
-    @Rule public final TemporaryFolder testProjectDir = new TemporaryFolder();
+    @Rule public TemporaryFolder testProjectDir = new TemporaryFolder();
     File settingsFile
     File buildFile
 
@@ -77,7 +77,7 @@ class BuildLogicFunctionalTest extends Specification {
     def "capture groovy version"() {
         given:
         settingsFile << "rootProject.name = 'hello-world'"
-        buildFile << \"\"\"
+        buildFile << '''
             task writeGroovyVersion {
                 doLast {
                     file("version.txt").with {
@@ -86,13 +86,14 @@ class BuildLogicFunctionalTest extends Specification {
                     }
                 }
             }
-        \"\"\"
+        '''
 
         when:
         def result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments('writeGroovyVersion', '--stacktrace', '--info')
             .withGradleInstallation(new File("${buildContext.gradleHomeDir}"))
+            .withDebug($debug)
             .build()
 
         then:
@@ -127,14 +128,6 @@ repositories {
 
         then:
         result.task(":test").outcome == TaskOutcome.SUCCESS
-    }
-
-    GradleRunner runner() {
-        def gradleRunner = GradleRunner.create()
-            .withTestKitDir(file("test-kit-workspace"))
-            .withProjectDir(testDirectory)
-            .withDebug(false)
-        gradleRunner
     }
 
 }
