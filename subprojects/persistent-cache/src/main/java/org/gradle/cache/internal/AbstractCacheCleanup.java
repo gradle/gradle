@@ -49,7 +49,7 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
                 progressMonitor.incrementSkipped();
             }
         }
-        LOGGER.debug("{} cleanup deleted {} files/directories.", cleanableStore.getDisplayName(), filesDeleted);
+        LOGGER.info("{} cleanup deleted {} files/directories.", cleanableStore.getDisplayName(), filesDeleted);
     }
 
     protected int deleteEmptyParentDirectories(File baseDir, File dir) {
