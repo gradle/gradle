@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 
+import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
@@ -96,7 +97,10 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
-                LOGGER.debug("Failed to create receipt for instrumented classpath file '{}/{}'.", destDirName, destFileName, e);
+                throw new UncheckedIOException(
+                    format("Failed to create receipt for instrumented classpath file '%s/%s'.", destDirName, destFileName),
+                    e
+                );
             }
             return transformed;
         } finally {
