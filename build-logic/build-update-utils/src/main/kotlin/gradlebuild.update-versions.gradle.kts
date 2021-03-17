@@ -4,10 +4,9 @@ import gradlebuild.buildutils.tasks.UpdateBranchStatus
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
 import gradlebuild.buildutils.model.ReleasedVersion
 import java.net.URL
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.currentGitBranch
 
-plugins {
-    id("gradlebuild.module-identity")
-}
 
 tasks.withType<UpdateReleasedVersions>().configureEach {
     releasedVersionsFile.set(layout.projectDirectory.file("released-versions.json"))
@@ -34,7 +33,13 @@ tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") 
     )
 }
 
-tasks.register<UpdateBranchStatus>("updateBranchStatus")
+tasks.register<UpdateBranchStatus>("updateBranchStatus") {
+    gradleBuildBranch.set(
+        providers.environmentVariable(BuildEnvironment.BUILD_BRANCH)
+            .forUseAtConfigurationTime()
+            .orElse(currentGitBranch())
+    )
+}
 
 tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment.set(" Generated - Update by running `./gradlew updateAgpVersions`")
