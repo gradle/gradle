@@ -33,7 +33,7 @@
         <state type="buildStarted" enabled="true" />
         <state type="changesLoaded" enabled="false" />
         <state type="buildInterrupted" enabled="true" />
-        <state type="beforeBuildFinish" enabled="false" />
+        <state type="beforeBuildFinish" enabled="true" />
         <state type="buildFinished" enabled="true" />
         <state type="buildSuccessful" enabled="true" />
         <state type="buildFailed" enabled="true" />
