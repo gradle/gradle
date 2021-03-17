@@ -175,7 +175,7 @@ class TestEventSerializerTest extends SerializerSpec {
         result.cause.message == "cause"
     }
 
-    def Object serialize(Object source, Class type = source.getClass()) {
+    Object serialize(Object source, Class type = source.getClass()) {
         return super.serialize(source, serializer.build(type))
     }
 }
