@@ -345,7 +345,6 @@ include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/
 include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=compose_catalog]"]
 ====
 
-
 One advantage of using external catalogs is that you can selectively choose what to import to compose your own catalog:
 
 .Composing catalogs
@@ -367,7 +366,8 @@ include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/
 
 In the example above, any dependency which was using the `groovy` version as reference will be automatically updated to use `3.0.6`.
 
-NOTE: Again, overwriting a version doesn't mean that the actual _resolved_ dependency version will be the same: this only changes what is _imported_, that is to say what is used when declaring a dependency. The actual version will be subject to traditional conflict resolution, if any.
+NOTE: Again, overwriting a version doesn't mean that the actual _resolved_ dependency version will be the same: this only changes what is _imported_, that is to say what is used when declaring a dependency.
+The actual version will be subject to traditional conflict resolution, if any.
 
 [[sub:using-platform-to-control-transitive-deps]]
 == Using a platform to control transitive versions
