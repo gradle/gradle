@@ -154,6 +154,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def invoker = new DefaultTransformerInvocationFactory(
         executionEngine,
+        fileSystemAccess,
         artifactTransformListener,
         transformationWorkspaceServices,
         fileCollectionFactory,

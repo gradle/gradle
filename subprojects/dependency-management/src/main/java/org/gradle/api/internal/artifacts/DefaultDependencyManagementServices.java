@@ -142,6 +142,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
@@ -216,6 +217,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         TransformerInvocationFactory createTransformerInvocationFactory(
                 ExecutionEngine executionEngine,
+                FileSystemAccess fileSystemAccess,
                 ImmutableTransformationWorkspaceServices transformationWorkspaceServices,
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
@@ -224,6 +226,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ) {
             return new DefaultTransformerInvocationFactory(
                 executionEngine,
+                fileSystemAccess,
                 artifactTransformListener,
                 transformationWorkspaceServices,
                 fileCollectionFactory,
