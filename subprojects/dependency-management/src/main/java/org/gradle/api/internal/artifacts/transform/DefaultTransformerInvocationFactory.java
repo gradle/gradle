@@ -70,6 +70,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.PRIMARY;
@@ -221,7 +222,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot),
                 inputArtifactSnapshot.getHash(),
                 transformer.getSecondaryInputHash(),
-                dependenciesFingerprint.getHash()
+                identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
             );
         }
     }
@@ -246,7 +247,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             return new MutableTransformationWorkspaceIdentity(
                 inputArtifact.getAbsolutePath(),
                 transformer.getSecondaryInputHash(),
-                dependenciesFingerprint.getHash()
+                identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
             );
         }
     }
@@ -256,7 +257,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         protected final File inputArtifact;
         protected final FileSystemLocationSnapshot inputArtifactSnapshot;
         private final ArtifactTransformDependencies dependencies;
-        protected final CurrentFileCollectionFingerprint dependenciesFingerprint;
+        private final CurrentFileCollectionFingerprint dependenciesFingerprint;
 
         private final BuildOperationExecutor buildOperationExecutor;
         private final FileCollectionFactory fileCollectionFactory;
@@ -408,7 +409,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY, NON_IDENTITY,
                 inputArtifactProvider,
                 () -> inputArtifactFingerprinter.fingerprint(inputArtifactSnapshot));
-            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, NON_IDENTITY,
+            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, IDENTITY,
                 dependencies,
                 () -> dependenciesFingerprint);
         }
