@@ -51,6 +51,7 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
@@ -60,7 +61,6 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
-import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -112,7 +112,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         EmptySourceTaskSkipper emptySourceTaskSkipper,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry,
         FileOperations fileOperations,
         ListenerManager listenerManager,
         OutputChangeListener outputChangeListener,
@@ -138,7 +137,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             asyncWorkTracker,
             actionListener,
             taskCacheabilityResolver,
-            fingerprinterRegistry,
             classLoaderHierarchyHasher,
             executionEngine,
             listenerManager,

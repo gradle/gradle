@@ -404,28 +404,18 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, IDENTITY,
                 transformer::getSecondaryInputHash);
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY, NON_IDENTITY,
-                inputArtifactProvider,
-                this::fingerprintInputArtifact);
+                new FileValueSupplier(
+                    inputArtifactProvider,
+                    transformer.getInputArtifactNormalizer(),
+                    transformer.getInputArtifactDirectorySensitivity(),
+                    () -> fileCollectionFactory.fixed(inputArtifact)));
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, IDENTITY,
-                dependencies,
-                this::fingerprintDependencies
-            );
-        }
-
-        @Nonnull
-        private CurrentFileCollectionFingerprint fingerprintInputArtifact() {
-            FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(
-                DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
-            return inputArtifactFingerprinter.fingerprint(fileCollectionFactory.fixed(inputArtifact));
-        }
-
-        @Nonnull
-        private CurrentFileCollectionFingerprint fingerprintDependencies() {
-            FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(
-                DefaultFileNormalizationSpec.from(transformer.getInputArtifactDependenciesNormalizer(), transformer.getInputArtifactDependenciesDirectorySensitivity()));
-            return dependencies.getFiles()
-                .map(dependencyFingerprinter::fingerprint)
-                .orElseGet(dependencyFingerprinter::empty);
+                new FileValueSupplier(
+                    dependencies,
+                    transformer.getInputArtifactDependenciesNormalizer(),
+                    transformer.getInputArtifactDependenciesDirectorySensitivity(),
+                    () -> dependencies.getFiles()
+                        .orElse(fileCollectionFactory.empty())));
         }
 
         @Override

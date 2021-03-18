@@ -143,7 +143,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         }
     }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
-    def inputFingerprinter = new DefaultInputFingerprinter(valueSnapshotter)
+    def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
     def emptySourceTaskSkipper = Stub(EmptySourceTaskSkipper)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
@@ -181,7 +181,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         asyncWorkTracker,
         actionListener,
         taskCacheabilityResolver,
-        fingerprinterRegistry,
         classloaderHierarchyHasher,
         executionEngine,
         listenerManager,

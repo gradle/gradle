@@ -27,6 +27,7 @@ import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.OverlappingOutputs
@@ -52,6 +53,7 @@ import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
@@ -113,8 +115,9 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         isGeneratedByGradle() >> true
     }
     def outputSnapshotter = new DefaultOutputSnapshotter(snapshotter)
+    def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([fingerprinter])
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
-    def inputFingerprinter = new DefaultInputFingerprinter(valueSnapshotter)
+    def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def validationWarningReporter = Mock(ValidateStep.ValidationWarningRecorder)
@@ -885,8 +888,12 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                             entry.key,
                             NON_INCREMENTAL,
                             NON_IDENTITY,
-                            entry.value,
-                            { -> fingerprinter.fingerprint(TestFiles.fixed(entry.value)) }
+                            new UnitOfWork.FileValueSupplier(
+                                entry.value,
+                                AbsolutePathInputNormalizer,
+                                DirectorySensitivity.DEFAULT,
+                                () -> TestFiles.fixed(entry.value)
+                            )
                         )
                     }
                 }

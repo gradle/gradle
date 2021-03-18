@@ -19,6 +19,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
@@ -26,6 +27,7 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -124,14 +126,45 @@ public interface UnitOfWork extends Describable {
             String propertyName,
             InputPropertyType type,
             IdentityKind identity,
-            @Nullable Object value,
-            Supplier<CurrentFileCollectionFingerprint> fingerprinter
+            FileValueSupplier value
         ) {}
     }
 
     interface ValueSupplier {
         @Nullable
         Object getValue();
+    }
+
+    class FileValueSupplier implements ValueSupplier {
+        private final Object value;
+        private final Class<? extends FileNormalizer> normalizer;
+        private final DirectorySensitivity directorySensitivity;
+        private final Supplier<FileCollection> files;
+
+        public FileValueSupplier(@Nullable Object value, Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, Supplier<FileCollection> files) {
+            this.value = value;
+            this.normalizer = normalizer;
+            this.directorySensitivity = directorySensitivity;
+            this.files = files;
+        }
+
+        @Nullable
+        @Override
+        public Object getValue() {
+            return value;
+        }
+
+        public Class<? extends FileNormalizer> getNormalizer() {
+            return normalizer;
+        }
+
+        public DirectorySensitivity getDirectorySensitivity() {
+            return directorySensitivity;
+        }
+
+        public FileCollection getFiles() {
+            return files.get();
+        }
     }
 
     enum InputPropertyType {

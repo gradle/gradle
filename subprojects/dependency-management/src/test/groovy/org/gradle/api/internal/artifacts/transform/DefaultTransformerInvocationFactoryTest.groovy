@@ -80,7 +80,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         getClassLoaderHash(_ as ClassLoader) >> HashCode.fromInt(1234)
     }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHasher, null)
-    def inputFingerprinter = new DefaultInputFingerprinter(valueSnapshotter)
 
     def executionHistoryStore = new TestExecutionHistoryStore()
     def virtualFileSystem = TestFiles.virtualFileSystem()
@@ -94,6 +93,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter)
     def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter])
+    def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
         get(TransformationWorkspaceServices) >> new TestTransformationWorkspaceServices(mutableTransformsStoreDirectory, executionHistoryStore)

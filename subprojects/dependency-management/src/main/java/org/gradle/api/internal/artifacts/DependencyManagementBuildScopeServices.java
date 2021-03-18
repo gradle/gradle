@@ -192,7 +192,6 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -732,9 +731,8 @@ class DependencyManagementBuildScopeServices {
                                                               DefaultProjectDependencyFactory factory,
                                                               ExecutionEngine executionEngine,
                                                               FeaturePreviews featurePreviews,
-                                                              FileCollectionFactory fileCollectionFactory,
-                                                              ClasspathFingerprinter fingerprinter) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featurePreviews, executionEngine, fileCollectionFactory, fingerprinter);
+                                                              FileCollectionFactory fileCollectionFactory) {
+        return new DefaultDependenciesAccessors(registry, workspace, factory, featurePreviews, executionEngine, fileCollectionFactory);
     }
 
 

@@ -63,6 +63,7 @@ import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -249,7 +250,10 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1), currentBuildOperationRef);
     }
 
-    InputFingerprinter createInputFingerprinter(ValueSnapshotter valueSnapshotter) {
-        return new DefaultInputFingerprinter(valueSnapshotter);
+    InputFingerprinter createInputFingerprinter(
+        FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        ValueSnapshotter valueSnapshotter
+    ) {
+        return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
     }
 }
