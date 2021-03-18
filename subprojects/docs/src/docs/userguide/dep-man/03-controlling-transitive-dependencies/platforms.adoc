@@ -337,22 +337,6 @@ include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/
 include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=consume_catalog]"]
 ====
 
-It is possible to compose a catalog from more than one catalog:
-
-.Composing catalogs
-====
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=compose_catalog]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=compose_catalog]"]
-====
-
-One advantage of using external catalogs is that you can selectively choose what to import to compose your own catalog:
-
-.Composing catalogs
-====
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=compose_catalog_filtering]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=compose_catalog_filtering]"]
-====
-
 [[sec:overwriting-catalog-versions]]
 ==== Overwriting catalog versions
 

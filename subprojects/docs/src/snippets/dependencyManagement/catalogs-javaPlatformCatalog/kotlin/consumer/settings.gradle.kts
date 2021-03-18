@@ -43,7 +43,7 @@ if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() 
     // tag::overwrite_version[]
     dependencyResolutionManagement {
         versionCatalogs {
-            create("libs") {
+            create("amendedLibs") {
                 from("com.mycompany:catalog:1.0")
                 // overwrite the "groovy" version declared in the imported catalog
                 version("groovy", "3.0.6")
@@ -51,34 +51,4 @@ if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() 
         }
     }
     // end::overwrite_version[]
-}
-
-if (providers.systemProperty("compose1").forUseAtConfigurationTime().getOrNull() != null) {
-    // tag::compose_catalog[]
-    dependencyResolutionManagement {
-        versionCatalogs {
-            create("libs") {
-                from("com.mycompany:catalog:1.0")
-                from("com.other:catalog:1.1")
-                // and add explicit dependencies
-                alias("my-alias").to("my.own:lib:1.2")
-            }
-        }
-    }
-    // end::compose_catalog[]
-}
-
-if (providers.systemProperty("compose2").forUseAtConfigurationTime().getOrNull() != null) {
-    // tag::compose_catalog_filtering[]
-    dependencyResolutionManagement {
-        versionCatalogs {
-            create("libs") {
-                // import a published catalog
-                from("com.mycompany:catalog:1.0")
-                // and add explicit dependencies
-                alias("some-alias").to("my.own:lib:1.2")
-            }
-        }
-    }
-    // end::compose_catalog_filtering[]
 }
