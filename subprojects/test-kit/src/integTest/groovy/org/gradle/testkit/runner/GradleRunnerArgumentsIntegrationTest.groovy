@@ -16,9 +16,6 @@
 
 package org.gradle.testkit.runner
 
-import groovy.test.NotYetImplemented
-import spock.lang.Issue
-
 class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def "can execute build without specifying any arguments"() {
@@ -90,27 +87,6 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
         when:
         runner("writeValue", "--parallel")
             .withGradleVersion(determineMinimumVersionThatRunsOnCurrentJavaVersion("4.1"))
-            .build()
-
-        then:
-        file("out.txt").text == "true"
-    }
-
-    @NotYetImplemented
-    @Issue("GRADLE-3563")
-    def "can enable parallel execution via system property"() {
-        given:
-        buildScript """
-            task writeValue {
-                doLast {
-                    file("out.txt").text = gradle.startParameter.parallelProjectExecutionEnabled
-                }
-            }
-        """
-
-        when:
-        runner("writeValue", "-Dorg.gradle.parallel=true")
-            .withGradleVersion("3.1")
             .build()
 
         then:
