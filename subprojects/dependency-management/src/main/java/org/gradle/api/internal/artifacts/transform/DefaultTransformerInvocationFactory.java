@@ -213,14 +213,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             FileCollectionFingerprinter inputArtifactFingerprinter,
             TransformationWorkspaceServices workspaceServices
         ) {
-            super(transformer, inputArtifact, inputArtifactSnapshot, dependencies, dependenciesFingerprint, buildOperationExecutor, fileCollectionFactory, inputArtifactFingerprinter, workspaceServices);
+            super(transformer, inputArtifact, inputArtifactSnapshot, IDENTITY, dependencies, dependenciesFingerprint, buildOperationExecutor, fileCollectionFactory, inputArtifactFingerprinter, workspaceServices);
         }
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
             return new ImmutableTransformationWorkspaceIdentity(
-                inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot),
-                inputArtifactSnapshot.getHash(),
+                identityFileInputs.get(INPUT_ARTIFACT_PROPERTY_NAME).getHash(),
                 identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
                 identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
             );
@@ -239,7 +238,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             FileCollectionFingerprinter inputArtifactFingerprinter,
             TransformationWorkspaceServices workspaceServices
         ) {
-            super(transformer, inputArtifact, inputArtifactSnapshot, dependencies, dependenciesFingerprint, buildOperationExecutor, fileCollectionFactory, inputArtifactFingerprinter, workspaceServices);
+            super(transformer, inputArtifact, inputArtifactSnapshot, NON_IDENTITY, dependencies, dependenciesFingerprint, buildOperationExecutor, fileCollectionFactory, inputArtifactFingerprinter, workspaceServices);
         }
 
         @Override
@@ -256,6 +255,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         protected final Transformer transformer;
         protected final File inputArtifact;
         protected final FileSystemLocationSnapshot inputArtifactSnapshot;
+        private final IdentityKind inputArtifactIdentity;
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
 
@@ -271,6 +271,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             Transformer transformer,
             File inputArtifact,
             FileSystemLocationSnapshot inputArtifactSnapshot,
+            IdentityKind inputArtifactIdentity,
             ArtifactTransformDependencies dependencies,
             CurrentFileCollectionFingerprint dependenciesFingerprint,
 
@@ -282,6 +283,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.buildOperationExecutor = buildOperationExecutor;
             this.workspaceServices = workspaceServices;
             this.inputArtifactSnapshot = inputArtifactSnapshot;
+            this.inputArtifactIdentity = inputArtifactIdentity;
             this.dependenciesFingerprint = dependenciesFingerprint;
             this.inputArtifact = inputArtifact;
             this.transformer = transformer;
@@ -406,7 +408,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             // Emulate secondary inputs as a single property for now
             visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, IDENTITY,
                 transformer::getSecondaryInputHash);
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY, NON_IDENTITY,
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY, inputArtifactIdentity,
                 inputArtifactProvider,
                 () -> inputArtifactFingerprinter.fingerprint(inputArtifactSnapshot));
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, IDENTITY,
@@ -445,14 +447,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     }
 
     private static class ImmutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
-        private final String inputArtifactPath;
-        private final HashCode inputArtifactHash;
+        private final HashCode inputArtifactFingerprint;
         private final ValueSnapshot secondaryInputSnapshot;
         private final HashCode dependenciesHash;
 
-        public ImmutableTransformationWorkspaceIdentity(String inputArtifactPath, HashCode inputArtifactHash, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
-            this.inputArtifactPath = inputArtifactPath;
-            this.inputArtifactHash = inputArtifactHash;
+        public ImmutableTransformationWorkspaceIdentity(HashCode inputArtifactFingerprint, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
+            this.inputArtifactFingerprint = inputArtifactFingerprint;
             this.secondaryInputSnapshot = secondaryInputSnapshot;
             this.dependenciesHash = dependenciesHash;
         }
@@ -460,8 +460,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public String getUniqueId() {
             Hasher hasher = Hashing.newHasher();
-            hasher.putString(inputArtifactPath);
-            hasher.putHash(inputArtifactHash);
+            hasher.putHash(inputArtifactFingerprint);
             secondaryInputSnapshot.appendToHasher(hasher);
             hasher.putHash(dependenciesHash);
             return hasher.hash().toString();
@@ -478,10 +477,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
             ImmutableTransformationWorkspaceIdentity that = (ImmutableTransformationWorkspaceIdentity) o;
 
-            if (!inputArtifactHash.equals(that.inputArtifactHash)) {
-                return false;
-            }
-            if (!inputArtifactPath.equals(that.inputArtifactPath)) {
+            if (!inputArtifactFingerprint.equals(that.inputArtifactFingerprint)) {
                 return false;
             }
             if (!secondaryInputSnapshot.equals(that.secondaryInputSnapshot)) {
@@ -492,7 +488,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public int hashCode() {
-            int result = inputArtifactHash.hashCode();
+            int result = inputArtifactFingerprint.hashCode();
             result = 31 * result + secondaryInputSnapshot.hashCode();
             result = 31 * result + dependenciesHash.hashCode();
             return result;
