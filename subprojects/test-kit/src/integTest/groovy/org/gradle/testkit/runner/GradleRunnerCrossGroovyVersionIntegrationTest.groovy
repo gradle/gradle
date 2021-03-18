@@ -114,9 +114,7 @@ dependencies {
     testImplementation gradleTestKit()
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
         """
         file("src/test/groovy/BuildLogicFunctionalTest.groovy") << targetingGradle7Test
 
