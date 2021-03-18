@@ -79,6 +79,7 @@ import static org.gradle.internal.file.TreeType.FILE;
 public class DefaultTransformerInvocationFactory implements TransformerInvocationFactory {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
     private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
+    private static final String INPUT_ARTIFACT_PATH_PROPERTY_NAME = "inputArtifactPath";
     private static final String INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME = "inputArtifactSnapshot";
     private static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
     private static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
@@ -211,12 +212,18 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public void visitInputs(InputVisitor visitor) {
             super.visitInputs(visitor);
+            visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, IDENTITY, () -> {
+                FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(
+                    DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
+                return inputArtifactFingerprinter.normalizePath(fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity()));
+            });
             visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, IDENTITY, () -> fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity()).getHash().toString());
         }
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
             return new ImmutableTransformationWorkspaceIdentity(
+                identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
                 identityInputs.get(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME),
                 identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
                 identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
@@ -248,7 +255,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     }
 
     private abstract static class AbstractTransformerExecution implements UnitOfWork {
-        private final Transformer transformer;
+        protected final Transformer transformer;
         protected final File inputArtifact;
         private final ArtifactTransformDependencies dependencies;
 
@@ -257,7 +264,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         private final Timer executionTimer;
         private final Provider<FileSystemLocation> inputArtifactProvider;
-        private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
+        protected final FileCollectionFingerprinterRegistry fingerprinterRegistry;
         private final TransformationWorkspaceServices workspaceServices;
 
         public AbstractTransformerExecution(
@@ -452,11 +459,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     }
 
     private static class ImmutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
+        private final ValueSnapshot inputArtifactPath;
         private final ValueSnapshot inputArtifactSnapshot;
         private final ValueSnapshot secondaryInputSnapshot;
         private final HashCode dependenciesHash;
 
-        public ImmutableTransformationWorkspaceIdentity(ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
+        public ImmutableTransformationWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
+            this.inputArtifactPath = inputArtifactPath;
             this.inputArtifactSnapshot = inputArtifactSnapshot;
             this.secondaryInputSnapshot = secondaryInputSnapshot;
             this.dependenciesHash = dependenciesHash;
@@ -465,6 +474,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public String getUniqueId() {
             Hasher hasher = Hashing.newHasher();
+            inputArtifactPath.appendToHasher(hasher);
             inputArtifactSnapshot.appendToHasher(hasher);
             secondaryInputSnapshot.appendToHasher(hasher);
             hasher.putHash(dependenciesHash);
@@ -482,6 +492,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
             ImmutableTransformationWorkspaceIdentity that = (ImmutableTransformationWorkspaceIdentity) o;
 
+            if (!inputArtifactPath.equals(that.inputArtifactPath)) {
+                return false;
+            }
             if (!inputArtifactSnapshot.equals(that.inputArtifactSnapshot)) {
                 return false;
             }
@@ -493,7 +506,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public int hashCode() {
-            int result = inputArtifactSnapshot.hashCode();
+            int result = inputArtifactPath.hashCode();
+            result = 31 * result + inputArtifactSnapshot.hashCode();
             result = 31 * result + secondaryInputSnapshot.hashCode();
             result = 31 * result + dependenciesHash.hashCode();
             return result;
