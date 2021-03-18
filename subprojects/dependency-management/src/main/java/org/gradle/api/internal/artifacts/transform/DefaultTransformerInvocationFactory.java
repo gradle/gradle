@@ -252,16 +252,16 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     }
 
     private abstract static class AbstractTransformerExecution implements UnitOfWork {
-        protected final Transformer transformer;
+        private final Transformer transformer;
         protected final File inputArtifact;
-        protected final FileSystemLocationSnapshot inputArtifactSnapshot;
+        private final FileSystemLocationSnapshot inputArtifactSnapshot;
         private final IdentityKind inputArtifactIdentity;
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
 
         private final BuildOperationExecutor buildOperationExecutor;
         private final FileCollectionFactory fileCollectionFactory;
-        protected final FileCollectionFingerprinter inputArtifactFingerprinter;
+        private final FileCollectionFingerprinter inputArtifactFingerprinter;
 
         private final Timer executionTimer;
         private final Provider<FileSystemLocation> inputArtifactProvider;
