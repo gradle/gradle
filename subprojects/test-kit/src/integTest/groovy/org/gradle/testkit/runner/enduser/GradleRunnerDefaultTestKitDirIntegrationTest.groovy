@@ -69,7 +69,7 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
         when:
         buildFile << gradleTestKitDependency()
 
-        def workerTmpDir = file("build/tmp/test/test files")
+        def workerTmpDir = file("build/tmp/test/work")
         groovyTestSourceFile("""
             import org.gradle.testkit.runner.GradleRunner
             import org.gradle.testkit.runner.internal.DefaultGradleRunner
