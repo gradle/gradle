@@ -405,7 +405,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         public void visitInputs(InputVisitor visitor) {
             // Emulate secondary inputs as a single property for now
             visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, NON_IDENTITY,
-                () -> transformer.getSecondaryInputHash().toString());
+                transformer::getSecondaryInputHash);
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY, NON_IDENTITY,
                 inputArtifactProvider,
                 () -> inputArtifactFingerprinter.fingerprint(inputArtifactSnapshot));
