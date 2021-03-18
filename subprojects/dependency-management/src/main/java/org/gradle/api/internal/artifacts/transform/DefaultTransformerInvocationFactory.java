@@ -384,21 +384,27 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 transformer::getSecondaryInputHash);
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY, inputArtifactIdentity,
                 inputArtifactProvider,
-                () -> {
-                    FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(
-                        DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
-                    return inputArtifactFingerprinter.fingerprint(fileCollectionFactory.fixed(inputArtifact));
-                });
+                this::fingerprintInputArtifact);
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, IDENTITY,
                 dependencies,
-                () -> {
-                    FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(
-                        DefaultFileNormalizationSpec.from(transformer.getInputArtifactDependenciesNormalizer(), transformer.getInputArtifactDependenciesDirectorySensitivity()));
-                    return dependencies.getFiles()
-                        .map(dependencyFingerprinter::fingerprint)
-                        .orElseGet(dependencyFingerprinter::empty);
-                }
+                this::fingerprintDependencies
             );
+        }
+
+        @Nonnull
+        private CurrentFileCollectionFingerprint fingerprintInputArtifact() {
+            FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(
+                DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
+            return inputArtifactFingerprinter.fingerprint(fileCollectionFactory.fixed(inputArtifact));
+        }
+
+        @Nonnull
+        private CurrentFileCollectionFingerprint fingerprintDependencies() {
+            FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(
+                DefaultFileNormalizationSpec.from(transformer.getInputArtifactDependenciesNormalizer(), transformer.getInputArtifactDependenciesDirectorySensitivity()));
+            return dependencies.getFiles()
+                .map(dependencyFingerprinter::fingerprint)
+                .orElseGet(dependencyFingerprinter::empty);
         }
 
         @Override
