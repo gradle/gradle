@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -37,8 +36,6 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.catalog.parser.DependenciesModelHelper;
-import org.gradle.api.internal.catalog.parser.ImportConfiguration;
-import org.gradle.api.internal.catalog.parser.IncludeExcludePredicate;
 import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 import org.gradle.api.logging.Logger;
@@ -57,10 +54,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -156,8 +151,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             addImportsToResolvableConfiguration(drs, cnf, importConfiguration);
             cnf.getIncoming().getArtifacts().getArtifacts().forEach(ar -> {
                 File file = ar.getFile();
-                Action<? super ImportSpec> configurationAction = importConfiguration.spec;
-                withContext("catalog " + ar.getVariant().getOwner(), () -> importCatalogFromFile(file, configurationAction));
+                withContext("catalog " + ar.getVariant().getOwner(), () -> importCatalogFromFile(file));
             });
         }
     }
@@ -188,11 +182,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     @Override
-    public void from(Object dependencyNotation, Action<? super ImportSpec> importSpec) {
-        imports.add(new Import(dependencyNotation, importSpec));
+    public void from(Object dependencyNotation) {
+        imports.add(new Import(dependencyNotation));
     }
 
-    private void importCatalogFromFile(File modelFile, Action<? super ImportSpec> configurationAction) {
+    private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
             throw new InvalidUserDataException("Unsupported file format: please use a TOML file");
         }
@@ -203,9 +197,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         srcProp.set(modelFile);
         Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes().forUseAtConfigurationTime();
         try {
-            DefaultImportSpec spec = new DefaultImportSpec();
-            configurationAction.execute(spec);
-            TomlCatalogFileParser.parse(new ByteArrayInputStream(dataSource.get()), this, spec.toConfiguration());
+            TomlCatalogFileParser.parse(new ByteArrayInputStream(dataSource.get()), this);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -402,79 +394,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     private static class Import {
-        private final Action<? super ImportSpec> spec;
         private final Object notation;
 
-        private Import(Object notation, Action<? super ImportSpec> spec) {
-            this.spec = spec;
+        private Import(Object notation) {
             this.notation = notation;
-        }
-    }
-
-    private static class DefaultImportSpec implements ImportSpec {
-        private Set<String> includedAliases;
-        private Set<String> excludedAliases;
-
-        private Set<String> includedBundles;
-        private Set<String> excludedBundles;
-
-        private Set<String> includedVersions;
-        private Set<String> excludedVersions;
-
-        @Override
-        public void includeDependency(String... aliases) {
-            if (includedAliases == null) {
-                includedAliases = Sets.newHashSet();
-            }
-            Collections.addAll(includedAliases, aliases);
-        }
-
-        @Override
-        public void excludeDependency(String... aliases) {
-            if (excludedAliases == null) {
-                excludedAliases = Sets.newHashSet();
-            }
-            Collections.addAll(excludedAliases, aliases);
-        }
-
-        @Override
-        public void includeBundle(String... bundles) {
-            if (includedBundles == null) {
-                includedBundles = Sets.newHashSet();
-            }
-            Collections.addAll(includedBundles, bundles);
-        }
-
-        @Override
-        public void excludeBundle(String... bundles) {
-            if (excludedBundles == null) {
-                excludedBundles = Sets.newHashSet();
-            }
-            Collections.addAll(excludedBundles, bundles);
-        }
-
-        @Override
-        public void includeVersion(String... aliases) {
-            if (includedVersions == null) {
-                includedVersions = Sets.newHashSet();
-            }
-            Collections.addAll(includedVersions, aliases);
-        }
-
-        @Override
-        public void excludeVersion(String... aliases) {
-            if (excludedVersions == null) {
-                excludedVersions = Sets.newHashSet();
-            }
-            Collections.addAll(excludedVersions, aliases);
-        }
-
-        ImportConfiguration toConfiguration() {
-            return new ImportConfiguration(
-                IncludeExcludePredicate.of(includedAliases, excludedAliases),
-                IncludeExcludePredicate.of(includedBundles, excludedBundles),
-                IncludeExcludePredicate.of(includedVersions, excludedVersions)
-            );
         }
     }
 }

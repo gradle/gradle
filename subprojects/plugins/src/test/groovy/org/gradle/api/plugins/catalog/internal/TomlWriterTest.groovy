@@ -20,7 +20,6 @@ import com.google.common.collect.Interners
 import groovy.transform.Canonical
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
-import org.gradle.api.internal.catalog.parser.ImportConfiguration
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -28,8 +27,6 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.util.function.Supplier
-
-import static org.gradle.api.internal.catalog.parser.IncludeExcludePredicate.acceptAll
 
 class TomlWriterTest extends Specification {
 
@@ -88,7 +85,7 @@ format.version = "1.0"
             ,
             Stub(Supplier))
         ins.withCloseable {
-            TomlCatalogFileParser.parse(it, builder, new ImportConfiguration(acceptAll(), acceptAll(), acceptAll()))
+            TomlCatalogFileParser.parse(it, builder)
         }
         return new Model(builder.build())
     }
