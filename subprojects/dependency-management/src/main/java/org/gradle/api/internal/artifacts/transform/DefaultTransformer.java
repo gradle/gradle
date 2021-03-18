@@ -375,7 +375,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (artifactTransformDependencies != null) {
-                builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, artifactTransformDependencies::getFiles));
+                builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> artifactTransformDependencies.getFiles().orElseThrow(() -> new IllegalStateException("Transform does not use artifact dependencies."))));
             }
             if (inputChanges != null) {
                 builder.add(InjectionPoint.injectedByType(InputChanges.class, () -> inputChanges));

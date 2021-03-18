@@ -392,7 +392,10 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 () -> inputArtifactFingerprinter.fingerprint(fileCollectionFactory.fixed(inputArtifact)));
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, IDENTITY,
                 dependencies,
-                () -> dependencies.fingerprint(dependencyFingerprinter));
+                () -> dependencies.getFiles()
+                    .map(dependencyFingerprinter::fingerprint)
+                    .orElseGet(dependencyFingerprinter::empty)
+            );
         }
 
         @Override

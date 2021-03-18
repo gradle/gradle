@@ -50,7 +50,6 @@ import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
@@ -111,8 +110,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     }
 
     def dependencies = Stub(ArtifactTransformDependencies) {
-        getFiles() >> []
-        fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
+        getFiles() >> Optional.empty()
     }
 
     def buildOperationExecutor = new TestBuildOperationExecutor()

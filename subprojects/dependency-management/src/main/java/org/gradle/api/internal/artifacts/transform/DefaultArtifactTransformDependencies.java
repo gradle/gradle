@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+
+import java.util.Optional;
 
 public class DefaultArtifactTransformDependencies implements ArtifactTransformDependencies {
     private final FileCollection files;
@@ -28,12 +28,7 @@ public class DefaultArtifactTransformDependencies implements ArtifactTransformDe
     }
 
     @Override
-    public FileCollection getFiles() {
-        return files;
-    }
-
-    @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter) {
-        return fingerprinter.fingerprint(files);
+    public Optional<FileCollection> getFiles() {
+        return Optional.of(files);
     }
 }
