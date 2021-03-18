@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl
+package org.gradle.internal.execution.fingerprint.impl
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.InputFingerprinter.Result
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
@@ -45,7 +45,7 @@ class DefaultInputFingerprinterTest extends Specification {
         def result = fingerprintInputProperties()
 
         then:
-        1 * work.visitInputs(_) >> { UnitOfWork.InputVisitor visitor ->
+        1 * work.visitInputs(spock.lang.Specification._) >> { UnitOfWork.InputVisitor visitor ->
             visitor.visitInputProperty("identity", UnitOfWork.IdentityKind.IDENTITY) { identityInput }
             visitor.visitInputProperty("non-identity", NON_IDENTITY) { nonIdentityInput }
             visitor.visitInputFileProperty("identity-file", NON_INCREMENTAL, UnitOfWork.IdentityKind.IDENTITY, Mock(Object)) { identityFileInputFingerprint }
@@ -53,7 +53,7 @@ class DefaultInputFingerprinterTest extends Specification {
         }
         1 * valueSnapshotter.snapshot(identityInput) >> identityInputSnapshot
         1 * valueSnapshotter.snapshot(nonIdentityInput) >> nonIdentityInputSnapshot
-        0 * _
+        0 * spock.lang.Specification._
 
         then:
         result.valueSnapshots as Map == ["non-identity": nonIdentityInputSnapshot, "identity" : identityInputSnapshot]
@@ -69,14 +69,14 @@ class DefaultInputFingerprinterTest extends Specification {
         )
 
         then:
-        1 * work.visitInputs(_) >> { UnitOfWork.InputVisitor visitor ->
+        1 * work.visitInputs(spock.lang.Specification._) >> { UnitOfWork.InputVisitor visitor ->
             visitor.visitInputProperty("identity", UnitOfWork.IdentityKind.IDENTITY) { identityInput }
             visitor.visitInputProperty("non-identity", NON_IDENTITY) { throw new RuntimeException("Shouldn't evaluate this") }
             visitor.visitInputFileProperty("identity-file", NON_INCREMENTAL, UnitOfWork.IdentityKind.IDENTITY, Mock(Object)) { identityFileInputFingerprint }
             visitor.visitInputFileProperty("non-identity-file", NON_INCREMENTAL, NON_IDENTITY, Mock(Object)) { throw new RuntimeException("Shouldn't evaluate this") }
         }
         1 * valueSnapshotter.snapshot(identityInput) >> identityInputSnapshot
-        0 * _
+        0 * spock.lang.Specification._
 
         then:
         result.valueSnapshots as Map == ["identity" : identityInputSnapshot]
@@ -93,14 +93,14 @@ class DefaultInputFingerprinterTest extends Specification {
         )
 
         then:
-        1 * work.visitInputs(_) >> { UnitOfWork.InputVisitor visitor ->
+        1 * work.visitInputs(spock.lang.Specification._) >> { UnitOfWork.InputVisitor visitor ->
             visitor.visitInputProperty("identity", UnitOfWork.IdentityKind.IDENTITY) { identityInput }
             visitor.visitInputProperty("non-identity", NON_IDENTITY) { throw new RuntimeException("Shouldn't evaluate this") }
             visitor.visitInputFileProperty("identity-file", NON_INCREMENTAL, UnitOfWork.IdentityKind.IDENTITY, Mock(Object)) { identityFileInputFingerprint }
             visitor.visitInputFileProperty("non-identity-file", NON_INCREMENTAL, NON_IDENTITY, Mock(Object)) { throw new RuntimeException("Shouldn't evaluate this") }
         }
         1 * valueSnapshotter.snapshot(identityInput) >> identityInputSnapshot
-        0 * _
+        0 * spock.lang.Specification._
 
         then:
         result.valueSnapshots as Map == ["identity" : identityInputSnapshot]
@@ -114,11 +114,11 @@ class DefaultInputFingerprinterTest extends Specification {
         def result = fingerprintInputProperties(ImmutableSortedMap.of("identity", previousSnapshot))
 
         then:
-        1 * work.visitInputs(_) >> { UnitOfWork.InputVisitor visitor ->
+        1 * work.visitInputs(spock.lang.Specification._) >> { UnitOfWork.InputVisitor visitor ->
             visitor.visitInputProperty("identity", UnitOfWork.IdentityKind.IDENTITY) { identityInput }
         }
         1 * valueSnapshotter.snapshot(identityInput, previousSnapshot) >> identityInputSnapshot
-        0 * _
+        0 * spock.lang.Specification._
 
         then:
         result.valueSnapshots as Map == ["identity": identityInputSnapshot]

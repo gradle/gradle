@@ -18,10 +18,10 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -43,8 +43,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.InputFingerprinter.union;
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
+import static org.gradle.internal.execution.fingerprint.InputFingerprinter.union;
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<ValidationContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
