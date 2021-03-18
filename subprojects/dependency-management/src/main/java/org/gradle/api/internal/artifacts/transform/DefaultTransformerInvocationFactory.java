@@ -122,23 +122,45 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(transformer.getInputArtifactDependenciesNormalizer(), transformer.getInputArtifactDependenciesDirectorySensitivity()));
 
         FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
-        String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
 
-        UnitOfWork.Identity identity = getTransformationIdentity(producerProject, inputArtifactSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
-
-        TransformerExecution execution = new TransformerExecution(
-            transformer,
-            identity,
-            inputArtifact,
-            inputArtifactSnapshot,
-            dependencies,
-            dependenciesFingerprint,
-            buildOperationExecutor,
-            fileCollectionFactory,
-            inputArtifactFingerprinter,
-            workspaceServices
-        );
+        UnitOfWork execution;
+        if (producerProject == null) {
+            execution = new ImmutableTransformerExecution(
+                transformer,
+                new ImmutableTransformationWorkspaceIdentity(
+                    inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot),
+                    inputArtifactSnapshot.getHash(),
+                    transformer.getSecondaryInputHash(),
+                    dependenciesFingerprint.getHash()
+                ),
+                inputArtifact,
+                inputArtifactSnapshot,
+                dependencies,
+                dependenciesFingerprint,
+                buildOperationExecutor,
+                fileCollectionFactory,
+                inputArtifactFingerprinter,
+                workspaceServices
+            );
+        } else {
+            execution = new MutableTransformerExecution(
+                transformer,
+                new MutableTransformationWorkspaceIdentity(
+                    inputArtifact.getAbsolutePath(),
+                    transformer.getSecondaryInputHash(),
+                    dependenciesFingerprint.getHash()
+                ),
+                inputArtifact,
+                inputArtifactSnapshot,
+                dependencies,
+                dependenciesFingerprint,
+                buildOperationExecutor,
+                fileCollectionFactory,
+                inputArtifactFingerprinter,
+                workspaceServices
+            );
+        }
 
         return executionEngine.createRequest(execution)
             .withIdentityCache(workspaceServices.getIdentityCache())
@@ -161,29 +183,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                         .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
                 }
             });
-    }
-
-    private static UnitOfWork.Identity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
-        return project == null
-            ? getImmutableTransformationIdentity(inputArtifactPath, inputArtifactSnapshot, transformer, dependenciesFingerprint)
-            : getMutableTransformationIdentity(inputArtifactSnapshot, transformer, dependenciesFingerprint);
-    }
-
-    private static UnitOfWork.Identity getImmutableTransformationIdentity(String inputArtifactPath, FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
-        return new ImmutableTransformationWorkspaceIdentity(
-            inputArtifactPath,
-            inputArtifactSnapshot.getHash(),
-            transformer.getSecondaryInputHash(),
-            dependenciesFingerprint.getHash()
-        );
-    }
-
-    private static UnitOfWork.Identity getMutableTransformationIdentity(FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
-        return new MutableTransformationWorkspaceIdentity(
-            inputArtifactSnapshot.getAbsolutePath(),
-            transformer.getSecondaryInputHash(),
-            dependenciesFingerprint.getHash()
-        );
     }
 
     private TransformationWorkspaceServices determineWorkspaceServices(@Nullable ProjectInternal producerProject) {
@@ -212,10 +211,59 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
     }
 
-    private static class TransformerExecution implements UnitOfWork {
+    private static class ImmutableTransformerExecution extends AbstractTransformerExecution {
+        private final Identity identity;
+
+        public ImmutableTransformerExecution(
+            Transformer transformer,
+            Identity identity,
+            File inputArtifact,
+            FileSystemLocationSnapshot inputArtifactSnapshot,
+            ArtifactTransformDependencies dependencies,
+            CurrentFileCollectionFingerprint dependenciesFingerprint,
+            BuildOperationExecutor buildOperationExecutor,
+            FileCollectionFactory fileCollectionFactory,
+            FileCollectionFingerprinter inputArtifactFingerprinter,
+            TransformationWorkspaceServices workspaceServices
+        ) {
+            super(transformer, inputArtifact, inputArtifactSnapshot, dependencies, dependenciesFingerprint, buildOperationExecutor, fileCollectionFactory, inputArtifactFingerprinter, workspaceServices);
+            this.identity = identity;
+        }
+
+        @Override
+        public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+            return identity;
+        }
+    }
+
+    private static class MutableTransformerExecution extends AbstractTransformerExecution {
+        private final Identity identity;
+
+        public MutableTransformerExecution(
+            Transformer transformer,
+            Identity identity,
+            File inputArtifact,
+            FileSystemLocationSnapshot inputArtifactSnapshot,
+            ArtifactTransformDependencies dependencies,
+            CurrentFileCollectionFingerprint dependenciesFingerprint,
+            BuildOperationExecutor buildOperationExecutor,
+            FileCollectionFactory fileCollectionFactory,
+            FileCollectionFingerprinter inputArtifactFingerprinter,
+            TransformationWorkspaceServices workspaceServices
+        ) {
+            super(transformer, inputArtifact, inputArtifactSnapshot, dependencies, dependenciesFingerprint, buildOperationExecutor, fileCollectionFactory, inputArtifactFingerprinter, workspaceServices);
+            this.identity = identity;
+        }
+
+        @Override
+        public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+            return identity;
+        }
+    }
+
+    private abstract static class AbstractTransformerExecution implements UnitOfWork {
         private final Transformer transformer;
         private final File inputArtifact;
-        private final UnitOfWork.Identity identity;
         private final FileSystemLocationSnapshot inputArtifactSnapshot;
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
@@ -228,9 +276,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final Provider<FileSystemLocation> inputArtifactProvider;
         private final TransformationWorkspaceServices workspaceServices;
 
-        public TransformerExecution(
+        public AbstractTransformerExecution(
             Transformer transformer,
-            UnitOfWork.Identity identity,
             File inputArtifact,
             FileSystemLocationSnapshot inputArtifactSnapshot,
             ArtifactTransformDependencies dependencies,
@@ -241,7 +288,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             FileCollectionFingerprinter inputArtifactFingerprinter,
             TransformationWorkspaceServices workspaceServices
         ) {
-            this.identity = identity;
             this.buildOperationExecutor = buildOperationExecutor;
             this.workspaceServices = workspaceServices;
             this.inputArtifactSnapshot = inputArtifactSnapshot;
@@ -253,11 +299,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.inputArtifactFingerprinter = inputArtifactFingerprinter;
             this.executionTimer = Time.startTimer();
             this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
-        }
-
-        @Override
-        public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return identity;
         }
 
         @Override
