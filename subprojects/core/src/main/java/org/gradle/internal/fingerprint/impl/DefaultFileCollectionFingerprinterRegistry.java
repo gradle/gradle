@@ -18,7 +18,6 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileNormalizationSpec;
@@ -42,10 +41,5 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
             throw new IllegalStateException(String.format("No fingerprinter registered with type '%s' and directory sensitivity '%s'", spec.getNormalizer().getName(), spec.getDirectorySensitivity().name()));
         }
         return fingerprinter;
-    }
-
-    @Override
-    public FileCollectionFingerprinter getFingerprinter(InputFilePropertySpec spec) {
-        return getFingerprinter(from(spec.getNormalizer(), spec.getDirectorySensitivity()));
     }
 }

@@ -96,6 +96,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
+import static org.gradle.internal.fingerprint.impl.DefaultFileNormalizationSpec.from;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
@@ -316,7 +317,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         : InputPropertyType.NON_INCREMENTAL;
                 String propertyName = inputFileProperty.getPropertyName();
                 visitor.visitInputFileProperty(propertyName, type, NON_IDENTITY, value, () -> {
-                    FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(inputFileProperty);
+                    FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(from(inputFileProperty.getNormalizer(), inputFileProperty.getDirectorySensitivity()));
                     return fingerprinter.fingerprint(inputFileProperty.getPropertyFiles());
                 });
             }

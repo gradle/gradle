@@ -16,10 +16,6 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
-
 public interface FileCollectionFingerprinterRegistry {
     FileCollectionFingerprinter getFingerprinter(FileNormalizationSpec spec);
-
-    FileCollectionFingerprinter getFingerprinter(InputFilePropertySpec spec);
 }
