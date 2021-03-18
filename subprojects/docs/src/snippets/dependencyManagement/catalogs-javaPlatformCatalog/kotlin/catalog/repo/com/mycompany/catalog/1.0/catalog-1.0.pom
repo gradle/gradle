@@ -11,18 +11,4 @@
   <artifactId>catalog</artifactId>
   <version>1.0</version>
   <packaging>toml</packaging>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>28.0-jre</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.groovy</groupId>
-        <artifactId>groovy</artifactId>
-        <version>3.0.5</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 </project>
