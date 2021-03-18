@@ -19,9 +19,10 @@ package org.gradle.integtests.resolve.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
-abstract class AbstractCentralDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
+abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     final BuildOperationsFixture operations = new BuildOperationsFixture(executer, testDirectoryProvider)
     final ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
@@ -29,9 +30,9 @@ abstract class AbstractCentralDependenciesIntegrationTest extends AbstractHttpDe
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
-
-            enableFeaturePreview("VERSION_CATALOGS")
-
+        """
+        FeaturePreviewsFixture.enableVersionCatalog(settingsFile)
+        settingsFile << """
             dependencyResolutionManagement {
                 repositories {
                     maven {
