@@ -80,10 +80,7 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile << '''
             task writeGroovyVersion {
                 doLast {
-                    file("version.txt").with {
-                        createNewFile()
-                        text = GroovySystem.version
-                    }
+                    assert GroovySystem.version > org.gradle.util.VersionNumber.parse("3.0")
                 }
             }
         '''
