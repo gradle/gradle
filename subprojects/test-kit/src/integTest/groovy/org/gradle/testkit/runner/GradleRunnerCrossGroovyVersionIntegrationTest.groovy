@@ -17,43 +17,37 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.embedded })
+@NonCrossVersion
 class GradleRunnerCrossGroovyVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
-    def "can run simple build using groovy2"(String testedGradleVersion, Closure<GradleRunner> gradleVersionConfigurator) {
+    def "current TestKit can run build with old Gradle version that uses Groovy 2"() {
         given:
         buildFile << """
-            task writeGroovyVersion {
+            task testGroovyVersion {
                 doLast {
-                    file("version.txt").with {
-                        createNewFile()
-                        text = GroovySystem.version
-                    }
+                    assert GroovySystem.version == "2.5.12"
                 }
             }
         """
 
         when:
-        def someRunner = runner().withArguments("writeGroovyVersion")
-        gradleVersionConfigurator.call(someRunner)
-        someRunner.build()
+        def result = runner().withArguments("testGroovyVersion")
+            .withGradleVersion("6.8.3")
+            .build()
 
         then:
-        file("version.txt").text == groovyVersion
+        result.task(":testGroovyVersion").getOutcome() == TaskOutcome.SUCCESS
 
         cleanup:
-        testKitDaemons(GradleVersion.version(testedGradleVersion)).killAll()
-
-        where:
-        testedGradleVersion               | groovyVersion         | gradleVersionConfigurator
-        "6.8.3"                           | "2.5.12"              | { it.withGradleVersion("6.8.3") }
-        GradleVersion.current().version   | GroovySystem.version  | { it.withGradleInstallation(buildContext.gradleHomeDir) }
+        testKitDaemons(GradleVersion.version("6.8.3")).killAll()
     }
 
-    def "groovy2-based gradle can run build via testkit using a groovy3-based gradle"() {
+    def "old TestKit can run build with current Gradle"() {
         given:
         def targetingGradle7Test = """
 import spock.lang.Specification
@@ -61,7 +55,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.util.GradleVersion
+import org.gradle.util.VersionNumber
 
 class BuildLogicFunctionalTest extends Specification {
 
@@ -78,9 +72,9 @@ class BuildLogicFunctionalTest extends Specification {
         given:
         settingsFile << "rootProject.name = 'hello-world'"
         buildFile << '''
-            task writeGroovyVersion {
+            task testGroovyVersion {
                 doLast {
-                    assert GroovySystem.version > org.gradle.util.VersionNumber.parse("3.0")
+                    assert org.gradle.util.VersionNumber.parse(GroovySystem.version) > org.gradle.util.VersionNumber.parse("3.0")
                 }
             }
         '''
@@ -88,15 +82,13 @@ class BuildLogicFunctionalTest extends Specification {
         when:
         def result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments('writeGroovyVersion', '--stacktrace', '--info')
+            .withArguments('testGroovyVersion', '--stacktrace', '--info')
             .withGradleInstallation(new File("${buildContext.gradleHomeDir}"))
             .withDebug($debug)
             .build()
 
         then:
-        GradleVersion.current().version == "6.8.3"
-        new File(testProjectDir.getRoot(), "version.txt").text == "3.0.7"
-        result.task(":writeGroovyVersion").outcome == TaskOutcome.SUCCESS
+        result.task(":testGroovyVersion").outcome == TaskOutcome.SUCCESS
     }
 }
 """
