@@ -73,14 +73,8 @@ if (providers.systemProperty("compose2").forUseAtConfigurationTime().getOrNull()
     dependencyResolutionManagement {
         versionCatalogs {
             create("libs") {
-                from("com.mycompany:catalog:1.0") {
-                    // import everything, excluding the following dependency
-                    excludeDependency("some-alias")
-                }
-                from("com.other:catalog:1.1") {
-                    // exclude everything but this dependency
-                    includeDependency("some-dep")
-                }
+                // import a published catalog
+                from("com.mycompany:catalog:1.0")
                 // and add explicit dependencies
                 alias("some-alias").to("my.own:lib:1.2")
             }

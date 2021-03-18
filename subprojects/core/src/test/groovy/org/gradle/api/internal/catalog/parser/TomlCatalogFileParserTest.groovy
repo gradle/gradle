@@ -32,10 +32,7 @@ import spock.lang.Unroll
 
 import java.util.function.Supplier
 
-import static org.gradle.api.internal.catalog.parser.IncludeExcludePredicate.acceptAll
-
 class TomlCatalogFileParserTest extends Specification {
-    final ImportConfiguration importConf = new ImportConfiguration(acceptAll(), acceptAll(), acceptAll())
     final VersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs",
         Interners.newStrongInterner(),
         Interners.newStrongInterner(),
@@ -280,7 +277,7 @@ class TomlCatalogFileParserTest extends Specification {
     }
 
     private void parse(String name) {
-        TomlCatalogFileParser.parse(toml(name), builder, importConf)
+        TomlCatalogFileParser.parse(toml(name), builder)
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
     }

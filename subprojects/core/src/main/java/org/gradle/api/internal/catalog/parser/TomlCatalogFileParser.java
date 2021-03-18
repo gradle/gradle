@@ -50,7 +50,7 @@ public class TomlCatalogFileParser {
         VERSIONS_KEY
     );
 
-    public static void parse(InputStream in, VersionCatalogBuilder builder, ImportConfiguration importConfig) throws IOException {
+    public static void parse(InputStream in, VersionCatalogBuilder builder) throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
         TomlParseResult result = Toml.parse(in);
         TomlTable metadataTable = result.getTable(METADATA_KEY);
@@ -62,9 +62,9 @@ public class TomlCatalogFileParser {
         if (!unknownTle.isEmpty()) {
             throw new InvalidUserDataException("Unknown top level elements " + unknownTle);
         }
-        parseLibraries(librariesTable, builder, strictVersionParser, importConfig);
-        parseBundles(bundlesTable, builder, importConfig);
-        parseVersions(versionsTable, builder, strictVersionParser, importConfig);
+        parseLibraries(librariesTable, builder, strictVersionParser);
+        parseBundles(bundlesTable, builder);
+        parseVersions(versionsTable, builder, strictVersionParser);
     }
 
     private static void verifyMetadata(@Nullable TomlTable metadataTable) {
@@ -76,7 +76,7 @@ public class TomlCatalogFileParser {
         }
     }
 
-    private static void parseLibraries(@Nullable TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser, ImportConfiguration importConfig) {
+    private static void parseLibraries(@Nullable TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
         if (librariesTable == null) {
             return;
         }
@@ -86,13 +86,11 @@ public class TomlCatalogFileParser {
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
-            if (importConfig.includeLibrary(alias)) {
-                parseLibrary(alias, librariesTable, builder, strictVersionParser);
-            }
+            parseLibrary(alias, librariesTable, builder, strictVersionParser);
         }
     }
 
-    private static void parseVersions(@Nullable TomlTable versionsTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser, ImportConfiguration importConfig) {
+    private static void parseVersions(@Nullable TomlTable versionsTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
         if (versionsTable == null) {
             return;
         }
@@ -102,24 +100,20 @@ public class TomlCatalogFileParser {
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
-            if (importConfig.includeVersion(alias)) {
-                parseVersion(alias, versionsTable, builder, strictVersionParser);
-            }
+            parseVersion(alias, versionsTable, builder, strictVersionParser);
         }
     }
 
-    private static void parseBundles(@Nullable TomlTable bundlesTable, VersionCatalogBuilder builder, ImportConfiguration importConfig) {
+    private static void parseBundles(@Nullable TomlTable bundlesTable, VersionCatalogBuilder builder) {
         if (bundlesTable == null) {
             return;
         }
         List<String> keys = bundlesTable.keySet().stream().sorted().collect(Collectors.toList());
         for (String alias : keys) {
-            if (importConfig.includeBundle(alias)) {
-                List<String> bundled = expectArray("bundle", alias, bundlesTable, alias).toList().stream()
+            List<String> bundled = expectArray("bundle", alias, bundlesTable, alias).toList().stream()
                     .map(String::valueOf)
                     .collect(Collectors.toList());
-                builder.bundle(alias, bundled);
-            }
+            builder.bundle(alias, bundled);
         }
     }
 
