@@ -109,8 +109,8 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.external.ivypublish.DefaultArtifactPublisher;
@@ -142,7 +142,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
@@ -217,7 +216,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         TransformerInvocationFactory createTransformerInvocationFactory(
                 ExecutionEngine executionEngine,
-                FileSystemAccess fileSystemAccess,
                 ImmutableTransformationWorkspaceServices transformationWorkspaceServices,
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
@@ -226,7 +224,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ) {
             return new DefaultTransformerInvocationFactory(
                 executionEngine,
-                fileSystemAccess,
                 artifactTransformListener,
                 transformationWorkspaceServices,
                 fileCollectionFactory,
