@@ -62,14 +62,14 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -96,7 +96,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
-import static org.gradle.internal.fingerprint.impl.DefaultFileNormalizationSpec.from;
+import static org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSpec.from;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 

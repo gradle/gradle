@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;

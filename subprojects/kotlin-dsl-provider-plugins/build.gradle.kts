@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":file-collections"))
+    implementation(project(":execution"))
     implementation(project(":resources"))
     implementation(project(":plugins"))
     implementation(project(":plugin-development"))

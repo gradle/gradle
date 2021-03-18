@@ -18,8 +18,8 @@ package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.File;

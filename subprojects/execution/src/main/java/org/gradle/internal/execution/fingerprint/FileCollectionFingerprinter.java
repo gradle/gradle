@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.execution.fingerprint;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 

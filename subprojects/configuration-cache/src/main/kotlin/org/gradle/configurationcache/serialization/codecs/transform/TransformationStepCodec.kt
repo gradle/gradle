@@ -26,7 +26,7 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 
 
 internal

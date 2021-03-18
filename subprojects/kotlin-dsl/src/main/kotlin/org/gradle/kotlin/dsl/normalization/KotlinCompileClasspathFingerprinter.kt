@@ -23,7 +23,7 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.changedetection.state.ZipHasher
 import org.gradle.api.tasks.CompileClasspathNormalizer
 import org.gradle.api.tasks.FileNormalizer
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter
+import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter
 import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter

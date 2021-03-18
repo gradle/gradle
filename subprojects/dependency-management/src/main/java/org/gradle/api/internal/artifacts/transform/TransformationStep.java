@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Try;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

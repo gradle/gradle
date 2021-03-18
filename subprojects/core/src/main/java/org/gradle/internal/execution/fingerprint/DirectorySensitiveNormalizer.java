@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
-
-import org.gradle.api.file.FileCollection;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
+package org.gradle.internal.execution.fingerprint;
 
 /**
- * Service for snapshotting {@link FileCollection}s.
+ * A normalizer that may or may not take directories into account when performing up-to-date or build cache key calculations.
  */
-public interface FileCollectionSnapshotter {
-    /**
-     * Returns snapshots of the roots of a file collection.
-     */
-    FileSystemSnapshot snapshot(FileCollection fileCollection);
+public interface DirectorySensitiveNormalizer {
 }

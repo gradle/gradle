@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.execution.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.FileNormalizationSpec;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 
 import java.util.Collection;
 import java.util.Map;
 
-import static org.gradle.internal.fingerprint.impl.DefaultFileNormalizationSpec.from;
+import static org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSpec.from;
 
 public class DefaultFileCollectionFingerprinterRegistry implements FileCollectionFingerprinterRegistry {
     private final Map<FileNormalizationSpec, FileCollectionFingerprinter> fingerprinters;
