@@ -51,7 +51,9 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
@@ -64,6 +66,7 @@ import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprin
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
@@ -176,6 +179,13 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
         return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
+    }
+
+    InputFingerprinter createInputFingerprinter(
+        FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        ValueSnapshotter valueSnapshotter
+    ) {
+        return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
     }
 
     TaskExecutionModeResolver createExecutionModeResolver(
