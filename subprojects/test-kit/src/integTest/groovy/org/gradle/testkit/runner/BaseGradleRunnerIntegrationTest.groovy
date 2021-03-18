@@ -19,6 +19,7 @@ package org.gradle.testkit.runner
 import groovy.transform.Sortable
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -61,6 +62,7 @@ import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleased
 import static org.gradle.testkit.runner.internal.ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
+@MultiVersionTestCategory
 @GradleRunnerTest
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
