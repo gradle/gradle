@@ -80,10 +80,10 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
         @Override
         public void visitInputProperty(String propertyName, UnitOfWork.IdentityKind identity, UnitOfWork.ValueSupplier value) {
-            if (knownValueSnapshots.containsKey(propertyName)) {
+            if (!filter.include(propertyName, NON_INCREMENTAL, identity)) {
                 return;
             }
-            if (!filter.include(propertyName, NON_INCREMENTAL, identity)) {
+            if (knownValueSnapshots.containsKey(propertyName)) {
                 return;
             }
             Object actualValue = value.getValue();
@@ -102,10 +102,10 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
         @Override
         public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity, @Nullable Object value, Supplier<CurrentFileCollectionFingerprint> fingerprinter) {
-            if (knownFingerprints.containsKey(propertyName)) {
+            if (!filter.include(propertyName, type, identity)) {
                 return;
             }
-            if (!filter.include(propertyName, type, identity)) {
+            if (knownFingerprints.containsKey(propertyName)) {
                 return;
             }
             fingerprintsBuilder.put(propertyName, fingerprinter.get());
