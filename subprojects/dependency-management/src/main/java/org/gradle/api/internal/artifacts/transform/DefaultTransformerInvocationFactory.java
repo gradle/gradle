@@ -112,22 +112,15 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         ProjectInternal producerProject = determineProducerProject(subject);
         TransformationWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
 
-        FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
-        // This could be injected directly to DefaultTransformerInvocationFactory, too
-        FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(transformer.getInputArtifactDependenciesNormalizer(), transformer.getInputArtifactDependenciesDirectorySensitivity()));
-
-        CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
-
         UnitOfWork execution;
         if (producerProject == null) {
             execution = new ImmutableTransformerExecution(
                 transformer,
                 inputArtifact,
                 dependencies,
-                dependenciesFingerprint,
                 buildOperationExecutor,
                 fileCollectionFactory,
-                inputArtifactFingerprinter,
+                fingerprinterRegistry,
                 workspaceServices
             );
         } else {
@@ -135,10 +128,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 transformer,
                 inputArtifact,
                 dependencies,
-                dependenciesFingerprint,
                 buildOperationExecutor,
                 fileCollectionFactory,
-                inputArtifactFingerprinter,
+                fingerprinterRegistry,
                 workspaceServices
             );
         }
@@ -197,13 +189,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             Transformer transformer,
             File inputArtifact,
             ArtifactTransformDependencies dependencies,
-            CurrentFileCollectionFingerprint dependenciesFingerprint,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
-            FileCollectionFingerprinter inputArtifactFingerprinter,
+            FileCollectionFingerprinterRegistry fingerprinterRegistry,
             TransformationWorkspaceServices workspaceServices
         ) {
-            super(transformer, inputArtifact, IDENTITY, dependencies, dependenciesFingerprint, buildOperationExecutor, fileCollectionFactory, inputArtifactFingerprinter, workspaceServices);
+            super(transformer, inputArtifact, IDENTITY, dependencies, buildOperationExecutor, fileCollectionFactory, fingerprinterRegistry, workspaceServices);
         }
 
         @Override
@@ -221,13 +212,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             Transformer transformer,
             File inputArtifact,
             ArtifactTransformDependencies dependencies,
-            CurrentFileCollectionFingerprint dependenciesFingerprint,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
-            FileCollectionFingerprinter inputArtifactFingerprinter,
+            FileCollectionFingerprinterRegistry fingerprinterRegistry,
             TransformationWorkspaceServices workspaceServices
         ) {
-            super(transformer, inputArtifact, NON_IDENTITY, dependencies, dependenciesFingerprint, buildOperationExecutor, fileCollectionFactory, inputArtifactFingerprinter, workspaceServices);
+            super(transformer, inputArtifact, NON_IDENTITY, dependencies, buildOperationExecutor, fileCollectionFactory, fingerprinterRegistry, workspaceServices);
         }
 
         @Override
@@ -245,14 +235,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         protected final File inputArtifact;
         private final IdentityKind inputArtifactIdentity;
         private final ArtifactTransformDependencies dependencies;
-        private final CurrentFileCollectionFingerprint dependenciesFingerprint;
 
         private final BuildOperationExecutor buildOperationExecutor;
         private final FileCollectionFactory fileCollectionFactory;
-        private final FileCollectionFingerprinter inputArtifactFingerprinter;
 
         private final Timer executionTimer;
         private final Provider<FileSystemLocation> inputArtifactProvider;
+        private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
         private final TransformationWorkspaceServices workspaceServices;
 
         public AbstractTransformerExecution(
@@ -260,24 +249,23 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             File inputArtifact,
             IdentityKind inputArtifactIdentity,
             ArtifactTransformDependencies dependencies,
-            CurrentFileCollectionFingerprint dependenciesFingerprint,
 
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
-            FileCollectionFingerprinter inputArtifactFingerprinter,
+            FileCollectionFingerprinterRegistry fingerprinterRegistry,
             TransformationWorkspaceServices workspaceServices
         ) {
-            this.buildOperationExecutor = buildOperationExecutor;
-            this.workspaceServices = workspaceServices;
-            this.inputArtifactIdentity = inputArtifactIdentity;
-            this.dependenciesFingerprint = dependenciesFingerprint;
-            this.inputArtifact = inputArtifact;
             this.transformer = transformer;
+            this.inputArtifact = inputArtifact;
+            this.inputArtifactIdentity = inputArtifactIdentity;
             this.dependencies = dependencies;
-            this.fileCollectionFactory = fileCollectionFactory;
-            this.inputArtifactFingerprinter = inputArtifactFingerprinter;
             this.executionTimer = Time.startTimer();
             this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
+
+            this.buildOperationExecutor = buildOperationExecutor;
+            this.fileCollectionFactory = fileCollectionFactory;
+            this.fingerprinterRegistry = fingerprinterRegistry;
+            this.workspaceServices = workspaceServices;
         }
 
         @Override
@@ -391,6 +379,11 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public void visitInputs(InputVisitor visitor) {
+            FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(
+                DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
+            FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(
+                DefaultFileNormalizationSpec.from(transformer.getInputArtifactDependenciesNormalizer(), transformer.getInputArtifactDependenciesDirectorySensitivity()));
+
             // Emulate secondary inputs as a single property for now
             visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, IDENTITY,
                 transformer::getSecondaryInputHash);
@@ -399,7 +392,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 () -> inputArtifactFingerprinter.fingerprint(fileCollectionFactory.fixed(inputArtifact)));
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, IDENTITY,
                 dependencies,
-                () -> dependenciesFingerprint);
+                () -> dependencies.fingerprint(dependencyFingerprinter));
         }
 
         @Override
