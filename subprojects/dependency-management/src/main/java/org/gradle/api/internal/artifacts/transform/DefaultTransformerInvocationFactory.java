@@ -218,7 +218,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
                 return inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
             });
-            visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, () -> inputArtifactSnapshot.getHash().toString());
+            visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
         }
 
         @Override
