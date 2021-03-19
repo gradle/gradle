@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.snapshot.impl;
 
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.fingerprint.DirectorySensitiveNormalizer;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 
-/**
- * {@link FileNormalizer} that uses the file name as normalized path.
- */
-public interface NameOnlyInputNormalizer extends FileNormalizer, DirectorySensitiveNormalizer {
+public class HashValueSnapshot extends AbstractIsolatableScalarValue<HashCode> {
+    public HashValueSnapshot(HashCode value) {
+        super(value);
+    }
+
+    @Override
+    public void appendToHasher(Hasher hasher) {
+        hasher.putHash(getValue());
+    }
 }

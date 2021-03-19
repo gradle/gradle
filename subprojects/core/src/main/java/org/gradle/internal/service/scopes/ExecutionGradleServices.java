@@ -34,7 +34,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
@@ -147,7 +146,6 @@ public class ExecutionGradleServices {
         CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
-        InputFingerprinter inputFingerprinter,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
@@ -158,15 +156,15 @@ public class ExecutionGradleServices {
         DocumentationRegistry documentationRegistry
     ) {
         // @formatter:off
-        return new DefaultExecutionEngine(
-                documentationRegistry, new IdentifyStep<>(inputFingerprinter,
+        return new DefaultExecutionEngine(documentationRegistry,
+            new IdentifyStep<>(
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep<>(
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,

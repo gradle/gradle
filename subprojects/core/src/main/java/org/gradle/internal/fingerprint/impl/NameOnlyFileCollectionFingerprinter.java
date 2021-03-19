@@ -17,8 +17,8 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 
 import static org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy.DEFAULT;

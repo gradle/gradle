@@ -21,6 +21,8 @@ import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
@@ -35,7 +37,6 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
     /**
@@ -96,81 +97,40 @@ public interface UnitOfWork extends Describable {
     /**
      * Capture the classloader of the work's implementation type.
      * There can be more than one type reported by the work; additional types are considered in visitation order.
-     *
-     * TODO Move this to {@link #visitInputs(InputVisitor)}
      */
     default void visitImplementations(ImplementationVisitor visitor) {
         visitor.visitImplementation(getClass());
     }
 
+    // TODO Move this to {@link InputVisitor}
     interface ImplementationVisitor {
         void visitImplementation(Class<?> implementation);
         void visitImplementation(ImplementationSnapshot implementation);
     }
 
     /**
-     * Visit all inputs of the work.
+     * Returns the fingerprinter used to fingerprint inputs.
      */
-    void visitInputs(InputVisitor visitor);
+    InputFingerprinter getInputFingerprinter();
 
-    interface InputVisitor {
-        default void visitInputProperty(
-            String propertyName,
-            IdentityKind identity,
-            ValueSupplier value
-        ) {}
+    /**
+     * Visit identity inputs of the work.
+     *
+     * These are inputs that are passed to {@link #identify(Map, Map)} to calculate the identity of the work.
+     * These are more expensive to calculate than regular inputs as they need to be calculated even if the execution of the work is short circuited by an identity cache.
+     * They also cannot reuse snapshots taken during previous executions.
+     * Because of these reasons only capture inputs as identity if they are actually used to calculate the identity of the work.
+     * Any non-identity inputs should be visited when calling {@link #visitRegularInputs(InputVisitor)}.
+     */
+    default void visitIdentityInputs(InputVisitor visitor) {}
 
-        default void visitInputFileProperty(
-            String propertyName,
-            InputPropertyType type,
-            IdentityKind identity,
-            @Nullable Object value,
-            Supplier<CurrentFileCollectionFingerprint> fingerprinter
-        ) {}
-    }
-
-    interface ValueSupplier {
-        @Nullable
-        Object getValue();
-    }
-
-    enum InputPropertyType {
-        /**
-         * Non-incremental inputs.
-         */
-        NON_INCREMENTAL(false, false),
-
-        /**
-         * Incremental inputs.
-         */
-        INCREMENTAL(true, false),
-
-        /**
-         * These are the primary inputs to the incremental work item;
-         * if they are empty the work item shouldn't be executed.
-         */
-        PRIMARY(true, true);
-
-        private final boolean incremental;
-        private final boolean skipWhenEmpty;
-
-        InputPropertyType(boolean incremental, boolean skipWhenEmpty) {
-            this.incremental = incremental;
-            this.skipWhenEmpty = skipWhenEmpty;
-        }
-
-        public boolean isIncremental() {
-            return incremental;
-        }
-
-        public boolean isSkipWhenEmpty() {
-            return skipWhenEmpty;
-        }
-    }
-
-    enum IdentityKind {
-        NON_IDENTITY, IDENTITY
-    }
+    /**
+     * Visit regular inputs of the work.
+     *
+     * Regular inputs are inputs that are not used to calculate the identity of the work, but used to check up-to-dateness or to calculate the cache key.
+     * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} and {@link #visitRegularInputs(InputVisitor)}.
+     */
+    default void visitRegularInputs(InputVisitor visitor) {}
 
     void visitOutputs(File workspace, OutputVisitor visitor);
 

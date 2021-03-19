@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.execution.fingerprint;
+
+import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 
 /**
- * A normalizer that may or may not take directories into account when performing up-to-date or build cache key calculations.
+ * Specifies criteria for selecting a {@link FileCollectionFingerprinter}.
  */
-public interface DirectorySensitiveNormalizer {
+public interface FileNormalizationSpec {
+    Class<? extends FileNormalizer> getNormalizer();
+
+    DirectorySensitivity getDirectorySensitivity();
 }

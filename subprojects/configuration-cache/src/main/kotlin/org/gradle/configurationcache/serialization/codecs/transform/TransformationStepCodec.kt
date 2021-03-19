@@ -26,12 +26,12 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
 
 
 internal
 class TransformationStepCodec(
-    private val fingerprinterRegistry: FileCollectionFingerprinterRegistry
+    private val inputFingerprinter: InputFingerprinter
 ) : Codec<TransformationStep> {
 
     override suspend fun WriteContext.encode(value: TransformationStep) {
@@ -52,7 +52,7 @@ class TransformationStepCodec(
                 transformer,
                 services[TransformerInvocationFactory::class.java],
                 services[DomainObjectContext::class.java],
-                fingerprinterRegistry
+                inputFingerprinter
             )
         }
     }

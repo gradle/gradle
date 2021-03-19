@@ -17,6 +17,7 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -43,7 +44,8 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int MANAGED_SNAPSHOT = 15;
     private static final int IMMUTABLE_MANAGED_SNAPSHOT = 16;
     private static final int IMPLEMENTATION_SNAPSHOT = 17;
-    private static final int DEFAULT_SNAPSHOT = 18;
+    private static final int HASH_SNAPSHOT = 18;
+    private static final int DEFAULT_SNAPSHOT = 19;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
@@ -68,6 +70,8 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 return new LongValueSnapshot(decoder.readLong());
             case SHORT_SNAPSHOT:
                 return new ShortValueSnapshot((short) decoder.readInt());
+            case HASH_SNAPSHOT:
+                return new HashValueSnapshot(HashCode.fromBytes(decoder.readBinary()));
             case FILE_SNAPSHOT:
                 return new FileValueSnapshot(decoder.readString());
             case ENUM_SNAPSHOT:
@@ -95,7 +99,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 size = decoder.readSmallInt();
                 ImmutableList.Builder<MapEntrySnapshot<ValueSnapshot>> mapBuilder = ImmutableList.builderWithExpectedSize(size);
                 for (int i = 0; i < size; i++) {
-                    mapBuilder.add(new MapEntrySnapshot<ValueSnapshot>(read(decoder), read(decoder)));
+                    mapBuilder.add(new MapEntrySnapshot<>(read(decoder), read(decoder)));
                 }
                 return new MapValueSnapshot(mapBuilder.build());
             case MANAGED_SNAPSHOT:
@@ -158,6 +162,10 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             ShortValueSnapshot shortSnapshot = (ShortValueSnapshot) snapshot;
             encoder.writeSmallInt(SHORT_SNAPSHOT);
             encoder.writeInt(shortSnapshot.getValue());
+        } else if (snapshot instanceof HashValueSnapshot) {
+            HashValueSnapshot hashSnapshot = (HashValueSnapshot) snapshot;
+            encoder.writeSmallInt(HASH_SNAPSHOT);
+            encoder.writeBinary(hashSnapshot.getValue().toByteArray());
         } else if (snapshot instanceof FileValueSnapshot) {
             FileValueSnapshot fileSnapshot = (FileValueSnapshot) snapshot;
             encoder.writeSmallInt(FILE_SNAPSHOT);

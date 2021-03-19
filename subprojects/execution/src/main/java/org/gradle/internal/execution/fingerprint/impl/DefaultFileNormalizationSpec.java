@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.execution.fingerprint.impl;
 
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.DirectorySensitiveNormalizer;
+import org.gradle.internal.execution.fingerprint.DirectorySensitiveNormalizer;
+import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.FileNormalizationSpec;
 
 import java.util.Objects;
 

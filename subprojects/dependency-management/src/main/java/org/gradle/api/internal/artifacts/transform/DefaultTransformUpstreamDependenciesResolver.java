@@ -32,14 +32,13 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Try;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
@@ -47,13 +46,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 public class DefaultTransformUpstreamDependenciesResolver implements TransformUpstreamDependenciesResolver {
     public static final ArtifactTransformDependencies NO_RESULT = new ArtifactTransformDependencies() {
         @Override
-        public FileCollection getFiles() {
-            throw failure();
-        }
-
-        @Override
-        public CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter) {
-            return fingerprinter.empty();
+        public Optional<FileCollection> getFiles() {
+            return Optional.empty();
         }
     };
     public static final TransformUpstreamDependencies NO_DEPENDENCIES = new TransformUpstreamDependencies() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
-
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.fingerprint.DirectorySensitiveNormalizer;
+package org.gradle.internal.execution.fingerprint;
 
 /**
- * {@link FileNormalizer} that uses the file name as normalized path.
+ * A normalizer that may or may not take directories into account when performing up-to-date or build cache key calculations.
  */
-public interface NameOnlyInputNormalizer extends FileNormalizer, DirectorySensitiveNormalizer {
+public interface DirectorySensitiveNormalizer {
 }
