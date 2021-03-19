@@ -45,7 +45,10 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
 
             ${mavenCentralRepository()}
 
-            test.testLogging.exceptionFormat = 'full'
+            test {
+                testLogging.exceptionFormat = 'full'
+                useJUnitPlatform()
+            }
         """
     }
 
@@ -72,10 +75,6 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
         buildFile << """
             dependencies {
                 testImplementation fileTree(dir: 'jars', include: '*.jar')
-            }
-
-            test {
-                useJUnitPlatform()
             }
         """
 
@@ -114,8 +113,6 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                 testLogging {
                     events 'started'
                 }
-
-                useJUnitPlatform()
             }
         """
 

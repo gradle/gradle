@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs.transform
+package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -23,18 +23,21 @@ import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withCodec
 
 
-class DelegatingTransformStepSpecCodec(
+/**
+ * A codec that delegates to some more general codec, but only for a specific type
+ */
+class DelegatingCodec<T>(
     private val userTypesCodec: Codec<Any?>,
-) : Codec<TransformStepSpec> {
+) : Codec<T> {
 
-    override suspend fun WriteContext.encode(value: TransformStepSpec) {
+    override suspend fun WriteContext.encode(value: T) {
         // Delegate to the other codec
         withCodec(userTypesCodec) {
             write(value)
         }
     }
 
-    override suspend fun ReadContext.decode(): TransformStepSpec {
+    override suspend fun ReadContext.decode(): T {
         // Delegate to the other codec
         return withCodec(userTypesCodec) {
             readNonNull()

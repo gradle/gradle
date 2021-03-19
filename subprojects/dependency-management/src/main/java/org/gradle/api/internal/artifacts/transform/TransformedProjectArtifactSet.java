@@ -79,10 +79,9 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
         FileCollectionStructureVisitor.VisitType visitType = visitor.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
             visitor.visitArtifacts(new EndCollection(this));
-            return;
+        } else {
+            visitor.visitArtifacts(this);
         }
-
-        visitor.visitArtifacts(this);
     }
 
     @Override

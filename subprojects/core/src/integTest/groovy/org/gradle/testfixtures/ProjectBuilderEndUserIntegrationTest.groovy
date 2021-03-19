@@ -51,7 +51,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def "project builder has correctly set working directory"() {
         when:
-        def workerTmpDir = file("build/tmp/test/test files")
+        def workerTmpDir = file("build/tmp/test/work")
         groovyTestSourceFile """
         import org.gradle.testfixtures.ProjectBuilder
         import spock.lang.Specification
