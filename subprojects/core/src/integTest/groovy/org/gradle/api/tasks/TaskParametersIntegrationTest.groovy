@@ -54,7 +54,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         fails "foo"
         then:
         failure.assertHasDescription("Execution failed for task ':foo'.")
-        failure.assertHasCause("Unable to store input properties for task ':foo'. Property 'b' with value 'xxx' cannot be serialized.")
+        failure.assertHasCause("Input property 'b' with value 'xxx' cannot be serialized.")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {

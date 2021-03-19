@@ -87,8 +87,8 @@ class DefaultInputFingerprinterTest extends Specification {
         0 * _
 
         then:
-        result.valueSnapshots as Map == ["input" : inputSnapshot]
-        result.fileFingerprints as Map == ["file": fileInputFingerprint]
+        result.valueSnapshots as Map == [:]
+        result.fileFingerprints as Map == [:]
     }
 
     def "reuses previous input snapshots when visiting input properties"() {
