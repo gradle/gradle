@@ -731,8 +731,9 @@ class DependencyManagementBuildScopeServices {
                                                               DefaultProjectDependencyFactory factory,
                                                               ExecutionEngine executionEngine,
                                                               FeaturePreviews featurePreviews,
-                                                              FileCollectionFactory fileCollectionFactory) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featurePreviews, executionEngine, fileCollectionFactory);
+                                                              FileCollectionFactory fileCollectionFactory,
+                                                              InputFingerprinter inputFingerprinter) {
+        return new DefaultDependenciesAccessors(registry, workspace, factory, featurePreviews, executionEngine, fileCollectionFactory, inputFingerprinter);
     }
 
 
@@ -760,14 +761,13 @@ class DependencyManagementBuildScopeServices {
         // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
-        return new DefaultExecutionEngine(
-            documentationRegistry,
-            new IdentifyStep<>(inputFingerprinter,
+        return new DefaultExecutionEngine(documentationRegistry,
+            new IdentifyStep<>(
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new NoOpCachingStateStep(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(

@@ -27,6 +27,7 @@ import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.OutputFilesRepository
@@ -146,12 +147,12 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     ExecutionEngine getExecutor() {
         // @formatter:off
         new DefaultExecutionEngine(documentationRegistry,
-            new IdentifyStep<>(inputFingerprinter,
+            new IdentifyStep<>(
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
             new ValidateStep<>(virtualFileSystem, validationWarningReporter,
-            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
@@ -836,13 +837,17 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
                 @Override
                 WorkspaceProvider getWorkspaceProvider() {
-                    return new WorkspaceProvider() {
+                    new WorkspaceProvider() {
                         @Override
-                        def <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
+                        <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
                             return action.executeInWorkspace(null, IncrementalExecutionIntegrationTest.this.executionHistoryStore)
                         }
-
                     }
+                }
+
+                @Override
+                InputFingerprinter getInputFingerprinter() {
+                    IncrementalExecutionIntegrationTest.this.inputFingerprinter
                 }
 
                 @Override

@@ -120,7 +120,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -244,7 +244,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 DomainObjectContext domainObjectContext,
                 ArtifactTransformParameterScheme parameterScheme,
                 ArtifactTransformActionScheme actionScheme,
-                FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
+                InputFingerprinter inputFingerprinter,
                 CalculatedValueContainerFactory calculatedValueContainerFactory,
                 FileCollectionFactory fileCollectionFactory,
                 FileLookup fileLookup,
@@ -252,20 +252,20 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 DocumentationRegistry documentationRegistry
         ) {
             return new DefaultTransformationRegistrationFactory(
-                    buildOperationExecutor,
-                    isolatableFactory,
-                    classLoaderHierarchyHasher,
-                    transformerInvocationFactory,
-                    valueSnapshotter,
-                    fileCollectionFactory,
-                    fileLookup,
-                    fileCollectionFingerprinterRegistry,
-                    calculatedValueContainerFactory,
-                    domainObjectContext,
-                    parameterScheme,
-                    actionScheme,
-                    internalServices,
-                    documentationRegistry
+                buildOperationExecutor,
+                isolatableFactory,
+                classLoaderHierarchyHasher,
+                transformerInvocationFactory,
+                valueSnapshotter,
+                fileCollectionFactory,
+                fileLookup,
+                inputFingerprinter,
+                calculatedValueContainerFactory,
+                domainObjectContext,
+                parameterScheme,
+                actionScheme,
+                internalServices,
+                documentationRegistry
             );
         }
 

@@ -46,6 +46,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -87,6 +88,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final FeaturePreviews featurePreviews;
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
+    private final InputFingerprinter inputFingerprinter;
     private final List<DefaultVersionCatalog> models = Lists.newArrayList();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = Maps.newHashMap();
 
@@ -100,13 +102,15 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                                         DefaultProjectDependencyFactory projectDependencyFactory,
                                         FeaturePreviews featurePreview,
                                         ExecutionEngine engine,
-                                        FileCollectionFactory fileCollectionFactory) {
+                                        FileCollectionFactory fileCollectionFactory,
+                                        InputFingerprinter inputFingerprinter) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
         this.projectDependencyFactory = projectDependencyFactory;
         this.featurePreviews = featurePreview;
         this.engine = engine;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.inputFingerprinter = inputFingerprinter;
     }
 
     @Override
@@ -271,6 +275,11 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public WorkspaceProvider getWorkspaceProvider() {
             return workspace;
+        }
+
+        @Override
+        public InputFingerprinter getInputFingerprinter() {
+            return inputFingerprinter;
         }
 
         protected abstract List<ClassSource> getClassSources();

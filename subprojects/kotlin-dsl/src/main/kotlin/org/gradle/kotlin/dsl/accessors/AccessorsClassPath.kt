@@ -27,6 +27,7 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.FileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -62,6 +63,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val projectSchemaProvider: ProjectSchemaProvider,
     private val executionEngine: ExecutionEngine,
+    private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
 
@@ -80,6 +82,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                 projectSchema,
                 classPath,
                 fileCollectionFactory,
+                inputFingerprinter,
                 workspaceProvider
             )
             val result = executionEngine.createRequest(work).execute()
@@ -104,6 +107,7 @@ class GenerateProjectAccessors(
     private val projectSchema: TypedProjectSchema,
     private val classPath: ClassPath,
     private val fileCollectionFactory: FileCollectionFactory,
+    private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) : UnitOfWork {
 
@@ -145,6 +149,8 @@ class GenerateProjectAccessors(
     }
 
     override fun getWorkspaceProvider() = workspaceProvider.accessors
+
+    override fun getInputFingerprinter() = inputFingerprinter
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 

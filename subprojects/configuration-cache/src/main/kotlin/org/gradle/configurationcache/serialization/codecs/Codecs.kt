@@ -56,7 +56,7 @@ import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -93,7 +93,7 @@ class Codecs(
     instantiator: Instantiator,
     listenerManager: ListenerManager,
     taskNodeFactory: TaskNodeFactory,
-    fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    inputFingerprinter: InputFingerprinter,
     buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
@@ -143,7 +143,7 @@ class Codecs(
         bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
         bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
         bind(TransformationNodeReferenceCodec)
-        bind(TransformationStepCodec(fingerprinterRegistry))
+        bind(TransformationStepCodec(inputFingerprinter))
         bind(TransformationChainCodec())
         bind(DefaultTransformerCodec(fileLookup, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))

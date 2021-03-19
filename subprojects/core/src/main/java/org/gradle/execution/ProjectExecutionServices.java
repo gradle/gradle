@@ -126,7 +126,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
         TaskListenerInternal taskListenerInternal,
-        ExecutionEngine executionEngine
+        ExecutionEngine executionEngine,
+        InputFingerprinter inputFingerprinter
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheController.isEnabled()
@@ -142,6 +143,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             taskCacheabilityResolver,
             classLoaderHierarchyHasher,
             executionEngine,
+            inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
             emptySourceTaskSkipper,

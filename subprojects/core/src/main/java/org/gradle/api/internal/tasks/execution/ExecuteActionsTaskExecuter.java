@@ -62,6 +62,7 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -120,6 +121,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionEngine executionEngine;
+    private final InputFingerprinter inputFingerprinter;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final EmptySourceTaskSkipper emptySourceTaskSkipper;
@@ -137,6 +139,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskCacheabilityResolver taskCacheabilityResolver,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionEngine executionEngine,
+        InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         EmptySourceTaskSkipper emptySourceTaskSkipper,
@@ -153,6 +156,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.taskCacheabilityResolver = taskCacheabilityResolver;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.executionEngine = executionEngine;
+        this.inputFingerprinter = inputFingerprinter;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.emptySourceTaskSkipper = emptySourceTaskSkipper;
@@ -162,7 +166,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        TaskExecution work = new TaskExecution(task, context, executionHistoryStore, classLoaderHierarchyHasher);
+        TaskExecution work = new TaskExecution(task, context, executionHistoryStore, classLoaderHierarchyHasher, inputFingerprinter);
         try {
             return executeIfValid(task, state, context, work);
         } catch (WorkValidationException ex) {
@@ -210,17 +214,20 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         private final TaskExecutionContext context;
         private final ExecutionHistoryStore executionHistoryStore;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+        private final InputFingerprinter inputFingerprinter;
 
         public TaskExecution(
             TaskInternal task,
             TaskExecutionContext context,
             ExecutionHistoryStore executionHistoryStore,
-            ClassLoaderHierarchyHasher classLoaderHierarchyHasher
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            InputFingerprinter inputFingerprinter
         ) {
             this.task = task;
             this.context = context;
             this.executionHistoryStore = executionHistoryStore;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+            this.inputFingerprinter = inputFingerprinter;
         }
 
         @Override
@@ -276,6 +283,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         : null);
                 }
             };
+        }
+
+        @Override
+        public InputFingerprinter getInputFingerprinter() {
+            return inputFingerprinter;
         }
 
         @Override

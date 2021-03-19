@@ -43,7 +43,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<ValidationContext> {
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
-    def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector, delegate)
+    def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
 
     @Override
     protected ValidationContext createContext() {
@@ -55,6 +55,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<ValidationContext> {
 
     def setup() {
         _ * work.history >> Optional.of(executionHistoryStore)
+        _ * work.inputFingerprinter >> inputFingerprinter
     }
 
     def "no state is captured when task history is not maintained"() {

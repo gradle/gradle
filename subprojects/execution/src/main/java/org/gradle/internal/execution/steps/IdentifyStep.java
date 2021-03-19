@@ -32,13 +32,10 @@ import java.util.Optional;
 
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
-    private final InputFingerprinter inputFingerprinter;
 
     public IdentifyStep(
-        InputFingerprinter inputFingerprinter,
         DeferredExecutionAwareStep<? super IdentityContext, R> delegate
     ) {
-        this.inputFingerprinter = inputFingerprinter;
         this.delegate = delegate;
     }
 
@@ -54,7 +51,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
 
     @Nonnull
     private IdentityContext createIdentityContext(UnitOfWork work, C context) {
-        InputFingerprinter.Result inputs = inputFingerprinter.fingerprintInputProperties(
+        InputFingerprinter.Result inputs = work.getInputFingerprinter().fingerprintInputProperties(
             work::visitIdentityInputs,
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),

@@ -54,6 +54,11 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         return visitor.complete();
     }
 
+    @Override
+    public FileCollectionFingerprinterRegistry getFingerprinterRegistry() {
+        return fingerprinterRegistry;
+    }
+
     private static class InputCollectingVisitor implements UnitOfWork.InputVisitor {
         private final ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots;
         private final FileCollectionFingerprinterRegistry fingerprinterRegistry;

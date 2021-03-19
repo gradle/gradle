@@ -26,7 +26,7 @@ import org.gradle.internal.snapshot.ValueSnapshot
 class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     def delegateResult = Mock(Result)
     def inputFingerprinter = Mock(InputFingerprinter)
-    def step = new IdentifyStep<>(inputFingerprinter, delegate)
+    def step = new IdentifyStep<>(delegate)
 
     @Override
     protected ExecutionRequestContext createContext() {
@@ -42,6 +42,7 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
 
         then:
         result == delegateResult
+        _ * work.getInputFingerprinter() >> inputFingerprinter
 
         1 * inputFingerprinter.fingerprintInputProperties(
             _,

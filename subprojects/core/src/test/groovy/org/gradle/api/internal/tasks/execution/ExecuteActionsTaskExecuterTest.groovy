@@ -154,13 +154,13 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     // @formatter:off
     def executionEngine = new DefaultExecutionEngine(documentationRegistry,
-        new IdentifyStep<>(inputFingerprinter,
+        new IdentifyStep<>(
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(
         new LoadExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
         new ValidateStep<>(virtualFileSystem, validationWarningReporter,
-        new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
+        new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ResolveCachingStateStep(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
@@ -183,6 +183,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         taskCacheabilityResolver,
         classloaderHierarchyHasher,
         executionEngine,
+        inputFingerprinter,
         listenerManager,
         reservedFileSystemLocationRegistry,
         emptySourceTaskSkipper,

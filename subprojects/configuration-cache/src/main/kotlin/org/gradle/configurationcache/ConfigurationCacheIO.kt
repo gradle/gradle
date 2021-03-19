@@ -172,7 +172,7 @@ class ConfigurationCacheIO internal constructor(
             instantiator = service(),
             listenerManager = service(),
             taskNodeFactory = service(),
-            fingerprinterRegistry = service(),
+            inputFingerprinter = service(),
             buildOperationExecutor = service(),
             classLoaderHierarchyHasher = service(),
             isolatableFactory = service(),

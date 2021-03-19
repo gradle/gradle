@@ -31,6 +31,11 @@ public interface InputFingerprinter {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints
     );
 
+    /**
+     * Hack require to get normalized input path without fingerprinting contents.
+     */
+    FileCollectionFingerprinterRegistry getFingerprinterRegistry();
+
     interface Result {
         ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints();

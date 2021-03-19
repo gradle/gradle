@@ -39,7 +39,7 @@ import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
@@ -69,7 +69,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final TypeMetadataStore actionMetadataStore;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileLookup fileLookup;
-    private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
+    private final InputFingerprinter inputFingerprinter;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final DomainObjectContext owner;
     private final InstantiationScheme actionInstantiationScheme;
@@ -84,7 +84,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         ValueSnapshotter valueSnapshotter,
         FileCollectionFactory fileCollectionFactory,
         FileLookup fileLookup,
-        FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
+        InputFingerprinter inputFingerprinter,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DomainObjectContext owner,
         ArtifactTransformParameterScheme parameterScheme,
@@ -99,7 +99,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.valueSnapshotter = valueSnapshotter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileLookup = fileLookup;
-        this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
+        this.inputFingerprinter = inputFingerprinter;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.owner = owner;
         this.actionInstantiationScheme = actionScheme.getInstantiationScheme();
@@ -174,14 +174,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             internalServices,
             documentationRegistry);
 
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, fileCollectionFingerprinterRegistry));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> implementation, Object[] params) {
         Transformer transformer = new LegacyTransformer(implementation, params, legacyActionInstantiationScheme, from, classLoaderHierarchyHasher, isolatableFactory);
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, fileCollectionFingerprinterRegistry));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
     }
 
     private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {

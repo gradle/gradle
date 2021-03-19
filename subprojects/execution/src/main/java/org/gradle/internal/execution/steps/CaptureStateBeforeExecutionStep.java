@@ -47,7 +47,6 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final InputFingerprinter inputFingerprinter;
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
     private final Step<? super BeforeExecutionContext, ? extends CachingResult> delegate;
@@ -55,14 +54,12 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
     public CaptureStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        InputFingerprinter inputFingerprinter,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         Step<? super BeforeExecutionContext, ? extends CachingResult> delegate
     ) {
         super(buildOperationExecutor);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.inputFingerprinter = inputFingerprinter;
         this.outputSnapshotter = outputSnapshotter;
         this.overlappingOutputDetector = overlappingOutputDetector;
         this.delegate = delegate;
@@ -175,7 +172,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
                 throw new AssertionError();
         }
 
-        InputFingerprinter.Result newInputs = inputFingerprinter.fingerprintInputProperties(
+        InputFingerprinter.Result newInputs = work.getInputFingerprinter().fingerprintInputProperties(
             work::visitRegularInputs,
             previousInputProperties,
             context.getInputProperties(),
