@@ -124,11 +124,11 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             execution = new ImmutableTransformerExecution(
                 transformer,
                 inputArtifact,
-                fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity()),
                 dependencies,
                 buildOperationExecutor,
                 fileCollectionFactory,
                 fingerprinterRegistry,
+                fileSystemAccess,
                 workspaceServices
             );
         } else {
@@ -193,25 +193,26 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     }
 
     private static class ImmutableTransformerExecution extends AbstractTransformerExecution {
-        private final FileSystemLocationSnapshot inputArtifactSnapshot;
+        private final FileSystemAccess fileSystemAccess;
 
         public ImmutableTransformerExecution(
             Transformer transformer,
             File inputArtifact,
-            FileSystemLocationSnapshot inputArtifactSnapshot,
             ArtifactTransformDependencies dependencies,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
+            FileSystemAccess fileSystemAccess,
             TransformationWorkspaceServices workspaceServices
         ) {
             super(transformer, inputArtifact, dependencies, buildOperationExecutor, fileCollectionFactory, fingerprinterRegistry, workspaceServices);
-            this.inputArtifactSnapshot = inputArtifactSnapshot;
+            this.fileSystemAccess = fileSystemAccess;
         }
 
         @Override
         public void visitIdentityInputs(InputVisitor visitor) {
             super.visitIdentityInputs(visitor);
+            FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
             visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, () -> {
                 FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(
                     DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
