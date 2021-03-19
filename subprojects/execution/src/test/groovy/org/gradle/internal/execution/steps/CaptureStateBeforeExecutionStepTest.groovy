@@ -110,11 +110,10 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<ValidationContext> {
         _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
         _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
         1 * inputFingerprinter.fingerprintInputProperties(
-            work,
+            _,
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of("known", knownSnapshot),
-            ImmutableSortedMap.of("known-file", knownFileFingerprint),
-            _
+            ImmutableSortedMap.of("known-file", knownFileFingerprint)
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             ImmutableSortedMap.of("input", inputSnapshot),
             ImmutableSortedMap.of("input-file", inputFileFingerprint))
@@ -183,7 +182,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<ValidationContext> {
         _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
         }
-        _ * inputFingerprinter.fingerprintInputProperties(work, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of())
+        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of())
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
         _ * context.history >> Optional.of(executionHistoryStore)

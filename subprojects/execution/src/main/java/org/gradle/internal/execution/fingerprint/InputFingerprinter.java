@@ -21,13 +21,14 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
+import java.util.function.Consumer;
+
 public interface InputFingerprinter {
     Result fingerprintInputProperties(
-        UnitOfWork work,
+        Consumer<UnitOfWork.InputVisitor> inputs,
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
         ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints,
-        InputPropertyPredicate filter
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints
     );
 
     static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(
@@ -44,10 +45,6 @@ public interface InputFingerprinter {
                 .putAll(b)
                 .build();
         }
-    }
-
-    interface InputPropertyPredicate {
-        boolean include(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity);
     }
 
     interface Result {

@@ -111,21 +111,24 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Visit all inputs of the work.
+     * Visit regular inputs of the work.
      */
-    void visitInputs(InputVisitor visitor);
+    default void visitIdentityInputs(InputVisitor visitor) {}
+
+    /**
+     * Visit regular inputs of the work.
+     */
+    default void visitRegularInputs(InputVisitor visitor) {}
 
     interface InputVisitor {
         default void visitInputProperty(
             String propertyName,
-            IdentityKind identity,
             ValueSupplier value
         ) {}
 
         default void visitInputFileProperty(
             String propertyName,
             InputPropertyType type,
-            IdentityKind identity,
             FileValueSupplier value
         ) {}
     }
@@ -199,10 +202,6 @@ public interface UnitOfWork extends Describable {
         public boolean isSkipWhenEmpty() {
             return skipWhenEmpty;
         }
-    }
-
-    enum IdentityKind {
-        NON_IDENTITY, IDENTITY
     }
 
     void visitOutputs(File workspace, OutputVisitor visitor);

@@ -57,6 +57,7 @@ import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -70,8 +71,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
-import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.PRIMARY;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
@@ -211,14 +210,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public void visitInputs(InputVisitor visitor) {
-            super.visitInputs(visitor);
-            visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, IDENTITY, () -> {
+        public void visitIdentityInputs(InputVisitor visitor) {
+            super.visitIdentityInputs(visitor);
+            visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, () -> {
                 FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(
                     DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
                 return inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
             });
-            visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, IDENTITY, () -> inputArtifactSnapshot.getHash().toString());
+            visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, () -> inputArtifactSnapshot.getHash().toString());
         }
 
         @Override
@@ -400,23 +399,28 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public void visitInputs(InputVisitor visitor) {
+        @OverridingMethodsMustInvokeSuper
+        public void visitIdentityInputs(InputVisitor visitor) {
             // Emulate secondary inputs as a single property for now
-            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, IDENTITY,
-                transformer::getSecondaryInputHash);
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY, NON_IDENTITY,
-                new FileValueSupplier(
-                    inputArtifactProvider,
-                    transformer.getInputArtifactNormalizer(),
-                    transformer.getInputArtifactDirectorySensitivity(),
-                    () -> fileCollectionFactory.fixed(inputArtifact)));
-            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, IDENTITY,
+            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer::getSecondaryInputHash);
+            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
                 new FileValueSupplier(
                     dependencies,
                     transformer.getInputArtifactDependenciesNormalizer(),
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
                     () -> dependencies.getFiles()
                         .orElse(fileCollectionFactory.empty())));
+        }
+
+        @Override
+        @OverridingMethodsMustInvokeSuper
+        public void visitRegularInputs(InputVisitor visitor) {
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY,
+                new FileValueSupplier(
+                    inputArtifactProvider,
+                    transformer.getInputArtifactNormalizer(),
+                    transformer.getInputArtifactDirectorySensitivity(),
+                    () -> fileCollectionFactory.fixed(inputArtifact)));
         }
 
         @Override

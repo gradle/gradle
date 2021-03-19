@@ -44,11 +44,10 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
         result == delegateResult
 
         1 * inputFingerprinter.fingerprintInputProperties(
-            work,
+            _,
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            _
+            ImmutableSortedMap.of()
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             ImmutableSortedMap.of("input", inputSnapshot),
             ImmutableSortedMap.of("input-files", inputFilesFingerprint)

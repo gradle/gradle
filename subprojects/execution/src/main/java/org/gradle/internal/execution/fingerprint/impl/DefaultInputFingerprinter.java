@@ -27,7 +27,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
+import java.util.function.Consumer;
 
 public class DefaultInputFingerprinter implements InputFingerprinter {
 
@@ -44,52 +44,42 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
     @Override
     public Result fingerprintInputProperties(
-        UnitOfWork work,
+        Consumer<UnitOfWork.InputVisitor> inputs,
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
         ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints,
-        InputPropertyPredicate filter
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints
     ) {
-        InputCollectingVisitor visitor = new InputCollectingVisitor(work, previousValueSnapshots, fingerprinterRegistry, valueSnapshotter, knownValueSnapshots, knownFingerprints, filter);
-        work.visitInputs(visitor);
+        InputCollectingVisitor visitor = new InputCollectingVisitor(previousValueSnapshots, fingerprinterRegistry, valueSnapshotter, knownValueSnapshots, knownFingerprints);
+        inputs.accept(visitor);
         return visitor.complete();
     }
 
     private static class InputCollectingVisitor implements UnitOfWork.InputVisitor {
-        private final UnitOfWork work;
         private final ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots;
         private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
         private final ValueSnapshotter valueSnapshotter;
         private final ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints;
-        private final InputPropertyPredicate filter;
 
         private final ImmutableSortedMap.Builder<String, ValueSnapshot> valueSnapshotsBuilder = ImmutableSortedMap.naturalOrder();
         private final ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> fingerprintsBuilder = ImmutableSortedMap.naturalOrder();
 
         public InputCollectingVisitor(
-            UnitOfWork work,
             ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
             ValueSnapshotter valueSnapshotter,
             ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints,
-            InputPropertyPredicate filter
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints
         ) {
-            this.work = work;
             this.previousValueSnapshots = previousValueSnapshots;
             this.fingerprinterRegistry = fingerprinterRegistry;
             this.valueSnapshotter = valueSnapshotter;
             this.knownValueSnapshots = knownValueSnapshots;
             this.knownFingerprints = knownFingerprints;
-            this.filter = filter;
         }
 
         @Override
-        public void visitInputProperty(String propertyName, UnitOfWork.IdentityKind identity, UnitOfWork.ValueSupplier value) {
-            if (!filter.include(propertyName, NON_INCREMENTAL, identity)) {
-                return;
-            }
+        public void visitInputProperty(String propertyName, UnitOfWork.ValueSupplier value) {
             if (knownValueSnapshots.containsKey(propertyName)) {
                 return;
             }
@@ -102,16 +92,13 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                     valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
                 }
             } catch (Exception e) {
-                throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.",
-                    work.getDisplayName(), propertyName, value.getValue()), e);
+                throw new UncheckedIOException(String.format("Input property '%s' with value '%s' cannot be serialized.",
+                    propertyName, value.getValue()), e);
             }
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity, UnitOfWork.FileValueSupplier value) {
-            if (!filter.include(propertyName, type, identity)) {
-                return;
-            }
+        public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.FileValueSupplier value) {
             if (knownFingerprints.containsKey(propertyName)) {
                 return;
             }

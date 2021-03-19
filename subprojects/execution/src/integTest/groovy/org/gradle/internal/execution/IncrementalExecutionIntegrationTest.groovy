@@ -81,7 +81,6 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
@@ -879,20 +878,19 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 }
 
                 @Override
-                void visitInputs(UnitOfWork.InputVisitor visitor) {
+                void visitRegularInputs(UnitOfWork.InputVisitor visitor) {
                     inputProperties.each { propertyName, value ->
-                        visitor.visitInputProperty(propertyName, NON_IDENTITY, { -> value } as UnitOfWork.ValueSupplier)
+                        visitor.visitInputProperty(propertyName) { -> value }
                     }
                     for (entry in inputs.entrySet()) {
                         visitor.visitInputFileProperty(
                             entry.key,
                             NON_INCREMENTAL,
-                            NON_IDENTITY,
                             new UnitOfWork.FileValueSupplier(
                                 entry.value,
                                 AbsolutePathInputNormalizer,
                                 DirectorySensitivity.DEFAULT,
-                                () -> TestFiles.fixed(entry.value)
+                                { -> TestFiles.fixed(entry.value) }
                             )
                         )
                     }

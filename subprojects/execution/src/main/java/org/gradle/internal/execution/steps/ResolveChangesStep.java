@@ -157,9 +157,9 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 return IncrementalInputProperties.ALL;
             case INCREMENTAL_PARAMETERS:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-                work.visitInputs(new UnitOfWork.InputVisitor() {
+                UnitOfWork.InputVisitor visitor = new UnitOfWork.InputVisitor() {
                     @Override
-                    public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity, UnitOfWork.FileValueSupplier valueSupplier) {
+                    public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.FileValueSupplier valueSupplier) {
                         if (type.isIncremental()) {
                             Object value = valueSupplier.getValue();
                             if (value == null) {
@@ -168,7 +168,9 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                             builder.put(propertyName, value);
                         }
                     }
-                });
+                };
+                work.visitIdentityInputs(visitor);
+                work.visitRegularInputs(visitor);
                 return new DefaultIncrementalInputProperties(builder.build());
             default:
                 throw new AssertionError("Unknown InputChangeTrackingStrategy: " + inputChangeTrackingStrategy);

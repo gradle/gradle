@@ -333,12 +333,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public void visitInputs(InputVisitor visitor) {
-            visitor.visitInputProperty(IN_DEPENDENCY_ALIASES, IdentityKind.IDENTITY, model::getDependencyAliases);
-            visitor.visitInputProperty(IN_BUNDLES, IdentityKind.IDENTITY, model::getBundleAliases);
-            visitor.visitInputProperty(IN_VERSIONS, IdentityKind.IDENTITY, model::getVersionAliases);
-            visitor.visitInputProperty(IN_MODEL_NAME, IdentityKind.IDENTITY, model::getName);
-            visitor.visitInputFileProperty(IN_CLASSPATH, InputPropertyType.NON_INCREMENTAL, IdentityKind.IDENTITY,
+        public void visitIdentityInputs(InputVisitor visitor) {
+            visitor.visitInputProperty(IN_DEPENDENCY_ALIASES, model::getDependencyAliases);
+            visitor.visitInputProperty(IN_BUNDLES, model::getBundleAliases);
+            visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
+            visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
+            visitor.visitInputFileProperty(IN_CLASSPATH, InputPropertyType.NON_INCREMENTAL,
                 new FileValueSupplier(
                     classPath,
                     ClasspathNormalizer.class,
@@ -371,8 +371,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public void visitInputs(InputVisitor visitor) {
-            visitor.visitInputProperty(IN_PROJECTS, IdentityKind.IDENTITY, this::buildProjectTree);
+        public void visitIdentityInputs(InputVisitor visitor) {
+            visitor.visitInputProperty(IN_PROJECTS, this::buildProjectTree);
         }
 
         private String buildProjectTree() {
