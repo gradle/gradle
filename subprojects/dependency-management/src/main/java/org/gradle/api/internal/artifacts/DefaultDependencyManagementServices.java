@@ -140,7 +140,6 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.SimpleMapInterner;
@@ -240,7 +239,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 IsolatableFactory isolatableFactory,
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                 TransformerInvocationFactory transformerInvocationFactory,
-                ValueSnapshotter valueSnapshotter,
                 DomainObjectContext domainObjectContext,
                 ArtifactTransformParameterScheme parameterScheme,
                 ArtifactTransformActionScheme actionScheme,
@@ -256,7 +254,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 isolatableFactory,
                 classLoaderHierarchyHasher,
                 transformerInvocationFactory,
-                valueSnapshotter,
                 fileCollectionFactory,
                 fileLookup,
                 inputFingerprinter,

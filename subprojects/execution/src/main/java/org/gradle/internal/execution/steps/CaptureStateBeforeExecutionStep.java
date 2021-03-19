@@ -173,10 +173,11 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
         }
 
         InputFingerprinter.Result newInputs = work.getInputFingerprinter().fingerprintInputProperties(
-            work::visitRegularInputs,
             previousInputProperties,
             context.getInputProperties(),
-            context.getInputFileProperties());
+            context.getInputFileProperties(),
+            work::visitRegularInputs
+        );
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = union(context.getInputProperties(), newInputs.getValueSnapshots());
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = union(context.getInputFileProperties(), newInputs.getFileFingerprints());
 

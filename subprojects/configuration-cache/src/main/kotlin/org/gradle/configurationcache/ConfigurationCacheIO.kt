@@ -176,7 +176,6 @@ class ConfigurationCacheIO internal constructor(
             buildOperationExecutor = service(),
             classLoaderHierarchyHasher = service(),
             isolatableFactory = service(),
-            valueSnapshotter = service(),
             managedFactoryRegistry = service(),
             parameterScheme = service(),
             actionScheme = service(),

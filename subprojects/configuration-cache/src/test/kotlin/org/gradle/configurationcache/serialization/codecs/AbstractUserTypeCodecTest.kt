@@ -164,7 +164,6 @@ abstract class AbstractUserTypeCodecTest {
         buildOperationExecutor = mock(),
         classLoaderHierarchyHasher = mock(),
         isolatableFactory = mock(),
-        valueSnapshotter = mock(),
         managedFactoryRegistry = mock(),
         parameterScheme = mock(),
         actionScheme = mock(),

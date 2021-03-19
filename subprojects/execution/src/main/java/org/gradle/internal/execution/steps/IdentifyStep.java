@@ -52,10 +52,11 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
     @Nonnull
     private IdentityContext createIdentityContext(UnitOfWork work, C context) {
         InputFingerprinter.Result inputs = work.getInputFingerprinter().fingerprintInputProperties(
-            work::visitIdentityInputs,
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of());
+            ImmutableSortedMap.of(),
+            work::visitIdentityInputs
+        );
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = inputs.getFileFingerprints();
 

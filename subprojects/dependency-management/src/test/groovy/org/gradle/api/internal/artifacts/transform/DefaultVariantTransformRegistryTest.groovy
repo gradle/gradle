@@ -80,7 +80,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         isolatableFactory,
         classLoaderHierarchyHasher,
         transformerInvocationFactory,
-        valueSnapshotter,
         fileCollectionFactory,
         Mock(FileLookup),
         inputFingerprinter,

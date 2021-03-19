@@ -23,8 +23,8 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -115,6 +115,6 @@ class DefaultInputFingerprinterTest extends Specification {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints = ImmutableSortedMap.of(),
         Consumer<InputVisitor> inputs
     ) {
-        inputFingerprinter.fingerprintInputProperties(inputs, previousValueSnapshots, knownValueSnapshots, knownFingerprints)
+        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, knownValueSnapshots, knownFingerprints, inputs)
     }
 }

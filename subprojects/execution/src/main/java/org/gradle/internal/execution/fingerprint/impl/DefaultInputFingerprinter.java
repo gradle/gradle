@@ -43,10 +43,10 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
     @Override
     public Result fingerprintInputProperties(
-        Consumer<InputVisitor> inputs,
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
         ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints,
+        Consumer<InputVisitor> inputs
     ) {
         InputCollectingVisitor visitor = new InputCollectingVisitor(previousValueSnapshots, fingerprinterRegistry, valueSnapshotter, knownValueSnapshots, knownFingerprints);
         inputs.accept(visitor);

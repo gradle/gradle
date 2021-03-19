@@ -50,7 +50,6 @@ import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.service.ServiceLookup;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
@@ -63,7 +62,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final IsolatableFactory isolatableFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final TransformerInvocationFactory transformerInvocationFactory;
-    private final ValueSnapshotter valueSnapshotter;
     private final PropertyWalker parametersPropertyWalker;
     private final ServiceLookup internalServices;
     private final TypeMetadataStore actionMetadataStore;
@@ -81,7 +79,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         IsolatableFactory isolatableFactory,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         TransformerInvocationFactory transformerInvocationFactory,
-        ValueSnapshotter valueSnapshotter,
         FileCollectionFactory fileCollectionFactory,
         FileLookup fileLookup,
         InputFingerprinter inputFingerprinter,
@@ -96,7 +93,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.transformerInvocationFactory = transformerInvocationFactory;
-        this.valueSnapshotter = valueSnapshotter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileLookup = fileLookup;
         this.inputFingerprinter = inputFingerprinter;
@@ -164,7 +160,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             buildOperationExecutor,
             classLoaderHierarchyHasher,
             isolatableFactory,
-            valueSnapshotter,
             fileCollectionFactory,
             fileLookup,
             parametersPropertyWalker,

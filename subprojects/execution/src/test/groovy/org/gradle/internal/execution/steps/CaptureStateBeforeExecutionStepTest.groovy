@@ -111,10 +111,10 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<ValidationContext> {
         _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
         _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
         1 * inputFingerprinter.fingerprintInputProperties(
-            _,
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of("known", knownSnapshot),
-            ImmutableSortedMap.of("known-file", knownFileFingerprint)
+            ImmutableSortedMap.of("known-file", knownFileFingerprint),
+            _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             ImmutableSortedMap.of("input", inputSnapshot),
             ImmutableSortedMap.of("input-file", inputFileFingerprint))

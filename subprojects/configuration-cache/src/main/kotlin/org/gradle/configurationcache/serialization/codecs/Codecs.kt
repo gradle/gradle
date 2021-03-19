@@ -76,7 +76,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
-import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
 import java.io.Externalizable
 
@@ -96,7 +95,6 @@ class Codecs(
     buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
-    valueSnapshotter: ValueSnapshotter,
     managedFactoryRegistry: ManagedFactoryRegistry,
     parameterScheme: ArtifactTransformParameterScheme,
     actionScheme: ArtifactTransformActionScheme,
@@ -156,7 +154,7 @@ class Codecs(
         bind(TransformedArtifactCodec(calculatedValueContainerFactory))
         bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory, calculatedValueContainerFactory))
         bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
-        bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, fileCollectionFactory, documentationRegistry))
+        bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
         bind(FinalizeTransformDependenciesNodeCodec())
         bind(WorkNodeActionCodec)
 
