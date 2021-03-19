@@ -49,6 +49,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -124,11 +125,11 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             execution = new ImmutableTransformerExecution(
                 transformer,
                 inputArtifact,
+                fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity()),
                 dependencies,
                 buildOperationExecutor,
                 fileCollectionFactory,
                 fingerprinterRegistry,
-                fileSystemAccess,
                 workspaceServices
             );
         } else {
@@ -193,20 +194,20 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     }
 
     private static class ImmutableTransformerExecution extends AbstractTransformerExecution {
-        private final FileSystemAccess fileSystemAccess;
+        private final FileSystemLocationSnapshot inputArtifactSnapshot;
 
         public ImmutableTransformerExecution(
             Transformer transformer,
             File inputArtifact,
+            FileSystemLocationSnapshot inputArtifactSnapshot,
             ArtifactTransformDependencies dependencies,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
-            FileSystemAccess fileSystemAccess,
             TransformationWorkspaceServices workspaceServices
         ) {
             super(transformer, inputArtifact, dependencies, buildOperationExecutor, fileCollectionFactory, fingerprinterRegistry, workspaceServices);
-            this.fileSystemAccess = fileSystemAccess;
+            this.inputArtifactSnapshot = inputArtifactSnapshot;
         }
 
         @Override
@@ -215,9 +216,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, IDENTITY, () -> {
                 FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(
                     DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
-                return inputArtifactFingerprinter.normalizePath(fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity()));
+                return inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
             });
-            visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, IDENTITY, () -> fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity()).getHash().toString());
+            visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, IDENTITY, () -> inputArtifactSnapshot.getHash().toString());
         }
 
         @Override
