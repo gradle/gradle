@@ -19,7 +19,6 @@ package org.gradle.internal.execution.fingerprint.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
@@ -44,7 +43,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
     @Override
     public Result fingerprintInputProperties(
-        Consumer<UnitOfWork.InputVisitor> inputs,
+        Consumer<InputVisitor> inputs,
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
         ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints
@@ -59,7 +58,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         return fingerprinterRegistry;
     }
 
-    private static class InputCollectingVisitor implements UnitOfWork.InputVisitor {
+    private static class InputCollectingVisitor implements InputVisitor {
         private final ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots;
         private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
         private final ValueSnapshotter valueSnapshotter;
@@ -84,7 +83,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         }
 
         @Override
-        public void visitInputProperty(String propertyName, UnitOfWork.ValueSupplier value) {
+        public void visitInputProperty(String propertyName, ValueSupplier value) {
             if (knownValueSnapshots.containsKey(propertyName)) {
                 return;
             }
@@ -103,7 +102,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.FileValueSupplier value) {
+        public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier value) {
             if (knownFingerprints.containsKey(propertyName)) {
                 return;
             }

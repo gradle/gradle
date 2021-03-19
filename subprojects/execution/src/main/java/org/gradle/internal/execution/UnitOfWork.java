@@ -19,16 +19,15 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -38,7 +37,6 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
     /**
@@ -99,13 +97,12 @@ public interface UnitOfWork extends Describable {
     /**
      * Capture the classloader of the work's implementation type.
      * There can be more than one type reported by the work; additional types are considered in visitation order.
-     *
-     * TODO Move this to {@link #visitInputs(InputVisitor)}
      */
     default void visitImplementations(ImplementationVisitor visitor) {
         visitor.visitImplementation(getClass());
     }
 
+    // TODO Move this to {@link InputVisitor}
     interface ImplementationVisitor {
         void visitImplementation(Class<?> implementation);
         void visitImplementation(ImplementationSnapshot implementation);
@@ -123,6 +120,7 @@ public interface UnitOfWork extends Describable {
      * These are more expensive to calculate than regular inputs as they need to be calculated even if the execution of the work is short circuited by an identity cache.
      * They also cannot reuse snapshots taken during previous executions.
      * Because of these reasons only capture inputs as identity if they are actually used to calculate the identity of the work.
+     * Any non-identity inputs should be visited when calling {@link #visitRegularInputs(InputVisitor)}.
      */
     default void visitIdentityInputs(InputVisitor visitor) {}
 
@@ -130,92 +128,9 @@ public interface UnitOfWork extends Describable {
      * Visit regular inputs of the work.
      *
      * Regular inputs are inputs that are not used to calculate the identity of the work, but used to check up-to-dateness or to calculate the cache key.
+     * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} and {@link #visitRegularInputs(InputVisitor)}.
      */
     default void visitRegularInputs(InputVisitor visitor) {}
-
-    interface InputVisitor {
-        default void visitInputProperty(
-            String propertyName,
-            ValueSupplier value
-        ) {}
-
-        default void visitInputFileProperty(
-            String propertyName,
-            InputPropertyType type,
-            FileValueSupplier value
-        ) {}
-    }
-
-    interface ValueSupplier {
-        @Nullable
-        Object getValue();
-    }
-
-    class FileValueSupplier implements ValueSupplier {
-        private final Object value;
-        private final Class<? extends FileNormalizer> normalizer;
-        private final DirectorySensitivity directorySensitivity;
-        private final Supplier<FileCollection> files;
-
-        public FileValueSupplier(@Nullable Object value, Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, Supplier<FileCollection> files) {
-            this.value = value;
-            this.normalizer = normalizer;
-            this.directorySensitivity = directorySensitivity;
-            this.files = files;
-        }
-
-        @Nullable
-        @Override
-        public Object getValue() {
-            return value;
-        }
-
-        public Class<? extends FileNormalizer> getNormalizer() {
-            return normalizer;
-        }
-
-        public DirectorySensitivity getDirectorySensitivity() {
-            return directorySensitivity;
-        }
-
-        public FileCollection getFiles() {
-            return files.get();
-        }
-    }
-
-    enum InputPropertyType {
-        /**
-         * Non-incremental inputs.
-         */
-        NON_INCREMENTAL(false, false),
-
-        /**
-         * Incremental inputs.
-         */
-        INCREMENTAL(true, false),
-
-        /**
-         * These are the primary inputs to the incremental work item;
-         * if they are empty the work item shouldn't be executed.
-         */
-        PRIMARY(true, true);
-
-        private final boolean incremental;
-        private final boolean skipWhenEmpty;
-
-        InputPropertyType(boolean incremental, boolean skipWhenEmpty) {
-            this.incremental = incremental;
-            this.skipWhenEmpty = skipWhenEmpty;
-        }
-
-        public boolean isIncremental() {
-            return incremental;
-        }
-
-        public boolean isSkipWhenEmpty() {
-            return skipWhenEmpty;
-        }
-    }
 
     void visitOutputs(File workspace, OutputVisitor visitor);
 

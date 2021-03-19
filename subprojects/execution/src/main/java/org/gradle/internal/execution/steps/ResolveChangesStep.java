@@ -22,6 +22,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -157,9 +160,9 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 return IncrementalInputProperties.ALL;
             case INCREMENTAL_PARAMETERS:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-                UnitOfWork.InputVisitor visitor = new UnitOfWork.InputVisitor() {
+                InputVisitor visitor = new InputVisitor() {
                     @Override
-                    public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.FileValueSupplier valueSupplier) {
+                    public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier valueSupplier) {
                         if (type.isIncremental()) {
                             Object value = valueSupplier.getValue();
                             if (value == null) {

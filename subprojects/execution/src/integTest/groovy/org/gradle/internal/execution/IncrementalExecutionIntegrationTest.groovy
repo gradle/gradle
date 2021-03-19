@@ -28,6 +28,8 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.OutputFilesRepository
@@ -82,7 +84,7 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
+import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 
@@ -883,7 +885,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 }
 
                 @Override
-                void visitRegularInputs(UnitOfWork.InputVisitor visitor) {
+                void visitRegularInputs(InputVisitor visitor) {
                     inputProperties.each { propertyName, value ->
                         visitor.visitInputProperty(propertyName) { -> value }
                     }
@@ -891,7 +893,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                         visitor.visitInputFileProperty(
                             entry.key,
                             NON_INCREMENTAL,
-                            new UnitOfWork.FileValueSupplier(
+                            new FileValueSupplier(
                                 entry.value,
                                 AbsolutePathInputNormalizer,
                                 DirectorySensitivity.DEFAULT,

@@ -33,6 +33,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -327,7 +328,7 @@ class CompileKotlinScript(
 ) : UnitOfWork {
 
     override fun visitIdentityInputs(
-        visitor: UnitOfWork.InputVisitor
+        visitor: InputVisitor
     ) {
         visitor.visitInputProperty("templateId") { templateId }
         visitor.visitInputProperty("sourceHash") { sourceHash }
@@ -389,7 +390,7 @@ class CompileKotlinScript(
         workspace.resolve("classes")
 
     private
-    fun UnitOfWork.InputVisitor.visitClassPathProperty(propertyName: String, classPath: ClassPath) {
+    fun InputVisitor.visitClassPathProperty(propertyName: String, classPath: ClassPath) {
         visitInputProperty(propertyName) {
             classpathHasher.hash(classPath)
         }
