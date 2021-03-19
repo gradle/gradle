@@ -41,11 +41,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+
+import static java.util.Optional.empty;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
 
@@ -105,7 +108,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             Set<HashCode> seen = new HashSet<>();
             List<CacheOperation> operations = new ArrayList<>(urls.size());
             for (URL url : urls) {
-                operations.add(cached(url, transformer, seen));
+                cached(url, transformer, seen)
+                    .ifPresent(operations::add);
             }
             ImmutableList.Builder<URL> cachedFiles = ImmutableList.builderWithExpectedSize(urls.size());
             for (CacheOperation operation : operations) {
@@ -122,7 +126,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             List<CacheOperation> operations = new ArrayList<>(originalFiles.size());
             Set<HashCode> seen = new HashSet<>();
             for (File file : originalFiles) {
-                operations.add(cached(file, transformer, seen));
+                cached(file, transformer, seen)
+                    .ifPresent(operations::add);
             }
             List<File> cachedFiles = new ArrayList<>(originalFiles.size());
             for (CacheOperation operation : operations) {
@@ -155,7 +160,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, transform);
     }
 
-    private CacheOperation cached(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
+    private Optional<CacheOperation> cached(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
         if (original.getProtocol().equals("file")) {
             try {
                 return cached(new File(original.toURI()), transformer, seen);
@@ -163,26 +168,26 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
-        return new RetainUrl(original);
+        return Optional.of(new RetainUrl(original));
     }
 
-    private CacheOperation cached(File original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
+    private Optional<CacheOperation> cached(File original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
         FileSystemLocationSnapshot snapshot = fileSystemAccess.read(original.getAbsolutePath(), s -> s);
         HashCode contentHash = snapshot.getHash();
         if (snapshot.getType() == FileType.Missing) {
-            return new EmptyOperation();
+            return empty();
         }
         if (shouldUseFromCache(original)) {
             if (!seen.add(contentHash)) {
                 // Already seen an entry with the same content hash, so skip it
-                return new EmptyOperation();
+                return empty();
             }
             // Lookup and generate cache entry asynchronously
             TransformFile operation = new TransformFile(transformer, original, snapshot, cache.getBaseDir());
             operation.schedule(executor);
-            return operation;
+            return Optional.of(operation);
         }
-        return new RetainFile(original);
+        return Optional.of(new RetainFile(original));
     }
 
     private boolean shouldUseFromCache(File original) {
@@ -243,12 +248,6 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         @Override
         public void collect(Consumer<File> consumer) {
             consumer.accept(original);
-        }
-    }
-
-    private static class EmptyOperation implements CacheOperation {
-        @Override
-        public void collect(Consumer<File> consumer) {
         }
     }
 
