@@ -136,7 +136,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         new CurrentBuildOperationRef(),
         deleter,
         new DefaultExecutionStateChangeDetector(),
-        inputFingerprinter,
         outputChangeListener,
         outputFilesRepository,
         outputSnapshotter,
