@@ -30,7 +30,6 @@ import java.util.List;
  * Provides some information about the network addresses of the local machine.
  */
 class InetAddresses {
-    private static final int REACHABLE_TIMEOUT_MS = 50;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final List<InetAddress> loopback = new ArrayList<InetAddress>();
@@ -60,12 +59,8 @@ class InetAddresses {
                 InetAddress candidate = candidates.nextElement();
                 if (isLoopbackInterface) {
                     if (candidate.isLoopbackAddress()) {
-                        if (candidate.isReachable(REACHABLE_TIMEOUT_MS)) {
-                            logger.debug("Adding loopback address {}", candidate);
-                            loopback.add(candidate);
-                        } else {
-                            logger.debug("Ignoring unreachable local address on loopback interface {}", candidate);
-                        }
+                        logger.debug("Adding loopback address {}", candidate);
+                        loopback.add(candidate);
                     } else {
                         logger.debug("Ignoring remote address on loopback interface {}", candidate);
                     }
