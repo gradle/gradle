@@ -33,7 +33,6 @@ import org.gradle.kotlin.dsl.execution.ProgramParser
 import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.junit.Ignore
 import org.junit.Test
 import java.util.UUID
 
@@ -221,7 +220,6 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
     }
 
     @Test
-    @Ignore("https://github.com/gradle/gradle-private/issues/3308")
     fun `in-memory script class loading cache releases memory of unused entries`() {
 
         // given: buildSrc memory hog
