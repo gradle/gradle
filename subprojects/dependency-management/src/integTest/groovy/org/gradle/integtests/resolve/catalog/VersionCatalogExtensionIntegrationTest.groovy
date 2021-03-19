@@ -21,7 +21,7 @@ import org.gradle.integtests.resolve.PluginDslSupport
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIntegrationTest implements PluginDslSupport {
+class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
 
     @Unroll
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
