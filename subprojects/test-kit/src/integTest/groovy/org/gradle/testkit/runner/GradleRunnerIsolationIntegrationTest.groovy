@@ -16,12 +16,18 @@
 
 package org.gradle.testkit.runner
 
+
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.GradleVersion
+import org.junit.Assume
 
 class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def "configuration in gradle user home is not used by gradle runner builds"() {
         when:
+        // Gradle 2.6 leaks native-platform into the test process with a custom GUH
+        Assume.assumeTrue(gradleVersion > GradleVersion.version("2.6"))
+
         def userHome = file("user-home")
         def gradleUserHome = userHome.file(".gradle")
 
