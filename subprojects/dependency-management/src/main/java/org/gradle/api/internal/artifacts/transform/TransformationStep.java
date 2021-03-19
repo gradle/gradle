@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DomainObjectContext;
@@ -40,7 +39,6 @@ import java.io.File;
  */
 public class TransformationStep implements Transformation, TaskDependencyContainer {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
-    public static final Equivalence<? super TransformationStep> FOR_SCHEDULING = Equivalence.identity();
 
     private final Transformer transformer;
     private final TransformerInvocationFactory transformerInvocationFactory;
