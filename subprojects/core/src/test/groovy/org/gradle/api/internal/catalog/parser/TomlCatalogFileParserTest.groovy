@@ -254,6 +254,36 @@ class TomlCatalogFileParserTest extends Specification {
         ex.message == "This catalog file format has version 999.999 which isn't supported by this Gradle version."
     }
 
+    def "reasonable error message when an alias table contains unexpected key"() {
+        when:
+        parse "unexpected-alias-key-$i"
+
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == "On library declaration 'guava' expected to find any of 'group', 'module', 'name' or 'version' but found unexpected ${error}."
+
+        where:
+        i | error
+        1 | "key 'invalid'"
+        2 | "key 'invalid'"
+        3 | "keys 'extra' and 'invalid'"
+    }
+
+    def "reasonable error message when a version table contains unexpected key"() {
+        when:
+        parse "unexpected-version-key-$i"
+
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == "On version declaration of alias 'guava' expected to find any of 'prefer', 'ref', 'reject', 'rejectAll', 'require' or 'strictly' but found unexpected ${error}."
+
+        where:
+        i | error
+        1 | "key 'rejette'"
+        2 | "key 'invalid'"
+        3 | "keys 'invalid' and 'rejette'"
+    }
+
     void hasDependency(String name, @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependencySpec) Closure<Void> spec) {
         def data = model.getDependencyData(name)
         assert data != null: "Expected a dependency with alias $name but it wasn't found"
@@ -271,7 +301,7 @@ class TomlCatalogFileParserTest extends Specification {
 
     void hasVersion(String id, String version) {
         def versionConstraint = model.getVersion(id)?.version
-        assert versionConstraint != null : "Expected a version constraint with name $id but didn't find one"
+        assert versionConstraint != null: "Expected a version constraint with name $id but didn't find one"
         def actual = versionConstraint.toString()
         assert actual == version
     }
@@ -308,7 +338,7 @@ class TomlCatalogFileParserTest extends Specification {
 
         void withGAV(String gav) {
             def coord = gav.split(':')
-            def v = coord.length>2 ? coord[2] : ''
+            def v = coord.length > 2 ? coord[2] : ''
             withGAV(coord[0], coord[1], v)
         }
 
