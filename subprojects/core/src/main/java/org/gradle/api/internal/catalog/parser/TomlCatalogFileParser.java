@@ -31,9 +31,11 @@ import org.tomlj.TomlTable;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class TomlCatalogFileParser {
@@ -48,6 +50,20 @@ public class TomlCatalogFileParser {
         LIBRARIES_KEY,
         BUNDLES_KEY,
         VERSIONS_KEY
+    );
+    private static final Set<String> LIBRARY_COORDINATES = ImmutableSet.of(
+        "group",
+        "name",
+        "version",
+        "module"
+    );
+    private static final Set<String> VERSION_KEYS = ImmutableSet.of(
+        "ref",
+        "require",
+        "strictly",
+        "prefer",
+        "reject",
+        "rejectAll"
     );
 
     public static void parse(InputStream in, VersionCatalogBuilder builder) throws IOException {
@@ -111,8 +127,8 @@ public class TomlCatalogFileParser {
         List<String> keys = bundlesTable.keySet().stream().sorted().collect(Collectors.toList());
         for (String alias : keys) {
             List<String> bundled = expectArray("bundle", alias, bundlesTable, alias).toList().stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.toList());
+                .map(String::valueOf)
+                .collect(Collectors.toList());
             builder.bundle(alias, bundled);
         }
     }
@@ -148,8 +164,38 @@ public class TomlCatalogFileParser {
         }
     }
 
-    private static void parseLibrary(String alias, TomlTable dependenciesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
-        Object gav = dependenciesTable.get(alias);
+    private static void expectedKeys(TomlTable table, Set<String> allowedKeys, String context) {
+        Set<String> actualKeys = table.keySet();
+        if (!allowedKeys.containsAll(actualKeys)) {
+            Set<String> difference = Sets.difference(actualKeys, allowedKeys);
+            throw new InvalidUserDataException("On " + context + " expected to find any of " + oxfordListOf(allowedKeys, "or")
+                + " but found unexpected key" + (difference.size() > 1 ? "s " : " ") + oxfordListOf(difference, "and")
+                + ".");
+        }
+    }
+
+    private static String oxfordListOf(Collection<String> values, String conjunction) {
+        return values.stream()
+            .sorted()
+            .map(s -> "'" + s + "'")
+            .collect(oxfordJoin(conjunction));
+    }
+
+    private static Collector<? super String, ?, String> oxfordJoin(String conjunction) {
+        return Collectors.collectingAndThen(Collectors.toList(), stringList -> {
+            if (stringList.isEmpty()) {
+                return "";
+            }
+            if (stringList.size() == 1) {
+                return stringList.get(0);
+            }
+            int bound = stringList.size() - 1;
+            return String.join(", ", stringList.subList(0, bound)) + " " + conjunction + " " + stringList.get(bound);
+        });
+    }
+
+    private static void parseLibrary(String alias, TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+        Object gav = librariesTable.get(alias);
         if (gav instanceof String) {
             List<String> splitted = SPLITTER.splitToList((String) gav);
             if (splitted.size() == 3) {
@@ -163,10 +209,13 @@ public class TomlCatalogFileParser {
                 throw new InvalidUserDataException("Invalid GAV notation '" + gav + "' for alias '" + alias + "': it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
             }
         }
-        String group = expectString("alias", alias, dependenciesTable, "group");
-        String name = expectString("alias", alias, dependenciesTable, "name");
-        Object version = dependenciesTable.get(alias + ".version");
-        String mi = expectString("alias", alias, dependenciesTable, "module");
+        if (gav instanceof TomlTable) {
+            expectedKeys((TomlTable) gav, LIBRARY_COORDINATES, "library declaration '" + alias + "'");
+        }
+        String group = expectString("alias", alias, librariesTable, "group");
+        String name = expectString("alias", alias, librariesTable, "name");
+        Object version = librariesTable.get(alias + ".version");
+        String mi = expectString("alias", alias, librariesTable, "module");
         if (mi != null) {
             List<String> splitted = SPLITTER.splitToList(mi);
             if (splitted.size() == 2) {
@@ -190,6 +239,7 @@ public class TomlCatalogFileParser {
             strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
+            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'");
             versionRef = notEmpty(versionTable.getString("ref"), "version reference", alias);
             require = notEmpty(versionTable.getString("require"), "required version", alias);
             prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
