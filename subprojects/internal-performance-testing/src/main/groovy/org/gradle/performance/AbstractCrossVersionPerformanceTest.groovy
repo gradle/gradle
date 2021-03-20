@@ -26,17 +26,13 @@ import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionResultsStore
-import org.gradle.performance.results.DefaultOutputDirSelector
-import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
-
 /**
  * A base class for cross version performance tests.
  *
@@ -44,7 +40,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
  */
 @CleanupTestDirectory
 @AllFeaturesShouldBeAnnotated
-class AbstractCrossVersionPerformanceTest extends Specification {
+class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
 
     private static final RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossVersionResultsStore() }
 
@@ -59,8 +55,6 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     def setup() {
-        def outputDirSelector = new DefaultOutputDirSelector(temporaryFolder.testDirectory)
-        def gradleProfilerReporter = new GradleProfilerReporter(outputDirSelector)
         runner = new CrossVersionPerformanceTestRunner(
                 new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
                 RESULTS_STORE.reportAlso(gradleProfilerReporter),

@@ -27,20 +27,15 @@ import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
-import org.gradle.performance.results.DefaultOutputDirSelector
-import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.performance.results.WritableResultsStore
-import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
 
 @CompileStatic
-@CleanupTestDirectory
 @AllFeaturesShouldBeAnnotated
-class AbstractCrossBuildPerformanceTest extends Specification {
+class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
     private static final WritableResultsStore<CrossBuildPerformanceResults> RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossBuildResultsStore() }
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
@@ -54,8 +49,6 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     CrossBuildPerformanceTestRunner runner
 
     def setup() {
-        def outputDirSelector = new DefaultOutputDirSelector(temporaryFolder.testDirectory)
-        def gradleProfilerReporter = new GradleProfilerReporter(outputDirSelector)
         runner = new CrossBuildPerformanceTestRunner(
                 new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
                 RESULTS_STORE.reportAlso(gradleProfilerReporter),
