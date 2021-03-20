@@ -24,6 +24,7 @@ public interface JvmVendor {
         APPLE("apple", "Apple"),
         AZUL("azul systems", "Zulu"),
         BELLSOFT("bellsoft", "BellSoft Liberica"),
+        GRAAL_VM("graalvm community", "GraalVM Community"),
         HEWLETT_PACKARD("hewlett-packard", "HP-UX"),
         IBM("ibm", "IBM"),
         ORACLE("oracle", "Oracle"),
