@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -31,6 +32,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -183,6 +185,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     @Override
     public void from(Object dependencyNotation) {
+        if (!imports.isEmpty()) {
+            throw new InvalidUserCodeException("You can only import a single external catalog in a given catalog definition.\n" +
+                "See the documentation at " + new DocumentationRegistry().getDocumentationFor("platforms", "sec:sharing-catalogs"));
+        }
         imports.add(new Import(dependencyNotation));
     }
 

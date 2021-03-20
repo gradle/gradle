@@ -21,6 +21,7 @@ import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.embedded })
@@ -86,7 +87,7 @@ class BuildLogicFunctionalTest extends Specification {
         def result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments('testGroovyVersion', '--stacktrace', '--info')
-            .withGradleInstallation(new File("${buildContext.gradleHomeDir}"))
+            .withGradleInstallation(new File("${TextUtil.normaliseFileSeparators(buildContext.gradleHomeDir.absolutePath)}"))
             .withDebug($debug)
             .build()
 

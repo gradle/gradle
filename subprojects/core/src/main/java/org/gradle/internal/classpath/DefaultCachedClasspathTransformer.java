@@ -42,8 +42,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
-import java.util.concurrent.SynchronousQueue;
 import java.util.function.Consumer;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
@@ -252,7 +253,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private class TransformFile implements CacheOperation {
-        private final SynchronousQueue<Object> queue;
+        private final BlockingQueue<Object> queue;
         private final ClasspathFileTransformer transformer;
         private final File original;
         private final FileSystemLocationSnapshot snapshot;
@@ -263,7 +264,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             this.original = original;
             this.snapshot = snapshot;
             this.cacheDir = cacheDir;
-            queue = new SynchronousQueue<>();
+            queue = new ArrayBlockingQueue<>(1);
         }
 
         public void schedule(Executor executor) {

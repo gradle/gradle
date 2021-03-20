@@ -11,56 +11,10 @@
   "createdBy": {
     "gradle": {
       "version": "6.8-20201112074858+0000",
-      "buildId": "xf7c7et2qrblbdyidnneahbeya"
+      "buildId": "eu4qxlq4v5cejjzia42b7kmruq"
     }
   },
   "variants": [
-    {
-      "name": "apiElements",
-      "attributes": {
-        "org.gradle.category": "platform",
-        "org.gradle.usage": "java-api"
-      },
-      "dependencyConstraints": [
-        {
-          "group": "com.google.guava",
-          "module": "guava",
-          "version": {
-            "requires": "28.0-jre"
-          }
-        },
-        {
-          "group": "org.codehaus.groovy",
-          "module": "groovy",
-          "version": {
-            "requires": "3.0.5"
-          }
-        }
-      ]
-    },
-    {
-      "name": "runtimeElements",
-      "attributes": {
-        "org.gradle.category": "platform",
-        "org.gradle.usage": "java-runtime"
-      },
-      "dependencyConstraints": [
-        {
-          "group": "com.google.guava",
-          "module": "guava",
-          "version": {
-            "requires": "28.0-jre"
-          }
-        },
-        {
-          "group": "org.codehaus.groovy",
-          "module": "groovy",
-          "version": {
-            "requires": "3.0.5"
-          }
-        }
-      ]
-    },
     {
       "name": "versionCatalogElements",
       "attributes": {

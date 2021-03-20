@@ -16,52 +16,6 @@
   },
   "variants": [
     {
-      "name": "apiElements",
-      "attributes": {
-        "org.gradle.category": "platform",
-        "org.gradle.usage": "java-api"
-      },
-      "dependencyConstraints": [
-        {
-          "group": "com.google.guava",
-          "module": "guava",
-          "version": {
-            "requires": "28.0-jre"
-          }
-        },
-        {
-          "group": "org.codehaus.groovy",
-          "module": "groovy",
-          "version": {
-            "requires": "3.0.5"
-          }
-        }
-      ]
-    },
-    {
-      "name": "runtimeElements",
-      "attributes": {
-        "org.gradle.category": "platform",
-        "org.gradle.usage": "java-runtime"
-      },
-      "dependencyConstraints": [
-        {
-          "group": "com.google.guava",
-          "module": "guava",
-          "version": {
-            "requires": "28.0-jre"
-          }
-        },
-        {
-          "group": "org.codehaus.groovy",
-          "module": "groovy",
-          "version": {
-            "requires": "3.0.5"
-          }
-        }
-      ]
-    },
-    {
       "name": "versionCatalogElements",
       "attributes": {
         "org.gradle.category": "platform",

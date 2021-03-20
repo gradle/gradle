@@ -300,32 +300,6 @@ include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin
 
 When publishing such a project, a `libs.versions.toml` file will automatically be generated (and uploaded), which can then be <<platforms.adoc#sec:importing-published-catalog,consumed from other Gradle builds>>.
 
-[[sec:java-platform-plugin-as-catalog]]
-==== Integration with the Java Platform plugin
-
-The <<java_platform_plugin.adoc#java_platform_plugin,Java Platform plugin>> can be used to publish platforms (or BOM files), which are a similar concept but are used to influence not only the direct dependencies of a project, but also its transitive dependencies and potentially the consumers of a library.
-
-It may be convenient, from a single platform declaration, to publish both a platform _and_ a catalog.
-The `version-catalog` plugin makes it very convenient, by reusing the constraints and dependencies declared in the platform and automatically exposing them as dependencies in the generated catalog:
-
-.Declaring a catalog with the Java Platform plugin
-====
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/catalog",files="build.gradle[tags=catalog_definition]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/catalog",files="build.gradle.kts[tags=catalog_definition]"]
-====
-
-By default, Gradle will use the artifact id (name) as the alias.
-For example, the alias for `com.google.guava:guava` will be `guava`.
-In case two dependencies share the same name, then the build will fail and you will have to setup an explicit alias:
-
-.Declaring an explicit alias for a dependency
-====
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/catalog",files="build.gradle[tags=explicit_alias]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/catalog",files="build.gradle.kts[tags=explicit_alias]"]
-====
-
-NOTE: It's worth noting that when you combine the `java-platform` and the `version-catalog` plugins and that you want to publish (for example using the `maven-publish`) then you should only publish the `javaPlatform` component, which is going to have the TOML file as an additional variant: you don't need to publish the `versionCatalog` component.
-
 [[sec:importing-published-catalog]]
 === Importing a published catalog
 
@@ -335,22 +309,6 @@ A catalog produced by the <<platforms.adoc#sec:version-catalog-plugin, version c
 ====
 include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=consume_catalog]"]
 include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=consume_catalog]"]
-====
-
-It is possible to compose a catalog from more than one catalog:
-
-.Composing catalogs
-====
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=compose_catalog]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=compose_catalog]"]
-====
-
-One advantage of using external catalogs is that you can selectively choose what to import to compose your own catalog:
-
-.Composing catalogs
-====
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=compose_catalog_filtering]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=compose_catalog_filtering]"]
 ====
 
 [[sec:overwriting-catalog-versions]]

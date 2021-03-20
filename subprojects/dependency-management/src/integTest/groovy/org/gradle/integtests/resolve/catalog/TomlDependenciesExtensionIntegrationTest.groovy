@@ -26,7 +26,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-class TomlDependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIntegrationTest implements PluginDslSupport {
+class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
 
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
