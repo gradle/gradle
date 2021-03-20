@@ -79,17 +79,17 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
         experiments.each { File experiment ->
             experiments.findAll { it != experiment }.each { File baseline ->
                 EventType.values().each { EventType type ->
-                    DetailLevel.values().each { DetailLevel level ->
-                        def backwardDiff = generateDiff(experiment, baseline, type, level, false)
-                        if (backwardDiff) {
-                            generateDifferentialFlameGraph(backwardDiff, type, level, false)
-                            generateDifferentialIcicleGraph(backwardDiff, type, level, false)
-                        }
-                        def forwardDiff = generateDiff(experiment, baseline, type, level, true)
-                        if (forwardDiff) {
-                            generateDifferentialFlameGraph(forwardDiff, type, level, true)
-                            generateDifferentialIcicleGraph(forwardDiff, type, level, true)
-                        }
+                    // Only create diffs for simplified stacks, diffs for raw stacks don't make much sense
+                    DetailLevel level = DetailLevel.SIMPLIFIED
+                    def backwardDiff = generateDiff(experiment, baseline, type, level, false)
+                    if (backwardDiff) {
+                        generateDifferentialFlameGraph(backwardDiff, type, level, false)
+                        generateDifferentialIcicleGraph(backwardDiff, type, level, false)
+                    }
+                    def forwardDiff = generateDiff(experiment, baseline, type, level, true)
+                    if (forwardDiff) {
+                        generateDifferentialFlameGraph(forwardDiff, type, level, true)
+                        generateDifferentialIcicleGraph(forwardDiff, type, level, true)
                     }
                 }
             }
