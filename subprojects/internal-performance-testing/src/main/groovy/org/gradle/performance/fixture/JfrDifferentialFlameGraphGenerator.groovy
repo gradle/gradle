@@ -28,53 +28,15 @@ import groovy.transform.PackageScope
 class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator {
 
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
-    private final File flamesBaseDirectory
+    private final OutputDirSelector outputDirSelector
 
-    JfrDifferentialFlameGraphGenerator(File flamesBaseDirectory) {
-        this.flamesBaseDirectory = flamesBaseDirectory
-    }
-
-    @Override
-    File outputDirFor(String testId, BuildExperimentSpec spec) {
-        boolean multiVersion = spec instanceof GradleBuildExperimentSpec && spec.multiVersion
-        def outputDir
-        if (multiVersion) {
-            String version = ((GradleBuildExperimentSpec) spec).getInvocation().gradleDistribution.version.version
-            outputDir = new File(baseOutputDirFor(testId), version)
-        } else {
-            outputDir = new File(baseOutputDirFor(testId), fileSafeNameFor(spec.getDisplayName()))
-        }
-        outputDir.mkdirs()
-        return outputDir
-    }
-
-    private File baseOutputDirFor(String testId) {
-        String fileSafeName = fileSafeNameFor(testId)
-        // When the path is too long on Windows, then JProfiler can't write to the JPS file
-        // Length 40 seems to work.
-        // It may be better to create the flame graph in the tmp directory, and then move it to the right place after the build.
-        return new File(flamesBaseDirectory, shortenPath(fileSafeName, 40))
-    }
-
-    private static String fileSafeNameFor(String title) {
-        def fileSafeName = title.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
-        if (fileSafeName.endsWith('-')) {
-            fileSafeName = fileSafeName.substring(0, fileSafeName.length() - 1)
-        }
-        fileSafeName
-    }
-
-    private static String shortenPath(String longName, int expectedMaxLength) {
-        if (longName.length() <= expectedMaxLength) {
-            return longName
-        } else {
-            return longName.substring(0, expectedMaxLength - 10) + "." + longName.substring(longName.length() - 9)
-        }
+    JfrDifferentialFlameGraphGenerator(OutputDirSelector outputDirSelector) {
+        this.outputDirSelector = outputDirSelector
     }
 
     @Override
     void generateDifferentialGraphs(String testId) {
-        def baseOutputDir = new File(flamesBaseDirectory, shortenPath(fileSafeNameFor(testId), 40))
+        def baseOutputDir = outputDirSelector.outputDirFor(testId)
         Collection<File> experiments = baseOutputDir.listFiles().findAll { it.directory }
         experiments.each { File experiment ->
             experiments.findAll { it != experiment }.each { File baseline ->

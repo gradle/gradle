@@ -26,6 +26,7 @@ import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionResultsStore
+import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
@@ -58,9 +59,10 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     def setup() {
-        def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
+        def outputDirSelector = new DefaultOutputDirSelector(temporaryFolder.testDirectory)
+        def gradleProfilerReporter = new GradleProfilerReporter(outputDirSelector)
         runner = new CrossVersionPerformanceTestRunner(
-                new GradleBuildExperimentRunner(gradleProfilerReporter),
+                new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
                 RESULTS_STORE.reportAlso(gradleProfilerReporter),
                 new ReleasedVersionDistributions(buildContext),
                 buildContext

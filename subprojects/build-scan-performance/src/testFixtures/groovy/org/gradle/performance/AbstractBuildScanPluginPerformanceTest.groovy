@@ -28,6 +28,7 @@ import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.performance.results.CrossBuildPerformanceResults
+import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -62,8 +63,9 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert buildStampJsonData.commitId
         def pluginCommitId = buildStampJsonData.commitId as String
-        def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
-        runner = new BuildScanPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter), resultStore, pluginCommitId, buildContext) {
+        def outputDirSelector = new DefaultOutputDirSelector(temporaryFolder.testDirectory)
+        def gradleProfilerReporter = new GradleProfilerReporter(outputDirSelector)
+        runner = new BuildScanPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector), resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)

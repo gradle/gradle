@@ -27,6 +27,7 @@ import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
+import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.performance.results.WritableResultsStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -53,9 +54,10 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     CrossBuildPerformanceTestRunner runner
 
     def setup() {
-        def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
+        def outputDirSelector = new DefaultOutputDirSelector(temporaryFolder.testDirectory)
+        def gradleProfilerReporter = new GradleProfilerReporter(outputDirSelector)
         runner = new CrossBuildPerformanceTestRunner(
-                new GradleBuildExperimentRunner(gradleProfilerReporter),
+                new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
                 RESULTS_STORE.reportAlso(gradleProfilerReporter),
                 buildContext
         ) {

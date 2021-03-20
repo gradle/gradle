@@ -18,22 +18,10 @@ package org.gradle.performance.fixture;
 
 import groovy.transform.CompileStatic;
 
-import java.io.File;
-
 @CompileStatic
-public interface ProfilerFlameGraphGenerator extends OutputDirSelector {
+public interface ProfilerFlameGraphGenerator {
     void generateDifferentialGraphs(String testId);
 
-    ProfilerFlameGraphGenerator NOOP = new ProfilerFlameGraphGenerator() {
-
-        @Override
-        public void generateDifferentialGraphs(String testId) {
-        }
-
-        @Override
-        public File outputDirFor(String title, BuildExperimentSpec spec) {
-            return new File(spec.getWorkingDirectory(), "profile-out");
-        }
-    };
+    ProfilerFlameGraphGenerator NOOP = testId -> {};
 
 }

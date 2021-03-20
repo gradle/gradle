@@ -64,8 +64,8 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private final PidInstrumentation pidInstrumentation;
     private final IntegrationTestBuildContext context = new IntegrationTestBuildContext();
 
-    public GradleBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
-        super(gradleProfilerReporter);
+    public GradleBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
+        super(gradleProfilerReporter, outputDirSelector);
         try {
             this.pidInstrumentation = new PidInstrumentation();
         } catch (IOException e) {

@@ -16,6 +16,10 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 interface OutputDirSelector {
     File outputDirFor(String testId, BuildExperimentSpec spec)
+    File outputDirFor(String testId)
 }

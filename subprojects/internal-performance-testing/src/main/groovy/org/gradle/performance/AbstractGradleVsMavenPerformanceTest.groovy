@@ -20,8 +20,10 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleVsMavenBuildExperimentRunner
 import org.gradle.performance.fixture.GradleVsMavenPerformanceTestRunner
+import org.gradle.performance.fixture.OutputDirSelector
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildResultsStore
@@ -43,10 +45,11 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
 
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
-    GradleProfilerReporter gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
+    OutputDirSelector outputDirSelector = new DefaultOutputDirSelector(temporaryFolder.testDirectory)
+    GradleProfilerReporter gradleProfilerReporter = new GradleProfilerReporter(outputDirSelector)
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
             temporaryFolder,
-            new GradleVsMavenBuildExperimentRunner(gradleProfilerReporter),
+            new GradleVsMavenBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
             RESULT_STORE.reportAlso(gradleProfilerReporter),
             buildContext
     ) {

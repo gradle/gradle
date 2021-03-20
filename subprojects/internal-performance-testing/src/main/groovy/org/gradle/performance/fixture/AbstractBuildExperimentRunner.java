@@ -51,23 +51,19 @@ import static java.util.Collections.emptyMap;
  */
 @CompileStatic
 public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
-    private static final String PROFILER_TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir";
     private static final String PROFILER_KEY = "org.gradle.performance.profiler";
 
     private final ProfilerFlameGraphGenerator flameGraphGenerator;
     private final GradleProfilerReporter gradleProfilerReporter;
     private final Profiler profiler;
+    private final OutputDirSelector outputDirSelector;
 
-    public static String getProfilerTargetDir() {
-        return System.getProperty(PROFILER_TARGET_DIR_KEY);
-    }
-
-    public AbstractBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
+    public AbstractBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
+        this.outputDirSelector = outputDirSelector;
         String profilerName = System.getProperty(PROFILER_KEY);
         boolean profile = profilerName != null && !profilerName.isEmpty();
-        String profilerTargetDir = getProfilerTargetDir();
         this.flameGraphGenerator = profile
-            ? new JfrDifferentialFlameGraphGenerator(new File(profilerTargetDir))
+            ? new JfrDifferentialFlameGraphGenerator(outputDirSelector)
             : ProfilerFlameGraphGenerator.NOOP;
         this.profiler = profile ? createProfiler(profilerName) : Profiler.NONE;
         this.gradleProfilerReporter = gradleProfilerReporter;
@@ -119,7 +115,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     }
 
     protected InvocationSettings.InvocationSettingsBuilder createInvocationSettingsBuilder(String testId, BuildExperimentSpec experiment) {
-        File outputDir = flameGraphGenerator.outputDirFor(testId, experiment);
+        File outputDir = outputDirSelector.outputDirFor(testId, experiment);
         InvocationSpec invocationSpec = experiment.getInvocation();
         return new InvocationSettings.InvocationSettingsBuilder()
             .setProjectDir(invocationSpec.getWorkingDirectory())

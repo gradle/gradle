@@ -42,8 +42,8 @@ import static java.util.Collections.emptyList;
 
 @CompileStatic
 public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
-    public MavenBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
-        super(gradleProfilerReporter);
+    public MavenBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
+        super(gradleProfilerReporter, outputDirSelector);
     }
 
     @Override
