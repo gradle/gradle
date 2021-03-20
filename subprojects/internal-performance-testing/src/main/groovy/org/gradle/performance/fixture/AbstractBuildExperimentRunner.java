@@ -29,6 +29,7 @@ import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Profiler;
 import org.gradle.profiler.ProfilerFactory;
 import org.gradle.profiler.ScenarioDefinition;
+import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.result.BuildInvocationResult;
 
 import java.io.File;
@@ -39,6 +40,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * Runs a single build experiment.
@@ -89,10 +92,6 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         return gradleProfilerReporter.getResultCollector();
     }
 
-    protected Profiler getProfiler() {
-        return profiler;
-    }
-
     @Override
     public void run(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
         System.out.println();
@@ -117,6 +116,21 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
+    }
+
+    protected InvocationSettings.InvocationSettingsBuilder createInvocationSettingsBuilder(String testId, BuildExperimentSpec experiment) {
+        File outputDir = flameGraphGenerator.outputDirFor(testId, experiment);
+        InvocationSpec invocationSpec = experiment.getInvocation();
+        return new InvocationSettings.InvocationSettingsBuilder()
+            .setProjectDir(invocationSpec.getWorkingDirectory())
+            .setProfiler(profiler)
+            .setBenchmark(true)
+            .setOutputDir(outputDir)
+            .setScenarioFile(null)
+            .setSysProperties(emptyMap())
+            .setWarmupCount(warmupsForExperiment(experiment))
+            .setIterations(invocationsForExperiment(experiment))
+            .setCsvFormat(CsvGenerator.Format.LONG);
     }
 
     private static String getExperimentOverride(String key) {

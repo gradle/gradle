@@ -35,7 +35,6 @@ import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
 import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
-import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
@@ -53,8 +52,6 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyMap;
 
 /**
  * {@inheritDoc}
@@ -145,7 +142,6 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     }
 
     private InvocationSettings createInvocationSettings(String testId, GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
-        File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(testId, experiment);
         GradleBuildInvoker daemonInvoker = invocationSpec.getUseToolingApi() ? GradleBuildInvoker.ToolingApi : GradleBuildInvoker.Cli;
         GradleBuildInvoker invoker = invocationSpec.isUseDaemon()
             ? daemonInvoker
@@ -155,24 +151,15 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         boolean measureGarbageCollection = experiment.isMeasureGarbageCollection()
             // Measuring GC needs build services which have been introduced in Gradle 6.1
             && experiment.getInvocation().getGradleDistribution().getVersion().getBaseVersion().compareTo(GradleVersion.version("6.1")) >= 0;
-        return new InvocationSettings.InvocationSettingsBuilder()
-            .setProjectDir(invocationSpec.getWorkingDirectory())
-            .setProfiler(getProfiler())
-            .setBenchmark(true)
-            .setOutputDir(outputDir)
+        return createInvocationSettingsBuilder(testId, experiment)
             .setInvoker(invoker)
             .setDryRun(false)
-            .setScenarioFile(null)
             .setVersions(ImmutableList.of(invocationSpec.getGradleDistribution().getVersion().getVersion()))
             .setTargets(invocationSpec.getTasksToRun())
-            .setSysProperties(emptyMap())
             .setGradleUserHome(determineGradleUserHome(invocationSpec))
-            .setWarmupCount(warmupsForExperiment(experiment))
-            .setIterations(invocationsForExperiment(experiment))
             .setMeasureConfigTime(false)
             .setMeasuredBuildOperations(experiment.getMeasuredBuildOperations())
             .setMeasureGarbageCollection(measureGarbageCollection)
-            .setCsvFormat(CsvGenerator.Format.LONG)
             .setBuildLog(invocationSpec.getBuildLog())
             .build();
     }

@@ -28,7 +28,6 @@ import org.gradle.profiler.Logging;
 import org.gradle.profiler.MavenScenarioDefinition;
 import org.gradle.profiler.MavenScenarioInvoker;
 import org.gradle.profiler.ScenarioDefinition;
-import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.result.BuildInvocationResult;
 import org.gradle.profiler.result.Sample;
 
@@ -40,7 +39,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 
 @CompileStatic
 public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
@@ -85,21 +83,12 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
         }
     }
 
-    private InvocationSettings createInvocationSettings(String title, MavenBuildExperimentSpec experimentSpec) {
-        File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(title, experimentSpec);
-        return new InvocationSettings.InvocationSettingsBuilder()
-            .setProjectDir(experimentSpec.getInvocation().getWorkingDirectory())
-            .setProfiler(getProfiler())
-            .setBenchmark(true)
-            .setOutputDir(outputDir)
+    private InvocationSettings createInvocationSettings(String testId, MavenBuildExperimentSpec experimentSpec) {
+        return createInvocationSettingsBuilder(testId, experimentSpec)
             .setInvoker(BuildInvoker.Maven)
             .setVersions(ImmutableList.of(experimentSpec.getInvocation().getMavenVersion()))
             .setTargets(experimentSpec.getInvocation().getTasksToRun())
-            .setSysProperties(emptyMap())
-            .setWarmupCount(warmupsForExperiment(experimentSpec))
-            .setIterations(invocationsForExperiment(experimentSpec))
             .setMeasuredBuildOperations(emptyList())
-            .setCsvFormat(CsvGenerator.Format.LONG)
             .build();
     }
 

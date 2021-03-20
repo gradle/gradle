@@ -35,7 +35,7 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
     }
 
     @Override
-    File getJfrOutputDirectory(String testId, BuildExperimentSpec spec) {
+    File outputDirFor(String testId, BuildExperimentSpec spec) {
         boolean multiVersion = spec instanceof GradleBuildExperimentSpec && spec.multiVersion
         def outputDir
         if (multiVersion) {
