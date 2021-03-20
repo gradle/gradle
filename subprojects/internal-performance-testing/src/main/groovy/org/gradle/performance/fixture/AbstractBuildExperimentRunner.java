@@ -53,7 +53,6 @@ import static java.util.Collections.emptyMap;
 public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
     private static final String PROFILER_KEY = "org.gradle.performance.profiler";
 
-    private final ProfilerFlameGraphGenerator flameGraphGenerator;
     private final GradleProfilerReporter gradleProfilerReporter;
     private final Profiler profiler;
     private final OutputDirSelector outputDirSelector;
@@ -61,12 +60,13 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     public AbstractBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
         this.outputDirSelector = outputDirSelector;
         String profilerName = System.getProperty(PROFILER_KEY);
-        boolean profile = profilerName != null && !profilerName.isEmpty();
-        this.flameGraphGenerator = profile
-            ? new JfrDifferentialFlameGraphGenerator(outputDirSelector)
-            : ProfilerFlameGraphGenerator.NOOP;
-        this.profiler = profile ? createProfiler(profilerName) : Profiler.NONE;
+        this.profiler = isProfilingActive() ? createProfiler(profilerName) : Profiler.NONE;
         this.gradleProfilerReporter = gradleProfilerReporter;
+    }
+
+    public static boolean isProfilingActive() {
+        String profilerName = System.getProperty(PROFILER_KEY);
+        return profilerName != null && !profilerName.isEmpty();
     }
 
     private Profiler createProfiler(String profilerName) {
@@ -78,10 +78,6 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             ? new String[] {"--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME")}
             : new String[] {};
         return profilerFactory.createFromOptions(optionParser.parse(options));
-    }
-
-    protected ProfilerFlameGraphGenerator getFlameGraphGenerator() {
-        return flameGraphGenerator;
     }
 
     protected BenchmarkResultCollector getResultCollector() {

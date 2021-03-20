@@ -18,13 +18,10 @@ package org.gradle.performance.fixture
 
 import com.google.common.base.Strings
 import groovy.transform.CompileStatic
-import groovy.transform.PackageScope
-
 /**
  * Generates flame graphs based on JFR recordings.
  */
 @CompileStatic
-@PackageScope
 class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator {
 
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()

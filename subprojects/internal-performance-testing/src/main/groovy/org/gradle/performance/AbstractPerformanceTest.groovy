@@ -16,9 +16,14 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.fixture.AbstractBuildExperimentRunner
+import org.gradle.performance.fixture.JfrDifferentialFlameGraphGenerator
 import org.gradle.performance.fixture.OutputDirSelector
+import org.gradle.performance.fixture.ProfilerFlameGraphGenerator
+import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
+import org.gradle.performance.results.PerformanceTestResult
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
@@ -28,10 +33,23 @@ abstract class AbstractPerformanceTest extends Specification {
 
     OutputDirSelector outputDirSelector
     GradleProfilerReporter gradleProfilerReporter
+    ProfilerFlameGraphGenerator differentialFlameGraphGenerator
+    DataReporter<PerformanceTestResult> dataReporter
 
     def setup() {
         this.outputDirSelector = new DefaultOutputDirSelector(temporaryFolder.testDirectory)
         this.gradleProfilerReporter = new GradleProfilerReporter(outputDirSelector)
+        this.differentialFlameGraphGenerator = AbstractBuildExperimentRunner.isProfilingActive() ? new JfrDifferentialFlameGraphGenerator(outputDirSelector) : ProfilerFlameGraphGenerator.NOOP
+        this.dataReporter = gradleProfilerReporter.reportAlso(new DataReporter<PerformanceTestResult>() {
+            @Override
+            void report(PerformanceTestResult results) {
+                differentialFlameGraphGenerator.generateDifferentialGraphs(results.testId)
+            }
+
+            @Override
+            void close() throws IOException {
+            }
+        })
     }
 
     abstract TestNameTestDirectoryProvider getTemporaryFolder()

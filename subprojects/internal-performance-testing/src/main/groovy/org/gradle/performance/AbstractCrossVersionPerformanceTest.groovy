@@ -57,7 +57,7 @@ class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
     def setup() {
         runner = new CrossVersionPerformanceTestRunner(
                 new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
-                RESULTS_STORE.reportAlso(gradleProfilerReporter),
+                RESULTS_STORE.reportAlso(dataReporter),
                 new ReleasedVersionDistributions(buildContext),
                 buildContext
         )

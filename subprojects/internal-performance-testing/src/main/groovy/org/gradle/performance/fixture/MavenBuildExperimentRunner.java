@@ -71,7 +71,6 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
                     return (Consumer<T>) consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter);
                 }
             });
-            getFlameGraphGenerator().generateDifferentialGraphs(testId);
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {

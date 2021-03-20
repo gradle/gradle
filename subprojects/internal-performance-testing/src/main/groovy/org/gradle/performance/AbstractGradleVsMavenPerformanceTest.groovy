@@ -45,7 +45,7 @@ class AbstractGradleVsMavenPerformanceTest extends AbstractPerformanceTest {
         runner = new GradleVsMavenPerformanceTestRunner(
             temporaryFolder,
             new GradleVsMavenBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
-            RESULT_STORE.reportAlso(gradleProfilerReporter),
+            RESULT_STORE.reportAlso(dataReporter),
             buildContext
         ) {
             @Override
