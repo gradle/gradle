@@ -49,13 +49,13 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
     }
 
     @Override
-    public void doRun(BuildExperimentSpec experiment, MeasuredOperationList results) {
+    public void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
         MavenBuildExperimentSpec experimentSpec = (MavenBuildExperimentSpec) experiment;
 
         MavenInvocationSpec invocationSpec = experimentSpec.getInvocation();
         File workingDirectory = invocationSpec.getWorkingDirectory();
 
-        InvocationSettings invocationSettings = createInvocationSettings(experimentSpec);
+        InvocationSettings invocationSettings = createInvocationSettings(testId, experimentSpec);
         MavenScenarioDefinition scenarioDefinition = createScenarioDefinition(experimentSpec, invocationSettings);
 
         try {
@@ -73,7 +73,7 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
                     return (Consumer<T>) consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter);
                 }
             });
-            getFlameGraphGenerator().generateDifferentialGraphs(experiment);
+            getFlameGraphGenerator().generateDifferentialGraphs(testId);
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -85,8 +85,8 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
         }
     }
 
-    private InvocationSettings createInvocationSettings(MavenBuildExperimentSpec experimentSpec) {
-        File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(experimentSpec);
+    private InvocationSettings createInvocationSettings(String title, MavenBuildExperimentSpec experimentSpec) {
+        File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(title, experimentSpec);
         return new InvocationSettings.InvocationSettingsBuilder()
             .setProjectDir(experimentSpec.getInvocation().getWorkingDirectory())
             .setProfiler(getProfiler())

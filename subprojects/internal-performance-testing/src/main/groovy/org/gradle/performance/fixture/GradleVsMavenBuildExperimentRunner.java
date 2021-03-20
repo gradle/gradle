@@ -32,11 +32,11 @@ public class GradleVsMavenBuildExperimentRunner extends AbstractBuildExperimentR
     }
 
     @Override
-    public void doRun(BuildExperimentSpec experiment, MeasuredOperationList results) {
+    public void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
         if (experiment instanceof MavenBuildExperimentSpec) {
-            mavenRunner.doRun(experiment, results);
+            mavenRunner.doRun(testId, experiment, results);
         } else {
-            gradleRunner.doRun(experiment, results);
+            gradleRunner.doRun(testId, experiment, results);
         }
     }
 }

@@ -35,25 +35,33 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
     }
 
     @Override
-    File getJfrOutputDirectory(BuildExperimentSpec spec) {
+    File getJfrOutputDirectory(String testId, BuildExperimentSpec spec) {
         boolean multiVersion = spec instanceof GradleBuildExperimentSpec && spec.multiVersion
-        def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
-        if (fileSafeName.endsWith('-')) {
-            fileSafeName = fileSafeName.substring(0, fileSafeName.length() - 1)
-        }
-        // When the path is too long on Windows, then JProfiler can't write to the JPS file
-        // Length 40 seems to work.
-        // It may be better to create the flame graph in the tmp directory, and then move it to the right place after the build.
-        def outputDir = new File(flamesBaseDirectory, shortenPath(fileSafeName, 40))
+        def outputDir
         if (multiVersion) {
             String version = ((GradleBuildExperimentSpec) spec).getInvocation().gradleDistribution.version.version
-            outputDir = new File(outputDir, version)
+            outputDir = new File(baseOutputDirFor(testId), version)
         } else {
-            // TODO wolfs
-//            outputDir = new File(outputDir, )
+            outputDir = new File(baseOutputDirFor(testId), fileSafeNameFor(spec.getDisplayName()))
         }
         outputDir.mkdirs()
         return outputDir
+    }
+
+    private File baseOutputDirFor(String testId) {
+        String fileSafeName = fileSafeNameFor(testId)
+        // When the path is too long on Windows, then JProfiler can't write to the JPS file
+        // Length 40 seems to work.
+        // It may be better to create the flame graph in the tmp directory, and then move it to the right place after the build.
+        return new File(flamesBaseDirectory, shortenPath(fileSafeName, 40))
+    }
+
+    private static String fileSafeNameFor(String title) {
+        def fileSafeName = title.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
+        if (fileSafeName.endsWith('-')) {
+            fileSafeName = fileSafeName.substring(0, fileSafeName.length() - 1)
+        }
+        fileSafeName
     }
 
     private static String shortenPath(String longName, int expectedMaxLength) {
@@ -65,8 +73,8 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
     }
 
     @Override
-    void generateDifferentialGraphs(BuildExperimentSpec experimentSpec) {
-        def baseOutputDir = getJfrOutputDirectory(experimentSpec).getParentFile()
+    void generateDifferentialGraphs(String testId) {
+        def baseOutputDir = new File(flamesBaseDirectory, shortenPath(fileSafeNameFor(testId), 40))
         Collection<File> experiments = baseOutputDir.listFiles().findAll { it.directory }
         experiments.each { File experiment ->
             experiments.findAll { it != experiment }.each { File baseline ->
@@ -95,7 +103,8 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
             String underTestBasename = stacksBasename(underTestStacks, type, level)
             String baselineTestBasename = stacksBasename(baselineStacks, type, level)
             String commonPrefix = Strings.commonPrefix(underTestBasename, baselineTestBasename)
-            String diffBaseName = "${underTestBasename}-${negate ? "forward-" : "backward-"}diff-vs-${baselineTestBasename.substring(commonPrefix.length())}${postFixFor(type, level)}"
+            String commonSuffix = Strings.commonSuffix(underTestBasename, baselineTestBasename)
+            String diffBaseName = "${underTestBasename}-vs-${baselineTestBasename.substring(0, baselineTestBasename.length() - commonSuffix.length()).substring(commonPrefix.length())}${postFixFor(type, level)}-${negate ? "forward-" : "backward-"}diff"
             File diff = new File(underTestStacks.parentFile, "diffs/${diffBaseName}-stacks.txt")
             diff.parentFile.mkdirs()
             if (negate) {

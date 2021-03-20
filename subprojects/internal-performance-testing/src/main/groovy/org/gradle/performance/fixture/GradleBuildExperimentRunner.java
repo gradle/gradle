@@ -77,7 +77,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     }
 
     @Override
-    public void doRun(BuildExperimentSpec experiment, MeasuredOperationList results) {
+    public void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
         InvocationSpec invocationSpec = experiment.getInvocation();
         File workingDirectory = invocationSpec.getWorkingDirectory();
 
@@ -93,7 +93,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
 
         GradleBuildExperimentSpec gradleExperiment = (GradleBuildExperimentSpec) experiment;
-        InvocationSettings invocationSettings = createInvocationSettings(buildSpec, gradleExperiment);
+        InvocationSettings invocationSettings = createInvocationSettings(testId, buildSpec, gradleExperiment);
         GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(gradleExperiment, invocationSettings, invocation);
 
         try {
@@ -110,7 +110,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             scenarioInvoker.doRun(scenarioDefinition,
                 invocationSettings,
                 consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter));
-            getFlameGraphGenerator().generateDifferentialGraphs(experiment);
+            getFlameGraphGenerator().generateDifferentialGraphs(testId);
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -144,8 +144,8 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         return new GradleScenarioInvoker(daemonControl, pidInstrumentation);
     }
 
-    private InvocationSettings createInvocationSettings(GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
-        File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(experiment);
+    private InvocationSettings createInvocationSettings(String testId, GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
+        File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(testId, experiment);
         GradleBuildInvoker daemonInvoker = invocationSpec.getUseToolingApi() ? GradleBuildInvoker.ToolingApi : GradleBuildInvoker.Cli;
         GradleBuildInvoker invoker = invocationSpec.isUseDaemon()
             ? daemonInvoker

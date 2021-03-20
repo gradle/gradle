@@ -94,7 +94,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     }
 
     @Override
-    public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
+    public void run(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
         System.out.println();
         System.out.printf("%s ...%n", experiment.getDisplayName());
         System.out.println();
@@ -104,10 +104,10 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         workingDirectory.mkdirs();
         copyTemplateTo(experiment, workingDirectory);
 
-        doRun(experiment, results);
+        doRun(testId, experiment, results);
     }
 
-    protected abstract void doRun(BuildExperimentSpec experiment, MeasuredOperationList results);
+    protected abstract void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results);
 
     private static void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
         try {
