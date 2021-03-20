@@ -221,6 +221,6 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     }
 
     private String safeScenarioName(String name) {
-        return name.replaceAll("[^a-zA-Z0-9.-]", "_");
+        return name.replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("-+", "-");
     }
 }
