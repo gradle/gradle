@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.nativeplatform.HostMachine;
 import org.gradle.nativeplatform.TargetMachineBuilder;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
@@ -26,19 +27,18 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 public class DefaultTargetMachineFactory implements TargetMachineFactory {
     private final ObjectFactory objectFactory;
+    private final HostMachine hostMachine;
 
-    public DefaultTargetMachineFactory(ObjectFactory objectFactory) {
+    public DefaultTargetMachineFactory(ObjectFactory objectFactory, HostMachine hostMachine) {
         this.objectFactory = objectFactory;
+        this.hostMachine = hostMachine;
     }
 
     /**
      * Returns a {@link TargetMachine} representing the operating system and architecture of the current host.
      */
     public TargetMachine host() {
-        DefaultNativePlatform host = DefaultNativePlatform.host();
-        OperatingSystemFamily operatingSystemFamily = objectFactory.named(OperatingSystemFamily.class, host.getOperatingSystem().toFamilyName());
-        MachineArchitecture machineArchitecture = objectFactory.named(MachineArchitecture.class, host.getArchitecture().getName());
-        return new TargetMachineImpl(operatingSystemFamily, machineArchitecture);
+        return new TargetMachineImpl(hostMachine.getOperatingSystemFamily(), hostMachine.getArchitecture());
     }
 
     @Override

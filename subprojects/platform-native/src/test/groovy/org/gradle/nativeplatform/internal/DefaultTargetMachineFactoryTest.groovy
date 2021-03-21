@@ -16,11 +16,12 @@
 
 package org.gradle.nativeplatform.internal
 
+import org.gradle.nativeplatform.HostMachine
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultTargetMachineFactoryTest extends Specification {
-    def factory = new DefaultTargetMachineFactory(TestUtil.objectFactory())
+    def factory = new DefaultTargetMachineFactory(TestUtil.objectFactory(), Stub(HostMachine))
 
     def "can use created target machines in Set"() {
         def windows1 = factory.windows
