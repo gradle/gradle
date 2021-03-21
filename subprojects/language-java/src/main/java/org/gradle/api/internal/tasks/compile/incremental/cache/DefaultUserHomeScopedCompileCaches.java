@@ -17,18 +17,15 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisSerializer;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotDataSerializer;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.PersistentClasspathEntrySnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.cache.Cache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
@@ -37,9 +34,9 @@ import java.io.Closeable;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompileCaches, Closeable {
-    private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
+    private final Cache<HashCode, ClasspathEntrySnapshotData> classpathEntrySnapshotCache;
     private final PersistentCache cache;
-    private final DefaultClassAnalysisCache classAnalysisCache;
+    private final Cache<HashCode, ClassAnalysis> classAnalysisCache;
 
     public DefaultUserHomeScopedCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
         cache = cacheRepository
@@ -47,13 +44,13 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
             .withDisplayName("Java compile cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
-        PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = PersistentIndexedCacheParameters.of("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotDataSerializer(interner))
+        PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = PersistentIndexedCacheParameters.of("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotData.Serializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
-        this.classpathEntrySnapshotCache = new PersistentClasspathEntrySnapshotCache(cache.createCache(jarCacheParameters));
+        this.classpathEntrySnapshotCache = new MinimalPersistentCache<>(cache.createCache(jarCacheParameters));
 
-        PersistentIndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = PersistentIndexedCacheParameters.of("classAnalysis", new HashCodeSerializer(), new ClassAnalysisSerializer(interner))
+        PersistentIndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = PersistentIndexedCacheParameters.of("classAnalysis", new HashCodeSerializer(), new ClassAnalysis.Serializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
-        this.classAnalysisCache = new DefaultClassAnalysisCache(cache.createCache(classCacheParameters));
+        this.classAnalysisCache = new MinimalPersistentCache<>(cache.createCache(classCacheParameters));
     }
 
     @Override
@@ -62,12 +59,12 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
     }
 
     @Override
-    public ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache() {
+    public Cache<HashCode, ClasspathEntrySnapshotData> getClasspathEntrySnapshotCache() {
         return classpathEntrySnapshotCache;
     }
 
     @Override
-    public DefaultClassAnalysisCache getClassAnalysisCache() {
+    public Cache<HashCode, ClassAnalysis> getClassAnalysisCache() {
         return classAnalysisCache;
     }
 }

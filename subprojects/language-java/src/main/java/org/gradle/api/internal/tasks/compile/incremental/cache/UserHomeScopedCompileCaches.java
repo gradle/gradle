@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.cache.Cache;
+import org.gradle.internal.hash.HashCode;
 
 public interface UserHomeScopedCompileCaches {
-    ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache();
-    ClassAnalysisCache getClassAnalysisCache();
+    Cache<HashCode, ClasspathEntrySnapshotData> getClasspathEntrySnapshotCache();
+    Cache<HashCode, ClassAnalysis> getClassAnalysisCache();
 }

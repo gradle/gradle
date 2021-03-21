@@ -788,8 +788,6 @@ sourceSets {
             ${mavenCentralRepository()}
             if (providers.gradleProperty("withIcu").forUseAtConfigurationTime().isPresent()) {
                 dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
-            } else {
-                dependencies { implementation 'javax.inject:javax.inject:1' }
             }
 
         """
@@ -1117,7 +1115,7 @@ sourceSets {
         executer.stop()
         file("user-home").deleteDir()
 
-        and: "We're no longer using the old dependency"
+        and: "Current compilation uses a slightly different dependency"
         buildFile << "dependencies { implementation 'org.apache.commons:commons-lang3:3.9' }"
 
         then:

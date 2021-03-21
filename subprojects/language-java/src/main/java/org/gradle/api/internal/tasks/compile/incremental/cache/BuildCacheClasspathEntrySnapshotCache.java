@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.classpath;
+package org.gradle.api.internal.tasks.compile.incremental.cache;
 
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
+import org.gradle.cache.Cache;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
@@ -28,42 +30,60 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.function.Function;
 
 /**
  * Stores classpath entry snapshots in the build cache and loads them from there when they can't be found in the given delegate.
  */
-public class BuildCacheClasspathEntrySnapshotCache implements ClasspathEntrySnapshotCache {
-    private final ClasspathEntrySnapshotCache delegate;
+public class BuildCacheClasspathEntrySnapshotCache implements Cache<HashCode, ClasspathEntrySnapshotData> {
+    private final Cache<HashCode, ClasspathEntrySnapshotData> delegate;
     private final BuildCacheController buildCache;
     private final Serializer<ClasspathEntrySnapshotData> serializer;
 
-    public BuildCacheClasspathEntrySnapshotCache(ClasspathEntrySnapshotCache delegate, BuildCacheController buildCache, Serializer<ClasspathEntrySnapshotData> serializer) {
+    public BuildCacheClasspathEntrySnapshotCache(Cache<HashCode, ClasspathEntrySnapshotData> delegate, BuildCacheController buildCache, Serializer<ClasspathEntrySnapshotData> serializer) {
         this.delegate = delegate;
         this.buildCache = buildCache;
         this.serializer = serializer;
     }
 
     @Override
-    public ClasspathEntrySnapshot get(HashCode hash) {
-        ClasspathEntrySnapshot snapshot = delegate.get(hash);
-        if (snapshot != null) {
-            return snapshot;
-        }
-        ClasspathEntrySnapshotData data = buildCache.load(new DeserializingLoadCommand(hash, serializer)).orElse(null);
+    public ClasspathEntrySnapshotData get(HashCode key, Function<? super HashCode, ? extends ClasspathEntrySnapshotData> factory) {
+        return delegate.get(key, hash -> {
+            ClasspathEntrySnapshotData data = loadFromCache(key);
+            if (data == null) {
+                data = factory.apply(hash);
+                storeInCache(hash, data);
+            }
+            return data;
+        });
+    }
+
+    @Nullable
+    @Override
+    public ClasspathEntrySnapshotData getIfPresent(HashCode key) {
+        ClasspathEntrySnapshotData data = delegate.getIfPresent(key);
         if (data != null) {
-            snapshot = new ClasspathEntrySnapshot(data);
-            delegate.put(hash, snapshot);
+            return data;
         }
-        return snapshot;
+        return loadFromCache(key);
+    }
+
+    private ClasspathEntrySnapshotData loadFromCache(HashCode key) {
+        return buildCache.load(new DeserializingLoadCommand(key, serializer)).orElse(null);
     }
 
     @Override
-    public void put(HashCode hash, ClasspathEntrySnapshot snapshot) {
-        delegate.put(hash, snapshot);
-        buildCache.store(new SerializingStoreCommand(hash, serializer, snapshot.getData()));
+    public void put(HashCode hash, ClasspathEntrySnapshotData data) {
+        delegate.put(hash, data);
+        storeInCache(hash, data);
+    }
+
+    private void storeInCache(HashCode hash, ClasspathEntrySnapshotData data) {
+        buildCache.store(new SerializingStoreCommand(hash, serializer, data));
     }
 
     private static class DeserializingLoadCommand implements BuildCacheLoadCommand<ClasspathEntrySnapshotData> {

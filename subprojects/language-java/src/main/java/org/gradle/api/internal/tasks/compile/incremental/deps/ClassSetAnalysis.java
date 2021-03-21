@@ -66,10 +66,6 @@ public class ClassSetAnalysis {
         this.resourceDependenciesFromAnnotationProcessing = resourceDependenciesFromAnnotationProcessing.build();
     }
 
-    public ClassSetAnalysis withAnnotationProcessingData(AnnotationProcessingData annotationProcessingData) {
-        return new ClassSetAnalysis(classAnalysis, annotationProcessingData);
-    }
-
     public DependentsSet getRelevantDependents(Iterable<String> classes, IntSet constants) {
         final Set<String> accessibleResultClasses = new LinkedHashSet<>();
         final Set<String> privateResultClasses = new LinkedHashSet<>();

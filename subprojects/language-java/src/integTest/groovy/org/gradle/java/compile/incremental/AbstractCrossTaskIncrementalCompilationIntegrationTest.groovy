@@ -171,7 +171,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         """
         addDependency("app", "impl")
         def app = new CompilationOutputsFixture(file("app/build/classes"))
-        source api: ["class A {}", "class Other {}"]
+        source api: ["class A {}"]
         source impl: ["class B { public A a;}"]
         source app: ["class Unrelated {}", "class C { public B b; }"]
         app.snapshot {
@@ -196,7 +196,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         ],
         because = "gradle/configuration-cache#270"
     )
-    def "deletion of jar without dependents leads to full recompile"() {
+    def "deletion of jar without dependents does not recompile any classes"() {
         source api: ["class A {}"], impl: ["class SomeImpl {}"]
         impl.snapshot { run language.compileTaskName }
 
@@ -206,7 +206,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         run "impl:${language.compileTaskName}"
 
         then:
-        impl.recompiledClasses("SomeImpl")
+        impl.noneRecompiled()
     }
 
     @ToBeFixedForConfigurationCache(
@@ -528,12 +528,12 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
     def "changes to resources in jar do not incur recompilation"() {
         source impl: ["class A {}"]
-        file("api/src/main/resources/some-resource.txt") << "aaa"
         impl.snapshot { run "impl:${language.compileTaskName}" }
 
         when:
-        file("api/src/main/resources/some-resource.txt") << "bbb"
-        run "impl:${language.compileTaskName}", "-i"
+        file("api/src/main/resources/some-resource.txt") << "xxx"
+        source api: ["class A { String change; }"]
+        run "impl:${language.compileTaskName}"
 
         then:
         impl.noneRecompiled()
@@ -686,6 +686,16 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
         then:
         impl.recompiledClasses("A")
+    }
+
+    def "new jar without duplicate class does not trigger compilation"() {
+        source impl: ["class A {}"]
+        impl.snapshot { run("impl:${language.compileTaskName}") }
+        when:
+        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.13' }"
+        run("impl:${language.compileTaskName}")
+        then:
+        impl.noneRecompiled()
     }
 
     def "changed jar with duplicate class appearing earlier on classpath must trigger compilation"() {

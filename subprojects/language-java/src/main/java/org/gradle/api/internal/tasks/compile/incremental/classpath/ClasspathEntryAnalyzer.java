@@ -35,22 +35,22 @@ import java.util.Map;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
-public class DefaultClasspathEntrySnapshotter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClasspathEntrySnapshotter.class);
+public class ClasspathEntryAnalyzer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathEntryAnalyzer.class);
 
     private final FileHasher fileHasher;
     private final StreamHasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
     private final FileOperations fileOperations;
 
-    public DefaultClasspathEntrySnapshotter(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {
+    public ClasspathEntryAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {
         this.fileHasher = fileHasher;
         this.hasher = streamHasher;
         this.analyzer = analyzer;
         this.fileOperations = fileOperations;
     }
 
-    public ClasspathEntrySnapshot createSnapshot(HashCode hash, File classpathEntry) {
+    public ClasspathEntrySnapshotData analyze(HashCode hash, File classpathEntry) {
         final Map<String, HashCode> hashes = new HashMap<>();
         final ClassDependentsAccumulator accumulator = new ClassDependentsAccumulator();
 
@@ -63,7 +63,7 @@ public class DefaultClasspathEntrySnapshotter {
             }
         }
 
-        return new ClasspathEntrySnapshot(new ClasspathEntrySnapshotData(hash, hashes, accumulator.getAnalysis()));
+        return new ClasspathEntrySnapshotData(hash, hashes, accumulator.getAnalysis());
     }
 
     private void visit(File classpathEntry, Map<String, HashCode> hashes, ClassDependentsAccumulator accumulator) {

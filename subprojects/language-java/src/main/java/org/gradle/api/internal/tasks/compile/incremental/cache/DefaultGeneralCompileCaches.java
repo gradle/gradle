@@ -17,33 +17,33 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.BuildCacheClasspathEntrySnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotDataSerializer;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.cache.Cache;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.internal.hash.HashCode;
 
 public class DefaultGeneralCompileCaches implements GeneralCompileCaches {
 
-    private final ClasspathEntrySnapshotCache snapshotCache;
-    private final ClassAnalysisCache classAnalysisCache;
+    private final Cache<HashCode, ClasspathEntrySnapshotData> snapshotCache;
+    private final Cache<HashCode, ClassAnalysis> classAnalysisCache;
 
     public DefaultGeneralCompileCaches(UserHomeScopedCompileCaches userHomeScopedCompileCaches, BuildCacheController buildCache, StringInterner interner) {
         snapshotCache = new BuildCacheClasspathEntrySnapshotCache(
             userHomeScopedCompileCaches.getClasspathEntrySnapshotCache(),
             buildCache,
-            new ClasspathEntrySnapshotDataSerializer(interner)
+            new ClasspathEntrySnapshotData.Serializer(interner)
         );
         classAnalysisCache = userHomeScopedCompileCaches.getClassAnalysisCache();
     }
 
     @Override
-    public ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache() {
+    public Cache<HashCode, ClasspathEntrySnapshotData> getClasspathEntrySnapshotCache() {
         return snapshotCache;
     }
 
     @Override
-    public ClassAnalysisCache getClassAnalysisCache() {
+    public Cache<HashCode, ClassAnalysis> getClassAnalysisCache() {
         return classAnalysisCache;
     }
 }

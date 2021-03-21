@@ -16,8 +16,30 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
+import org.gradle.cache.Cache;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.vfs.FileSystemAccess;
+
 import java.io.File;
 
-public interface ClasspathEntrySnapshotter {
-    ClasspathEntrySnapshot createSnapshot(File classpathEntry);
+public class ClasspathEntrySnapshotter {
+
+    private final ClasspathEntryAnalyzer analyzer;
+    private final FileSystemAccess fileSystemAccess;
+    private final Cache<HashCode, ClasspathEntrySnapshotData> cache;
+
+    public ClasspathEntrySnapshotter(ClasspathEntryAnalyzer analyzer,
+                                     FileSystemAccess fileSystemAccess,
+                                     Cache<HashCode, ClasspathEntrySnapshotData> cache) {
+        this.analyzer = analyzer;
+        this.fileSystemAccess = fileSystemAccess;
+        this.cache = cache;
+    }
+
+    public ClasspathEntrySnapshotData createSnapshot(final File classpathEntry) {
+        return fileSystemAccess.read(
+            classpathEntry.getAbsolutePath(),
+            snapshot -> cache.get(snapshot.getHash(), hash -> analyzer.analyze(hash, classpathEntry))
+        );
+    }
 }

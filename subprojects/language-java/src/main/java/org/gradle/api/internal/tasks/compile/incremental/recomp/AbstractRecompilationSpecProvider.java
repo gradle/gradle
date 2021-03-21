@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
@@ -44,6 +45,18 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         this.deleter = deleter;
         this.fileOperations = fileOperations;
         this.sourceTree = sourceTree;
+    }
+
+    protected void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
+        DependentsSet dependents = current.getDependentsOfClasspathChanges(previous);
+        if (dependents.isDependencyToAll()) {
+            String description = dependents.getDescription();
+            spec.setFullRebuildCause(description != null ? description : "a changed class on the classpath was a dependency to all others (e.g. it contained a public constant)", null);
+            return;
+        }
+        spec.addClassesToCompile(dependents.getPrivateDependentClasses());
+        spec.addClassesToCompile(dependents.getAccessibleDependentClasses());
+        spec.addResourcesToGenerate(dependents.getDependentResources());
     }
 
     protected boolean deleteStaleFilesIn(PatternSet filesToDelete, final File destinationDir) {

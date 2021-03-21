@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClasspathEntrySnapshotter;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.internal.hash.FileHasher;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntryAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.time.Time;
@@ -38,16 +34,16 @@ import java.io.FileOutputStream;
 public class PreviousCompilationAccess {
     private static final Logger LOG = LoggerFactory.getLogger(PreviousCompilationAccess.class);
 
-    private final DefaultClasspathEntrySnapshotter snapshotter;
+    private final ClasspathEntryAnalyzer analyzer;
 
-    public PreviousCompilationAccess(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {
-        this.snapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, analyzer, fileOperations);
+    public PreviousCompilationAccess(ClasspathEntryAnalyzer analyzer) {
+        this.analyzer = analyzer;
     }
 
-    public ClassSetAnalysis analyseClasses(File classesDirectory) {
+    public ClassSetAnalysisData analyseClasses(File classesDirectory) {
         Timer clock = Time.startTimer();
         HashCode unusedHashCode = HashCode.fromInt(0);
-        ClasspathEntrySnapshot snapshot = snapshotter.createSnapshot(unusedHashCode, classesDirectory);
+        ClasspathEntrySnapshotData snapshot = analyzer.analyze(unusedHashCode, classesDirectory);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
         return snapshot.getClassAnalysis();
     }

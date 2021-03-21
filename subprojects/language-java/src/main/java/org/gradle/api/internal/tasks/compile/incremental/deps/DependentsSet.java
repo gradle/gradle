@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,6 +37,31 @@ public abstract class DependentsSet {
         } else {
             return new DefaultDependentsSet(ImmutableSet.copyOf(privateDependentClasses), ImmutableSet.copyOf(accessibleDependentClasses), ImmutableSet.copyOf(dependentResources));
         }
+    }
+
+    public static DependentsSet merge(Collection<DependentsSet> sets) {
+        int privateCount = 0;
+        int accessibleCount = 0;
+        int resourceCount = 0;
+        for (DependentsSet set : sets) {
+            if (set.isDependencyToAll()) {
+                return set;
+            }
+            privateCount += set.getPrivateDependentClasses().size();
+            accessibleCount += set.getAccessibleDependentClasses().size();
+            resourceCount += set.getDependentResources().size();
+        }
+
+        ImmutableSet.Builder<String> privateDependentClasses = ImmutableSet.builderWithExpectedSize(privateCount);
+        ImmutableSet.Builder<String> accessibleDependentClasses = ImmutableSet.builderWithExpectedSize(accessibleCount);
+        ImmutableSet.Builder<GeneratedResource> dependentResources = ImmutableSet.builderWithExpectedSize(resourceCount);
+
+        for (DependentsSet set : sets) {
+            privateDependentClasses.addAll(set.getPrivateDependentClasses());
+            accessibleDependentClasses.addAll(set.getAccessibleDependentClasses());
+            dependentResources.addAll(set.getDependentResources());
+        }
+        return DependentsSet.dependents(privateDependentClasses.build(), accessibleDependentClasses.build(), dependentResources.build());
     }
 
     public static DependentsSet dependencyToAll() {

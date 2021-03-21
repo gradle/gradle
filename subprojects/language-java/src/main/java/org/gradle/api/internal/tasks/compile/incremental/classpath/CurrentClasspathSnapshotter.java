@@ -17,43 +17,49 @@
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.Action;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-public class ClasspathSnapshotFactory {
+public class CurrentClasspathSnapshotter {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CurrentClasspathSnapshotter.class);
     private final ClasspathEntrySnapshotter classpathEntrySnapshotter;
     private final BuildOperationExecutor buildOperationExecutor;
+    private List<ClasspathEntrySnapshotData> classpathSnapshot;
 
-    public ClasspathSnapshotFactory(ClasspathEntrySnapshotter classpathEntrySnapshotter, BuildOperationExecutor buildOperationExecutor) {
+    public CurrentClasspathSnapshotter(ClasspathEntrySnapshotter classpathEntrySnapshotter, BuildOperationExecutor buildOperationExecutor) {
         this.classpathEntrySnapshotter = classpathEntrySnapshotter;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    ClasspathSnapshot createSnapshot(final Iterable<File> entries) {
-        final List<CreateSnapshot> snapshotOperations = snapshotAll(entries);
-
-        final List<ClasspathEntrySnapshot> snapshots = new ArrayList<>();
-        final List<HashCode> hashes = new ArrayList<>();
-
-        for (CreateSnapshot operation : snapshotOperations) {
-            ClasspathEntrySnapshot snapshot = operation.snapshot;
-            if (snapshot != null) {
-                snapshots.add(snapshot);
-                hashes.add(snapshot.getHash());
-            }
+    public List<ClasspathEntrySnapshotData> getClasspathSnapshot(final Iterable<File> entries) {
+        if (classpathSnapshot == null) {
+            Timer clock = Time.startTimer();
+            classpathSnapshot = doSnapshot(entries);
+            LOG.info("Created classpath snapshot for incremental compilation in {}.", clock.getElapsed());
         }
+        return classpathSnapshot;
+    }
 
-        ClasspathSnapshotData classpathSnapshotData = new ClasspathSnapshotData(hashes);
-        return new ClasspathSnapshot(snapshots, classpathSnapshotData);
+    private List<ClasspathEntrySnapshotData> doSnapshot(Iterable<File> entries) {
+        return snapshotAll(entries).stream()
+            .map(CreateSnapshot::getSnapshot)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     private List<CreateSnapshot> snapshotAll(final Iterable<File> entries) {
@@ -71,7 +77,7 @@ public class ClasspathSnapshotFactory {
 
     private class CreateSnapshot implements RunnableBuildOperation {
         private final File entry;
-        private ClasspathEntrySnapshot snapshot;
+        private ClasspathEntrySnapshotData snapshot;
 
         private CreateSnapshot(File entry) {
             this.entry = entry;
@@ -87,6 +93,11 @@ public class ClasspathSnapshotFactory {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName("Create incremental compile snapshot for " + entry);
+        }
+
+        @Nullable
+        public ClasspathEntrySnapshotData getSnapshot() {
+            return snapshot;
         }
     }
 }

@@ -20,28 +20,28 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisDa
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
-class ClasspathEntrySnapshotTest extends Specification {
+class ClasspathSnapshotTest extends Specification {
 
-    def analysis = Stub(ClassSetAnalysisData)
+    def analysis = new ClassSetAnalysisData()
 
-    private ClasspathEntrySnapshot snapshot(Map<String, HashCode> hashes, ClassSetAnalysisData a) {
-        new ClasspathEntrySnapshot(new ClasspathEntrySnapshotData(HashCode.fromInt(0x1234), hashes, a))
+    private ClasspathSnapshot snapshot(Map<String, HashCode> hashes, ClassSetAnalysisData a) {
+        new ClasspathSnapshot([new ClasspathEntrySnapshotData(HashCode.fromInt(0x1234), hashes, a)])
     }
 
     def "knows when there are no affected classes since some other snapshot"() {
-        ClasspathEntrySnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)], analysis)
-        ClasspathEntrySnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)], analysis)
+        ClasspathSnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)], analysis)
+        ClasspathSnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)], analysis)
 
         expect:
-        s1.getChangedClassesSince(s2).isEmpty()
+        s1.getChangesSince(s2).dependents.isEmpty()
     }
 
     def "knows when there are changed classes since other snapshot"() {
-        ClasspathEntrySnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcc)], analysis)
-        ClasspathEntrySnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbbbb)], analysis)
+        ClasspathSnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcc)], analysis)
+        ClasspathSnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbbbb)], analysis)
 
         expect:
-        s1.getChangedClassesSince(s2) == ["B", "C"] as Set
-        s2.getChangedClassesSince(s1) == ["B", "C"] as Set
+        s1.getChangesSince(s2).dependents.allDependentClasses == ["B", "C"] as Set
+        s2.getChangesSince(s1).dependents.allDependentClasses == ["B", "C"] as Set
     }
 }

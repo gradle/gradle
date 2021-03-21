@@ -22,38 +22,38 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 import spock.lang.Subject
 
-class ClasspathSnapshotFactoryTest extends Specification {
+class CurrentClasspathSnapshotterTest extends Specification {
 
     def snapshotter = Mock(ClasspathEntrySnapshotter)
-    @Subject factory = new ClasspathSnapshotFactory(snapshotter, new TestBuildOperationExecutor())
+    @Subject factory = new CurrentClasspathSnapshotter(snapshotter, new TestBuildOperationExecutor())
 
     def "creates classpath snapshot with correct hashes"() {
         def jar1 = stubArchive("f1")
         def jar2 = stubArchive("f2")
 
-        def sn1 = Stub(ClasspathEntrySnapshot) { getHash() >> HashCode.fromInt(0x1234) }
-        def sn2 = Stub(ClasspathEntrySnapshot) { getHash() >> HashCode.fromInt(0x2345) }
+        def sn1 = Stub(ClasspathEntrySnapshotData) { getHash() >> HashCode.fromInt(0x1234) }
+        def sn2 = Stub(ClasspathEntrySnapshotData) { getHash() >> HashCode.fromInt(0x2345) }
 
         when:
-        def s = factory.createSnapshot([jar1, jar2])
+        def s = factory.getClasspathSnapshot([jar1, jar2])
 
         then:
         1 * snapshotter.createSnapshot(jar1) >> sn1
         1 * snapshotter.createSnapshot(jar2) >> sn2
 
-        s.data.fileHashes.size() == 2
-        s.data.fileHashes[0] == HashCode.fromInt(0x1234)
-        s.data.fileHashes[1] == HashCode.fromInt(0x2345)
+        s.size() == 2
+        s[0].hash == HashCode.fromInt(0x1234)
+        s[1].hash == HashCode.fromInt(0x2345)
     }
 
     def "doesn't call snapshotter if file doesn't exist"() {
         def jar1 = stubArchive("f1", true)
         def jar2 = stubArchive("f2", false)
 
-        def sn1 = Stub(ClasspathEntrySnapshot) { getHash() >> HashCode.fromInt(0x1234) }
+        def sn1 = Stub(ClasspathEntrySnapshotData) { getHash() >> HashCode.fromInt(0x1234) }
 
         when:
-        factory.createSnapshot([jar1, jar2])
+        factory.getClasspathSnapshot([jar1, jar2])
 
         then:
         1 * snapshotter.createSnapshot(jar1) >> sn1

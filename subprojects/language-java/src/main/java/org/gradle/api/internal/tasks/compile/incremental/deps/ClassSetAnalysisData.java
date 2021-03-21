@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.apache.commons.lang.StringUtils;
@@ -28,19 +31,56 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.IntSetSerializer;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class ClassSetAnalysisData {
+
+    public static ClassSetAnalysisData merge(List<ClassSetAnalysisData> datas) {
+        int classCount = 0;
+        int constantsCount = 0;
+        int dependentsCount = 0;
+        for (ClassSetAnalysisData data : datas) {
+            classCount += data.classes.size();
+            constantsCount += data.classesToConstants.size();
+            dependentsCount += data.dependents.size();
+        }
+
+        ImmutableSet.Builder<String> classes = ImmutableSet.builderWithExpectedSize(classCount);
+        Map<String, IntSet> classesToConstants = new HashMap<>(constantsCount);
+        Multimap<String, DependentsSet> dependents = ArrayListMultimap.create(dependentsCount, 10);
+        String fullRebuildCause = null;
+
+        for (ClassSetAnalysisData data : Lists.reverse(datas)) {
+            classes.addAll(data.classes);
+            classesToConstants.putAll(data.classesToConstants);
+            data.dependents.forEach(dependents::put);
+            if (fullRebuildCause == null) {
+                fullRebuildCause = data.fullRebuildCause;
+            }
+        }
+        ImmutableMap.Builder<String, DependentsSet> mergedDependents = ImmutableMap.builderWithExpectedSize(dependents.size());
+        for (Map.Entry<String, Collection<DependentsSet>> entry : dependents.asMap().entrySet()) {
+            mergedDependents.put(entry.getKey(), DependentsSet.merge(entry.getValue()));
+        }
+        return new ClassSetAnalysisData(classes.build(), mergedDependents.build(), classesToConstants, fullRebuildCause);
+    }
+
     public static final String PACKAGE_INFO = "package-info";
 
     private final Set<String> classes;
     private final Map<String, DependentsSet> dependents;
     private final Map<String, IntSet> classesToConstants;
     private final String fullRebuildCause;
+
+    public ClassSetAnalysisData() {
+        this(Collections.emptySet(), Collections.emptyMap(), Collections.emptyMap(), null);
+    }
 
     public ClassSetAnalysisData(Set<String> classes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, String fullRebuildCause) {
         this.classes = classes;

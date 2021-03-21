@@ -32,7 +32,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 @UsesNativeServices
-class DefaultClasspathEntrySnapshotterTest extends Specification {
+class ClasspathEntryAnalyzerTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
@@ -40,11 +40,11 @@ class DefaultClasspathEntrySnapshotterTest extends Specification {
     def streamHasher = Mock(StreamHasher)
     def classDependenciesAnalyzer = Mock(ClassDependenciesAnalyzer)
     def fileOperations = Mock(FileOperations)
-    @Subject snapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, classDependenciesAnalyzer, fileOperations)
+    @Subject snapshotter = new ClasspathEntryAnalyzer(fileHasher, streamHasher, classDependenciesAnalyzer, fileOperations)
 
     def "creates snapshot for an empty entry"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), temp.file("foo"))
+        def snapshot = snapshotter.analyze(HashCode.fromInt(123), temp.file("foo"))
         snapshot.hashes.isEmpty()
         snapshot.classAnalysis
     }
@@ -61,7 +61,7 @@ class DefaultClasspathEntrySnapshotterTest extends Specification {
         def fileTree = Mock(ConfigurableFileTree)
 
         when:
-        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), entry)
+        def snapshot = snapshotter.analyze(HashCode.fromInt(123), entry)
 
         then:
         1 * fileOperations.fileTree(entry) >> fileTree
