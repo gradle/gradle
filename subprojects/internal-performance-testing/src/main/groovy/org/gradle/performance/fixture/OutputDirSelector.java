@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture
+package org.gradle.performance.fixture;
 
-import groovy.transform.CompileStatic
+import java.io.File;
 
-@CompileStatic
-interface OutputDirSelector {
-    File outputDirFor(String testId, BuildExperimentSpec spec)
-    File outputDirFor(String testId)
+public interface OutputDirSelector {
+    File outputDirFor(String testId, BuildExperimentSpec spec);
+
+    File outputDirFor(String testId);
+
+    static String fileSafeNameFor(String name) {
+        String fileSafeName = name.trim().replaceAll("[^a-zA-Z0-9.-]", "-").replaceAll("-+", "-");
+        return (fileSafeName.endsWith("-"))
+            ? fileSafeName.substring(0, fileSafeName.length() - 1)
+            : fileSafeName;
+    }
 }

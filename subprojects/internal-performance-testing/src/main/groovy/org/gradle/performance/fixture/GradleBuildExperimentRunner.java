@@ -185,7 +185,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .addAll(invocationSpec.getJvmOpts())
             .build();
         return new GradleScenarioDefinition(
-            safeScenarioName(experimentSpec.getDisplayName()),
+            OutputDirSelector.fileSafeNameFor(experimentSpec.getDisplayName()),
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
             new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false),
@@ -204,9 +204,5 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             ImmutableList.of(),
             invocationSettings.getMeasuredBuildOperations()
         );
-    }
-
-    private String safeScenarioName(String name) {
-        return name.replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("-+", "-");
     }
 }

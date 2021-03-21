@@ -55,14 +55,6 @@ class DefaultOutputDirSelector implements OutputDirSelector {
         return new File(baseOutputDir, shortenPath(fileSafeName, 40))
     }
 
-    private static String fileSafeNameFor(String title) {
-        def fileSafeName = title.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
-        if (fileSafeName.endsWith('-')) {
-            fileSafeName = fileSafeName.substring(0, fileSafeName.length() - 1)
-        }
-        fileSafeName
-    }
-
     private static String shortenPath(String longName, int expectedMaxLength) {
         if (longName.length() <= expectedMaxLength) {
             return longName
