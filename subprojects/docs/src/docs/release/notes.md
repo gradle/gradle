@@ -215,7 +215,7 @@ In order to learn more about the improvements and new features in Groovy 3.0, re
 
 This release defaults to [the improved dependency locking file format](userguide/upgrading_version_6.html#locking_single) that results in fewer lock files in most projects that use this feature. Specifically, it results in one file per project instead of one file per configuration per project.
 
-Gradle will automatically clean up previous lock files when [migrating them](dependency_locking.html#migrate_single_lockfile) over to the new file format.
+Gradle will automatically clean up previous lock files when [migrating them](userguide/dependency_locking.html#migrate_single_lockfile) over to the new file format.
 
 In addition, when using the new format, the lock file name and location can be configured.
 
@@ -455,7 +455,7 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
 </details>
 
 <details>
-<summary><a href="userguide/dependency_capability_conflict#sec:handling-mutually-exclusive-deps">Capabilities resolution</a></summary>
+<summary><a href="userguide/dependency_capability_conflict.html#sec:handling-mutually-exclusive-deps">Capabilities resolution</a></summary>
 
 - org.gradle.api.artifacts.CapabilitiesResolution
 - org.gradle.api.artifacts.CapabilityResolutionDetails
@@ -533,7 +533,7 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
 - org.gradle.api.artifacts.repositories.MavenArtifactRepository.MetadataSources.isIgnoreGradleMetadataRedirectionEnabled
   </details>
   <details>
-    <summary><a href="resolution_rules.html#sec:dependency_substitution_rules">Dependency substitution</a></summary>
+    <summary><a href="userguide/resolution_rules.html#sec:dependency_substitution_rules">Dependency substitution</a></summary>
   
 - org.gradle.api.artifacts.ArtifactSelectionDetails
 - org.gradle.api.artifacts.DependencyArtifactSelector
@@ -548,7 +548,7 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
 - org.gradle.api.artifacts.VariantSelectionDetails
 </details>
 <details>
-    <summary><a href="publishing_setup.html#publishing_components">Publishing</a></summary>
+    <summary><a href="userguide/publishing_setup.html#publishing_components">Publishing</a></summary>
   
 - org.gradle.api.publish.Publication.withoutBuildIdentifier
 - org.gradle.api.publish.Publication.withBuildIdentifier
