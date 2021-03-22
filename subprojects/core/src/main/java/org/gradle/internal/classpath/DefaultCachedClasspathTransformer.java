@@ -163,10 +163,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private Optional<Either<HashCode, URL>> cachedURL(URL original, ClasspathFileTransformer transformer, ConcurrentTransformContext seen) {
         if (original.getProtocol().equals("file")) {
-            return unchecked(() ->
-                cachedFile(new File(original.toURI()), transformer, seen).map(
-                    result -> result.map(Convert::fileToURL)
-                )
+            return cachedFile(new File(unchecked(original::toURI)), transformer, seen).map(
+                result -> result.map(Convert::fileToURL)
             );
         }
         return Optional.of(right(original));
@@ -292,7 +290,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private static class Convert {
         public static URL fileToURL(File file) {
-            return unchecked(() -> file.toURI().toURL());
+            return unchecked(file.toURI()::toURL);
         }
     }
 }
