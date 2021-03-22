@@ -23,7 +23,6 @@ import org.gradle.internal.hash.HashCode;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.snapshot.ChildMapFactory.childMapFromSorted;
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
@@ -38,9 +37,17 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
     private final HashCode contentHash;
 
     public DirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, List<FileSystemLocationSnapshot> children) {
-        this(absolutePath, name, accessType, contentHash, childMapFromSorted(children.stream()
-            .map(it -> new ChildMap.Entry<>(it.getName(), it))
-            .collect(Collectors.toList())));
+        this(absolutePath, name, accessType, contentHash, childMapFromSorted(entriesFromChildren(children)));
+    }
+
+    private static ChildMap.Entry<FileSystemLocationSnapshot>[] entriesFromChildren(List<FileSystemLocationSnapshot> children) {
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        ChildMap.Entry<FileSystemLocationSnapshot>[] entries = new ChildMap.Entry[children.size()];
+        for (int i = 0; i < children.size(); i++) {
+            FileSystemLocationSnapshot child = children.get(i);
+            entries[i] = new ChildMap.Entry<>(child.getName(), child);
+        }
+        return entries;
     }
 
     public DirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, ChildMap<FileSystemLocationSnapshot> children) {

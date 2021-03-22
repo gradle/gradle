@@ -16,12 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
-import com.google.common.collect.ImmutableList;
-
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 
 public class ChildMapFactory {
     /**
@@ -33,25 +30,11 @@ public class ChildMapFactory {
     private static final int MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH = 10;
 
     public static <T> ChildMap<T> childMap(CaseSensitivity caseSensitivity, Collection<ChildMap.Entry<T>> entries) {
-        List<ChildMap.Entry<T>> sortedEntries = new ArrayList<>(entries);
-        sortedEntries.sort(Comparator.comparing(ChildMap.Entry::getPath, PathUtil.getPathComparator(caseSensitivity)));
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        ChildMap.Entry<T>[] entryArray = new ChildMap.Entry[entries.size()];
+        ChildMap.Entry<T>[] sortedEntries = entries.toArray(entryArray);
+        Arrays.sort(sortedEntries, Comparator.comparing(ChildMap.Entry::getPath, PathUtil.getPathComparator(caseSensitivity)));
         return childMapFromSorted(sortedEntries);
-    }
-
-    public static <T> ChildMap<T> childMapFromSorted(List<ChildMap.Entry<T>> sortedEntries) {
-        int size = sortedEntries.size();
-        switch (size) {
-            case 0:
-                return EmptyChildMap.getInstance();
-            case 1:
-                return new SingletonChildMap<>(sortedEntries.get(0));
-            default:
-                @SuppressWarnings({"unchecked", "rawtypes"})
-                ChildMap.Entry<T>[] childArray = sortedEntries.toArray(new ChildMap.Entry[]{});
-                return (size < MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH)
-                    ? new MediumChildMap<>(childArray)
-                    : new LargeChildMap<>(childArray);
-        }
     }
 
     public static <T> ChildMap<T> childMapFromSorted(ChildMap.Entry<T>[] sortedEntries) {
@@ -70,9 +53,10 @@ public class ChildMapFactory {
 
     static <T> ChildMap<T> childMap(CaseSensitivity caseSensitivity, ChildMap.Entry<T> entry1, ChildMap.Entry<T> entry2) {
         int compared = PathUtil.getPathComparator(caseSensitivity).compare(entry1.getPath(), entry2.getPath());
-        List<ChildMap.Entry<T>> sortedEntries = compared < 0
-            ? ImmutableList.of(entry1, entry2)
-            : ImmutableList.of(entry2, entry1);
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        ChildMap.Entry<T>[] sortedEntries = compared < 0
+            ? new ChildMap.Entry[] { entry1, entry2 }
+            : new ChildMap.Entry[] { entry2, entry1 };
         return childMapFromSorted(sortedEntries);
     }
 }

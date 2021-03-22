@@ -69,10 +69,10 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
     }
 
     ChildMap<CHILD> createChildren(List<String> pathsToParent) {
-        return ChildMapFactory.childMapFromSorted(pathsToParent.stream()
+        return ChildMapFactory.childMapFromSorted(convertToArray(pathsToParent.stream()
             .sorted(PathUtil.getPathComparator(CASE_SENSITIVE))
             .map { childPath -> new ChildMap.Entry(childPath, mockChild()) }
-            .collect(Collectors.toList()))
+            .collect(Collectors.toList())))
     }
 
     ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(FileSystemNode replacement) {
@@ -82,7 +82,11 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
     ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(String replacementPath, FileSystemNode replacement) {
         def newChildren = new ArrayList<ChildMap.Entry<FileSystemNode>>(entriesFor(children))
         newChildren.set(indexOfSelectedChild, new ChildMap.Entry<FileSystemNode>(replacementPath, replacement))
-        return ChildMapFactory.childMapFromSorted(newChildren)
+        return ChildMapFactory.childMapFromSorted(convertToArray(newChildren))
+    }
+
+    protected static <T> ChildMap.Entry<T>[] convertToArray(List<ChildMap.Entry<T>> entries) {
+        return entries.toArray(new ChildMap.Entry<T>[0])
     }
 
     int getIndexOfSelectedChild() {
@@ -96,13 +100,13 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
             targetPath.compareToFirstSegment(candidate.path, CASE_SENSITIVE)
         }
         newEntries.add(insertPosition, new ChildMap.Entry<FileSystemNode>(path, newChild))
-        return ChildMapFactory.childMapFromSorted(newEntries)
+        return ChildMapFactory.childMapFromSorted(convertToArray(newEntries))
     }
 
     ChildMap<CHILD> childrenWithSelectedChildRemoved() {
         def newEntries = new ArrayList<ChildMap.Entry<CHILD>>(entriesFor(children))
         newEntries.remove(indexOfSelectedChild)
-        return ChildMapFactory.childMapFromSorted(newEntries)
+        return ChildMapFactory.childMapFromSorted(convertToArray(newEntries))
     }
 
     CHILD getNodeWithIndexOfSelectedChild(ChildMap<CHILD> newChildren) {
