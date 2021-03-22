@@ -643,6 +643,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    public boolean isPluginContext() {
+        return false;
+    }
+
+    @Override
     public String relativeProjectPath(String path) {
         return getProjectPath().relativePath(path);
     }
@@ -1551,6 +1556,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         @Override
         public boolean isRootScript() {
             return delegate.isRootScript();
+        }
+
+        @Override
+        public boolean isPluginContext() {
+            return delegate.isPluginContext();
         }
 
         @Override

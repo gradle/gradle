@@ -418,7 +418,39 @@ buildscript {
         lockfileFixture.verifyBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.1'])
     }
 
+    @ToBeFixedForConfigurationCache
+    def "can use plugins block with plugin management block"() {
+        given:
+        def message = "hello from settings plugin"
+        pluginBuilder.addSettingsPlugin("println '$message'")
+        pluginBuilder.publishAs("org", "settings-plugin", "1.0", pluginRepo, createExecuter()).allowAll()
 
+        and:
+        settingsFile.text = """
+            pluginManagement {
+                repositories {
+                    maven { url "$pluginRepo.uri" }
+                }
+            }
+            buildscript {
+                configurations.classpath {
+                    resolutionStrategy.activateDependencyLocking()
+                }
+            }
+            plugins {
+                id "test-settings-plugin" version "1.0"
+            }
+
+            rootProject.name = 'test-with-plugins'
+        """
+
+        when:
+        succeeds 'buildEnvironment', '--write-locks'
+
+        then:
+        outputContains(message)
+        lockfileFixture.verifyUniqueSettingsLockfile('classpath', ['org:settings-plugin:1.0', 'test-settings-plugin:test-settings-plugin.gradle.plugin:1.0'])
+    }
 
     def addPlugin() {
         pluginBuilder.addPlugin("System.out.println(\"Hello World\");", 'bar.plugin')
