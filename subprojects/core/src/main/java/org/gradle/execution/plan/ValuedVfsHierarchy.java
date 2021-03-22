@@ -24,6 +24,8 @@ import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
 import javax.annotation.CheckReturnValue;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -33,12 +35,12 @@ import java.util.function.Supplier;
  * This is an immutable data structure.
  */
 public final class ValuedVfsHierarchy<T> {
-    private final ImmutableList<T> values;
+    private final List<T> values;
 
     private final ChildMap<ValuedVfsHierarchy<T>> children;
     private final CaseSensitivity caseSensitivity;
 
-    public ValuedVfsHierarchy(ImmutableList<T> values, ChildMap<ValuedVfsHierarchy<T>> children, CaseSensitivity caseSensitivity) {
+    public ValuedVfsHierarchy(List<T> values, ChildMap<ValuedVfsHierarchy<T>> children, CaseSensitivity caseSensitivity) {
         this.values = values;
         this.children = children;
         this.caseSensitivity = caseSensitivity;
@@ -123,13 +125,10 @@ public final class ValuedVfsHierarchy<T> {
     @CheckReturnValue
     public ValuedVfsHierarchy<T> recordValue(VfsRelativePath location, T value) {
         if (location.length() == 0) {
-            return new ValuedVfsHierarchy<>(
-                ImmutableList.<T>builderWithExpectedSize(values.size() + 1)
-                    .addAll(values)
-                    .add(value)
-                    .build(), children,
-                caseSensitivity
-            );
+            List<T> newValues = new ArrayList<>(values.size() + 1);
+            newValues.addAll(values);
+            newValues.add(value);
+            return new ValuedVfsHierarchy<>(newValues, children, caseSensitivity);
         }
         ChildMap<ValuedVfsHierarchy<T>> newChildren = children.store(location, caseSensitivity, new ChildMap.StoreHandler<ValuedVfsHierarchy<T>>() {
             @Override
@@ -145,7 +144,10 @@ public final class ValuedVfsHierarchy<T> {
 
             @Override
             public ValuedVfsHierarchy<T> mergeWithExisting(ValuedVfsHierarchy<T> child) {
-                return new ValuedVfsHierarchy<>(ImmutableList.<T>builderWithExpectedSize(child.getValues().size() + 1).addAll(child.getValues()).add(value).build(), child.getChildren(), caseSensitivity);
+                List<T> newValues = new ArrayList<>(child.getValues().size() + 1);
+                newValues.addAll(child.getValues());
+                newValues.add(value);
+                return new ValuedVfsHierarchy<>(newValues, child.getChildren(), caseSensitivity);
             }
 
             @Override
@@ -161,7 +163,7 @@ public final class ValuedVfsHierarchy<T> {
         return new ValuedVfsHierarchy<>(values, newChildren, caseSensitivity);
     }
 
-    private ImmutableList<T> getValues() {
+    private List<T> getValues() {
         return values;
     }
 
