@@ -1,3 +1,4 @@
- - File system watching is enabled by default
- - Groovy DSL build scripts use Groovy 3
- - Apple Silicon/M1 support
+ - File system watching enabled by default
+ - Support for running with and building Java 16 projects
+ - Native support for Apple Silicon processors
+ - Dependency catalog feature preview
