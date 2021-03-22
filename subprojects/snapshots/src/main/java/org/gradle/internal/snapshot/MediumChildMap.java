@@ -16,11 +16,10 @@
 
 package org.gradle.internal.snapshot;
 
-import java.util.List;
 import java.util.Optional;
 
 public class MediumChildMap<T> extends AbstractListChildMap<T> {
-    protected MediumChildMap(List<Entry<T>> children) {
+    protected MediumChildMap(Entry<T>[] children) {
         super(children);
     }
 

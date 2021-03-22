@@ -69,4 +69,38 @@ public abstract class SearchUtil {
                 return -(low + 1);  // key not found
         }
     }
+
+    public static <T> int binarySearch(T[] sortedElements, Comparable<T> key) {
+        int size = sortedElements.length;
+        switch (size) {
+            case 0:
+                return -1;
+            case 1:
+                T onlyElement = sortedElements[0];
+                int comparedToSearch = key.compareTo(onlyElement);
+                return comparedToSearch == 0
+                    ? 0
+                    : comparedToSearch < 0
+                        ? -1
+                        : -2;
+            default:
+                int low = 0;
+                int high = size - 1;
+
+                while (low <= high) {
+                    int mid = (low + high) >>> 1;
+                    T midVal = sortedElements[mid];
+                    int cmp = key.compareTo(midVal);
+
+                    if (cmp > 0) {
+                        low = mid + 1;
+                    } else if (cmp < 0) {
+                        high = mid - 1;
+                    } else {
+                        return mid; // key found
+                    }
+                }
+                return -(low + 1);  // key not found
+        }
+    }
 }

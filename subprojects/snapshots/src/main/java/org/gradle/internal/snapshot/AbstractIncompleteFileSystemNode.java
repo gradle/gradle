@@ -152,7 +152,7 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
     }
 
     private static boolean anyChildMatches(ChildMap<FileSystemNode> children, Predicate<FileSystemNode> predicate) {
-        return children.entries().stream()
+        return children.entries()
             .map(ChildMap.Entry::getValue)
             .anyMatch(predicate);
     }

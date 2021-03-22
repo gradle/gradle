@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 public interface ChildMap<T> {
 
@@ -26,7 +27,7 @@ public interface ChildMap<T> {
 
     List<T> values();
 
-    List<Entry<T>> entries();
+    Stream<Entry<T>> entries();
 
     void visitChildren(BiConsumer<String, ? super T> visitor);
 

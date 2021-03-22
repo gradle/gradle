@@ -16,11 +16,10 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.ChildMap;
-import org.gradle.internal.snapshot.ChildMapFactory;
 import org.gradle.internal.snapshot.EmptyChildMap;
+import org.gradle.internal.snapshot.SingletonChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
 import javax.annotation.CheckReturnValue;
@@ -133,7 +132,7 @@ public final class ValuedVfsHierarchy<T> {
 
             @Override
             public ValuedVfsHierarchy<T> handleAsAncestorOfChild(String childPath, ValuedVfsHierarchy<T> child) {
-                ChildMap<ValuedVfsHierarchy<T>> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(new ChildMap.Entry<>(VfsRelativePath.of(childPath).suffixStartingFrom(location.length() + 1).getAsString(), child)));
+                ChildMap<ValuedVfsHierarchy<T>> singletonChild = new SingletonChildMap<>(new ChildMap.Entry<>(VfsRelativePath.of(childPath).suffixStartingFrom(location.length() + 1).getAsString(), child));
                 return new ValuedVfsHierarchy<>(PersistentList.of(value), singletonChild, caseSensitivity);
             }
 

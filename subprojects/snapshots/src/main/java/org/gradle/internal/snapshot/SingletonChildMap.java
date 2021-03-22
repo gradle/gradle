@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.snapshot.ChildMapFactory.childMap;
 
@@ -44,8 +45,8 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public List<Entry<T>> entries() {
-        return Collections.singletonList(entry);
+    public Stream<Entry<T>> entries() {
+        return Stream.of(entry);
     }
 
     @Override

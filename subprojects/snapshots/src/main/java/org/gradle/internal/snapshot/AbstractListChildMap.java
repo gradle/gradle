@@ -17,14 +17,15 @@
 package org.gradle.internal.snapshot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractListChildMap<T> implements ChildMap<T> {
-    protected final List<Entry<T>> entries;
+    protected final Entry<T>[] entries;
 
-    protected AbstractListChildMap(List<Entry<T>> entries) {
+    protected AbstractListChildMap(Entry<T>[] entries) {
         this.entries = entries;
     }
 
@@ -35,14 +36,16 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
 
     @Override
     public List<T> values() {
-        return entries.stream()
-            .map(Entry::getValue)
-            .collect(Collectors.toList());
+        List<T> values = new ArrayList<>(entries.length);
+        for (Entry<T> entry : entries) {
+            values.add(entry.getValue());
+        }
+        return values;
     }
 
     @Override
-    public List<Entry<T>> entries() {
-        return entries;
+    public Stream<Entry<T>> entries() {
+        return Arrays.stream(entries);
     }
 
     @Override
@@ -63,7 +66,7 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
         int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
         if (childIndex >= 0) {
-            Entry<T> entry = entries.get(childIndex);
+            Entry<T> entry = entries[childIndex];
             String childPath = entry.getPath();
             return entry.withNode(targetPath, caseSensitivity, new AbstractInvalidateChildHandler<T, RESULT>(handler) {
 
@@ -99,10 +102,10 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     public ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
         int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
         if (childIndex >= 0) {
-            return entries.get(childIndex).handlePath(targetPath, caseSensitivity, new AbstractStorePathRelationshipHandler<T>(caseSensitivity, storeHandler) {
+            return entries[childIndex].handlePath(targetPath, caseSensitivity, new AbstractStorePathRelationshipHandler<T>(caseSensitivity, storeHandler) {
                 @Override
                 public ChildMap<T> withReplacedChild(T newChild) {
-                    return withReplacedChild(entries.get(childIndex).getPath(), newChild);
+                    return withReplacedChild(entries[childIndex].getPath(), newChild);
                 }
 
                 @Override
@@ -122,24 +125,46 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     }
 
     protected ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
-        List<Entry<T>> newChildren = new ArrayList<>(entries);
-        newChildren.add(insertBefore, new Entry<>(path, newChild));
+        Entry<T>[] newChildren = createEntryArray(entries.length + 1);
+        if (insertBefore > 0) {
+            System.arraycopy(entries, 0, newChildren, 0, insertBefore);
+        }
+        newChildren[insertBefore] = new Entry<>(path, newChild);
+        if (insertBefore < entries.length) {
+            System.arraycopy(entries, insertBefore, newChildren, insertBefore + 1, entries.length - insertBefore);
+        }
         return ChildMapFactory.childMapFromSorted(newChildren);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Entry<T>[] createEntryArray(int length) {
+        return new Entry[length];
+    }
+
     protected ChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
-        Entry<T> oldEntry = entries.get(childIndex);
+        Entry<T> oldEntry = entries[childIndex];
         if (oldEntry.getPath().equals(newPath) && oldEntry.getValue().equals(newChild)) {
             return this;
         }
-        List<Entry<T>> newChildren = new ArrayList<>(entries);
-        newChildren.set(childIndex, new Entry<>(newPath, newChild));
+        Entry<T>[] newChildren = createEntryArray(entries.length);
+        if (childIndex > 0) {
+            System.arraycopy(entries, 0, newChildren, 0, childIndex);
+        }
+        newChildren[childIndex] = new Entry<>(newPath, newChild);
+        if (childIndex + 1 < entries.length) {
+            System.arraycopy(entries, childIndex + 1, newChildren, childIndex + 1, entries.length - childIndex - 1);
+        }
         return ChildMapFactory.childMapFromSorted(newChildren);
     }
 
     protected ChildMap<T> withRemovedChild(int childIndex) {
-        List<Entry<T>> newChildren = new ArrayList<>(entries);
-        newChildren.remove(childIndex);
+        Entry<T>[] newChildren = createEntryArray(entries.length - 1);
+        if (childIndex > 0) {
+            System.arraycopy(entries, 0, newChildren, 0, childIndex);
+        }
+        if (childIndex + 1 < entries.length) {
+            System.arraycopy(entries, childIndex + 1, newChildren, childIndex, entries.length - childIndex - 1);
+        }
         return ChildMapFactory.childMapFromSorted(newChildren);
     }
 
@@ -154,16 +179,16 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
 
         AbstractListChildMap<?> that = (AbstractListChildMap<?>) o;
 
-        return entries.equals(that.entries);
+        return Arrays.equals(entries, that.entries);
     }
 
     @Override
     public int hashCode() {
-        return entries.hashCode();
+        return Arrays.hashCode(entries);
     }
 
     @Override
     public String toString() {
-        return entries.toString();
+        return Arrays.toString(entries);
     }
 }

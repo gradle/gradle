@@ -46,6 +46,22 @@ public class ChildMapFactory {
             case 1:
                 return new SingletonChildMap<>(sortedEntries.get(0));
             default:
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                ChildMap.Entry<T>[] childArray = sortedEntries.toArray(new ChildMap.Entry[]{});
+                return (size < MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH)
+                    ? new MediumChildMap<>(childArray)
+                    : new LargeChildMap<>(childArray);
+        }
+    }
+
+    public static <T> ChildMap<T> childMapFromSorted(ChildMap.Entry<T>[] sortedEntries) {
+        int size = sortedEntries.length;
+        switch (size) {
+            case 0:
+                return EmptyChildMap.getInstance();
+            case 1:
+                return new SingletonChildMap<>(sortedEntries[0]);
+            default:
                 return (size < MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH)
                     ? new MediumChildMap<>(sortedEntries)
                     : new LargeChildMap<>(sortedEntries);
