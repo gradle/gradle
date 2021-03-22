@@ -73,6 +73,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.UncheckedException.unchecked;
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.PRIMARY;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
@@ -368,7 +369,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 }
                 throw new IllegalStateException("Invalid result path: " + absolutePath);
             });
-            UncheckedException.callUnchecked(() -> Files.write(getResultsFile(workspace).toPath(), (Iterable<String>) relativePaths::iterator));
+            unchecked(() -> Files.write(getResultsFile(workspace).toPath(), (Iterable<String>) relativePaths::iterator));
         }
 
         private ImmutableList<File> readResultsFile(File workspace) {
