@@ -75,6 +75,11 @@ public interface DomainObjectContext {
     boolean isRootScript();
 
     /**
+     * Indicates if the context is plugin resolution
+     */
+    boolean isPluginContext();
+
+    /**
      * Returns true if the context represents a detached state, for
      * example detached dependency resolution
      */
