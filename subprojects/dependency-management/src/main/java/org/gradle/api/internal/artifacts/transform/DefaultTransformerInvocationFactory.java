@@ -29,7 +29,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Try;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
