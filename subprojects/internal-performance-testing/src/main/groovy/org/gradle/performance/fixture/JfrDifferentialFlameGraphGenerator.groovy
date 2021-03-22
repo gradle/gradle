@@ -16,7 +16,7 @@
 
 package org.gradle.performance.fixture
 
-import com.google.common.base.Strings
+import com.google.common.base.Joiner
 import groovy.transform.CompileStatic
 /**
  * Generates flame graphs based on JFR recordings.
@@ -61,9 +61,8 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
         if (underTestStacks && baselineStacks) {
             String underTestBasename = stacksBasename(underTestStacks, type, level)
             String baselineTestBasename = stacksBasename(baselineStacks, type, level)
-            String commonPrefix = Strings.commonPrefix(underTestBasename, baselineTestBasename)
-            String commonSuffix = Strings.commonSuffix(underTestBasename, baselineTestBasename)
-            String diffBaseName = "${underTestBasename}-vs-${baselineTestBasename.substring(0, baselineTestBasename.length() - commonSuffix.length()).substring(commonPrefix.length())}${postFixFor(type, level)}-${negate ? "forward-" : "backward-"}diff"
+            String baselineDifference = computeDifferenceOfBaselineToCurrentName(underTestBasename, baselineTestBasename)
+            String diffBaseName = "${underTestBasename}-vs-${baselineDifference}-${negate ? "forward-" : "backward-"}diff"
             File diff = new File(underTestStacks.parentFile, "diffs/${diffBaseName}-stacks.txt")
             diff.parentFile.mkdirs()
             if (negate) {
@@ -74,6 +73,30 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
             return diff
         }
         return null
+    }
+
+    private static String computeDifferenceOfBaselineToCurrentName(String underTestBasename, String baselineTestBasename) {
+        List<String> underTestParts = Arrays.asList(underTestBasename.split("-"));
+        Deque<String> remainderOfBaseline = new ArrayDeque<>(Arrays.asList(baselineTestBasename.split("-")));
+
+        for (String underTestPart : underTestParts) {
+            if (!remainderOfBaseline.isEmpty() && underTestPart == remainderOfBaseline.getFirst()) {
+                remainderOfBaseline.removeFirst();
+            } else {
+                break;
+            }
+        }
+
+        Collections.reverse(underTestParts);
+        for (String underTestPart : underTestParts) {
+            if (!remainderOfBaseline.isEmpty() && underTestPart == remainderOfBaseline.getLast()) {
+                remainderOfBaseline.removeLast();
+            } else {
+                break;
+            }
+        }
+
+        return Joiner.on("-").join(remainderOfBaseline);
     }
 
     private static String stacksBasename(File underTestStacks, EventType type, DetailLevel level) {
