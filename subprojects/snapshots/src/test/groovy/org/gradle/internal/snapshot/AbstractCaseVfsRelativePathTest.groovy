@@ -156,7 +156,7 @@ abstract class AbstractCaseVfsRelativePathTest extends Specification {
 
     def "path #spec.searchedPrefix has common prefix with #spec.expectedIndex in #spec.children"() {
         expect:
-        SearchUtil.binarySearch(spec.children) { child ->
+        SearchUtil.binarySearch(spec.children.toArray()) { child ->
             VfsRelativePath.of(spec.searchedPrefix).compareToFirstSegment(child, caseSensitivity)
         } == spec.expectedIndex
         spec.children.each { child ->

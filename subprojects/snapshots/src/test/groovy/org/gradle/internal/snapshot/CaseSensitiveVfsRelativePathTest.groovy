@@ -30,7 +30,7 @@ class CaseSensitiveVfsRelativePathTest extends AbstractCaseVfsRelativePathTest {
         expect:
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i]
-            int foundIndex = SearchUtil.binarySearch(children) { child ->
+            int foundIndex = SearchUtil.binarySearch(children.toArray()) { child ->
                 VfsRelativePath.of(searchedChild).compareToFirstSegment(child, CASE_SENSITIVE)
             }
             assert foundIndex == i
@@ -43,7 +43,7 @@ class CaseSensitiveVfsRelativePathTest extends AbstractCaseVfsRelativePathTest {
         expect:
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i].substring(0, 3)
-            int foundIndex = SearchUtil.binarySearch(children) { child ->
+            int foundIndex = SearchUtil.binarySearch(children.toArray()) { child ->
                 VfsRelativePath.of(searchedChild).compareToFirstSegment(child, CASE_SENSITIVE)
             }
             assert foundIndex == i
