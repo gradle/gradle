@@ -176,7 +176,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin",files="
 [[sub::toml-dependencies-format]]
 ==== The version catalog TOML file format
 
-The https://toml.io/[TOML] file consists of 4 major sections:
+The https://toml.io/[TOML] file consists of 3 major sections:
 
 - the `[versions]` section is used to declare versions which can be referenced by dependencies
 - the `[libraries]` section is used to declare the aliases to coordinates
