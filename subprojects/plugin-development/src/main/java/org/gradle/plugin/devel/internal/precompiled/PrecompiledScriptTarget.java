@@ -25,10 +25,12 @@ import org.gradle.groovy.scripts.DefaultScript;
 class PrecompiledScriptTarget extends DefaultScriptTarget {
 
     private final boolean supportsPluginsBlock;
+    private final boolean supportsPluginManagementBlock;
 
-    PrecompiledScriptTarget(boolean supportsPluginsBlock) {
+    PrecompiledScriptTarget(boolean supportsPluginsBlock, boolean supportsPluginManagementBlock) {
         super(null);
         this.supportsPluginsBlock = supportsPluginsBlock;
+        this.supportsPluginManagementBlock = supportsPluginManagementBlock;
     }
 
     @Override
@@ -39,6 +41,11 @@ class PrecompiledScriptTarget extends DefaultScriptTarget {
     @Override
     public boolean getSupportsPluginsBlock() {
         return supportsPluginsBlock;
+    }
+
+    @Override
+    public boolean getSupportsPluginManagementBlock() {
+        return supportsPluginManagementBlock;
     }
 
     @Override

@@ -65,7 +65,8 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
         TaskProvider<ExtractPluginRequestsTask> extractPluginRequests = tasks.register("extractPluginRequests", ExtractPluginRequestsTask.class, task -> {
             task.getScriptPlugins().convention(scriptPlugins);
             task.getScriptFiles().from(scriptPluginFiles.getFiles());
-            task.getExtractedPluginRequestsClassesDirectory().convention(buildDir.dir("groovy-dsl-plugins/plugin-requests"));
+            task.getExtractedPluginRequestsClassesDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-requests"));
+            task.getExtractedPluginRequestsClassesStagingDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-requests-staging"));
         });
 
         TaskProvider<GeneratePluginAdaptersTask> generatePluginAdapters = tasks.register("generatePluginAdapters", GeneratePluginAdaptersTask.class, task -> {
@@ -86,6 +87,7 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
 
         pluginSourceSet.getJava().srcDir(generatePluginAdapters.flatMap(GeneratePluginAdaptersTask::getPluginAdapterSourcesOutputDirectory));
         pluginSourceSet.getOutput().dir(precompilePlugins.flatMap(CompileGroovyScriptPluginsTask::getPrecompiledGroovyScriptsOutputDirectory));
+        pluginSourceSet.getOutput().dir(extractPluginRequests.flatMap(ExtractPluginRequestsTask::getExtractedPluginRequestsClassesStagingDirectory));
     }
 
     private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PrecompiledGroovyScript> scriptPlugins) {

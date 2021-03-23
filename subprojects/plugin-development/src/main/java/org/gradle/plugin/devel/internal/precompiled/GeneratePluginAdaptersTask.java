@@ -35,6 +35,7 @@ import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.initialization.FirstPassPrecompiledScript;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.service.ServiceRegistry;
@@ -63,7 +64,8 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
     public GeneratePluginAdaptersTask(ScriptCompilationHandler scriptCompilationHandler,
                                       ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                       CompileOperationFactory compileOperationFactory,
-                                      ServiceRegistry serviceRegistry, FileSystemOperations fileSystemOperations) {
+                                      ServiceRegistry serviceRegistry,
+                                      FileSystemOperations fileSystemOperations) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.compileOperationFactory = compileOperationFactory;
         this.serviceRegistry = serviceRegistry;
@@ -122,7 +124,8 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
         try {
             PluginsAwareScript pluginsAwareScript = pluginsBlock.loadClass().getDeclaredConstructor().newInstance();
             pluginsAwareScript.setScriptSource(scriptPlugin.getSource());
-            pluginsAwareScript.init("dummy", serviceRegistry);
+            FirstPassPrecompiledScript target = new FirstPassPrecompiledScriptTarget();
+            pluginsAwareScript.init(target, serviceRegistry);
             pluginsAwareScript.run();
             return pluginsAwareScript.getPluginRequests();
         } catch (Exception e) {
@@ -133,7 +136,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
     private CompiledScript<PluginsAwareScript, ?> loadCompiledPluginsBlocks(PrecompiledGroovyScript scriptPlugin) {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
         File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
-        return scriptCompilationHandler.loadFromDir(scriptPlugin.getSource(), scriptPlugin.getContentHash(),
+        return scriptCompilationHandler.loadFromDir(scriptPlugin.getPluginsSource(), scriptPlugin.getContentHash(),
             classLoaderScope, DefaultClassPath.of(compiledPluginRequestsDir), compiledPluginRequestsDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 
@@ -162,8 +165,17 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("    private static final String MIN_SUPPORTED_GRADLE_VERSION = \"5.0\";");
             writer.println("    public void apply(" + targetClass + " target) {");
             writer.println("        assertSupportedByCurrentGradleVersion();");
-            writer.println("        " + applyPlugins + "");
             writer.println("        try {");
+            if (!getExtractedPluginRequestsClassesDirectory().getAsFileTree().filter(f -> f.getName().equals(scriptPlugin.getFirstPassClassName() + ".class")).getFiles().isEmpty()) {
+                writer.println("            Class<? extends BasicScript> pluginsBlockClass = Class.forName(\"" + scriptPlugin.getFirstPassClassName() + "\").asSubclass(BasicScript.class);");
+                writer.println("            BasicScript pluginsBlockScript = pluginsBlockClass.getDeclaredConstructor().newInstance();");
+                writer.println("            pluginsBlockScript.setScriptSource(scriptSource(pluginsBlockClass));");
+                writer.println("            pluginsBlockScript.init(target, " + scriptPlugin.serviceRegistryAccessCode() + ");");
+                writer.println("            pluginsBlockScript.run();");
+                writer.println();
+            }
+            writer.println("            " + applyPlugins + "");
+            writer.println();
             writer.println("            Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getClassName() + "\").asSubclass(BasicScript.class);");
             writer.println("            BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance();");
             writer.println("            script.setScriptSource(scriptSource(precompiledScriptClass));");

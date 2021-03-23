@@ -34,8 +34,8 @@ import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.initialization.FirstPassPrecompiledScript;
 import org.gradle.internal.Actions;
-import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -66,6 +66,9 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
     @OutputDirectory
     abstract DirectoryProperty getExtractedPluginRequestsClassesDirectory();
 
+    @OutputDirectory
+    abstract DirectoryProperty getExtractedPluginRequestsClassesStagingDirectory();
+
     @Internal
     abstract ListProperty<PrecompiledGroovyScript> getScriptPlugins();
 
@@ -84,8 +87,13 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
         File outputDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
         scriptCompilationHandler.compileToDir(
-            scriptPlugin.getSource(), classLoaderScope.getExportClassLoader(), outputDir, outputDir, pluginsCompileOperation,
-            PluginsAwareScript.class, Actions.doNothing());
+            scriptPlugin.getPluginsSource(), classLoaderScope.getExportClassLoader(), outputDir, outputDir, pluginsCompileOperation,
+            FirstPassPrecompiledScript.class, Actions.doNothing());
+
+        fileSystemOperations.sync(copySpec -> {
+            copySpec.from(getExtractedPluginRequestsClassesDirectory().getAsFileTree().getFiles()).include("**.class");
+            copySpec.into(getExtractedPluginRequestsClassesStagingDirectory());
+        });
     }
 
 }
