@@ -63,8 +63,12 @@ For example, `assembleDebug` for a non-ABI change on the [Santa Tracker Android 
 alt=":santa-tracker:assembleDebug with non-abi change performance improvements"
 />
 
+---
+**NOTE**
 
-NOTE: File system watching and [configuration caching](https://blog.gradle.org/introducing-configuration-caching) is enabled for the comparison.
+File system watching and [configuration caching](https://blog.gradle.org/introducing-configuration-caching) is enabled for the comparison.
+
+---
 
 ### Ignore empty `buildSrc` project
 
