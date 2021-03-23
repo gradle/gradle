@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import javax.annotation.Nullable;
@@ -29,9 +28,9 @@ public class PreviousCompilation {
     private final PreviousCompilationData data;
     private final ClassSetAnalysis classAnalysis;
 
-    public PreviousCompilation(PreviousCompilationData data, ClassSetAnalysisData classAnalysis) {
+    public PreviousCompilation(PreviousCompilationData data) {
         this.data = data;
-        this.classAnalysis = new ClassSetAnalysis(classAnalysis, data.getAnnotationProcessingData());
+        this.classAnalysis = new ClassSetAnalysis(data.getOutputSnapshot(), data.getAnnotationProcessingData());
     }
 
     @Nullable

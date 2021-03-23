@@ -24,7 +24,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 import org.gradle.internal.hash.HashCode;
@@ -75,8 +74,6 @@ public class ClassSetAnalysisData {
         return new ClassSetAnalysisData(classHashes, mergedDependents.build(), classesToConstants, fullRebuildCause);
     }
 
-    public static final String PACKAGE_INFO = "package-info";
-
     private final Map<String, HashCode> classHashes;
     private final Map<String, DependentsSet> dependents;
     private final Map<String, IntSet> classesToConstants;
@@ -93,11 +90,72 @@ public class ClassSetAnalysisData {
         this.fullRebuildCause = fullRebuildCause;
     }
 
-    public DependentsSet getChangedClassesSince(ClassSetAnalysisData other) {
-        ImmutableSet.Builder<String> changed = ImmutableSet.builder();
-        for (String added : Sets.difference(classHashes.keySet(), other.classHashes.keySet())) {
-            changed.add(added);
+    public ClassSetAnalysisData reduceToTypesAffecting(ClassSetAnalysisData other) {
+        if (fullRebuildCause != null) {
+            return this;
         }
+        Set<String> usedClasses = new HashSet<>(classHashes.size());
+        for (Map.Entry<String, DependentsSet> entry : dependents.entrySet()) {
+            if (entry.getValue().isDependencyToAll()) {
+                usedClasses.add(entry.getKey());
+            }
+        }
+        usedClasses.addAll(classesToConstants.keySet());
+
+        Multimap<String, String> reverseDependencies = ArrayListMultimap.create(dependents.size(), 10);
+        for (Map.Entry<String, DependentsSet> entry : dependents.entrySet()) {
+            if (entry.getValue().isDependencyToAll()) {
+                continue;
+            }
+            for (String dependent : entry.getValue().getAccessibleDependentClasses()) {
+                reverseDependencies.put(dependent, entry.getKey());
+            }
+        }
+
+        Set<String> newlyAdded = other.dependents.keySet();
+        while (usedClasses.addAll(newlyAdded)) {
+            HashSet<String> transitives = new HashSet<>(newlyAdded.size());
+            for (String newly : newlyAdded) {
+                transitives.addAll(reverseDependencies.get(newly));
+            }
+            newlyAdded = transitives;
+        }
+
+        Map<String, HashCode> classHashes = new HashMap<>(usedClasses.size());
+        Map<String, DependentsSet> dependents = new HashMap<>(usedClasses.size());
+        Map<String, IntSet> classesToConstants = new HashMap<>(usedClasses.size());
+        for (String usedClass : usedClasses) {
+            HashCode hash = this.classHashes.get(usedClass);
+            if (hash != null) {
+                classHashes.put(usedClass, hash);
+            }
+            DependentsSet dependentsSet = this.dependents.get(usedClass);
+            if (dependentsSet != null) {
+                if (dependentsSet.isDependencyToAll()) {
+                    dependents.put(usedClass, dependentsSet);
+                } else {
+                    Set<String> usedAccessibleClasses = new HashSet<>(dependentsSet.getAccessibleDependentClasses());
+                    usedAccessibleClasses.retainAll(usedClasses);
+                    dependents.put(usedClass, DependentsSet.dependentClasses(Collections.emptySet(), usedAccessibleClasses));
+                }
+            }
+            IntSet constants = this.classesToConstants.get(usedClass);
+            if (constants != null) {
+                classesToConstants.put(usedClass, constants);
+            }
+        }
+
+        return new ClassSetAnalysisData(classHashes, dependents, classesToConstants, null);
+    }
+
+    public DependentsSet getChangedClassesSince(ClassSetAnalysisData other) {
+        for (String added : Sets.difference(classHashes.keySet(), other.classHashes.keySet())) {
+            DependentsSet dependentsOfAdded = getDependents(added);
+            if (dependentsOfAdded.isDependencyToAll()) {
+                return dependentsOfAdded;
+            }
+        }
+        ImmutableSet.Builder<String> changed = ImmutableSet.builder();
         for (Map.Entry<String, HashCode> removedOrChanged : Sets.difference(other.classHashes.entrySet(), classHashes.entrySet())) {
             changed.add(removedOrChanged.getKey());
         }
@@ -108,23 +166,8 @@ public class ClassSetAnalysisData {
         if (fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(fullRebuildCause);
         }
-        if (className.endsWith(PACKAGE_INFO)) {
-            String packageName = className.equals(PACKAGE_INFO) ? null : StringUtils.removeEnd(className, "." + PACKAGE_INFO);
-            return getDependentsOfPackage(packageName);
-        }
         DependentsSet dependentsSet = dependents.get(className);
         return dependentsSet == null ? DependentsSet.empty() : dependentsSet;
-    }
-
-    private DependentsSet getDependentsOfPackage(String packageName) {
-        Set<String> typesInPackage = new HashSet<>();
-        for (String type : classHashes.keySet()) {
-            int i = type.lastIndexOf(".");
-            if (i < 0 && packageName == null || i > 0 && type.substring(0, i).equals(packageName)) {
-                typesInPackage.add(type);
-            }
-        }
-        return DependentsSet.dependentClasses(Collections.emptySet(), typesInPackage);
     }
 
     public IntSet getConstants(String className) {
@@ -146,7 +189,7 @@ public class ClassSetAnalysisData {
 
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
-            Map<Integer, String> classNameMap = new HashMap<Integer, String>();
+            Map<Integer, String> classNameMap = new HashMap<>();
 
             int count = decoder.readSmallInt();
             ImmutableMap.Builder<String, HashCode> classHashes = ImmutableMap.builderWithExpectedSize(count);
@@ -179,7 +222,7 @@ public class ClassSetAnalysisData {
 
         @Override
         public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
-            Map<String, Integer> classNameMap = new HashMap<String, Integer>();
+            Map<String, Integer> classNameMap = new HashMap<>();
             encoder.writeSmallInt(value.classHashes.size());
             for (Map.Entry<String, HashCode> entry : value.classHashes.entrySet()) {
                 writeClassName(entry.getKey(), classNameMap, encoder);
@@ -252,13 +295,13 @@ public class ClassSetAnalysisData {
 
         private String readClassName(Decoder decoder, Map<Integer, String> classNameMap) throws IOException {
             int id = decoder.readSmallInt();
-            if (id == 0) {
-                id = decoder.readSmallInt();
-                String className = interner.intern(decoder.readString());
-                classNameMap.put(id, className);
+            String className = classNameMap.get(id);
+            if (className != null) {
                 return className;
             }
-            return classNameMap.get(id);
+            className = interner.intern(decoder.readString());
+            classNameMap.put(id, className);
+            return className;
         }
 
         private void writeClassName(String className, Map<String, Integer> classIdMap, Encoder encoder) throws IOException {
@@ -266,7 +309,6 @@ public class ClassSetAnalysisData {
             if (id == null) {
                 id = classIdMap.size() + 1;
                 classIdMap.put(className, id);
-                encoder.writeSmallInt(0);
                 encoder.writeSmallInt(id);
                 encoder.writeString(className);
             } else {

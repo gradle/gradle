@@ -27,8 +27,8 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDe
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.CachingClasspathEntrySnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotter;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClasspathEntrySnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.internal.hash.FileHasher;
@@ -61,8 +61,8 @@ public class IncrementalCompilerFactory {
         ClassDependenciesAnalyzer classDependenciesAnalyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), generalCompileCaches.getClassAnalysisCache());
         ClasspathEntrySnapshotter defaultClasspathEntrySnapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, classDependenciesAnalyzer, fileOperations);
         ClasspathEntrySnapshotter cachingClasspathEntrySnapshotter = new CachingClasspathEntrySnapshotter(defaultClasspathEntrySnapshotter, fileSystemAccess, generalCompileCaches.getClasspathEntrySnapshotCache());
-        CurrentCompilationAccess currentCompilationAccess = new CurrentCompilationAccess(cachingClasspathEntrySnapshotter, buildOperationExecutor);
-        PreviousCompilationAccess previousCompilationAccess = new PreviousCompilationAccess(defaultClasspathEntrySnapshotter, interner);
+        CurrentCompilationAccess currentCompilationAccess = new CurrentCompilationAccess(cachingClasspathEntrySnapshotter, defaultClasspathEntrySnapshotter, buildOperationExecutor);
+        PreviousCompilationAccess previousCompilationAccess = new PreviousCompilationAccess(interner);
         Compiler<T> compiler = new SelectiveCompiler<>(cleaningJavaCompiler, rebuildAllCompiler, recompilationSpecProvider, currentCompilationAccess, previousCompilationAccess);
         return new IncrementalResultStoringCompiler<>(compiler, currentCompilationAccess, previousCompilationAccess);
     }

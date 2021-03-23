@@ -82,6 +82,9 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             String interfaceType = typeOfFromSlashyString(s);
             maybeAddDependentType(types, interfaceType);
         }
+        if (name.endsWith("package-info")) {
+            dependencyToAll = true;
+        }
     }
 
     @Override

@@ -21,11 +21,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
@@ -63,9 +63,11 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     }
 
     private void storeResult(JavaCompileSpec spec, WorkResult result) {
+        ClassSetAnalysisData outputSnapshot = classpathSnapshotter.analyseClasses(spec.getDestinationDir());
         ClassSetAnalysisData classpathSnapshot = classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath()));
         AnnotationProcessingData annotationProcessingData = getAnnotationProcessingResult(spec, result);
-        PreviousCompilationData data = new PreviousCompilationData(annotationProcessingData, classpathSnapshot);
+        ClassSetAnalysisData minimizedClasspathSnapshot = classpathSnapshot.reduceToTypesAffecting(outputSnapshot);
+        PreviousCompilationData data = new PreviousCompilationData(outputSnapshot, annotationProcessingData, minimizedClasspathSnapshot);
         File previousCompilationDataFile = Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
         previousCompilationAccess.writePreviousCompilationData(data, previousCompilationDataFile);
     }

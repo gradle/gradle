@@ -1009,7 +1009,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses 'A', 'B', 'C'
     }
 
-    def "recompiles downstream dependents of classes whose package-info changed"() {
+    def "fully recompiles when package-info changes"() {
         given:
         def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
         packageFile.text = """package foo;"""
@@ -1025,6 +1025,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         succeeds "impl:${language.compileTaskName}"
 
         then:
-        impl.recompiledClasses("C")
+        impl.recompiledClasses("C", "D")
     }
 }

@@ -17,37 +17,25 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotter;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 public class PreviousCompilationAccess {
-    private static final Logger LOG = LoggerFactory.getLogger(PreviousCompilationAccess.class);
 
-    private final ClasspathEntrySnapshotter analyzer;
     private final StringInterner interner;
 
-    public PreviousCompilationAccess(ClasspathEntrySnapshotter classpathEntrySnapshotter, StringInterner interner) {
-        this.analyzer = classpathEntrySnapshotter;
+    public static void main(String[] args) {
+        PreviousCompilationData previousCompilationData = new PreviousCompilationAccess(new StringInterner()).readPreviousCompilationData(new File("/home/oehme/Desktop/previous-compilation-data.bin"));
+        System.out.println(previousCompilationData.getClasspathSnapshot());
+    }
+
+    public PreviousCompilationAccess(StringInterner interner) {
         this.interner = interner;
     }
-
-    public ClassSetAnalysisData analyseClasses(File classesDirectory) {
-        Timer clock = Time.startTimer();
-        ClassSetAnalysisData snapshot = analyzer.createSnapshot(classesDirectory);
-        LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
-        return snapshot;
-    }
-
     public PreviousCompilationData readPreviousCompilationData(File source) {
         try (KryoBackedDecoder encoder = new KryoBackedDecoder(new FileInputStream(source))) {
             return new PreviousCompilationData.Serializer(interner).read(encoder);

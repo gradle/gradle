@@ -114,7 +114,11 @@ public class ClassDependentsAccumulator {
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(ImmutableMap.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), fullRebuildCause);
+        if (fullRebuildCause == null) {
+            return new ClassSetAnalysisData(ImmutableMap.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), null);
+        } else {
+            return new ClassSetAnalysisData(ImmutableMap.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        }
     }
 
 }

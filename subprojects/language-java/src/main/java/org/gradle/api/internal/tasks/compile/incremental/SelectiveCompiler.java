@@ -19,9 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
@@ -73,8 +72,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
             return rebuildAllCompiler.execute(spec);
         }
         PreviousCompilationData previousCompilationData = previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile);
-        ClassSetAnalysisData previousClassAnalysis = previousCompilationAccess.analyseClasses(spec.getDestinationDir());
-        PreviousCompilation previousCompilation = new PreviousCompilation(previousCompilationData, previousClassAnalysis);
+        PreviousCompilation previousCompilation = new PreviousCompilation(previousCompilationData);
         if (spec.getSourceRoots().isEmpty()) {
             LOG.info("Full recompilation is required because the source roots could not be inferred.");
             return rebuildAllCompiler.execute(spec);

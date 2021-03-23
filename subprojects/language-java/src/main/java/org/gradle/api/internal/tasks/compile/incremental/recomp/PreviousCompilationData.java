@@ -24,12 +24,18 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 public class PreviousCompilationData {
+    private final ClassSetAnalysisData outputSnapshot;
     private final AnnotationProcessingData annotationProcessingData;
     private final ClassSetAnalysisData classpathSnapshot;
 
-    public PreviousCompilationData(AnnotationProcessingData annotationProcessingData, ClassSetAnalysisData classpathSnapshot) {
+    public PreviousCompilationData(ClassSetAnalysisData outputSnapshot, AnnotationProcessingData annotationProcessingData, ClassSetAnalysisData classpathSnapshot) {
+        this.outputSnapshot = outputSnapshot;
         this.annotationProcessingData = annotationProcessingData;
         this.classpathSnapshot = classpathSnapshot;
+    }
+
+    public ClassSetAnalysisData getOutputSnapshot() {
+        return outputSnapshot;
     }
 
     public AnnotationProcessingData getAnnotationProcessingData() {
@@ -41,25 +47,27 @@ public class PreviousCompilationData {
     }
 
     public static class Serializer extends AbstractSerializer<PreviousCompilationData> {
-        private final ClassSetAnalysisData.Serializer classpathSerializer;
+        private final ClassSetAnalysisData.Serializer analysisSerializer;
         private final AnnotationProcessingData.Serializer annotationProcessingDataSerializer;
 
         public Serializer(StringInterner interner) {
-            classpathSerializer = new ClassSetAnalysisData.Serializer(interner);
+            analysisSerializer = new ClassSetAnalysisData.Serializer(interner);
             annotationProcessingDataSerializer = new AnnotationProcessingData.Serializer();
         }
 
         @Override
         public PreviousCompilationData read(Decoder decoder) throws Exception {
-            ClassSetAnalysisData classpathSnapshot = classpathSerializer.read(decoder);
+            ClassSetAnalysisData outputSnapshot = analysisSerializer.read(decoder);
             AnnotationProcessingData annotationProcessingData = annotationProcessingDataSerializer.read(decoder);
-            return new PreviousCompilationData(annotationProcessingData, classpathSnapshot);
+            ClassSetAnalysisData classpathSnapshot = analysisSerializer.read(decoder);
+            return new PreviousCompilationData(outputSnapshot, annotationProcessingData, classpathSnapshot);
         }
 
         @Override
         public void write(Encoder encoder, PreviousCompilationData value) throws Exception {
-            classpathSerializer.write(encoder, value.classpathSnapshot);
+            analysisSerializer.write(encoder, value.outputSnapshot);
             annotationProcessingDataSerializer.write(encoder, value.annotationProcessingData);
+            analysisSerializer.write(encoder, value.classpathSnapshot);
         }
     }
 }

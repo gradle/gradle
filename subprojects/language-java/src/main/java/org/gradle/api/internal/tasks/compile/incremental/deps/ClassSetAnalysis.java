@@ -71,7 +71,13 @@ public class ClassSetAnalysis {
 
     public ClassSetDiff getChangesSince(ClassSetAnalysis other) {
         DependentsSet directChanges = classAnalysis.getChangedClassesSince(other.classAnalysis);
+        if (directChanges.isDependencyToAll()) {
+            return new ClassSetDiff(directChanges, IntSets.emptySet());
+        }
         DependentsSet transitiveChanges = other.getRelevantDependents(directChanges.getAllDependentClasses(), IntSets.emptySet());
+        if (transitiveChanges.isDependencyToAll()) {
+            return new ClassSetDiff(transitiveChanges, IntSets.emptySet());
+        }
         DependentsSet allChanges = DependentsSet.merge(Arrays.asList(directChanges, transitiveChanges));
         IntSet changedConstants = getChangedConstants(other, allChanges);
         return new ClassSetDiff(allChanges, changedConstants);

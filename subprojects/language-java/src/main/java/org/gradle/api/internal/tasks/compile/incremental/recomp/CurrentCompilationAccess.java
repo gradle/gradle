@@ -39,14 +39,24 @@ import java.util.stream.Collectors;
 public class CurrentCompilationAccess {
 
     private static final Logger LOG = LoggerFactory.getLogger(CurrentCompilationAccess.class);
-    private final ClasspathEntrySnapshotter classpathEntrySnapshotter;
+    private final ClasspathEntrySnapshotter inputSnapshotter;
+    private final ClasspathEntrySnapshotter outputSnapshotter;
     private final BuildOperationExecutor buildOperationExecutor;
     private ClassSetAnalysisData classpathSnapshot;
 
-    public CurrentCompilationAccess(ClasspathEntrySnapshotter classpathEntrySnapshotter, BuildOperationExecutor buildOperationExecutor) {
-        this.classpathEntrySnapshotter = classpathEntrySnapshotter;
+    public CurrentCompilationAccess(ClasspathEntrySnapshotter inputSnapshotter, ClasspathEntrySnapshotter outputSnapshotter, BuildOperationExecutor buildOperationExecutor) {
+        this.inputSnapshotter = inputSnapshotter;
+        this.outputSnapshotter = outputSnapshotter;
         this.buildOperationExecutor = buildOperationExecutor;
     }
+
+    public ClassSetAnalysisData analyseClasses(File classesDirectory) {
+        Timer clock = Time.startTimer();
+        ClassSetAnalysisData snapshot = outputSnapshotter.createSnapshot(classesDirectory);
+        LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
+        return snapshot;
+    }
+
 
     public ClassSetAnalysisData getClasspathSnapshot(final Iterable<File> entries) {
         if (classpathSnapshot == null) {
@@ -88,7 +98,7 @@ public class CurrentCompilationAccess {
         @Override
         public void run(BuildOperationContext context) {
             if (entry.exists()) {
-                snapshot = classpathEntrySnapshotter.createSnapshot(entry);
+                snapshot = inputSnapshotter.createSnapshot(entry);
             }
         }
 
