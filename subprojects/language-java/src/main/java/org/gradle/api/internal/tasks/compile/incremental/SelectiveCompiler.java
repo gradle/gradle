@@ -19,8 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.CurrentClasspathSnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilation;
@@ -45,23 +44,20 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
     private final CleaningJavaCompiler<T> cleaningCompiler;
     private final Compiler<T> rebuildAllCompiler;
     private final RecompilationSpecProvider recompilationSpecProvider;
-    private final CurrentClasspathSnapshotter classpathSnapshotter;
-    private final GeneralCompileCaches compileCaches;
+    private final CurrentCompilationAccess classpathSnapshotter;
     private final PreviousCompilationAccess previousCompilationAccess;
 
     public SelectiveCompiler(
         CleaningJavaCompiler<T> cleaningJavaCompiler,
         Compiler<T> rebuildAllCompiler,
         RecompilationSpecProvider recompilationSpecProvider,
-        CurrentClasspathSnapshotter classpathSnapshotter,
-        GeneralCompileCaches compileCaches,
+        CurrentCompilationAccess classpathSnapshotter,
         PreviousCompilationAccess previousCompilationAccess
     ) {
         this.cleaningCompiler = cleaningJavaCompiler;
         this.rebuildAllCompiler = rebuildAllCompiler;
         this.recompilationSpecProvider = recompilationSpecProvider;
         this.classpathSnapshotter = classpathSnapshotter;
-        this.compileCaches = compileCaches;
         this.previousCompilationAccess = previousCompilationAccess;
     }
 
@@ -78,7 +74,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
         }
         PreviousCompilationData previousCompilationData = previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile);
         ClassSetAnalysisData previousClassAnalysis = previousCompilationAccess.analyseClasses(spec.getDestinationDir());
-        PreviousCompilation previousCompilation = new PreviousCompilation(previousCompilationData, previousClassAnalysis, compileCaches.getClasspathEntrySnapshotCache());
+        PreviousCompilation previousCompilation = new PreviousCompilation(previousCompilationData, previousClassAnalysis);
         if (spec.getSourceRoots().isEmpty()) {
             LOG.info("Full recompilation is required because the source roots could not be inferred.");
             return rebuildAllCompiler.execute(spec);

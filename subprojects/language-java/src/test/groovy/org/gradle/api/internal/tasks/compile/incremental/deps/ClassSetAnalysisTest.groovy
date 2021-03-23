@@ -16,22 +16,47 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps
 
+import com.google.common.collect.Maps
 import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData
+import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.*
 
 class ClassSetAnalysisTest extends Specification {
 
-    ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
-                              Map<String, IntSet> classToConstants = [:],
-                              DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
+    static def hash = HashCode.fromInt(0)
+
+    static ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
+                                     Map<String, IntSet> classToConstants = [:],
+                                     DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
         new ClassSetAnalysis(
-            new ClassSetAnalysisData(dependents.keySet(), dependents, classToConstants, fullRebuildCause),
+            new ClassSetAnalysisData(Maps.transformValues(dependents) { hash }, dependents, classToConstants, fullRebuildCause),
             new AnnotationProcessingData([:], aggregatedTypes.getAllDependentClasses(), dependentsOnAll.getAllDependentClasses(), [:], dependentsOnAll.dependentResources, null)
         )
+    }
+
+    static ClassSetAnalysis snapshot(Map<String, HashCode> hashes) {
+        new ClassSetAnalysis(new ClassSetAnalysisData(hashes, [:], [:], null))
+    }
+
+    def "knows when there are no affected classes since some other snapshot"() {
+        ClassSetAnalysis s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)])
+        ClassSetAnalysis s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)])
+
+        expect:
+        s1.getChangesSince(s2).dependents.isEmpty()
+    }
+
+    def "knows when there are changed classes since other snapshot"() {
+        ClassSetAnalysis s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcc)])
+        ClassSetAnalysis s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbbbb)])
+
+        expect:
+        s1.getChangesSince(s2).dependents.allDependentClasses == ["B", "C"] as Set
+        s2.getChangesSince(s1).dependents.allDependentClasses == ["B", "C"] as Set
     }
 
     def "returns empty analysis"() {

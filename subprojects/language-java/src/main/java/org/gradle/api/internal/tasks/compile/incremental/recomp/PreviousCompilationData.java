@@ -16,47 +16,49 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.ListSerializer;
-
-import java.util.List;
 
 public class PreviousCompilationData {
     private final AnnotationProcessingData annotationProcessingData;
-    private final List<HashCode> classpathHashes;
+    private final ClassSetAnalysisData classpathSnapshot;
 
-    public PreviousCompilationData(AnnotationProcessingData annotationProcessingData, List<HashCode> classpathHashes) {
+    public PreviousCompilationData(AnnotationProcessingData annotationProcessingData, ClassSetAnalysisData classpathSnapshot) {
         this.annotationProcessingData = annotationProcessingData;
-        this.classpathHashes = classpathHashes;
+        this.classpathSnapshot = classpathSnapshot;
     }
 
     public AnnotationProcessingData getAnnotationProcessingData() {
         return annotationProcessingData;
     }
 
-    public List<HashCode> getClasspathHashes() {
-        return classpathHashes;
+    public ClassSetAnalysisData getClasspathSnapshot() {
+        return classpathSnapshot;
     }
 
     public static class Serializer extends AbstractSerializer<PreviousCompilationData> {
-        private final ListSerializer<HashCode> hashSerializer = new ListSerializer<>(new HashCodeSerializer());
-        private final AnnotationProcessingData.Serializer annotationProcessingDataSerializer = new AnnotationProcessingData.Serializer();
+        private final ClassSetAnalysisData.Serializer classpathSerializer;
+        private final AnnotationProcessingData.Serializer annotationProcessingDataSerializer;
+
+        public Serializer(StringInterner interner) {
+            classpathSerializer = new ClassSetAnalysisData.Serializer(interner);
+            annotationProcessingDataSerializer = new AnnotationProcessingData.Serializer();
+        }
 
         @Override
         public PreviousCompilationData read(Decoder decoder) throws Exception {
-            List<HashCode> classpathHashes = hashSerializer.read(decoder);
+            ClassSetAnalysisData classpathSnapshot = classpathSerializer.read(decoder);
             AnnotationProcessingData annotationProcessingData = annotationProcessingDataSerializer.read(decoder);
-            return new PreviousCompilationData(annotationProcessingData, classpathHashes);
+            return new PreviousCompilationData(annotationProcessingData, classpathSnapshot);
         }
 
         @Override
         public void write(Encoder encoder, PreviousCompilationData value) throws Exception {
-            hashSerializer.write(encoder, value.classpathHashes);
+            classpathSerializer.write(encoder, value.classpathSnapshot);
             annotationProcessingDataSerializer.write(encoder, value.annotationProcessingData);
         }
     }

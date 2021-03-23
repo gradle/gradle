@@ -25,9 +25,10 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDe
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntryAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.CachingClasspathEntrySnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotter;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.CurrentClasspathSnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClasspathEntrySnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.internal.hash.FileHasher;
@@ -58,12 +59,12 @@ public class IncrementalCompilerFactory {
     public <T extends JavaCompileSpec> Compiler<T> makeIncremental(CleaningJavaCompiler<T> cleaningJavaCompiler, FileTree sources, RecompilationSpecProvider recompilationSpecProvider) {
         Compiler<T> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
         ClassDependenciesAnalyzer classDependenciesAnalyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), generalCompileCaches.getClassAnalysisCache());
-        ClasspathEntryAnalyzer classpathEntryAnalyzer = new ClasspathEntryAnalyzer(fileHasher, streamHasher, classDependenciesAnalyzer, fileOperations);
-        ClasspathEntrySnapshotter classpathEntrySnapshotter = new ClasspathEntrySnapshotter(classpathEntryAnalyzer, fileSystemAccess, generalCompileCaches.getClasspathEntrySnapshotCache());
-        CurrentClasspathSnapshotter currentClasspathSnapshotter = new CurrentClasspathSnapshotter(classpathEntrySnapshotter, buildOperationExecutor);
-        PreviousCompilationAccess previousCompilationAccess = new PreviousCompilationAccess(classpathEntryAnalyzer);
-        Compiler<T> compiler = new SelectiveCompiler<>(cleaningJavaCompiler, rebuildAllCompiler, recompilationSpecProvider, currentClasspathSnapshotter, generalCompileCaches, previousCompilationAccess);
-        return new IncrementalResultStoringCompiler<>(compiler, currentClasspathSnapshotter, previousCompilationAccess);
+        ClasspathEntrySnapshotter defaultClasspathEntrySnapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, classDependenciesAnalyzer, fileOperations);
+        ClasspathEntrySnapshotter cachingClasspathEntrySnapshotter = new CachingClasspathEntrySnapshotter(defaultClasspathEntrySnapshotter, fileSystemAccess, generalCompileCaches.getClasspathEntrySnapshotCache());
+        CurrentCompilationAccess currentCompilationAccess = new CurrentCompilationAccess(cachingClasspathEntrySnapshotter, buildOperationExecutor);
+        PreviousCompilationAccess previousCompilationAccess = new PreviousCompilationAccess(defaultClasspathEntrySnapshotter, interner);
+        Compiler<T> compiler = new SelectiveCompiler<>(cleaningJavaCompiler, rebuildAllCompiler, recompilationSpecProvider, currentCompilationAccess, previousCompilationAccess);
+        return new IncrementalResultStoringCompiler<>(compiler, currentCompilationAccess, previousCompilationAccess);
     }
 
     private <T extends JavaCompileSpec> Compiler<T> createRebuildAllCompiler(CleaningJavaCompiler<T> cleaningJavaCompiler, FileTree sourceFiles) {

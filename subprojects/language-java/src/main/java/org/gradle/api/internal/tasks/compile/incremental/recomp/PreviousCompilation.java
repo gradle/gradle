@@ -18,49 +18,32 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.cache.Cache;
-import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 public class PreviousCompilation {
     private final PreviousCompilationData data;
     private final ClassSetAnalysis classAnalysis;
-    private final Cache<HashCode, ClasspathEntrySnapshotData> classpathEntrySnapshotCache;
 
-    public PreviousCompilation(PreviousCompilationData data, ClassSetAnalysisData classAnalysis, Cache<HashCode, ClasspathEntrySnapshotData> classpathEntrySnapshotCache) {
+    public PreviousCompilation(PreviousCompilationData data, ClassSetAnalysisData classAnalysis) {
         this.data = data;
         this.classAnalysis = new ClassSetAnalysis(classAnalysis, data.getAnnotationProcessingData());
-        this.classpathEntrySnapshotCache = classpathEntrySnapshotCache;
     }
 
     @Nullable
-    public ClasspathSnapshot getClasspath() {
-        List<ClasspathEntrySnapshotData> entries = new ArrayList<>();
-        for (HashCode hash : data.getClasspathHashes()) {
-            ClasspathEntrySnapshotData snapshot = classpathEntrySnapshotCache.getIfPresent(hash);
-            if (snapshot != null) {
-                entries.add(snapshot);
-            } else {
-                return null;
-            }
-        }
-        return new ClasspathSnapshot(entries);
+    public ClassSetAnalysis getClasspath() {
+        return new ClassSetAnalysis(data.getClasspathSnapshot());
     }
 
-    public DependentsSet getDependents(ClasspathSnapshot.ClasspathChanges classpathChanges) {
-        if (classpathChanges.getDependents().isDependencyToAll()) {
-            return classpathChanges.getDependents();
+    public DependentsSet getDependents(ClassSetAnalysis.ClassSetDiff diff) {
+        if (diff.getDependents().isDependencyToAll()) {
+            return diff.getDependents();
         }
-        return classAnalysis.getRelevantDependents(classpathChanges.getDependents().getAllDependentClasses(), classpathChanges.getConstants());
+        return classAnalysis.getRelevantDependents(diff.getDependents().getAllDependentClasses(), diff.getConstants());
     }
 
     public DependentsSet getDependents(String className, IntSet newConstants) {

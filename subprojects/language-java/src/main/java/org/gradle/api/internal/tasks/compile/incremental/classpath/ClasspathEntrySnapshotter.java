@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-import org.gradle.cache.Cache;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 
 import java.io.File;
 
-public class ClasspathEntrySnapshotter {
-
-    private final ClasspathEntryAnalyzer analyzer;
-    private final FileSystemAccess fileSystemAccess;
-    private final Cache<HashCode, ClasspathEntrySnapshotData> cache;
-
-    public ClasspathEntrySnapshotter(ClasspathEntryAnalyzer analyzer,
-                                     FileSystemAccess fileSystemAccess,
-                                     Cache<HashCode, ClasspathEntrySnapshotData> cache) {
-        this.analyzer = analyzer;
-        this.fileSystemAccess = fileSystemAccess;
-        this.cache = cache;
-    }
-
-    public ClasspathEntrySnapshotData createSnapshot(final File classpathEntry) {
-        return fileSystemAccess.read(
-            classpathEntry.getAbsolutePath(),
-            snapshot -> cache.get(snapshot.getHash(), hash -> analyzer.analyze(hash, classpathEntry))
-        );
-    }
+public interface ClasspathEntrySnapshotter {
+    ClassSetAnalysisData createSnapshot(File classpathEntry);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.classpath;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -34,28 +36,28 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class CurrentClasspathSnapshotter {
+public class CurrentCompilationAccess {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CurrentClasspathSnapshotter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CurrentCompilationAccess.class);
     private final ClasspathEntrySnapshotter classpathEntrySnapshotter;
     private final BuildOperationExecutor buildOperationExecutor;
-    private List<ClasspathEntrySnapshotData> classpathSnapshot;
+    private ClassSetAnalysisData classpathSnapshot;
 
-    public CurrentClasspathSnapshotter(ClasspathEntrySnapshotter classpathEntrySnapshotter, BuildOperationExecutor buildOperationExecutor) {
+    public CurrentCompilationAccess(ClasspathEntrySnapshotter classpathEntrySnapshotter, BuildOperationExecutor buildOperationExecutor) {
         this.classpathEntrySnapshotter = classpathEntrySnapshotter;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public List<ClasspathEntrySnapshotData> getClasspathSnapshot(final Iterable<File> entries) {
+    public ClassSetAnalysisData getClasspathSnapshot(final Iterable<File> entries) {
         if (classpathSnapshot == null) {
             Timer clock = Time.startTimer();
-            classpathSnapshot = doSnapshot(entries);
+            classpathSnapshot = ClassSetAnalysisData.merge(doSnapshot(entries));
             LOG.info("Created classpath snapshot for incremental compilation in {}.", clock.getElapsed());
         }
         return classpathSnapshot;
     }
 
-    private List<ClasspathEntrySnapshotData> doSnapshot(Iterable<File> entries) {
+    private List<ClassSetAnalysisData> doSnapshot(Iterable<File> entries) {
         return snapshotAll(entries).stream()
             .map(CreateSnapshot::getSnapshot)
             .filter(Objects::nonNull)
@@ -77,7 +79,7 @@ public class CurrentClasspathSnapshotter {
 
     private class CreateSnapshot implements RunnableBuildOperation {
         private final File entry;
-        private ClasspathEntrySnapshotData snapshot;
+        private ClassSetAnalysisData snapshot;
 
         private CreateSnapshot(File entry) {
             this.entry = entry;
@@ -96,7 +98,7 @@ public class CurrentClasspathSnapshotter {
         }
 
         @Nullable
-        public ClasspathEntrySnapshotData getSnapshot() {
+        public ClassSetAnalysisData getSnapshot() {
             return snapshot;
         }
     }

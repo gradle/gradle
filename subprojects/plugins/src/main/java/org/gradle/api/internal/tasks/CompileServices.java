@@ -17,12 +17,9 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultUserHomeScopedCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.UserHomeScopedCompileCaches;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -44,15 +41,11 @@ public class CompileServices extends AbstractPluginServiceRegistry {
             // Hackery
             initializer.initializeJdkTools();
         }
-
-        DefaultGeneralCompileCaches createGeneralCompileCaches(UserHomeScopedCompileCaches userHomeScopedCompileCaches, BuildCacheController buildCache, StringInterner interner) {
-            return new DefaultGeneralCompileCaches(userHomeScopedCompileCaches, buildCache, interner);
-        }
     }
 
     private static class UserHomeScopeServices {
-        DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
-            return new DefaultUserHomeScopedCompileCaches(cacheRepository, inMemoryCacheDecoratorFactory, interner);
+        UserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+            return new UserHomeScopedCompileCaches(cacheRepository, inMemoryCacheDecoratorFactory, interner);
         }
     }
 }

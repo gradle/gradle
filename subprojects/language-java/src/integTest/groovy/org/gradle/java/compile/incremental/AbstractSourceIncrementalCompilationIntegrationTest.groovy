@@ -1097,33 +1097,6 @@ sourceSets {
         outputs.recompiledClasses("A", "B", "E", "package-info")
     }
 
-    def "recompiles all dependents when no jar analysis is present"() {
-        given:
-        executer.requireDaemon().requireIsolatedDaemons().requireOwnGradleUserHomeDir()
-        source """class A {
-            org.apache.commons.lang3.StringUtils utils;
-        }"""
-        source """class B {}"""
-
-        buildFile << """
-            ${mavenCentralRepository()}
-            dependencies { implementation 'org.apache.commons:commons-lang3:3.8' }
-        """
-        outputs.snapshot { succeeds language.compileTaskName }
-
-        when: "In-memory and on-disk caches are clean"
-        executer.stop()
-        file("user-home").deleteDir()
-
-        and: "Current compilation uses a slightly different dependency"
-        buildFile << "dependencies { implementation 'org.apache.commons:commons-lang3:3.9' }"
-
-        then:
-        succeeds language.compileTaskName, "-i"
-        outputs.recompiledClasses("A", "B")
-        output.contains("classpath data of previous compilation is incomplete")
-    }
-
     @Issue('https://github.com/gradle/gradle/issues/9380')
     def 'can move source sets'() {
         given:

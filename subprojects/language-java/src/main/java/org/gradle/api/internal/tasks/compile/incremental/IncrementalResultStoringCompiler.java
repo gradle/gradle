@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.CurrentClasspathSnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
@@ -31,14 +31,11 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilat
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Stores the incremental class dependency analysis after compilation has finished.
@@ -46,10 +43,10 @@ import java.util.stream.Collectors;
 class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Compiler<T> {
 
     private final Compiler<T> delegate;
-    private final CurrentClasspathSnapshotter classpathSnapshotter;
+    private final CurrentCompilationAccess classpathSnapshotter;
     private final PreviousCompilationAccess previousCompilationAccess;
 
-    IncrementalResultStoringCompiler(Compiler<T> delegate, CurrentClasspathSnapshotter classpathSnapshotter, PreviousCompilationAccess previousCompilationAccess) {
+    IncrementalResultStoringCompiler(Compiler<T> delegate, CurrentCompilationAccess classpathSnapshotter, PreviousCompilationAccess previousCompilationAccess) {
         this.delegate = delegate;
         this.classpathSnapshotter = classpathSnapshotter;
         this.previousCompilationAccess = previousCompilationAccess;
@@ -66,10 +63,9 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     }
 
     private void storeResult(JavaCompileSpec spec, WorkResult result) {
-        List<ClasspathEntrySnapshotData> classpathSnapshot = classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath()));
-        List<HashCode> classpathHashes = classpathSnapshot.stream().map(ClasspathEntrySnapshotData::getHash).collect(Collectors.toList());
+        ClassSetAnalysisData classpathSnapshot = classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath()));
         AnnotationProcessingData annotationProcessingData = getAnnotationProcessingResult(spec, result);
-        PreviousCompilationData data = new PreviousCompilationData(annotationProcessingData, classpathHashes);
+        PreviousCompilationData data = new PreviousCompilationData(annotationProcessingData, classpathSnapshot);
         File previousCompilationDataFile = Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
         previousCompilationAccess.writePreviousCompilationData(data, previousCompilationDataFile);
     }

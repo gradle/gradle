@@ -18,8 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.CurrentClasspathSnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.io.File;
@@ -27,9 +26,9 @@ import java.util.Collection;
 
 public class CurrentCompilation {
     private final JavaCompileSpec spec;
-    private final CurrentClasspathSnapshotter classpathSnapshotter;
+    private final CurrentCompilationAccess classpathSnapshotter;
 
-    public CurrentCompilation(JavaCompileSpec spec, CurrentClasspathSnapshotter classpathSnapshotter) {
+    public CurrentCompilation(JavaCompileSpec spec, CurrentCompilationAccess classpathSnapshotter) {
         this.spec = spec;
         this.classpathSnapshotter = classpathSnapshotter;
     }
@@ -39,17 +38,17 @@ public class CurrentCompilation {
     }
 
     public DependentsSet getDependentsOfClasspathChanges(PreviousCompilation previous) {
-        ClasspathSnapshot currentClasspath = getClasspath();
-        ClasspathSnapshot previousClasspath = previous.getClasspath();
+        ClassSetAnalysis currentClasspath = getClasspath();
+        ClassSetAnalysis previousClasspath = previous.getClasspath();
         if (previousClasspath == null) {
             return DependentsSet.dependencyToAll("classpath data of previous compilation is incomplete");
         }
-        ClasspathSnapshot.ClasspathChanges classpathChanges = currentClasspath.getChangesSince(previousClasspath);
+        ClassSetAnalysis.ClassSetDiff classpathChanges = currentClasspath.getChangesSince(previousClasspath);
         return previous.getDependents(classpathChanges);
     }
 
-    private ClasspathSnapshot getClasspath() {
-        return new ClasspathSnapshot(classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath())));
+    private ClassSetAnalysis getClasspath() {
+        return new ClassSetAnalysis(classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath())));
     }
 
 }

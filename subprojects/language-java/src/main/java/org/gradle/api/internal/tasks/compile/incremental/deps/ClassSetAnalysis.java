@@ -19,11 +19,14 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
@@ -64,6 +67,27 @@ public class ClassSetAnalysis {
             }
         }
         this.resourceDependenciesFromAnnotationProcessing = resourceDependenciesFromAnnotationProcessing.build();
+    }
+
+    public ClassSetDiff getChangesSince(ClassSetAnalysis other) {
+        DependentsSet directChanges = classAnalysis.getChangedClassesSince(other.classAnalysis);
+        DependentsSet transitiveChanges = other.getRelevantDependents(directChanges.getAllDependentClasses(), IntSets.emptySet());
+        DependentsSet allChanges = DependentsSet.merge(Arrays.asList(directChanges, transitiveChanges));
+        IntSet changedConstants = getChangedConstants(other, allChanges);
+        return new ClassSetDiff(allChanges, changedConstants);
+    }
+
+    private IntSet getChangedConstants(ClassSetAnalysis other, DependentsSet affectedClasses) {
+        if (affectedClasses.isDependencyToAll()) {
+            return IntSets.emptySet();
+        }
+        IntSet result = new IntOpenHashSet();
+        for (String affectedClass : affectedClasses.getAllDependentClasses()) {
+            IntSet difference = new IntOpenHashSet(other.getConstants(affectedClass));
+            difference.removeAll(getConstants(affectedClass));
+            result.addAll(difference);
+        }
+        return result;
     }
 
     public DependentsSet getRelevantDependents(Iterable<String> classes, IntSet constants) {
@@ -198,5 +222,23 @@ public class ClassSetAnalysis {
 
     public IntSet getConstants(String className) {
         return classAnalysis.getConstants(className);
+    }
+
+    public static final class ClassSetDiff {
+        private final DependentsSet dependents;
+        private final IntSet constants;
+
+        public ClassSetDiff(DependentsSet dependents, IntSet constants) {
+            this.dependents = dependents;
+            this.constants = constants;
+        }
+
+        public DependentsSet getDependents() {
+            return dependents;
+        }
+
+        public IntSet getConstants() {
+            return constants;
+        }
     }
 }

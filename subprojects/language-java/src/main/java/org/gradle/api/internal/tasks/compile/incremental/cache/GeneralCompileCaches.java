@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.cache.Cache;
 import org.gradle.internal.hash.HashCode;
 
@@ -28,6 +28,6 @@ import org.gradle.internal.hash.HashCode;
  * and some community plugins still depend on it in their byte code.
  */
 public interface GeneralCompileCaches {
-    Cache<HashCode, ClasspathEntrySnapshotData> getClasspathEntrySnapshotCache();
+    Cache<HashCode, ClassSetAnalysisData> getClasspathEntrySnapshotCache();
     Cache<HashCode, ClassAnalysis> getClassAnalysisCache();
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntryAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.time.Time;
@@ -34,23 +33,24 @@ import java.io.FileOutputStream;
 public class PreviousCompilationAccess {
     private static final Logger LOG = LoggerFactory.getLogger(PreviousCompilationAccess.class);
 
-    private final ClasspathEntryAnalyzer analyzer;
+    private final ClasspathEntrySnapshotter analyzer;
+    private final StringInterner interner;
 
-    public PreviousCompilationAccess(ClasspathEntryAnalyzer analyzer) {
-        this.analyzer = analyzer;
+    public PreviousCompilationAccess(ClasspathEntrySnapshotter classpathEntrySnapshotter, StringInterner interner) {
+        this.analyzer = classpathEntrySnapshotter;
+        this.interner = interner;
     }
 
     public ClassSetAnalysisData analyseClasses(File classesDirectory) {
         Timer clock = Time.startTimer();
-        HashCode unusedHashCode = HashCode.fromInt(0);
-        ClasspathEntrySnapshotData snapshot = analyzer.analyze(unusedHashCode, classesDirectory);
+        ClassSetAnalysisData snapshot = analyzer.createSnapshot(classesDirectory);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
-        return snapshot.getClassAnalysis();
+        return snapshot;
     }
 
     public PreviousCompilationData readPreviousCompilationData(File source) {
         try (KryoBackedDecoder encoder = new KryoBackedDecoder(new FileInputStream(source))) {
-            return new PreviousCompilationData.Serializer().read(encoder);
+            return new PreviousCompilationData.Serializer(interner).read(encoder);
         } catch (Exception e) {
             throw new IllegalStateException("Could not read previous compilation result.", e);
         }
@@ -58,7 +58,7 @@ public class PreviousCompilationAccess {
 
     public void writePreviousCompilationData(PreviousCompilationData data, File target) {
         try (KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(target))) {
-            new PreviousCompilationData.Serializer().write(encoder, data);
+            new PreviousCompilationData.Serializer(interner).write(encoder, data);
         } catch (Exception e) {
             throw new IllegalStateException("Could not store compilation result", e);
         }
