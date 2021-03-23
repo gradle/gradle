@@ -45,7 +45,7 @@ This release contains further improvements for incremental development &mdash; t
 In an [incremental build](userguide/more_about_tasks.html#sec:up_to_date_checks), input and output files are checked to determine what needs to be rebuilt.
 This feature typically saves a lot of time; however, it adds some I/O overhead, which can be noticeable in large projects when not much has changed since the previous build.
 
-File system watching [was introduced](https://blog.gradle.org/introducing-file-system-watching)_ as an opt-in feature in Gradle 6.5 and marked as production-ready in Gradle 6.7.
+File system watching [was introduced](https://blog.gradle.org/introducing-file-system-watching) as an opt-in feature in Gradle 6.5 and marked as production-ready in Gradle 6.7.
 When enabled, Gradle keeps what it has learned about the file system in memory between builds and skips reading from the file system on each build.
 This significantly reduces the amount of disk I/O needed to determine what has changed since the previous build.
 
