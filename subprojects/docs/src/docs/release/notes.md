@@ -8,6 +8,7 @@ This release also introduces a feature preview for [centralized dependency versi
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+[Matthew Haughton](https://github.com/3flex),
 [Leon Linhart](https://github.com/TheMrMilchmann),
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Aidar Nugmanoff](https://github.com/nugmanoff),
