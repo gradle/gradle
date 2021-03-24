@@ -24,10 +24,10 @@ import spock.lang.Unroll
 
 class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
+    public BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
-        server.start()
+        blockingServer.start()
     }
 
     String getAuthConfig() { '' }
@@ -41,8 +41,8 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                maven { 
-                    url = uri('$server.uri')
+                maven {
+                    url = uri('$blockingServer.uri')
                     $authConfig
                 }
             }
@@ -62,16 +62,16 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 """
 
         given:
-        server.expectConcurrent(
-            server.get(m1.pom.path).sendFile(m1.pom.file),
-            server.get(m2.pom.path).sendFile(m2.pom.file),
-            server.get(m3.pom.path).sendFile(m3.pom.file),
-            server.get(m4.pom.path).sendFile(m4.pom.file))
-        server.expectConcurrent(
-            server.get(m1.artifact.path).sendFile(m1.artifact.file),
-            server.get(m2.artifact.path).sendFile(m2.artifact.file),
-            server.get(m3.artifact.path).sendFile(m3.artifact.file),
-            server.get(m4.artifact.path).sendFile(m4.artifact.file))
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.pom.path).sendFile(m1.pom.file),
+            blockingServer.get(m2.pom.path).sendFile(m2.pom.file),
+            blockingServer.get(m3.pom.path).sendFile(m3.pom.file),
+            blockingServer.get(m4.pom.path).sendFile(m4.pom.file))
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.artifact.path).sendFile(m1.artifact.file),
+            blockingServer.get(m2.artifact.path).sendFile(m2.artifact.file),
+            blockingServer.get(m3.artifact.path).sendFile(m3.artifact.file),
+            blockingServer.get(m4.artifact.path).sendFile(m4.artifact.file))
 
         expect:
         executer.withArguments('--max-workers', '4')
@@ -94,8 +94,8 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                ivy { 
-                    url = uri('$server.uri')
+                ivy {
+                    url = uri('$blockingServer.uri')
                     $authConfig
                 }
             }
@@ -115,16 +115,16 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 """
 
         given:
-        server.expectConcurrent(
-            server.get(m1.ivy.path).sendFile(m1.ivy.file),
-            server.get(m2.ivy.path).sendFile(m2.ivy.file),
-            server.get(m3.ivy.path).sendFile(m3.ivy.file),
-            server.get(m4.ivy.path).sendFile(m4.ivy.file))
-        server.expectConcurrent(
-            server.get(m1.jar.path).sendFile(m1.jar.file),
-            server.get(m2.jar.path).sendFile(m2.jar.file),
-            server.get(m3.jar.path).sendFile(m3.jar.file),
-            server.get(m4.jar.path).sendFile(m4.jar.file))
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.ivy.path).sendFile(m1.ivy.file),
+            blockingServer.get(m2.ivy.path).sendFile(m2.ivy.file),
+            blockingServer.get(m3.ivy.path).sendFile(m3.ivy.file),
+            blockingServer.get(m4.ivy.path).sendFile(m4.ivy.file))
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.jar.path).sendFile(m1.jar.file),
+            blockingServer.get(m2.jar.path).sendFile(m2.jar.file),
+            blockingServer.get(m3.jar.path).sendFile(m3.jar.file),
+            blockingServer.get(m4.jar.path).sendFile(m4.jar.file))
 
         expect:
         executer.withArguments('--max-workers', '4')
@@ -139,8 +139,8 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                maven { 
-                    url = uri('$server.uri')
+                maven {
+                    url = uri('$blockingServer.uri')
                     $authConfig
                 }
             }
@@ -160,16 +160,16 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 """
 
         given:
-        def metadataRequests = server.expectConcurrentAndBlock(2,
-            server.get(m1.pom.path).sendFile(m1.pom.file),
-            server.get(m2.pom.path).sendFile(m2.pom.file),
-            server.get(m3.pom.path).sendFile(m3.pom.file),
-            server.get(m4.pom.path).sendFile(m4.pom.file))
-        def requests = server.expectConcurrentAndBlock(2,
-            server.get(m1.artifact.path).sendFile(m1.artifact.file),
-            server.get(m2.artifact.path).sendFile(m2.artifact.file),
-            server.get(m3.artifact.path).sendFile(m3.artifact.file),
-            server.get(m4.artifact.path).sendFile(m4.artifact.file))
+        def metadataRequests = blockingServer.expectConcurrentAndBlock(2,
+            blockingServer.get(m1.pom.path).sendFile(m1.pom.file),
+            blockingServer.get(m2.pom.path).sendFile(m2.pom.file),
+            blockingServer.get(m3.pom.path).sendFile(m3.pom.file),
+            blockingServer.get(m4.pom.path).sendFile(m4.pom.file))
+        def requests = blockingServer.expectConcurrentAndBlock(2,
+            blockingServer.get(m1.artifact.path).sendFile(m1.artifact.file),
+            blockingServer.get(m2.artifact.path).sendFile(m2.artifact.file),
+            blockingServer.get(m3.artifact.path).sendFile(m3.artifact.file),
+            blockingServer.get(m4.artifact.path).sendFile(m4.artifact.file))
 
         expect:
         executer.withArguments('--max-workers', '2')
@@ -198,21 +198,21 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                ivy { 
-                    url = uri('$server.uri')
+                ivy {
+                    url = uri('$blockingServer.uri')
                     $authConfig
                 }
             }
-            
+
             configurations { compile }
             def lock = new java.util.concurrent.locks.ReentrantLock()
-            
+
             dependencies {
                 compile 'test:test1:1.0'
                 compile 'test:test2:1.0'
                 compile 'test:test3:1.0'
                 compile 'test:test4:1.0'
-                
+
                 components {
                     all { ComponentMetadataDetails details ->
                         if (!lock.tryLock()) {
@@ -239,16 +239,16 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 """
 
         given:
-        server.expectConcurrent(
-            server.get(m1.ivy.path).sendFile(m1.ivy.file),
-            server.get(m2.ivy.path).sendFile(m2.ivy.file),
-            server.get(m3.ivy.path).sendFile(m3.ivy.file),
-            server.get(m4.ivy.path).sendFile(m4.ivy.file))
-        server.expectConcurrent(
-            server.get(m1.jar.path).sendFile(m1.jar.file),
-            server.get(m2.jar.path).sendFile(m2.jar.file),
-            server.get(m3.jar.path).sendFile(m3.jar.file),
-            server.get(m4.jar.path).sendFile(m4.jar.file))
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.ivy.path).sendFile(m1.ivy.file),
+            blockingServer.get(m2.ivy.path).sendFile(m2.ivy.file),
+            blockingServer.get(m3.ivy.path).sendFile(m3.ivy.file),
+            blockingServer.get(m4.ivy.path).sendFile(m4.ivy.file))
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.jar.path).sendFile(m1.jar.file),
+            blockingServer.get(m2.jar.path).sendFile(m2.jar.file),
+            blockingServer.get(m3.jar.path).sendFile(m3.jar.file),
+            blockingServer.get(m4.jar.path).sendFile(m4.jar.file))
 
         expect:
         executer.withArguments('--max-workers', '4')
@@ -276,18 +276,18 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                maven { 
-                    url = uri('$server.uri')
+                maven {
+                    url = uri('$blockingServer.uri')
                     $authConfig
                 }
             }
 
             configurations { compile }
-            dependencies { 
-                compile 'org:child1:1.0' 
-                compile 'org:child2:1.0'    
+            dependencies {
+                compile 'org:child1:1.0'
+                compile 'org:child2:1.0'
             }
-            
+
             task resolve {
                inputs.files configurations.compile
                   doLast {
@@ -297,19 +297,19 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         when:
-        def getChildrenConcurrently = server.expectConcurrentAndBlock(
-            server.get(child1.pom.path).sendFile(child1.pom.file),
-            server.get(child2.pom.path).sendFile(child2.pom.file),
+        def getChildrenConcurrently = blockingServer.expectConcurrentAndBlock(
+            blockingServer.get(child1.pom.path).sendFile(child1.pom.file),
+            blockingServer.get(child2.pom.path).sendFile(child2.pom.file),
         )
 
-        def getParentsConcurrently = server.expectConcurrentAndBlock(
-            server.get(parent1.pom.path).sendFile(parent1.pom.file),
-            server.get(parent2.pom.path).sendFile(parent2.pom.file),
+        def getParentsConcurrently = blockingServer.expectConcurrentAndBlock(
+            blockingServer.get(parent1.pom.path).sendFile(parent1.pom.file),
+            blockingServer.get(parent2.pom.path).sendFile(parent2.pom.file),
         )
 
-        def jars = server.expectConcurrentAndBlock(
-            server.get(child1.artifact.path).sendFile(child1.artifact.file),
-            server.get(child2.artifact.path).sendFile(child2.artifact.file),
+        def jars = blockingServer.expectConcurrentAndBlock(
+            blockingServer.get(child1.artifact.path).sendFile(child1.artifact.file),
+            blockingServer.get(child2.artifact.path).sendFile(child2.artifact.file),
         )
 
         then:

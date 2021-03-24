@@ -15,4 +15,3 @@
 #
 
 org.gradle.integtests.fixtures.FixSpockJUnitRulesOrderExtension
-org.gradle.integtests.fixtures.SpockJUnitAssumptionExtension

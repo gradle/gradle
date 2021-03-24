@@ -127,7 +127,7 @@ NOTE: If you use https://spockframework.org/[Spock] to test your plugins, you wi
 ```
 dependencies {
     // Ensure you use the Groovy 3.x variant
-    testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+    testImplementation('org.spockframework:spock-core:2.0-M5-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'
     }
     testImplementation('org.junit.jupiter:junit-jupiter-api')

@@ -34,6 +34,6 @@ class ParallelDownloadsOnAuthenticatedRepoIntegrationTest extends ParallelDownlo
     }
 
     def setup() {
-        server.withBasicAuthentication(USERNAME, PASSWORD)
+        blockingServer.withBasicAuthentication(USERNAME, PASSWORD)
     }
 }

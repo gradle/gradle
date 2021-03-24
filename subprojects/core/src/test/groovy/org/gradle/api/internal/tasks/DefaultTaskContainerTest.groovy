@@ -73,16 +73,16 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         callbackActionDecorator
     ).create()
 
-    final boolean supportsBuildOperations = true
+    boolean supportsBuildOperations = true
 
     @Override
     final PolymorphicDomainObjectContainer<Task> getContainer() {
         return container
     }
 
-    final boolean externalProviderAllowed = false
-    final boolean directElementAdditionAllowed = false
-    final boolean elementRemovalAllowed = false
+    boolean externalProviderAllowed = false
+    boolean directElementAdditionAllowed = false
+    boolean elementRemovalAllowed = false
 
     @Override
     protected void addToContainer(Task element) {
@@ -1472,17 +1472,17 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     def factory = new TaskInstantiator(new TaskFactory().createChild(project, TestUtil.instantiatorFactory().decorateScheme()), project)
-    final SomeTask a = factory.create("a", SomeTask)
-    final SomeTask b = factory.create("b", SomeTask)
-    final SomeTask c = factory.create("c", SomeTask)
-    final SomeOtherTask d = factory.create("d", SomeOtherTask)
+    SomeTask a = factory.create("a", SomeTask)
+    SomeTask b = factory.create("b", SomeTask)
+    SomeTask c = factory.create("c", SomeTask)
+    SomeOtherTask d = factory.create("d", SomeOtherTask)
 
     static class SomeTask extends DefaultTask {}
 
     static class SomeOtherTask extends DefaultTask {}
 
-    final Class<SomeTask> type = SomeTask
-    final Class<SomeOtherTask> otherType = SomeOtherTask
+    Class<SomeTask> type = SomeTask
+    Class<SomeOtherTask> otherType = SomeOtherTask
 
     @Override
     void setupContainerDefaults() {

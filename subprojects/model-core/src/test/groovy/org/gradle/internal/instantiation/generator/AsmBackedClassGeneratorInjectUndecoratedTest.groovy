@@ -33,7 +33,7 @@ import static AsmBackedClassGeneratorTest.AbstractBean
 import static AsmBackedClassGeneratorTest.BeanWithServiceGetters
 
 class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
+    ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
     def "returns original class when class is not abstract and no service getter methods present"() {
         expect:

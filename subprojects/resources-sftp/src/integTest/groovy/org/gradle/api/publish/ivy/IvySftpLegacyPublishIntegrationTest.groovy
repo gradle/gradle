@@ -21,7 +21,7 @@ import org.junit.Rule
 
 class IvySftpLegacyPublishIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
     @Rule
-    final SFTPServer server = new SFTPServer(temporaryFolder)
+    SFTPServer server = new SFTPServer(temporaryFolder)
 
     def setup() {
         // SFTP test fixture does not handle parallel resolution requests

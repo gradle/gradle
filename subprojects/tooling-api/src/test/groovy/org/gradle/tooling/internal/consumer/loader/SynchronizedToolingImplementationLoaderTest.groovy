@@ -29,7 +29,7 @@ public class SynchronizedToolingImplementationLoaderTest extends ConcurrentSpec 
 
     def factory = Mock(ProgressLoggerFactory)
     def distro = Mock(Distribution)
-    def logger = Mock(ProgressLogger)
+    private def logger = Mock(ProgressLogger)
     def params = Mock(ConnectionParameters)
     def cancellationToken = Mock(BuildCancellationToken)
     def target = Mock(ToolingImplementationLoader)

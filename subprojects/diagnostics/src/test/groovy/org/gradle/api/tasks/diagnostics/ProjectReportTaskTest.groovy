@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
-    final ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
+    ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     final ProjectReportTask task = TestUtil.createTask(ProjectReportTask, project)
     final TestStyledTextOutput output = new TestStyledTextOutput().ignoreStyle()
 

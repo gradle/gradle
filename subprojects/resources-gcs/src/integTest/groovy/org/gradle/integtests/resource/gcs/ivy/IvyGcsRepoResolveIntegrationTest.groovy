@@ -30,7 +30,7 @@ import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProper
 class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
-    final GcsServer server = new GcsServer(temporaryFolder)
+    GcsServer server = new GcsServer(temporaryFolder)
 
     @Override
     RepositoryServer getServer() {

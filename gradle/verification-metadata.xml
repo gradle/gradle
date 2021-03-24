@@ -167,7 +167,7 @@
          <trusted-key id="b02137d875d833d9b23392ecae5a7fb608a0221c" group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
          <trusted-key id="b41089a2da79b0fa5810252872385ff0af338d52" group="joda-time" name="joda-time"/>
          <trusted-key id="b6e73d84ea4fcc47166087253faad2cd5ecbb314" group="org.apache.commons" name="commons-lang3"/>
-         <trusted-key id="b7b6c746bfe0389172eab86faf0a94402ea0a67f" group="org.spockframework"/>
+         <trusted-key id="76e94e8ff0ab5af3b6f8366972fefd1572eb75e1" group="org.spockframework"/>
          <trusted-key id="b8d44699d150aad887fdcf8bd6131c504debcc09" group="com.kohlschutter.junixsocket"/>
          <trusted-key id="ba926f64ca647b6d853a38672e2010f8a7ff4a41">
             <trusting group="org.codehaus.plexus"/>

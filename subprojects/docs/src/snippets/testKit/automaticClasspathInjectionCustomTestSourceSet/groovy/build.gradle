@@ -21,7 +21,7 @@ gradlePlugin {
 }
 
 dependencies {
-    functionalTestImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+    functionalTestImplementation('org.spockframework:spock-core:2.0-M5-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'
     }
     functionalTestImplementation('org.junit.jupiter:junit-jupiter-api')

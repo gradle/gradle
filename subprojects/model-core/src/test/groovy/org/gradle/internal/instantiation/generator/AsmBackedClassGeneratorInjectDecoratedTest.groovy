@@ -42,7 +42,7 @@ import static AsmBackedClassGeneratorTest.NonGetterInjectBean
 import static AsmBackedClassGeneratorTest.PrivateInjectBean
 
 class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
+    ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
     def "can inject service using @Inject on a getter method with dummy method body"() {
         given:

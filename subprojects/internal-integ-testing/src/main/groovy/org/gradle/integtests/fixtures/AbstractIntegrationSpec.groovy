@@ -87,8 +87,8 @@ class AbstractIntegrationSpec extends Specification {
 
     ExecutionResult result
     ExecutionFailure failure
-    private final MavenFileRepository mavenRepo = new MavenFileRepository(temporaryFolder.testDirectory.file("maven-repo"))
-    private final IvyFileRepository ivyRepo = new IvyFileRepository(temporaryFolder.testDirectory.file("ivy-repo"))
+    public final MavenFileRepository mavenRepo = new MavenFileRepository(temporaryFolder.testDirectory.file("maven-repo"))
+    public final IvyFileRepository ivyRepo = new IvyFileRepository(temporaryFolder.testDirectory.file("ivy-repo"))
 
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
@@ -426,10 +426,6 @@ class AbstractIntegrationSpec extends Specification {
         return new MavenLocalRepository(file(repo))
     }
 
-    public MavenFileRepository getMavenRepo() {
-        return mavenRepo
-    }
-
     public MavenFileRepository publishedMavenModules(String... modulesToPublish) {
         modulesToPublish.each { String notation ->
             def modules = notation.split("->").reverse()
@@ -449,10 +445,6 @@ class AbstractIntegrationSpec extends Specification {
 
     public IvyFileRepository ivy(Object repo) {
         return new IvyFileRepository(file(repo))
-    }
-
-    public IvyFileRepository getIvyRepo() {
-        return ivyRepo
     }
 
     public GradleExecuter using(Action<GradleExecuter> action) {
