@@ -34,7 +34,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Subject
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
@@ -313,7 +312,6 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         0 * fileAccessTimeJournal._
     }
 
-    @Ignore("wip")
     def "removes entries with duplicate content when usage is none"() {
         given:
         def dir = testDir.file("thing.dir")
@@ -342,7 +340,6 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         0 * fileAccessTimeJournal._
     }
 
-    @Ignore("wip")
     def "removes entries with duplicate content when usage is build logic"() {
         given:
         def dir = testDir.file("thing.dir")

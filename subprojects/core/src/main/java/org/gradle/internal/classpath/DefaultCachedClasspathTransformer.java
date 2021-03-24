@@ -21,11 +21,9 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.Try;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileType;
@@ -38,18 +36,14 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 
-import static com.google.common.collect.Sets.newConcurrentHashSet;
-import static java.lang.String.format;
 import static java.util.Optional.empty;
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 import static org.gradle.internal.UncheckedException.unchecked;
 import static org.gradle.internal.classpath.Either.left;
 import static org.gradle.internal.classpath.Either.right;
@@ -123,8 +117,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
         return transformAll(
             urls,
-            (url, context) -> cachedURL(url, transformer, context),
-            Convert::fileToURL
+            (url, seen) -> cachedURL(url, transformer, seen)
         );
     }
 
@@ -132,8 +125,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return DefaultClassPath.of(
             transformAll(
                 classPath.getAsFiles(),
-                (file, context) -> cachedFile(file, transformer, context),
-                file -> file
+                (file, seen) -> cachedFile(file, transformer, seen)
             )
         );
     }
@@ -161,33 +153,45 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, transform);
     }
 
-    private Optional<Either<HashCode, URL>> cachedURL(URL original, ClasspathFileTransformer transformer, ConcurrentTransformContext seen) {
+    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
         if (original.getProtocol().equals("file")) {
-            return cachedFile(new File(unchecked(original::toURI)), transformer, seen).map(
-                result -> result.map(Convert::fileToURL)
+            return cachedFile(Convert.urlToFile(original), transformer, seen).map(
+                result -> result.fold(
+                    file -> left(Convert.fileToURL(file)),
+                    transform -> right(() -> Convert.fileToURL(transform.call()))
+                )
             );
         }
-        return Optional.of(right(original));
+        return Optional.of(left(original));
     }
 
-    private Optional<Either<HashCode, File>> cachedFile(File original, ClasspathFileTransformer transformer, ConcurrentTransformContext context) {
+    private Optional<Either<File, Callable<File>>> cachedFile(
+        File original,
+        ClasspathFileTransformer transformer,
+        Set<HashCode> seen
+    ) {
         FileSystemLocationSnapshot snapshot = snapshotOf(original);
         if (snapshot.getType() == FileType.Missing) {
             return empty();
         }
         if (shouldUseFromCache(original)) {
             final HashCode contentHash = snapshot.getHash();
-            if (context.register(contentHash)) {
-                // It's a new content hash, transform it
-                final File result = transformer.transform(original, snapshot, cache.getBaseDir());
-                context.commit(contentHash, result);
-                markAccessed(result, original);
-                return Optional.of(right(result));
+            if (!seen.add(contentHash)) {
+                // Already seen an entry with the same content hash, ignore it
+                return empty();
             }
-            // Already seen an entry with the same content hash, just return it
-            return Optional.of(left(contentHash));
+            // It's a new content hash, transform it
+            return Optional.of(
+                right(() -> transformFile(original, snapshot, transformer))
+            );
         }
-        return Optional.of(right(original));
+        return Optional.of(left(original));
+    }
+
+    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer) {
+        final File result = transformer.transform(original, snapshot, cache.getBaseDir());
+        markAccessed(result, original);
+        return result;
     }
 
     private FileSystemLocationSnapshot snapshotOf(File file) {
@@ -206,89 +210,53 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     @FunctionalInterface
-    private interface ConcurrentTransform<T, U> {
-        Optional<Either<HashCode, U>> apply(T input, ConcurrentTransformContext context);
+    private interface ValueOrTransformProvider<T, U> {
+        Optional<Either<U, Callable<U>>> apply(T input, Set<HashCode> seen);
     }
 
-    private <T, U> List<U> transformAll(
-        Collection<T> inputs,
-        ConcurrentTransform<T, U> transform,
-        Function<File, U> load
-    ) {
+    private <T, U> List<U> transformAll(Collection<T> inputs, ValueOrTransformProvider<T, U> valueOrTransformProvider) {
         assert !inputs.isEmpty();
         return cache.useCache(() -> {
 
-            // Start all transforms at once
-            final ConcurrentTransformContext context = new ConcurrentTransformContext();
-            final List<Future<Optional<Either<HashCode, U>>>> futureResults =
-                unchecked(() -> executor.invokeAll(transformOperationsFor(inputs, transform, context)));
-
-            // Collect the results
-            final ImmutableList.Builder<U> results = ImmutableList.builderWithExpectedSize(futureResults.size());
-            final List<Throwable> failures = new ArrayList<>();
-            for (Future<Optional<Either<HashCode, U>>> future : futureResults) {
-                Try.ofFailable(() ->
-                    future.get().map(
-                        hashOrResult -> hashOrResult.fold(
-                            hash -> load.apply(context.get(hash)),
-                            r -> r
-                        )
+            final List<U> results = new ArrayList<>(inputs.size());
+            final List<Callable<Void>> transforms = new ArrayList<>(inputs.size());
+            final Set<HashCode> seen = new HashSet<>();
+            for (T input : inputs) {
+                valueOrTransformProvider.apply(input, seen).ifPresent(valueOrTransform ->
+                    valueOrTransform.fold(
+                        value -> {
+                            results.add(value);
+                            return null;
+                        },
+                        transform -> {
+                            final int index = results.size();
+                            results.add(null);
+                            transforms.add(() -> {
+                                results.set(index, unchecked(transform));
+                                return null;
+                            });
+                            return null;
+                        }
                     )
-                ).ifSuccessfulOrElse(
-                    optionalResult -> optionalResult.ifPresent(results::add),
-                    failures::add
                 );
             }
 
-            // Group failures
-            switch (failures.size()) {
-                case 0:
-                    return results.build();
-                case 1:
-                    throw throwAsUncheckedException(failures.get(0));
-                default:
-                    throw new DefaultMultiCauseException(
-                        "Operation could not be completed due to multiple failures.",
-                        failures
-                    );
+            // Execute all transforms at once
+            for (Future<Void> result : unchecked(() -> executor.invokeAll(transforms))) {
+                // Propagate first failure
+                unchecked(result::get);
             }
+
+            return results;
         });
     }
 
-    private <T, U> List<Callable<Optional<Either<HashCode, U>>>> transformOperationsFor(
-        Collection<T> inputs,
-        ConcurrentTransform<T, U> transform,
-        ConcurrentTransformContext context
-    ) {
-        List<Callable<Optional<Either<HashCode, U>>>> operations = new ArrayList<>(inputs.size());
-        for (T input : inputs) {
-            operations.add(() -> transform.apply(input, context));
-        }
-        return operations;
-    }
-
-    private static class ConcurrentTransformContext {
-        private final Set<HashCode> jobs = newConcurrentHashSet();
-        private final ConcurrentHashMap<HashCode, File> results = new ConcurrentHashMap<>();
-
-        public boolean register(HashCode hash) {
-            return jobs.add(hash);
-        }
-
-        public void commit(HashCode hash, File result) {
-            results.put(hash, result);
-        }
-
-        public File get(HashCode hash) {
-            final File file = results.get(hash);
-            if (file == null) {
-                throw new IllegalStateException(format("Instrumentation result for hash %s is missing.", hash));
-            }
-            return file;
-        }
-    }
-
     private static class Convert {
+
+        public static File urlToFile(URL original) {
+            return new File(unchecked(original::toURI));
+        }
+
         public static URL fileToURL(File file) {
             return unchecked(file.toURI()::toURL);
         }
