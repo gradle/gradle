@@ -22,7 +22,8 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.performance.results.PerformanceTestResult
-import org.gradle.profiler.flamegraph.DifferentialFlameGraphGenerator
+import org.gradle.profiler.flamegraph.DifferentialStacksGenerator
+import org.gradle.profiler.flamegraph.FlameGraphGenerator
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
@@ -32,18 +33,22 @@ abstract class AbstractPerformanceTest extends Specification {
 
     OutputDirSelector outputDirSelector
     GradleProfilerReporter gradleProfilerReporter
-    DifferentialFlameGraphGenerator differentialFlameGraphGenerator
     DataReporter<PerformanceTestResult> dataReporter
+
+    protected DifferentialStacksGenerator differentialStacksGenerator
+    protected FlameGraphGenerator flameGraphGenerator
 
     def setup() {
         this.outputDirSelector = new DefaultOutputDirSelector(temporaryFolder.testDirectory)
         this.gradleProfilerReporter = new GradleProfilerReporter(outputDirSelector)
-        this.differentialFlameGraphGenerator = new DifferentialFlameGraphGenerator()
+        this.differentialStacksGenerator = new DifferentialStacksGenerator()
+        this.flameGraphGenerator = new FlameGraphGenerator()
         this.dataReporter = gradleProfilerReporter.reportAlso(new DataReporter<PerformanceTestResult>() {
             @Override
             void report(PerformanceTestResult results) {
                 if (AbstractBuildExperimentRunner.isProfilingActive()) {
-                    differentialFlameGraphGenerator.generateDifferentialGraphs(outputDirSelector.outputDirFor(results.testId))
+                    def stacks = differentialStacksGenerator.generateDifferentialStacks(outputDirSelector.outputDirFor(results.testId))
+                    flameGraphGenerator.generateDifferentialGraphs(stacks)
                 }
             }
 
