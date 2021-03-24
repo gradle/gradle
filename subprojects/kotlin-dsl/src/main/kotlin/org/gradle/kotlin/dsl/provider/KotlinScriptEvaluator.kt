@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
+import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -33,9 +34,12 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.DirectorySensitivity.IGNORE_DIRECTORIES
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing.newHasher
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -242,7 +246,6 @@ class StandardKotlinScriptEvaluator(
                     compilationClassPath,
                     accessorsClassPath,
                     initializer,
-                    classpathHasher,
                     workspaceProvider,
                     fileCollectionFactory,
                     inputFingerprinter
@@ -321,7 +324,6 @@ class CompileKotlinScript(
     private val compilationClassPath: ClassPath,
     private val accessorsClassPath: ClassPath,
     private val compileTo: (File) -> Unit,
-    private val classpathHasher: ClasspathHasher,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter
@@ -354,9 +356,10 @@ class CompileKotlinScript(
         identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
     ): UnitOfWork.Identity {
         val identityHash = newHasher().let { hasher ->
-            listOf("templateId", "sourceHash", "compilationClassPath", "accessorsClassPath").forEach {
-                requireNotNull(identityInputs[it]).appendToHasher(hasher)
-            }
+            requireNotNull(identityInputs["templateId"]).appendToHasher(hasher)
+            requireNotNull(identityInputs["sourceHash"]).appendToHasher(hasher)
+            hasher.putHash(requireNotNull(identityFileInputs["compilationClassPath"]).hash)
+            hasher.putHash(requireNotNull(identityFileInputs["accessorsClassPath"]).hash)
             hasher.hash().toString()
         }
         return UnitOfWork.Identity { identityHash }
@@ -391,8 +394,7 @@ class CompileKotlinScript(
 
     private
     fun InputVisitor.visitClassPathProperty(propertyName: String, classPath: ClassPath) {
-        visitInputProperty(propertyName) {
-            classpathHasher.hash(classPath)
-        }
+        visitInputFileProperty(propertyName, NON_INCREMENTAL,
+            FileValueSupplier(classPath, ClasspathNormalizer::class.java, IGNORE_DIRECTORIES) { -> fileCollectionFactory.fixed(classPath.asFiles) })
     }
 }
