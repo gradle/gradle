@@ -194,7 +194,7 @@ public class ClassSetAnalysisData {
             int count = decoder.readSmallInt();
             ImmutableMap.Builder<String, HashCode> classHashes = ImmutableMap.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
-                String className = readClassName(decoder, classNameMap);
+                String className = readAndInternClassName(decoder, classNameMap);
                 HashCode hashCode = hashCodeSerializer.read(decoder);
                 classHashes.put(className, hashCode);
             }
@@ -202,7 +202,7 @@ public class ClassSetAnalysisData {
             count = decoder.readSmallInt();
             ImmutableMap.Builder<String, DependentsSet> dependentsBuilder = ImmutableMap.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
-                String className = readClassName(decoder, classNameMap);
+                String className = readAndInternClassName(decoder, classNameMap);
                 DependentsSet dependents = readDependentsSet(decoder, classNameMap);
                 dependentsBuilder.put(className, dependents);
             }
@@ -210,7 +210,7 @@ public class ClassSetAnalysisData {
             count = decoder.readSmallInt();
             ImmutableMap.Builder<String, IntSet> classesToConstantsBuilder = ImmutableMap.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
-                String className = readClassName(decoder, classNameMap);
+                String className = readAndInternClassName(decoder, classNameMap);
                 IntSet constants = IntSetSerializer.INSTANCE.read(decoder);
                 classesToConstantsBuilder.put(className, constants);
             }
@@ -245,20 +245,20 @@ public class ClassSetAnalysisData {
 
         private DependentsSet readDependentsSet(Decoder decoder, Map<Integer, String> classNameMap) throws IOException {
             byte b = decoder.readByte();
-            if (b == 1) {
+            if (b == 0) {
                 return DependentsSet.dependencyToAll(decoder.readNullableString());
             }
 
             ImmutableSet.Builder<String> privateBuilder = ImmutableSet.builder();
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
-                privateBuilder.add(readClassName(decoder, classNameMap));
+                privateBuilder.add(readAndInternClassName(decoder, classNameMap));
             }
 
             ImmutableSet.Builder<String> accessibleBuilder = ImmutableSet.builder();
             count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
-                accessibleBuilder.add(readClassName(decoder, classNameMap));
+                accessibleBuilder.add(readAndInternClassName(decoder, classNameMap));
             }
 
             ImmutableSet.Builder<GeneratedResource> resourceBuilder = ImmutableSet.builder();
@@ -273,10 +273,10 @@ public class ClassSetAnalysisData {
 
         private void writeDependentSet(DependentsSet dependentsSet, Map<String, Integer> classNameMap, Encoder encoder) throws IOException {
             if (dependentsSet.isDependencyToAll()) {
-                encoder.writeByte((byte) 1);
+                encoder.writeByte((byte) 0);
                 encoder.writeNullableString(dependentsSet.getDescription());
             } else {
-                encoder.writeByte((byte) 2);
+                encoder.writeByte((byte) 1);
                 encoder.writeSmallInt(dependentsSet.getPrivateDependentClasses().size());
                 for (String className : dependentsSet.getPrivateDependentClasses()) {
                     writeClassName(className, classNameMap, encoder);
@@ -293,26 +293,66 @@ public class ClassSetAnalysisData {
             }
         }
 
+        private String readAndInternClassName(Decoder decoder, Map<Integer, String> classNameMap) throws IOException {
+            String className = readClassName(decoder, classNameMap);
+            return interner.intern(className);
+        }
+
         private String readClassName(Decoder decoder, Map<Integer, String> classNameMap) throws IOException {
             int id = decoder.readSmallInt();
             String className = classNameMap.get(id);
-            if (className != null) {
-                return className;
+            if (className == null) {
+                className = readFirstOccurrenceOfClass(decoder, classNameMap);
+                classNameMap.put(id, className);
             }
-            className = interner.intern(decoder.readString());
-            classNameMap.put(id, className);
+            return className;
+        }
+
+        private String readFirstOccurrenceOfClass(Decoder decoder, Map<Integer, String> manifest) throws IOException {
+            int type = decoder.readByte();
+            String className;
+            if (type == 0) {
+                String parent = readClassName(decoder, manifest);
+                String child = decoder.readString();
+                className = parent + '$' + child;
+            } else if (type == 1) {
+                String parent = readClassName(decoder, manifest);
+                String child = decoder.readString();
+                className = parent + '.' + child;
+            } else {
+                className = decoder.readString();
+            }
             return className;
         }
 
         private void writeClassName(String className, Map<String, Integer> classIdMap, Encoder encoder) throws IOException {
             Integer id = classIdMap.get(className);
             if (id == null) {
-                id = classIdMap.size() + 1;
+                id = classIdMap.size();
                 classIdMap.put(className, id);
                 encoder.writeSmallInt(id);
-                encoder.writeString(className);
+                writeFirstOccurrenceOfClass(className, classIdMap, encoder);
             } else {
                 encoder.writeSmallInt(id);
+            }
+        }
+
+        private void writeFirstOccurrenceOfClass(String className, Map<String, Integer> manifest, Encoder encoder) throws IOException {
+            int nestedTypeSeparator = className.lastIndexOf('$');
+            if (nestedTypeSeparator > 0) {
+                encoder.writeByte((byte) 0);
+                writeClassName(className.substring(0, nestedTypeSeparator), manifest, encoder);
+                encoder.writeString(className.substring(nestedTypeSeparator + 1));
+            } else {
+                int packageSeparator = className.lastIndexOf('.');
+                if (packageSeparator > 0) {
+                    encoder.writeByte((byte) 1);
+                    writeClassName(className.substring(0, packageSeparator), manifest, encoder);
+                    encoder.writeString(className.substring(packageSeparator + 1));
+                } else {
+                    encoder.writeByte((byte) 2);
+                    encoder.writeString(className);
+                }
             }
         }
     }
