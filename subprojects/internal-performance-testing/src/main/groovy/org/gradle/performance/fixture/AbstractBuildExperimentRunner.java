@@ -23,6 +23,7 @@ import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.OutputDirSelector;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.InvocationSettings;
@@ -111,7 +112,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     }
 
     protected InvocationSettings.InvocationSettingsBuilder createInvocationSettingsBuilder(String testId, BuildExperimentSpec experiment) {
-        File outputDir = outputDirSelector.outputDirFor(testId, experiment);
+        File outputDir = outputDirFor(testId, experiment);
         InvocationSpec invocationSpec = experiment.getInvocation();
         return new InvocationSettings.InvocationSettingsBuilder()
             .setProjectDir(invocationSpec.getWorkingDirectory())
@@ -123,6 +124,19 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             .setWarmupCount(warmupsForExperiment(experiment))
             .setIterations(invocationsForExperiment(experiment))
             .setCsvFormat(CsvGenerator.Format.LONG);
+    }
+
+    private File outputDirFor(String testId, BuildExperimentSpec spec) {
+        boolean crossVersion = spec instanceof GradleBuildExperimentSpec && ((GradleBuildExperimentSpec) spec).isCrossVersion();
+        File outputDir;
+        if (crossVersion) {
+            String version = ((GradleBuildExperimentSpec) spec).getInvocation().getGradleDistribution().getVersion().getVersion();
+            outputDir = new File(outputDirSelector.outputDirFor(testId), version);
+        } else {
+            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelector.fileSafeNameFor(spec.getDisplayName()));
+        }
+        outputDir.mkdirs();
+        return outputDir;
     }
 
     private static String getExperimentOverride(String key) {

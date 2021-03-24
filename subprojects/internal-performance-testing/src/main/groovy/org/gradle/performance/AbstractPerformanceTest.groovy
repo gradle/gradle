@@ -17,10 +17,10 @@
 package org.gradle.performance
 
 import org.gradle.performance.fixture.AbstractBuildExperimentRunner
-import org.gradle.performance.fixture.OutputDirSelector
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
+import org.gradle.performance.results.OutputDirSelector
 import org.gradle.performance.results.PerformanceTestResult
 import org.gradle.profiler.flamegraph.DifferentialStacksGenerator
 import org.gradle.profiler.flamegraph.FlameGraphGenerator

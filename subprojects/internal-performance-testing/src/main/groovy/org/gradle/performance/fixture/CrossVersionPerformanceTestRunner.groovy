@@ -277,7 +277,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
             .buildMutators(buildMutators)
-            .multiVersion(true)
+            .crossVersion(true)
             .measuredBuildOperations(measuredBuildOperations)
             .measureGarbageCollection(measureGarbageCollection)
             .invocation {

@@ -18,9 +18,6 @@ package org.gradle.performance.results
 
 import com.google.common.base.Strings
 import groovy.transform.CompileStatic
-import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.gradle.performance.fixture.OutputDirSelector
 
 @CompileStatic
 class DefaultOutputDirSelector implements OutputDirSelector {
@@ -33,20 +30,6 @@ class DefaultOutputDirSelector implements OutputDirSelector {
         this.baseOutputDir = Strings.isNullOrEmpty(debugArtifactsDirectoryPath)
             ? fallbackDirectory
             : new File(debugArtifactsDirectoryPath)
-    }
-
-    @Override
-    File outputDirFor(String testId, BuildExperimentSpec spec) {
-        boolean multiVersion = spec instanceof GradleBuildExperimentSpec && spec.multiVersion
-        def outputDir
-        if (multiVersion) {
-            String version = ((GradleBuildExperimentSpec) spec).getInvocation().gradleDistribution.version.version
-            outputDir = new File(outputDirFor(testId), version)
-        } else {
-            outputDir = new File(outputDirFor(testId), fileSafeNameFor(spec.getDisplayName()))
-        }
-        outputDir.mkdirs()
-        return outputDir
     }
 
     @Override

@@ -19,6 +19,7 @@ package org.gradle.performance.fixture;
 import groovy.transform.CompileStatic;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.OutputDirSelector;
 
 @CompileStatic
 public class GradleVsMavenBuildExperimentRunner extends AbstractBuildExperimentRunner {

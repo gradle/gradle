@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture;
+package org.gradle.performance.results;
 
 import java.io.File;
 
 public interface OutputDirSelector {
-    File outputDirFor(String testId, BuildExperimentSpec spec);
 
     File outputDirFor(String testId);
 

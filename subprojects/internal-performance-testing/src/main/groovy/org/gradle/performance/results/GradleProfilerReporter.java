@@ -17,7 +17,6 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.performance.fixture.OutputDirSelector;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.report.AbstractGenerator;

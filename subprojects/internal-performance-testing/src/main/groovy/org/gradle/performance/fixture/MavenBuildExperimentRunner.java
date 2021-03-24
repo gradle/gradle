@@ -21,6 +21,7 @@ import groovy.transform.CompileStatic;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.OutputDirSelector;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildInvoker;
 import org.gradle.profiler.InvocationSettings;
