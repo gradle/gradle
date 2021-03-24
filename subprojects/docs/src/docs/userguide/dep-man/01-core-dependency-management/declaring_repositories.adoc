@@ -773,7 +773,7 @@ Gradle provides link:{javadocPath}/org/gradle/api/artifacts/repositories/Authent
 that allows you to declare only the type of required credentials. Credential values are looked up from the <<build_environment.adoc#sec:gradle_configuration_properties,Gradle Properties>>
 during the build that requires them.
 
-For example, given repository configuration:
+For example, given repository configurations:
 
 .Externalized repository credentials
 ====
@@ -781,9 +781,11 @@ include::sample[dir="samples/credentials-handling/publishing-credentials/groovy"
 include::sample[dir="samples/credentials-handling/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
 ====
 
-The username and password will be looked up from `mySecureRepositoryUsername` and `mySecureRepositoryPassword` properties.
+For both repositories the username and password will be looked up from `mySecureRepositoryUsername` and `mySecureRepositoryPassword` properties.
 
-Note that the configuration property prefix - the identity - is determined from the repository name.
+For the first repository the configuration property prefix - the identity - is determined from the repository name.
+For the second repository the identity is explicitly specified by the user. This is particularly useful when more than one repository uses the same credentials. Note that the identity (provided by either approach) must only have letters or digits in its name.
+
 Credentials can then be provided in any of supported ways for Gradle Properties -
 `gradle.properties` file, command line arguments, environment variables or a combination of those options.
 

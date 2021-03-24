@@ -36,4 +36,19 @@ class CredentialsDslIntegrationTest extends AbstractIntegrationSpec {
         'ivyWithPassword' | ivyPasswordCredentials()
         'passwordTyped'   | passwordCredentialsTyped()
     }
+
+    @Unroll
+    def "can configure repositories with [#scenario] DSL using credential properties"() {
+        given:
+        executer.withArguments("-PmyRepoIdentityUsername=myUsername", "-PmyRepoIdentityPassword=myPassword")
+
+        expect:
+        buildFile << dsl
+        succeeds 'help'
+
+        where:
+        scenario       | dsl
+        'fromIdentity' | identityCredentials()
+        'fromName'     | repoNameCredentials()
+    }
 }

@@ -73,4 +73,30 @@ repositories {
 }
 """
     }
+
+    def identityCredentials() {
+        """
+        repositories {
+            maven {
+                url "${url}"
+                name = 'My Awesome Repository (Release)'
+                credentials(PasswordCredentials, 'myRepoIdentity')
+                getCredentials(PasswordCredentials)
+            }
+        }
+        """
+    }
+
+    def repoNameCredentials() {
+        """
+        repositories {
+            maven {
+                url "${url}"
+                name = 'myRepoIdentity'
+                credentials(PasswordCredentials)
+                getCredentials(PasswordCredentials)
+            }
+        }
+        """
+    }
 }

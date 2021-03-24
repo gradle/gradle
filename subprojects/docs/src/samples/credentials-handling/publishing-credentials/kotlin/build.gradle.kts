@@ -18,9 +18,16 @@ publishing {
     }
 // tag::repositories[]
     repositories {
+        // using the repository name to resolve credentials
         maven {
             name = "mySecureRepository"
             credentials(PasswordCredentials::class)
+            // url = uri(<<some repository url>>)
+        }
+        // using an explicit identity to resolve credentials
+        maven {
+            name = "myAwesomeReleaseRepository"
+            credentials(PasswordCredentials, "mySecureRepository")
             // url = uri(<<some repository url>>)
         }
     }

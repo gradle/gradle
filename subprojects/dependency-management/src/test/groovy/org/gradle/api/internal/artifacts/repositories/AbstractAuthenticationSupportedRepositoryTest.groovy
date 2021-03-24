@@ -26,6 +26,9 @@ import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor
+import org.gradle.api.internal.provider.DefaultProvider
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.authentication.Authentication
 import org.gradle.internal.authentication.DefaultAuthenticationContainer
 import org.gradle.internal.credentials.DefaultAwsCredentials
@@ -159,6 +162,48 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         PasswordCredentials | Mock(PasswordCredentials)
     }
 
+    def "credentials(Class) configures credentials from provider factory"() {
+        given:
+        DefaultPasswordCredentials passwordCredentials = new DefaultPasswordCredentials("myUsername", "myPassword")
+
+        Instantiator instantiator = Stub()
+        AuthenticationContainer authenticationContainer = Stub()
+        ProviderFactory providerFactory = Mock()
+        Provider<String> repoNameProvider = new DefaultProvider<String>({ "repoName" })
+        1 * providerFactory.provider({ "repoName" }) >> repoNameProvider
+        1 * providerFactory.credentials(PasswordCredentials, repoNameProvider) >> new DefaultProvider<PasswordCredentials>({ passwordCredentials })
+
+        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator, authenticationContainer, providerFactory)
+
+        when:
+        repo.credentials(PasswordCredentials)
+
+        then:
+        repo.getCredentials(PasswordCredentials.class)
+        repo.getCredentials(PasswordCredentials.class).username == 'myUsername'
+        repo.getCredentials(PasswordCredentials.class).password == 'myPassword'
+    }
+
+    def "credentials(Class, String) configures credentials from provider factory"() {
+        given:
+        DefaultPasswordCredentials passwordCredentials = new DefaultPasswordCredentials("myUsername", "myPassword")
+
+        Instantiator instantiator = Stub()
+        AuthenticationContainer authenticationContainer = Stub()
+        ProviderFactory providerFactory = Mock()
+        1 * providerFactory.credentials(PasswordCredentials, "myIdentity") >> new DefaultProvider<PasswordCredentials>({ passwordCredentials })
+
+        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator, authenticationContainer, providerFactory)
+
+        when:
+        repo.credentials(PasswordCredentials, "myIdentity")
+
+        then:
+        repo.getCredentials(PasswordCredentials.class)
+        repo.getCredentials(PasswordCredentials.class).username == 'myUsername'
+        repo.getCredentials(PasswordCredentials.class).password == 'myPassword'
+    }
+
     def "can reference alternative credentials"() {
         given:
         Instantiator instantiator = Mock()
@@ -225,8 +270,8 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     }
 
     class AuthSupportedRepository extends AbstractAuthenticationSupportedRepository {
-        AuthSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
-            super(instantiator, authenticationContainer, TestUtil.objectFactory(), null)
+        AuthSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ProviderFactory providerFactory = null) {
+            super(instantiator, authenticationContainer, TestUtil.objectFactory(), providerFactory)
         }
 
         @Override

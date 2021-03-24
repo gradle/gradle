@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -121,6 +122,33 @@ public interface AuthenticationSupported {
      * @since 6.6
      */
     void credentials(Class<? extends Credentials> credentialsType);
+
+    /**
+     * Configures the credentials for this repository that will be provided by the build with a custom identity.
+     * <p>
+     * Credentials will be provided from Gradle properties based on the given identity.
+     * If credentials for this repository can not be resolved and the repository will be used in the current build, then the build will fail to start and point to the missing configuration.
+     * <pre class='autoTested'>
+     * repositories {
+     *     maven {
+     *         url "${url}"
+     *         credentials(PasswordCredentials, 'myRepoIdentity')
+     *     }
+     * }
+     * </pre>
+     * <p>
+     * The following credential types are currently supported for the {@code credentialsType} argument:
+     * <ul>
+     * <li>{@link org.gradle.api.credentials.PasswordCredentials}</li>
+     * <li>{@link org.gradle.api.credentials.AwsCredentials}</li>
+     * </ul>
+     *
+     * @throws IllegalArgumentException if {@code credentialsType} is not of a supported type
+     *
+     * @since 7.1
+     */
+    @Incubating
+    void credentials(Class<? extends Credentials> credentialsType, String identity);
 
     /**
      * <p>Configures the authentication schemes for this repository.

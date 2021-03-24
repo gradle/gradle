@@ -86,6 +86,12 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     @Override
+    public void credentials(Class<? extends Credentials> credentialsType, String identity) {
+        invalidateDescriptor();
+        delegate.credentials(credentialsType, identity);
+    }
+
+    @Override
     public void authentication(Action<? super AuthenticationContainer> action) {
         invalidateDescriptor();
         delegate.authentication(action);
