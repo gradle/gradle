@@ -63,7 +63,7 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     }
 
     private void storeResult(JavaCompileSpec spec, WorkResult result) {
-        ClassSetAnalysisData outputSnapshot = classpathSnapshotter.analyseClasses(spec.getDestinationDir());
+        ClassSetAnalysisData outputSnapshot = classpathSnapshotter.analyzeOutputFolder(spec.getDestinationDir());
         ClassSetAnalysisData classpathSnapshot = classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath()));
         AnnotationProcessingData annotationProcessingData = getAnnotationProcessingResult(spec, result);
         ClassSetAnalysisData minimizedClasspathSnapshot = classpathSnapshot.reduceToTypesAffecting(outputSnapshot);

@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisDa
 
 import java.io.File;
 
-public interface ClasspathEntrySnapshotter {
-    ClassSetAnalysisData createSnapshot(File classpathEntry);
+public interface ClassSetAnalyzer {
+    ClassSetAnalysisData analyzeClasspathEntry(File classpathEntry);
+    ClassSetAnalysisData analyzeOutputFolder(File outputFolder);
 }

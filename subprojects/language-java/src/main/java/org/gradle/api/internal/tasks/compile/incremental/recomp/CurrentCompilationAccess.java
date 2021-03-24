@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClassSetAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -39,20 +39,18 @@ import java.util.stream.Collectors;
 public class CurrentCompilationAccess {
 
     private static final Logger LOG = LoggerFactory.getLogger(CurrentCompilationAccess.class);
-    private final ClasspathEntrySnapshotter inputSnapshotter;
-    private final ClasspathEntrySnapshotter outputSnapshotter;
+    private final ClassSetAnalyzer classSetAnalyzer;
     private final BuildOperationExecutor buildOperationExecutor;
     private ClassSetAnalysisData classpathSnapshot;
 
-    public CurrentCompilationAccess(ClasspathEntrySnapshotter inputSnapshotter, ClasspathEntrySnapshotter outputSnapshotter, BuildOperationExecutor buildOperationExecutor) {
-        this.inputSnapshotter = inputSnapshotter;
-        this.outputSnapshotter = outputSnapshotter;
+    public CurrentCompilationAccess(ClassSetAnalyzer classSetAnalyzer, BuildOperationExecutor buildOperationExecutor) {
+        this.classSetAnalyzer = classSetAnalyzer;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public ClassSetAnalysisData analyseClasses(File classesDirectory) {
+    public ClassSetAnalysisData analyzeOutputFolder(File outputFolder) {
         Timer clock = Time.startTimer();
-        ClassSetAnalysisData snapshot = outputSnapshotter.createSnapshot(classesDirectory);
+        ClassSetAnalysisData snapshot = classSetAnalyzer.analyzeOutputFolder(outputFolder);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
         return snapshot;
     }
@@ -98,7 +96,7 @@ public class CurrentCompilationAccess {
         @Override
         public void run(BuildOperationContext context) {
             if (entry.exists()) {
-                snapshot = inputSnapshotter.createSnapshot(entry);
+                snapshot = classSetAnalyzer.analyzeClasspathEntry(entry);
             }
         }
 

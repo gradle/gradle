@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileOperations;
@@ -34,49 +35,60 @@ import java.io.InputStream;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
-public class DefaultClasspathEntrySnapshotter implements ClasspathEntrySnapshotter{
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClasspathEntrySnapshotter.class);
+public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClassSetAnalyzer.class);
 
     private final FileHasher fileHasher;
     private final StreamHasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
     private final FileOperations fileOperations;
 
-    public DefaultClasspathEntrySnapshotter(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {
+    public DefaultClassSetAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer analyzer, FileOperations fileOperations) {
         this.fileHasher = fileHasher;
         this.hasher = streamHasher;
         this.analyzer = analyzer;
         this.fileOperations = fileOperations;
     }
 
-    public ClassSetAnalysisData createSnapshot(File classpathEntry) {
+    public ClassSetAnalysisData analyzeClasspathEntry(File classpathEntry) {
+        return analyze(classpathEntry, true);
+    }
+
+    @Override
+    public ClassSetAnalysisData analyzeOutputFolder(File outputFolder) {
+        return analyze(outputFolder, false);
+    }
+
+    private ClassSetAnalysisData analyze(File classSet, boolean abiOnly) {
         final ClassDependentsAccumulator accumulator = new ClassDependentsAccumulator();
         try {
-            visit(classpathEntry, accumulator);
+            visit(classSet, accumulator, abiOnly);
         } catch (Exception e) {
-            accumulator.fullRebuildNeeded(classpathEntry + " could not be analyzed for incremental compilation. See the debug log for more details");
+            accumulator.fullRebuildNeeded(classSet + " could not be analyzed for incremental compilation. See the debug log for more details");
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Could not analyze " + classpathEntry + " for incremental compilation", e);
+                LOGGER.debug("Could not analyze " + classSet + " for incremental compilation", e);
             }
         }
 
         return accumulator.getAnalysis();
     }
 
-    private void visit(File classpathEntry, ClassDependentsAccumulator accumulator) {
+    private void visit(File classpathEntry, ClassDependentsAccumulator accumulator, boolean abiOnly) {
         if (hasExtension(classpathEntry, ".jar")) {
-            fileOperations.zipTree(classpathEntry).visit(new JarEntryVisitor(accumulator));
+            fileOperations.zipTree(classpathEntry).visit(new JarEntryVisitor(accumulator, abiOnly));
         }
         if (classpathEntry.isDirectory()) {
-            fileOperations.fileTree(classpathEntry).visit(new DirectoryEntryVisitor(accumulator));
+            fileOperations.fileTree(classpathEntry).visit(new DirectoryEntryVisitor(accumulator, abiOnly));
         }
     }
 
     private abstract class EntryVisitor implements FileVisitor {
         private final ClassDependentsAccumulator accumulator;
+        private final boolean abiOnly;
 
-        public EntryVisitor(ClassDependentsAccumulator accumulator) {
+        public EntryVisitor(ClassDependentsAccumulator accumulator, boolean abiOnly) {
             this.accumulator = accumulator;
+            this.abiOnly = abiOnly;
         }
 
         @Override
@@ -92,7 +104,7 @@ public class DefaultClasspathEntrySnapshotter implements ClasspathEntrySnapshott
             HashCode classFileHash = getHashCode(fileDetails);
 
             try {
-                ClassAnalysis analysis = analyzer.getClassAnalysis(classFileHash, fileDetails);
+                ClassAnalysis analysis = maybeStripToAbi(analyzer.getClassAnalysis(classFileHash, fileDetails));
                 accumulator.addClass(analysis, classFileHash);
             } catch (Exception e) {
                 accumulator.fullRebuildNeeded(fileDetails.getName() + " could not be analyzed for incremental compilation. See the debug log for more details");
@@ -102,13 +114,21 @@ public class DefaultClasspathEntrySnapshotter implements ClasspathEntrySnapshott
             }
         }
 
+        private ClassAnalysis maybeStripToAbi(ClassAnalysis analysis) {
+            if (abiOnly) {
+                return new ClassAnalysis(analysis.getClassName(), ImmutableSet.of(), analysis.getAccessibleClassDependencies(), analysis.isDependencyToAll(), analysis.getConstants());
+            } else {
+                return analysis;
+            }
+        }
+
         protected abstract HashCode getHashCode(FileVisitDetails fileDetails);
     }
 
     private class JarEntryVisitor extends EntryVisitor {
 
-        public JarEntryVisitor(ClassDependentsAccumulator accumulator) {
-            super(accumulator);
+        public JarEntryVisitor(ClassDependentsAccumulator accumulator, boolean abiOnly) {
+            super(accumulator, abiOnly);
         }
 
         @Override
@@ -124,8 +144,8 @@ public class DefaultClasspathEntrySnapshotter implements ClasspathEntrySnapshott
 
     private class DirectoryEntryVisitor extends EntryVisitor {
 
-        public DirectoryEntryVisitor(ClassDependentsAccumulator accumulator) {
-            super(accumulator);
+        public DirectoryEntryVisitor(ClassDependentsAccumulator accumulator, boolean abiOnly) {
+            super(accumulator, abiOnly);
         }
 
         @Override

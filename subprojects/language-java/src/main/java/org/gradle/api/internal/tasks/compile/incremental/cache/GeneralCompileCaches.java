@@ -28,6 +28,6 @@ import org.gradle.internal.hash.HashCode;
  * and some community plugins still depend on it in their byte code.
  */
 public interface GeneralCompileCaches {
-    Cache<HashCode, ClassSetAnalysisData> getClasspathEntrySnapshotCache();
+    Cache<HashCode, ClassSetAnalysisData> getClassSetAnalysisCache();
     Cache<HashCode, ClassAnalysis> getClassAnalysisCache();
 }

@@ -17,12 +17,25 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.UserHomeScopedCompileCaches;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.CachingClassSetAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClassSetAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClassSetAnalyzer;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.initialization.JdkToolsInitializer;
+import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 public class CompileServices extends AbstractPluginServiceRegistry {
 
@@ -40,6 +53,23 @@ public class CompileServices extends AbstractPluginServiceRegistry {
         void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
             // Hackery
             initializer.initializeJdkTools();
+        }
+
+        public IncrementalCompilerFactory createIncrementalCompilerFactory(BuildOperationExecutor buildOperationExecutor, StringInterner interner, ClassSetAnalyzer classSetAnalyzer) {
+            return new IncrementalCompilerFactory(buildOperationExecutor, interner, classSetAnalyzer);
+        }
+
+        CachingClassDependenciesAnalyzer createClassAnalyzer(StringInterner interner, GeneralCompileCaches cache) {
+            return new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), cache.getClassAnalysisCache());
+        }
+
+        CachingClassSetAnalyzer createClassSetAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer classAnalyzer,
+                                                       FileOperations fileOperations, FileSystemAccess fileSystemAccess, GeneralCompileCaches cache) {
+            return new CachingClassSetAnalyzer(
+                new DefaultClassSetAnalyzer(fileHasher,streamHasher,classAnalyzer,fileOperations  ),
+                fileSystemAccess,
+                cache.getClassSetAnalysisCache()
+            );
         }
     }
 

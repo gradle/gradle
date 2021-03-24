@@ -59,7 +59,7 @@ public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closea
     }
 
     @Override
-    public Cache<HashCode, ClassSetAnalysisData> getClasspathEntrySnapshotCache() {
+    public Cache<HashCode, ClassSetAnalysisData> getClassSetAnalysisCache() {
         return classpathEntrySnapshotCache;
     }
 
