@@ -149,6 +149,12 @@ public class ClassSetAnalysisData {
     }
 
     public DependentsSet getChangedClassesSince(ClassSetAnalysisData other) {
+        if (fullRebuildCause != null) {
+            return DependentsSet.dependencyToAll(fullRebuildCause);
+        }
+        if (other.fullRebuildCause != null) {
+            return DependentsSet.dependencyToAll(other.fullRebuildCause);
+        }
         for (String added : Sets.difference(classHashes.keySet(), other.classHashes.keySet())) {
             DependentsSet dependentsOfAdded = getDependents(added);
             if (dependentsOfAdded.isDependencyToAll()) {

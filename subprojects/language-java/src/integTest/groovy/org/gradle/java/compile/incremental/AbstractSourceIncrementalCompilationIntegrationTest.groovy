@@ -1077,7 +1077,7 @@ sourceSets {
         skipped(":${language.compileTaskName}")
     }
 
-    def "recompiles all classes in a package if the package-info file changes"() {
+    def "fully recompiles when a package-info file changes"() {
         given:
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
         packageFile.text = """package foo;"""
@@ -1094,7 +1094,26 @@ sourceSets {
         succeeds language.compileTaskName
 
         then:
-        outputs.recompiledClasses("A", "B", "E", "package-info")
+        outputs.recompiledClasses("A", "B", "C", "D", "E", "package-info")
+    }
+
+    def "fully recompiles when a package-info file is added"() {
+        given:
+        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
+        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
+        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
+        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
+        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+
+        outputs.snapshot { succeeds language.compileTaskName }
+
+        when:
+        def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
+        packageFile.text = """@Deprecated package foo;"""
+        succeeds language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C", "D", "E", "package-info")
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9380')
