@@ -66,7 +66,7 @@ public class CompileServices extends AbstractPluginServiceRegistry {
         CachingClassSetAnalyzer createClassSetAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer classAnalyzer,
                                                        FileOperations fileOperations, FileSystemAccess fileSystemAccess, GeneralCompileCaches cache) {
             return new CachingClassSetAnalyzer(
-                new DefaultClassSetAnalyzer(fileHasher,streamHasher,classAnalyzer,fileOperations  ),
+                new DefaultClassSetAnalyzer(fileHasher, streamHasher, classAnalyzer, fileOperations),
                 fileSystemAccess,
                 cache.getClassSetAnalysisCache()
             );
