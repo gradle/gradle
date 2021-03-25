@@ -52,7 +52,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         super(deleter, fileOperations, sourceTree);
         this.incremental = incremental;
         this.sourceChanges = sourceFileChanges;
-        this.sourceFileClassNameConverter = sourceFileClassNameConverter;
+        this.sourceFileClassNameConverter = new WellKnownSourceFileClassNameConverter(sourceFileClassNameConverter, ".java");
     }
 
     @Override

@@ -1009,10 +1009,35 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses 'A', 'B', 'C'
     }
 
-    def "fully recompiles when package-info changes"() {
+    def "recompiles downstream dependents of classes whose package-info changed"() {
+        given:
+        file("api/src/main/${language.name}/annotations/Anno.${language.name}").text = """
+            package annotations;
+            import java.lang.annotation.*;
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target(ElementType.PACKAGE)
+            public @interface Anno {}
+        """
+        def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
+        packageFile.text = """@Deprecated package foo;"""
+        file("api/src/main/${language.name}/foo/A.${language.name}").text = "package foo; public class A {}"
+        file("api/src/main/${language.name}/bar/B.${language.name}").text = "package bar; public class B {}"
+        file("impl/src/main/${language.name}/baz/C.${language.name}").text = "package baz; import foo.A; class C extends A {}"
+        file("impl/src/main/${language.name}/baz/D.${language.name}").text = "package baz; import bar.B; class D extends B {}"
+
+        impl.snapshot { succeeds "impl:${language.compileTaskName}" }
+
+        when:
+        packageFile.text = """@Deprecated @annotations.Anno package foo;"""
+        succeeds "impl:${language.compileTaskName}"
+
+        then:
+        impl.recompiledClasses("C")
+    }
+
+    def "recompiles downstream dependents of classes whose package-info was added"() {
         given:
         def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
-        packageFile.text = """package foo;"""
         file("api/src/main/${language.name}/foo/A.${language.name}").text = "package foo; public class A {}"
         file("api/src/main/${language.name}/bar/B.${language.name}").text = "package bar; public class B {}"
         file("impl/src/main/${language.name}/baz/C.${language.name}").text = "package baz; import foo.A; class C extends A {}"
@@ -1025,6 +1050,25 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         succeeds "impl:${language.compileTaskName}"
 
         then:
-        impl.recompiledClasses("C", "D")
+        impl.recompiledClasses("C")
+    }
+
+    def "recompiles downstream dependents of classes whose package-info was removed"() {
+        given:
+        def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
+        packageFile.text = """@Deprecated package foo;"""
+        file("api/src/main/${language.name}/foo/A.${language.name}").text = "package foo; public class A {}"
+        file("api/src/main/${language.name}/bar/B.${language.name}").text = "package bar; public class B {}"
+        file("impl/src/main/${language.name}/baz/C.${language.name}").text = "package baz; import foo.A; class C extends A {}"
+        file("impl/src/main/${language.name}/baz/D.${language.name}").text = "package baz; import bar.B; class D extends B {}"
+
+        impl.snapshot { succeeds "impl:${language.compileTaskName}" }
+
+        when:
+        packageFile.delete()
+        succeeds "impl:${language.compileTaskName}"
+
+        then:
+        impl.recompiledClasses("C")
     }
 }

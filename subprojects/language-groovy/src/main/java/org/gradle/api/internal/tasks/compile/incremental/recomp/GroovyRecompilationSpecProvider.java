@@ -34,7 +34,7 @@ import java.util.Set;
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final boolean incremental;
     private final Iterable<FileChange> sourceChanges;
-    private final DefaultSourceFileClassNameConverter sourceFileClassNameConverter;
+    private final SourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(
         Deleter deleter,
@@ -47,7 +47,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         super(deleter, fileOperations, sources);
         this.incremental = incremental;
         this.sourceChanges = sourceChanges;
-        this.sourceFileClassNameConverter = sourceFileClassNameConverter;
+        this.sourceFileClassNameConverter = new WellKnownSourceFileClassNameConverter(sourceFileClassNameConverter, ".groovy");
     }
 
     @Override

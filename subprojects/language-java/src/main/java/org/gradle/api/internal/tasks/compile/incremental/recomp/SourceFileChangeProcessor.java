@@ -30,10 +30,6 @@ class SourceFileChangeProcessor {
     }
 
     public void processChange(File inputFile, Collection<String> classNames, RecompilationSpec spec) {
-        if (inputFile.getPath().endsWith("module-info.java") || inputFile.getPath().endsWith("package-info.java")) {
-            spec.setFullRebuildCause(null, inputFile);
-            return;
-        }
         spec.addClassesToCompile(classNames);
 
         for (String className : classNames) {

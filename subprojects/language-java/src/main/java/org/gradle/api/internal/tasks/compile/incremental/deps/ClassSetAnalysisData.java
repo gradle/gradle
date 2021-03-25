@@ -24,6 +24,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 import org.gradle.internal.hash.HashCode;
@@ -34,8 +35,10 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.IntSetSerializer;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +47,9 @@ import java.util.Set;
 
 public class ClassSetAnalysisData {
 
+    public static final String PACKAGE_INFO = "package-info";
     public static ClassSetAnalysisData merge(List<ClassSetAnalysisData> datas) {
+        //TODO we're overwriting module-info here, since that has the same name in every classpath entry
         int classCount = 0;
         int constantsCount = 0;
         int dependentsCount = 0;
@@ -100,6 +105,11 @@ public class ClassSetAnalysisData {
                 usedClasses.add(entry.getKey());
             }
         }
+        for (String cls : classHashes.keySet()) {
+            if (cls.endsWith(PACKAGE_INFO)) {
+                usedClasses.add(cls);
+            }
+        }
         usedClasses.addAll(classesToConstants.keySet());
 
         Multimap<String, String> reverseDependencies = ArrayListMultimap.create(dependents.size(), 10);
@@ -111,14 +121,16 @@ public class ClassSetAnalysisData {
                 reverseDependencies.put(dependent, entry.getKey());
             }
         }
+        usedClasses.addAll(other.dependents.keySet());
 
-        Set<String> newlyAdded = other.dependents.keySet();
-        while (usedClasses.addAll(newlyAdded)) {
-            HashSet<String> transitives = new HashSet<>(newlyAdded.size());
-            for (String newly : newlyAdded) {
-                transitives.addAll(reverseDependencies.get(newly));
+        Set<String> visited = new HashSet<>(usedClasses.size());
+        Deque<String> pending = new ArrayDeque<>(usedClasses);
+        while (!pending.isEmpty()) {
+            String cls = pending.poll();
+            if (visited.add(cls)) {
+                usedClasses.add(cls);
+                pending.addAll(reverseDependencies.get(cls));
             }
-            newlyAdded = transitives;
         }
 
         Map<String, HashCode> classHashes = new HashMap<>(usedClasses.size());
@@ -155,13 +167,17 @@ public class ClassSetAnalysisData {
         if (other.fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(other.fullRebuildCause);
         }
+
+        ImmutableSet.Builder<String> changed = ImmutableSet.builder();
         for (String added : Sets.difference(classHashes.keySet(), other.classHashes.keySet())) {
             DependentsSet dependentsOfAdded = getDependents(added);
             if (dependentsOfAdded.isDependencyToAll()) {
                 return dependentsOfAdded;
             }
+            if (added.endsWith(PACKAGE_INFO)) {
+                changed.add(added);
+            }
         }
-        ImmutableSet.Builder<String> changed = ImmutableSet.builder();
         for (Map.Entry<String, HashCode> removedOrChanged : Sets.difference(other.classHashes.entrySet(), classHashes.entrySet())) {
             changed.add(removedOrChanged.getKey());
         }
@@ -172,8 +188,26 @@ public class ClassSetAnalysisData {
         if (fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(fullRebuildCause);
         }
+        if (className.equals("module-info")) {
+            return DependentsSet.dependencyToAll();
+        }
+        if (className.endsWith(PACKAGE_INFO)) {
+            String packageName = className.equals(PACKAGE_INFO) ? null : StringUtils.removeEnd(className, "." + PACKAGE_INFO);
+            return getDependentsOfPackage(packageName);
+        }
         DependentsSet dependentsSet = dependents.get(className);
         return dependentsSet == null ? DependentsSet.empty() : dependentsSet;
+    }
+
+    private DependentsSet getDependentsOfPackage(String packageName) {
+        Set<String> typesInPackage = new HashSet<>();
+        for (String type : classHashes.keySet()) {
+            int i = type.lastIndexOf(".");
+            if (i < 0 && packageName == null || i > 0 && type.substring(0, i).equals(packageName)) {
+                typesInPackage.add(type);
+            }
+        }
+        return DependentsSet.dependentClasses(Collections.emptySet(), typesInPackage);
     }
 
     public IntSet getConstants(String className) {
