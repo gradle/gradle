@@ -55,7 +55,7 @@ class ClassSetAnalysisTest extends Specification {
         ClassSetAnalysis s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbbbb)])
 
         expect:
-        s1.getChangesSince(s2).dependents.allDependentClasses == ["B", "C"] as Set
+        s1.getChangesSince(s2).dependents.allDependentClasses == ["B"] as Set
         s2.getChangesSince(s1).dependents.allDependentClasses == ["B", "C"] as Set
     }
 
