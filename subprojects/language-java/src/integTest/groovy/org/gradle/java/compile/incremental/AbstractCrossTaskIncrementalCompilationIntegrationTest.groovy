@@ -455,6 +455,13 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
+    @ToBeFixedForConfigurationCache(
+        bottomSpecs = [
+            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
+            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
+        ],
+        because = "gradle/configuration-cache#270"
+    )
     def "doesn't recompile if external dependency has ABI incompatible change but not on class we use"() {
         given:
         buildFile << """
