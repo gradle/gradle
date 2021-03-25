@@ -101,7 +101,7 @@ Gradle now supports running on and building with [Java 16](https://openjdk.java.
 
 In previous Gradle versions, running Gradle itself on Java 16 resulted in an error. JVM projects could have been built with Java 16 using [toolchains](userguide/toolchains.html) but only with incremental compilation disabled.
 
-As of Gradle 7.0, both running Gradle itself and building JVM projects with Java 16 is fully supported..
+As of Gradle 7.0, both running Gradle itself and building JVM projects with Java 16 is fully supported.
 
 <a name="centralized-versions"></a>
 ### Centralized dependency versions
@@ -284,7 +284,7 @@ pluginManagement {
     includeBuild("../my-settings-plugin")
 }
 plugins {
-    id("my.settings-plugin") 
+    id("my.settings-plugin")
 }
 ```
 The above example assumes that the included build defines a settings plugin with the id `my.settings-plugin`.
@@ -294,10 +294,10 @@ However, the same build can be included as plugin build and normal library build
 ```
 pluginManagement {
     // contributes plugins
-    includeBuild("../project-with-plugin-and-library") 
+    includeBuild("../project-with-plugin-and-library")
 }
 // contributes libraries
-includeBuild("../project-with-plugin-and-library") 
+includeBuild("../project-with-plugin-and-library")
 ```
 This distinction reflects what Gradle offers for repository declarations -
 repositories are specified separately for plugin dependencies and for production dependencies.
@@ -420,7 +420,7 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
 - org.gradle.normalization.RuntimeClasspathNormalization.metaInf(Action)
 - org.gradle.normalization.MetaInfNormalization
 - org.gradle.caching.BuildCacheKey.toByteArray
-</details>  
+</details>
 <details>
     <summary>Reporting</summary>
 
@@ -474,7 +474,7 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
 - org.gradle.api.artifacts.ResolutionStrategy.failOnDynamicVersions
 - org.gradle.api.artifacts.ResolutionStrategy.failOnChangingVersions
   </details>
-  
+
 <details>
     <summary><a href="userguide/dependency_locking.html#dependency-locking">Dependency locking</a></summary>
 
@@ -489,7 +489,7 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
   </details>
   <details>
     <summary><a href="userguide/dependency_verification.html#verifying-dependencies">Dependency verification</a></summary>
-  
+
 - org.gradle.api.artifacts.ResolutionStrategy.enableDependencyVerification
 - org.gradle.api.artifacts.ResolutionStrategy.disableDependencyVerification
 - org.gradle.StartParameter.getWriteDependencyVerifications
@@ -504,14 +504,14 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
   </details>
   <details>
     <summary><a href="userguide/dependency_constraints.html#dependency-constraints">Dependency constraints</a></summary>
-  
+
 - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object)
 - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object, org.gradle.api.Action<? super org.gradle.api.artifacts.DependencyConstraint>)
 - org.gradle.api.artifacts.result.ComponentSelectionCause.BY_ANCESTOR
   </details>
   <details>
     <summary><a href="userguide/component_metadata_rules.html#sec:component_metadata_rules">Component metadata rules</a></summary>
-  
+
 - org.gradle.api.artifacts.DirectDependencyMetadata.endorseStrictVersions
 - org.gradle.api.artifacts.DirectDependencyMetadata.doNotEndorseStrictVersions
 - org.gradle.api.artifacts.DirectDependencyMetadata.isEndorsingStrictVersions
@@ -540,7 +540,7 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
   </details>
   <details>
     <summary><a href="userguide/resolution_rules.html#sec:dependency_substitution_rules">Dependency substitution</a></summary>
-  
+
 - org.gradle.api.artifacts.ArtifactSelectionDetails
 - org.gradle.api.artifacts.DependencyArtifactSelector
 - org.gradle.api.artifacts.DependencyResolveDetails.artifactSelection
@@ -555,7 +555,7 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
 </details>
 <details>
     <summary><a href="userguide/publishing_setup.html#publishing_components">Publishing</a></summary>
-  
+
 - org.gradle.api.publish.Publication.withoutBuildIdentifier
 - org.gradle.api.publish.Publication.withBuildIdentifier
 - org.gradle.plugins.signing.SigningExtension.useInMemoryPgpKeys(String, String, String)
@@ -586,7 +586,7 @@ In Gradle 7.0 we moved the following classes or methods out of the incubation ph
     - org.gradle.tooling.model.eclipse.EclipseExternalDependency.isResolved()
     - org.gradle.tooling.model.eclipse.EclipseExternalDependency.getAttemptedSelector()
     - org.gradle.tooling.model.ComponentSelector
-- Testing model    
+- Testing model
     - org.gradle.tooling.events.OperationType.TestOutput
     - org.gradle.tooling.events.test.Destination
     - org.gradle.tooling.events.test.TestOutputDescriptor
