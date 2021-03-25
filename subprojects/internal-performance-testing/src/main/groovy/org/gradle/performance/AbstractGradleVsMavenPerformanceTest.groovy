@@ -54,10 +54,11 @@ class AbstractGradleVsMavenPerformanceTest extends AbstractPerformanceTest {
                 builder.workingDirectory = temporaryFolder.testDirectory
             }
         }
+        performanceTestIdProvider.setTestSpec(runner)
     }
 
     @Rule
-    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     static {
         // TODO - find a better way to cleanup
