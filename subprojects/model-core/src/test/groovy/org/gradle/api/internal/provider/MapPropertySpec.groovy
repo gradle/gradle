@@ -24,6 +24,7 @@ import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.spockframework.util.Assert
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
@@ -459,6 +460,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([:])
     }
 
+    @Issue('gradle/gradle#11036')
     def "throws NullPointerException when provider returns map with null key to property"() {
         given:
         property.putAll(Providers.of(Collections.singletonMap(null, 'value')))
@@ -467,9 +469,11 @@ The value of this property is derived from: <source>""")
         property.get()
 
         then:
-        thrown NullPointerException
+        def e = thrown NullPointerException
+        e.message == 'Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a null key.'
     }
 
+    @Issue('gradle/gradle#11036')
     def "throws NullPointerException when provider returns map with null value to property"() {
         given:
         property.putAll(Providers.of(['k': null]))
@@ -478,7 +482,8 @@ The value of this property is derived from: <source>""")
         property.get()
 
         then:
-        thrown NullPointerException
+        def e = thrown NullPointerException
+        e.message == 'Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a null value.'
     }
 
     def "throws NullPointerException when adding an entry with a null key to the property"() {
