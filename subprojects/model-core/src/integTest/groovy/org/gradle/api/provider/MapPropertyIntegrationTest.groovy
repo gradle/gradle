@@ -632,7 +632,7 @@ task thing {
         where:
         key         | value         || message
         '(null)'    | "'someValue'" || 'Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a null key.'
-        "'someKey'" | 'null'        || 'Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a null value.'
+        "'someKey'" | 'null'        || 'Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a null value for key "someKey".'
         '(null)'    | 'null'        || 'Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a null key.'
     }
 
