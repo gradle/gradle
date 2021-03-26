@@ -42,8 +42,8 @@ class ValidatingMapEntryCollector<K, V> implements MapEntryCollector<K, V> {
             Map.class.getName(), keyType.getName());
         Preconditions.checkNotNull(
             value,
-            "Cannot get the value of a property of type %s with value type %s as the source contains a null value.",
-            Map.class.getName(), valueType.getName());
+            "Cannot get the value of a property of type %s with value type %s as the source contains a null value for key \"%s\".",
+            Map.class.getName(), valueType.getName(), key);
 
         K sanitizedKey = keySanitizer.sanitize(key);
         if (!keyType.isInstance(sanitizedKey)) {

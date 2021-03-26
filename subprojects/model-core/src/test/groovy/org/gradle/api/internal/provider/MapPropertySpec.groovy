@@ -483,7 +483,7 @@ The value of this property is derived from: <source>""")
 
         then:
         def e = thrown NullPointerException
-        e.message == 'Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a null value.'
+        e.message == 'Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a null value for key "k".'
     }
 
     def "throws NullPointerException when adding an entry with a null key to the property"() {
