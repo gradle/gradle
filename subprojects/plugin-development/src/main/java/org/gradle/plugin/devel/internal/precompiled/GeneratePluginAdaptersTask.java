@@ -170,7 +170,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
                 writer.println("            Class<? extends BasicScript> pluginsBlockClass = Class.forName(\"" + scriptPlugin.getFirstPassClassName() + "\").asSubclass(BasicScript.class);");
                 writer.println("            BasicScript pluginsBlockScript = pluginsBlockClass.getDeclaredConstructor().newInstance();");
                 writer.println("            pluginsBlockScript.setScriptSource(scriptSource(pluginsBlockClass));");
-                writer.println("            pluginsBlockScript.init(target, " + scriptPlugin.serviceRegistryAccessCode() + ");");
+                writer.println("            pluginsBlockScript.init(target, target.getServices());");
                 writer.println("            pluginsBlockScript.run();");
                 writer.println();
             }
@@ -179,7 +179,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("            Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getClassName() + "\").asSubclass(BasicScript.class);");
             writer.println("            BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance();");
             writer.println("            script.setScriptSource(scriptSource(precompiledScriptClass));");
-            writer.println("            script.init(target, " + scriptPlugin.serviceRegistryAccessCode() + ");");
+            writer.println("            script.init(target, target.getServices());");
             writer.println("            script.run();");
             writer.println("        } catch (Exception e) {");
             writer.println("            throw new RuntimeException(e);");

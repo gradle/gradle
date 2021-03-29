@@ -44,18 +44,16 @@ class PrecompiledGroovyScript {
     private final String precompiledScriptClassName;
 
     private enum Type {
-        PROJECT(ProjectInternal.class, SCRIPT_PLUGIN_EXTENSION, "target.getServices()"),
-        SETTINGS(SettingsInternal.class, ".settings.gradle", "target.getServices()"),
-        INIT(GradleInternal.class, ".init.gradle", "target.getServices()");
+        PROJECT(ProjectInternal.class, SCRIPT_PLUGIN_EXTENSION),
+        SETTINGS(SettingsInternal.class, ".settings" + SCRIPT_PLUGIN_EXTENSION),
+        INIT(GradleInternal.class, ".init" + SCRIPT_PLUGIN_EXTENSION);
 
         private final Class<?> targetClass;
         private final String fileExtension;
-        private final String serviceRegistryAccessCode;
 
-        Type(Class<?> targetClass, String fileExtension, String serviceRegistryAccessCode) {
+        Type(Class<?> targetClass, String fileExtension) {
             this.targetClass = targetClass;
             this.fileExtension = fileExtension;
-            this.serviceRegistryAccessCode = serviceRegistryAccessCode;
         }
 
         static Type getType(String fileName) {
@@ -126,10 +124,6 @@ class PrecompiledGroovyScript {
 
     String getTargetClassName() {
         return type.targetClass.getName();
-    }
-
-    public String serviceRegistryAccessCode() {
-        return type.serviceRegistryAccessCode;
     }
 
     private static String kebabCaseToPascalCase(String s) {
