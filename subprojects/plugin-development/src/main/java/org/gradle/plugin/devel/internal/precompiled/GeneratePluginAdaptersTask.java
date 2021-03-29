@@ -46,6 +46,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
@@ -126,7 +127,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             pluginsAwareScript.init(new FirstPassPrecompiledScriptRunner(), serviceRegistry);
             pluginsAwareScript.run();
             return pluginsAwareScript.getPluginRequests();
-        } catch (Exception e) {
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new IllegalStateException("Could not execute plugins block", e);
         }
     }

@@ -35,7 +35,6 @@ import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Actions;
-import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -88,7 +87,7 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
         File outputDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
         scriptCompilationHandler.compileToDir(
             scriptPlugin.getPluginsSource(), classLoaderScope.getExportClassLoader(), outputDir, outputDir, pluginsCompileOperation,
-            PluginsAwareScript.class, Actions.doNothing());
+            FirstPassPrecompiledScript.class, Actions.doNothing());
 
         fileSystemOperations.sync(copySpec -> {
             copySpec.from(getExtractedPluginRequestsClassesDirectory().getAsFileTree().getFiles()).include("**.class");

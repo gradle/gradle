@@ -371,6 +371,37 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains('my-settings-plugin applied!')
     }
 
+    def "precompiled project plugin can not use buildscript block"() {
+        when:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.gradle") << """
+            buildscript {
+                dependencies {}
+            }
+            println("foo project plugin applied")
+        """
+
+        then:
+        fails("help")
+        failureCauseContains("The `buildscript` block is not supported in Groovy script plugins, please use the `plugins` block or project level dependencies.")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
+    def "precompiled settings plugin can not use buildscript block"() {
+        when:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.settings.gradle") << """
+            buildscript {
+                dependencies {}
+            }
+            println("foo settings plugin applied")
+        """
+
+        then:
+        fails('help')
+        failureCauseContains("The `buildscript` block is not supported in Groovy script plugins, please use the `plugins` block or project level dependencies.")
+    }
+
     @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can apply a precompiled init plugin"() {
         given:

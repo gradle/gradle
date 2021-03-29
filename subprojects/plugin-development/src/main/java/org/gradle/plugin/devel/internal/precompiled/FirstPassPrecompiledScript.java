@@ -16,16 +16,14 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
-import org.gradle.api.Action;
-import org.gradle.plugin.management.PluginManagementSpec;
+import groovy.lang.Closure;
+import org.gradle.plugin.use.internal.PluginsAwareScript;
 
-class FirstPassPrecompiledScriptRunner extends FirstPassPrecompiledScript {
+public abstract class FirstPassPrecompiledScript extends PluginsAwareScript {
 
-    public void pluginManagement(Action<? super PluginManagementSpec> rule) {
-    }
-
+    @SuppressWarnings("rawtypes")
     @Override
-    public Object run() {
-        return null;
+    public void buildscript(Closure configureClosure) {
+        throw new IllegalStateException("The `buildscript` block is not supported in Groovy script plugins, please use the `plugins` block or project level dependencies.");
     }
 }
