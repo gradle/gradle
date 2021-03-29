@@ -2142,6 +2142,22 @@
             "changes": [
                 "Method return type has changed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractReportTask.generate()",
+            "acceptation": "Method restored for backward compatibility",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Method restored for backward compatibility",
+            "changes": [
+                "Abstract method has been added to this class"
+            ]
         }
     ]
 }
