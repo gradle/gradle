@@ -16,11 +16,7 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
-import groovy.lang.Script;
-import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.configuration.DefaultScriptTarget;
-import org.gradle.groovy.scripts.BasicScript;
-import org.gradle.groovy.scripts.DefaultScript;
 
 class PrecompiledScriptTarget extends DefaultScriptTarget {
 
@@ -34,11 +30,6 @@ class PrecompiledScriptTarget extends DefaultScriptTarget {
     }
 
     @Override
-    public Class<? extends BasicScript> getScriptClass() {
-        return DefaultScript.class;
-    }
-
-    @Override
     public boolean getSupportsPluginsBlock() {
         return supportsPluginsBlock;
     }
@@ -46,16 +37,6 @@ class PrecompiledScriptTarget extends DefaultScriptTarget {
     @Override
     public boolean getSupportsPluginManagementBlock() {
         return supportsPluginManagementBlock;
-    }
-
-    @Override
-    public void attachScript(Script script) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PluginManagerInternal getPluginManager() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
