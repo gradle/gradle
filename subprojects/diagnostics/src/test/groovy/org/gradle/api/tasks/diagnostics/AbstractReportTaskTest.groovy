@@ -94,7 +94,8 @@ class AbstractReportTaskTest extends Specification {
         1 * renderer.complete()
     }
 
-    static class TestReportTask extends ProjectBasedReportTask {
+    @SuppressWarnings('GrDeprecatedAPIUsage')
+    static class TestReportTask extends AbstractReportTask {
         private Runnable generator
         private ReportRenderer renderer
 
