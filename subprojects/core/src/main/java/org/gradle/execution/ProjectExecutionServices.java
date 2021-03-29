@@ -41,6 +41,7 @@ import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -99,6 +100,10 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             outputChangeListener,
             taskInputsListeners
         );
+    }
+
+    ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy createInputNodeAccessHierarchy(ExecutionNodeAccessHierarchies hierarchies) {
+        return hierarchies.createInputHierarchy();
     }
 
     TaskExecuter createTaskExecuter(

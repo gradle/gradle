@@ -77,7 +77,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private final NodeValidator nodeValidator;
-    private final ExecutionNodeAccessHierarchy inputHierarchy;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private Spec<? super Task> filter = Specs.satisfyAll();
@@ -99,7 +98,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver,
         NodeValidator nodeValidator,
-        ExecutionNodeAccessHierarchy inputHierarchy,
         ExecutionNodeAccessHierarchy outputHierarchy,
         ExecutionNodeAccessHierarchy destroyableHierarchy
     ) {
@@ -107,7 +105,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
         this.nodeValidator = nodeValidator;
-        this.inputHierarchy = inputHierarchy;
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
     }
@@ -505,7 +502,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         reachableCache.clear();
         dependenciesWhichRequireMonitoring.clear();
         runningNodes.clear();
-        inputHierarchy.clear();
         outputHierarchy.clear();
         destroyableHierarchy.clear();
     }
