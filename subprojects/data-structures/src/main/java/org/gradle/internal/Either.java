@@ -54,7 +54,7 @@ public abstract class Either<L, R> {
 
         @Override
         public <U> Either<L, U> map(Function<R, U> r) {
-            return Cast.uncheckedCast(this);
+            return uncheckedCast(this);
         }
     }
 
