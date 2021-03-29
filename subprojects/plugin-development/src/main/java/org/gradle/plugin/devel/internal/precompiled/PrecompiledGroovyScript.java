@@ -36,8 +36,8 @@ import java.io.File;
 class PrecompiledGroovyScript {
     private static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
 
-    private final ScriptSource scriptSource;
     private final ScriptSource firstPassSource;
+    private final ScriptSource scriptSource;
     private final Type type;
     private final PluginId pluginId;
     private final ScriptTarget scriptTarget;
@@ -76,8 +76,8 @@ class PrecompiledGroovyScript {
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
         this.precompiledScriptClassName = toJavaIdentifier(kebabCaseToPascalCase(pluginId.getId().replace('.', '-')));
-        this.scriptSource = new PrecompiledScriptPluginSource(scriptFile, precompiledScriptClassName, resourceLoader);
         this.firstPassSource = new PrecompiledScriptPluginFirstPassSource(scriptFile, precompiledScriptClassName, resourceLoader);
+        this.scriptSource = new PrecompiledScriptPluginSource(scriptFile, precompiledScriptClassName, resourceLoader);
         this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT, type != Type.INIT);
     }
 
@@ -102,7 +102,7 @@ class PrecompiledGroovyScript {
         return firstPassSource.getClassName();
     }
 
-    String getClassName() {
+    String getBodyClassName() {
         return scriptSource.getClassName();
     }
 
@@ -110,12 +110,12 @@ class PrecompiledGroovyScript {
         return scriptSource.getResource().getContentHash();
     }
 
-    ScriptSource getSource() {
-        return scriptSource;
+    ScriptSource getFirstPassSource() {
+        return firstPassSource;
     }
 
-    ScriptSource getPluginsSource() {
-        return firstPassSource;
+    ScriptSource getBodySource() {
+        return scriptSource;
     }
 
     ScriptTarget getScriptTarget() {
@@ -174,7 +174,7 @@ class PrecompiledGroovyScript {
 
         @Override
         public String getClassName() {
-            return "first_pass_" + super.getClassName();
+            return "cp_" + super.getClassName();
         }
     }
 }

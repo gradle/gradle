@@ -86,7 +86,7 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
         File outputDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
         scriptCompilationHandler.compileToDir(
-            scriptPlugin.getPluginsSource(), classLoaderScope.getExportClassLoader(), outputDir, outputDir, pluginsCompileOperation,
+            scriptPlugin.getFirstPassSource(), classLoaderScope.getExportClassLoader(), outputDir, outputDir, pluginsCompileOperation,
             FirstPassPrecompiledScript.class, Actions.doNothing());
 
         fileSystemOperations.sync(copySpec -> {

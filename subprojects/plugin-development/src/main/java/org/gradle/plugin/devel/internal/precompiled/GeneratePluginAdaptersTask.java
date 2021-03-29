@@ -114,7 +114,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
         }
         if (!validationErrors.isEmpty()) {
             throw new LocationAwareException(new IllegalArgumentException(String.join("\n", validationErrors)),
-                scriptPlugin.getSource().getResource().getLocation().getDisplayName(),
+                scriptPlugin.getBodySource().getResource().getLocation().getDisplayName(),
                 pluginRequests.iterator().next().getLineNumber());
         }
         return pluginRequests;
@@ -123,7 +123,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
     private PluginRequests extractPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin) {
         try {
             PluginsAwareScript pluginsAwareScript = pluginsBlock.loadClass().getDeclaredConstructor().newInstance();
-            pluginsAwareScript.setScriptSource(scriptPlugin.getSource());
+            pluginsAwareScript.setScriptSource(scriptPlugin.getBodySource());
             pluginsAwareScript.init(new FirstPassPrecompiledScriptRunner(), serviceRegistry);
             pluginsAwareScript.run();
             return pluginsAwareScript.getPluginRequests();
@@ -135,7 +135,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
     private CompiledScript<PluginsAwareScript, ?> loadCompiledPluginsBlocks(PrecompiledGroovyScript scriptPlugin) {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
         File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
-        return scriptCompilationHandler.loadFromDir(scriptPlugin.getPluginsSource(), scriptPlugin.getContentHash(),
+        return scriptCompilationHandler.loadFromDir(scriptPlugin.getFirstPassSource(), scriptPlugin.getContentHash(),
             classLoaderScope, DefaultClassPath.of(compiledPluginRequestsDir), compiledPluginRequestsDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 
@@ -175,7 +175,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             }
             writer.println("            " + applyPlugins + "");
             writer.println();
-            writer.println("            Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getClassName() + "\").asSubclass(BasicScript.class);");
+            writer.println("            Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getBodyClassName() + "\").asSubclass(BasicScript.class);");
             writer.println("            BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance();");
             writer.println("            script.setScriptSource(scriptSource(precompiledScriptClass));");
             writer.println("            script.init(target, target.getServices());");
