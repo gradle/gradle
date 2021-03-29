@@ -302,7 +302,7 @@ Type-safe dependency accessors are an incubating feature which must be enabled e
 Implementation may change at any time.
 To add support for type-safe project accessors, add this to your `settings.gradle(.kts)` file:
 ```
-enableFeaturePreview("TYPE_SAFE_PROJECT_ACCESSORS")
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 ```
 ====
 
