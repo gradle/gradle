@@ -16,13 +16,17 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
-public abstract class FirstPassPrecompiledScript extends PluginsAwareScript {
+class FirstPassPrecompiledScriptRunner extends PluginsAwareScript {
 
-    @SuppressWarnings("rawtypes")
+    public void pluginManagement(Action<? super PluginManagementSpec> rule) {
+    }
+
     @Override
-    public void buildscript(Closure buildscriptBlock) {
+    public Object run() {
+        return null;
     }
 }

@@ -321,11 +321,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         file(pluginJar).renameTo(baseSettingsPluginJar)
 
         pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
-            buildscript {
-                dependencies {
-                    classpath(files('$baseSettingsPluginJar.name'))
-                }
-            }
             plugins {
                 id 'base-settings-plugin'
             }

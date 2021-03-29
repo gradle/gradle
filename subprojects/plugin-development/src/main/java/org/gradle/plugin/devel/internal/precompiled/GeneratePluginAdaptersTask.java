@@ -123,8 +123,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
         try {
             PluginsAwareScript pluginsAwareScript = pluginsBlock.loadClass().getDeclaredConstructor().newInstance();
             pluginsAwareScript.setScriptSource(scriptPlugin.getSource());
-            FirstPassPrecompiledScript target = new FirstPassPrecompiledScriptTarget();
-            pluginsAwareScript.init(target, serviceRegistry);
+            pluginsAwareScript.init(new FirstPassPrecompiledScriptRunner(), serviceRegistry);
             pluginsAwareScript.run();
             return pluginsAwareScript.getPluginRequests();
         } catch (Exception e) {
