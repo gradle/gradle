@@ -52,6 +52,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         and:
         def runner = useAgpVersion(agpVersion, runner(
+            'sourceSets',
             'assembleDebug',
             'testDebugUnitTest',
             'connectedDebugAndroidTest',
@@ -65,6 +66,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
         result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
+        result.task(':app:sourceSets').outcome == TaskOutcome.SUCCESS
+        result.task(':library:sourceSets').outcome == TaskOutcome.SUCCESS
 
         and:
         def agpBaseVersion = baseVersionNumberOf(agpVersion)
