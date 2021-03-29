@@ -144,10 +144,8 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
         File outputFile = getPluginAdapterSourcesOutputDirectory().file(scriptPlugin.getPluginAdapterClassName() + ".java").get().getAsFile();
 
         StringBuilder applyPlugins = new StringBuilder();
-        if (!pluginRequests.isEmpty()) {
-            for (PluginRequest pluginRequest : pluginRequests) {
-                applyPlugins.append("        target.getPluginManager().apply(\"").append(pluginRequest.getId().getId()).append("\");\n");
-            }
+        for (PluginRequest pluginRequest : pluginRequests) {
+            applyPlugins.append("        target.getPluginManager().apply(\"").append(pluginRequest.getId().getId()).append("\");\n");
         }
 
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(outputFile.toURI())))) {
