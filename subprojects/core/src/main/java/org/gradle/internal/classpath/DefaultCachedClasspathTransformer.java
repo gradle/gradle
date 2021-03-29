@@ -21,6 +21,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
+import org.gradle.internal.Either;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -44,9 +45,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import static java.util.Optional.empty;
+import static org.gradle.internal.Either.left;
+import static org.gradle.internal.Either.right;
 import static org.gradle.internal.UncheckedException.unchecked;
-import static org.gradle.internal.classpath.Either.left;
-import static org.gradle.internal.classpath.Either.right;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
 

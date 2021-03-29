@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal;
 
 import java.util.function.Function;
 
@@ -54,7 +54,7 @@ public abstract class Either<L, R> {
 
         @Override
         public <U> Either<L, U> map(Function<R, U> r) {
-            return uncheckedCast(this);
+            return Cast.uncheckedCast(this);
         }
     }
 
