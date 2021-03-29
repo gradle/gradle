@@ -91,17 +91,32 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
 
         // TODO: Use worker API?
         for (PrecompiledGroovyScript scriptPlugin : getScriptPlugins().get()) {
-            PluginRequests pluginRequests = getValidPluginRequests(scriptPlugin);
-            generateScriptPluginAdapter(scriptPlugin, pluginRequests);
+            String firstPassCode = generateFirstPassAdapterCode(scriptPlugin);
+            generateScriptPluginAdapter(scriptPlugin, firstPassCode);
         }
     }
 
-    private PluginRequests getValidPluginRequests(PrecompiledGroovyScript scriptPlugin) {
+    private String generateFirstPassAdapterCode(PrecompiledGroovyScript scriptPlugin) {
         CompiledScript<PluginsAwareScript, ?> pluginsBlock = loadCompiledPluginsBlocks(scriptPlugin);
         if (!pluginsBlock.getRunDoesSomething()) {
-            return PluginRequests.EMPTY;
+            return "";
         }
         PluginRequests pluginRequests = extractPluginRequests(pluginsBlock, scriptPlugin);
+        validatePluginRequests(scriptPlugin, pluginRequests);
+
+        StringBuilder applyPlugins = new StringBuilder();
+        applyPlugins.append("            Class<? extends BasicScript> pluginsBlockClass = Class.forName(\"").append(scriptPlugin.getFirstPassClassName()).append("\").asSubclass(BasicScript.class);\n");
+        applyPlugins.append("            BasicScript pluginsBlockScript = pluginsBlockClass.getDeclaredConstructor().newInstance();\n");
+        applyPlugins.append("            pluginsBlockScript.setScriptSource(scriptSource(pluginsBlockClass));\n");
+        applyPlugins.append("            pluginsBlockScript.init(target, target.getServices());\n");
+        applyPlugins.append("            pluginsBlockScript.run();\n");
+        for (PluginRequest pluginRequest : pluginRequests) {
+            applyPlugins.append("            target.getPluginManager().apply(\"").append(pluginRequest.getId().getId()).append("\");\n");
+        }
+        return applyPlugins.toString();
+    }
+
+    private void validatePluginRequests(PrecompiledGroovyScript scriptPlugin, PluginRequests pluginRequests) {
         Set<String> validationErrors = new HashSet<>();
         for (PluginRequest pluginRequest : pluginRequests) {
             if (pluginRequest.getVersion() != null) {
@@ -117,7 +132,6 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
                 scriptPlugin.getBodySource().getResource().getLocation().getDisplayName(),
                 pluginRequests.iterator().next().getLineNumber());
         }
-        return pluginRequests;
     }
 
     private PluginRequests extractPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin) {
@@ -139,14 +153,9 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             classLoaderScope, DefaultClassPath.of(compiledPluginRequestsDir), compiledPluginRequestsDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 
-    private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin, PluginRequests pluginRequests) {
+    private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin, String firstPassCode) {
         String targetClass = scriptPlugin.getTargetClassName();
         File outputFile = getPluginAdapterSourcesOutputDirectory().file(scriptPlugin.getPluginAdapterClassName() + ".java").get().getAsFile();
-
-        StringBuilder applyPlugins = new StringBuilder();
-        for (PluginRequest pluginRequest : pluginRequests) {
-            applyPlugins.append("        target.getPluginManager().apply(\"").append(pluginRequest.getId().getId()).append("\");\n");
-        }
 
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(outputFile.toURI())))) {
             writer.println("//CHECKSTYLE:OFF");
@@ -163,15 +172,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("    public void apply(" + targetClass + " target) {");
             writer.println("        assertSupportedByCurrentGradleVersion();");
             writer.println("        try {");
-            if (!getExtractedPluginRequestsClassesDirectory().getAsFileTree().filter(f -> f.getName().equals(scriptPlugin.getFirstPassClassName() + ".class")).getFiles().isEmpty()) {
-                writer.println("            Class<? extends BasicScript> pluginsBlockClass = Class.forName(\"" + scriptPlugin.getFirstPassClassName() + "\").asSubclass(BasicScript.class);");
-                writer.println("            BasicScript pluginsBlockScript = pluginsBlockClass.getDeclaredConstructor().newInstance();");
-                writer.println("            pluginsBlockScript.setScriptSource(scriptSource(pluginsBlockClass));");
-                writer.println("            pluginsBlockScript.init(target, target.getServices());");
-                writer.println("            pluginsBlockScript.run();");
-                writer.println();
-            }
-            writer.println("            " + applyPlugins + "");
+            writer.println(firstPassCode);
             writer.println();
             writer.println("            Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getBodyClassName() + "\").asSubclass(BasicScript.class);");
             writer.println("            BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance();");
