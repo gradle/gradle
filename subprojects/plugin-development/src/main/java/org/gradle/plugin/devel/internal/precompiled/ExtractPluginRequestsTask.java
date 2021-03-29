@@ -34,7 +34,6 @@ import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
-import org.gradle.initialization.FirstPassPrecompiledScript;
 import org.gradle.internal.Actions;
 
 import javax.inject.Inject;

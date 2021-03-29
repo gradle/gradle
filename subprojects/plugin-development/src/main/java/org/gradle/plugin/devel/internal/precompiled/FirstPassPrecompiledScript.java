@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.plugin.devel.internal.precompiled;
 
 import groovy.lang.Closure;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 public abstract class FirstPassPrecompiledScript extends PluginsAwareScript {
 
+    @SuppressWarnings("rawtypes")
     @Override
-    public void buildscript(Closure configureClosure) {
+    public void buildscript(Closure buildscriptBlock) {
     }
 }

@@ -17,10 +17,9 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.Action;
-import org.gradle.initialization.FirstPassPrecompiledScript;
 import org.gradle.plugin.management.PluginManagementSpec;
 
-public class FirstPassPrecompiledScriptTarget extends FirstPassPrecompiledScript {
+class FirstPassPrecompiledScriptTarget extends FirstPassPrecompiledScript {
 
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
     }
