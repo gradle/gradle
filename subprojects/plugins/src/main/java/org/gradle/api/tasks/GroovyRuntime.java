@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Provides information related to the Groovy runtime(s) used in a project. Added by the
@@ -104,18 +105,7 @@ public class GroovyRuntime {
                 VersionNumber groovyVersion = groovyJar.getVersion();
                 // Groovy 3 does not have groovy-all yet we may have the required pieces on classpath via localGroovy()
                 if (groovyVersion.getMajor() == 3) {
-                    Set<String> groovyLibNames = GROOVY3_LIBS.stream()
-                        .map(libName -> libName + "-" + groovyVersion.toString() + ".jar")
-                        .collect(Collectors.toSet());
-                    List<File> groovyClasspath = new ArrayList<>();
-                    for (File file : classpath) {
-                        if (groovyLibNames.contains(file.getName())) {
-                            groovyClasspath.add(file);
-                        }
-                    }
-                    if (groovyClasspath.size() == GROOVY3_LIBS.size()) {
-                        return project.getLayout().files(groovyClasspath);
-                    }
+                    return inferGroovy3Classpath(groovyVersion);
                 }
 
                 String notation = groovyJar.getDependencyNotation();
@@ -130,17 +120,29 @@ public class GroovyRuntime {
                     // add groovy-templates for Groovy 2.5+
                     addGroovyDependency(notation, dependencies, "groovy-templates");
                 }
-                if (groovyVersion.getMajor() == 3) {
-                    // add new modules for Groovy 3+
-                    addGroovyDependency(notation, dependencies, "groovy-json");
-                    addGroovyDependency(notation, dependencies, "groovy-xml");
-                    addGroovyDependency(notation, dependencies, "groovy-groovydoc");
-                }
                 return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0]));
             }
 
             private void addGroovyDependency(String groovyDependencyNotion, List<Dependency> dependencies, String otherDependency) {
                 dependencies.add(project.getDependencies().create(groovyDependencyNotion.replace(":groovy:", ":" + otherDependency + ":")));
+            }
+
+            private FileCollection inferGroovy3Classpath(VersionNumber groovyVersion) {
+                Set<String> groovyJarNames = GROOVY3_LIBS.stream()
+                    .map(libName -> libName + "-" + groovyVersion + ".jar")
+                    .collect(Collectors.toSet());
+                List<File> groovyClasspath = StreamSupport.stream(classpath.spliterator(), false)
+                    .filter(f -> groovyJarNames.contains(f.getName()))
+                    .collect(Collectors.toList());
+                if (groovyClasspath.size() == GROOVY3_LIBS.size()) {
+                    return project.getLayout().files(groovyClasspath);
+                }
+
+                return project.getConfigurations().detachedConfiguration(
+                    GROOVY3_LIBS.stream()
+                        .map(libName -> project.getDependencies().create("org.codehaus.groovy:" + libName + ":" + groovyVersion))
+                        .toArray(Dependency[]::new)
+                );
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
