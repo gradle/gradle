@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.logging.text.StyledTextOutput
 
 /**
@@ -26,6 +27,9 @@ import org.gradle.internal.logging.text.StyledTextOutput
  * See <a href="https://cs.android.com/android/platform/superproject/+/master:tools/base/build-system/gradle-core/src/main/groovy/com/android/build/gradle/internal/tasks/SourceSetsTask.java;l=40;drc=4e74351da07ffd8a4ab114f5b660be3682b50d07">SourceSetsTask</a>
  */
 @SuppressWarnings('GrDeprecatedAPIUsage')
+@UnsupportedWithConfigurationCache(
+    because = "AbstractReportTask has been deprecated in favor of ProjectBasedReportTask with supports the configuration cache."
+)
 class AbstractReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "can extend AbstractReportTask"() {
