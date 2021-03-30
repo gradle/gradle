@@ -47,19 +47,35 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         def classpath = project.groovyRuntime.inferGroovyClasspath([
             project.file("other.jar"),
             project.file("groovy-3.0.7.jar"),
-            project.file("groovy-ant-3.0.7.jar"), project.file("groovy-templates-3.0.7.jar"),
-            project.file("groovy-json-3.0.7.jar"), project.file("groovy-xml-3.0.7.jar"),
-            project.file("groovy-groovydoc-3.0.7.jar")
+            project.file("groovy-ant-3.0.7.jar"),
+            project.file("groovy-astbuilder-3.0.7.jar"),
+            project.file("groovy-console-3.0.7.jar"),
+            project.file("groovy-datetime-3.0.7.jar"),
+            project.file("groovy-dateutil-3.0.7.jar"),
+            project.file("groovy-templates-3.0.7.jar"),
+            project.file("groovy-json-3.0.7.jar"),
+            project.file("groovy-xml-3.0.7.jar"),
+            project.file("groovy-groovydoc-3.0.7.jar"),
+            project.file("groovy-nio-3.0.7.jar"),
+            project.file("groovy-sql-3.0.7.jar"),
+            project.file("groovy-test-3.0.7.jar")
         ])
 
         then:
-        classpath.files.size() == 6
+        classpath.files.size() == 13
         classpath.files.contains(project.file("groovy-3.0.7.jar"))
         classpath.files.contains(project.file("groovy-ant-3.0.7.jar"))
+        classpath.files.contains(project.file("groovy-astbuilder-3.0.7.jar"))
+        classpath.files.contains(project.file("groovy-console-3.0.7.jar"))
+        classpath.files.contains(project.file("groovy-datetime-3.0.7.jar"))
+        classpath.files.contains(project.file("groovy-dateutil-3.0.7.jar"))
         classpath.files.contains(project.file("groovy-templates-3.0.7.jar"))
         classpath.files.contains(project.file("groovy-json-3.0.7.jar"))
         classpath.files.contains(project.file("groovy-xml-3.0.7.jar"))
         classpath.files.contains(project.file("groovy-groovydoc-3.0.7.jar"))
+        classpath.files.contains(project.file("groovy-nio-3.0.7.jar"))
+        classpath.files.contains(project.file("groovy-sql-3.0.7.jar"))
+        classpath.files.contains(project.file("groovy-test-3.0.7.jar"))
     }
 
     def "inferred Groovy #groovyVersion#classifier class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
@@ -88,7 +104,7 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         "2.1.2"       | "-indy"    | ["groovy", "groovy-ant"]
         "2.5.2"       | ""         | ["groovy", "groovy-ant", "groovy-templates"]
         "2.5.2"       | "-indy"    | ["groovy", "groovy-ant", "groovy-templates"]
-        "3.0.7"       | ""         | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc"]
+        "3.0.7"       | ""         | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
     }
 
     def "useful error message is produced when no groovy runtime could be found on a classpath"() {

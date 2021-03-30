@@ -64,7 +64,10 @@ public class GroovyRuntime {
     private static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
 
     private static final List<String> GROOVY3_LIBS = Arrays.asList(
-        "groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc");
+        "groovy",
+        "groovy-ant", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil",
+        "groovy-nio", "groovy-sql", "groovy-test",
+        "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc");
 
     private final Project project;
 
