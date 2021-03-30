@@ -41,6 +41,31 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         AndroidHome.assertIsSet()
     }
 
+    @UnsupportedWithConfigurationCache
+    def "can use sourceSets task with android library and application build (agp=#agpVersion, ide=#ide)"() {
+        given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
+        androidLibraryAndApplicationBuild(agpVersion)
+
+        and:
+        def runner = useAgpVersion(agpVersion, runner('sourceSets'))
+
+        when:
+        def result = runner.build()
+
+        then:
+        result.task(':app:sourceSets').outcome == TaskOutcome.SUCCESS
+        result.task(':library:sourceSets').outcome == TaskOutcome.SUCCESS
+
+        where:
+        [agpVersion, ide] << [
+            TestedVersions.androidGradle.toList(),
+            [false, true]
+        ].combinations()
+    }
+
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
@@ -52,7 +77,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         and:
         def runner = useAgpVersion(agpVersion, runner(
-            'sourceSets',
             'assembleDebug',
             'testDebugUnitTest',
             'connectedDebugAndroidTest',
@@ -66,8 +90,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
         result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
-        result.task(':app:sourceSets').outcome == TaskOutcome.SUCCESS
-        result.task(':library:sourceSets').outcome == TaskOutcome.SUCCESS
 
         and:
         def agpBaseVersion = baseVersionNumberOf(agpVersion)
