@@ -27,15 +27,17 @@ import java.io.File;
  */
 public class DirectoryTreeOutputFilePropertySpec extends AbstractFilePropertySpec implements OutputFilePropertySpec {
     private final File root;
+    private final TreeType treeType;
 
-    public DirectoryTreeOutputFilePropertySpec(String propertyName, FileCollectionInternal files, File root) {
+    public DirectoryTreeOutputFilePropertySpec(String propertyName, FileCollectionInternal files, File root, TreeType treeType) {
         super(propertyName, OutputNormalizer.class, files);
         this.root = root;
+        this.treeType = treeType;
     }
 
     @Override
     public TreeType getOutputType() {
-        return TreeType.DIRECTORY;
+        return treeType;
     }
 
     @Override

@@ -167,8 +167,8 @@ public class FileParameterUtils {
                     consumer.accept(new DirectoryTreeOutputFilePropertySpec(
                         propertyName + "$" + index.incrementAndGet(),
                         new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileTree),
-                        root
-                    ));
+                        root,
+                        root.isFile() ? TreeType.FILE : TreeType.DIRECTORY));
                 }
             });
         }

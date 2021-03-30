@@ -1238,6 +1238,43 @@ task generate(type: TransformerTask) {
         skipped(':myTask')
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/15679")
+    def "fileTrees with regular file roots can be used as output files"() {
+        given:
+        buildScript """
+            task myTask {
+                inputs.file file('input.txt')
+                outputs.files fileTree(dir: 'build/output.txt')
+                doLast {
+                    file('build/output.txt').text = new File('input.txt').text
+                }
+            }
+        """.stripIndent()
+
+
+        def outputFile = file('build/output.txt')
+        outputFile.text = "pre-existing"
+        file('input.txt').text = 'input file'
+
+        when:
+        succeeds('myTask')
+        then:
+        executedAndNotSkipped(':myTask')
+        outputFile.text == 'input file'
+
+        when:
+        succeeds('myTask')
+        then:
+        skipped(':myTask')
+
+        when:
+        outputFile.text = 'changed'
+        succeeds('myTask')
+        then:
+        executedAndNotSkipped(':myTask')
+        outputFile.text == 'input file'
+    }
+
     def "task with no actions is skipped even if it has inputs"() {
         buildFile << """
             task taskWithInputs(type: TaskWithInputs) {
