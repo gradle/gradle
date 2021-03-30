@@ -19,24 +19,25 @@ package org.gradle.performance.fixture;
 import groovy.transform.CompileStatic;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.OutputDirSelector;
 
 @CompileStatic
 public class GradleVsMavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private final GradleBuildExperimentRunner gradleRunner;
     private final MavenBuildExperimentRunner mavenRunner;
 
-    public GradleVsMavenBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
-        super(gradleProfilerReporter);
-        this.gradleRunner = new GradleBuildExperimentRunner(gradleProfilerReporter);
-        this.mavenRunner = new MavenBuildExperimentRunner(gradleProfilerReporter);
+    public GradleVsMavenBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
+        super(gradleProfilerReporter, outputDirSelector);
+        this.gradleRunner = new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector);
+        this.mavenRunner = new MavenBuildExperimentRunner(gradleProfilerReporter, outputDirSelector);
     }
 
     @Override
-    public void doRun(BuildExperimentSpec experiment, MeasuredOperationList results) {
+    public void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
         if (experiment instanceof MavenBuildExperimentSpec) {
-            mavenRunner.doRun(experiment, results);
+            mavenRunner.doRun(testId, experiment, results);
         } else {
-            gradleRunner.doRun(experiment, results);
+            gradleRunner.doRun(testId, experiment, results);
         }
     }
 }

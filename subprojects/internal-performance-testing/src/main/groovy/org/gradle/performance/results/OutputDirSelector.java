@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture;
+package org.gradle.performance.results;
 
-import org.gradle.performance.results.MeasuredOperationList;
+import java.io.File;
 
-public interface BuildExperimentRunner {
+public interface OutputDirSelector {
 
-    void run(String testId, BuildExperimentSpec experiment, MeasuredOperationList results);
+    File outputDirFor(String testId);
 
-    enum Phase {
-        WARMUP,
-        MEASUREMENT
+    static String fileSafeNameFor(String name) {
+        String fileSafeName = name.trim().replaceAll("[^a-zA-Z0-9.-]", "-").replaceAll("-+", "-");
+        return (fileSafeName.endsWith("-"))
+            ? fileSafeName.substring(0, fileSafeName.length() - 1)
+            : fileSafeName;
     }
 }
