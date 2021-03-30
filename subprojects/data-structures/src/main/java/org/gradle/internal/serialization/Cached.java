@@ -29,7 +29,7 @@ import java.util.concurrent.Callable;
 public abstract class Cached<T> {
 
     public static <T> Cached<T> of(Callable<T> computation) {
-        return new Deferred<T>(computation);
+        return new Deferred<>(computation);
     }
 
     public abstract T get();
@@ -57,7 +57,7 @@ public abstract class Cached<T> {
         }
 
         private Object writeReplace() {
-            return new Fixed<T>(result());
+            return new Fixed<>(result());
         }
     }
 
