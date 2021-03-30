@@ -43,12 +43,18 @@ public class DefaultProjectDependencyFactory {
 
     public ProjectDependency create(ProjectInternal project, String configuration) {
         DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, project, configuration, projectAccessListener, buildProjectDependencies);
-        projectDependency.setAttributesFactory(attributesFactory);
-        projectDependency.setCapabilityNotationParser(capabilityNotationParser);
+        prepareProject(projectDependency);
         return projectDependency;
     }
 
+    private void prepareProject(DefaultProjectDependency projectDependency) {
+        projectDependency.setAttributesFactory(attributesFactory);
+        projectDependency.setCapabilityNotationParser(capabilityNotationParser);
+    }
+
     public ProjectDependency create(Project project) {
-        return instantiator.newInstance(DefaultProjectDependency.class, project, projectAccessListener, buildProjectDependencies);
+        DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, project, projectAccessListener, buildProjectDependencies);
+        prepareProject(projectDependency);
+        return projectDependency;
     }
 }
