@@ -16,16 +16,15 @@
 
 package gradlebuild.buildutils.tasks
 
+import gradlebuild.basics.toPreTestedCommitBaseBranch
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.*
-import java.io.ByteArrayOutputStream
-import java.io.File
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import gradlebuild.basics.toPreTestedCommitBaseBranch
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.TaskAction
+import java.io.ByteArrayOutputStream
+import java.io.File
 
 
 /**
@@ -35,6 +34,7 @@ import org.gradle.api.tasks.Internal
 abstract class UpdateBranchStatus : DefaultTask() {
     @get: Internal
     abstract val gradleBuildBranch: Property<String>
+
     private
     val logicalBranch: Provider<String>
         get() = gradleBuildBranch.map(::toPreTestedCommitBaseBranch)
@@ -56,16 +56,12 @@ abstract class UpdateBranchStatus : DefaultTask() {
 
     // FIXME use exectuion service here
     private
-    fun Project.execAndGetStdout(vararg args: String) = execAndGetStdout(File("."), *args)
-
-    private
-    fun Project.execAndGetStdout(workingDir: File, vararg args: String): String {
+    fun Project.execAndGetStdout(vararg args: String): String {
         val out = ByteArrayOutputStream()
         exec {
-            isIgnoreExitValue = true
             commandLine(*args)
             standardOutput = out
-            this.workingDir = workingDir
+            this.workingDir = File(".")
         }
         return out.toString().trim()
     }
