@@ -177,7 +177,7 @@
   {
     "dirName": "data-structures",
     "name": "data-structures",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
