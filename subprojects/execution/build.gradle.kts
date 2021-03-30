@@ -6,15 +6,16 @@ description = "Execution engine that takes a unit of work and makes it happen"
 
 dependencies {
     implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":core-api"))
-    implementation(project(":files"))
-    implementation(project(":snapshots"))
-    implementation(project(":model-core"))
-    implementation(project(":persistent-cache"))
     implementation(project(":build-cache"))
     implementation(project(":build-cache-packaging"))
+    implementation(project(":core-api"))
+    implementation(project(":data-structures"))
+    implementation(project(":files"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
+    implementation(project(":model-core"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":snapshots"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
