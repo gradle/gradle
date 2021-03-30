@@ -301,6 +301,61 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
     }
 
     @Unroll
+    def "restores task input property with value of type #type"() {
+        given:
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                private ${type} value
+
+                @Input
+                public ${type} getValue() {
+                    this.value
+                }
+
+                public void setValue(${type} value) {
+                    this.value = value;
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = ${value}
+            }
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("this.value = ${output}")
+
+        where:
+        type           | value     | output
+        String.name    | "'value'" | "value"
+        Boolean.name   | "true"    | "true"
+        boolean.name   | "true"    | "true"
+        Character.name | "'a'"     | "a"
+        char.name      | "'a'"     | "a"
+        Byte.name      | "12"      | "12"
+//        byte.name      | "12"      | "12" // TODO: currently not working
+        Short.name     | "12"      | "12"
+        short.name     | "12"      | "12"
+        Integer.name   | "12"      | "12"
+        int.name       | "12"      | "12"
+        Long.name      | "12"      | "12"
+        long.name      | "12"      | "12"
+        Float.name     | "12.1"    | "12.1"
+        float.name     | "12.1"    | "12.1"
+        Double.name    | "12.1"    | "12.1"
+        double.name    | "12.1"    | "12.1"
+    }
+
+    @Unroll
     def "restores task fields whose value is instance of #type"() {
         buildFile << """
             import java.util.concurrent.*
