@@ -46,7 +46,7 @@ import java.util.function.Supplier
 import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-class DependenciesSourceGeneratorTest extends Specification {
+class LibrariesSourceGeneratorTest extends Specification {
 
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
@@ -269,7 +269,7 @@ class DependenciesSourceGeneratorTest extends Specification {
         spec()
         def writer = new StringWriter()
         def model = builder.build()
-        DependenciesSourceGenerator.generateSource(writer, model, 'org.test', className)
+        LibrariesSourceGenerator.generateSource(writer, model, 'org.test', className)
         sources = new GeneratedSource(className, writer.toString(), model)
     }
 

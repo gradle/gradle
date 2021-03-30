@@ -41,13 +41,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DependenciesSourceGenerator extends AbstractSourceGenerator {
+public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private static final int MAX_ENTRIES = 30000;
     private final DefaultVersionCatalog config;
 
-    public DependenciesSourceGenerator(Writer writer,
-                                       DefaultVersionCatalog config) {
+    public LibrariesSourceGenerator(Writer writer,
+                                    DefaultVersionCatalog config) {
         super(writer);
         this.config = config;
     }
@@ -56,7 +56,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
                                       DefaultVersionCatalog config,
                                       String packageName,
                                       String className) {
-        DependenciesSourceGenerator generator = new DependenciesSourceGenerator(writer, config);
+        LibrariesSourceGenerator generator = new LibrariesSourceGenerator(writer, config);
         try {
             generator.generate(packageName, className);
         } catch (IOException e) {
@@ -67,6 +67,49 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
     private void generate(String packageName, String className) throws IOException {
         writeLn("package " + packageName + ";");
         writeLn();
+        addImports();
+        writeLn();
+        String description = TextUtil.normaliseLineSeparators(config.getDescription());
+        writeLn("/**");
+        for (String descLine : Splitter.on('\n').split(description)) {
+            writeLn(" * " + descLine);
+        }
+        List<String> libraries = config.getDependencyAliases();
+        List<String> bundles = config.getBundleAliases();
+        List<String> versions = config.getVersionAliases();
+        performValidation(libraries, bundles, versions);
+        ClassNode librariesEntryPoint = toClassNode(libraries);
+        String versionsClassName = className + "Versions";
+        String bundlesClassName = className + "Bundles";
+        writeLibraryEntryPoint(className, bundles, versions, librariesEntryPoint, versionsClassName, bundlesClassName);
+    }
+
+    private void writeLibraryEntryPoint(String className, List<String> bundles, List<String> versions, ClassNode librariesEntryPoint, String versionsClassName, String bundlesClassName) throws IOException {
+        writeLn("*/");
+        writeLn("@NonNullApi");
+        writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
+        writeLn();
+        indent(() -> {
+            writeLn("private final " + versionsClassName + " versions;");
+            writeLn("private final " + bundlesClassName + " bundles;");
+            writeSubAccessorFieldsOf(librariesEntryPoint, "this");
+            writeLn();
+            writeLn("@Inject");
+            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers) {");
+            writeLn("    super(config, providers);");
+            writeLn("    this.versions = new " + versionsClassName + "(providers, config);");
+            writeLn("    this.bundles = new " + bundlesClassName + "(providers, config);");
+            writeLn("}");
+            writeLn();
+            writeDependencyAccessors(librariesEntryPoint);
+            writeBundleAccessors(bundlesClassName, bundles);
+            writeVersionAccessors(versionsClassName, versions);
+            writeLibrarySubClasses(librariesEntryPoint);
+        });
+        writeLn("}");
+    }
+
+    private void addImports() throws IOException {
         addImport(NonNullApi.class);
         addImport(MinimalExternalModuleDependency.class);
         addImport(ExternalModuleDependencyBundle.class);
@@ -77,47 +120,12 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         addImport(DefaultVersionCatalog.class);
         addImport(Map.class);
         addImport(Inject.class);
-        writeLn();
-        String description = TextUtil.normaliseLineSeparators(config.getDescription());
-        writeLn("/**");
-        for (String descLine : Splitter.on('\n').split(description)) {
-            writeLn(" * " + descLine);
-        }
-        List<String> dependencies = config.getDependencyAliases();
-        List<String> bundles = config.getBundleAliases();
-        List<String> versions = config.getVersionAliases();
-        performValidation(dependencies, bundles, versions);
-        ClassNode classNode = toClassNode(dependencies);
-        String versionsClassName = className + "Versions";
-        String bundlesClassName = className + "Bundles";
-        writeLn("*/");
-        writeLn("@NonNullApi");
-        writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
-        writeLn();
-        indent(() -> {
-            writeLn("private final " + versionsClassName + " versions;");
-            writeLn("private final " + bundlesClassName + " bundles;");
-            writeSubAccessorFieldsOf(classNode, "this");
-            writeLn();
-            writeLn("@Inject");
-            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers) {");
-            writeLn("    super(config, providers);");
-            writeLn("    this.versions = new " + versionsClassName + "(providers, config);");
-            writeLn("    this.bundles = new " + bundlesClassName + "(providers, config);");
-            writeLn("}");
-            writeLn();
-            writeDependencyAccessors(classNode);
-            writeBundleAccessors(bundlesClassName, bundles);
-            writeVersionAccessors(versionsClassName, versions);
-            writeSubClasses(classNode);
-        });
-        writeLn("}");
     }
 
-    private void writeSubClasses(ClassNode classNode) throws IOException {
+    private void writeLibrarySubClasses(ClassNode classNode) throws IOException {
         for (ClassNode child : classNode.getChildren()) {
-            writeAccessorClass(child);
-            writeSubClasses(child);
+            writeLibraryAccessorClass(child);
+            writeLibrarySubClasses(child);
         }
     }
 
@@ -167,7 +175,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private void writeAccessorClass(ClassNode classNode) throws IOException {
+    private void writeLibraryAccessorClass(ClassNode classNode) throws IOException {
         classNode.validate();
         writeLn("public static class " + classNode.getClassName() + " extends SubDependencyFactory {");
         writeLn();
@@ -197,6 +205,11 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
         writeLn("public static class " + versionsClassName + " extends VersionFactory {");
         writeLn();
+        writeVersionClass(versionsClassName, versions);
+        writeLn();
+    }
+
+    private void writeVersionClass(String versionsClassName, List<String> versions) throws IOException {
         writeLn("    public " + versionsClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
         writeLn();
         for (String version : versions) {
@@ -205,7 +218,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
             indent(() -> {
                 writeLn("/**");
                 writeLn(" * Returns the version associated to this alias: " + version);
-                writeLn(" * If the version is a rich version and that its not expressable as a");
+                writeLn(" * If the version is a rich version and that its not expressible as a");
                 writeLn(" * single version string, then an empty string is returned.");
                 if (context != null) {
                     writeLn("* This version was declared in " + context);
@@ -216,7 +229,6 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
             });
         }
         writeLn("}");
-        writeLn();
     }
 
     private static void performValidation(List<String> dependencies, List<String> bundles, List<String> versions) {
