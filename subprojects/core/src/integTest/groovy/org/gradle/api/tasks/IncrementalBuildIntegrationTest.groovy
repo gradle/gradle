@@ -1244,7 +1244,7 @@ task generate(type: TransformerTask) {
         buildScript """
             task myTask {
                 inputs.file file('input.txt')
-                outputs.files fileTree(dir: 'build/output.txt')
+                outputs.files files('build/output.txt').asFileTree
                 doLast {
                     file('build/output.txt').text = new File('input.txt').text
                 }
