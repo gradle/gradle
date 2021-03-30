@@ -778,6 +778,37 @@ task someTask(type: SomeTask) {
         "dirs"  | "output-file.txt"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    @Issue("https://github.com/gradle/gradle/issues/15679")
+    def "fileTrees with regular file roots cannot be used as output files"() {
+        expectReindentedValidationMessage()
+        buildScript """
+            task myTask {
+                inputs.file file('input.txt')
+                outputs.files(files('build/output.txt').asFileTree).withPropertyName('output')
+                doLast {
+                    file('build/output.txt').text = new File('input.txt').text
+                }
+            }
+        """.stripIndent()
+
+
+        def outputFile = file('build/output.txt')
+        outputFile.text = "pre-existing"
+        file('input.txt').text = 'input file'
+
+        expect:
+        fails('myTask')
+        failureDescriptionContains(cannotWriteToDir {
+            type('org.gradle.api.DefaultTask').property('output')
+                .dir(outputFile)
+                .isNotDirectory()
+                .includeLink()
+        })
+    }
+
     def "can specify null as an input property in ad-hoc task"() {
         buildFile << """
             task foo {
