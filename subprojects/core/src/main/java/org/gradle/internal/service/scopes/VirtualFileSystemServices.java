@@ -37,7 +37,6 @@ import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.internal.fingerprint.hashing.FileContentHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.SourceFileFilter;
 import org.gradle.api.internal.changedetection.state.SplitFileHasher;
 import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCacheService;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -398,9 +397,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileCollectionSnapshotter fileCollectionSnapshotter,
             ResourceSnapshotterCacheService resourceSnapshotterCacheService
         ) {
-            SourceFileFilter sourceFileFilter = new DefaultSourceFileFilter(fileSystem);
             FileHasher lineEndingNormalizingHasher = new LineEndingNormalizationFileHasher(streamHasher);
-            FileContentHasher lineEndingAwareRegularFileHasher = new LineEndingAwareFileContentHasher(lineEndingNormalizingHasher, resourceSnapshotterCacheService, sourceFileFilter);
+            FileContentHasher lineEndingAwareRegularFileHasher = new LineEndingAwareFileContentHasher(lineEndingNormalizingHasher, resourceSnapshotterCacheService, new DefaultSourceFileFilter());
             return new FileCollectionFingerprinterRegistrations(stringInterner, fileCollectionSnapshotter, lineEndingAwareRegularFileHasher);
         }
 

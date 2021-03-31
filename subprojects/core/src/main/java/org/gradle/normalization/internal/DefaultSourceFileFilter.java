@@ -16,40 +16,38 @@
 
 package org.gradle.normalization.internal;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.changedetection.state.SourceFileFilter;
-import org.gradle.api.internal.file.DefaultFileTreeElement;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
+import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Set;
 
-public class DefaultSourceFileFilter extends PatternSet implements SourceFileFilter {
+public class DefaultSourceFileFilter implements SourceFileFilter {
     // TODO Perhaps instead of having a list of known file extensions, we should use a simple
     // heuristic to determine if the file is text or binary.  Something like what Git uses:
     // https://git.kernel.org/pub/scm/git/git.git/tree/xdiff-interface.c?h=v2.30.0#n187
-    public static final String[] KNOWN_SOURCE_FILES = new String[] {
-        "**/*.java",
-        "**/*.groovy",
-        "**/*.kotlin"
-    };
+    public static final Set<String> KNOWN_SOURCE_FILE_EXTS = ImmutableSet.of(
+        ".java",
+        ".groovy",
+        ".kotlin"
+    );
+    private final Set<String> includes;
 
-    private final FileSystem fileSystem;
-
-    public DefaultSourceFileFilter(FileSystem fileSystem) {
+    public DefaultSourceFileFilter() {
         super();
-        this.fileSystem = fileSystem;
-        include(KNOWN_SOURCE_FILES);
+        this.includes = Sets.newHashSet(KNOWN_SOURCE_FILE_EXTS);
     }
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
-        getIncludes().forEach(include -> hasher.putString("include:" + include));
-        getExcludes().forEach(exclude -> hasher.putString("exclude:" + exclude));
+        includes.forEach(hasher::putString);
     }
 
     @Override
-    public boolean isSourceFile(File file) {
-        return getAsSpec().isSatisfiedBy(DefaultFileTreeElement.of(file, fileSystem));
+    public boolean isSourceFile(@Nonnull File file) {
+        return includes.stream().anyMatch(extension -> file.getName().endsWith(extension));
     }
 }

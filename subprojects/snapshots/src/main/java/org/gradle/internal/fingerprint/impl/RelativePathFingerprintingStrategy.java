@@ -70,7 +70,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         roots.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
             String absolutePath = snapshot.getAbsolutePath();
             if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
-                FileSystemLocationFingerprint fingerprint = null;
+                FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
                         fingerprint = IgnoredPathFileSystemLocationFingerprint.DIRECTORY;
