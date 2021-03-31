@@ -17,6 +17,7 @@ tasks.classpathManifest {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
+    implementation(project(":data-structures"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":resources"))

@@ -47,7 +47,7 @@ public abstract class Try<T> {
      * The returned object will hold the given result.
      */
     public static <U> Try<U> successful(U result) {
-        return new Success<U>(result);
+        return new Success<>(result);
     }
 
     /**
@@ -55,7 +55,7 @@ public abstract class Try<T> {
      * The returned object will hold the given failure.
      */
     public static <U> Try<U> failure(Throwable failure) {
-        return new Failure<U>(failure);
+        return new Failure<>(failure);
     }
 
     /**
@@ -164,12 +164,7 @@ public abstract class Try<T> {
 
         @Override
         public <U> Try<U> tryMap(final Function<? super T, U> f) {
-            return Try.ofFailable(new Callable<U>() {
-                @Override
-                public U call() {
-                    return f.apply(value);
-                }
-            });
+            return Try.ofFailable(() -> f.apply(value));
         }
 
         @Override

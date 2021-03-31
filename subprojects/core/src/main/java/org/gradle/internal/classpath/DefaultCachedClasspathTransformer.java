@@ -21,7 +21,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.Either;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -34,18 +34,20 @@ import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.Closeable;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.function.Consumer;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+
+import static java.util.Optional.empty;
+import static org.gradle.internal.Either.left;
+import static org.gradle.internal.Either.right;
+import static org.gradle.internal.UncheckedException.unchecked;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
 
@@ -80,11 +82,19 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     @Override
+    public void close() {
+        CompositeStoppable.stoppable(executor, cache).stop();
+    }
+
+    @Override
     public ClassPath transform(ClassPath classPath, StandardTransform transform) {
         if (classPath.isEmpty()) {
             return classPath;
         }
-        return transformFiles(classPath, fileTransformerFor(transform));
+        return transformFiles(
+            classPath,
+            fileTransformerFor(transform)
+        );
     }
 
     @Override
@@ -92,44 +102,33 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         if (classPath.isEmpty()) {
             return classPath;
         }
-        return transformFiles(classPath, instrumentingClasspathFileTransformerFor(new CompositeTransformer(additional, transformerFor(transform))));
+        return transformFiles(
+            classPath,
+            instrumentingClasspathFileTransformerFor(
+                new CompositeTransformer(additional, transformerFor(transform))
+            )
+        );
     }
 
     @Override
-    public Collection<URL> transform(Collection<URL> urls, StandardTransform transform) {
+    public List<URL> transform(Collection<URL> urls, StandardTransform transform) {
         if (urls.isEmpty()) {
             return ImmutableList.of();
         }
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
-        return cache.useCache(() -> {
-            Set<HashCode> seen = new HashSet<>();
-            List<CacheOperation> operations = new ArrayList<>(urls.size());
-            for (URL url : urls) {
-                operations.add(cached(url, transformer, seen));
-            }
-            ImmutableList.Builder<URL> cachedFiles = ImmutableList.builderWithExpectedSize(urls.size());
-            for (CacheOperation operation : operations) {
-                operation.collectUrl(cachedFiles::add);
-            }
-            return cachedFiles.build();
-        });
+        return transformAll(
+            urls,
+            (url, seen) -> cachedURL(url, transformer, seen)
+        );
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        assert !classPath.isEmpty();
-        return cache.useCache(() -> {
-            List<File> originalFiles = classPath.getAsFiles();
-            List<CacheOperation> operations = new ArrayList<>(originalFiles.size());
-            Set<HashCode> seen = new HashSet<>();
-            for (File file : originalFiles) {
-                operations.add(cached(file, transformer, seen));
-            }
-            List<File> cachedFiles = new ArrayList<>(originalFiles.size());
-            for (CacheOperation operation : operations) {
-                operation.collect(cachedFiles::add);
-            }
-            return DefaultClassPath.of(cachedFiles);
-        });
+        return DefaultClassPath.of(
+            transformAll(
+                classPath.getAsFiles(),
+                (file, seen) -> cachedFile(file, transformer, seen)
+            )
+        );
     }
 
     private Transform transformerFor(StandardTransform transform) {
@@ -155,34 +154,49 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, transform);
     }
 
-    private CacheOperation cached(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
+    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
         if (original.getProtocol().equals("file")) {
-            try {
-                return cached(new File(original.toURI()), transformer, seen);
-            } catch (URISyntaxException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            return cachedFile(Convert.urlToFile(original), transformer, seen).map(
+                result -> result.fold(
+                    file -> left(Convert.fileToURL(file)),
+                    transform -> right(() -> Convert.fileToURL(transform.call()))
+                )
+            );
         }
-        return new RetainUrl(original);
+        return Optional.of(left(original));
     }
 
-    private CacheOperation cached(File original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
-        FileSystemLocationSnapshot snapshot = fileSystemAccess.read(original.getAbsolutePath(), s -> s);
-        HashCode contentHash = snapshot.getHash();
+    private Optional<Either<File, Callable<File>>> cachedFile(
+        File original,
+        ClasspathFileTransformer transformer,
+        Set<HashCode> seen
+    ) {
+        FileSystemLocationSnapshot snapshot = snapshotOf(original);
         if (snapshot.getType() == FileType.Missing) {
-            return new EmptyOperation();
+            return empty();
         }
         if (shouldUseFromCache(original)) {
+            final HashCode contentHash = snapshot.getHash();
             if (!seen.add(contentHash)) {
-                // Already seen an entry with the same content hash, so skip it
-                return new EmptyOperation();
+                // Already seen an entry with the same content hash, ignore it
+                return empty();
             }
-            // Lookup and generate cache entry asynchronously
-            TransformFile operation = new TransformFile(transformer, original, snapshot, cache.getBaseDir());
-            operation.schedule(executor);
-            return operation;
+            // It's a new content hash, transform it
+            return Optional.of(
+                right(() -> transformFile(original, snapshot, transformer))
+            );
         }
-        return new RetainFile(original);
+        return Optional.of(left(original));
+    }
+
+    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer) {
+        final File result = transformer.transform(original, snapshot, cache.getBaseDir());
+        markAccessed(result, original);
+        return result;
+    }
+
+    private FileSystemLocationSnapshot snapshotOf(File file) {
+        return fileSystemAccess.read(file.getAbsolutePath(), s -> s);
     }
 
     private boolean shouldUseFromCache(File original) {
@@ -190,114 +204,62 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return !original.toPath().startsWith(cache.getBaseDir().toPath());
     }
 
-    @Override
-    public void close() {
-        CompositeStoppable.stoppable(executor, cache).stop();
-    }
-
-    interface CacheOperation {
-        /**
-         * Collects the result of this operation, blocking until complete.
-         */
-        void collect(Consumer<File> consumer);
-
-        /**
-         * Collects the result of this operation as a URL, blocking until complete.
-         */
-        default void collectUrl(Consumer<URL> consumer) {
-            collect(file -> {
-                try {
-                    consumer.accept(file.toURI().toURL());
-                } catch (MalformedURLException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            });
+    private void markAccessed(File result, File original) {
+        if (!result.equals(original)) {
+            fileAccessTracker.markAccessed(result);
         }
     }
 
-    private static class RetainUrl implements CacheOperation {
-        private final URL original;
-
-        public RetainUrl(URL original) {
-            this.original = original;
-        }
-
-        @Override
-        public void collect(Consumer<File> consumer) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void collectUrl(Consumer<URL> consumer) {
-            consumer.accept(original);
-        }
+    @FunctionalInterface
+    private interface ValueOrTransformProvider<T, U> {
+        Optional<Either<U, Callable<U>>> apply(T input, Set<HashCode> seen);
     }
 
-    private static class RetainFile implements CacheOperation {
-        private final File original;
+    private <T, U> List<U> transformAll(Collection<T> inputs, ValueOrTransformProvider<T, U> valueOrTransformProvider) {
+        assert !inputs.isEmpty();
+        return cache.useCache(() -> {
 
-        public RetainFile(File original) {
-            this.original = original;
-        }
-
-        @Override
-        public void collect(Consumer<File> consumer) {
-            consumer.accept(original);
-        }
-    }
-
-    private static class EmptyOperation implements CacheOperation {
-        @Override
-        public void collect(Consumer<File> consumer) {
-        }
-    }
-
-    private class TransformFile implements CacheOperation {
-        private final BlockingQueue<Object> queue;
-        private final ClasspathFileTransformer transformer;
-        private final File original;
-        private final FileSystemLocationSnapshot snapshot;
-        private final File cacheDir;
-
-        public TransformFile(ClasspathFileTransformer transformer, File original, FileSystemLocationSnapshot snapshot, File cacheDir) {
-            this.transformer = transformer;
-            this.original = original;
-            this.snapshot = snapshot;
-            this.cacheDir = cacheDir;
-            queue = new ArrayBlockingQueue<>(1);
-        }
-
-        public void schedule(Executor executor) {
-            executor.execute(() -> {
-                try {
-                    try {
-                        File result = transformer.transform(original, snapshot, cacheDir);
-                        queue.put(result);
-                    } catch (Throwable t) {
-                        queue.put(t);
-                    }
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            });
-        }
-
-        @Override
-        public void collect(Consumer<File> consumer) {
-            Object message;
-            try {
-                message = queue.take();
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+            final List<U> results = new ArrayList<>(inputs.size());
+            final List<Callable<Void>> transforms = new ArrayList<>(inputs.size());
+            final Set<HashCode> seen = new HashSet<>();
+            for (T input : inputs) {
+                valueOrTransformProvider.apply(input, seen).ifPresent(valueOrTransform ->
+                    valueOrTransform.fold(
+                        value -> {
+                            results.add(value);
+                            return null;
+                        },
+                        transform -> {
+                            final int index = results.size();
+                            results.add(null);
+                            transforms.add(() -> {
+                                results.set(index, unchecked(transform));
+                                return null;
+                            });
+                            return null;
+                        }
+                    )
+                );
             }
-            if (message instanceof Throwable) {
-                throw UncheckedException.throwAsUncheckedException((Throwable) message);
+
+            // Execute all transforms at once
+            for (Future<Void> result : unchecked(() -> executor.invokeAll(transforms))) {
+                // Propagate first failure
+                unchecked(result::get);
             }
-            File result = (File) message;
-            if (!result.equals(original)) {
-                fileAccessTracker.markAccessed(result);
-            }
-            consumer.accept(result);
+
+            return results;
+        });
+    }
+
+    private static class Convert {
+
+        public static File urlToFile(URL original) {
+            return new File(unchecked(original::toURI));
+        }
+
+        public static URL fileToURL(File file) {
+            return unchecked(file.toURI()::toURL);
         }
     }
 }

@@ -145,7 +145,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     void runAllSpecifications(R results) {
         specs.each {
             def operations = results.buildResult(it.displayInfo)
-            experimentRunner.run(it, operations)
+            experimentRunner.run(testId, it, operations)
         }
     }
 

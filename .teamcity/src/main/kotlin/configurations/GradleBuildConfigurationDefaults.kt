@@ -54,7 +54,7 @@ fun BuildFeatures.triggeredOnPullRequests() {
                 token = "%github.bot-gradle.token%"
             }
             filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-            filterTargetBranch = allBranchesFilter
+            filterTargetBranch = branchesFilterExcluding()
         }
     }
 }

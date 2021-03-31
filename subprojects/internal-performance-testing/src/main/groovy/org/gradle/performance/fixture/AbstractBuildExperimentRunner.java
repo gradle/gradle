@@ -23,12 +23,14 @@ import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.OutputDirSelector;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Profiler;
 import org.gradle.profiler.ProfilerFactory;
 import org.gradle.profiler.ScenarioDefinition;
+import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.result.BuildInvocationResult;
 
 import java.io.File;
@@ -40,6 +42,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static java.util.Collections.emptyMap;
+
 /**
  * Runs a single build experiment.
  *
@@ -48,26 +52,22 @@ import java.util.function.Supplier;
  */
 @CompileStatic
 public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
-    private static final String PROFILER_TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir";
     private static final String PROFILER_KEY = "org.gradle.performance.profiler";
 
-    private final ProfilerFlameGraphGenerator flameGraphGenerator;
     private final GradleProfilerReporter gradleProfilerReporter;
     private final Profiler profiler;
+    private final OutputDirSelector outputDirSelector;
 
-    public static String getProfilerTargetDir() {
-        return System.getProperty(PROFILER_TARGET_DIR_KEY);
+    public AbstractBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter, OutputDirSelector outputDirSelector) {
+        this.outputDirSelector = outputDirSelector;
+        String profilerName = System.getProperty(PROFILER_KEY);
+        this.profiler = isProfilingActive() ? createProfiler(profilerName) : Profiler.NONE;
+        this.gradleProfilerReporter = gradleProfilerReporter;
     }
 
-    public AbstractBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
+    public static boolean isProfilingActive() {
         String profilerName = System.getProperty(PROFILER_KEY);
-        boolean profile = profilerName != null && !profilerName.isEmpty();
-        String profilerTargetDir = getProfilerTargetDir();
-        this.flameGraphGenerator = profile
-            ? new JfrDifferentialFlameGraphGenerator(new File(profilerTargetDir))
-            : ProfilerFlameGraphGenerator.NOOP;
-        this.profiler = profile ? createProfiler(profilerName) : Profiler.NONE;
-        this.gradleProfilerReporter = gradleProfilerReporter;
+        return profilerName != null && !profilerName.isEmpty();
     }
 
     private Profiler createProfiler(String profilerName) {
@@ -81,20 +81,12 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         return profilerFactory.createFromOptions(optionParser.parse(options));
     }
 
-    protected ProfilerFlameGraphGenerator getFlameGraphGenerator() {
-        return flameGraphGenerator;
-    }
-
     protected BenchmarkResultCollector getResultCollector() {
         return gradleProfilerReporter.getResultCollector();
     }
 
-    protected Profiler getProfiler() {
-        return profiler;
-    }
-
     @Override
-    public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
+    public void run(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
         System.out.println();
         System.out.printf("%s ...%n", experiment.getDisplayName());
         System.out.println();
@@ -104,10 +96,10 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         workingDirectory.mkdirs();
         copyTemplateTo(experiment, workingDirectory);
 
-        doRun(experiment, results);
+        doRun(testId, experiment, results);
     }
 
-    protected abstract void doRun(BuildExperimentSpec experiment, MeasuredOperationList results);
+    protected abstract void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results);
 
     private static void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
         try {
@@ -117,6 +109,34 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
+    }
+
+    protected InvocationSettings.InvocationSettingsBuilder createInvocationSettingsBuilder(String testId, BuildExperimentSpec experiment) {
+        File outputDir = outputDirFor(testId, experiment);
+        InvocationSpec invocationSpec = experiment.getInvocation();
+        return new InvocationSettings.InvocationSettingsBuilder()
+            .setProjectDir(invocationSpec.getWorkingDirectory())
+            .setProfiler(profiler)
+            .setBenchmark(true)
+            .setOutputDir(outputDir)
+            .setScenarioFile(null)
+            .setSysProperties(emptyMap())
+            .setWarmupCount(warmupsForExperiment(experiment))
+            .setIterations(invocationsForExperiment(experiment))
+            .setCsvFormat(CsvGenerator.Format.LONG);
+    }
+
+    private File outputDirFor(String testId, BuildExperimentSpec spec) {
+        boolean crossVersion = spec instanceof GradleBuildExperimentSpec && ((GradleBuildExperimentSpec) spec).isCrossVersion();
+        File outputDir;
+        if (crossVersion) {
+            String version = ((GradleBuildExperimentSpec) spec).getInvocation().getGradleDistribution().getVersion().getVersion();
+            outputDir = new File(outputDirSelector.outputDirFor(testId), version);
+        } else {
+            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelector.fileSafeNameFor(spec.getDisplayName()));
+        }
+        outputDir.mkdirs();
+        return outputDir;
     }
 
     private static String getExperimentOverride(String key) {

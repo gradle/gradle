@@ -892,7 +892,10 @@ class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, 
     val bodyCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script build.gradle.kts \\(BODY\\)"))
 
     private
-    val compileAvoidanceWarnings = output.lines().filter { it.startsWith("Cannot use Kotlin build script compile avoidance with") }
+    val compileAvoidanceWarnings = output.lines()
+        .filter { it.startsWith("Cannot use Kotlin build script compile avoidance with") }
+        // filter out avoidance warnings for versioned jars - those come from Kotlin/libraries that don't change when code under test changes
+        .filterNot { it.contains(Regex("\\d.jar: ")) }
 
     init {
         if (!expectWarnings) {

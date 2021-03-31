@@ -14,7 +14,7 @@ plugins {
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
     id("gradlebuild.base.allprojects")
     // Keep version with `build-logic/build-platform/buildSrc.gradle.kts` in sync
-    id("com.gradle.enterprise.test-distribution").version("2.0.1")
+    id("com.gradle.enterprise.test-distribution").version("2.0.2-rc-1")
 }
 
 includeBuild("build-logic-commons")
@@ -39,6 +39,7 @@ include("distributions-full")
 
 // Gradle implementation projects
 include("configuration-cache")
+include("data-structures")
 include("api-metadata")
 include("base-services")
 include("base-services-groovy")

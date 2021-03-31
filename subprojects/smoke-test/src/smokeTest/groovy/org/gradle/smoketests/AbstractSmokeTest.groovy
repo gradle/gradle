@@ -107,7 +107,7 @@ abstract class AbstractSmokeTest extends Specification {
         })
 
         // https://plugins.gradle.org/plugin/org.gretty
-        static gretty = "3.0.3"
+        static gretty = "3.0.4"
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "4.1.0"

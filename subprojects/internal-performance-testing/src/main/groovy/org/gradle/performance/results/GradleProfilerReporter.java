@@ -16,7 +16,6 @@
 
 package org.gradle.performance.results;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.InvocationSettings;
@@ -33,16 +32,12 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class GradleProfilerReporter implements DataReporter<PerformanceTestResult> {
-    private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory";
+    private final OutputDirSelector outputDirSelector;
     private final CompositeReportGenerator compositeReportGenerator;
     private final BenchmarkResultCollector resultCollector;
-    private final File debugArtifactsDirectory;
 
-    public GradleProfilerReporter(File fallbackDirectory) {
-        String debugArtifactsDirectoryPath = System.getProperty(DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME);
-        this.debugArtifactsDirectory = Strings.isNullOrEmpty(debugArtifactsDirectoryPath)
-            ? fallbackDirectory
-            : new File(debugArtifactsDirectoryPath);
+    public GradleProfilerReporter(OutputDirSelector outputDirSelector) {
+        this.outputDirSelector = outputDirSelector;
         this.compositeReportGenerator = new CompositeReportGenerator();
         this.resultCollector = new BenchmarkResultCollector(compositeReportGenerator);
     }
@@ -50,7 +45,7 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
     @Override
     public void report(PerformanceTestResult results) {
         PerformanceExperiment experiment = results.getPerformanceExperiment();
-        File baseDir = new File(debugArtifactsDirectory, experiment.getScenario().getTestName().replaceAll("[^a-zA-Z0-9]", "_"));
+        File baseDir = outputDirSelector.outputDirFor(experiment.getScenario().getTestName());
         baseDir.mkdirs();
         compositeReportGenerator.setGenerators(ImmutableList.of(
             new CsvGenerator(new File(baseDir, "benchmark.csv"), CsvGenerator.Format.LONG),

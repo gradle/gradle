@@ -137,12 +137,29 @@ class LockfileFixture {
     }
 
     void expectLockStateMissing(String configurationName) {
-        def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+        def lockFile = testDirectory.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
         if (lockFile.exists()) {
             assert !lockFile.text.contains(configurationName)
         } else {
             assert !lockFile.exists()
         }
+    }
+
+    void expectNoLockFile() {
+        expectMissingLockFile(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+    }
+
+    void expectNoSettingsLockFile() {
+        expectMissingLockFile(LockFileReaderWriter.SETTINGS_SCRIPT_PREFIX + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+    }
+
+    void expectNoBuildscripLockFile() {
+        expectMissingLockFile(LockFileReaderWriter.BUILD_SCRIPT_PREFIX + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+    }
+
+    private void expectMissingLockFile(String fileName) {
+        def lockFile = testDirectory.file(fileName)
+        assert !lockFile.exists()
     }
 
     void assertLegacyLockfileMissing(String configurationName) {
