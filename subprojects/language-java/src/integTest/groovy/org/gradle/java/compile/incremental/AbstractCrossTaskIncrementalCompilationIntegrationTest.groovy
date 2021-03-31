@@ -165,6 +165,32 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         ],
         because = "gradle/configuration-cache#270"
     )
+    def "distinguishes between api and implementation changes"() {
+        settingsFile << """
+            include 'app'
+        """
+        addDependency("app", "impl")
+        def app = new CompilationOutputsFixture(file("app/build/classes"))
+        source api: ["class A {}"]
+        source impl: ["class B { public A a;}", "class C { private B b;}"]
+        source app: ["class D { public B b; }", "class E { public C c; }"]
+        app.snapshot { run language.compileTaskName }
+
+        when:
+        source api: ["class A { String change; }"]
+        run "app:${language.compileTaskName}"
+
+        then:
+        app.recompiledClasses("D")
+    }
+
+    @ToBeFixedForConfigurationCache(
+        bottomSpecs = [
+            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
+            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
+        ],
+        because = "gradle/configuration-cache#270"
+    )
     def "detects deletions of transitive dependency in an upstream project"() {
         settingsFile << """
             include 'app'
