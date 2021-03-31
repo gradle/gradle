@@ -19,9 +19,15 @@ package org.gradle.configurationcache
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.internal.ConventionTask
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -301,29 +307,44 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
     }
 
     @Unroll
-    def "restores task input property with value of type #type"() {
+    def "restores convention mapped task input property with value of type #type"() {
         given:
-        buildFile << """
-            class SomeTask extends DefaultTask {
-                private ${type} value
-
-                @Input
-                public ${type} getValue() {
-                    this.value
+        file('buildSrc/src/main/java/my/ConventionPlugin.java') << """
+            package my;
+            public class ConventionPlugin implements ${Plugin.name}<${Project.name}> {
+                @Override
+                public void apply(${Project.name} project) {
+                    final Extension ext = project.getExtensions().create("conventions", Extension.class);
+                    project.getTasks().withType(SomeTask.class).configureEach(task -> {
+                        System.out.println("CONFIGURED!");
+                        task.getConventionMapping().map("inputProperty", ext::getInputProperty);
+                    });
+                    project.getTasks().register("ok", SomeTask.class, task -> {
+                    });
                 }
 
-                public void setValue(${type} value) {
-                    this.value = value;
+                public static abstract class Extension {
+                    private $type value;
+                    public $type getInputProperty() { return value; }
+                    public void setInputProperty($type value) { this.value = value; }
                 }
 
-                @TaskAction
-                void run() {
-                    println "this.value = " + value
+                public static abstract class SomeTask extends ${ConventionTask.name} {
+                    private $type value;
+                    @${Input.name}
+                    public $type getInputProperty() { return value; }
+                    public void setInputProperty($type value) { this.value = value; }
+                    @${TaskAction.name}
+                    void run() {
+                        System.out.println("this.value = " + getInputProperty());
+                    }
                 }
             }
-
-            task ok(type: SomeTask) {
-                value = ${value}
+        """
+        buildFile << """
+            apply plugin: my.ConventionPlugin
+            conventions {
+                inputProperty = $value
             }
         """
 
