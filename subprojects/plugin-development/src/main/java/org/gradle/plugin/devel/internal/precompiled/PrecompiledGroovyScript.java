@@ -78,7 +78,7 @@ class PrecompiledGroovyScript {
         this.precompiledScriptClassName = toJavaIdentifier(kebabCaseToPascalCase(pluginId.getId().replace('.', '-')));
         this.firstPassSource = new PrecompiledScriptPluginFirstPassSource(scriptFile, precompiledScriptClassName, resourceLoader);
         this.scriptSource = new PrecompiledScriptPluginSource(scriptFile, precompiledScriptClassName, resourceLoader);
-        this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT, type != Type.INIT);
+        this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT, type == Type.SETTINGS);
     }
 
     static void filterPluginFiles(PatternFilterable patternFilterable) {

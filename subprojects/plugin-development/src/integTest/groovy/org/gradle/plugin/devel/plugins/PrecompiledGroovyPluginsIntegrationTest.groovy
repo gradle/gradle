@@ -371,6 +371,23 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains('my-settings-plugin applied!')
     }
 
+    def "precompiled project plugin can not use pluginManagement block"() {
+        when:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.gradle") << """
+            pluginManagement {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            println("foo project plugin applied")
+        """
+
+        then:
+        fails("help")
+        failureCauseContains("Only Settings scripts can contain a pluginManagement {} block.")
+    }
+
     def "precompiled project plugin can not use buildscript block"() {
         when:
         enablePrecompiledPluginsInBuildSrc()
