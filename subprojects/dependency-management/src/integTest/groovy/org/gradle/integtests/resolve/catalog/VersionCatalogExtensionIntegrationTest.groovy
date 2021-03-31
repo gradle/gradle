@@ -130,6 +130,43 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
+    def "can use nested accessors to declare a dependency version"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("my-great-lib", "1.0")
+                        alias("my-great-lib").to("org.gradle.test", "lib").versionRef("my-great-lib")
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.my.great.lib
+            }
+
+            assert libs.versions.my.great.lib.get() == "1.0"
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+    }
+
     def "can use the version catalog getter to register catalogs"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -309,6 +346,48 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
             dependencies {
                 implementation(libs.bundles.myBundle)
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
+    }
+
+    void "bundles can use nested accessors"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("lib").to("org.gradle.test", "lib").version {
+                            require "1.0"
+                        }
+                        alias("lib2").to("org.gradle.test:lib2:1.0")
+                        bundle("my-great-bundle", ["lib", "lib2"])
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation(libs.bundles.my.great.bundle)
             }
         """
 

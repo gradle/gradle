@@ -114,9 +114,9 @@ class LibrariesSourceGeneratorTest extends Specification {
         name          | method
         'test'        | 'getTest'
         'testBundle'  | 'getTestBundle'
-        'test.bundle' | 'getTestBundle'
-        'test.json'   | 'getTestJson'
-        'a.b'         | 'getAB'
+        'test.bundle' | 'getBundle'
+        'test.json'   | 'getJson'
+        'a.b'         | 'getB'
     }
 
     @Unroll
@@ -133,9 +133,8 @@ class LibrariesSourceGeneratorTest extends Specification {
         name             | method
         'groovy'         | 'getGroovy'
         'groovyVersion'  | 'getGroovyVersion'
-        'groovy.version' | 'getGroovyVersion'
-        'groovy-json'    | 'getGroovyJson'
-        'groovy.json'    | 'getGroovyJson'
+        'groovy-json'    | 'getJson'
+        'groovy.json'    | 'getJson'
         'groovyJson'     | 'getGroovyJson'
         'lang3Version'   | 'getLang3Version'
     }
