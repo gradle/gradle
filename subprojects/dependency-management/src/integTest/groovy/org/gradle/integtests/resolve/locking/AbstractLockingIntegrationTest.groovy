@@ -108,7 +108,9 @@ dependencies {
         succeeds 'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.expectLockStateMissing('unlockedConf')
+        lockfileFixture.expectNoSettingsLockFile()
+        lockfileFixture.expectNoBuildscripLockFile()
+        lockfileFixture.expectNoLockFile()
     }
 
     @ToBeFixedForConfigurationCache

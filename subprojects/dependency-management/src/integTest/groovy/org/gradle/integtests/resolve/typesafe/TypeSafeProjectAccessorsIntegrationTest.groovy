@@ -116,6 +116,30 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         outputContains 'Type-safe project accessors is an incubating feature.'
     }
 
+    def "can use the #notation notation on type-safe accessor"() {
+        settingsFile << """
+            include 'other'
+        """
+
+        buildFile << """
+            configurations {
+                implementation
+            }
+            dependencies {
+                implementation($notation(projects.other))
+            }
+        """
+
+        when:
+        run 'help'
+
+        then:
+        outputDoesNotContain('it was probably created by a plugin using internal APIs')
+
+        where:
+        notation << [ 'platform', 'testFixtures']
+    }
+
     def "buildSrc project accessors are independent from the main build accessors"() {
         file("buildSrc/build.gradle") << """
             assert project(":one").is(projects.one.dependencyProject)

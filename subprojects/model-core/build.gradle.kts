@@ -7,10 +7,11 @@ dependencies {
     api(project(":problems"))
 
     implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":persistent-cache"))
     implementation(project(":base-services-groovy"))
+    implementation(project(":data-structures"))
+    implementation(project(":logging"))
     implementation(project(":messaging"))
+    implementation(project(":persistent-cache"))
     implementation(project(":snapshots"))
 
     implementation(libs.futureKotlin("stdlib"))

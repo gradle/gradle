@@ -277,6 +277,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
             .buildMutators(buildMutators)
+            .crossVersion(true)
             .measuredBuildOperations(measuredBuildOperations)
             .measureGarbageCollection(measureGarbageCollection)
             .invocation {
@@ -292,7 +293,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
         builder.workingDirectory = workingDir
         def spec = builder.build()
-        experimentRunner.run(spec, results)
+        experimentRunner.run(testId, spec, results)
     }
 
     private List<String> resolveGradleOpts() {

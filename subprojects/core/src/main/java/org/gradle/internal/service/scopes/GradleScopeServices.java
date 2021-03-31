@@ -205,7 +205,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     LocalTaskNodeExecutor createLocalTaskNodeExecutor(ExecutionNodeAccessHierarchies executionNodeAccessHierarchies) {
         return new LocalTaskNodeExecutor(
-            executionNodeAccessHierarchies.getInputHierarchy(),
             executionNodeAccessHierarchies.getOutputHierarchy()
         );
     }
@@ -245,7 +244,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             taskNodeFactory,
             dependencyResolver,
             new DefaultNodeValidator(),
-            executionNodeAccessHierarchies.getInputHierarchy(),
             executionNodeAccessHierarchies.getOutputHierarchy(),
             executionNodeAccessHierarchies.getDestroyableHierarchy()
         );

@@ -20,7 +20,7 @@ import org.gradle.performance.results.MeasuredOperationList;
 
 public interface BuildExperimentRunner {
 
-    void run(BuildExperimentSpec experiment, MeasuredOperationList results);
+    void run(String testId, BuildExperimentSpec experiment, MeasuredOperationList results);
 
     enum Phase {
         WARMUP,

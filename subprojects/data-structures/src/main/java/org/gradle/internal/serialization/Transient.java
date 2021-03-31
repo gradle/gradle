@@ -31,7 +31,7 @@ public abstract class Transient<T> implements java.io.Serializable {
     }
 
     public static <T> Transient<T> of(T value) {
-        return new ImmutableTransient<T>(value);
+        return new ImmutableTransient<>(value);
     }
 
     public static <T> Var<T> varOf() {
@@ -39,7 +39,7 @@ public abstract class Transient<T> implements java.io.Serializable {
     }
 
     public static <T> Var<T> varOf(@Nullable T value) {
-        return new MutableTransient<T>(value);
+        return new MutableTransient<>(value);
     }
 
     @Nullable
@@ -104,5 +104,5 @@ public abstract class Transient<T> implements java.io.Serializable {
         }
     }
 
-    private static final Transient<Object> DISCARDED = new Discarded<Object>();
+    private static final Transient<Object> DISCARDED = new Discarded<>();
 }

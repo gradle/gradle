@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal;
 
 import java.util.function.Function;
 

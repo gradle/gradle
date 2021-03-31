@@ -39,6 +39,7 @@ include("distributions-full")
 
 // Gradle implementation projects
 include("configuration-cache")
+include("data-structures")
 include("api-metadata")
 include("base-services")
 include("base-services-groovy")

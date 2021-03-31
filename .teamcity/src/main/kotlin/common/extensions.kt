@@ -16,7 +16,7 @@
 
 package common
 
-import configurations.allBranchesFilter
+import configurations.branchesFilterExcluding
 import configurations.m2CleanScriptUnixLike
 import configurations.m2CleanScriptWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -29,7 +29,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.Requirements
-import jetbrains.buildServer.configs.kotlin.v2019_2.VcsSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
@@ -65,13 +64,9 @@ fun Requirements.requiresNoEc2Agent() {
     doesNotContain("teamcity.agent.name", "EC2")
 }
 
-fun VcsSettings.filterDefaultBranch() {
-    branchFilter = allBranchesFilter
-}
-
 const val failedTestArtifactDestination = ".teamcity/gradle-logs"
 
-fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
+fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, versionedSettingsBranch: String? = null) {
     artifactRules = """
         build/report-* => $failedTestArtifactDestination
         build/tmp/test files/** => $failedTestArtifactDestination/test-files
@@ -81,10 +76,13 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, vcsRoot
     """.trimIndent()
 
     vcs {
-        root(AbsoluteId(vcsRoot))
+        root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
         checkoutMode = CheckoutMode.ON_AGENT
-        if (vcsRoot.contains("Branches")) {
-            filterDefaultBranch()
+
+        branchFilter = when (versionedSettingsBranch) {
+            "master" -> branchesFilterExcluding("release")
+            "release" -> branchesFilterExcluding("master")
+            else -> branchesFilterExcluding()
         }
     }
 

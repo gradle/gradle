@@ -14,12 +14,12 @@ dependencies {
     api(project(":hashing"))
     api(project(":build-operations"))
 
-    implementation(libs.slf4jApi)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
-    implementation(libs.commonsIo)
     implementation(libs.asm)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
     implementation(libs.inject)
+    implementation(libs.slf4jApi)
 
     integTestImplementation(project(":logging"))
 

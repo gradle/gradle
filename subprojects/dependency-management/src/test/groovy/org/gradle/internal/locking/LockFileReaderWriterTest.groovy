@@ -63,6 +63,19 @@ empty=c
         !lockDir.exists()
     }
 
+    def 'deletes an unique lock file on empty lock state'() {
+        def uniqueLockfile = tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+
+        given:
+        uniqueLockfile << 'Some file content'
+
+        when:
+        lockFileReaderWriter.writeUniqueLockfile(Collections.emptyMap());
+
+        then:
+        !uniqueLockfile.exists()
+    }
+
     def 'writes dependencies and configurations sorted in the unique lock file'() {
         when:
         lockFileReaderWriter.writeUniqueLockfile([b: ['foo', 'bar'], d: ['bar', 'foobar'],a: ['foo'], e: [], f: [], c: []])
