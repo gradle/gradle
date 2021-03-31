@@ -43,11 +43,6 @@ public abstract class AbstractCompatibilityTestInterceptor extends AbstractConte
     }
 
     @Override
-    protected Collection<GradleDistributionTool> getQuickVersions() {
-        return Collections.singleton(versionedToolFrom(releasedVersions.getMostRecentRelease()));
-    }
-
-    @Override
     protected Collection<GradleDistributionTool> getAllVersions() {
         List<GradleDistribution> allSupportedVersions = choosePreviousVersionsToTest(releasedVersions);
         List<GradleDistribution> sortedDistributions = sort(allSupportedVersions, Comparator.comparing(GradleDistribution::getVersion));

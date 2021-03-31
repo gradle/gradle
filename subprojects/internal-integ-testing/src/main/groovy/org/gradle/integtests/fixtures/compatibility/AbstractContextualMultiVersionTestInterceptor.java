@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -37,7 +36,7 @@ import static com.google.common.collect.Iterators.getLast;
  * <ul>
  *     <li>{@code -PtestVersions=(default|all|partial|1,2,3)} will run the tests according to the configured value
  *     <ul>
- *         <li>{@code default} will run only the first configured version</li>
+ *         <li>{@code default} will run the first and last configured versions</li>
  *         <li>{@code all} will run all configured versions</li>
  *         <li>{@code partial} will run the first and last configured versions</li>
  *         <li>{@code 1,2,3} will run with versions {@code 1}, {@code 2} and {@code 3}</li>
@@ -51,15 +50,6 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
 
     protected abstract Collection<T> getAllVersions();
-
-    protected Collection<T> getQuickVersions() {
-        for (T next : getAllVersions()) {
-            if (isAvailable(next)) {
-                return Collections.singleton(next);
-            }
-        }
-        return Collections.emptyList();
-    }
 
     protected Collection<T> getPartialVersions() {
         Collection<T> allVersions = getAllVersions();
@@ -132,8 +122,6 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
         switch(coverageContext) {
             case DEFAULT:
             case LATEST:
-                versionsUnderTest.addAll(getQuickVersions());
-                break;
             case PARTIAL:
                 versionsUnderTest.addAll(getPartialVersions());
                 break;
