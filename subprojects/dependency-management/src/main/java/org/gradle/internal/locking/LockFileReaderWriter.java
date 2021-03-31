@@ -200,6 +200,12 @@ public class LockFileReaderWriter {
         checkValidRoot();
         Path lockfilePath = getUniqueLockfilePath();
 
+        if (lockState.isEmpty()) {
+            // Remove the file when no lock state
+            GFileUtils.deleteQuietly(lockfilePath.toFile());
+            return;
+        }
+
         // Revert mapping
         Map<String, List<String>> dependencyToConfigurations = new TreeMap<>();
         List<String> emptyConfigurations = new ArrayList<>();
