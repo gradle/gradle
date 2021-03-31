@@ -62,7 +62,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [fileType, sensitivity] << [['java', 'groovy', 'kotlin'], PathSensitivity.values()].combinations()
+        [fileType, sensitivity] << [['java', 'groovy', 'kt'], PathSensitivity.values()].combinations()
     }
 
     def reused(String taskPath) {
