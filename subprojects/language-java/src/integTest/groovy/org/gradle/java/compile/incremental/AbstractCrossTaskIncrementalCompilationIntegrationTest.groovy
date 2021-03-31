@@ -38,7 +38,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
             }
             $projectDependencyBlock
         """
-        settingsFile << "include 'api', 'impl'"
+        settingsFile << "include 'api', 'impl'\n"
 
         if (language == CompiledLanguage.GROOVY) {
             configureGroovyIncrementalCompilation('subprojects')

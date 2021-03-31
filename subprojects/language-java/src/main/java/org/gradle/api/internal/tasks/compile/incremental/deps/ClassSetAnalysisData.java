@@ -49,7 +49,6 @@ public class ClassSetAnalysisData {
 
     public static final String PACKAGE_INFO = "package-info";
     public static ClassSetAnalysisData merge(List<ClassSetAnalysisData> datas) {
-        //TODO we're overwriting module-info here, since that has the same name in every classpath entry
         int classCount = 0;
         int constantsCount = 0;
         int dependentsCount = 0;
@@ -170,15 +169,19 @@ public class ClassSetAnalysisData {
 
         ImmutableSet.Builder<String> changed = ImmutableSet.builder();
         for (String added : Sets.difference(classHashes.keySet(), other.classHashes.keySet())) {
-            DependentsSet dependentsOfAdded = getDependents(added);
-            if (dependentsOfAdded.isDependencyToAll()) {
-                return dependentsOfAdded;
+            DependentsSet dependents = getDependents(added);
+            if (dependents.isDependencyToAll()) {
+                return dependents;
             }
             if (added.endsWith(PACKAGE_INFO)) {
                 changed.add(added);
             }
         }
         for (Map.Entry<String, HashCode> removedOrChanged : Sets.difference(other.classHashes.entrySet(), classHashes.entrySet())) {
+            DependentsSet dependents = getDependents(removedOrChanged.getKey());
+            if (dependents.isDependencyToAll()) {
+                return dependents;
+            }
             changed.add(removedOrChanged.getKey());
         }
         return DependentsSet.dependentClasses(ImmutableSet.of(), changed.build());

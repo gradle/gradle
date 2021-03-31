@@ -45,6 +45,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final StringInterner interner;
     private boolean isAnnotationType;
     private boolean dependencyToAll;
+    private String moduleName;
     private final RetentionPolicyVisitor retentionPolicyVisitor;
 
     private ClassDependenciesVisitor(Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
@@ -64,8 +65,8 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         // Remove the "API accessible" types from the "privately used types"
         visitor.privateTypes.removeAll(visitor.accessibleTypes);
-
-        return new ClassAnalysis(interner.intern(className), visitor.getPrivateClassDependencies(), visitor.getAccessibleClassDependencies(), visitor.isDependencyToAll(), visitor.getConstants());
+        String name = visitor.moduleName != null ? visitor.moduleName : className;
+        return new ClassAnalysis(interner.intern(name), visitor.getPrivateClassDependencies(), visitor.getAccessibleClassDependencies(), visitor.isDependencyToAll(), visitor.getConstants());
     }
 
     @Override
@@ -86,6 +87,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public ModuleVisitor visitModule(String name, int access, String version) {
+        moduleName = name;
         dependencyToAll = true;
         return null;
     }
