@@ -49,9 +49,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
         RuntimeException clientFailure = null;
         try {
             gradle.addBuildListener(listener);
-            if (buildModelAction.isModelRequest()) {
-                gradle.getStartParameter().setConfigureOnDemand(false);
-            }
             if (buildModelAction.isRunTasks()) {
                 buildController.run();
             } else {
@@ -83,7 +80,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
-            if (buildModelAction.isModelRequest()) {
+            if (buildModelAction.isCreateModel()) {
                 forceFullConfiguration((GradleInternal) gradle, new HashSet<>());
             }
         }

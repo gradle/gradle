@@ -29,6 +29,12 @@ public class BuildTreeScopeLifecycleBuildActionExecuter implements BuildActionEx
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
         BuildType buildType = action.isRunTasks() ? BuildType.TASKS : BuildType.MODEL;
+        if (action.isCreateModel()) {
+            // When creating a model, do not use configure on demand or configuration cache
+            action.getStartParameter().setConfigureOnDemand(false);
+            action.getStartParameter().setConfigurationCache(false);
+        }
+
         try (BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), buildType, BuildTreeBuildPath.ROOT)) {
             return buildTree.run(context ->
                 context.getBuildTreeServices().get(BuildTreeBuildActionExecutor.class).execute(action, actionParameters, context));
