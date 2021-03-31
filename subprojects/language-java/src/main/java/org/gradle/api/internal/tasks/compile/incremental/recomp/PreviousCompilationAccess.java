@@ -28,14 +28,10 @@ public class PreviousCompilationAccess {
 
     private final StringInterner interner;
 
-    public static void main(String[] args) {
-        PreviousCompilationData previousCompilationData = new PreviousCompilationAccess(new StringInterner()).readPreviousCompilationData(new File("/home/oehme/Desktop/previous-compilation-data.bin"));
-        System.out.println(previousCompilationData.getClasspathSnapshot());
-    }
-
     public PreviousCompilationAccess(StringInterner interner) {
         this.interner = interner;
     }
+
     public PreviousCompilationData readPreviousCompilationData(File source) {
         try (KryoBackedDecoder encoder = new KryoBackedDecoder(new FileInputStream(source))) {
             return new PreviousCompilationData.Serializer(interner).read(encoder);
