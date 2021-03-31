@@ -16,16 +16,16 @@
 
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.DefaultConfigurableIncludedBuild;
 import org.gradle.internal.composite.DefaultConfigurableIncludedPluginBuild;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.io.File;
@@ -38,7 +38,7 @@ public abstract class IncludedBuildSpec {
         this.rootDir = rootDir;
     }
 
-    public abstract BuildDefinition toBuildDefinition(StartParameter startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator);
+    public abstract BuildDefinition toBuildDefinition(StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator);
 
     public static IncludedBuildSpec includedPluginBuild(File rootDir, Action<? super ConfigurableIncludedPluginBuild> configurer) {
         return new IncludedPluginBuildSpec(rootDir, configurer);
@@ -58,7 +58,7 @@ public abstract class IncludedBuildSpec {
         }
 
         @Override
-        public BuildDefinition toBuildDefinition(StartParameter startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
+        public BuildDefinition toBuildDefinition(StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
             DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, rootDir);
             configurer.execute(configurable);
 
@@ -84,7 +84,7 @@ public abstract class IncludedBuildSpec {
         }
 
         @Override
-        public BuildDefinition toBuildDefinition(StartParameter startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
+        public BuildDefinition toBuildDefinition(StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
             DefaultConfigurableIncludedPluginBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedPluginBuild.class, rootDir);
             configurer.execute(configurable);
 
