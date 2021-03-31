@@ -306,6 +306,46 @@ project(':common') {
         output.contains('Single step transform received dependencies files [] for processing otherLib.jar')
     }
 
+    def "transform can access file dependencies of transitive dependencies"() {
+        given:
+        setupBuildWithSingleStep()
+        file("common/otherLib1.jar") << "jar"
+        file("common/otherLib2.jar") << "jar"
+        file("lib/otherLib3.jar") << "jar"
+        buildFile << """
+project(':common') {
+    dependencies {
+        implementation files("otherLib1.jar")
+        implementation files("otherLib2.jar")
+        implementation 'junit:junit:4.11'
+    }
+}
+
+project(':lib') {
+    dependencies {
+        implementation project(':common')
+        implementation files("otherLib3.jar")
+    }
+}
+"""
+
+        when:
+        executer.withArgument("--parallel")
+        run "lib:resolveGreen"
+        def fileDependencies = ["otherLib3.jar", "otherLib1.jar", "otherLib2.jar"]
+
+        then:
+        assertTransformationsExecuted(
+            singleStep("otherLib1.jar"),
+            singleStep("otherLib2.jar"),
+            singleStep("otherLib3.jar"),
+            singleStep("junit-4.11.jar", *fileDependencies, "hamcrest-core-1.3.jar"),
+            singleStep("hamcrest-core-1.3.jar", *fileDependencies),
+            singleStep("slf4j-api-1.7.25.jar", *fileDependencies),
+            singleStep("common.jar", *fileDependencies, "junit-4.11.jar", "hamcrest-core-1.3.jar")
+        )
+    }
+
     def "transform can access artifact dependencies as a set of files when using ArtifactView, even if first step did not use dependencies"() {
         given:
         setupBuildWithFirstStepThatDoesNotUseDependencies()

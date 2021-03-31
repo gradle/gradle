@@ -30,8 +30,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Try;
+import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
@@ -107,7 +109,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             ResolutionResult result = resolutionResultProvider.getValue();
             dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, result.getAllComponents(), false);
         }
-        return filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(dependencies));
+        return filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(componentIdentifier, dependencies));
     }
 
     private void computeDependenciesFor(ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
@@ -115,12 +117,14 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             ResolutionResult result = resolutionResultProvider.getTaskDependencyValue();
             buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, result.getAllComponents(), true);
         }
-        FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(buildDependencies));
+        FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(componentIdentifier, buildDependencies));
         context.add(files);
     }
 
-    private Spec<ComponentIdentifier> selectDependenciesWithId(Set<ComponentIdentifier> dependencies) {
-        return spec(element -> dependencies.contains(element));
+    private Spec<ComponentIdentifier> selectDependenciesWithId(ComponentIdentifier componentIdentifier, Set<ComponentIdentifier> dependencies) {
+        return componentIdentifier instanceof OpaqueComponentArtifactIdentifier
+            ? Specs.satisfyNone()
+            : spec(element -> dependencies.contains(element) || element instanceof OpaqueComponentArtifactIdentifier);
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
