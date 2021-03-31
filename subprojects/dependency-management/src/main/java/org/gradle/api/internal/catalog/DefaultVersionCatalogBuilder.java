@@ -27,9 +27,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -40,6 +38,8 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.catalog.parser.DependenciesModelHelper;
 import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemBuilder;
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -58,12 +58,16 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
+import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
+
 public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
-    private final static Attribute<String> INTERNAL_COUNTER = Attribute.of("org.gradle.internal.dm.model.builder.id", String.class);
     private final static List<String> FORBIDDEN_ALIAS_SUFFIX = ImmutableList.of("bundles", "versions", "version", "bundle");
 
     private final Interner<String> strings;
@@ -178,11 +182,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         return cnf;
     }
 
-    private static void associateDependencyWithId(int id, HasConfigurableAttributes<?> dependency) {
-        // We use a String attribute because when we get resolved metadata is coerced to a string in any case
-        dependency.attributes(attrs -> attrs.attribute(INTERNAL_COUNTER, String.valueOf(id)));
-    }
-
     @Override
     public void from(Object dependencyNotation) {
         if (!imports.isEmpty()) {
@@ -247,7 +246,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         return new DefaultAliasBuilder(alias);
     }
 
-    private static void validateName(String type, String value) {
+    private void validateName(String type, String value) {
         if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
             throw new InvalidUserDataException("Invalid " + type + " name '" + value + "': it must match the following regular expression: " + DependenciesModelHelper.ALIAS_REGEX);
         }
@@ -256,13 +255,25 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         }
     }
 
-    private static void validateAlias(String alias) {
+    private void validateAlias(String alias) {
         for (String suffix : FORBIDDEN_ALIAS_SUFFIX) {
             String sl = alias.toLowerCase();
             if (sl.endsWith(suffix)) {
-                throw new InvalidUserDataException("Invalid alias name '" + alias + "': it must not end with '" + suffix + "'");
+                throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                        .happensBecause(() -> "It shouldn't end with '" + suffix + "'")
+                        .addSolution(() -> "Use a different alias which doesn't end with " + oxfordListOf(FORBIDDEN_ALIAS_SUFFIX, "or"))
+                        .documented()
+                );
             }
         }
+    }
+
+    private <T> T throwVersionCatalogProblem(VersionCatalogProblemId id, Consumer<? super VersionCatalogProblemBuilder.ProblemWithId> spec) {
+        maybeThrowError("Invalid catalog definition", ImmutableList.of(
+            buildProblem(id, pb -> spec.accept(pb.inContext(() -> "version catalog " + name))))
+        );
+        return null;
     }
 
     @Override
@@ -309,9 +320,19 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         public DependencyModel get() {
             VersionModel model = versionConstraints.get(versionRef);
             if (model == null) {
-                throw new InvalidUserDataException("Referenced version '" + versionRef + "' doesn't exist on dependency " + group + ":" + name);
+                return throwVersionCatalogProblem(VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE, spec -> {
+                        VersionCatalogProblemBuilder.DescribedProblemWithCause solutions = spec.withShortDescription(() -> "Version reference '" + versionRef + "' doesn't exist")
+                            .happensBecause("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
+                            .addSolution(() -> "Declare '" + versionRef + "' in the catalog")
+                            .documented();
+                        if (!versionConstraints.keySet().isEmpty()) {
+                            solutions.addSolution(() -> "Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
+                        }
+                    }
+                );
+            } else {
+                return new DependencyModel(group, name, versionRef, model.getVersion(), context);
             }
-            return new DependencyModel(group, name, versionRef, model.getVersion(), context);
         }
     }
 

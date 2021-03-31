@@ -209,7 +209,7 @@ class TomlCatalogFileParserTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == message
+        ex.message.contains(message)
 
         where:
         name        | message
@@ -226,7 +226,7 @@ class TomlCatalogFileParserTest extends Specification {
         'invalid11' | "On alias 'test' expected an array but value of 'reject' is a table"
         'invalid12' | "Unknown top level elements [toto, tata]"
         'invalid13' | "On bundle 'groovy' expected an array but value of 'groovy' is a string"
-        'invalid14' | "Referenced version 'nope' doesn't exist on dependency com:foo"
+        'invalid14' | "In version catalog libs, version reference 'nope' doesn't exist"
     }
 
     def "supports dependencies without version"() {

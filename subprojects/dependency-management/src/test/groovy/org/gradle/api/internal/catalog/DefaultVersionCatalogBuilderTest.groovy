@@ -18,6 +18,9 @@ package org.gradle.api.internal.catalog
 
 import com.google.common.collect.Interners
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
@@ -28,7 +31,7 @@ import spock.lang.Unroll
 
 import java.util.function.Supplier
 
-class DefaultVersionCatalogBuilderTest extends Specification {
+class DefaultVersionCatalogBuilderTest extends Specification implements VersionCatalogErrorMessages {
 
     @Subject
     DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(Supplier))
@@ -59,6 +62,9 @@ class DefaultVersionCatalogBuilderTest extends Specification {
         notation << ["", "a", "1a", "A", "Aa", "abc\$", "abc&"]
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
     @Unroll
     def "forbids using #name as a dependency alias"() {
         when:
@@ -66,7 +72,11 @@ class DefaultVersionCatalogBuilderTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "Invalid alias name '$name': it must not end with '$suffix'"
+        verify(ex.message, reservedAlias {
+            inCatalog('libs')
+            alias(name).shouldNotEndWith(suffix)
+            reservedAliasSuffix('bundle', 'bundles', 'version', 'versions')
+        })
 
         where:
         name          | suffix
@@ -219,14 +229,23 @@ class DefaultVersionCatalogBuilderTest extends Specification {
         model.getDependencyData("foo").version.requiredVersion == ""
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE
+    )
     def "reasonable error message if referenced version doesn't exist"() {
         builder.alias("foo").to("org", "foo").versionRef("nope")
-
+        builder.version('v1', '1.0')
+        builder.version('v2', '1.2')
         when:
         builder.build()
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "Referenced version 'nope' doesn't exist on dependency org:foo"
+        verify(ex.message, undefinedVersionRef {
+            inCatalog('libs')
+            forDependency('org', 'foo')
+            versionRef('nope')
+            existing('v1', 'v2')
+        })
     }
 }

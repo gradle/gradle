@@ -31,12 +31,12 @@ import org.tomlj.TomlTable;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 
 public class TomlCatalogFileParser {
     public static final String CURRENT_VERSION = "1.0";
@@ -172,26 +172,6 @@ public class TomlCatalogFileParser {
                 + " but found unexpected key" + (difference.size() > 1 ? "s " : " ") + oxfordListOf(difference, "and")
                 + ".");
         }
-    }
-
-    private static String oxfordListOf(Collection<String> values, String conjunction) {
-        return values.stream()
-            .sorted()
-            .map(s -> "'" + s + "'")
-            .collect(oxfordJoin(conjunction));
-    }
-
-    private static Collector<? super String, ?, String> oxfordJoin(String conjunction) {
-        return Collectors.collectingAndThen(Collectors.toList(), stringList -> {
-            if (stringList.isEmpty()) {
-                return "";
-            }
-            if (stringList.size() == 1) {
-                return stringList.get(0);
-            }
-            int bound = stringList.size() - 1;
-            return String.join(", ", stringList.subList(0, bound)) + " " + conjunction + " " + stringList.get(bound);
-        });
     }
 
     private static void parseLibrary(String alias, TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {

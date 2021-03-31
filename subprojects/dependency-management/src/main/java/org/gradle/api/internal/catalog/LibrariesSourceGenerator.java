@@ -16,7 +16,6 @@
 package org.gradle.api.internal.catalog;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
@@ -25,9 +24,10 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblem;
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
@@ -41,9 +41,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.collect.ImmutableList.of;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
+
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private static final int MAX_ENTRIES = 30000;
+    public static final String ERROR_HEADER = "Cannot generate dependency accessors";
     private final DefaultVersionCatalog config;
 
     public LibrariesSourceGenerator(Writer writer,
@@ -282,50 +287,42 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
     }
 
-    private static void performValidation(List<String> dependencies, List<String> bundles, List<String> versions) {
-        assertDependencyAliases(dependencies);
+    private String standardErrorLocation() {
+        return "Version catalog " + config.getName();
+    }
+
+    private void performValidation(List<String> dependencies, List<String> bundles, List<String> versions) {
         assertUnique(dependencies, "dependency aliases", "");
         assertUnique(bundles, "dependency bundles", "Bundle");
         assertUnique(versions, "dependency versions", "Version");
         int size = dependencies.size() + bundles.size() + versions.size();
         if (size > MAX_ENTRIES) {
-            maybeThrowValidationError(ImmutableList.of("model contains too many entries (" + size + "), maximum is " + MAX_ENTRIES));
+            maybeThrowError(ERROR_HEADER, of(buildProblem(VersionCatalogProblemId.TOO_MANY_ENTRIES, spec ->
+                spec.inContext(this::standardErrorLocation)
+                    .withShortDescription(() -> "Version catalog model contains too many entries (" + size + ")")
+                    .happensBecause(() -> "The maximum number of aliases in a catalog is " + MAX_ENTRIES)
+                    .addSolution(() -> "Reduce the number of aliases defined in this catalog")
+                    .addSolution(() -> "Split the catalog into multiple catalogs")
+                    .documented()
+            )));
         }
     }
 
-    private static void assertDependencyAliases(List<String> names) {
-        List<String> errors = names.stream()
-            .filter(n -> n.toLowerCase().endsWith("bundle") || n.toLowerCase().endsWith("version"))
-            .map(n -> "alias " + n + " isn't a valid: it shouldn't end with 'Bundle' or 'Version'")
-            .collect(Collectors.toList());
-        maybeThrowValidationError(errors);
-    }
-
-    private static void assertUnique(List<String> names, String prefix, String suffix) {
-        List<String> errors = names.stream()
+    private void assertUnique(List<String> names, String prefix, String suffix) {
+        List<VersionCatalogProblem> errors = names.stream()
             .collect(Collectors.groupingBy(AbstractSourceGenerator::toJavaName))
             .entrySet()
             .stream()
             .filter(e -> e.getValue().size() > 1)
-            .map(e -> prefix + " " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")) + " are mapped to the same accessor name get" + e.getKey() + suffix + "()")
+            .map(e -> buildProblem(VersionCatalogProblemId.ACCESSOR_NAME_CLASH, spec ->
+                spec.inContext(this::standardErrorLocation)
+                .withShortDescription(() -> prefix + " " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")) + " are mapped to the same accessor name get" + e.getKey() + suffix + "()")
+                .happensBecause("A name clash was detected")
+                .addSolution(() -> "Use a different alias for " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")))
+                .documented()
+            ))
             .collect(Collectors.toList());
-        maybeThrowValidationError(errors);
-    }
-
-    private static void maybeThrowValidationError(List<String> errors) {
-        if (errors.size() == 1) {
-            throw new InvalidUserDataException("Cannot generate dependency accessors because " + errors.get(0));
-        }
-        if (errors.size() > 1) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Cannot generate dependency accessors because");
-            formatter.startChildren();
-            errors.stream()
-                .sorted()
-                .forEach(formatter::node);
-            formatter.endChildren();
-            throw new InvalidUserDataException(formatter.toString());
-        }
+        maybeThrowError(ERROR_HEADER, errors);
     }
 
     private String coordinatesDescriptorFor(DependencyModel dependencyData) {
@@ -507,7 +504,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
 
         public String accessorVariableNameFor(String className) {
-            return  variablePrefix + "For" + className;
+            return variablePrefix + "For" + className;
         }
 
     }
