@@ -116,7 +116,7 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
 
         private ClassAnalysis maybeStripToAbi(ClassAnalysis analysis) {
             if (abiOnly) {
-                return new ClassAnalysis(analysis.getClassName(), ImmutableSet.of(), analysis.getAccessibleClassDependencies(), analysis.isDependencyToAll(), analysis.getConstants());
+                return new ClassAnalysis(analysis.getClassName(), ImmutableSet.of(), analysis.getAccessibleClassDependencies(), analysis.getDependencyToAllReason(), analysis.getConstants());
             } else {
                 return analysis;
             }

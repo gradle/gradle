@@ -42,13 +42,13 @@ public class PreviousCompilation {
         if (diff.getDependents().isDependencyToAll()) {
             return diff.getDependents();
         }
-        return classAnalysis.getRelevantDependents(diff.getDependents().getAllDependentClasses(), diff.getConstants());
+        return classAnalysis.getTransitiveDependents(diff.getDependents().getAllDependentClasses(), diff.getConstants());
     }
 
     public DependentsSet getDependents(String className, IntSet newConstants) {
         IntSet constants = new IntOpenHashSet(classAnalysis.getConstants(className));
         constants.removeAll(newConstants);
-        return classAnalysis.getRelevantDependents(className, constants);
+        return classAnalysis.getTransitiveDependents(className, constants);
     }
 
     public Set<String> getTypesToReprocess() {

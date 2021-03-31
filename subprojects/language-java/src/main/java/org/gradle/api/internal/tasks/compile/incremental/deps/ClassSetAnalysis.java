@@ -29,8 +29,8 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -74,39 +74,46 @@ public class ClassSetAnalysis {
         this.resourceDependenciesFromAnnotationProcessing = resourceDependenciesFromAnnotationProcessing.build();
     }
 
+    /**
+     * Computes the types affected by the changes since some other class set, including transitively affected classes.
+     */
     public ClassSetDiff getChangesSince(ClassSetAnalysis other) {
         DependentsSet directChanges = classAnalysis.getChangedClassesSince(other.classAnalysis);
         if (directChanges.isDependencyToAll()) {
-            return new ClassSetDiff(directChanges, IntSets.emptySet());
+            return new ClassSetDiff(directChanges, Collections.emptyMap());
         }
-        DependentsSet transitiveChanges = other.getRelevantDependents(directChanges.getAllDependentClasses(), IntSets.emptySet());
+        DependentsSet transitiveChanges = other.getTransitiveDependents(directChanges.getAllDependentClasses(), Collections.emptyMap());
         if (transitiveChanges.isDependencyToAll()) {
-            return new ClassSetDiff(transitiveChanges, IntSets.emptySet());
+            return new ClassSetDiff(transitiveChanges, Collections.emptyMap());
         }
         DependentsSet allChanges = DependentsSet.merge(Arrays.asList(directChanges, transitiveChanges));
-        IntSet changedConstants = getChangedConstants(other, allChanges);
+        Map<String, IntSet> changedConstants = getChangedConstants(other, allChanges);
         return new ClassSetDiff(allChanges, changedConstants);
     }
 
-    private IntSet getChangedConstants(ClassSetAnalysis other, DependentsSet affectedClasses) {
+    private Map<String, IntSet> getChangedConstants(ClassSetAnalysis other, DependentsSet affectedClasses) {
         if (affectedClasses.isDependencyToAll()) {
-            return IntSets.emptySet();
+            return Collections.emptyMap();
         }
-        IntSet result = new IntOpenHashSet();
-        for (String affectedClass : affectedClasses.getAllDependentClasses()) {
+        Set<String> dependentClasses = affectedClasses.getAllDependentClasses();
+        Map<String, IntSet> result = new HashMap<>(dependentClasses.size());
+        for (String affectedClass : dependentClasses) {
             IntSet difference = new IntOpenHashSet(other.getConstants(affectedClass));
             difference.removeAll(getConstants(affectedClass));
-            result.addAll(difference);
+            result.put(affectedClass, difference);
         }
         return result;
     }
 
-    public DependentsSet getRelevantDependents(Iterable<String> classes, IntSet constants) {
-        final Set<String> accessibleResultClasses = new LinkedHashSet<>();
-        final Set<String> privateResultClasses = new LinkedHashSet<>();
-        final Set<GeneratedResource> resultResources = new LinkedHashSet<>();
+    /**
+     * An efficient version of {@link #getTransitiveDependents(String, IntSet)} when several classes have changed.
+     */
+    public DependentsSet getTransitiveDependents(Iterable<String> classes, Map<String, IntSet> constants) {
+        final Set<String> accessibleResultClasses = new HashSet<>();
+        final Set<String> privateResultClasses = new HashSet<>();
+        final Set<GeneratedResource> resultResources = new HashSet<>();
         for (String cls : classes) {
-            DependentsSet d = getRelevantDependents(cls, constants);
+            DependentsSet d = getTransitiveDependents(cls, constants.getOrDefault(cls, IntSets.emptySet()));
             if (d.isDependencyToAll()) {
                 return d;
             }
@@ -124,7 +131,11 @@ public class ClassSetAnalysis {
         return DependentsSet.dependents(privateResultClasses, accessibleResultClasses, resultResources);
     }
 
-    public DependentsSet getRelevantDependents(String className, IntSet constants) {
+    /**
+     * Computes the transitive dependents of a changed class.
+     * If the class had any changes to inlineable constants, these need to be provided as the second parameter.
+     */
+    public DependentsSet getTransitiveDependents(String className, IntSet constants) {
         String fullRebuildCause = annotationProcessingData.getFullRebuildCause();
         if (fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(fullRebuildCause);
@@ -134,7 +145,7 @@ public class ClassSetAnalysis {
             return deps;
         }
         if (!constants.isEmpty()) {
-            return DependentsSet.dependencyToAll();
+            return DependentsSet.dependencyToAll("an inlineable constant in '" + className + "' has changed");
         }
         Set<String> classesDependingOnAllOthers = annotationProcessingData.participatesInClassGeneration(className) ? annotationProcessingData.getGeneratedTypesDependingOnAllOthers() : Collections.emptySet();
         Set<GeneratedResource> resourcesDependingOnAllOthers = annotationProcessingData.participatesInResourceGeneration(className) ? annotationProcessingData.getGeneratedResourcesDependingOnAllOthers() : Collections.emptySet();
@@ -240,9 +251,9 @@ public class ClassSetAnalysis {
      */
     public static final class ClassSetDiff {
         private final DependentsSet dependents;
-        private final IntSet constants;
+        private final Map<String, IntSet> constants;
 
-        public ClassSetDiff(DependentsSet dependents, IntSet constants) {
+        public ClassSetDiff(DependentsSet dependents, Map<String, IntSet> constants) {
             this.dependents = dependents;
             this.constants = constants;
         }
@@ -251,7 +262,7 @@ public class ClassSetAnalysis {
             return dependents;
         }
 
-        public IntSet getConstants() {
+        public Map<String, IntSet> getConstants() {
             return constants;
         }
     }

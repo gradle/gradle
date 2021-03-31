@@ -64,7 +64,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
         if (sourceFileClassNameConverter.isEmpty()) {
-            spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation", null);
+            spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation");
             return spec;
         }
 
@@ -145,7 +145,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
                 if (emptyAnnotationProcessorPath) {
                     continue;
                 }
-                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("resource", fileChange), null);
+                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("resource", fileChange));
                 return;
             }
         }

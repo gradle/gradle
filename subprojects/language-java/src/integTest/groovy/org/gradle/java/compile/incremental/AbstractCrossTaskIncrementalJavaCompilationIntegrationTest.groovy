@@ -16,7 +16,7 @@
 
 package org.gradle.java.compile.incremental
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,16 +26,16 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     CompiledLanguage language = CompiledLanguage.JAVA
 
     @Unroll
-    def "change in an upstream class with non-private constant causes rebuild if same constant is used (#constantType)"() {
-        source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class ImplA extends A { $constantType foo() { return $constantValue; }}", "class ImplB {int foo() { return 2; }}"]
+    def "change in an upstream class with non-private constant causes rebuild (#constantType)"() {
+        source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class ImplA extends A {}", "class ImplB {}"]
         impl.snapshot { run language.compileTaskName }
 
         when:
         source api: ["class B { /* change */ }"]
-        run "impl:${language.compileTaskName}"
+        run "impl:${language.compileTaskName}", "--info"
 
         then:
-        // impl.recompiledClasses('ImplA') //  Can re-enable with compiler plugins. See gradle/gradle#1474
+        outputContains("Full recompilation is required because an inlineable constant in 'B' has changed.")
         impl.recompiledClasses('ImplA', 'ImplB')
 
         where:
@@ -49,34 +49,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         'double'     | '7d'
         'String'     | '"foo"'
         'String'     | '"foo" + "bar"'
-    }
-
-    // This test describes the current behavior, not the intended one, expressed by the test just above
-    def "changing an unused non-private constant causes full rebuild"() {
-        println(buildFile.text)
-        source api: ["class A {}", "class B { final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { /* change */ }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses('ImplA', 'ImplB')
-    }
-
-    @NotYetImplemented
-    //  Can re-enable with compiler plugins. See gradle/gradle#1474
-    def "changing an unused non-private constant doesn't cause full rebuild"() {
-        source api: ["class A {}", "class B { final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { /* change */ }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses('ImplB')
     }
 
     // This behavior is kept for backward compatibility - may be removed in the future

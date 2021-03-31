@@ -17,7 +17,7 @@
 
 package org.gradle.java.compile.incremental
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -321,88 +321,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @NotYetImplemented
-    //  Can re-enable with compiler plugins. See gradle/gradle#1474
-    def "deletion of jar with non-private constant causes rebuild if constant is used"() {
-        source api: ["class A { public final static int x = 1; }"], impl: ["class X { int x() { return 1;} }", "class Y {}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses("X")
-    }
-
-
-    @Unroll
-    @NotYetImplemented
-    //  Can re-enable with compiler plugins. See gradle/gradle#1474
-    def "change in an upstream class with non-private constant causes rebuild only if same constant is used and no direct dependency (#constantType)"() {
-        source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class X { $constantType foo() { return $constantValue; }}", "class Y {int foo() { return -2; }}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { /* change */ }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses('X')
-
-        where:
-        constantType | constantValue
-        'boolean'    | 'false'
-        'byte'       | '(byte) 125'
-        'short'      | '(short) 666'
-        'int'        | '55542'
-        'long'       | '5L'
-        'float'      | '6f'
-        'double'     | '7d'
-        'String'     | '"foo"'
-        'String'     | '"foo" + "bar"'
-    }
-
-    @Unroll
-    @NotYetImplemented
-    //  Can re-enable with compiler plugins. See gradle/gradle#1474
-    def "constant value change in an upstream class causes rebuild if previous constant value was used in previous build (#constantType)"() {
-        source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class X { $constantType foo() { return $constantValue; }}", "class Y {int foo() { return -2; }}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { final static $constantType x = $newValue; /* change value */ ; void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses('X')
-
-        where:
-        constantType | constantValue   | newValue
-        'boolean'    | 'false'         | 'true'
-        'byte'       | '(byte) 125'    | '(byte) 126'
-        'short'      | '(short) 666'   | '(short) 555'
-        'int'        | '55542'         | '444'
-        'long'       | '5L'            | '689L'
-        'float'      | '6f'            | '6.5f'
-        'double'     | '7d'            | '7.2d'
-        'String'     | '"foo"'         | '"bar"'
-        'String'     | '"foo" + "bar"' | '"bar"'
-    }
-
-    @NotYetImplemented
-    //  Can re-enable with compiler plugins. See gradle/gradle#1474
-    def "ignores irrelevant changes to constant values"() {
-        source api: ["class A {}", "class B { final static int x = 3; final static int y = -2; }"],
-            impl: ["class X { int foo() { return 3; }}", "class Y {int foo() { return -2; }}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { final static int x = 3 ; final static int y = -3;  void blah() { /*  change irrelevant to constant value x */ } }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses('Y')
-    }
 
     @ToBeFixedForConfigurationCache(
         bottomSpecs = [
@@ -411,6 +329,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         ],
         because = "gradle/configuration-cache#270"
     )
+
     def "change in an upstream transitive class with non-private constant does not cause full rebuild"() {
         source api: ["class A { final static int x = 1; }", "class B extends A {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -430,6 +349,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         ],
         because = "gradle/configuration-cache#270"
     )
+
     def "private constant in upstream project does not trigger full rebuild"() {
         source api: ["class A {}", "class B { private final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -902,43 +822,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
-    @NotYetImplemented
-    @Issue("gradle/performance#335")
-    def "doesn't destroy class analysis when a compile error occurs"() {
-        source api: ["class A {}"], impl: ["class ImplA extends A {}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class A { compile error }"]
-
-        then:
-        impl.snapshot { fails "impl:${language.compileTaskName}" }
-
-        when:
-        source api: ["class A { String foo; }"]
-        executer.withArgument("-i")
-        run "impl:${language.compileTaskName}"
-
-        then:
-        !output.contains('Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.')
-        impl.recompiledClasses("ImplA")
-    }
-
-    @NotYetImplemented
-    //  Can re-enable with compiler plugins. See gradle/gradle#1474
-    def "only recompiles classes potentially affected by constant change"() {
-        source api: ["class A { public static final int FOO = 10; public static final int BAR = 20; }"],
-            impl: ['class B { void foo() { int x = 10; } }', 'class C { void foo() { int x = 20; } }']
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ['class A { public static final int FOO = 100; public static final int BAR = 20; }']
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses 'B'
-    }
-
     @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
@@ -946,6 +829,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         ],
         because = "gradle/configuration-cache#270"
     )
+
     def "recompiles dependent class in case a constant is switched"() {
         source api: ["class A { public static final int FOO = 10; public static final int BAR = 20; }"],
             impl: ['class B { void foo() { int x = 10; } }', 'class C { void foo() { int x = 20; } }']
@@ -967,6 +851,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         ],
         because = "gradle/configuration-cache#270"
     )
+
     def "recompiles dependent class in case a constant is computed from another constant"() {
         source api: ["class A { public static final int FOO = 10; }"], impl: ['class B { public static final int BAR = 2 + A.FOO; } ']
         impl.snapshot { run language.compileTaskName }
@@ -987,6 +872,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         ],
         because = "gradle/configuration-cache#270"
     )
+
     def "detects that changed class still has the same constants so no recompile is necessary"() {
         source api: ["class A { public static final int FOO = 123;}"],
             impl: ["class B { void foo() { int x = 123; }}"]

@@ -36,7 +36,7 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
 
     def "serializes"() {
         def data = new ClassSetAnalysisData(["A": hash, "B": hash, "C": hash, "D": hash],
-            ["A": dependentClasses(["B", "C"] as Set, [] as Set), "B": dependentClasses(["C"] as Set, [] as Set), "C": dependentClasses([] as Set, [] as Set), "D": dependencyToAll(),],
+            ["A": dependentClasses(["B", "C"] as Set, [] as Set), "B": dependentClasses(["C"] as Set, [] as Set), "C": dependentClasses([] as Set, [] as Set), "D": dependencyToAll("reason"),],
             [C: new IntOpenHashSet([1, 2]) as IntSet, D: IntSets.EMPTY_SET]
             ,"Because"
         )

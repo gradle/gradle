@@ -59,7 +59,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
         if (sourceFileClassNameConverter.isEmpty()) {
-            spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation", null);
+            spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation");
             return spec;
         }
 
@@ -117,7 +117,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
 
             File changedFile = fileChange.getFile();
             if (!FileUtils.hasExtension(changedFile, ".groovy")) {
-                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("non-Groovy file", fileChange), null);
+                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("non-Groovy file", fileChange));
                 return;
             }
 
@@ -137,7 +137,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             if (relativeSourceFile.isPresent()) {
                 spec.addRelativeSourcePathsToCompile(relativeSourceFile.get());
             } else {
-                spec.setFullRebuildCause("unable to find source file of class " + className, null);
+                spec.setFullRebuildCause("unable to find source file of class " + className);
             }
         }
     }

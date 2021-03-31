@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -27,8 +27,7 @@ import java.util.Set;
 
 /**
  * Provides a set of classes that depend on some other class.
- * If {@link #isDependencyToAll()} returns true, then the dependent classes can't be enumerated,
- * because everything (including classes that don't even exist yet) could depend on that other class.
+ * If {@link #isDependencyToAll()} returns true, then the dependent classes can't be enumerated.
  * In this case a description of the problem is available via {@link #getDescription()}.
  */
 public abstract class DependentsSet {
@@ -43,10 +42,6 @@ public abstract class DependentsSet {
         } else {
             return new DefaultDependentsSet(ImmutableSet.copyOf(privateDependentClasses), ImmutableSet.copyOf(accessibleDependentClasses), ImmutableSet.copyOf(dependentResources));
         }
-    }
-
-    public static DependentsSet dependencyToAll() {
-        return DependencyToAll.INSTANCE;
     }
 
     public static DependentsSet dependencyToAll(String reason) {
@@ -94,7 +89,7 @@ public abstract class DependentsSet {
 
     public abstract boolean isDependencyToAll();
 
-    public abstract @Nullable String getDescription();
+    public abstract String getDescription();
 
     private DependentsSet() {
     }
@@ -139,10 +134,9 @@ public abstract class DependentsSet {
             return false;
         }
 
-        @Nullable
         @Override
         public String getDescription() {
-            return null;
+            throw new UnsupportedOperationException("This dependents does not have a problem description.");
         }
     }
 
@@ -203,17 +197,16 @@ public abstract class DependentsSet {
 
         @Override
         public String getDescription() {
-            return null;
+            throw new UnsupportedOperationException("This dependents does not have a problem description.");
         }
     }
 
     private static class DependencyToAll extends DependentsSet {
-        private static final DependencyToAll INSTANCE = new DependencyToAll();
 
         private final String reason;
 
         private DependencyToAll(String reason) {
-            this.reason = reason;
+            this.reason = Preconditions.checkNotNull(reason);
         }
 
         private DependencyToAll() {
@@ -222,32 +215,32 @@ public abstract class DependentsSet {
 
         @Override
         public boolean isEmpty() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public boolean hasDependentClasses() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public Set<String> getPrivateDependentClasses() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public Set<String> getAccessibleDependentClasses() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public Set<String> getAllDependentClasses() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public Set<GeneratedResource> getDependentResources() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent resources information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent resources information.");
         }
 
         @Override

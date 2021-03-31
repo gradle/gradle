@@ -35,7 +35,7 @@ class SourceFileChangeProcessor {
         for (String className : classNames) {
             DependentsSet actualDependents = previousCompilation.getDependents(className, IntSets.EMPTY_SET);
             if (actualDependents.isDependencyToAll()) {
-                spec.setFullRebuildCause(actualDependents.getDescription(), inputFile);
+                spec.setFullRebuildCause(actualDependents.getDescription());
                 return;
             }
             spec.addClassesToCompile(actualDependents.getAllDependentClasses());

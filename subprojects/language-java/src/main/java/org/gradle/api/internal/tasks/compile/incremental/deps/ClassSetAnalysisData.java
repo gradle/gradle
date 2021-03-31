@@ -233,7 +233,7 @@ public class ClassSetAnalysisData {
             return DependentsSet.dependencyToAll(fullRebuildCause);
         }
         if (className.equals(MODULE_INFO)) {
-            return DependentsSet.dependencyToAll();
+            return DependentsSet.dependencyToAll("module-info has changed");
         }
         if (className.endsWith(PACKAGE_INFO)) {
             String packageName = className.equals(PACKAGE_INFO) ? null : StringUtils.removeEnd(className, "." + PACKAGE_INFO);
@@ -338,7 +338,7 @@ public class ClassSetAnalysisData {
         private DependentsSet readDependentsSet(Decoder decoder, Map<Integer, String> classNameMap) throws IOException {
             byte b = decoder.readByte();
             if (b == 0) {
-                return DependentsSet.dependencyToAll(decoder.readNullableString());
+                return DependentsSet.dependencyToAll(decoder.readString());
             }
 
             ImmutableSet.Builder<String> privateBuilder = ImmutableSet.builder();
@@ -366,7 +366,7 @@ public class ClassSetAnalysisData {
         private void writeDependentSet(DependentsSet dependentsSet, Map<String, Integer> classNameMap, Encoder encoder) throws IOException {
             if (dependentsSet.isDependencyToAll()) {
                 encoder.writeByte((byte) 0);
-                encoder.writeNullableString(dependentsSet.getDescription());
+                encoder.writeString(dependentsSet.getDescription());
             } else {
                 encoder.writeByte((byte) 1);
                 encoder.writeSmallInt(dependentsSet.getPrivateDependentClasses().size());

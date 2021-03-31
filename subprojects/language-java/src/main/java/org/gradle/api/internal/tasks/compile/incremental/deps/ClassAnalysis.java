@@ -36,14 +36,14 @@ public class ClassAnalysis {
     private final String className;
     private final Set<String> privateClassDependencies;
     private final Set<String> accessibleClassDependencies;
-    private final boolean dependencyToAll;
+    private final String dependencyToAllReason;
     private final IntSet constants;
 
-    public ClassAnalysis(String className, Set<String> privateClassDependencies, Set<String> accessibleClassDependencies, boolean dependencyToAll, IntSet constants) {
+    public ClassAnalysis(String className, Set<String> privateClassDependencies, Set<String> accessibleClassDependencies, String dependencyToAllReason, IntSet constants) {
         this.className = className;
         this.privateClassDependencies = ImmutableSet.copyOf(privateClassDependencies);
         this.accessibleClassDependencies = ImmutableSet.copyOf(accessibleClassDependencies);
-        this.dependencyToAll = dependencyToAll;
+        this.dependencyToAllReason = dependencyToAllReason;
         this.constants = constants.isEmpty() ? IntSets.EMPTY_SET : constants;
     }
 
@@ -63,8 +63,8 @@ public class ClassAnalysis {
         return constants;
     }
 
-    public boolean isDependencyToAll() {
-        return dependencyToAll;
+    public String getDependencyToAllReason() {
+        return dependencyToAllReason;
     }
 
     public static class Serializer extends AbstractSerializer<ClassAnalysis> {
@@ -80,17 +80,17 @@ public class ClassAnalysis {
         @Override
         public ClassAnalysis read(Decoder decoder) throws Exception {
             String className = interner.intern(decoder.readString());
-            boolean relatedToAll = decoder.readBoolean();
+            String dependencyToAllReason = decoder.readNullableString();
             Set<String> privateClasses = stringSetSerializer.read(decoder);
             Set<String> accessibleClasses = stringSetSerializer.read(decoder);
             IntSet constants = IntSetSerializer.INSTANCE.read(decoder);
-            return new ClassAnalysis(className, privateClasses, accessibleClasses, relatedToAll, constants);
+            return new ClassAnalysis(className, privateClasses, accessibleClasses, dependencyToAllReason, constants);
         }
 
         @Override
         public void write(Encoder encoder, ClassAnalysis value) throws Exception {
             encoder.writeString(value.getClassName());
-            encoder.writeBoolean(value.isDependencyToAll());
+            encoder.writeNullableString(value.getDependencyToAllReason());
             stringSetSerializer.write(encoder, value.getPrivateClassDependencies());
             stringSetSerializer.write(encoder, value.getAccessibleClassDependencies());
             IntSetSerializer.INSTANCE.write(encoder, value.getConstants());

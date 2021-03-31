@@ -50,8 +50,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     protected void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
         DependentsSet dependents = current.getDependentsOfClasspathChanges(previous);
         if (dependents.isDependencyToAll()) {
-            String description = dependents.getDescription();
-            spec.setFullRebuildCause(description != null ? description : "a changed class on the classpath was a dependency to all others (e.g. it contained a public constant)", null);
+            spec.setFullRebuildCause(dependents.getDescription());
             return;
         }
         spec.addClassesToCompile(dependents.getPrivateDependentClasses());
