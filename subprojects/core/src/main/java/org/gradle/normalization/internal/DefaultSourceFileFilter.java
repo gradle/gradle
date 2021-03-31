@@ -25,29 +25,31 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Set;
 
+import static org.apache.commons.io.FilenameUtils.getExtension;
+
 public class DefaultSourceFileFilter implements SourceFileFilter {
     // TODO Perhaps instead of having a list of known file extensions, we should use a simple
     // heuristic to determine if the file is text or binary.  Something like what Git uses:
     // https://git.kernel.org/pub/scm/git/git.git/tree/xdiff-interface.c?h=v2.30.0#n187
     public static final Set<String> KNOWN_SOURCE_FILE_EXTS = ImmutableSet.of(
-        ".java",
-        ".groovy",
-        ".kotlin"
+        "java",
+        "groovy",
+        "kt"
     );
-    private final Set<String> includes;
+    private final Set<String> sourceFileExtensions;
 
     public DefaultSourceFileFilter() {
         super();
-        this.includes = Sets.newHashSet(KNOWN_SOURCE_FILE_EXTS);
+        this.sourceFileExtensions = Sets.newHashSet(KNOWN_SOURCE_FILE_EXTS);
     }
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
-        includes.forEach(hasher::putString);
+        sourceFileExtensions.forEach(hasher::putString);
     }
 
     @Override
     public boolean isSourceFile(@Nonnull File file) {
-        return includes.stream().anyMatch(extension -> file.getName().endsWith(extension));
+        return sourceFileExtensions.contains(getExtension(file.getName()));
     }
 }
