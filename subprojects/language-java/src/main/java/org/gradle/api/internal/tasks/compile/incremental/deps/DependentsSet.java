@@ -25,6 +25,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Provides a set of classes that depend on some other class.
+ * If {@link #isDependencyToAll()} returns true, then the dependent classes can't be enumerated,
+ * because everything (including classes that don't even exist yet) could depend on that other class.
+ * In this case a description of the problem is available via {@link #getDescription()}.
+ */
 public abstract class DependentsSet {
 
     public static DependentsSet dependentClasses(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses) {
@@ -37,6 +43,18 @@ public abstract class DependentsSet {
         } else {
             return new DefaultDependentsSet(ImmutableSet.copyOf(privateDependentClasses), ImmutableSet.copyOf(accessibleDependentClasses), ImmutableSet.copyOf(dependentResources));
         }
+    }
+
+    public static DependentsSet dependencyToAll() {
+        return DependencyToAll.INSTANCE;
+    }
+
+    public static DependentsSet dependencyToAll(String reason) {
+        return new DependencyToAll(reason);
+    }
+
+    public static DependentsSet empty() {
+        return EmptyDependentsSet.INSTANCE;
     }
 
     public static DependentsSet merge(Collection<DependentsSet> sets) {
@@ -62,18 +80,6 @@ public abstract class DependentsSet {
             dependentResources.addAll(set.getDependentResources());
         }
         return DependentsSet.dependents(privateDependentClasses.build(), accessibleDependentClasses.build(), dependentResources.build());
-    }
-
-    public static DependentsSet dependencyToAll() {
-        return DependencyToAll.INSTANCE;
-    }
-
-    public static DependentsSet dependencyToAll(String reason) {
-        return new DependencyToAll(reason);
-    }
-
-    public static DependentsSet empty() {
-        return EmptyDependentsSet.INSTANCE;
     }
 
     public abstract boolean isEmpty();

@@ -35,6 +35,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * An extension of {@link ClassSetAnalysisData}, which can also handle annotation processing.
+ * All logic for dealing with transitive dependencies is here, since annotation processing can affect it.
+ * We should strive to merge the two into one class, to make the change detection algorithm easier to follow.
+ */
 public class ClassSetAnalysis {
 
     private final ClassSetAnalysisData classAnalysis;
@@ -230,6 +235,9 @@ public class ClassSetAnalysis {
         return classAnalysis.getConstants(className);
     }
 
+    /**
+     * Provides the difference between two class sets, including which types are affected and which constants have changed.
+     */
     public static final class ClassSetDiff {
         private final DependentsSet dependents;
         private final IntSet constants;

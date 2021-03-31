@@ -45,9 +45,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Provides information about a set of classes, e.g. a JAR or a whole classpath.
+ * Contains a hash for every class contained in the set, so it can determine which classes have changed compared to another set.
+ * Contains a reverse dependency view, so we can determine which classes in this set are affected by a change to a class inside or outside this set.
+ * Contains information about the accessible, inlineable constants in each class, since these require full recompilation of dependents if changed.
+ * If analysis failed for any reason, that reason is captured and triggers full rebuilds if this class set is used.
+ *
+ * @see ClassSetAnalysis for the logic that calculates transitive dependencies.
+ */
 public class ClassSetAnalysisData {
 
-    public static final String PACKAGE_INFO = "package-info";
+    private static final String MODULE_INFO = "module-info";
+    private static final String PACKAGE_INFO = "package-info";
+
+    /**
+     * Merges the given class sets, applying classpath shadowing semantics. I.e. only the first occurrency of each class will be kept.
+     */
     public static ClassSetAnalysisData merge(List<ClassSetAnalysisData> datas) {
         int classCount = 0;
         int constantsCount = 0;
@@ -94,6 +108,14 @@ public class ClassSetAnalysisData {
         this.fullRebuildCause = fullRebuildCause;
     }
 
+    /**
+     * Returns a shrunk down version of this class set, which only contains information about types that could affect the other set.
+     * This is useful for reducing the size of classpath snapshots, since a classpath usually contains a lot more types than the client
+     * actually uses.
+     *
+     * Apart from the obvious classes that are directly used by the other set, we also need to keep any classes that might affect any number
+     * of classes, like package-info, module-info or classes with inlineable constants.
+     */
     public ClassSetAnalysisData reduceToTypesAffecting(ClassSetAnalysisData other) {
         if (fullRebuildCause != null) {
             return this;
@@ -110,17 +132,9 @@ public class ClassSetAnalysisData {
             }
         }
         usedClasses.addAll(classesToConstants.keySet());
-
-        Multimap<String, String> reverseDependencies = ArrayListMultimap.create(dependents.size(), 10);
-        for (Map.Entry<String, DependentsSet> entry : dependents.entrySet()) {
-            if (entry.getValue().isDependencyToAll()) {
-                continue;
-            }
-            for (String dependent : entry.getValue().getAccessibleDependentClasses()) {
-                reverseDependencies.put(dependent, entry.getKey());
-            }
-        }
         usedClasses.addAll(other.dependents.keySet());
+
+        Multimap<String, String> dependencies = getForwardDependencyView();
 
         Set<String> visited = new HashSet<>(usedClasses.size());
         Deque<String> pending = new ArrayDeque<>(usedClasses);
@@ -128,7 +142,7 @@ public class ClassSetAnalysisData {
             String cls = pending.poll();
             if (visited.add(cls)) {
                 usedClasses.add(cls);
-                pending.addAll(reverseDependencies.get(cls));
+                pending.addAll(dependencies.get(cls));
             }
         }
 
@@ -159,6 +173,30 @@ public class ClassSetAnalysisData {
         return new ClassSetAnalysisData(classHashes, dependents, classesToConstants, null);
     }
 
+    /**
+     * Takes the reverse dependency view of this set and reverses it, so it turns into a forward dependency view.
+     * Excludes types that are dependencies to all others, these need to be handled separately by the caller.
+     */
+    private Multimap<String, String> getForwardDependencyView() {
+        Multimap<String, String> dependencies = ArrayListMultimap.create(dependents.size(), 10);
+        for (Map.Entry<String, DependentsSet> entry : dependents.entrySet()) {
+            if (entry.getValue().isDependencyToAll()) {
+                continue;
+            }
+            for (String dependent : entry.getValue().getAccessibleDependentClasses()) {
+                dependencies.put(dependent, entry.getKey());
+            }
+        }
+        return dependencies;
+    }
+
+    /**
+     * Returns the additions, changes and removals compared to the other class set.
+     * Only includes changes that could possibly trigger recompilation.
+     * For example, adding a new class can't affect anyone, since it didn't exist before.
+     *
+     * Does not include classes that are transitively affected by the additions/removals/changes.
+     */
     public DependentsSet getChangedClassesSince(ClassSetAnalysisData other) {
         if (fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(fullRebuildCause);
@@ -187,11 +225,14 @@ public class ClassSetAnalysisData {
         return DependentsSet.dependentClasses(ImmutableSet.of(), changed.build());
     }
 
+    /**
+     * Returns the dependents that directly depend on the given class.
+     */
     public DependentsSet getDependents(String className) {
         if (fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(fullRebuildCause);
         }
-        if (className.equals("module-info")) {
+        if (className.equals(MODULE_INFO)) {
             return DependentsSet.dependencyToAll();
         }
         if (className.endsWith(PACKAGE_INFO)) {
@@ -213,6 +254,9 @@ public class ClassSetAnalysisData {
         return DependentsSet.dependentClasses(Collections.emptySet(), typesInPackage);
     }
 
+    /**
+     * Gets the accessible, inlineable constants of the given class.
+     */
     public IntSet getConstants(String className) {
         IntSet integers = classesToConstants.get(className);
         if (integers == null) {
@@ -221,6 +265,11 @@ public class ClassSetAnalysisData {
         return integers;
     }
 
+    /**
+     * This serializer is optimized for the highly repetitive nature of class names.
+     * It only serializes each class name once and stores a reference to that name when it comes up again.
+     * Names are stored in a hierarchical format, to take advantage of the fact that most classes share a package prefix.
+     */
     public static class Serializer extends AbstractSerializer<ClassSetAnalysisData> {
 
         private final StringInterner interner;
