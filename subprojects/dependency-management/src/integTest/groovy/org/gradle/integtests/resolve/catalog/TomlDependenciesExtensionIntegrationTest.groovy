@@ -650,6 +650,49 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
         failure.assertHasCause "Catalog file $path doesn't exist"
     }
 
+    def "can use nested versions, libraries and bundles"() {
+        tomlFile << """
+[versions]
+commons-lib = "1.0"
+
+[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
+my-lib2 = {group = "org.gradle.test", name="lib2", version.ref="commons-lib"}
+
+[bundles]
+my-bundle = ["my-lib"]
+other-bundle = ["my-lib", "my-lib2"]
+
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.bundles.my.bundle
+                implementation libs.bundles.other.bundle
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
+    }
+
     private GradleExecuter withConfigurationCache() {
         executer.withArgument("--configuration-cache")
     }

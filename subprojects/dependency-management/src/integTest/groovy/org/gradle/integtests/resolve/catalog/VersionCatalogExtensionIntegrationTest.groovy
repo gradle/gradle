@@ -1251,4 +1251,44 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             }
         }
     }
+
+    def "reasonable error message if a version is both a leaf and a node"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("my", "1.0")
+                        version("my.nested", "1.1")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failureDescriptionContains "Cannot generate accessors for versions because it contains both aliases and groups of the same name: [my]"
+    }
+
+    def "reasonable error message if a bundle is both a leaf and a node"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("lib1").to("org:lib1:1.0")
+                        alias("lib2").to("org:lib2:1.0")
+                        bundle("my", ["lib1", "lib2"])
+                        bundle("my.other", ["lib1", "lib2"])
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failureDescriptionContains "Cannot generate accessors for bundles because it contains both aliases and groups of the same name: [my]"
+    }
 }

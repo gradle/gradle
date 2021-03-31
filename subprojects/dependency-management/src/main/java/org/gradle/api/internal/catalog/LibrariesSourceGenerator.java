@@ -90,6 +90,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
         writeLn();
         indent(() -> {
+            writeLn("private final AbstractExternalDependencyFactory owner = this;");
             writeSubAccessorFieldsOf(librariesEntryPoint, AccessorKind.library);
             writeSubAccessorFieldsOf(versionsEntryPoint, AccessorKind.version);
             writeSubAccessorFieldsOf(bundlesEntryPoint, AccessorKind.bundle);
@@ -479,7 +480,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private enum AccessorKind {
-        library("libraries", "this"),
+        library("libraries", "owner"),
         version("versions", "providers, config"),
         bundle("bundles", "providers, config");
 
