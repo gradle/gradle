@@ -21,8 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.internal.changedetection.state.SourceFileFilter;
 import org.gradle.internal.hash.Hasher;
 
-import javax.annotation.Nonnull;
-import java.io.File;
+import javax.annotation.Nullable;
 import java.util.Set;
 
 import static org.apache.commons.io.FilenameUtils.getExtension;
@@ -49,7 +48,7 @@ public class DefaultSourceFileFilter implements SourceFileFilter {
     }
 
     @Override
-    public boolean isSourceFile(@Nonnull File file) {
-        return sourceFileExtensions.contains(getExtension(file.getName()));
+    public boolean isSourceFile(@Nullable String path) {
+        return sourceFileExtensions.contains(getExtension(path));
     }
 }

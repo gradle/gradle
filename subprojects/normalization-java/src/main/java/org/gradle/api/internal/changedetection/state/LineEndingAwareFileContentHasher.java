@@ -59,9 +59,8 @@ public class LineEndingAwareFileContentHasher implements FileContentHasher {
     @Nullable
     @Override
     public HashCode hash(RegularFileSnapshot snapshot) {
-        File file = new File(snapshot.getAbsolutePath());
-        return sourceFileFilter.isSourceFile(file)
-            ? cacheService.hashFile(snapshot, s -> lineEndingNormalizingHasher.hash(file), configurationHashCode)
+        return sourceFileFilter.isSourceFile(snapshot.getAbsolutePath())
+            ? cacheService.hashFile(snapshot, s -> lineEndingNormalizingHasher.hash(new File(snapshot.getAbsolutePath())), configurationHashCode)
             : snapshot.getHash();
     }
 }

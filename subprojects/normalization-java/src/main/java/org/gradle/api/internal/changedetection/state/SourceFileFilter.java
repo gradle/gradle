@@ -18,13 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.hash.Hasher;
 
-import java.io.File;
-
 /**
  * Represents a filter which can determine if a given file should be considered a
  * source file or not.
  */
 public interface SourceFileFilter {
-    boolean isSourceFile(File file);
+    boolean isSourceFile(String path);
     void appendConfigurationToHasher(Hasher hasher);
 }
