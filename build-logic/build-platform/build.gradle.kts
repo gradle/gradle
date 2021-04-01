@@ -16,9 +16,9 @@ dependencies {
         // Gradle Plugins
         api("com.gradle:gradle-enterprise-gradle-plugin:3.6")
         // Keep version with `settings.gradle.kts` in sync
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.0.2-rc-1")
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.0.2-rc-2")
         api("org.gradle.guides:gradle-guides-plugin:0.18.0")
-        api("com.gradle.publish:plugin-publish-plugin:0.13.0")
+        api("com.gradle.publish:plugin-publish-plugin:0.14.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
         api("me.champeau.gradle:jmh-gradle-plugin:0.5.3")

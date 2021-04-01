@@ -21,26 +21,23 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
+import org.gradle.util.VersionNumber
+import org.junit.Assume
 import spock.lang.Issue
 
 @TargetCoverage({GroovyCoverage.SUPPORTS_GROOVYDOC})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
-        def optionalModules = ""
-        if(versionNumber.major >= 3) {
-            optionalModules += "implementation \"org.codehaus.groovy:groovy-ant:${version}\"\n"
-            optionalModules += "implementation \"org.codehaus.groovy:groovy-groovydoc:${version}\"\n"
-            optionalModules += "implementation \"org.codehaus.groovy:groovy-templates:${version}\"\n"
-        }
         buildFile << """
-            apply plugin: "groovy"
+            plugins {
+                id("groovy")
+            }
 
             ${mavenCentralRepository()}
 
             dependencies {
                 implementation "org.codehaus.groovy:groovy:${version}"
-                ${optionalModules}
             }
         """
     }
@@ -113,6 +110,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue(["GRADLE-3174", "GRADLE-3463"])
     def "output from Groovydoc generation is logged"() {
+        Assume.assumeTrue(versionNumber < VersionNumber.parse("2.4.15"))
         when:
         file("src/main/groovy/pkg/Thing.java") << """
             package pkg;
@@ -127,7 +125,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
         then:
         succeeds 'groovydoc'
-        outputContains '[ant:groovydoc]'
+        outputContains '[ant:groovydoc] line 8:87: unexpected token: >'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6168")
