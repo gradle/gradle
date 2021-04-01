@@ -289,7 +289,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         succeeds(SAMPLE_TASK)
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can apply a precompiled settings plugin by id"() {
         given:
         file("plugin/build.gradle") << """
@@ -316,7 +315,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("my-settings-plugin applied!")
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "precompiled settings plugin can use plugins block"() {
         given:
         file("plugin/build.gradle") << """
@@ -350,7 +348,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains('my-settings-plugin applied!')
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     @Issue("https://github.com/gradle/gradle/issues/15416")
     def "precompiled settings plugin can use pluginManagement block"() {
         when:
