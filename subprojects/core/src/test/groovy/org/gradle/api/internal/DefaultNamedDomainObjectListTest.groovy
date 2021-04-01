@@ -28,15 +28,15 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     }
     final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, TestUtil.instantiatorFactory().decorateLenient(), toStringNamer, callbackActionDecorator)
 
-    final DefaultNamedDomainObjectList<String> container = list
-    final StringBuffer a = new StringBuffer("a")
-    final StringBuffer b = new StringBuffer("b")
-    final StringBuffer c = new StringBuffer("c")
-    final StringBuilder d = new StringBuilder("d")
-    final boolean externalProviderAllowed = true
+    DefaultNamedDomainObjectList<String> container = list
+    StringBuffer a = new StringBuffer("a")
+    StringBuffer b = new StringBuffer("b")
+    StringBuffer c = new StringBuffer("c")
+    StringBuilder d = new StringBuilder("d")
+    boolean externalProviderAllowed = true
     boolean directElementAdditionAllowed = true
     boolean elementRemovalAllowed = true
-    final boolean supportsBuildOperations = true
+    boolean supportsBuildOperations = true
 
     def "can add element at given index"() {
         given:

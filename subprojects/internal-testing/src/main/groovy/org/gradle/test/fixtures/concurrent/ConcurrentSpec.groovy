@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.concurrent
 
-import org.gradle.internal.concurrent.ExecutorFactory
 import spock.lang.Specification
 import spock.lang.Timeout
 
@@ -60,22 +59,8 @@ class ConcurrentSpec extends Specification {
 
     final BlockTarget waitFor = new BlockTarget(instant)
 
-    private final TestExecutor executor = new TestExecutor(logger)
-    private final TestExecutorFactory executorFactory = new TestExecutorFactory(executor)
-
-    /**
-     * Returns an Executor that should be used for running asynchronous actions.
-     */
-    Executor getExecutor() {
-        return executor
-    }
-
-    /**
-     * Returns an ExecutorFactory that should be used for running asynchronous actions.
-     */
-    ExecutorFactory getExecutorFactory() {
-        return executorFactory
-    }
+    public final TestExecutor executor = new TestExecutor(logger)
+    public final TestExecutorFactory executorFactory = new TestExecutorFactory(executor)
 
     def setup() {
         instant.mainThread(Thread.currentThread())

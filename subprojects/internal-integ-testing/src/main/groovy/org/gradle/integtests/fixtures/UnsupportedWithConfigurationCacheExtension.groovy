@@ -64,7 +64,7 @@ class UnsupportedWithConfigurationCacheExtension implements IAnnotationDrivenExt
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            if (iterationMatches(iterationMatchers, invocation.iteration.name)) {
+            if (iterationMatches(iterationMatchers, invocation.iteration.displayName)) {
                 throw new TestAbortedException("Unsupported with configuration cache")
             }
             invocation.proceed()

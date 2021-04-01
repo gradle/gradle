@@ -161,7 +161,7 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
     }
 
     private class Participant {
-        MessageHub hub = new MessageHub("participant", getExecutorFactory(), getErrorHandler())
+        MessageHub hub = new MessageHub("participant", executorFactory, getErrorHandler())
 
         Dispatch<String> createOutgoing(String channel) {
             return hub.getOutgoing(channel, String)

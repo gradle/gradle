@@ -27,7 +27,7 @@ import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRulesTest {
-    private final mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
+    private mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
 
     @Override
     boolean addAllDependenciesAsConstraints() {

@@ -29,7 +29,7 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
     boolean externalProviderAllowed = true
     boolean directElementAdditionAllowed = true
     boolean elementRemovalAllowed = true
-    final boolean supportsBuildOperations = true
+    boolean supportsBuildOperations = true
 
     def "findAll() filters elements and retains iteration order"() {
         set.add("a")

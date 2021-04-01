@@ -24,7 +24,7 @@ import org.junit.Rule
 class IvySftpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
-    final SFTPServer server = new SFTPServer(temporaryFolder)
+    SFTPServer server = new SFTPServer(temporaryFolder)
 
     @Override
     RepositoryServer getServer() {

@@ -40,7 +40,7 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.UsesToStringInConstructor
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
+    ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
     def "mixes in toString() implementation for class"() {
         given:

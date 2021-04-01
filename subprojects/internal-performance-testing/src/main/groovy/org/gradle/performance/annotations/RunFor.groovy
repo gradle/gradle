@@ -131,7 +131,7 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
             if (SCENARIO_DEFINITION_FILE != null) {
-                String testId = invocation.getIteration().getName()
+                String testId = invocation.getIteration().getDisplayName()
 
                 List<Scenario> scenarios = runFor.value().toList()
                 List<GroupsBean> groups = []

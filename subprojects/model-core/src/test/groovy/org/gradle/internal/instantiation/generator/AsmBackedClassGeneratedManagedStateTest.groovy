@@ -57,7 +57,7 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec {
     ManagedFactory generatorFactory = TestUtil.instantiatorFactory().managedFactory
     final ManagedFactoryRegistry managedFactoryRegistry = new DefaultManagedFactoryRegistry().withFactories(generatorFactory)
-    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
+    ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
 
     def canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndSetter() {
         def bean = create(BeanWithAbstractProperty)

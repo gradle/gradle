@@ -29,7 +29,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
-    private final Set<String> projectConfigurations = ['debug', 'release'] as Set
+    Set<String> projectConfigurations = ['debug', 'release'] as Set
 
     def app = new CppHelloWorldApp()
 

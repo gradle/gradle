@@ -71,7 +71,7 @@ import spock.lang.Unroll
 import java.util.function.BiFunction
 
 class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec {
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
+    private DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     def immutableTransformsStoreDirectory = temporaryFolder.file("output")
     def mutableTransformsStoreDirectory = temporaryFolder.file("child/build/transforms")

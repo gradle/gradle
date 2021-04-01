@@ -45,7 +45,7 @@ class SwiftUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolI
         return ":compileDebugSwift"
     }
 
-    final List<String> mainSymbols = ["_main", "main"]
+    List<String> mainSymbols = ["_main", "main"]
 
     protected SourceFileElement mainFile = getMainFile()
     protected SourceFileElement alternateFile = new SourceFileElement() {

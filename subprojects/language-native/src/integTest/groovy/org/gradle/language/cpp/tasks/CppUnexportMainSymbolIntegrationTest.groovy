@@ -69,7 +69,7 @@ class CppUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolInt
         return ":compileDebugCpp"
     }
 
-    final List<String> mainSymbols = ["_main", "main", "_wmain", "wmain"]
+    List<String> mainSymbols = ["_main", "main", "_wmain", "wmain"]
 
     protected SourceFileElement mainFile = getMainFile()
     protected SourceFileElement alternateMainFile = new SourceFileElement() {
