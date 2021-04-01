@@ -316,11 +316,11 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         '''
 
         when:
-        configurationCacheRun "ok"
-        configurationCacheRun "ok"
+        configurationCacheRun 'ok'
+        configurationCacheRun 'ok'
 
         then:
-        outputContains("this.value = null")
+        outputContains 'this.value = null'
     }
 
     @Unroll
@@ -1201,7 +1201,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
                 public static abstract class SomeTask extends ${ConventionTask.name} {
                     // Configuration cache only supports convention mapping for fields with matching names.
                     private $typeName inputProperty;
-                    ${if (type.isPrimitive()) '' else "@${Optional.name}"}
+                    ${type.primitive ? '' : "@${Optional.name}"}
                     @${Input.name}
                     public $typeName getInputProperty() { return inputProperty; }
                     public void setInputProperty($typeName value) { this.inputProperty = value; }
