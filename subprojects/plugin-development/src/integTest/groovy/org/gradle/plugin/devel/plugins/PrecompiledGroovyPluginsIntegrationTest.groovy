@@ -292,18 +292,23 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can apply a precompiled settings plugin by id"() {
         given:
-        def pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
+        file("plugin/build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        file("plugin/src/main/groovy/my-settings-plugin.settings.gradle") << """
             println("my-settings-plugin applied!")
-        """)
+        """
 
         when:
         settingsFile << """
-            buildscript {
-                dependencies {
-                    classpath(files("$pluginJar"))
-                }
+            pluginManagement {
+                includeBuild("plugin")
             }
-            apply plugin: 'my-settings-plugin'
+            plugins {
+                id("my-settings-plugin")
+            }
         """
 
         then:
@@ -313,27 +318,30 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "precompiled settings plugin can use plugins block"() {
-        when:
-        def pluginJar = packagePrecompiledPlugin("base-settings-plugin.settings.gradle", """
+        given:
+        file("plugin/build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        file("plugin/src/main/groovy/base-settings-plugin.settings.gradle") << """
             println('base-settings-plugin applied!')
-        """)
-        def baseSettingsPluginJar = file('baseSettingsPlugin.jar')
-        file(pluginJar).renameTo(baseSettingsPluginJar)
-
-        pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
+        """
+        file("plugin/src/main/groovy/my-settings-plugin.settings.gradle") << """
             plugins {
                 id 'base-settings-plugin'
             }
             println('my-settings-plugin applied!')
-        """)
+        """
 
+        when:
         settingsFile << """
-            buildscript {
-                dependencies {
-                    classpath(files('$pluginJar', '$baseSettingsPluginJar.name'))
-                }
+            pluginManagement {
+                includeBuild("plugin")
             }
-            apply plugin: 'my-settings-plugin'
+            plugins {
+                id("my-settings-plugin")
+            }
         """
 
         then:
@@ -346,7 +354,12 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/15416")
     def "precompiled settings plugin can use pluginManagement block"() {
         when:
-        def pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
+        file("plugin/build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        file("plugin/src/main/groovy/my-settings-plugin.settings.gradle") << """
             pluginManagement {
                 repositories {
                     println('pluginManagement block executed')
@@ -354,15 +367,15 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             println('my-settings-plugin applied!')
-        """)
+        """
 
         settingsFile << """
-            buildscript {
-                dependencies {
-                    classpath(files('$pluginJar'))
-                }
+            pluginManagement {
+                includeBuild("plugin")
             }
-            apply plugin: 'my-settings-plugin'
+            plugins {
+                id("my-settings-plugin")
+            }
         """
 
         then:
