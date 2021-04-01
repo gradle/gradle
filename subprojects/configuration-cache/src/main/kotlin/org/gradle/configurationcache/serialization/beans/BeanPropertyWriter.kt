@@ -45,10 +45,12 @@ class BeanPropertyWriter(
         for (relevantField in relevantFields) {
             val field = relevantField.field
             val fieldName = field.name
-            val originalFieldValue = field.get(bean)
-            val fieldValue = originalFieldValue ?: conventionalValueOf(bean, fieldName)
+            val fieldValue = when (val getter = relevantField.conventionGetter) {
+                null -> field.get(bean)
+                else -> getter.invoke(bean)
+            }
             relevantField.unsupportedFieldType?.let {
-                reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
+                reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
             }
             withDebugFrame({ field.debugFrameName() }) {
                 writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
