@@ -413,7 +413,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails("help")
-        failureCauseContains("The `buildscript` block is not supported in Groovy script plugins, please use the `plugins` block or project level dependencies.")
+        failureCauseContains("The `buildscript` block is not supported in Groovy script plugins. Use the `plugins` block or project level dependencies instead.")
     }
 
     def "precompiled settings plugin can not use buildscript block"() {
@@ -428,7 +428,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails('help')
-        failureCauseContains("The `buildscript` block is not supported in Groovy script plugins, please use the `plugins` block or project level dependencies.")
+        failureCauseContains("The `buildscript` block is not supported in Groovy script plugins. Use the `plugins` block or project level dependencies instead.")
     }
 
     @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")

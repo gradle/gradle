@@ -24,6 +24,6 @@ public abstract class FirstPassPrecompiledScript extends PluginsAwareScript {
     @SuppressWarnings("rawtypes")
     @Override
     public void buildscript(Closure configureClosure) {
-        throw new IllegalStateException("The `buildscript` block is not supported in Groovy script plugins, please use the `plugins` block or project level dependencies.");
+        throw new IllegalStateException("The `buildscript` block is not supported in Groovy script plugins. Use the `plugins` block or project level dependencies instead.");
     }
 }
