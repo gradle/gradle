@@ -2,7 +2,7 @@
 name: Regression
 about: Report a problem about something that used to work
 title: ''
-labels: a:regression
+labels: a:regression to-triage
 assignees: ''
 
 ---
