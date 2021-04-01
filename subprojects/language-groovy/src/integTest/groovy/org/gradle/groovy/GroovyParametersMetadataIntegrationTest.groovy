@@ -26,7 +26,9 @@ class GroovyParametersMetadataIntegrationTest extends MultiVersionIntegrationSpe
 
     def setup() {
         buildFile << """
-            apply plugin: "groovy"
+            plugins {
+                id("groovy")
+            }
 
             ${mavenCentralRepository()}
 
