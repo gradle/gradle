@@ -18,6 +18,9 @@ package org.gradle.api.internal.catalog
 
 import com.google.common.collect.Interners
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
@@ -28,11 +31,14 @@ import spock.lang.Unroll
 
 import java.util.function.Supplier
 
-class DefaultVersionCatalogBuilderTest extends Specification {
+class DefaultVersionCatalogBuilderTest extends Specification implements VersionCatalogErrorMessages {
 
     @Subject
     DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(Supplier))
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION
+    )
     @Unroll("#notation is an invalid notation")
     def "reasonable error message if notation is invalid"() {
         when:
@@ -40,12 +46,19 @@ class DefaultVersionCatalogBuilderTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == 'Invalid dependency notation: it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2'
-
+        verify(ex.message, invalidDependencyNotation {
+            inCatalog('libs')
+            usingSettingsApi()
+            invalidNotation(notation)
+            alias('foo')
+        })
         where:
         notation << ["", "a", "a:", "a:b", ":b", "a:b:", ":::", "a:b:c:d"]
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.INVALID_ALIAS_NOTATION
+    )
     @Unroll("#notation is an invalid alias")
     def "reasonable error message if alias is invalid"() {
         when:
@@ -53,12 +66,18 @@ class DefaultVersionCatalogBuilderTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "Invalid alias name '$notation': it must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
+        verify(ex.message, invalidAliasNotation {
+            inCatalog('libs')
+            invalidNotation(notation)
+        })
 
         where:
         notation << ["", "a", "1a", "A", "Aa", "abc\$", "abc&"]
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
     @Unroll
     def "forbids using #name as a dependency alias"() {
         when:
@@ -66,7 +85,11 @@ class DefaultVersionCatalogBuilderTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "Invalid alias name '$name': it must not end with '$suffix'"
+        verify(ex.message, reservedAlias {
+            inCatalog('libs')
+            alias(name).shouldNotEndWith(suffix)
+            reservedAliasSuffix('bundle', 'bundles', 'version', 'versions')
+        })
 
         where:
         name          | suffix
@@ -78,6 +101,9 @@ class DefaultVersionCatalogBuilderTest extends Specification {
         "foo.version" | "version"
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.INVALID_ALIAS_NOTATION
+    )
     @Unroll("#notation is an invalid bundle name")
     def "reasonable error message if bundle name is invalid"() {
         when:
@@ -85,7 +111,11 @@ class DefaultVersionCatalogBuilderTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "Invalid bundle name '$notation': it must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
+        verify(ex.message, invalidAliasNotation {
+            inCatalog('libs')
+            kind('bundle')
+            invalidNotation(notation)
+        })
 
         where:
         notation << ["", "a", "1a", "A", "Aa", "abc\$", "abc&"]
@@ -131,6 +161,9 @@ class DefaultVersionCatalogBuilderTest extends Specification {
         loggingManager.stop()
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE
+    )
     def "fails building the model if a bundle references a non-existing alias"() {
         builder.alias("guava").to("com.google.guava:guava:17.0")
         builder.bundle("toto", ["foo"])
@@ -140,7 +173,11 @@ class DefaultVersionCatalogBuilderTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "A bundle with name 'toto' declares a dependency on 'foo' which doesn't exist"
+        verify(ex.message, undefinedAliasRef {
+            inCatalog('libs')
+            aliasRef('foo')
+            bundle('toto')
+        })
     }
 
     def "model reflects what is declared"() {
@@ -219,14 +256,23 @@ class DefaultVersionCatalogBuilderTest extends Specification {
         model.getDependencyData("foo").version.requiredVersion == ""
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE
+    )
     def "reasonable error message if referenced version doesn't exist"() {
         builder.alias("foo").to("org", "foo").versionRef("nope")
-
+        builder.version('v1', '1.0')
+        builder.version('v2', '1.2')
         when:
         builder.build()
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "Referenced version 'nope' doesn't exist on dependency org:foo"
+        verify(ex.message, undefinedVersionRef {
+            inCatalog('libs')
+            forDependency('org', 'foo')
+            versionRef('nope')
+            existing('v1', 'v2')
+        })
     }
 }

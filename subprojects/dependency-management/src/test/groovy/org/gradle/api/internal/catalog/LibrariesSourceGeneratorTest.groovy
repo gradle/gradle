@@ -22,6 +22,9 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
+import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.properties.GradleProperties
@@ -44,9 +47,8 @@ import spock.lang.Unroll
 import java.util.function.Supplier
 
 import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
-import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-class DependenciesSourceGeneratorTest extends Specification {
+class LibrariesSourceGeneratorTest extends Specification implements VersionCatalogErrorMessages {
 
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
@@ -114,9 +116,9 @@ class DependenciesSourceGeneratorTest extends Specification {
         name          | method
         'test'        | 'getTest'
         'testBundle'  | 'getTestBundle'
-        'test.bundle' | 'getTestBundle'
-        'test.json'   | 'getTestJson'
-        'a.b'         | 'getAB'
+        'test.bundle' | 'getBundle'
+        'test.json'   | 'getJson'
+        'a.b'         | 'getB'
     }
 
     @Unroll
@@ -130,16 +132,18 @@ class DependenciesSourceGeneratorTest extends Specification {
         sources.hasVersion(name, method)
 
         where:
-        name             | method
-        'groovy'         | 'getGroovy'
-        'groovyVersion'  | 'getGroovyVersion'
-        'groovy.version' | 'getGroovyVersion'
-        'groovy-json'    | 'getGroovyJson'
-        'groovy.json'    | 'getGroovyJson'
-        'groovyJson'     | 'getGroovyJson'
-        'lang3Version'   | 'getLang3Version'
+        name            | method
+        'groovy'        | 'getGroovy'
+        'groovyVersion' | 'getGroovyVersion'
+        'groovy-json'   | 'getJson'
+        'groovy.json'   | 'getJson'
+        'groovyJson'    | 'getGroovyJson'
+        'lang3Version'  | 'getLang3Version'
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.ACCESSOR_NAME_CLASH
+    )
     def "reasonable error message if methods have the same name"() {
         when:
         generate {
@@ -149,7 +153,10 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == 'Cannot generate dependency accessors because dependency aliases groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()'
+        verify ex.message, nameClash {
+            inConflict('groovy.json', 'groovyJson')
+            getterName('getGroovyJson')
+        }
 
         when:
         generate {
@@ -163,11 +170,15 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         ex = thrown()
-        normaliseLineSeparators(ex.message) == '''Cannot generate dependency accessors because:
-  - dependency aliases groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()
-  - dependency aliases tada.one and tadaOne and tada_one are mapped to the same accessor name getTadaOne()'''
+        verify(ex.message, """Cannot generate dependency accessors:
+${nameClash { noIntro().inConflict('groovy.json', 'groovyJson').getterName('getGroovyJson') }}
+${nameClash { noIntro().inConflict('tada.one', 'tadaOne', 'tada_one').getterName('getTadaOne') }}
+""")
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.ACCESSOR_NAME_CLASH
+    )
     def "reasonable error message if bundles have the same name"() {
         when:
         generate {
@@ -179,7 +190,11 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        normaliseLineSeparators(ex.message) == 'Cannot generate dependency accessors because dependency bundles one.cool and oneCool are mapped to the same accessor name getOneCoolBundle()'
+        verify(ex.message, nameClash {
+            kind('bundles')
+            inConflict('one.cool', 'oneCool')
+            getterName('getOneCoolBundle')
+        })
 
         when:
         generate {
@@ -195,9 +210,10 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         ex = thrown()
-        normaliseLineSeparators(ex.message) == '''Cannot generate dependency accessors because:
-  - dependency bundles one.cool and oneCool are mapped to the same accessor name getOneCoolBundle()
-  - dependency bundles other.cool and otherCool and other_cool are mapped to the same accessor name getOtherCoolBundle()'''
+        verify(ex.message, """Cannot generate dependency accessors:
+${nameClash { noIntro().kind('bundles').inConflict('other.cool', 'otherCool', 'other_cool').getterName('getOtherCoolBundle') }}
+${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
+""")
     }
 
     def "generated sources can be compiled"() {
@@ -224,7 +240,36 @@ class DependenciesSourceGeneratorTest extends Specification {
         assert bundle == [foo, bar]
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
     def "puts limit on the number of methods"() {
+        when:
+        generate {
+            alias(reservedName).to("org:test:1.0")
+        }
+
+        then:
+        InvalidUserDataException ex = thrown()
+        verify ex.message, reservedAlias {
+            alias(reservedName).shouldNotEndWith(suffix)
+            reservedAliasSuffix("bundle", "bundles", "version", "versions")
+        }
+
+        where:
+        reservedName   | suffix
+        'versions'     | 'versions'
+        'bundles'      | 'bundles'
+        'someVersions' | 'versions'
+        'someBundles'  | 'bundles'
+        'some.version' | 'version'
+        'some.bundle'  | 'bundle'
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.TOO_MANY_ENTRIES
+    )
+    def "reasonable error message if an alias uses a reserved name"() {
         when:
         generate {
             16000.times { n ->
@@ -235,7 +280,9 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == 'Cannot generate dependency accessors because model contains too many entries (32000), maximum is 30000'
+        verify ex.message, tooManyEntries {
+            entryCount(32000)
+        }
     }
 
     def "outputs context in javadocs"() {
@@ -269,7 +316,7 @@ class DependenciesSourceGeneratorTest extends Specification {
         spec()
         def writer = new StringWriter()
         def model = builder.build()
-        DependenciesSourceGenerator.generateSource(writer, model, 'org.test', className)
+        LibrariesSourceGenerator.generateSource(writer, model, 'org.test', className)
         sources = new GeneratedSource(className, writer.toString(), model)
     }
 

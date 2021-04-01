@@ -130,6 +130,43 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
+    def "can use nested accessors to declare a dependency version"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("my-great-lib", "1.0")
+                        alias("my-great-lib").to("org.gradle.test", "lib").versionRef("my-great-lib")
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.my.great.lib
+            }
+
+            assert libs.versions.my.great.lib.get() == "1.0"
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+    }
+
     def "can use the version catalog getter to register catalogs"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -309,6 +346,48 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
             dependencies {
                 implementation(libs.bundles.myBundle)
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
+    }
+
+    void "bundles can use nested accessors"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("lib").to("org.gradle.test", "lib").version {
+                            require "1.0"
+                        }
+                        alias("lib2").to("org.gradle.test:lib2:1.0")
+                        bundle("my-great-bundle", ["lib", "lib2"])
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation(libs.bundles.my.great.bundle)
             }
         """
 
@@ -1171,5 +1250,45 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                 module('org:test:1.0')
             }
         }
+    }
+
+    def "reasonable error message if a version is both a leaf and a node"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("my", "1.0")
+                        version("my.nested", "1.1")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failureDescriptionContains "Cannot generate accessors for versions because it contains both aliases and groups of the same name: [my]"
+    }
+
+    def "reasonable error message if a bundle is both a leaf and a node"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("lib1").to("org:lib1:1.0")
+                        alias("lib2").to("org:lib2:1.0")
+                        bundle("my", ["lib1", "lib2"])
+                        bundle("my.other", ["lib1", "lib2"])
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failureDescriptionContains "Cannot generate accessors for bundles because it contains both aliases and groups of the same name: [my]"
     }
 }
