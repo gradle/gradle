@@ -26,8 +26,8 @@ import javax.inject.Inject;
 import java.util.Optional;
 
 public abstract class AbstractExternalDependencyFactory implements ExternalModuleDependencyFactory {
-    private final DefaultVersionCatalog config;
-    private final ProviderFactory providers;
+    protected final DefaultVersionCatalog config;
+    protected final ProviderFactory providers;
 
     @SuppressWarnings("unused")
     public static abstract class SubDependencyFactory implements ExternalModuleDependencyFactory {
@@ -105,8 +105,8 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     }
 
     public static class VersionFactory {
-        private final ProviderFactory providers;
-        private final DefaultVersionCatalog config;
+        protected final ProviderFactory providers;
+        protected final DefaultVersionCatalog config;
 
         public VersionFactory(ProviderFactory providers, DefaultVersionCatalog config) {
             this.providers = providers;
@@ -143,8 +143,8 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     }
 
     public static class BundleFactory {
-        private final ProviderFactory providers;
-        private final DefaultVersionCatalog config;
+        protected final ProviderFactory providers;
+        protected final DefaultVersionCatalog config;
 
         public BundleFactory(ProviderFactory providers, DefaultVersionCatalog config) {
             this.providers = providers;

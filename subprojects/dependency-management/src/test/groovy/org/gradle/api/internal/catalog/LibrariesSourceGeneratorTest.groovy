@@ -46,7 +46,7 @@ import java.util.function.Supplier
 import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-class DependenciesSourceGeneratorTest extends Specification {
+class LibrariesSourceGeneratorTest extends Specification {
 
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
@@ -114,9 +114,9 @@ class DependenciesSourceGeneratorTest extends Specification {
         name          | method
         'test'        | 'getTest'
         'testBundle'  | 'getTestBundle'
-        'test.bundle' | 'getTestBundle'
-        'test.json'   | 'getTestJson'
-        'a.b'         | 'getAB'
+        'test.bundle' | 'getBundle'
+        'test.json'   | 'getJson'
+        'a.b'         | 'getB'
     }
 
     @Unroll
@@ -133,9 +133,8 @@ class DependenciesSourceGeneratorTest extends Specification {
         name             | method
         'groovy'         | 'getGroovy'
         'groovyVersion'  | 'getGroovyVersion'
-        'groovy.version' | 'getGroovyVersion'
-        'groovy-json'    | 'getGroovyJson'
-        'groovy.json'    | 'getGroovyJson'
+        'groovy-json'    | 'getJson'
+        'groovy.json'    | 'getJson'
         'groovyJson'     | 'getGroovyJson'
         'lang3Version'   | 'getLang3Version'
     }
@@ -269,7 +268,7 @@ class DependenciesSourceGeneratorTest extends Specification {
         spec()
         def writer = new StringWriter()
         def model = builder.build()
-        DependenciesSourceGenerator.generateSource(writer, model, 'org.test', className)
+        LibrariesSourceGenerator.generateSource(writer, model, 'org.test', className)
         sources = new GeneratedSource(className, writer.toString(), model)
     }
 

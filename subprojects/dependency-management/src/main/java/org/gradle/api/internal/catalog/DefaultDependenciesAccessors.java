@@ -420,7 +420,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            DependenciesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName());
+            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName());
             return writer.toString();
         }
     }
