@@ -98,9 +98,14 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
     }
 
     @Override
-    public DescribedProblemWithCause documented() {
-        this.docLink = new DocLink("version_catalog_problems", id.name().toLowerCase());
+    public DescribedProblemWithCause documentedAt(String page, String section) {
+        this.docLink = new DocLink(page, section);
         return this;
+    }
+
+    @Override
+    public DescribedProblemWithCause documented() {
+        return documentedAt("version_catalog_problems", id.name().toLowerCase());
     }
 
     @Override
@@ -129,7 +134,7 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
             shortDescription,
             longDescription,
             reason,
-            () -> DOCUMENTATION_REGISTRY.getDocumentationFor(docLink.page, docLink.section),
+            () -> docLink == null ? null : DOCUMENTATION_REGISTRY.getDocumentationFor(docLink.page, docLink.section),
             solutions.stream().map(this::toSolution).collect(toList())
         );
     }

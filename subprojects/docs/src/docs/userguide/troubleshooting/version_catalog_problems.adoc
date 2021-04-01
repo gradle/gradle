@@ -41,3 +41,109 @@ To fix this, you must either:
 - or declare a new version corresponding to the reference you want to use in the catalog
 
 It's worth noting that catalogs are isolated, so you cannot use a version reference from one catalog in another catalog.
+
+[[undefined_alias_reference]]
+== Undefined alias reference
+
+This error indicates that your catalog declares a bundle (a group of libraries) which references a non-existing library.
+
+Bundles should only consist of libraries declared in the same catalog.
+
+To fix this, you must either:
+
+- make sure that the alias for the library you want to include is defined in the same catalog
+- or remove the library from the bundle
+
+[[invalid_dependency_notation]]
+== Invalid dependency notation
+
+This error indicates that the dependency notation associated with an alias is incorrect.
+Version catalog supports the simplified `group:artifact:version` notation.
+
+If you are using the `Settings` DSL to create a catalog, you can use the `to` method in different flavors:
+
+```groovy
+alias("some-alias").to("com.mycompany:some-lib:1.1")
+// or
+alias("some-alias").to("com.mycompany", "some-lib").version("1.1")
+```
+
+If you are using TOML files to create a catalog, you can use one of the following notations:
+
+```toml
+[libraries]
+some-alias = { group="com.mycompany",
+    name="some-lib",
+    version="1.1"
+}
+# or
+some-alias = {
+     module="com.mycompany:some-lib",
+     version="1.1"
+}
+```
+
+[[unsupported_file_format]]
+== Unsupported catalog file format
+
+This error indicates that you tried to import a catalog file, but the format isn't recognized.
+Typically, this happens if you tried to import a catalog using `from(files("some-catalog.txt"))`.
+
+Currently Gradle only supports TOML version catalogs.
+
+To fix this problem, either import a TOML file, or use the `Settings` API to declare your catalog.
+
+[[catalog_file_does_not_exist]]
+== Catalog file doesn't exist
+
+This error indicates that you tried to import a catalog file, but the file doesn't exist.
+
+Make sure that it's not a typo, and if not, that the catalog file exists _before_ importing it.
+
+[[invalid_alias_notation]]
+== Invalid alias or bundle notation
+
+This error indicates that you have used an alias (or bundle) name which isn't supported by Gradle.
+Gradle puts some restrictions on alias names: they must match the following regular expression: `[a-z]([a-zA-Z0-9_.\-])+`
+
+A typical alias name would be `some-alias`.
+
+[[invalid_module_notation]]
+== Invalid module notation
+
+This error indicates that your module notation in a TOML version catalog is incorrect.
+When you use the `module` notation in a TOML, it must consist of 2 elements, the `group` and the `name` of the module, separated by a colon (`:`).
+
+For example:
+
+```toml
+[libraries]
+groovy = { module="org.codehaus.groovy:groovy", version="3.0.5" }
+```
+
+[[toml_syntax_error]]
+== Invalid TOML definition
+
+This error indicates that you have a syntax or grammar error in your TOML version catalog file.
+
+This can happen if you use wrong keys, for example:
+
+```toml
+some-alias = { unknownKey = "foo" }
+```
+
+or that you forgot about some elements:
+
+```toml
+# missing the "group"
+some-alias = { name="my-lib", version="1.0" }
+```
+
+[[unsupported_format_version]]
+== Unsupported TOML file format version
+
+This error indicates that you are trying to read a version catalog file which has a higher version than what the current version of Gradle supports.
+
+This would usually mean that the version catalog file you're trying to use has been produced with a higher release of Gradle than the one you're using.
+
+A potential solution to this is to upgrade your Gradle version.

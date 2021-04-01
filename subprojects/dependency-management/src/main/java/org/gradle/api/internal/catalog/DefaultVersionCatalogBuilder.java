@@ -22,15 +22,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -135,7 +132,13 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             List<String> aliases = entry.getValue().getComponents();
             for (String alias : aliases) {
                 if (!dependencies.containsKey(alias)) {
-                    throw new InvalidUserDataException("A bundle with name '" + bundleName + "' declares a dependency on '" + alias + "' which doesn't exist");
+                    return throwVersionCatalogProblem(VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE, spec ->
+                        spec.withShortDescription(() -> "A bundle with name '" + bundleName + "' declares a dependency on '" + alias + "' which doesn't exist")
+                            .happensBecause("Bundles can only contain references to existing library aliases")
+                            .addSolution(() -> "Make sure that the library alias '" + alias + "' is declared")
+                            .addSolution(() -> "Remove '" + alias + "' from bundle '" + bundleName + "'")
+                            .documented()
+                    );
                 }
             }
         }
@@ -185,18 +188,32 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public void from(Object dependencyNotation) {
         if (!imports.isEmpty()) {
-            throw new InvalidUserCodeException("You can only import a single external catalog in a given catalog definition.\n" +
-                "See the documentation at " + new DocumentationRegistry().getDocumentationFor("platforms", "sec:sharing-catalogs"));
+            throwVersionCatalogProblem(VersionCatalogProblemId.MULTIPLE_IMPORTS, spec ->
+                spec.withShortDescription("You can only import a single external catalog in a given catalog definition")
+                    .happensBecause("Multiple catalog imports are not yet supported")
+                    .addSolution("Create a separate catalog for each import you want to use")
+                    .documentedAt("platforms", "sec:sharing-catalogs")
+            );
         }
         imports.add(new Import(dependencyNotation));
     }
 
     private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
-            throw new InvalidUserDataException("Unsupported file format: please use a TOML file");
+            throwVersionCatalogProblem(VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT, spec ->
+                spec.withShortDescription(() -> "File " + modelFile.getName() + " isn't a supported")
+                    .happensBecause("Only .toml files are allowed when importing catalogs")
+                    .addSolution("Use a TOML file instead, with the .toml extension")
+                    .documented()
+            );
         }
         if (!modelFile.exists()) {
-            throw new InvalidUserDataException("Catalog file " + modelFile + " doesn't exist");
+            throwVersionCatalogProblem(VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST, spec ->
+                spec.withShortDescription(() -> "Import of external catalog file failed")
+                    .happensBecause(() -> "File '" + modelFile + "' doesn't exist")
+                    .addSolution(() -> "Make sure that the catalog file '" + modelFile.getName() + "' exists before importing it")
+                    .documented()
+            );
         }
         RegularFileProperty srcProp = objects.fileProperty();
         srcProp.set(modelFile);
@@ -248,7 +265,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private void validateName(String type, String value) {
         if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
-            throw new InvalidUserDataException("Invalid " + type + " name '" + value + "': it must match the following regular expression: " + DependenciesModelHelper.ALIAS_REGEX);
+            throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_ALIAS_NOTATION, spec ->
+                spec.withShortDescription(() -> "Invalid " + type + " '" + value + "' name")
+                    .happensBecause(() -> type + " names must match the following regular expression: " + DependenciesModelHelper.ALIAS_REGEX)
+                    .addSolution(() -> "Make sure the name matches the " + DependenciesModelHelper.ALIAS_REGEX + " regular expression")
+                    .documented()
+            );
         }
         if ("alias".equals(type)) {
             validateAlias(value);
@@ -349,7 +371,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             if (coordinates.length == 3) {
                 to(coordinates[0], coordinates[1]).version(coordinates[2]);
             } else {
-                throw new InvalidUserDataException("Invalid dependency notation: it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
+                throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
+                    spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + gavCoordinates + "' is not a valid dependency notation")
+                        .happensBecause(() -> "The 'to(String)' method only supports 'group:artifact:version' coordinates")
+                        .addSolution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2")
+                        .addSolution("Use the to(group, name) method instead")
+                        .documented());
             }
         }
 

@@ -50,6 +50,7 @@ public interface VersionCatalogProblemBuilder {
 
     interface DescribedProblemWithCause {
         DescribedProblemWithCause documented();
+        DescribedProblemWithCause documentedAt(String page, String section);
         DescribedProblemWithCause addSolution(Supplier<String> solution);
         default DescribedProblemWithCause addSolution(String solution) {
             return addSolution(() -> solution);
