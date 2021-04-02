@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.TaskInternal
 
 import org.gradle.configurationcache.problems.DisableConfigurationCacheFieldTypeCheck
@@ -46,7 +47,7 @@ val unsupportedFieldDeclaredTypes = listOf(
 
 internal
 fun relevantStateOf(beanType: Class<*>): List<RelevantField> =
-    when (ConventionTask::class.java.isAssignableFrom(beanType)) {
+    when (IConventionAware::class.java.isAssignableFrom(beanType)) {
         true -> applyConventionMappingTo(beanType, relevantFieldsOf(beanType))
         else -> relevantFieldsOf(beanType)
     }
