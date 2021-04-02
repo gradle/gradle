@@ -97,7 +97,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     public void reportSuppressedDeprecations() {
         if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
-            LOGGER.warn("\n{} {}.\nUse '--{} {}' to show the individual deprecation warnings.\n{} {}",
+            LOGGER.warn("\n{} {}.\n\nYou can use '--{} {}' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\n{} {}",
                 WARNING_SUMMARY, GradleVersion.current().getNextMajor().getVersion(),
                 LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(),
                 WARNING_LOGGING_DOCS_MESSAGE, DOCUMENTATION_REGISTRY.getDocumentationFor("command_line_interface", "sec:command_line_warnings"));

@@ -108,7 +108,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY) == (warningsCountInSummary > 0)
-        output.contains("Use '--warning-mode all' to show the individual deprecation warnings.") == (warningsCountInSummary > 0)
+        output.contains("You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.") == (warningsCountInSummary > 0)
         output.contains(LoggingDeprecatedFeatureHandler.WARNING_LOGGING_DOCS_MESSAGE) == (warningsCountInSummary > 0)
 
         and: "system stack frames are filtered"
