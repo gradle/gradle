@@ -30,6 +30,7 @@ import org.gradle.configurationcache.serialization.logUnsupported
 import org.gradle.internal.reflect.ClassInspector
 import org.gradle.internal.reflect.PropertyDetails
 
+import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier.isStatic
@@ -66,7 +67,7 @@ fun applyConventionMappingTo(taskType: Class<*>, relevantFields: List<RelevantFi
         relevantFields.map { relevantField ->
             relevantField.run {
                 getters[field]?.getters?.firstOrNull { it.returnType == field.type }?.let {
-                    relevantField.copy(conventionGetter = it)
+                    copy(conventionGetter = it.apply(Method::makeAccessible))
                 }
             } ?: relevantField
         }
@@ -182,7 +183,7 @@ val abstractTaskRelevantFields = listOf(
 
 
 internal
-fun Field.makeAccessible() {
+fun AccessibleObject.makeAccessible() {
     @Suppress("deprecation")
     if (!isAccessible) isAccessible = true
 }
