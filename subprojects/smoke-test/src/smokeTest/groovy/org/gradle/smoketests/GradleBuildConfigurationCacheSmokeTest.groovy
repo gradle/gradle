@@ -30,7 +30,7 @@ import org.gradle.util.TestPrecondition
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
  *
- * gradle/gradle requires Java >=9 and <=11 to build, see {@link GradleBuildJvmSpec}.
+ * gradle/gradle requires Java >=9 and <=11 to build, see {@link AbstractGradleceptionSmokeTest.GradleBuildJvmSpec}.
  */
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
     GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
