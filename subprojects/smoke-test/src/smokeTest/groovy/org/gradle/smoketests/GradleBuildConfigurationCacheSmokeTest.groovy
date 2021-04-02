@@ -49,13 +49,13 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         configurationCacheRun supportedTasks, 0
 
         then:
-        result.output.count("Calculating task graph as no configuration cache is available") == 1
+        assertConfigurationCacheStateStored()
 
         when: "reusing the configuration cache in the same daemon"
         configurationCacheRun supportedTasks, 0
 
         then:
-        result.output.count("Reusing configuration cache") == 1
+        assertConfigurationCacheStateLoaded()
         result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
 
         when:
@@ -65,7 +65,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         configurationCacheRun supportedTasks + ["--info"], 1
 
         then:
-        result.output.count("Reusing configuration cache") == 1
+        assertConfigurationCacheStateLoaded()
         result.output.contains("Starting build in new daemon")
         result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
     }
@@ -82,13 +82,13 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         configurationCacheRun supportedTasks, 0
 
         then:
-        result.output.count("Calculating task graph as no configuration cache is available") == 1
+        assertConfigurationCacheStateStored()
 
         when: "reusing the configuration cache in the same daemon"
         configurationCacheRun supportedTasks, 0
 
         then:
-        result.output.count("Reusing configuration cache") == 1
+        assertConfigurationCacheStateLoaded()
         result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
         assertTestClassExecutedIn "subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
     }
@@ -275,6 +275,16 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertConfigurationCacheStateLoaded()
         result.task(":docs:docs").outcome == TaskOutcome.SUCCESS
         result.task("':docs:docsTest'").outcome == TaskOutcome.SUCCESS
+    }
+
+    @Override
+    protected void assertConfigurationCacheStateStored() {
+        assert result.output.count("Calculating task graph as no configuration cache is available") == 1
+    }
+
+    @Override
+    protected void assertConfigurationCacheStateLoaded() {
+        assert result.output.count("Reusing configuration cache") == 1
     }
 
     private TestExecutionResult assertTestClassExecutedIn(String subProjectDir, String testClass) {
