@@ -16,6 +16,8 @@
 
 package org.gradle.smoketests
 
+import groovy.test.NotYetImplemented
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -88,6 +90,190 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.output.count("Reusing configuration cache") == 1
         result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
         assertTestClassExecutedIn "subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
+    }
+
+    @NotYetImplemented
+    def "can run Gradle cross-version tests with configuration cache enabled"() {
+
+        given:
+        def tasks = [
+            ':configuration-cache:embeddedCrossVersionTest',
+            '--tests=org.gradle.configurationcache.ConfigurationCacheCrossVersionTest'
+        ]
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":configuration-cache:embeddedCrossVersionTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    @NotYetImplemented
+    def "can run Gradle smoke tests with configuration cache enabled"() {
+
+        given:
+        def tasks = [
+            ':smoke-test:smokeTest',
+            '--tests=org.gradle.smoketests.ErrorPronePluginSmokeTest'
+        ]
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":smoke-test:smokeTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    @NotYetImplemented
+    def "can run Gradle soak tests with configuration cache enabled"() {
+
+        given:
+        def tasks = [
+            ':soak:forkingIntegTest',
+            '--tests=org.gradle.vfs.FileSystemWatchingSoakTest'
+        ]
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":soak:forkingIntegTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    @NotYetImplemented
+    def "can run Gradle codeQuality with configuration cache enabled"() {
+
+        given:
+        def tasks = [':configuration-cache:codeQuality']
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.SUCCESS
+    }
+
+    @NotYetImplemented
+    def "can run Gradle checkBinaryCompatibility with configuration cache enabled"() {
+
+        given:
+        def tasks = [':architecture-test:checkBinaryCompatibility']
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
+    }
+
+    @NotYetImplemented
+    def "can build and install Gradle binary distribution with configuration cache enabled"() {
+
+        given:
+        def tasks = [
+            ':distributions-full:binDistributionZip',
+            ':distributions-full:binInstallation'
+        ]
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.SUCCESS
+        result.task(":distributions-full:binInstallation").outcome == TaskOutcome.SUCCESS
+    }
+
+    @NotYetImplemented
+    def "can build and test Gradle documentation with configuration cache enabled"() {
+
+        given:
+        def tasks = [
+            ':docs:docs',
+            ':docs:docsTest',
+            "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=8192".toString(), // TODO remove
+        ]
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":docs:docs").outcome == TaskOutcome.SUCCESS
+        result.task("':docs:docsTest'").outcome == TaskOutcome.SUCCESS
     }
 
     private TestExecutionResult assertTestClassExecutedIn(String subProjectDir, String testClass) {
