@@ -28,12 +28,11 @@ import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.serialization.IsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
 import org.gradle.internal.reflect.ClassInspector
-import org.gradle.internal.reflect.PropertyDetails
 
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
-import java.lang.reflect.Method
 import java.lang.reflect.Modifier.isStatic
 import java.lang.reflect.Modifier.isTransient
 import kotlin.reflect.KClass
@@ -64,23 +63,39 @@ fun relevantFieldsOf(beanType: Class<*>) =
 
 private
 fun applyConventionMappingTo(taskType: Class<*>, relevantFields: List<RelevantField>): List<RelevantField> =
-    backingFieldsOf(taskType).toMap().let { getters ->
+    conventionAwareFieldsOf(taskType).toMap().let { flags ->
         relevantFields.map { relevantField ->
             relevantField.run {
-                getters[field]?.getters?.firstOrNull { it.returnType == field.type }?.let {
-                    copy(conventionGetter = it.apply(Method::makeAccessible))
+                flags[field]?.let { flagField ->
+                    copy(isExplicitValueField = flagField.apply(Field::makeAccessible))
                 }
             } ?: relevantField
         }
     }
 
 
+/**
+ * Returns every property backing field for which a corresponding convention mapping flag field also exists.
+ *
+ * The convention mapping flag field is a Boolean field injected by [AsmBackedClassGenerator] in order to capture
+ * whether a convention mapped property has been explicitly set or not.
+ */
 private
-fun backingFieldsOf(beanType: Class<*>): List<Pair<Field, PropertyDetails>> =
-    ClassInspector.inspect(beanType).properties.mapNotNull { property ->
-        property.backingField?.let {
-            if (isNotAbstractTaskField(it)) it to property
-            else null
+fun conventionAwareFieldsOf(beanType: Class<*>): Sequence<Pair<Field, Field>> =
+    ClassInspector.inspect(beanType).let { details ->
+        details.properties.asSequence().mapNotNull { property ->
+            property.backingField?.let { backingField ->
+                val flagFieldName = AsmBackedClassGenerator.propFieldName(backingField.name)
+                details
+                    .instanceFields
+                    .firstOrNull { field ->
+                        field.declaringClass == beanType
+                            && field.name == flagFieldName
+                            && field.type == java.lang.Boolean.TYPE
+                    }?.let { flagField ->
+                        backingField to flagField
+                    }
+            }
         }
     }
 
@@ -89,7 +104,11 @@ internal
 data class RelevantField(
     val field: Field,
     val unsupportedFieldType: KClass<*>?,
-    val conventionGetter: Method? = null
+    /**
+     * Boolean flag field injected by [AsmBackedClassGenerator] to capture
+     * whether a convention mapped property has been explicitly set or not.
+     */
+    val isExplicitValueField: Field? = null
 )
 
 

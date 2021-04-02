@@ -21,6 +21,7 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.configurationcache.ConfigurationCacheError
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.propertyDescriptionFor
 import org.gradle.configurationcache.serialization.Codec
@@ -43,17 +44,28 @@ class BeanPropertyWriter(
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
         for (relevantField in relevantFields) {
-            val field = relevantField.field
-            val fieldName = field.name
-            val fieldValue = when (val getter = relevantField.conventionGetter) {
-                null -> field.get(bean)
-                else -> getter.invoke(bean)
-            }
+            val fieldValue = valueOf(relevantField, bean)
+            val fieldName = relevantField.field.name
             relevantField.unsupportedFieldType?.let {
                 reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
             }
-            withDebugFrame({ field.debugFrameName() }) {
+            withDebugFrame({ relevantField.field.debugFrameName() }) {
                 writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
+            }
+        }
+    }
+
+    private
+    fun valueOf(relevantField: RelevantField, bean: Any): Any? {
+        val field = relevantField.field
+        return when (val isExplicitValue = relevantField.isExplicitValueField) {
+            null -> field.get(bean)
+            else -> {
+                bean.uncheckedCast<IConventionAware>().conventionMapping.getConventionValue(
+                    field.get(bean),
+                    field.name,
+                    isExplicitValue.get(bean).uncheckedCast()
+                )
             }
         }
     }
