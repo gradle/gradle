@@ -37,3 +37,15 @@ Some plugins will break with this new version of Gradle, for example because the
 == Upgrading from 7.0 and earlier
 
 === Deprecations
+
+[[configuring_custom_build_layout]]
+==== Configuring build layout via command line
+
+Command line options:
+- `-c`, `--settings-file` for specifying a custom settings file location
+- `-b`, `--build-file` for specifying a custom build file location
+as well as setting a custom build file using `GradleBuild`(TODO link) task have been deprecated.
+
+Please use standard locations for settings and build files:
+- settings file in the root of the build
+- build file in the root of each subproject

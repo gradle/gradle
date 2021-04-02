@@ -65,7 +65,7 @@ project(':shared:model') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+        executer.inDirectory(file("master")).withTasks("ideaModule").run()
 
         //then
         def dependencies = parseIml("master/api/master-api.iml").dependencies
@@ -146,7 +146,7 @@ project(":application") {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+        executer.inDirectory(file("master")).withTasks("ideaModule").run()
 
         //then
         def dependencies = parseIml("master/library/library.iml").dependencies
@@ -276,7 +276,7 @@ project(':services:utilities') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.inDirectory(file("master")).withTasks("idea").run()
 
         //then
         assertIprContainsCorrectModules()
@@ -343,7 +343,7 @@ project(':api') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.inDirectory(file("master")).withTasks("idea").run()
 
         //then
         def moduleFileNames = parseIprModules()
@@ -391,7 +391,7 @@ project(':three') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.inDirectory(file("master")).withTasks("idea").run()
 
         //then
         def dependencies = parseIml("master/one/one.iml").dependencies
@@ -449,7 +449,7 @@ project(':two') {
 
 """
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.inDirectory(file("master")).withTasks("idea").run()
 
         //then
         def dependencies = parseIml("master/one/one.iml").dependencies
@@ -460,7 +460,7 @@ project(':two') {
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
 
         executer.expectDeprecationWarning()
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withArgument("-PforceDeps=true").withTasks("idea").run()
+        executer.inDirectory(file("master")).withArgument("-PforceDeps=true").withTasks("idea").run()
 
         //then
         dependencies = parseIml("master/one/one.iml").dependencies
@@ -492,12 +492,12 @@ project(':contrib') {
 }
 """
 
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.inDirectory(file("master")).withTasks("idea").run()
         assert getFile(project: 'master/shared/api', "shared-api.iml").exists()
         assert getFile(project: 'master/contrib', "cool-contrib.iml").exists()
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("cleanIdea").run()
+        executer.inDirectory(file("master")).withTasks("cleanIdea").run()
 
         //then
         assert !getFile(project: 'master/shared/api', "shared-api.iml").exists()
@@ -526,7 +526,7 @@ project(':api') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.inDirectory(file("master")).withTasks("idea").run()
 
         //then
         assert getFile(project: 'master/api', 'api.iml').exists()
@@ -547,7 +547,7 @@ allprojects {
 """
 
         //when
-        2.times { executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaProject").run() }
+        2.times { executer.inDirectory(file("master")).withTasks("ideaProject").run() }
 
         //then
         String content = getFile(project: 'master', 'master.ipr').text
@@ -587,7 +587,7 @@ project(':app') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+        executer.inDirectory(file("master")).withTasks("ideaModule").run()
 
         //then
         def dependencies = parseIml("master/app/app.iml").dependencies

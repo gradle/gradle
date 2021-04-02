@@ -311,7 +311,7 @@ project(':contrib') {
 }
 """
         //when
-        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
+        executer.withTasks('eclipse').run()
 
         //then
         def implComponent = wtpComponent('impl')
@@ -347,7 +347,7 @@ project(':contrib') {
 }
 """
         //when
-        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
+        executer.withTasks('eclipse').run()
 
         //then no exception thrown
     }

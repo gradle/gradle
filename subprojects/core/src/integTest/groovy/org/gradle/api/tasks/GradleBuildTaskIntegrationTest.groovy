@@ -32,11 +32,12 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'parent'"
         buildFile << """
             task buildInBuild(type:GradleBuild) {
-                buildFile = 'other.gradle'
+                dir = 'other'
                 startParameter.projectProperties['foo'] = true // not a String
             }
         """
-        file('other.gradle') << 'assert foo==true'
+        file('other/settings.gradle').createFile()
+        file('other/build.gradle') << 'assert foo==true'
 
         when:
         run 'buildInBuild'
@@ -101,6 +102,8 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 println "user home dir: " + gradle.gradleUserHomeDir
 println "build script code source: " + getClass().protectionDomain.codeSource.location
 '''
+
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
 
         when:
         run 'otherBuild'
