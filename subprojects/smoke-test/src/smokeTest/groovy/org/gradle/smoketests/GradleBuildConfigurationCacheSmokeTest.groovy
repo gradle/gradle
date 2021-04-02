@@ -90,7 +90,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         then:
         assertConfigurationCacheStateLoaded()
         result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
-        assertTestClassExecutedIn "subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
+        assertTestClassExecutedIn "subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
     }
 
     @NotYetImplemented
