@@ -90,6 +90,197 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertTestClassExecutedIn "subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
     }
 
+    def "can run Gradle cross-version tests with configuration cache enabled across daemons"() {
+
+        given:
+        def tasks = [
+            ':configuration-cache:embeddedCrossVersionTest',
+            '--tests=org.gradle.configurationcache.ConfigurationCacheCrossVersionTest'
+        ]
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":configuration-cache:embeddedCrossVersionTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "can run Gradle smoke tests with configuration cache enabled across daemons"() {
+
+        given:
+        def tasks = [
+            ':smoke-test:smokeTest',
+            '--tests=org.gradle.smoketests.ErrorPronePluginSmokeTest'
+        ]
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":smoke-test:smokeTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "can run Gradle soak tests with configuration cache enabled across daemons"() {
+
+        given:
+        def tasks = [
+            ':soak:soakTest',
+            '--tests=org.gradle.vfs.FileSystemWatchingSoakTest'
+        ]
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":soak:soakTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "can run Gradle codeQuality with configuration cache enabled across daemons"() {
+
+        given:
+        def tasks = [':configuration-cache:codeQuality']
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "can run Gradle checkBinaryCompatibility with configuration cache enabled across daemons"() {
+
+        given:
+        def tasks = [':architecture-test:checkBinaryCompatibility']
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "can build Gradle binary distribution with configuration cache enabled across daemons"() {
+
+        given:
+        def tasks = [':distributions-full:binDistributionZip']
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "can install Gradle from sources with configuration cache enabled across daemons"() {
+
+        given:
+        def tasks = [':distributions-full:binInstallation']
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":distributions-full:binInstallation").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "can build and test Gradle documentation with configuration cache enabled across daemons"() {
+
+        given:
+        def tasks = [':docs:docs', ':docs:docsTest']
+
+        when:
+        configurationCacheRun(tasks, 0)
+
+        then:
+        assertConfigurationCacheStateStored()
+
+        when:
+        run(["clean"])
+
+        then:
+        configurationCacheRun(tasks, 1)
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.task(":docs:docs").outcome == TaskOutcome.SUCCESS
+        result.task("':docs:docsTest'").outcome == TaskOutcome.SUCCESS
+    }
+
     private TestExecutionResult assertTestClassExecutedIn(String subProjectDir, String testClass) {
         new DefaultTestExecutionResult(file(subProjectDir), "build", "", "", "embeddedIntegTest")
             .assertTestClassesExecuted(testClass)
