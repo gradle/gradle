@@ -71,7 +71,7 @@ public class Groovydoc extends SourceTask {
 
     private File destinationDir;
 
-    private AntGroovydoc antGroovydoc;
+    private transient AntGroovydoc antGroovydoc;
 
     private boolean use;
 
