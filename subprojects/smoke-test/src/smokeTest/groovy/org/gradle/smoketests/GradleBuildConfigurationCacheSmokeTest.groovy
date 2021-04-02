@@ -42,7 +42,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         given: "tasks whose configuration can be safely cached across daemons"
         def supportedTasks = [
             ":tooling-api:publishLocalPublicationToLocalRepository",
-            ":base-services:test",
+            ":base-services:test", "--tests=org.gradle.api.JavaVersionSpec"
         ]
 
         when:
