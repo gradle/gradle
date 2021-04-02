@@ -44,36 +44,29 @@ class BeanPropertyWriter(
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
         for (relevantField in relevantFields) {
-            val fieldValue = valueOf(relevantField, bean)
-            val fieldName = relevantField.field.name
+            val field = relevantField.field
+            val fieldName = field.name
+            val fieldValue =
+                when (val isExplicitValue = relevantField.isExplicitValueField) {
+                    null -> field.get(bean)
+                    else -> conventionValueOf(bean, fieldName, field, isExplicitValue)
+                }
             relevantField.unsupportedFieldType?.let {
                 reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
             }
-            withDebugFrame({ relevantField.field.debugFrameName() }) {
+            withDebugFrame({ field.debugFrameName() }) {
                 writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
             }
         }
     }
 
     private
-    fun valueOf(relevantField: RelevantField, bean: Any): Any? {
-        val field = relevantField.field
-        return when (val isExplicitValue = relevantField.isExplicitValueField) {
-            null -> field.get(bean)
-            else -> {
-                bean.uncheckedCast<IConventionAware>().conventionMapping.getConventionValue(
-                    field.get(bean),
-                    field.name,
-                    isExplicitValue.get(bean).uncheckedCast()
-                )
-            }
-        }
-    }
-
-    private
-    fun conventionalValueOf(bean: Any, fieldName: String): Any? = (bean as? IConventionAware)?.run {
-        conventionMapping.getConventionValue<Any?>(null, fieldName, false)
-    }
+    fun conventionValueOf(bean: Any, fieldName: String, field: Field, isExplicitValue: Field) =
+        bean.uncheckedCast<IConventionAware>().conventionMapping.getConventionValue(
+            field.get(bean),
+            fieldName,
+            isExplicitValue.get(bean).uncheckedCast()
+        )
 
     private
     fun Field.debugFrameName() =
