@@ -107,7 +107,7 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
         CommandLineToolConfigurationInternal staticLibArchiverTool = (CommandLineToolConfigurationInternal) toolRegistry.getStaticLibArchiver();
-        return new ArStaticLibraryArchiver(buildOperationExecutor, commandLineTool(ToolType.STATIC_LIB_ARCHIVER, "ar"), context(staticLibArchiverTool), workerLeaseService);
+        return new ArStaticLibraryArchiver(buildOperationExecutor, commandLineTool(ToolType.STATIC_LIB_ARCHIVER, "ar"), context(staticLibArchiverTool), false, workerLeaseService);
     }
 
     @Override

@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,8 +38,8 @@ import java.util.List;
  * A static library archiver based on the GNU 'ar' utility
  */
 public class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiverSpec> {
-    public ArStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new ArchiverSpecToArguments(), false, workerLeaseService);
+    public ArStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new ArchiverSpecToArguments(), useCommandFile, workerLeaseService);
     }
 
     @Override
@@ -74,7 +75,9 @@ public class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchi
 
     @Override
     protected void addOptionsFileArgs(List<String> args, File tempDir) {
-        // No support for command file
+        OptionsFileArgsWriter writer = new GccOptionsFileArgsWriter(tempDir);
+        // modifies args in place
+        writer.execute(args);
     }
 
     private static class ArchiverSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
