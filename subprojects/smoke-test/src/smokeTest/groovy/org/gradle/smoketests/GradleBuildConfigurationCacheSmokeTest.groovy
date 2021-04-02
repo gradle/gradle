@@ -74,7 +74,8 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
 
         given: "tasks whose configuration can only be loaded in the original daemon"
         def supportedTasks = [
-            ":configuration-cache:embeddedIntegTest", "--tests=org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
+            ":configuration-cache:embeddedIntegTest",
+            "--tests=org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
         ]
 
         when:
