@@ -16,44 +16,15 @@
 package org.gradle.internal.hash;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 
-public class DefaultFileHasher implements FileHasher {
-    private final StreamHasher streamHasher;
+public class DefaultFileHasher extends AbstractFileHasher {
 
     public DefaultFileHasher(StreamHasher streamHasher) {
-        this.streamHasher = streamHasher;
-    }
-
-    protected InputStream getInputStream(File file) throws FileNotFoundException {
-        return new FileInputStream(file);
+        super(streamHasher);
     }
 
     @Override
     public HashCode hash(File file) {
-        InputStream inputStream;
-        try {
-            inputStream = getInputStream(file);
-        } catch (FileNotFoundException e) {
-            throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
-        }
-        try {
-            return streamHasher.hash(inputStream);
-        } finally {
-            try {
-                inputStream.close();
-            } catch (IOException ignored) {
-                // Ignored
-            }
-        }
-    }
-
-    @Override
-    public HashCode hash(File file, long length, long lastModified) {
-        return hash(file);
+        return hash(getInputStream(file));
     }
 }

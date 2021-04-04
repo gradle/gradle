@@ -17,19 +17,17 @@
 package org.gradle.internal.hash;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 
 /**
  * A {@link FileHasher} that normalizes line endings.
  */
-public class LineEndingNormalizationFileHasher extends DefaultFileHasher {
+public class LineEndingNormalizationFileHasher extends AbstractFileHasher {
     public LineEndingNormalizationFileHasher(StreamHasher streamHasher) {
         super(streamHasher);
     }
 
     @Override
-    protected InputStream getInputStream(File file) throws FileNotFoundException {
-        return new LineEndingNormalizingInputStream(super.getInputStream(file));
+    public HashCode hash(File file) {
+        return hash(new LineEndingNormalizingInputStream(getInputStream(file)));
     }
 }
