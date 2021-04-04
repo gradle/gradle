@@ -107,7 +107,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
     @Override
     public <T> T run(final Transformer<T, ? super BuildController> buildAction) {
-        final BuildController buildController = new GradleBuildController(gradleLauncher);
+        final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
             final GradleInternal gradle = gradleLauncher.getGradle();
             BuildOperationExecutor executor = gradle.getServices().get(BuildOperationExecutor.class);

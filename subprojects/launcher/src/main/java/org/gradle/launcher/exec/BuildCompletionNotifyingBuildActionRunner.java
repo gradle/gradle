@@ -32,7 +32,7 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     }
 
     @Override
-    public Result run(final BuildAction action, final BuildController buildController) {
+    public Result run(final BuildAction action, BuildController buildController) {
         GradleEnterprisePluginManager gradleEnterprisePluginManager = buildController.getGradle().getServices()
             .get(GradleEnterprisePluginManager.class);
 

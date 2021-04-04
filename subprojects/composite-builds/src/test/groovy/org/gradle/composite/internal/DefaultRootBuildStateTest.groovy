@@ -114,7 +114,7 @@ class DefaultRootBuildStateTest extends Specification {
         and:
         1 * launcher.executeTasks() >> gradle
         1 * action.transform(!null) >> { BuildController controller ->
-            assert controller.run() == gradle
+            controller.run()
             return '<result>'
         }
     }
@@ -129,7 +129,7 @@ class DefaultRootBuildStateTest extends Specification {
         and:
         1 * launcher.getConfiguredBuild() >> gradle
         1 * action.transform(!null) >> { BuildController controller ->
-            assert controller.configure() == gradle
+            controller.configure()
             return '<result>'
         }
     }

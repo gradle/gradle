@@ -19,11 +19,12 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collections;
 
-public class GradleBuildController implements BuildController {
+public class GradleBuildController implements BuildController, Stoppable {
     private enum State {Created, Completed}
 
     private State state = State.Created;
@@ -52,13 +53,13 @@ public class GradleBuildController implements BuildController {
     }
 
     @Override
-    public GradleInternal run() {
-        return doBuild(GradleLauncher::executeTasks);
+    public void run() {
+        doBuild(GradleLauncher::executeTasks);
     }
 
     @Override
-    public GradleInternal configure() {
-        return doBuild(GradleLauncher::getConfiguredBuild);
+    public void configure() {
+        doBuild(GradleLauncher::getConfiguredBuild);
     }
 
     public <T> T doBuild(final Transformer<T, ? super GradleLauncher> build) {
