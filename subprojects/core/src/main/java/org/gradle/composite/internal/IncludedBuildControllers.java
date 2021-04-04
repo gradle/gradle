@@ -16,9 +16,12 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 
+@ServiceScope(Scopes.Gradle.class)
 public interface IncludedBuildControllers {
     IncludedBuildControllers EMPTY = new IncludedBuildControllers() {
         @Override
