@@ -21,6 +21,7 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 /**
  * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into {@link org.gradle.internal.invocation.BuildController} and {@link org.gradle.internal.build.BuildState}.
@@ -65,7 +66,7 @@ public interface GradleLauncher extends Stoppable {
     /**
      * Stops task execution threads and calls the `buildFinished` listener event.
      */
-    void finishBuild();
+    void finishBuild(Consumer<? super Throwable> collector);
 
     /**
      * <p>Adds a listener to this build instance. Receives events for this build only.

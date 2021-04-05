@@ -25,7 +25,6 @@ import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildWorkExecutor;
@@ -187,8 +186,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildScopeServices serviceRegistry,
         List<?> servicesToStop
     ) {
-
-        IncludedBuildControllers includedBuildControllers = gradle.getServices().get(IncludedBuildControllers.class);
         ProjectsPreparer projectsPreparer = serviceRegistry.get(ProjectsPreparer.class);
         SettingsPreparer settingsPreparer = serviceRegistry.get(SettingsPreparer.class);
         TaskExecutionPreparer taskExecutionPreparer = gradle.getServices().get(TaskExecutionPreparer.class);
@@ -204,7 +201,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getServices().get(BuildWorkExecutor.class),
             serviceRegistry,
             servicesToStop,
-            includedBuildControllers,
             settingsPreparer,
             taskExecutionPreparer,
             gradle.getServices().get(ConfigurationCache.class),

@@ -19,7 +19,6 @@ package org.gradle.initialization
 import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.MultipleBuildFailures
@@ -30,6 +29,8 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
+
+import java.util.function.Consumer
 
 import static org.gradle.util.Path.path
 
@@ -49,7 +50,6 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def buildServices = Mock(BuildScopeServices.class)
     def otherService = Mock(Stoppable)
-    def includedBuildControllers = Mock(IncludedBuildControllers)
     def configurationCache = Mock(ConfigurationCache)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -66,7 +66,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
-            buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
+            buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService],
             settingsPreparerMock, taskExecutionPreparerMock, configurationCache, Mock(BuildOptionBuildOperationProgressEventsEmitter))
     }
 
@@ -197,6 +197,8 @@ class DefaultGradleLauncherSpec extends Specification {
     }
 
     void testTransformsBuildFinishedListenerFailure() {
+        def consumer = Mock(Consumer)
+
         given:
         isRootBuild()
         expectSettingsBuilt()
@@ -212,11 +214,10 @@ class DefaultGradleLauncherSpec extends Specification {
         gradleLauncher.executeTasks()
 
         when:
-        gradleLauncher.finishBuild()
+        gradleLauncher.finishBuild(consumer)
 
         then:
-        def t = thrown RuntimeException
-        t == transformedException
+        1 * consumer.accept(transformedException)
     }
 
     void testNotifiesListenersOnMultipleBuildFailuresAndBuildListenerFailure() {
@@ -287,6 +288,5 @@ class DefaultGradleLauncherSpec extends Specification {
                 failures.add(other)
             }
         }
-        1 * includedBuildControllers.finishBuild(_)
     }
 }

@@ -49,8 +49,8 @@ public class BuildTreeState implements Closeable {
     /**
      * Runs the given action against the state of this build tree.
      */
-    public <T> T run(Function<BuildTreeContext, T> action) {
-        return action.apply(() -> services);
+    public <T> T run(Function<? super BuildTreeContext, T> action) {
+        return action.apply(new DefaultBuildTreeContext(services));
     }
 
     @Override

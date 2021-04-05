@@ -20,6 +20,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
 @ServiceScope(Scopes.Gradle.class)
 public interface IncludedBuildControllers {
@@ -41,7 +42,7 @@ public interface IncludedBuildControllers {
         }
 
         @Override
-        public void finishBuild(Collection<? super Throwable> failures) {
+        public void finishBuild(Consumer<? super Throwable> collector) {
         }
 
         @Override
@@ -71,7 +72,7 @@ public interface IncludedBuildControllers {
     /**
      * Completes the build, blocking until complete.
      */
-    void finishBuild(Collection<? super Throwable> failures);
+    void finishBuild(Consumer<? super Throwable> collector);
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
 
@@ -103,7 +104,7 @@ public interface IncludedBuildControllers {
         }
 
         @Override
-        public void finishBuild(Collection<? super Throwable> failures) {
+        public void finishBuild(Consumer<? super Throwable> collector) {
             // Do nothing
         }
 

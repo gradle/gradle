@@ -17,10 +17,8 @@
 package org.gradle.internal.build;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
@@ -32,7 +30,7 @@ public class NestedRootBuildRunner {
     }
 
     public static void runNestedRootBuild(String buildName, StartParameterInternal startParameter, ServiceRegistry services) {
-        createNestedRootBuild(buildName, startParameter, services).run((Transformer<Void, BuildController>) buildController -> {
+        createNestedRootBuild(buildName, startParameter, services).run(buildController -> {
             buildController.run();
             return null;
         });

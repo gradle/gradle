@@ -32,6 +32,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = new HashMap<>();
@@ -95,15 +96,11 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void finishBuild(Collection<? super Throwable> failures) {
+    public void finishBuild(Consumer<? super Throwable> collector) {
         CompositeStoppable.stoppable(buildControllers.values()).stop();
         buildControllers.clear();
         for (IncludedBuildState includedBuild : buildRegistry.getIncludedBuilds()) {
-            try {
-                includedBuild.finishBuild();
-            } catch (Exception e) {
-                failures.add(e);
-            }
+            includedBuild.finishBuild(collector);
         }
     }
 

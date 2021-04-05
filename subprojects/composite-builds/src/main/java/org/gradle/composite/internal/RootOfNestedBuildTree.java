@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
@@ -40,6 +39,7 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Function;
 
 public class RootOfNestedBuildTree extends AbstractBuildState implements NestedRootBuild {
     private final BuildIdentifier buildIdentifier;
@@ -106,7 +106,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     }
 
     @Override
-    public <T> T run(final Transformer<T, ? super BuildController> buildAction) {
+    public <T> T run(Function<? super BuildController, T> action) {
         final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
             final GradleInternal gradle = gradleLauncher.getGradle();
@@ -120,7 +120,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
                             buildName = settings.getRootProject().getName();
                         }
                     });
-                    T result = buildAction.transform(buildController);
+                    T result = action.apply(buildController);
                     context.setResult(new RunNestedBuildBuildOperationType.Result() {
                     });
                     return result;
@@ -129,7 +129,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
                 @Override
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Run nested build")
-                       .details(new RunNestedBuildBuildOperationType.Details() {
+                        .details(new RunNestedBuildBuildOperationType.Details() {
                             @Override
                             public String getBuildPath() {
                                 return gradle.getIdentityPath().getPath();

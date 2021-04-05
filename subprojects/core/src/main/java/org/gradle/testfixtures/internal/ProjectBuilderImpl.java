@@ -17,7 +17,6 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildType;
@@ -73,6 +72,7 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
+import java.util.function.Function;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
@@ -263,7 +263,7 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public <T> T run(Transformer<T, ? super BuildController> buildAction) {
+        public <T> T run(Function<? super BuildController, T> action) {
             throw new UnsupportedOperationException();
         }
 

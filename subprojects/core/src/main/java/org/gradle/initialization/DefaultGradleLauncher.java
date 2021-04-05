@@ -20,7 +20,6 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
@@ -34,6 +33,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class DefaultGradleLauncher implements GradleLauncher {
     private enum Stage {
@@ -57,7 +57,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildWorkExecutor buildExecuter;
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
-    private final IncludedBuildControllers includedBuildControllers;
     private final GradleInternal gradle;
     private final ConfigurationCache configurationCache;
     private final SettingsPreparer settingsPreparer;
@@ -76,7 +75,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         BuildWorkExecutor buildExecuter,
         BuildScopeServices buildServices,
         List<?> servicesToStop,
-        IncludedBuildControllers includedBuildControllers,
         SettingsPreparer settingsPreparer,
         TaskExecutionPreparer taskExecutionPreparer,
         ConfigurationCache configurationCache,
@@ -91,7 +89,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
         this.servicesToStop = servicesToStop;
-        this.includedBuildControllers = includedBuildControllers;
         this.configurationCache = configurationCache;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
@@ -127,9 +124,13 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     @Override
-    public void finishBuild() {
+    public void finishBuild(Consumer<? super Throwable> collector) {
         if (stage != null) {
-            finishBuild(stage.getDisplayName(), null);
+            try {
+                finishBuild(stage.getDisplayName(), null);
+            } catch (Throwable t) {
+                collector.accept(t);
+            }
         }
     }
 
@@ -188,10 +189,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return;
         }
 
+        List<Throwable> failures = new ArrayList<>();
+
         RuntimeException reportableFailure = stageFailure == null ? null : exceptionAnalyser.transform(stageFailure);
         BuildResult buildResult = new BuildResult(action, gradle, reportableFailure);
-        List<Throwable> failures = new ArrayList<>();
-        includedBuildControllers.finishBuild(failures);
         try {
             buildListener.buildFinished(buildResult);
             buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);

@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
@@ -37,6 +36,7 @@ import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Function;
 
 class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
@@ -77,13 +77,13 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
-    public <T> T run(Transformer<T, ? super BuildController> buildAction) {
+    public <T> T run(Function<? super BuildController, T> action) {
         GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
         GradleInternal gradle = buildController.getGradle();
         buildLifecycleListener.afterStart(gradle);
         try {
-            return buildAction.transform(buildController);
+            return action.apply(buildController);
         } finally {
             buildLifecycleListener.beforeComplete(gradle);
         }
