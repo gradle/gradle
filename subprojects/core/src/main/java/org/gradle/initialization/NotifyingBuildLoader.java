@@ -49,10 +49,16 @@ public class NotifyingBuildLoader implements BuildLoader {
         buildOperationExecutor.call(new CallableBuildOperation<Void>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
+                //noinspection Convert2Lambda
                 return BuildOperationDescriptor
                     .displayName("Load projects")
                     .progressDisplayName("Loading projects")
-                    .details((LoadProjectsBuildOperationType.Details) () -> buildPath);
+                    .details(new LoadProjectsBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return buildPath;
+                        }
+                    });
             }
 
             @Override
@@ -71,9 +77,15 @@ public class NotifyingBuildLoader implements BuildLoader {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
+                //noinspection Convert2Lambda
                 return BuildOperationDescriptor
                     .displayName(gradle.contextualize("Notify projectsLoaded listeners"))
-                    .details((NotifyProjectsLoadedBuildOperationType.Details) () -> buildPath);
+                    .details(new NotifyProjectsLoadedBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return buildPath;
+                        }
+                    });
             }
         });
     }
