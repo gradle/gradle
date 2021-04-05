@@ -50,7 +50,7 @@ class DefaultRootBuildStateTest extends Specification {
     def buildDefinition = Mock(BuildDefinition)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def includedBuildControllers = Mock(IncludedBuildControllers)
-    def exceptionAnalyzser = Mock(ExceptionAnalyser)
+    def exceptionAnalyzer = Mock(ExceptionAnalyser)
     DefaultRootBuildState build
 
     def setup() {
@@ -60,7 +60,7 @@ class DefaultRootBuildStateTest extends Specification {
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
         _ * sessionServices.get(IncludedBuildControllers) >> includedBuildControllers
-        _ * sessionServices.get(ExceptionAnalyser) >> exceptionAnalyzser
+        _ * sessionServices.get(ExceptionAnalyser) >> exceptionAnalyzer
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
         _ * projectStateRegistry.withLenientState(_) >> { args -> return args[0].create() }
@@ -136,11 +136,14 @@ class DefaultRootBuildStateTest extends Specification {
         result == '<result>'
 
         and:
-        1 * launcher.executeTasks() >> gradle
         1 * action.apply(!null) >> { BuildController controller ->
             controller.run()
             return '<result>'
         }
+        1 * launcher.scheduleRequestedTasks()
+        1 * includedBuildControllers.startTaskExecution()
+        1 * launcher.executeTasks()
+        1 * includedBuildControllers.awaitTaskCompletion(_)
         1 * launcher.finishBuild(_)
         1 * includedBuildControllers.finishBuild(_)
     }
@@ -175,9 +178,6 @@ class DefaultRootBuildStateTest extends Specification {
         then:
         IllegalStateException e = thrown()
         e.message == 'Cannot use launcher after build has completed.'
-
-        and:
-        1 * launcher.executeTasks() >> gradle
     }
 
     def "forwards action failure and cleans up"() {
@@ -211,11 +211,15 @@ class DefaultRootBuildStateTest extends Specification {
         1 * action.apply(!null) >> { BuildController controller ->
             controller.run()
         }
+        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
+            assert ex.causes == [failure]
+            return transformedFailure
+        }
         1 * includedBuildControllers.finishBuild(_)
         1 * launcher.finishBuild(_)
-        1 * exceptionAnalyzser.transform(_) >> { MultipleBuildFailures ex ->
-            assert ex.causes == [failure]
-            throw transformedFailure
+        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
+            assert ex.causes == [transformedFailure]
+            return transformedFailure
         }
         1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }
@@ -238,17 +242,18 @@ class DefaultRootBuildStateTest extends Specification {
         }
         1 * includedBuildControllers.finishBuild(_)
         1 * launcher.finishBuild(_)
-        1 * exceptionAnalyzser.transform(_) >> { MultipleBuildFailures ex ->
+        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
             assert ex.causes == [failure]
-            throw transformedFailure
+            return transformedFailure
         }
         1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }
 
-    def "collects and transforms build finish failures"() {
+    def "collects and transforms build execution and finish failures"() {
         def failure1 = new RuntimeException()
         def failure2 = new RuntimeException()
         def failure3 = new RuntimeException()
+        def failure4 = new RuntimeException()
         def transformedFailure = new RuntimeException()
 
         when:
@@ -259,15 +264,20 @@ class DefaultRootBuildStateTest extends Specification {
         e == transformedFailure
 
         and:
-        1 * launcher.executeTasks() >> { throw failure1 }
         1 * action.apply(!null) >> { BuildController controller ->
             controller.run()
         }
-        1 * includedBuildControllers.finishBuild(_) >> { Consumer consumer -> consumer.accept(failure2) }
-        1 * launcher.finishBuild(_) >> { Consumer consumer -> consumer.accept(failure3) }
-        1 * exceptionAnalyzser.transform(_) >> { MultipleBuildFailures ex ->
-            assert ex.causes == [failure1, failure2, failure3]
-            throw transformedFailure
+        1 * launcher.executeTasks() >> { throw failure1 }
+        1 * includedBuildControllers.awaitTaskCompletion(_) >> { params -> params[0].add(failure2) }
+        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
+            assert ex.causes == [failure1, failure2]
+            return transformedFailure
+        }
+        1 * includedBuildControllers.finishBuild(_) >> { Consumer consumer -> consumer.accept(failure3) }
+        1 * launcher.finishBuild(_) >> { Consumer consumer -> consumer.accept(failure4) }
+        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
+            assert ex.causes == [transformedFailure, failure3, failure4]
+            return transformedFailure
         }
         1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }

@@ -22,41 +22,17 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.BuildTree.class)
 public interface IncludedBuildControllers {
-    IncludedBuildControllers EMPTY = new IncludedBuildControllers() {
-        @Override
-        public void rootBuildOperationStarted() {
-        }
-
-        @Override
-        public void populateTaskGraphs() {
-        }
-
-        @Override
-        public void startTaskExecution() {
-        }
-
-        @Override
-        public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
-        }
-
-        @Override
-        public void finishBuild(Consumer<? super Throwable> collector) {
-        }
-
-        @Override
-        public IncludedBuildController getBuildController(BuildIdentifier buildIdentifier) {
-            throw new UnsupportedOperationException();
-        }
-    };
-
     /**
      * Notify the controllers that the root build operation has started.
      * Should be using something like {@link org.gradle.initialization.RootBuildLifecycleListener} however, this is currently called outside the root build operation.
      */
     void rootBuildOperationStarted();
 
+    /**
+     * Finish populating task graphs, once all entry point tasks have been scheduled.
+     */
     void populateTaskGraphs();
 
     /**
@@ -75,42 +51,4 @@ public interface IncludedBuildControllers {
     void finishBuild(Consumer<? super Throwable> collector);
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
-
-    class BuildSrcIncludedBuildControllers implements IncludedBuildControllers {
-        private final IncludedBuildControllers delegate;
-
-        public BuildSrcIncludedBuildControllers(IncludedBuildControllers delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void rootBuildOperationStarted() {
-            delegate.rootBuildOperationStarted();
-        }
-
-        @Override
-        public void populateTaskGraphs() {
-            delegate.populateTaskGraphs();
-        }
-
-        @Override
-        public void startTaskExecution() {
-            delegate.startTaskExecution();
-        }
-
-        @Override
-        public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
-            delegate.awaitTaskCompletion(taskFailures);
-        }
-
-        @Override
-        public void finishBuild(Consumer<? super Throwable> collector) {
-            // Do nothing
-        }
-
-        @Override
-        public IncludedBuildController getBuildController(BuildIdentifier buildIdentifier) {
-            return delegate.getBuildController(buildIdentifier);
-        }
-    }
 }

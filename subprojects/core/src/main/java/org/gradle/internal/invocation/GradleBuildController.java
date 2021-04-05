@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.invocation;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.execution.MultipleBuildFailures;
@@ -28,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class GradleBuildController implements BuildController, Stoppable {
     private enum State {Created, Completed}
@@ -43,6 +43,13 @@ public class GradleBuildController implements BuildController, Stoppable {
         this.workerLeaseService = workerLeaseService;
         this.includedBuildControllers = includedBuildControllers;
         this.exceptionAnalyser = exceptionAnalyser;
+    }
+
+    public GradleBuildController(GradleLauncher gradleLauncher, IncludedBuildControllers includedBuildControllers) {
+        this(gradleLauncher,
+            gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class),
+            includedBuildControllers,
+            gradleLauncher.getGradle().getServices().get(ExceptionAnalyser.class));
     }
 
     public GradleBuildController(GradleLauncher gradleLauncher) {
@@ -66,7 +73,23 @@ public class GradleBuildController implements BuildController, Stoppable {
 
     @Override
     public void run() {
-        doBuild(GradleLauncher::executeTasks);
+        doBuild(launcher -> {
+            launcher.scheduleRequestedTasks();
+            includedBuildControllers.startTaskExecution();
+            List<Throwable> failures = new ArrayList<>();
+            try {
+                launcher.executeTasks();
+            } catch (MultipleBuildFailures e) {
+                failures.addAll(e.getCauses());
+            } catch (Exception e) {
+                failures.add(e);
+            }
+            includedBuildControllers.awaitTaskCompletion(failures);
+            if (!failures.isEmpty()) {
+                throw exceptionAnalyser.transform(new MultipleBuildFailures(failures));
+            }
+            return null;
+        });
     }
 
     @Override
@@ -74,7 +97,7 @@ public class GradleBuildController implements BuildController, Stoppable {
         doBuild(GradleLauncher::getConfiguredBuild);
     }
 
-    public <T> T doBuild(final Transformer<T, ? super GradleLauncher> build) {
+    public <T> T doBuild(final Function<? super GradleLauncher, T> build) {
         try {
             // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
             return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), () -> {
@@ -83,7 +106,7 @@ public class GradleBuildController implements BuildController, Stoppable {
                 GradleLauncher launcher = getLauncher();
                 T result = null;
                 try {
-                    result = build.transform(launcher);
+                    result = build.apply(launcher);
                 } catch (MultipleBuildFailures e) {
                     failures.addAll(e.getCauses());
                 } catch (Throwable t) {

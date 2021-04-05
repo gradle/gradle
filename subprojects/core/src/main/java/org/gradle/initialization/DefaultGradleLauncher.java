@@ -37,15 +37,14 @@ import java.util.function.Consumer;
 
 public class DefaultGradleLauncher implements GradleLauncher {
     private enum Stage {
-        LoadSettings, Configure, TaskGraph, RunTasks() {
-            @Override
-            String getDisplayName() {
-                return "Build";
-            }
-        }, Finished;
+        LoadSettings, Configure, TaskGraph, RunTasks, Finished;
 
         String getDisplayName() {
-            return name();
+            if (Configure.compareTo(this) >= 0) {
+                return "Configure";
+            } else {
+                return "Build";
+            }
         }
     }
 
@@ -118,9 +117,13 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     @Override
-    public GradleInternal executeTasks() {
+    public void scheduleRequestedTasks() {
+        doBuildStages(Stage.TaskGraph);
+    }
+
+    @Override
+    public void executeTasks() {
         doBuildStages(Stage.RunTasks);
-        return gradle;
     }
 
     @Override
@@ -143,15 +146,29 @@ public class DefaultGradleLauncher implements GradleLauncher {
             if (stage == null && gradle.isRootBuild()) {
                 buildOptionBuildOperationProgressEventsEmitter.emit(gradle.getStartParameter());
             }
-
-            if (upTo == Stage.RunTasks && configurationCache.canLoad()) {
-                doConfigurationCacheBuild();
+            if (upTo == Stage.RunTasks) {
+                prepareTaskGraph();
+                runWork();
+            } else if (upTo == Stage.TaskGraph) {
+                prepareTaskGraph();
             } else {
                 doClassicBuildStages(upTo);
             }
         } catch (Throwable t) {
             finishBuild(upTo.getDisplayName(), t);
         }
+    }
+
+    private void prepareTaskGraph() {
+        if (stage == Stage.TaskGraph) {
+            return;
+        }
+        if (configurationCache.canLoad()) {
+            doLoadTaskGraphFromCache();
+        } else {
+            doClassicBuildStages(Stage.TaskGraph);
+        }
+        stage = Stage.TaskGraph;
     }
 
     private void doClassicBuildStages(Stage upTo) {
@@ -167,18 +184,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return;
         }
         prepareTaskExecution();
-        if (upTo == Stage.TaskGraph) {
-            return;
-        }
         configurationCache.save();
-        runWork();
     }
 
-    @SuppressWarnings("deprecation")
-    private void doConfigurationCacheBuild() {
+    private void doLoadTaskGraphFromCache() {
         configurationCache.load();
-        stage = Stage.TaskGraph;
-        runWork();
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {

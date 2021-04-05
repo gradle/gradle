@@ -70,34 +70,30 @@ class DefaultGradleLauncherSpec extends Specification {
             settingsPreparerMock, taskExecutionPreparerMock, configurationCache, Mock(BuildOptionBuildOperationProgressEventsEmitter))
     }
 
-    void testRunTasks() {
-        when:
+    void testScheduleAndRunRequestedTasks() {
+        expect:
         isRootBuild()
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
-        DefaultGradleLauncher gradleLauncher = launcher()
-        GradleInternal result = gradleLauncher.executeTasks()
-
-        then:
-        result == gradleMock
+        def gradleLauncher = launcher()
+        gradleLauncher.scheduleRequestedTasks()
+        gradleLauncher.executeTasks()
     }
 
-    void testRunAsNestedBuild() {
-        when:
+    void testScheduleAndRunAsNestedBuild() {
+        expect:
         isNestedBuild()
 
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
         DefaultGradleLauncher gradleLauncher = launcher()
-        GradleInternal result = gradleLauncher.executeTasks()
-
-        then:
-        result == gradleMock
+        gradleLauncher.scheduleRequestedTasks()
+        gradleLauncher.executeTasks()
     }
 
-    void testGetBuildAnalysis() {
+    void testGetConfiguredBuild() {
         when:
         isRootBuild()
         expectSettingsBuilt()
@@ -112,7 +108,7 @@ class DefaultGradleLauncherSpec extends Specification {
         result == gradleMock
     }
 
-    void testNotifiesListenerOfBuildAnalysisStages() {
+    void testNotifiesListenerOfConfiguredBuildStages() {
         when:
         isRootBuild()
         expectSettingsBuilt()
@@ -134,6 +130,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()
+        gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
     }
 
@@ -147,6 +144,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
+        gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
 
         then:
@@ -167,6 +165,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
+        gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
 
         then:
@@ -189,6 +188,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
+        gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
 
         then:
@@ -211,6 +211,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         DefaultGradleLauncher gradleLauncher = launcher()
+        gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
 
         when:
@@ -238,6 +239,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         DefaultGradleLauncher gradleLauncher = launcher()
+        gradleLauncher.scheduleRequestedTasks()
 
         when:
         gradleLauncher.executeTasks()

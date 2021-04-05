@@ -31,14 +31,14 @@ public interface GradleLauncher extends Stoppable {
     GradleInternal getGradle();
 
     /**
-     * Evaluates the settings for this build.
+     * Evaluates the settings for this build, if not already available.
      *
      * @return The loaded settings instance.
      */
     SettingsInternal getLoadedSettings();
 
     /**
-     * Configures the build.
+     * Configures the build, if not already available.
      *
      * @return The configured Gradle build instance.
      */
@@ -57,14 +57,18 @@ public interface GradleLauncher extends Stoppable {
     void scheduleTasks(final Iterable<String> tasks);
 
     /**
-     * Executes the tasks scheduled for this build.
-     *
-     * @return The configured Gradle build instance.
+     * Schedule requested tasks.
      */
-    GradleInternal executeTasks();
+    void scheduleRequestedTasks();
+
+    /**
+     * Executes the tasks scheduled for this build.
+     */
+    void executeTasks();
 
     /**
      * Stops task execution threads and calls the `buildFinished` listener event.
+     * Failures to finish the build are passed to the given consumer.
      */
     void finishBuild(Consumer<? super Throwable> collector);
 
