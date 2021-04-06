@@ -16,6 +16,7 @@
 
 package org.gradle.internal.hash;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 
 /**
@@ -28,6 +29,6 @@ public class LineEndingNormalizationFileHasher extends AbstractFileHasher {
 
     @Override
     public HashCode hash(File file) {
-        return hash(new LineEndingNormalizingInputStream(getInputStream(file)));
+        return hash(new LineEndingNormalizingInputStream(new BufferedInputStream(getInputStream(file))));
     }
 }
