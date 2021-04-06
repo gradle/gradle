@@ -36,6 +36,8 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
 
+import javax.annotation.Nullable;
+
 /**
  * A helper used by generated classes to create managed instances.
  */
@@ -111,10 +113,19 @@ public class ManagedObjectFactory {
     private static ManagedPropertyName displayNameFor(ModelObject owner, String propertyName) {
         if (owner.getModelIdentityDisplayName() instanceof ManagedPropertyName) {
             ManagedPropertyName root = (ManagedPropertyName) owner.getModelIdentityDisplayName();
-            return new ManagedPropertyName(root.owner, root.propertyName + "." + propertyName);
+            return new ManagedPropertyName(root.ownerDisplayName, root.propertyName + "." + propertyName);
         } else {
-            return new ManagedPropertyName(owner, propertyName);
+            return new ManagedPropertyName(ownerDisplayName(owner), propertyName);
         }
+    }
+
+    @Nullable
+    private static String ownerDisplayName(ModelObject owner) {
+        Describable ownerModelIdentityDisplayName = owner.getModelIdentityDisplayName();
+        if (ownerModelIdentityDisplayName != null) {
+            return ownerModelIdentityDisplayName.getDisplayName();
+        }
+        return null;
     }
 
     private ObjectFactory getObjectFactory() {
@@ -122,11 +133,11 @@ public class ManagedObjectFactory {
     }
 
     private static class ManagedPropertyName implements DisplayName {
-        private final ModelObject owner;
+        private final String ownerDisplayName;
         private final String propertyName;
 
-        public ManagedPropertyName(ModelObject owner, String propertyName) {
-            this.owner = owner;
+        public ManagedPropertyName(String ownerDisplayName, String propertyName) {
+            this.ownerDisplayName = ownerDisplayName;
             this.propertyName = propertyName;
         }
 
@@ -142,9 +153,8 @@ public class ManagedObjectFactory {
 
         @Override
         public String getDisplayName() {
-            Describable ownerDisplayName = owner.getModelIdentityDisplayName();
             if (ownerDisplayName != null) {
-                return ownerDisplayName.getDisplayName() + " property '" + propertyName + "'";
+                return ownerDisplayName + " property '" + propertyName + "'";
             } else {
                 return "property '" + propertyName + "'";
             }
