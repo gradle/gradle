@@ -39,13 +39,28 @@ Some plugins will break with this new version of Gradle, for example because the
 === Deprecations
 
 [[configuring_custom_build_layout]]
-==== Configuring build layout via command line
+==== Setting custom build layout via command line
 
 Command line options:
-- `-c`, `--settings-file` for specifying a custom settings file location
-- `-b`, `--build-file` for specifying a custom build file location
-as well as setting a custom build file using `GradleBuild`(TODO link) task have been deprecated.
+
+* `-c`, `--settings-file` for specifying a custom settings file location
+* `-b`, `--build-file` for specifying a custom build file location
+
+have been deprecated.
 
 Please use standard locations for settings and build files:
-- settings file in the root of the build
-- build file in the root of each subproject
+
+* settings file in the root of the build
+* build file in the root of each subproject
+
+==== Setting custom build file in GradleBuild task
+
+Setting custom build file using
+link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:buildFile[buildFile]
+property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task have been deprecated.
+
+Please use the link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:dir[dir]
+property instead to specify the root of the nested build.
+Alternatively, consider using one of the recommended alternatives for
+link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as suggested in
+<<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
