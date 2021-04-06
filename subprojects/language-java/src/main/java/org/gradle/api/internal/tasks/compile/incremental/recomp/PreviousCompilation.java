@@ -38,17 +38,17 @@ public class PreviousCompilation {
         return new ClassSetAnalysis(data.getClasspathSnapshot());
     }
 
-    public DependentsSet getDependents(ClassSetAnalysis.ClassSetDiff diff) {
+    public DependentsSet findDependents(ClassSetAnalysis.ClassSetDiff diff) {
         if (diff.getDependents().isDependencyToAll()) {
             return diff.getDependents();
         }
-        return classAnalysis.getTransitiveDependents(diff.getDependents().getAllDependentClasses(), diff.getConstants());
+        return classAnalysis.findTransitiveDependents(diff.getDependents().getAllDependentClasses(), diff.getConstants());
     }
 
-    public DependentsSet getDependents(String className, IntSet newConstants) {
+    public DependentsSet findDependents(String className, IntSet newConstants) {
         IntSet constants = new IntOpenHashSet(classAnalysis.getConstants(className));
         constants.removeAll(newConstants);
-        return classAnalysis.getTransitiveDependents(className, constants);
+        return classAnalysis.findTransitiveDependents(className, constants);
     }
 
     public Set<String> getTypesToReprocess() {

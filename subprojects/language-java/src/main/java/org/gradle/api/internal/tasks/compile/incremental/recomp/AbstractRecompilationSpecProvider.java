@@ -48,7 +48,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     protected void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
-        DependentsSet dependents = current.getDependentsOfClasspathChanges(previous);
+        DependentsSet dependents = current.findDependentsOfClasspathChanges(previous);
         if (dependents.isDependencyToAll()) {
             spec.setFullRebuildCause(dependents.getDescription());
             return;

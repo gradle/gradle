@@ -37,14 +37,14 @@ public class CurrentCompilation {
         return spec.getAnnotationProcessorPath();
     }
 
-    public DependentsSet getDependentsOfClasspathChanges(PreviousCompilation previous) {
+    public DependentsSet findDependentsOfClasspathChanges(PreviousCompilation previous) {
         ClassSetAnalysis currentClasspath = getClasspath();
         ClassSetAnalysis previousClasspath = previous.getClasspath();
         if (previousClasspath == null) {
             return DependentsSet.dependencyToAll("classpath data of previous compilation is incomplete");
         }
-        ClassSetAnalysis.ClassSetDiff classpathChanges = currentClasspath.getChangesSince(previousClasspath);
-        return previous.getDependents(classpathChanges);
+        ClassSetAnalysis.ClassSetDiff classpathChanges = currentClasspath.findChangesSince(previousClasspath);
+        return previous.findDependents(classpathChanges);
     }
 
     private ClassSetAnalysis getClasspath() {

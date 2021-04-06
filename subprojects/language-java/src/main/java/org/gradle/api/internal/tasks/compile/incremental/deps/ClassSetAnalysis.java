@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedRes
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -77,21 +78,21 @@ public class ClassSetAnalysis {
     /**
      * Computes the types affected by the changes since some other class set, including transitively affected classes.
      */
-    public ClassSetDiff getChangesSince(ClassSetAnalysis other) {
+    public ClassSetDiff findChangesSince(ClassSetAnalysis other) {
         DependentsSet directChanges = classAnalysis.getChangedClassesSince(other.classAnalysis);
         if (directChanges.isDependencyToAll()) {
             return new ClassSetDiff(directChanges, Collections.emptyMap());
         }
-        DependentsSet transitiveChanges = other.getTransitiveDependents(directChanges.getAllDependentClasses(), Collections.emptyMap());
+        DependentsSet transitiveChanges = other.findTransitiveDependents(directChanges.getAllDependentClasses(), Collections.emptyMap());
         if (transitiveChanges.isDependencyToAll()) {
             return new ClassSetDiff(transitiveChanges, Collections.emptyMap());
         }
         DependentsSet allChanges = DependentsSet.merge(Arrays.asList(directChanges, transitiveChanges));
-        Map<String, IntSet> changedConstants = getChangedConstants(other, allChanges);
+        Map<String, IntSet> changedConstants = findChangedConstants(other, allChanges);
         return new ClassSetDiff(allChanges, changedConstants);
     }
 
-    private Map<String, IntSet> getChangedConstants(ClassSetAnalysis other, DependentsSet affectedClasses) {
+    private Map<String, IntSet> findChangedConstants(ClassSetAnalysis other, DependentsSet affectedClasses) {
         if (affectedClasses.isDependencyToAll()) {
             return Collections.emptyMap();
         }
@@ -106,14 +107,17 @@ public class ClassSetAnalysis {
     }
 
     /**
-     * An efficient version of {@link #getTransitiveDependents(String, IntSet)} when several classes have changed.
+     * An efficient version of {@link #findTransitiveDependents(String, IntSet)} when several classes have changed.
      */
-    public DependentsSet getTransitiveDependents(Iterable<String> classes, Map<String, IntSet> constants) {
+    public DependentsSet findTransitiveDependents(Collection<String> classes, Map<String, IntSet> constants) {
+        if (classes.isEmpty()) {
+            return DependentsSet.empty();
+        }
         final Set<String> accessibleResultClasses = new HashSet<>();
         final Set<String> privateResultClasses = new HashSet<>();
         final Set<GeneratedResource> resultResources = new HashSet<>();
         for (String cls : classes) {
-            DependentsSet d = getTransitiveDependents(cls, constants.getOrDefault(cls, IntSets.emptySet()));
+            DependentsSet d = findTransitiveDependents(cls, constants.getOrDefault(cls, IntSets.emptySet()));
             if (d.isDependencyToAll()) {
                 return d;
             }
@@ -135,7 +139,7 @@ public class ClassSetAnalysis {
      * Computes the transitive dependents of a changed class.
      * If the class had any changes to inlineable constants, these need to be provided as the second parameter.
      */
-    public DependentsSet getTransitiveDependents(String className, IntSet constants) {
+    public DependentsSet findTransitiveDependents(String className, IntSet constants) {
         String fullRebuildCause = annotationProcessingData.getFullRebuildCause();
         if (fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(fullRebuildCause);

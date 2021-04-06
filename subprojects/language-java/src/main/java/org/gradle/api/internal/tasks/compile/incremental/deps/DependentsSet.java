@@ -53,6 +53,12 @@ public abstract class DependentsSet {
     }
 
     public static DependentsSet merge(Collection<DependentsSet> sets) {
+        if (sets.isEmpty()) {
+            return DependentsSet.empty();
+        }
+        if (sets.size() == 1) {
+            return sets.iterator().next();
+        }
         int privateCount = 0;
         int accessibleCount = 0;
         int resourceCount = 0;
