@@ -420,7 +420,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
-
     public static class DeprecatePlugin extends WithReplacement<String, DeprecatePlugin> {
 
         private boolean externalReplacement = false;
