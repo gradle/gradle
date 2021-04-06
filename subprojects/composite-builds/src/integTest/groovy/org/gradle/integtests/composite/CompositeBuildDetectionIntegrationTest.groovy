@@ -75,7 +75,7 @@ class CompositeBuildDetectionIntegrationTest extends AbstractCompositeBuildInteg
         buildA.settingsFile << """
             includeBuild('${buildB.toURI()}') {
                 dependencySubstitution {
-                    substitute module('org.test:buildB:1.0') with project(':')
+                    substitute module('org.test:buildB:1.0') using project(':')
                 }
             }
 """

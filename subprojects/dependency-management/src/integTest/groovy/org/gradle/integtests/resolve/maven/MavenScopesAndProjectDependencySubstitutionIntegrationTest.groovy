@@ -61,7 +61,7 @@ project(':child1') {
         conf 'org.test:maven:1.0'
     }
     configurations.conf.resolutionStrategy.dependencySubstitution {
-        substitute module('org.test:replaced:1.0') with project(':child2')
+        substitute module('org.test:replaced:1.0') using project(':child2')
     }
 }
 project(':child2') {
@@ -110,7 +110,7 @@ project(':child1') {
         conf 'org.test:maven:1.0'
     }
     configurations.conf.resolutionStrategy.dependencySubstitution {
-        substitute module('org.test:replaced:1.0') with project(':child2')
+        substitute module('org.test:replaced:1.0') using project(':child2')
     }
 }
 project(':child2') {
@@ -153,7 +153,7 @@ project(':child1') {
         conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
     }
     configurations.conf.resolutionStrategy.dependencySubstitution {
-        substitute module('org.test:replaced:1.0') with project(':child2')
+        substitute module('org.test:replaced:1.0') using project(':child2')
     }
 }
 project(':child2') {
@@ -203,7 +203,7 @@ project(':child1') {
         conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
     }
     configurations.conf.resolutionStrategy.dependencySubstitution {
-        substitute module('org.test:replaced:1.0') with project(':child2')
+        substitute module('org.test:replaced:1.0') using project(':child2')
     }
 }
 project(':child2') {

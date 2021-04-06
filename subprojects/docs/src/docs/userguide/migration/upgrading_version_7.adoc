@@ -37,3 +37,14 @@ Some plugins will break with this new version of Gradle, for example because the
 == Upgrading from 7.0 and earlier
 
 === Deprecations
+
+[[dependency_substitutions_with]]
+=== Substitution.with replaced with Substitution.using
+
+<<resolution_rules#sec:dependency_substitution_rules, Dependency substitutions>> using `with` method have been deprecated
+and are replaced with `using` method that also allows chaining.
+For example, a dependency substitution rule `substitute(project(':a')).with(project(':b'))` should be replaced with
+`substitute(project(':a')).using(project(':b'))`.
+With chaining you can, for example, add a reason for a substitution like this:
+`substitute(project(':a')).using(project(':b')).because("a reason")`.
+
