@@ -271,7 +271,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         subDirectory.file("build.gradle").write("");
 
         executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
-        inDirectory(subDirectory).withArgument("--settings-file=" + subSettingsFile).withTasks("help").run();
+        inDirectory(subDirectory).usingSettingsFile(subSettingsFile).withTasks("help").run();
     }
 
     @Test
@@ -280,7 +280,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile renamedBuildGradle = file("renamed_build.gradle").createFile();
 
         executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
-        executer.withArgument("--build-file=" + renamedBuildGradle).withTasks("help").run();
+        executer.usingBuildScript(renamedBuildGradle).withTasks("help").run();
     }
 
     @Test
