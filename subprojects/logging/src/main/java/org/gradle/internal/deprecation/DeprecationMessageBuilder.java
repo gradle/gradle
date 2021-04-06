@@ -410,8 +410,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        String formatSummary(String task) {
-            return String.format("The %s task type used by %s has been deprecated.", task, path);
+        String formatSummary(String type) {
+            return String.format("The task type %s (used by the %s task) has been deprecated.", type, path);
         }
 
         @Override

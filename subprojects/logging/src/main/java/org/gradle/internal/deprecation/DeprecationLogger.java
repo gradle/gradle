@@ -199,7 +199,7 @@ public class DeprecationLogger {
     }
 
     /**
-     * Output: The ${task.getCanonicalName()} task type used by ${task.getPath()} has been deprecated.
+     * Output: The task type ${task.getCanonicalName()} (used by the ${task.getPath()} task) has been deprecated.
      */
     @CheckReturnValue
     public static DeprecationMessageBuilder.DeprecateTaskType deprecateTaskType(Class<?> task, String path) {
