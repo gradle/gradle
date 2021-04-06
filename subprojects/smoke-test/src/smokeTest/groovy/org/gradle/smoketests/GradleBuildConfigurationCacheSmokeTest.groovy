@@ -37,9 +37,9 @@ import org.gradle.util.TestPrecondition
 })
 class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeTest {
 
-    def "can run Gradle unit tests with configuration cache enabled across daemons"() {
+    def "can run Gradle unit tests with configuration cache enabled"() {
 
-        given: "tasks whose configuration can be safely cached across daemons"
+        given:
         def supportedTasks = [
             ":tooling-api:publishLocalPublicationToLocalRepository",
             ":base-services:test", "--tests=org.gradle.api.JavaVersionSpec"
@@ -51,17 +51,10 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         then:
         assertConfigurationCacheStateStored()
 
-        when: "reusing the configuration cache in the same daemon"
-        configurationCacheRun supportedTasks, 0
-
-        then:
-        assertConfigurationCacheStateLoaded()
-        result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
-
         when:
-        run(["clean"])
+        run([":tooling-api:clean", ":base-services:clean"])
 
-        and: "reusing the configuration cache in a different daemon"
+        and:
         configurationCacheRun supportedTasks + ["--info"], 1
 
         then:
@@ -70,7 +63,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
     }
 
-    def "can run Gradle integ tests with configuration cache enabled (original daemon only)"() {
+    def "can run Gradle integ tests with configuration cache enabled"() {
 
         given: "tasks whose configuration can only be loaded in the original daemon"
         def supportedTasks = [
@@ -84,8 +77,11 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         then:
         assertConfigurationCacheStateStored()
 
-        when: "reusing the configuration cache in the same daemon"
-        configurationCacheRun supportedTasks, 0
+        when:
+        run([":configuration-cache:clean"])
+
+        then:
+        configurationCacheRun supportedTasks, 1
 
         then:
         assertConfigurationCacheStateLoaded()
