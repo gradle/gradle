@@ -1420,10 +1420,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visitField(ACC_PRIVATE | ACC_TRANSIENT, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
         }
 
-        private String propFieldName(PropertyMetadata property) {
-            return "__" + property.getName() + "__";
-        }
-
         @Override
         public void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner, boolean applyRole) {
             if (!conventionAware && !attachOwner) {
@@ -1865,6 +1861,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 this.getterName = getterName;
             }
         }
+    }
+
+    private static String propFieldName(PropertyMetadata property) {
+        return propFieldName(property.getName());
+    }
+
+    public static String propFieldName(String name) {
+        return "__" + name + "__";
     }
 
     private static Class<?> rawTypeParam(PropertyMetadata property, int paramNum) {

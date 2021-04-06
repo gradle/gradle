@@ -21,6 +21,7 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.configurationcache.ConfigurationCacheError
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.propertyDescriptionFor
 import org.gradle.configurationcache.serialization.Codec
@@ -45,10 +46,13 @@ class BeanPropertyWriter(
         for (relevantField in relevantFields) {
             val field = relevantField.field
             val fieldName = field.name
-            val originalFieldValue = field.get(bean)
-            val fieldValue = originalFieldValue ?: conventionalValueOf(bean, fieldName)
+            val fieldValue =
+                when (val isExplicitValue = relevantField.isExplicitValueField) {
+                    null -> field.get(bean)
+                    else -> conventionValueOf(bean, fieldName, field, isExplicitValue)
+                }
             relevantField.unsupportedFieldType?.let {
-                reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
+                reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
             }
             withDebugFrame({ field.debugFrameName() }) {
                 writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
@@ -57,9 +61,12 @@ class BeanPropertyWriter(
     }
 
     private
-    fun conventionalValueOf(bean: Any, fieldName: String): Any? = (bean as? IConventionAware)?.run {
-        conventionMapping.getConventionValue<Any?>(null, fieldName, false)
-    }
+    fun conventionValueOf(bean: Any, fieldName: String, field: Field, isExplicitValue: Field) =
+        bean.uncheckedCast<IConventionAware>().conventionMapping.getConventionValue(
+            field.get(bean),
+            fieldName,
+            isExplicitValue.get(bean).uncheckedCast()
+        )
 
     private
     fun Field.debugFrameName() =
