@@ -183,6 +183,7 @@ public class ThingTest {
             }
         """
         when:
+        executer.expectDeprecationWarning("The org.gradle.testing.jacoco.tasks.JacocoMerge_Decorated task type used by :jacocoMerge has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the org.gradle.testing.jacoco.tasks.JacocoReport type instead.")
         succeeds 'mergedReport'
 
         then:
