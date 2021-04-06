@@ -71,7 +71,6 @@ dependencies {
     integTestImplementation(project(":platform-jvm"))
     integTestImplementation(project(":test-kit"))
     integTestImplementation(project(":launcher"))
-    integTestImplementation(project(":enterprise"))
 
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
@@ -86,8 +85,8 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
-        because("Includes tests for builds with TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
+    integTestDistributionRuntimeOnly(project(":distributions-full")) {
+        because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
