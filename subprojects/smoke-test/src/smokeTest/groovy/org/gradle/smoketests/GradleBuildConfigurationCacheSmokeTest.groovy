@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
@@ -241,6 +242,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":distributions-full:binInstallation").outcome == TaskOutcome.SUCCESS
     }
 
+    @Ignore("Broken by at least the Asciidoctor plugin, and takes 40mins on CI")
     @NotYetImplemented
     def "can build and test Gradle documentation with configuration cache enabled"() {
 
