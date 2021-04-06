@@ -41,6 +41,6 @@ Some plugins will break with this new version of Gradle, for example because the
 [[jacoco_merge]]
 ==== JacocoMerge task type is deprecated
 
-The `JacocoMerge` task was used to provide single exec files from multiple test tasks.
-The task is being replaced by the `JacocoReport` which can also take multiple coverage reports as an input.
-Consequently, the `JacocoMerge` is now deprecated and set to be removed in Gradle 8.0.
+The `JacocoMerge` task was used for merging coverage reports from different subprojects into a single report.
+The same functionality is also available on the `JacocoReport` task.
+Because of the duplication, `JacocoMerge` is now deprecated and scheduled for removal in Gradle 8.0.
