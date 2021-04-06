@@ -93,7 +93,6 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertTestClassExecutedIn "subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
     }
 
-    @NotYetImplemented
     def "can run Gradle cross-version tests with configuration cache enabled"() {
 
         given:
@@ -109,7 +108,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertConfigurationCacheStateStored()
 
         when:
-        run(["clean"])
+        run([":configuration-cache:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
@@ -119,7 +118,6 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":configuration-cache:embeddedCrossVersionTest").outcome == TaskOutcome.SUCCESS
     }
 
-    @NotYetImplemented
     def "can run Gradle smoke tests with configuration cache enabled"() {
 
         given:
@@ -135,7 +133,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertConfigurationCacheStateStored()
 
         when:
-        run(["clean"])
+        run([":smoke-test:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
@@ -145,13 +143,12 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":smoke-test:smokeTest").outcome == TaskOutcome.SUCCESS
     }
 
-    @NotYetImplemented
     def "can run Gradle soak tests with configuration cache enabled"() {
 
         given:
         def tasks = [
             ':soak:forkingIntegTest',
-            '--tests=org.gradle.vfs.FileSystemWatchingSoakTest'
+            '--tests=org.gradle.connectivity.MavenCentralDependencyResolveIntegrationTest'
         ]
 
         when:
@@ -161,7 +158,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertConfigurationCacheStateStored()
 
         when:
-        run(["clean"])
+        run([":soak:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
@@ -184,7 +181,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertConfigurationCacheStateStored()
 
         when:
-        run(["clean"])
+        run([":configuration-cache:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
@@ -212,7 +209,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertConfigurationCacheStateStored()
 
         when:
-        run(["clean"])
+        run([":architecture-test:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
@@ -222,7 +219,6 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
     }
 
-    @NotYetImplemented
     def "can build and install Gradle binary distribution with configuration cache enabled"() {
 
         given:
@@ -238,7 +234,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertConfigurationCacheStateStored()
 
         when:
-        run(["clean"])
+        run([":distributions-full:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
@@ -266,7 +262,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertConfigurationCacheStateStored()
 
         when:
-        run(["clean"])
+        run([":docs:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
