@@ -26,10 +26,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         given:
         def configurationCache = newConfigurationCacheFixture()
         withLibBuild()
-        def appBuild = withAppBuild()
-        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(
-            appBuild.file('settings.gradle')
-        )
+        withEnterprisePlugin(withAppBuild())
 
         when:
         inDirectory 'app'
@@ -204,6 +201,12 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
         }
+    }
+
+    private static withEnterprisePlugin(TestFile settingsDir) {
+        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(
+            settingsDir.file('settings.gradle')
+        )
     }
 
     private TestFile withLibBuild() {
