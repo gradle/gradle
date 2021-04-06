@@ -37,3 +37,10 @@ Some plugins will break with this new version of Gradle, for example because the
 == Upgrading from 7.0 and earlier
 
 === Deprecations
+
+[[jacoco_merge]]
+==== JacocoMerge task type is deprecated
+
+The `JacocoMerge` task was used to provide single exec files from multiple test tasks.
+The task is being replaced by the `JacocoReport` which can also take multiple coverage reports as an input.
+Consequently, the `JacocoMerge` is now deprecated and set to be removed in Gradle 8.0.

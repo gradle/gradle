@@ -91,7 +91,7 @@ public class JacocoMerge extends JacocoBase {
 
     @TaskAction
     public void merge() {
-        DeprecationLogger.deprecateTaskType(getClass(), getPath()).replaceWith(JacocoReport.class).willBeRemovedInGradle8().undocumented().nagUser();
+        DeprecationLogger.deprecateTaskType(getClass(), getPath()).replaceWith(JacocoReport.class).willBeRemovedInGradle8().withUpgradeGuideSection(7, "jacoco_merge").nagUser();
         new AntJacocoMerge(getAntBuilder()).execute(getJacocoClasspath(), getExecutionData(), getDestinationFile());
     }
 
