@@ -57,10 +57,25 @@ Please use standard locations for settings and build files:
 
 Setting custom build file using
 link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:buildFile[buildFile]
-property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task have been deprecated.
+property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task has been deprecated.
 
 Please use the link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:dir[dir]
 property instead to specify the root of the nested build.
 Alternatively, consider using one of the recommended alternatives for
 link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as suggested in
 <<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
+
+==== Setting custom build layout via StartParameter API
+
+Setting custom build layout using
+link:{groovyDslPath}/org.gradle.StartParameter.html[StartParameter] methods
+link:{groovyDslPath}/org.gradle.StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)]
+and
+link:{groovyDslPath}/org.gradle.StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)]
+as well as the counterpart getters
+link:{groovyDslPath}/org.gradle.StartParameter.html#getBuildFile--[getBuildFile()]
+and
+link:{groovyDslPath}/org.gradle.StartParameter.html#getSettingsFile--[getSettingsFile()]
+have been deprecated.
+
+Consider structuring the build so that it can be executed without specifying custom build or settings files.

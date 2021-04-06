@@ -275,7 +275,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns the build file to use to select the default project. Returns null when the build file is not used to select the default project.
      *
      * @return The build file. May be null.
+     *
+     * @deprecated Setting custom build file to select the default project has been deprecated.
+     * This method will be removed in Gradle 8.0.
      */
+    @Deprecated
     @Nullable
     public File getBuildFile() {
         return buildFile;
@@ -285,7 +289,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Sets the build file to use to select the default project. Use null to disable selecting the default project using the build file.
      *
      * @param buildFile The build file. May be null.
+     *
+     * @deprecated Setting custom build file to select the default project has been deprecated.
+     * Please use {@link #setProjectDir(File)} to specify the directory of the default project instead.
+     * This method will be removed in Gradle 8.0.
      */
+    @Deprecated
     public void setBuildFile(@Nullable File buildFile) {
         if (buildFile == null) {
             this.buildFile = null;
@@ -445,7 +454,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Sets the settings file to use for the build. Use null to use the default settings file.
      *
      * @param settingsFile The settings file to use. May be null.
+     *
+     * @deprecated Setting custom settings file for the build has been deprecated.
+     * Please use {@link #setProjectDir(File)} to specify the directory of the default project instead.
+     * This method will be removed in Gradle 8.0.
      */
+    @Deprecated
     public void setSettingsFile(@Nullable File settingsFile) {
         if (settingsFile == null) {
             this.settingsFile = null;
@@ -461,7 +475,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Will return null if the default settings file is to be used.
      *
      * @return The settings file. May be null.
+     *
+     * @deprecated Setting custom build file to select the default project has been deprecated.
+     * This method will be removed in Gradle 8.0.
      */
+    @Deprecated
     @Nullable
     public File getSettingsFile() {
         return settingsFile;

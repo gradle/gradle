@@ -56,6 +56,7 @@ import org.gradle.internal.time.Time;
 import org.gradle.invocation.DefaultGradle;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.List;
 import java.util.function.Function;
 
@@ -147,13 +148,17 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), serviceRegistry.get(BuildOperationProgressEventEmitter.class));
-        if (startParameter.getSettingsFile() != null) {
+        @SuppressWarnings("deprecation")
+        File customSettingsFile = startParameter.getSettingsFile();
+        if (customSettingsFile != null) {
             DeprecationLogger.deprecateAction("Specifying custom settings file location")
                 .willBeRemovedInGradle8()
                 .withUpgradeGuideSection(7, "configuring_custom_build_layout")
                 .nagUser();
         }
-        if (startParameter.getBuildFile() != null) {
+        @SuppressWarnings("deprecation")
+        File customBuildFile = startParameter.getBuildFile();
+        if (customBuildFile != null) {
             DeprecationLogger.deprecateAction("Specifying custom build file location")
                 .willBeRemovedInGradle8()
                 .withUpgradeGuideSection(7, "configuring_custom_build_layout")

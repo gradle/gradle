@@ -66,6 +66,7 @@ class ConfigurationCacheStartParameter(
     val settingsDirectory: File
         get() = buildLayout.settingsDir
 
+    @Suppress("DEPRECATION")
     val settingsFile: File?
         get() = startParameter.settingsFile
 
