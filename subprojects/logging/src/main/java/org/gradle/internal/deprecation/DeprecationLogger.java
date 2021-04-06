@@ -203,7 +203,11 @@ public class DeprecationLogger {
      */
     @CheckReturnValue
     public static DeprecationMessageBuilder.DeprecateTaskType deprecateTaskType(Class<?> task, String path) {
-        return new DeprecationMessageBuilder.DeprecateTaskType(task.getCanonicalName(), path);
+        String taskTypeName = task.getCanonicalName();
+        if (taskTypeName.endsWith("_Decorated")) {
+            taskTypeName = taskTypeName.substring(0, taskTypeName.length() - 10);
+        }
+        return new DeprecationMessageBuilder.DeprecateTaskType(taskTypeName, path);
     }
 
     /**
