@@ -569,10 +569,6 @@ task test {
         return maven(file('repo'))
     }
 
-    private GradleExecuter usingBuildFile(File file) {
-        return executer.usingBuildScript(file)
-    }
-
     private GradleExecuter inTestDirectory() {
         return inDirectory(testDirectory)
     }
