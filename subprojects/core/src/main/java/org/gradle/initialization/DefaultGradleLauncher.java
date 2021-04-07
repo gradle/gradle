@@ -24,12 +24,10 @@ import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -98,11 +96,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     @Override
     public GradleInternal getGradle() {
         return gradle;
-    }
-
-    @Override
-    public File getBuildRootDir() {
-        return buildServices.get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
@@ -220,7 +213,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private void prepareTaskExecution() {
         if (stage == Stage.Configure) {
             taskExecutionPreparer.prepareForTaskExecution(gradle);
-
             stage = Stage.TaskGraph;
         }
     }
@@ -231,10 +223,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (!added) {
             return;
         }
-        reevaluateTaskGraph();
-    }
-
-    private void reevaluateTaskGraph() {
         // Force back to configure so that task graph will get reevaluated
         stage = Stage.Configure;
         doBuildStages(Stage.TaskGraph);

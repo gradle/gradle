@@ -25,6 +25,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
@@ -102,7 +103,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
     @Override
     public File getBuildRootDir() {
-        return gradleLauncher.getBuildRootDir();
+        return gradleLauncher.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
