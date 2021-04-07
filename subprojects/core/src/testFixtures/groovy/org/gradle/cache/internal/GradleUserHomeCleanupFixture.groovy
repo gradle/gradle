@@ -20,6 +20,7 @@ import org.gradle.internal.BiAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.JarUtils
+import org.gradle.util.internal.DefaultGradleVersion
 
 import java.util.concurrent.TimeUnit
 
@@ -28,7 +29,7 @@ import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER
 trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture {
 
     private static final BiAction<GradleVersion, File> DEFAULT_JAR_WRITER = { version, jarFile ->
-        jarFile << JarUtils.jarWithContents((GradleVersion.RESOURCE_NAME.substring(1)): "${GradleVersion.VERSION_NUMBER_PROPERTY}: ${version.version}")
+        jarFile << JarUtils.jarWithContents((DefaultGradleVersion.RESOURCE_NAME.substring(1)): "${DefaultGradleVersion.VERSION_NUMBER_PROPERTY}: ${version.version}")
     }
     static final String DEFAULT_JAR_PREFIX = 'gradle-base-services'
 

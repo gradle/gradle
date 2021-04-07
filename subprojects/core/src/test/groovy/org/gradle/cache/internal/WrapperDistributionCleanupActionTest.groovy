@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.JarUtils
+import org.gradle.util.internal.DefaultGradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
@@ -43,7 +44,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Grad
         def usedVersion = GradleVersion.version("3.4.5")
         def stillUsedDist = createDistributionChecksumDir(usedVersion)
         def currentDist = createDistributionChecksumDir(currentVersion)
-        def unusedFutureDist = createDistributionChecksumDir(currentVersion.nextMajor)
+        def unusedFutureDist = createDistributionChecksumDir(currentVersion.nextMajorVersion)
 
         when:
         cleanupAction.execute(progressMonitor)
@@ -153,7 +154,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Grad
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
         def distributionWithInvalidVersion = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis()) { version, jarFile ->
-            jarFile << JarUtils.jarWithContents((GradleVersion.RESOURCE_NAME.substring(1)): "${GradleVersion.VERSION_NUMBER_PROPERTY}: foo")
+            jarFile << JarUtils.jarWithContents((DefaultGradleVersion.RESOURCE_NAME.substring(1)): "${DefaultGradleVersion.VERSION_NUMBER_PROPERTY}: foo")
         }
 
         when:

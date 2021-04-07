@@ -19,7 +19,7 @@ package org.gradle
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
-import org.gradle.util.GradleVersion
+import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Unroll
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
@@ -123,7 +123,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (warnings == WarningMode.Fail) {
-            failure.assertHasDescription("Deprecated Gradle features were used in this build, making it incompatible with ${GradleVersion.current().nextMajor}")
+            failure.assertHasDescription("Deprecated Gradle features were used in this build, making it incompatible with ${DefaultGradleVersion.current().nextMajorVersion}")
         }
 
         where:
