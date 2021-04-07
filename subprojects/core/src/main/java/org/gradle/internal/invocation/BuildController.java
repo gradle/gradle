@@ -17,9 +17,12 @@
 package org.gradle.internal.invocation;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
+
+import java.util.function.Function;
 
 /**
- * This is intended to eventually replace {@link org.gradle.initialization.GradleLauncher} internally. It's pretty rough at the moment.
+ * Controls the lifecycle of a build, allowing a single action to be run against the build.
  */
 public interface BuildController {
 
@@ -27,6 +30,12 @@ public interface BuildController {
      * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
      */
     GradleInternal getGradle();
+
+    /**
+     * Runs the given action against an empty build model. Does not attempt to perform any configuration or run any tasks.
+     * When this method returns, all user code will have completed, including 'build finished' hooks.
+     */
+    <T> T withEmptyBuild(Function<SettingsInternal, T> action);
 
     /**
      * Creates the task graph for the tasks specified in the {@link org.gradle.StartParameter} associated with the build, runs the tasks and finishes up the build.

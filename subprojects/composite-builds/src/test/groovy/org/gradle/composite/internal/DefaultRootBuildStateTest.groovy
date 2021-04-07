@@ -175,7 +175,7 @@ class DefaultRootBuildStateTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot use launcher after build has completed.'
+        e.message == 'Cannot run more than one action for this build.'
     }
 
     def "forwards action failure and cleans up"() {
@@ -209,13 +209,9 @@ class DefaultRootBuildStateTest extends Specification {
         1 * action.apply(!null) >> { BuildController controller ->
             controller.run()
         }
-        1 * exceptionAnalyzer.transform(_) >> { ex ->
-            assert ex[0] == [failure]
-            return transformedFailure
-        }
         1 * includedBuildControllers.finishBuild(_)
         2 * exceptionAnalyzer.transform(_) >> { ex ->
-            assert ex[0] == [transformedFailure]
+            assert ex[0] == [failure]
             return transformedFailure
         }
         1 * launcher.finishBuild(transformedFailure, _)
@@ -267,19 +263,15 @@ class DefaultRootBuildStateTest extends Specification {
             controller.run()
         }
         1 * launcher.executeTasks() >> { throw failure1 }
-        1 * includedBuildControllers.awaitTaskCompletion(_) >> { params -> params[0].add(failure2) }
-        1 * exceptionAnalyzer.transform(_) >> { ex ->
-            assert ex[0] == [failure1, failure2]
-            return transformedFailure
-        }
+        1 * includedBuildControllers.awaitTaskCompletion(_) >> { Consumer consumer -> consumer.accept(failure2) }
         1 * includedBuildControllers.finishBuild(_) >> { Consumer consumer -> consumer.accept(failure3) }
         1 * exceptionAnalyzer.transform(_) >> { ex ->
-            assert ex[0] == [transformedFailure, failure3]
-            return finalFailure
+            assert ex[0] == [failure1, failure2, failure3]
+            return transformedFailure
         }
-        1 * launcher.finishBuild(finalFailure, _) >> { Throwable throwable, Consumer consumer -> consumer.accept(failure4) }
+        1 * launcher.finishBuild(transformedFailure, _) >> { Throwable throwable, Consumer consumer -> consumer.accept(failure4) }
         1 * exceptionAnalyzer.transform(_) >> { ex ->
-            assert ex[0] == [transformedFailure, failure3, failure4]
+            assert ex[0] == [failure1, failure2, failure3, failure4]
             return finalFailure
         }
         1 * lifecycleListener.beforeComplete(_ as GradleInternal)
@@ -291,7 +283,7 @@ class DefaultRootBuildStateTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot use launcher after build has completed.'
+        e.message == 'Cannot run more than one action for this build.'
 
         and:
         1 * launcher.configuredBuild >> { throw new RuntimeException() }

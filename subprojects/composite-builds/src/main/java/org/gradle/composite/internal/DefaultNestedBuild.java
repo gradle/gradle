@@ -32,7 +32,6 @@ import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.util.Path;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -137,7 +136,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         }
 
         @Override
-        public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
+        public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
             controllers.awaitTaskCompletion(taskFailures);
         }
 

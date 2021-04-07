@@ -16,6 +16,7 @@
 package org.gradle.internal.invocation;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.exception.ExceptionAnalyser;
@@ -29,7 +30,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class GradleBuildController implements BuildController, Stoppable {
-    private enum State {Created, Completed}
+    private enum State {Created, Running, Completed}
 
     private State state = State.Created;
     private final GradleLauncher gradleLauncher;
@@ -58,61 +59,60 @@ public class GradleBuildController implements BuildController, Stoppable {
             gradleLauncher.getGradle().getServices().get(ExceptionAnalyser.class));
     }
 
-    public GradleLauncher getLauncher() {
-        if (state == State.Completed) {
-            throw new IllegalStateException("Cannot use launcher after build has completed.");
-        }
-        return gradleLauncher;
-    }
-
     @Override
     public GradleInternal getGradle() {
-        return getLauncher().getGradle();
+        if (state == State.Completed) {
+            throw new IllegalStateException("Cannot use Gradle object after build has finished.");
+        }
+        return gradleLauncher.getGradle();
     }
 
     @Override
     public void run() {
-        doBuild(launcher -> {
-            launcher.scheduleRequestedTasks();
+        doBuild((gradleLauncher, failures) -> {
+            gradleLauncher.scheduleRequestedTasks();
             includedBuildControllers.startTaskExecution();
-            List<Throwable> failures = new ArrayList<>();
             try {
-                launcher.executeTasks();
+                gradleLauncher.executeTasks();
             } catch (Exception e) {
-                failures.add(e);
+                failures.accept(e);
             }
             includedBuildControllers.awaitTaskCompletion(failures);
-            RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
-            if (reportableFailure != null) {
-                throw reportableFailure;
-            }
             return null;
         });
     }
 
     @Override
     public void configure() {
-        doBuild(GradleLauncher::getConfiguredBuild);
+        doBuild((gradleLauncher, failures) -> gradleLauncher.getConfiguredBuild());
     }
 
-    public <T> T doBuild(final Function<? super GradleLauncher, T> build) {
+    @Override
+    public <T> T withEmptyBuild(Function<SettingsInternal, T> action) {
+        return doBuild((gradleLauncher, failures) -> action.apply(gradleLauncher.getLoadedSettings()));
+    }
+
+    private <T> T doBuild(final BuildAction<T> build) {
+        if (state != State.Created) {
+            throw new IllegalStateException("Cannot run more than one action for this build.");
+        }
+        state = State.Running;
         try {
             // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
             return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), () -> {
                 List<Throwable> failures = new ArrayList<>();
+                Consumer<Throwable> collector = failures::add;
 
-                GradleLauncher launcher = getLauncher();
                 T result = null;
                 try {
-                    result = build.apply(launcher);
+                    result = build.run(gradleLauncher, collector);
                 } catch (Throwable t) {
                     failures.add(t);
                 }
 
-                Consumer<Throwable> collector = failures::add;
                 includedBuildControllers.finishBuild(collector);
                 RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
-                launcher.finishBuild(reportableFailure, collector);
+                gradleLauncher.finishBuild(reportableFailure, collector);
 
                 RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
                 if (finalReportableFailure != null) {
@@ -129,5 +129,9 @@ public class GradleBuildController implements BuildController, Stoppable {
     @Override
     public void stop() {
         gradleLauncher.stop();
+    }
+
+    private interface BuildAction<T> {
+        T run(GradleLauncher gradleLauncher, Consumer<Throwable> failures);
     }
 }
