@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
-import org.gradle.util.IncubationLogger;
+import org.gradle.util.internal.IncubationLogger;
 
 import java.io.PipedOutputStream;
 

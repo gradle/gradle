@@ -32,6 +32,7 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
+import org.gradle.util.internal.IncubationLogger
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
