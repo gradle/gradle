@@ -22,7 +22,7 @@ import org.gradle.internal.logging.config.LoggingRouter
 import org.gradle.internal.logging.config.LoggingSourceSystem
 import org.gradle.internal.logging.config.LoggingSystem
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 

@@ -26,7 +26,7 @@ import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.state.ModelObject
-import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
