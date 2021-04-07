@@ -42,6 +42,14 @@ import javax.inject.Inject
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "configuration cache dir is not created unless needed"() {
+        when:
+        run 'help'
+
+        then:
+        !file('.gradle/configuration-cache/gc.properties').exists()
+    }
+
     def "configuration cache for help on empty project"() {
         given:
         configurationCacheRun "help"
