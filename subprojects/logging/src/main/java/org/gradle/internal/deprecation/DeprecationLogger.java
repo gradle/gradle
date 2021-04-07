@@ -199,6 +199,14 @@ public class DeprecationLogger {
     }
 
     /**
+     * Output: The task type ${task.getCanonicalName()} (used by the ${task.getPath()} task) has been deprecated.
+     */
+    @CheckReturnValue
+    public static DeprecationMessageBuilder.DeprecateTaskType deprecateTaskType(Class<?> task, String path) {
+        return new DeprecationMessageBuilder.DeprecateTaskType(task.getCanonicalName(), path);
+    }
+
+    /**
      * Output: The ${plugin} plugin has been deprecated.
      */
     @CheckReturnValue

@@ -29,6 +29,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jacoco.AntJacocoMerge;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
@@ -37,7 +38,11 @@ import java.io.File;
 
 /**
  * Task to merge multiple execution data files into one.
+ *
+ * @deprecated The {@link JacocoReport} task accepts multiple execution files as an input. This task type provides
+ * duplicated functionality and will be removed in Gradle 8.0.
  */
+@Deprecated
 @CacheableTask
 public class JacocoMerge extends JacocoBase {
 
@@ -86,6 +91,7 @@ public class JacocoMerge extends JacocoBase {
 
     @TaskAction
     public void merge() {
+        DeprecationLogger.deprecateTaskType(JacocoMerge.class, getPath()).replaceWith(JacocoReport.class).willBeRemovedInGradle8().withUpgradeGuideSection(7, "jacoco_merge").nagUser();
         new AntJacocoMerge(getAntBuilder()).execute(getJacocoClasspath(), getExecutionData(), getDestinationFile());
     }
 
