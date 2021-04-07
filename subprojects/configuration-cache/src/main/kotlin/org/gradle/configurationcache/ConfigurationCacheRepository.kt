@@ -39,8 +39,8 @@ import java.io.OutputStream
 
 internal
 class ConfigurationCacheRepository(
-    private val cacheRepository: CacheRepository,
-    private val cacheCleanupFactory: CleanupActionFactory,
+    cacheRepository: CacheRepository,
+    cacheCleanupFactory: CleanupActionFactory,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val startParameter: ConfigurationCacheStartParameter,
     private val fileSystem: FileSystem
@@ -160,25 +160,21 @@ class ConfigurationCacheRepository(
     val cleanupMaxAgeDays = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
     private
-    val cache by unsafeLazy {
-        cacheRepository.configurationCache()
-            .withOnDemandLockMode() // Don't need to lock anything until we use the caches
-            .withLruCacheCleanup()
-            .open()
-    }
-
-    private
-    fun CacheRepository.configurationCache() =
-        cache(cacheRootDir).withDisplayName("Configuration Cache")
+    val cache = cacheRepository
+        .cache(cacheRootDir)
+        .withDisplayName("Configuration Cache")
+        .withOnDemandLockMode() // Don't need to lock anything until we use the caches
+        .withLruCacheCleanup(cacheCleanupFactory)
+        .open()
 
     private
     fun CacheBuilder.withOnDemandLockMode() =
         withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
 
     private
-    fun CacheBuilder.withLruCacheCleanup(): CacheBuilder =
+    fun CacheBuilder.withLruCacheCleanup(cleanupActionFactory: CleanupActionFactory): CacheBuilder =
         withCleanup(
-            cacheCleanupFactory.create(
+            cleanupActionFactory.create(
                 LeastRecentlyUsedCacheCleanup(
                     SingleDepthFilesFinder(cleanupDepth),
                     fileAccessTimeJournal,
