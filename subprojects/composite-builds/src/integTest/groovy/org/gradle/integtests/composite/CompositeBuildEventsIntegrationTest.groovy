@@ -214,7 +214,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         lateIncludedBuildTaskPosition < rootBuildFinishedPosition
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build finished events for all builds when settings script for child build cannot be compiled"() {
         given:
         buildA.settingsFile << """
@@ -247,11 +246,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             .assertHasFileName("Settings file '${buildB.settingsFile}'")
             .assertHasLineNumber(7)
         failure.assertHasDescription("build A broken")
-                .assertHasFileName("Settings file '${buildA.settingsFile}'")
-                .assertHasLineNumber(6)
+            .assertHasFileName("Settings file '${buildA.settingsFile}'")
+            .assertHasLineNumber(6)
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build finished events for all builds when build script for child build fails"() {
         given:
         buildA.settingsFile << """
@@ -293,14 +291,14 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
         failure.assertHasFailures(3)
         failure.assertHasDescription("build A broken")
-                .assertHasFileName("Settings file '${buildA.settingsFile}'")
-                .assertHasLineNumber(6)
+            .assertHasFileName("Settings file '${buildA.settingsFile}'")
+            .assertHasLineNumber(6)
         failure.assertHasCause("failed in build C")
-                .assertHasFileName("Build file '${buildC.buildFile}'")
-                .assertHasLineNumber(12)
+            .assertHasFileName("Build file '${buildC.buildFile}'")
+            .assertHasLineNumber(12)
         failure.assertHasDescription("build C broken")
-                .assertHasFileName("Build file '${buildC.buildFile}'")
-                .assertHasLineNumber(9)
+            .assertHasFileName("Build file '${buildC.buildFile}'")
+            .assertHasLineNumber(9)
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")
@@ -342,14 +340,14 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
         failure.assertHasFailures(3)
         failure.assertHasDescription("build A broken")
-                .assertHasFileName("Build file '${buildA.buildFile}'")
-                .assertHasLineNumber(17)
+            .assertHasFileName("Build file '${buildA.buildFile}'")
+            .assertHasLineNumber(17)
         failure.assertHasDescription("build B broken")
-                .assertHasFileName("Build file '${buildB.buildFile}'")
-                .assertHasLineNumber(13)
+            .assertHasFileName("Build file '${buildB.buildFile}'")
+            .assertHasLineNumber(13)
         failure.assertHasDescription("build C broken")
-                .assertHasFileName("Build file '${buildC.buildFile}'")
-                .assertHasLineNumber(9)
+            .assertHasFileName("Build file '${buildC.buildFile}'")
+            .assertHasLineNumber(9)
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")
@@ -399,17 +397,17 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
         failure.assertHasFailures(4)
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
-                .assertHasFileName("Build file '${buildB.buildFile}'")
-                .assertHasLineNumber(16)
+            .assertHasFileName("Build file '${buildB.buildFile}'")
+            .assertHasLineNumber(16)
         failure.assertHasDescription("build A broken")
-                .assertHasFileName("Build file '${buildA.buildFile}'")
-                .assertHasLineNumber(17)
+            .assertHasFileName("Build file '${buildA.buildFile}'")
+            .assertHasLineNumber(17)
         failure.assertHasDescription("build B broken")
-                .assertHasFileName("Build file '${buildB.buildFile}'")
-                .assertHasLineNumber(13)
+            .assertHasFileName("Build file '${buildB.buildFile}'")
+            .assertHasLineNumber(13)
         failure.assertHasDescription("build C broken")
-                .assertHasFileName("Build file '${buildC.buildFile}'")
-                .assertHasLineNumber(9)
+            .assertHasFileName("Build file '${buildC.buildFile}'")
+            .assertHasLineNumber(9)
     }
 
     void verifyBuildEvents() {
