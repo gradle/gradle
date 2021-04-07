@@ -75,6 +75,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     private Thread createAndStartEventConsumerThread(ChangeHandler handler) {
         Thread thread = new Thread(() -> {
+            LOGGER.debug("Started listening to file system change events");
             try {
                 while (consumeEvents) {
                     FileWatchEvent nextEvent = fileEvents.take();
@@ -124,6 +125,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                 Thread.currentThread().interrupt();
                 // stop thread
             }
+            LOGGER.debug("Finished listening to file system change events");
         });
         thread.setDaemon(true);
         thread.setName("File watcher consumer");
