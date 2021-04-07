@@ -24,7 +24,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.util.Matchers
-import org.gradle.util.Resources
+import org.gradle.util.internal.Resources
 import org.gradle.util.ToBeImplemented
 import org.hamcrest.Matcher
 import org.junit.Rule
