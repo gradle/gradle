@@ -44,3 +44,29 @@ Some plugins will break with this new version of Gradle, for example because the
 The `JacocoMerge` task was used for merging coverage reports from different subprojects into a single report.
 The same functionality is also available on the `JacocoReport` task.
 Because of the duplication, `JacocoMerge` is now deprecated and scheduled for removal in Gradle 8.0.
+
+=== Potential breaking changes
+
+The following classes were moved from `org.gradle.util` to the `org.gradle.util` package:
+
+- `Resources`
+- `RedirectStdOutAndErr`
+- `Swapper`
+- `StdInSwapper`
+- `IncubationLogger`
+- `RedirectStdIn`
+- `MultithreadedTestRule`
+- `DisconnectableInputStream`
+- `BulkReadInputStream`
+- `MockExecutor`
+- `FailsWithMessage`
+- `FailsWithMessageExtension`
+
+Also, the unused classes were deleted from `org.gradle.util`:
+
+- `DiffUtil`
+- `NoopChangeListener`
+- `EnumWithClassBody`
+- `AlwaysTrue`
+- `ReflectionEqualsMatcher`
+- `DynamicDelegate`
