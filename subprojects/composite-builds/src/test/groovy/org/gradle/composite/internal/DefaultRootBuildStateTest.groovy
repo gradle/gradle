@@ -16,12 +16,10 @@
 
 package org.gradle.composite.internal
 
-
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.RootBuildLifecycleListener
@@ -144,7 +142,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * includedBuildControllers.startTaskExecution()
         1 * launcher.executeTasks()
         1 * includedBuildControllers.awaitTaskCompletion(_)
-        1 * launcher.finishBuild(_)
+        1 * launcher.finishBuild(null, _)
         1 * includedBuildControllers.finishBuild(_)
     }
 
@@ -161,7 +159,7 @@ class DefaultRootBuildStateTest extends Specification {
             controller.configure()
             return '<result>'
         }
-        1 * launcher.finishBuild(_)
+        1 * launcher.finishBuild(null, _)
         1 * includedBuildControllers.finishBuild(_)
     }
 
@@ -211,16 +209,16 @@ class DefaultRootBuildStateTest extends Specification {
         1 * action.apply(!null) >> { BuildController controller ->
             controller.run()
         }
-        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
-            assert ex.causes == [failure]
+        1 * exceptionAnalyzer.transform(_) >> { ex ->
+            assert ex[0] == [failure]
             return transformedFailure
         }
         1 * includedBuildControllers.finishBuild(_)
-        1 * launcher.finishBuild(_)
-        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
-            assert ex.causes == [transformedFailure]
+        2 * exceptionAnalyzer.transform(_) >> { ex ->
+            assert ex[0] == [transformedFailure]
             return transformedFailure
         }
+        1 * launcher.finishBuild(transformedFailure, _)
         1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }
 
@@ -241,11 +239,11 @@ class DefaultRootBuildStateTest extends Specification {
             controller.configure()
         }
         1 * includedBuildControllers.finishBuild(_)
-        1 * launcher.finishBuild(_)
-        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
-            assert ex.causes == [failure]
+        2 * exceptionAnalyzer.transform(_) >> { ex ->
+            assert ex[0] == [failure]
             return transformedFailure
         }
+        1 * launcher.finishBuild(transformedFailure, _)
         1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }
 
@@ -255,13 +253,14 @@ class DefaultRootBuildStateTest extends Specification {
         def failure3 = new RuntimeException()
         def failure4 = new RuntimeException()
         def transformedFailure = new RuntimeException()
+        def finalFailure = new RuntimeException()
 
         when:
         build.run(action)
 
         then:
         RuntimeException e = thrown()
-        e == transformedFailure
+        e == finalFailure
 
         and:
         1 * action.apply(!null) >> { BuildController controller ->
@@ -269,15 +268,19 @@ class DefaultRootBuildStateTest extends Specification {
         }
         1 * launcher.executeTasks() >> { throw failure1 }
         1 * includedBuildControllers.awaitTaskCompletion(_) >> { params -> params[0].add(failure2) }
-        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
-            assert ex.causes == [failure1, failure2]
+        1 * exceptionAnalyzer.transform(_) >> { ex ->
+            assert ex[0] == [failure1, failure2]
             return transformedFailure
         }
         1 * includedBuildControllers.finishBuild(_) >> { Consumer consumer -> consumer.accept(failure3) }
-        1 * launcher.finishBuild(_) >> { Consumer consumer -> consumer.accept(failure4) }
-        1 * exceptionAnalyzer.transform(_) >> { MultipleBuildFailures ex ->
-            assert ex.causes == [transformedFailure, failure3, failure4]
-            return transformedFailure
+        1 * exceptionAnalyzer.transform(_) >> { ex ->
+            assert ex[0] == [transformedFailure, failure3]
+            return finalFailure
+        }
+        1 * launcher.finishBuild(finalFailure, _) >> { Throwable throwable, Consumer consumer -> consumer.accept(failure4) }
+        1 * exceptionAnalyzer.transform(_) >> { ex ->
+            assert ex[0] == [transformedFailure, failure3, failure4]
+            return finalFailure
         }
         1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }

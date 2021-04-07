@@ -191,7 +191,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public void finishBuild(Consumer<? super Throwable> collector) {
-        gradleLauncher.finishBuild(collector);
+        gradleLauncher.finishBuild(null, collector);
     }
 
     @Override

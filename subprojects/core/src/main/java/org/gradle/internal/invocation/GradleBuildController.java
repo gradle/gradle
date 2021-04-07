@@ -17,7 +17,6 @@ package org.gradle.internal.invocation;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
-import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.concurrent.Stoppable;
@@ -79,14 +78,13 @@ public class GradleBuildController implements BuildController, Stoppable {
             List<Throwable> failures = new ArrayList<>();
             try {
                 launcher.executeTasks();
-            } catch (MultipleBuildFailures e) {
-                failures.addAll(e.getCauses());
             } catch (Exception e) {
                 failures.add(e);
             }
             includedBuildControllers.awaitTaskCompletion(failures);
-            if (!failures.isEmpty()) {
-                throw exceptionAnalyser.transform(new MultipleBuildFailures(failures));
+            RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
+            if (reportableFailure != null) {
+                throw reportableFailure;
             }
             return null;
         });
@@ -107,17 +105,18 @@ public class GradleBuildController implements BuildController, Stoppable {
                 T result = null;
                 try {
                     result = build.apply(launcher);
-                } catch (MultipleBuildFailures e) {
-                    failures.addAll(e.getCauses());
                 } catch (Throwable t) {
                     failures.add(t);
                 }
 
                 Consumer<Throwable> collector = failures::add;
                 includedBuildControllers.finishBuild(collector);
-                launcher.finishBuild(collector);
-                if (!failures.isEmpty()) {
-                    throw exceptionAnalyser.transform(new MultipleBuildFailures(failures));
+                RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
+                launcher.finishBuild(reportableFailure, collector);
+
+                RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
+                if (finalReportableFailure != null) {
+                    throw finalReportableFailure;
                 }
 
                 return result;

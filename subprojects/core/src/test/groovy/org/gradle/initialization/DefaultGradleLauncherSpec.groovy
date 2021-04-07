@@ -51,6 +51,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildServices = Mock(BuildScopeServices.class)
     def otherService = Mock(Stoppable)
     def configurationCache = Mock(ConfigurationCache)
+    def consumer = Mock(Consumer)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def failure = new RuntimeException("main")
@@ -76,9 +77,12 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
+        expectBuildFinished()
+
         def gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
+        gradleLauncher.finishBuild(null, consumer)
     }
 
     void testScheduleAndRunAsNestedBuild() {
@@ -88,9 +92,12 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
+        expectBuildFinished()
+
         DefaultGradleLauncher gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
+        gradleLauncher.finishBuild(null, consumer)
     }
 
     void testGetConfiguredBuild() {
@@ -106,22 +113,39 @@ class DefaultGradleLauncherSpec extends Specification {
 
         then:
         result == gradleMock
+
+        expect:
+        expectBuildFinished("Configure")
+        gradleLauncher.finishBuild(null, consumer)
     }
 
-    void testNotifiesListenerOfConfiguredBuildStages() {
+    void testNotifiesListenerOnConfigureBuildFailure() {
+        def failure = new RuntimeException()
+
         when:
         isRootBuild()
         expectSettingsBuilt()
 
         and:
-        1 * buildConfigurerMock.prepareProjects(gradleMock)
+        1 * buildConfigurerMock.prepareProjects(gradleMock) >> { throw failure }
+        1 * exceptionAnalyserMock.transform({ it == failure }) >> transformedException
 
-        then:
         DefaultGradleLauncher gradleLauncher = launcher()
         gradleLauncher.getConfiguredBuild()
+
+        then:
+        def t = thrown RuntimeException
+        t == transformedException
+
+        when:
+        gradleLauncher.finishBuild(null, consumer)
+
+        then:
+        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        0 * consumer._
     }
 
-    void testNotifiesListenerOfBuildStages() {
+    void testImplicitlySchedulesRequestedTasksIfNotAlready() {
         when:
         isRootBuild()
         expectSettingsBuilt()
@@ -130,7 +154,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()
-        gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
     }
 
@@ -140,19 +163,24 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         1 * settingsPreparerMock.prepareSettings(gradleMock) >> { throw failure }
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
-        gradleLauncher.executeTasks()
 
         then:
         def t = thrown RuntimeException
         t == transformedException
+
+        when:
+        gradleLauncher.finishBuild(null, consumer)
+
+        then:
+        1 * buildBroadcaster.buildFinished({ it.failure == transformedException && it.action == "Build" })
+        0 * consumer._
     }
 
-    void testNotifiesListenerOnBuildCompleteWithFailure() {
+    void testNotifiesListenerOnTaskExecutionFailure() {
         given:
         isRootBuild()
         expectSettingsBuilt()
@@ -161,7 +189,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.cause == failure }) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -171,6 +198,13 @@ class DefaultGradleLauncherSpec extends Specification {
         then:
         def t = thrown RuntimeException
         t == transformedException
+
+        when:
+        gradleLauncher.finishBuild(null, consumer)
+
+        then:
+        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        0 * consumer._
     }
 
     void testNotifiesListenerOnBuildCompleteWithMultipleFailures() {
@@ -184,7 +218,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -194,6 +227,13 @@ class DefaultGradleLauncherSpec extends Specification {
         then:
         def t = thrown RuntimeException
         t == transformedException
+
+        when:
+        gradleLauncher.finishBuild(null, consumer)
+
+        then:
+        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        0 * consumer._
     }
 
     void testTransformsBuildFinishedListenerFailure() {
@@ -206,25 +246,22 @@ class DefaultGradleLauncherSpec extends Specification {
         expectTasksRun()
 
         and:
-        1 * buildBroadcaster.buildFinished({ it.failure == null }) >> { throw failure }
-        1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.cause == failure }) >> transformedException
-
-        and:
         DefaultGradleLauncher gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
 
         when:
-        gradleLauncher.finishBuild(consumer)
+        gradleLauncher.finishBuild(null, consumer)
 
         then:
-        1 * consumer.accept(transformedException)
+        1 * buildBroadcaster.buildFinished({ it.failure == null }) >> { throw failure }
+        1 * consumer.accept(failure)
+        0 * consumer._
     }
 
     void testNotifiesListenersOnMultipleBuildFailuresAndBuildListenerFailure() {
         def failure2 = new RuntimeException()
         def failure3 = new RuntimeException()
-        def finalException = new RuntimeException()
 
         given:
         isRootBuild()
@@ -234,8 +271,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException }) >> { throw failure3 }
-        1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2, failure3] }) >> finalException
 
         and:
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -246,7 +281,15 @@ class DefaultGradleLauncherSpec extends Specification {
 
         then:
         def t = thrown RuntimeException
-        t == finalException
+        t == transformedException
+
+        when:
+        gradleLauncher.finishBuild(null, consumer)
+
+        then:
+        1 * buildBroadcaster.buildFinished({ it.failure == transformedException }) >> { throw failure3 }
+        1 * consumer.accept(failure3)
+        0 * consumer._
     }
 
     void testCleansUpOnStop() throws IOException {
@@ -290,5 +333,11 @@ class DefaultGradleLauncherSpec extends Specification {
                 failures.add(other)
             }
         }
+    }
+
+    private void expectBuildFinished(String action = "Build") {
+        1 * buildBroadcaster.buildFinished({ it.failure == null && it.action == action })
+        1 * buildFinishedListener.buildFinished(_, false)
+        0 * consumer._
     }
 }

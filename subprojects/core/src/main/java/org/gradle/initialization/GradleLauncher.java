@@ -20,6 +20,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.Stoppable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.function.Consumer;
 
@@ -67,10 +68,12 @@ public interface GradleLauncher extends Stoppable {
     void executeTasks();
 
     /**
-     * Stops task execution threads and calls the `buildFinished` listener event.
-     * Failures to finish the build are passed to the given consumer.
+     * Stops task execution threads and calls the `buildFinished` hooks and other user code clean up.
+     * Failures to finish the build are passed to the given consumer rather than thrown.
+     *
+     * @param failure The build failure that should be reported to the buildFinished hooks. When null, this launcher may use whatever failure it has already collected.
      */
-    void finishBuild(Consumer<? super Throwable> collector);
+    void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector);
 
     /**
      * <p>Adds a listener to this build instance. Receives events for this build only.
