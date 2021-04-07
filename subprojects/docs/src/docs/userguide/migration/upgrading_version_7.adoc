@@ -47,7 +47,7 @@ Because of the duplication, `JacocoMerge` is now deprecated and scheduled for re
 
 === Potential breaking changes
 
-The following classes were moved from `org.gradle.util` to the `org.gradle.util` package:
+The following classes were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
 
 - `Resources`
 - `RedirectStdOutAndErr`
