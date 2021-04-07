@@ -46,7 +46,7 @@ The same functionality is also available on the `JacocoReport` task.
 Because of the duplication, `JacocoMerge` is now deprecated and scheduled for removal in Gradle 8.0.
 
 [[configuring_custom_build_layout]]
-==== Setting custom build layout via command line
+==== Setting custom build layout
 
 Command line options:
 
@@ -54,13 +54,6 @@ Command line options:
 * `-b`, `--build-file` for specifying a custom build file location
 
 have been deprecated.
-
-Please use standard locations for settings and build files:
-
-* settings file in the root of the build
-* build file in the root of each subproject
-
-==== Setting custom build file in GradleBuild task
 
 Setting custom build file using
 link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:buildFile[buildFile]
@@ -71,8 +64,6 @@ property instead to specify the root of the nested build.
 Alternatively, consider using one of the recommended alternatives for
 link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as suggested in
 <<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
-
-==== Setting custom build layout via StartParameter API
 
 Setting custom build layout using
 link:{groovyDslPath}/org.gradle.StartParameter.html[StartParameter] methods
@@ -85,4 +76,19 @@ and
 link:{groovyDslPath}/org.gradle.StartParameter.html#getSettingsFile--[getSettingsFile()]
 have been deprecated.
 
-Consider structuring the build so that it can be executed without specifying custom build or settings files.
+Please use standard locations for settings and build files:
+
+* settings file in the root of the build
+* build file in the root of each subproject
+
+For the use case where custom settings or build files are used to model different behavior (similar to Maven profiles),
+consider using <<build_environment#sec:gradle_system_properties, system properties>> with conditional logic.
+For example, given a piece of code in either settings or build file:
+```
+if (System.getProperty("profile") == "custom") {
+    println("custom profile")
+} else {
+    println("default profile")
+}
+```
+You can pass the `profile` system property to Gradle using `gradle -Dprofile=custom` to execute the code in the `custom` profile branch.
