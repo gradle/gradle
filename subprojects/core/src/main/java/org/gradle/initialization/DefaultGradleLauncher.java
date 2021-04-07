@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 
 public class DefaultGradleLauncher implements GradleLauncher {
     private enum Stage {
-        LoadSettings, Configure, TaskGraph, RunTasks, Finished;
+        Created, LoadSettings, Configure, TaskGraph, RunTasks, Finished;
 
         String getDisplayName() {
             if (Configure.compareTo(this) >= 0) {
@@ -59,7 +59,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final TaskExecutionPreparer taskExecutionPreparer;
     private final BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter;
 
-    private Stage stage;
+    private Stage stage = Stage.Created;
     @Nullable
     private RuntimeException stageFailure;
 
@@ -125,7 +125,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
             throw new IllegalStateException("Cannot do further work as this build has failed.");
         }
         try {
-            if (stage == null && gradle.isRootBuild()) {
+            if (stage == Stage.Created && gradle.isRootBuild()) {
                 buildOptionBuildOperationProgressEventsEmitter.emit(gradle.getStartParameter());
             }
             if (upTo == Stage.RunTasks) {
@@ -156,7 +156,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doClassicBuildStages(Stage upTo) {
-        if (stage == null) {
+        if (stage == Stage.Created) {
             configurationCache.prepareForConfiguration();
         }
         prepareSettings();
@@ -177,7 +177,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     @Override
     public void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector) {
-        if (stage == null || stage == Stage.Finished) {
+        if (stage == Stage.Created || stage == Stage.Finished) {
             return;
         }
 
@@ -197,7 +197,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void prepareSettings() {
-        if (stage == null) {
+        if (stage == Stage.Created) {
             settingsPreparer.prepareSettings(gradle);
             stage = Stage.LoadSettings;
         }
@@ -255,6 +255,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     @Override
     public void stop() {
+        if (stage != Stage.Created && stage != Stage.Finished) {
+            throw new IllegalStateException("This build has not been finished.");
+        }
         try {
             CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
         } finally {

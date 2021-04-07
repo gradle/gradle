@@ -71,6 +71,17 @@ class DefaultGradleLauncherSpec extends Specification {
             settingsPreparerMock, taskExecutionPreparerMock, configurationCache, Mock(BuildOptionBuildOperationProgressEventsEmitter))
     }
 
+    void testCanFinishBuildWhenNothingHasBeenDone() {
+        def gradleLauncher = launcher()
+
+        when:
+        gradleLauncher.finishBuild(null, consumer)
+
+        then:
+        0 * buildBroadcaster._
+        0 * consumer._
+    }
+
     void testScheduleAndRunRequestedTasks() {
         expect:
         isRootBuild()
@@ -97,6 +108,22 @@ class DefaultGradleLauncherSpec extends Specification {
         DefaultGradleLauncher gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
+        gradleLauncher.finishBuild(null, consumer)
+    }
+
+    void testGetLoadedSettings() {
+        when:
+        isRootBuild()
+        expectSettingsBuilt()
+
+        DefaultGradleLauncher gradleLauncher = launcher()
+        def result = gradleLauncher.getLoadedSettings()
+
+        then:
+        result == settingsMock
+
+        expect:
+        expectBuildFinished("Configure")
         gradleLauncher.finishBuild(null, consumer)
     }
 

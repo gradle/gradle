@@ -20,7 +20,6 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class GradleBuildController implements BuildController, Stoppable {
+public class GradleBuildController implements BuildController {
     private enum State {Created, Running, Completed}
 
     private State state = State.Created;
@@ -124,11 +123,6 @@ public class GradleBuildController implements BuildController, Stoppable {
         } finally {
             state = State.Completed;
         }
-    }
-
-    @Override
-    public void stop() {
-        gradleLauncher.stop();
     }
 
     private interface BuildAction<T> {

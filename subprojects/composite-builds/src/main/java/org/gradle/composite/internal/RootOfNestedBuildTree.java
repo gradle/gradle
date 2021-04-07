@@ -108,8 +108,8 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
     @Override
     public <T> T run(Function<? super BuildController, T> action) {
-        final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
+            final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
             final GradleInternal gradle = gradleLauncher.getGradle();
             BuildOperationExecutor executor = gradle.getServices().get(BuildOperationExecutor.class);
             return executor.call(new CallableBuildOperation<T>() {
@@ -139,7 +139,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
                 }
             });
         } finally {
-            buildController.stop();
+            gradleLauncher.stop();
         }
     }
 

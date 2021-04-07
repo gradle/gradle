@@ -79,8 +79,8 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public <T> T run(Function<? super BuildController, T> action) {
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
+        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         GradleInternal gradle = buildController.getGradle();
         buildLifecycleListener.afterStart(gradle);
         try {

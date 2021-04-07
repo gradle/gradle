@@ -76,11 +76,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         IncludedBuildControllers controllers = gradleLauncher.getGradle().getServices().get(IncludedBuildControllers.class);
         IncludedBuildControllers noFinishController = new DoNoFinishIncludedBuildControllers(controllers);
         GradleBuildController buildController = new GradleBuildController(gradleLauncher, noFinishController);
-        try {
-            return buildAction.apply(buildController);
-        } finally {
-            buildController.stop();
-        }
+        return buildAction.apply(buildController);
     }
 
     @Override

@@ -59,7 +59,7 @@ public interface GradleLauncher extends Stoppable {
     void executeTasks();
 
     /**
-     * Stops task execution threads and calls the `buildFinished` hooks and other user code clean up.
+     * Calls the `buildFinished` hooks and other user code clean up.
      * Failures to finish the build are passed to the given consumer rather than thrown.
      *
      * @param failure The build failure that should be reported to the buildFinished hooks. When null, this launcher may use whatever failure it has already collected.
