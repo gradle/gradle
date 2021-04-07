@@ -42,7 +42,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     @ToBeFixedForConfigurationCache
     void canCreateAndDeleteMetaData() {
         when:
-        File buildFile = testFile("master/build.gradle")
         executer.inDirectory(file("master")).withTasks("eclipse").run()
 
         assertHasExpectedContents(getClasspathFile(project:"api"), "apiClasspath.xml")
