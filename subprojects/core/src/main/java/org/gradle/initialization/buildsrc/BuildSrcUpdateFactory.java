@@ -19,7 +19,6 @@ package org.gradle.initialization.buildsrc;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -31,7 +30,7 @@ import java.util.Collection;
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
-public class BuildSrcUpdateFactory implements Factory<ClassPath> {
+public class BuildSrcUpdateFactory {
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
 
     private final BuildController buildController;
@@ -44,7 +43,6 @@ public class BuildSrcUpdateFactory implements Factory<ClassPath> {
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
-    @Override
     @Nonnull
     public ClassPath create() {
         Collection<File> classpath = build();
