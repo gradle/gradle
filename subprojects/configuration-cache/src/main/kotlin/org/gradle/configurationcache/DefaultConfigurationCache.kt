@@ -253,12 +253,12 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val cacheFingerprintController: ConfigurationCacheFingerprintController by lazy {
-        host.service()
+        service()
     }
 
     private
     val cacheRepository: ConfigurationCacheRepository by lazy {
-        host.service()
+        service()
     }
 
     private

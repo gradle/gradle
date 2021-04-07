@@ -50,6 +50,29 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         !file('.gradle/configuration-cache/gc.properties').exists()
     }
 
+    def "configuration cache honours --project-cache-dir"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'help', '--project-cache-dir', 'custom-cache-dir'
+
+        then:
+        !file('.gradle/configuration-cache/gc.properties').exists()
+
+        and:
+        file('custom-cache-dir/configuration-cache/gc.properties').exists()
+
+        and:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'help', '--project-cache-dir', 'custom-cache-dir'
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
     def "configuration cache for help on empty project"() {
         given:
         configurationCacheRun "help"

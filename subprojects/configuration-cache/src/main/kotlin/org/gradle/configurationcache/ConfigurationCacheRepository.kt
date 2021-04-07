@@ -150,10 +150,6 @@ class ConfigurationCacheRepository(
         }
 
     private
-    val cacheRootDir
-        get() = startParameter.rootDirectory.resolve(".gradle/configuration-cache")
-
-    private
     val cleanupDepth = 1
 
     private
@@ -161,11 +157,15 @@ class ConfigurationCacheRepository(
 
     private
     val cache = cacheRepository
-        .cache(cacheRootDir)
+        .cache(cacheBaseDir)
         .withDisplayName("Configuration Cache")
         .withOnDemandLockMode() // Don't need to lock anything until we use the caches
         .withLruCacheCleanup(cacheCleanupFactory)
         .open()
+
+    private
+    val cacheBaseDir
+        get() = startParameter.cacheDir.resolve("configuration-cache")
 
     private
     fun CacheBuilder.withOnDemandLockMode() =
@@ -185,7 +185,7 @@ class ConfigurationCacheRepository(
 
     private
     val fileAccessTracker by unsafeLazy {
-        SingleDepthFileAccessTracker(fileAccessTimeJournal, cacheRootDir, cleanupDepth)
+        SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.baseDir, cleanupDepth)
     }
 
     private
