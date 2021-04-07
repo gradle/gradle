@@ -38,7 +38,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             task javaexecTask(type: JavaExec) {
                 def testFile = file("${'$'}buildDir/${'$'}name")
                 classpath(sourceSets.main.output.classesDirs)
-                main = 'org.gradle.TestMain'
+                mainClass = 'org.gradle.TestMain'
                 args projectDir, testFile
                 doLast {
                     assert testFile.exists()
@@ -53,7 +53,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     project.javaexec {
                         assert !(delegate instanceof ExtensionAware)
                         classpath(sourceSets.main.output.classesDirs)
-                        main 'org.gradle.TestMain'
+                        mainClass = 'org.gradle.TestMain'
                         args projectDir, testFile
                     }
                 }
@@ -68,7 +68,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 execOperations.javaexec {
                     assert !(it instanceof ExtensionAware)
                     it.classpath(execClasspath)
-                    it.main 'org.gradle.TestMain'
+                    it.mainClass = 'org.gradle.TestMain'
                     it.args layout.projectDirectory.asFile, testFile
                 }
                 assert testFile.exists()
@@ -327,7 +327,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             task javaexecTask(type: JavaExec) {
                 def testFile = file("${'$'}buildDir/${'$'}name")
                 classpath(sourceSets.main.output.classesDirs)
-                main = 'org.gradle.TestMain'
+                mainClass = 'org.gradle.TestMain'
                 args projectDir, testFile
                 def output = new ByteArrayOutputStream()
                 standardOutput = output
@@ -346,7 +346,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     project.javaexec {
                         assert !(delegate instanceof ExtensionAware)
                         classpath(sourceSets.main.output.classesDirs)
-                        main 'org.gradle.TestMain'
+                        mainClass = 'org.gradle.TestMain'
                         args projectDir, testFile
                         standardOutput = output
                     }
@@ -362,7 +362,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 execOperations.javaexec {
                     assert !(it instanceof ExtensionAware)
                     it.classpath(execClasspath)
-                    it.main 'org.gradle.TestMain'
+                    it.mainClass = 'org.gradle.TestMain'
                     it.args layout.projectDirectory.asFile, testFile
                     it.standardOutput = output
                 }

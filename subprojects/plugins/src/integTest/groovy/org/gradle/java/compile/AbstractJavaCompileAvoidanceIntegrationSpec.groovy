@@ -134,7 +134,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
                 }
                 ${language.compileTaskName}.options.annotationProcessorPath = configurations.processor
                 task run(type: JavaExec) {
-                    main = 'TestApp'
+                    mainClass = 'TestApp'
                     classpath = sourceSets.main.runtimeClasspath
                 }
             }
