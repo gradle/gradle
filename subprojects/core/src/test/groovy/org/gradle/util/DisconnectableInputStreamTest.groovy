@@ -17,6 +17,7 @@ package org.gradle.util
 
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.util.internal.MultithreadedTestRule
 import org.junit.Test
 
 import java.util.concurrent.CopyOnWriteArrayList
