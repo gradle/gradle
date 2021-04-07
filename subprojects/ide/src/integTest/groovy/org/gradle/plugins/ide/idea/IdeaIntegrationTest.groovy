@@ -46,11 +46,11 @@ apply plugin: 'idea'
 """
 
         //given
-        executer.usingBuildScript(buildFile).withTasks('idea').run()
+        executer.inDirectory(file("master")).withTasks('idea').run()
         def projectContent = getFile([:], 'master/master.ipr').text
         def moduleContent = getFile([:], 'master/master.iml').text
 
-        executer.usingBuildScript(buildFile).withTasks('idea').run()
+        executer.inDirectory(file("master")).withTasks('idea').run()
         def projectContentAfterMerge = getFile([:], 'master/master.ipr').text
         def moduleContentAfterMerge = getFile([:], 'master/master.iml').text
 

@@ -91,7 +91,9 @@ public class BuildSourceBuilder {
             publicBuildPath,
             true
         );
-        assert buildSrcStartParameter.getBuildFile() == null;
+        @SuppressWarnings("deprecation")
+        File customBuildFile = buildSrcStartParameter.getBuildFile();
+        assert customBuildFile == null;
 
         return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {
             @Override

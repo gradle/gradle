@@ -438,6 +438,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    @Deprecated
     public GradleExecuter usingBuildScript(File buildScript) {
         this.buildScript = buildScript;
         return this;
@@ -450,6 +451,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    @Deprecated
     public GradleExecuter usingSettingsFile(File settingsFile) {
         this.settingsFile = settingsFile;
         return this;

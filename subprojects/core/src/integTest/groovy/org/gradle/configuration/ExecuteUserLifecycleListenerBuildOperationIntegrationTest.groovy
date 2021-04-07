@@ -722,7 +722,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         buildFile << """
             tasks.help.dependsOn tasks.create('gb', GradleBuild) { gbTask ->
                 dir = 'gb'
-                buildFile = file('gb/build.gradle')
                 gbTask.tasks = ['help']
             }
         """

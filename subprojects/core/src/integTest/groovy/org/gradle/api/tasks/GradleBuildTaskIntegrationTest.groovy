@@ -32,11 +32,12 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'parent'"
         buildFile << """
             task buildInBuild(type:GradleBuild) {
-                buildFile = 'other.gradle'
+                dir = 'other'
                 startParameter.projectProperties['foo'] = true // not a String
             }
         """
-        file('other.gradle') << 'assert foo==true'
+        file('other/settings.gradle').createFile()
+        file('other/build.gradle') << 'assert foo==true'
 
         when:
         run 'buildInBuild'
@@ -86,21 +87,44 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Included build $testDirectory has build path :bp which is the same as included build $testDirectory")
     }
 
+    def "setting custom build file is deprecated"() {
+        given:
+        settingsFile << "rootProject.name = 'parent'"
+        buildFile << """
+            task otherBuild(type:GradleBuild) {
+                buildFile = 'other.gradle'
+            }
+        """
+
+        file('other.gradle') << '''
+            println "other build file"
+        '''
+
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+
+        when:
+        run 'otherBuild'
+
+        then:
+        output.contains("other build file")
+    }
+
     def "nested build can use Gradle home directory that is different to outer build"() {
         given:
         def dir = file("other-home")
         settingsFile << "rootProject.name = 'parent'"
         buildFile << """
             task otherBuild(type:GradleBuild) {
-                buildFile = 'other.gradle'
+                dir = 'other-build'
                 startParameter.gradleUserHomeDir = file("${dir.toURI()}")
             }
         """
 
-        file('other.gradle') << '''
-println "user home dir: " + gradle.gradleUserHomeDir
-println "build script code source: " + getClass().protectionDomain.codeSource.location
-'''
+        file('other-build/settings.gradle').createFile()
+        file('other-build/build.gradle') << '''
+            println "user home dir: " + gradle.gradleUserHomeDir
+            println "build script code source: " + getClass().protectionDomain.codeSource.location
+        '''
 
         when:
         run 'otherBuild'
