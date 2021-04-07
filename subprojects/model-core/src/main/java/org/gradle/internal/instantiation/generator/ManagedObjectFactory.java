@@ -32,11 +32,10 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
-
-import javax.annotation.Nullable;
 
 /**
  * A helper used by generated classes to create managed instances.
@@ -115,17 +114,18 @@ public class ManagedObjectFactory {
             ManagedPropertyName root = (ManagedPropertyName) owner.getModelIdentityDisplayName();
             return new ManagedPropertyName(root.ownerDisplayName, root.propertyName + "." + propertyName);
         } else {
-            return new ManagedPropertyName(ownerDisplayName(owner), propertyName);
+            return new ManagedPropertyName(cachedOwnerDisplayNameOf(owner), propertyName);
         }
     }
 
-    @Nullable
-    private static String ownerDisplayName(ModelObject owner) {
-        Describable ownerModelIdentityDisplayName = owner.getModelIdentityDisplayName();
-        if (ownerModelIdentityDisplayName != null) {
-            return ownerModelIdentityDisplayName.getDisplayName();
-        }
-        return null;
+    private static Cached<String> cachedOwnerDisplayNameOf(ModelObject owner) {
+        return Cached.of(() -> {
+            Describable ownerModelIdentityDisplayName = owner.getModelIdentityDisplayName();
+            if (ownerModelIdentityDisplayName != null) {
+                return ownerModelIdentityDisplayName.getDisplayName();
+            }
+            return null;
+        });
     }
 
     private ObjectFactory getObjectFactory() {
@@ -133,10 +133,10 @@ public class ManagedObjectFactory {
     }
 
     private static class ManagedPropertyName implements DisplayName {
-        private final String ownerDisplayName;
+        private final Cached<String> ownerDisplayName;
         private final String propertyName;
 
-        public ManagedPropertyName(String ownerDisplayName, String propertyName) {
+        public ManagedPropertyName(Cached<String> ownerDisplayName, String propertyName) {
             this.ownerDisplayName = ownerDisplayName;
             this.propertyName = propertyName;
         }
@@ -153,8 +153,8 @@ public class ManagedObjectFactory {
 
         @Override
         public String getDisplayName() {
-            if (ownerDisplayName != null) {
-                return ownerDisplayName + " property '" + propertyName + "'";
+            if (ownerDisplayName.get() != null) {
+                return ownerDisplayName.get() + " property '" + propertyName + "'";
             } else {
                 return "property '" + propertyName + "'";
             }
