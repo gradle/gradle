@@ -37,7 +37,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
-import org.gradle.testing.jacoco.tasks.JacocoMerge;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
@@ -136,9 +135,10 @@ public class JacocoPlugin implements Plugin<Project> {
         project.getTasks().withType(Test.class).configureEach(extension::applyTo);
     }
 
+    @SuppressWarnings("deprecation")
     private void configureDefaultOutputPathForJacocoMerge() {
         Provider<File> buildDirectory = project.getLayout().getBuildDirectory().getAsFile();
-        project.getTasks().withType(JacocoMerge.class).configureEach(task ->
+        project.getTasks().withType(org.gradle.testing.jacoco.tasks.JacocoMerge.class).configureEach(task ->
             task.setDestinationFile(buildDirectory.map(buildDir -> new File(buildDir, "jacoco/" + task.getName() + ".exec")))
         );
     }
