@@ -401,6 +401,25 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    public static class DeprecateTaskType extends WithReplacement<Class<?>, DeprecateTaskType> {
+        private final String path;
+
+        DeprecateTaskType(String task, String path) {
+            super(task);
+            this.path = path;
+        }
+
+        @Override
+        String formatSummary(String type) {
+            return String.format("The task type %s (used by the %s task) has been deprecated.", type, path);
+        }
+
+        @Override
+        String formatAdvice(Class<?> replacement) {
+            return String.format("Please use the %s type instead.", replacement.getCanonicalName());
+        }
+    }
+
     public static class DeprecatePlugin extends WithReplacement<String, DeprecatePlugin> {
 
         private boolean externalReplacement = false;

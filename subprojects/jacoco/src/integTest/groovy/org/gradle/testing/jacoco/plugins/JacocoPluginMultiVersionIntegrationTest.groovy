@@ -36,7 +36,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         javaProjectUnderTest.writeSourceFiles()
     }
 
-    void generatesHtmlReportOnlyAsDefault() {
+    def "generates html report only as default"() {
         when:
         succeeds('test', 'jacocoTestReport')
 
@@ -48,7 +48,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         htmlReport().totalCoverage() == 100
     }
 
-    void canConfigureReportsInJacocoTestReport() {
+    def "can configure reports in jacoco test report"() {
         given:
         buildFile << """
             jacocoTestReport {
@@ -69,7 +69,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         file(REPORT_CSV_DEFAULT_REPORT).exists()
     }
 
-    void respectsReportingBaseDir() {
+    def "respects reporting base dir"() {
         given:
         buildFile << """
             jacocoTestReport {
@@ -89,7 +89,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         file("build/customReports/jacoco/test/jacocoTestReport.csv").exists()
     }
 
-    void canConfigureReportDirectory() {
+    def "can configure report directory"() {
         given:
         def customReportDirectory = "customJacocoReportDir"
         buildFile << """
@@ -111,14 +111,14 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         file("build/${customReportDirectory}/test/jacocoTestReport.csv").exists()
     }
 
-    void jacocoTestReportIsSkippedIfNoCoverageDataAvailable() {
+    def "jacoco test report is skipped if no coverage data available"() {
         when:
         def executionResult = succeeds('jacocoTestReport')
         then:
         executionResult.assertTaskSkipped(':jacocoTestReport')
     }
 
-    void canUseCoverageDataFromPreviousRunForCoverageReport() {
+    def "can use coverage data from previous run for coverage report"() {
         when:
         succeeds('jacocoTestReport')
 
@@ -137,7 +137,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         htmlReport().totalCoverage() == 100
     }
 
-    void canMergeCoverageData() {
+    def "can merge coverage data"() {
         given:
         file("src/otherMain/java/Thing.java") << """
 public class Thing {
@@ -183,6 +183,7 @@ public class ThingTest {
             }
         """
         when:
+        executer.expectDocumentedDeprecationWarning("The task type org.gradle.testing.jacoco.tasks.JacocoMerge (used by the :jacocoMerge task) has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the org.gradle.testing.jacoco.tasks.JacocoReport type instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#jacoco_merge")
         succeeds 'mergedReport'
 
         then:
@@ -195,14 +196,14 @@ public class ThingTest {
 
     @Issue("GRADLE-2917")
     @ToBeFixedForConfigurationCache(because = ":dependencies")
-    void "configures default jacoco dependencies even if the configuration was resolved before"() {
+    def "configures default jacoco dependencies even if the configuration was resolved before"() {
         expect:
         //dependencies task forces resolution of the configurations
         succeeds "dependencies", "test", "jacocoTestReport"
     }
 
     @Issue("GRADLE-3498")
-    void "can use different execution data"() {
+    def "can use different execution data"() {
         setup:
         buildFile << """
         test {
