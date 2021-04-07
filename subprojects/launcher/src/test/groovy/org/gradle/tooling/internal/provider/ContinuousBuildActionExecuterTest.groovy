@@ -38,7 +38,7 @@ import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.DisconnectableInputStream
-import org.gradle.util.RedirectStdIn
+import org.gradle.util.internal.RedirectStdIn
 import org.junit.Rule
 import spock.lang.Timeout
 
