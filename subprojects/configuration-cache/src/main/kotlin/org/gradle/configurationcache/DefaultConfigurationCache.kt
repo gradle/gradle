@@ -45,13 +45,11 @@ class DefaultConfigurationCache internal constructor(
     private val host: Host,
     private val startParameter: ConfigurationCacheStartParameter,
     private val buildEnablement: ConfigurationCacheBuildEnablement,
-    private val cacheRepository: ConfigurationCacheRepository,
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
     private val systemPropertyListener: SystemPropertyAccessListener,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheIO: ConfigurationCacheIO,
-    private val cacheFingerprintController: ConfigurationCacheFingerprintController,
     private val gradlePropertiesController: GradlePropertiesController
 ) : ConfigurationCache {
 
@@ -252,6 +250,16 @@ class DefaultConfigurationCache internal constructor(
                 }
             }
         }
+
+    private
+    val cacheFingerprintController: ConfigurationCacheFingerprintController by lazy {
+        host.service()
+    }
+
+    private
+    val cacheRepository: ConfigurationCacheRepository by lazy {
+        host.service()
+    }
 
     private
     fun registerWatchableBuildDirectories(buildDirs: Set<File>) {
