@@ -129,6 +129,10 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
         });
         thread.setDaemon(true);
         thread.setName("File watcher consumer");
+        thread.setUncaughtExceptionHandler((failedThread, exception) -> {
+            LOGGER.error("File watching stopped due to exception", exception);
+            handler.stopWatchingAfterError();
+        });
         thread.start();
         return thread;
     }
