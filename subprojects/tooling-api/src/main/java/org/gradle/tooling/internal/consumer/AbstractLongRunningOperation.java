@@ -23,7 +23,7 @@ import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;

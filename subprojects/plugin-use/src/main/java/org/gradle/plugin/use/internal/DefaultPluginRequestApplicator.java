@@ -53,7 +53,7 @@ import java.util.Map;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;

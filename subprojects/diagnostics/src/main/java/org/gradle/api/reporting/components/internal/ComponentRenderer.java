@@ -24,7 +24,7 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.SourceComponentSpec;
 import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
     private final ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;

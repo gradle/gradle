@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
+package org.gradle.util.internal;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -52,15 +52,6 @@ import static org.gradle.internal.Cast.cast;
 import static org.gradle.internal.Cast.castNullable;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
-/**
- * This class is only here to maintain binary compatibility with existing plugins.
- * <p>
- * Plugins should prefer external collection frameworks over this class.
- * Internally, all code should use {@link org.gradle.util.internal.CollectionUtils}.
- *
- * @deprecated Will be removed in Gradle 8.0.
- */
-@Deprecated
 public abstract class CollectionUtils {
 
     /**

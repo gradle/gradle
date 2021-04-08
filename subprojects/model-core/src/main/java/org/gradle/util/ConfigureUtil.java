@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
-import static org.gradle.util.CollectionUtils.toStringList;
+import static org.gradle.util.internal.CollectionUtils.toStringList;
 
 public class ConfigureUtil {
 

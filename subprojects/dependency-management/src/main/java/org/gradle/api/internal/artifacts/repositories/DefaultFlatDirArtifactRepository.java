@@ -45,7 +45,7 @@ import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
 import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;

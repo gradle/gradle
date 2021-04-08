@@ -23,7 +23,7 @@ import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.report.unbound.UnboundRuleInput;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;

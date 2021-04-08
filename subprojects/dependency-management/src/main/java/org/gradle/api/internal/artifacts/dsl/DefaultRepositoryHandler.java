@@ -45,7 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.gradle.util.CollectionUtils.flattenCollections;
+import static org.gradle.util.internal.CollectionUtils.flattenCollections;
 
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandlerInternal {
 

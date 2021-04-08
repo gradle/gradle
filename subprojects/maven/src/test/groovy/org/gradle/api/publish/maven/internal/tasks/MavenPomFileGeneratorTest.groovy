@@ -38,7 +38,7 @@ import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.CollectionUtils
+import org.gradle.util.internal.CollectionUtils
 import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
 import org.junit.Rule

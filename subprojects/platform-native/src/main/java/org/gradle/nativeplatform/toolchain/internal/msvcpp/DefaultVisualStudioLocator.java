@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioV
 import org.gradle.platform.base.internal.toolchain.ComponentFound;
 import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

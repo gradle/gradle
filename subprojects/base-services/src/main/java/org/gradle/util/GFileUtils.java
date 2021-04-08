@@ -20,6 +20,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.LimitedDescription;
 
 import javax.annotation.Nullable;

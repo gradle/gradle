@@ -58,7 +58,7 @@ import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;

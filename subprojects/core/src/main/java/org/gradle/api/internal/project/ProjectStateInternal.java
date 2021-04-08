@@ -18,7 +18,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectState;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;

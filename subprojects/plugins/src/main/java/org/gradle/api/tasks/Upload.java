@@ -36,7 +36,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Uploads the artifacts of a {@link Configuration} to a set of repositories.

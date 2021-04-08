@@ -28,7 +28,7 @@ import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.internal.time.Clock;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.testng.IMethodInstance;
 import org.testng.IMethodInterceptor;
