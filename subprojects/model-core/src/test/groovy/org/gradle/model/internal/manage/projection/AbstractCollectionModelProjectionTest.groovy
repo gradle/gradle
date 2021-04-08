@@ -25,7 +25,7 @@ import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.ManagedImplSchema
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
-import org.gradle.util.ClosureBackedAction
+import org.gradle.util.internal.ClosureBackedAction
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
 

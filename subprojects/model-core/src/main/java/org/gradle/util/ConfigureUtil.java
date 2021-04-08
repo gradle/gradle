@@ -24,6 +24,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.util.internal;
 
 import com.google.common.base.Objects;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
-
+import org.gradle.util.Configurable;
+import org.gradle.util.ConfigureUtil;
 
 /**
- * This class is only here to maintain binary compatibility with existing plugins.
- * <p>
- * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
- *
- * @deprecated Will be removed in Gradle 8.0.
+ * NOTE: You should use {@link ConfigureUtil} instead of this class when adding a closure backed method to the DSL, whether statically or dynamically added. {@link ConfigureUtil} is much more efficient and takes care of applying consistent DSL behaviour when closures are nested.
  */
-@Deprecated
 public class ClosureBackedAction<T> implements Action<T> {
 
     private final Closure closure;
