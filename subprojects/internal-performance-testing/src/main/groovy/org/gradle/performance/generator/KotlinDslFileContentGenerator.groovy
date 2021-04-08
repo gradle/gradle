@@ -15,6 +15,9 @@
  */
 package org.gradle.performance.generator
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class KotlinDslFileContentGenerator extends FileContentGenerator {
 
     KotlinDslFileContentGenerator(TestProjectGeneratorConfiguration config) {

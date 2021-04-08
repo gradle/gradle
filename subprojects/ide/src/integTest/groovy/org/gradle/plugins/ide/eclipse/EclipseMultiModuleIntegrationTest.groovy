@@ -84,7 +84,7 @@ project(':services:utilities') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.inDirectory(file("master")).withTasks("eclipse").run()
 
         //then
         assertApiProjectContainsCorrectDependencies()
@@ -140,7 +140,7 @@ project(':api') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.inDirectory(file("master")).withTasks("eclipse").run()
 
         //then
         def deps = parseEclipseProjectDependencies(project: 'master/api')
@@ -152,9 +152,9 @@ project(':api') {
     @Test
     @ToBeFixedForConfigurationCache
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectNameAndRootProjectDoesNotApplyEclipsePlugin() {
-        def settingsFile = file("master/settings.gradle") << "include 'api', 'shared:model'"
+        file("master/settings.gradle") << "include 'api', 'shared:model'"
 
-        def buildFile = file("master/build.gradle") << """
+        file("master/build.gradle") << """
 subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
@@ -174,7 +174,7 @@ project(':api') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.inDirectory(file("master")).withTasks("eclipse").run()
 
         //then
         def deps = parseEclipseProjectDependencies(project: 'master/api')

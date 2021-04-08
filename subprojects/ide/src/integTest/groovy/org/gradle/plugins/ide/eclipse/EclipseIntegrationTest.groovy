@@ -42,8 +42,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     @ToBeFixedForConfigurationCache
     void canCreateAndDeleteMetaData() {
         when:
-        File buildFile = testFile("master/build.gradle")
-        usingBuildFile(buildFile).withTasks("eclipse").run()
+        executer.inDirectory(file("master")).withTasks("eclipse").run()
 
         assertHasExpectedContents(getClasspathFile(project:"api"), "apiClasspath.xml")
         assertHasExpectedContents(getProjectFile(project:"api"), "apiProject.xml")
@@ -86,7 +85,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
         assertHasExpectedContents(getFacetFile(project:"webservice"), "webserviceWtpFacet.xml")
         assertHasExpectedProperties(getJdtPropertiesFile(project:"webservice"), "webserviceJdt.properties")
 
-        usingBuildFile(buildFile).withTasks("cleanEclipse").run()
+        executer.inDirectory(file("master")).withTasks("cleanEclipse").run()
     }
 
     @Test

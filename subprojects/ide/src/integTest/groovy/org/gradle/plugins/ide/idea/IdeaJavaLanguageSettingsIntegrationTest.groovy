@@ -237,7 +237,7 @@ idea {
 """
 
         when:
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         then:
         ipr.bytecodeTargetLevel.size() == 1
@@ -269,7 +269,7 @@ idea {
 """
 
         when:
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         then:
         ipr.bytecodeTargetLevel.size() == 1
@@ -300,7 +300,7 @@ project(':subprojectA') {
 """
 
         when:
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         then:
         ipr.bytecodeTargetLevel.size() == 1
@@ -331,7 +331,7 @@ project(':child1') {
 """
 
         when:
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         then:
         iml('child1').languageLevel == "JDK_1_7"
@@ -357,7 +357,7 @@ project(':child1') {
 """
 
         when:
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         then:
         iml('child1').languageLevel == "JDK_1_7"
@@ -407,7 +407,7 @@ idea {
 """
 
         when:
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         then:
         ipr.bytecodeTargetLevel.size() == 1

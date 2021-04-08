@@ -17,28 +17,19 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.collect.Lists.transform;
+
 public final class BuildOperationRecord {
 
     public static final Ordering<BuildOperationRecord> ORDERING = Ordering.natural()
-        .onResultOf(new Function<BuildOperationRecord, Comparable>() {
-            @Override
-            public Comparable apply(BuildOperationRecord input) {
-                return input.startTime;
-            }
-        })
-        .compound(Ordering.natural().onResultOf(new Function<BuildOperationRecord, Comparable>() {
-            @Override
-            public Comparable apply(BuildOperationRecord input) {
-                return input.id;
-            }
-        }));
+        .onResultOf((Function<BuildOperationRecord, Comparable<Long>>) input -> input.startTime)
+        .compound(Ordering.natural().onResultOf(input -> input.id));
 
     public final Long id;
     public final Long parentId;
@@ -83,7 +74,7 @@ public final class BuildOperationRecord {
     }
 
     Map<String, ?> toSerializable() {
-        Map<String, Object> map = new LinkedHashMap<String, Object>();
+        Map<String, Object> map = new LinkedHashMap<>();
         map.put("displayName", displayName);
 
         map.put("id", id);
@@ -111,21 +102,11 @@ public final class BuildOperationRecord {
         }
 
         if (!progress.isEmpty()) {
-            map.put("progress", Lists.transform(progress, new Function<Progress, Map<String, ?>>() {
-                @Override
-                public Map<String, ?> apply(Progress input) {
-                    return input.toSerializable();
-                }
-            }));
+            map.put("progress", transform(progress, Progress::toSerializable));
         }
 
         if (!children.isEmpty()) {
-            map.put("children", Lists.transform(children, new Function<BuildOperationRecord, Map<String, ?>>() {
-                @Override
-                public Map<String, ?> apply(BuildOperationRecord input) {
-                    return input.toSerializable();
-                }
-            }));
+            map.put("children", transform(children, BuildOperationRecord::toSerializable));
         }
 
         return map;
@@ -165,7 +146,7 @@ public final class BuildOperationRecord {
         }
 
         Map<String, ?> toSerializable() {
-            Map<String, Object> map = new LinkedHashMap<String, Object>();
+            Map<String, Object> map = new LinkedHashMap<>();
             map.put("time", time);
 
             if (details != null) {

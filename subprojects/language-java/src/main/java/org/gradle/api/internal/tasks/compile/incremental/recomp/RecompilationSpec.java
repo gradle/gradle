@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -91,8 +90,8 @@ public class RecompilationSpec {
         return fullRebuildCause;
     }
 
-    public void setFullRebuildCause(String description, File file) {
-        fullRebuildCause = description != null ? description : "'" + file.getName() + "' was changed";
+    public void setFullRebuildCause(String description) {
+        fullRebuildCause = description;
     }
 
 }

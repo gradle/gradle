@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,39 +29,39 @@ import java.util.Set;
 
 public class ClassDependentsAccumulator {
 
-    private final Set<String> dependenciesToAll = new HashSet<>();
+    private final Map<String, String> dependenciesToAll = new HashMap<>();
     private final Map<String, Set<String>> privateDependents = new HashMap<>();
     private final Map<String, Set<String>> accessibleDependents = new HashMap<>();
     private final ImmutableMap.Builder<String, IntSet> classesToConstants = ImmutableMap.builder();
-    private final Set<String> seenClasses = new HashSet<>();
+    private final Map<String, HashCode> seenClasses = new HashMap<>();
     private String fullRebuildCause;
 
-    public void addClass(ClassAnalysis classAnalysis) {
-        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getPrivateClassDependencies(), classAnalysis.getAccessibleClassDependencies(), classAnalysis.getConstants());
+    public void addClass(ClassAnalysis classAnalysis, HashCode hashCode) {
+        addClass(classAnalysis.getClassName(), hashCode, classAnalysis.getDependencyToAllReason(), classAnalysis.getPrivateClassDependencies(), classAnalysis.getAccessibleClassDependencies(), classAnalysis.getConstants());
     }
 
-    public void addClass(String className, boolean dependencyToAll, Iterable<String> privateClassDependencies, Iterable<String> accessibleClassDependencies, IntSet constants) {
-        if (seenClasses.contains(className)) {
+    public void addClass(String className, HashCode hash, String dependencyToAllReason, Iterable<String> privateClassDependencies, Iterable<String> accessibleClassDependencies, IntSet constants) {
+        if (seenClasses.containsKey(className)) {
             // same classes may be found in different classpath trees/jars
             // and we keep only the first one
             return;
         }
-        seenClasses.add(className);
+        seenClasses.put(className, hash);
         if (!constants.isEmpty()) {
             classesToConstants.put(className, constants);
         }
-        if (dependencyToAll) {
-            dependenciesToAll.add(className);
+        if (dependencyToAllReason != null) {
+            dependenciesToAll.put(className, dependencyToAllReason);
             privateDependents.remove(className);
             accessibleDependents.remove(className);
         }
         for (String dependency : privateClassDependencies) {
-            if (!dependency.equals(className) && !dependenciesToAll.contains(dependency)) {
+            if (!dependency.equals(className) && !dependenciesToAll.containsKey(dependency)) {
                 addDependency(privateDependents, dependency, className);
             }
         }
         for (String dependency : accessibleClassDependencies) {
-            if (!dependency.equals(className) && !dependenciesToAll.contains(dependency)) {
+            if (!dependency.equals(className) && !dependenciesToAll.containsKey(dependency)) {
                 addDependency(accessibleDependents, dependency, className);
             }
         }
@@ -82,8 +82,8 @@ public class ClassDependentsAccumulator {
             return Collections.emptyMap();
         }
         ImmutableMap.Builder<String, DependentsSet> builder = ImmutableMap.builder();
-        for (String s : dependenciesToAll) {
-            builder.put(s, DependentsSet.dependencyToAll());
+        for (Map.Entry<String, String> entry : dependenciesToAll.entrySet()) {
+            builder.put(entry.getKey(), DependentsSet.dependencyToAll(entry.getValue()));
         }
         Set<String> collected = new HashSet<>();
         for (Map.Entry<String, Set<String>> entry : accessibleDependents.entrySet()) {
@@ -114,7 +114,11 @@ public class ClassDependentsAccumulator {
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(ImmutableSet.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), fullRebuildCause);
+        if (fullRebuildCause == null) {
+            return new ClassSetAnalysisData(ImmutableMap.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), null);
+        } else {
+            return new ClassSetAnalysisData(ImmutableMap.of(), ImmutableMap.of(), ImmutableMap.of(), fullRebuildCause);
+        }
     }
 
 }

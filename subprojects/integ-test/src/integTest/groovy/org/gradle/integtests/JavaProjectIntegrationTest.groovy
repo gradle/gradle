@@ -28,7 +28,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         buildFile.writelns("apply plugin: 'java'")
         testFile("src/main/java/org/gradle/broken.java") << "broken"
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure()
+        ExecutionFailure failure = executer.withTasks("build").runWithFailure()
 
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
@@ -41,7 +41,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("src/main/java/org/gradle/ok.java") << "package org.gradle; class ok { }"
         testFile("src/test/java/org/gradle/broken.java") << "broken"
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure()
+        ExecutionFailure failure = executer.withTasks("build").runWithFailure()
 
         failure.assertHasDescription("Execution failed for task ':compileTestJava'.")
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
@@ -52,19 +52,20 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle")
         buildFile.writelns("apply plugin: 'java'")
         testFile("src/test/java/org/gradle/NotATest.java") << """
-package org.gradle;
-public class NotATest {}"""
+            package org.gradle;
+            public class NotATest {}
+        """
 
-        usingBuildFile(buildFile).withTasks("build").run()
+        executer.withTasks("build").run()
     }
 
     @Test
     void javadocGenerationFailureBreaksBuild() throws IOException {
-        TestFile buildFile = testFile("javadocs.gradle")
+        TestFile buildFile = testFile("build.gradle")
         buildFile.write("apply plugin: 'java'")
         testFile("src/main/java/org/gradle/broken.java") << "class Broken { }"
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("javadoc").runWithFailure()
+        ExecutionFailure failure = executer.withTasks("javadoc").runWithFailure()
 
         failure.assertHasDescription("Execution failed for task ':javadoc'.")
         failure.assertHasCause("Javadoc generation failed.")
@@ -72,11 +73,11 @@ public class NotATest {}"""
 
     @Test
     void handlesResourceOnlyProject() throws IOException {
-        TestFile buildFile = testFile("resources.gradle")
+        TestFile buildFile = testFile("build.gradle")
         buildFile.write("apply plugin: 'java'")
         testFile("src/main/resources/org/gradle/resource.file") << "test resource"
 
-        usingBuildFile(buildFile).withTasks("build").run()
+        executer.withTasks("build").run()
         testFile("build/resources/main/org/gradle/resource.file").assertExists()
     }
 
@@ -92,7 +93,7 @@ public class NotATest {}"""
         testFile("src/test/java/TestFoo.java") << "class TestFoo {}"
 
         //when
-        usingBuildFile(buildFile).withTasks("build").run()
+        executer.withTasks("build").run()
 
         //then
         testFile("build/resources/main/prod.resource").assertExists()
@@ -110,13 +111,13 @@ public class NotATest {}"""
         testFile("settings.gradle") << "rootProject.name = 'empty'"
         def buildFile = testFile("build.gradle")
         buildFile << """
-apply plugin: 'java'
-version = ''
-"""
+            apply plugin: 'java'
+            version = ''
+        """
 
         testFile("src/main/resources/org/gradle/resource.file") << "some resource"
 
-        usingBuildFile(buildFile).withTasks("jar").run()
+        executer.withTasks("jar").run()
         testFile("build/libs/empty.jar").assertIsFile()
     }
 
@@ -124,25 +125,25 @@ version = ''
     void "task registered as a builder of resources is executed"() {
         TestFile buildFile = testFile("build.gradle")
         buildFile << '''
-apply plugin: 'java'
+            apply plugin: 'java'
 
-task generateResource
-task generateTestResource
-task notRegistered
+            task generateResource
+            task generateTestResource
+            task notRegistered
 
-sourceSets.main.output.dir "$buildDir/generatedResources", builtBy: 'generateResource'
-sourceSets.main.output.dir "$buildDir/generatedResourcesWithoutBuilder"
+            sourceSets.main.output.dir "$buildDir/generatedResources", builtBy: 'generateResource'
+            sourceSets.main.output.dir "$buildDir/generatedResourcesWithoutBuilder"
 
-sourceSets.test.output.dir "$buildDir/generatedTestResources", builtBy: 'generateTestResource'
-'''
+            sourceSets.test.output.dir "$buildDir/generatedTestResources", builtBy: 'generateTestResource'
+        '''
 
         //when
-        def result = usingBuildFile(buildFile).withTasks("classes").run()
+        def result = executer.withTasks("classes").run()
         //then
         result.assertTasksExecuted(":compileJava", ":generateResource", ":processResources", ":classes")
 
         //when
-        result = usingBuildFile(buildFile).withTasks("testClasses").run()
+        result = executer.withTasks("testClasses").run()
         //then
         result.output.contains(":generateTestResource")
     }
@@ -151,20 +152,19 @@ sourceSets.test.output.dir "$buildDir/generatedTestResources", builtBy: 'generat
     void "can recursively build dependent and dependee projects"() {
         testFile("settings.gradle") << "include 'a', 'b', 'c'"
         testFile("build.gradle") << """
-allprojects { apply plugin: 'java-library' }
+            allprojects { apply plugin: 'java-library' }
 
-project(':a') {
-    dependencies { api project(':b') }
-}
+            project(':a') {
+                dependencies { api project(':b') }
+            }
 
-project(':b') {
-    dependencies { api project(':c') }
-}
+            project(':b') {
+                dependencies { api project(':c') }
+            }
 
-project(':c') {
-}
-
-"""
+            project(':c') {
+            }
+        """
 
         def result = inTestDirectory().withTasks('c:buildDependents').run()
 
@@ -224,34 +224,33 @@ project(':c') {
     void "project dependency does not drag in source jar from target project"() {
         testFile("settings.gradle") << "include 'a', 'b'"
         testFile("build.gradle") << """
-allprojects {
-    apply plugin: 'java-library'
+            allprojects {
+                apply plugin: 'java-library'
 
-    java {
-        withSourcesJar()
-    }
-}
+                java {
+                    withSourcesJar()
+                }
+            }
 
-project(':a') {
-    dependencies { implementation project(':b') }
-    compileJava.doFirst {
-        assert classpath.collect { it.name } == ['main']
-    }
-}
-
-"""
+            project(':a') {
+                dependencies { implementation project(':b') }
+                compileJava.doFirst {
+                    assert classpath.collect { it.name } == ['main']
+                }
+            }
+        """
         testFile("a/src/main/java/org/gradle/test/PersonImpl.java") << """
-package org.gradle.test;
-class PersonImpl implements Person { }
-"""
+            package org.gradle.test;
+            class PersonImpl implements Person { }
+        """
 
         testFile("b/src/main/java/org/gradle/test/Person.java") << """
-package org.gradle.test;
-interface Person { }
-"""
+            package org.gradle.test;
+            interface Person { }
+        """
 
         def result = inTestDirectory().withTasks("a:classes").run()
         result.assertTasksExecuted(":b:compileJava", ":a:compileJava", ":a:processResources", ":a:classes")
     }
-    
+
 }

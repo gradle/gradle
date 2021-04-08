@@ -54,6 +54,7 @@ class ConfigurationCacheKeyTest {
         )
     }
 
+    @Suppress("DEPRECATION") // StartParameter.setSettingsFile
     @Test
     fun `cache key honours --settings-file`() {
         assertThat(

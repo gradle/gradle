@@ -40,13 +40,16 @@ import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.readStrings
+import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.execution.plan.Node
+import org.gradle.initialization.BuildOperationFiringSettingsPreparer
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
+import org.gradle.initialization.SettingsPreparer
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -56,6 +59,7 @@ import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.plugin.management.internal.PluginRequests
@@ -141,7 +145,14 @@ class ConfigurationCacheState(
 
     internal
     suspend fun DefaultReadContext.readBuildState(build: ConfigurationCacheBuild) {
-        readGradleState(build)
+
+        val gradle = build.gradle
+
+        withLoadBuildOperation(gradle) {
+            runReadOperation {
+                readGradleState(build)
+            }
+        }
 
         readRelevantProjects(build)
 
@@ -149,11 +160,22 @@ class ConfigurationCacheState(
 
         initProjectProvider(build::getProject)
 
-        val gradle = build.gradle
         readRequiredBuildServicesOf(gradle)
 
         val scheduledNodes = readWorkGraph(gradle)
         build.scheduleNodes(scheduledNodes)
+    }
+
+    /**
+     * Fires build operation required by build scan to determine startup duration and settings evaluated duration
+     */
+    private
+    fun withLoadBuildOperation(gradle: GradleInternal, preparer: SettingsPreparer) {
+        BuildOperationFiringSettingsPreparer(
+            preparer,
+            gradle.serviceOf(),
+            gradle.serviceOf<BuildDefinition>().fromBuild
+        ).prepareSettings(gradle)
     }
 
     private
@@ -335,7 +357,7 @@ class ConfigurationCacheState(
             writeString(name!!)
             writeFile(buildRootDir)
             write(fromBuild)
-            writeBoolean(isPluginBuild())
+            writeBoolean(isPluginBuild)
         }
     }
 

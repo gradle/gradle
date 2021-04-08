@@ -71,13 +71,13 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
     def reportsNestedBuildFailure() {
         when:
         file('other/settings.gradle') << "rootProject.name = 'other'"
-        TestFile other = file('other/other.gradle') << '''
+        TestFile other = file('other/build.gradle') << '''
             throw new ArithmeticException('broken')
 '''
 
         buildFile << '''
             task build(type: GradleBuild) {
-                buildFile = 'other/other.gradle'
+                dir = 'other'
             }
 '''
 

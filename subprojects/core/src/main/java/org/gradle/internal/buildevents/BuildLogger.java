@@ -55,6 +55,7 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
         resultLogger = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, new TersePrettyDurationFormatter(), workValidationWarningReporter);
     }
 
+    @SuppressWarnings("deprecation") // StartParameter.getSettingsFile() and StartParameter.getBuildFile()
     @Override
     public void beforeSettings(Settings settings) {
         StartParameter startParameter = settings.getStartParameter();

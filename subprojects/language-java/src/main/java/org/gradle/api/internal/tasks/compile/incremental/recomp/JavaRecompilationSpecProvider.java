@@ -52,7 +52,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         super(deleter, fileOperations, sourceTree);
         this.incremental = incremental;
         this.sourceChanges = sourceFileChanges;
-        this.sourceFileClassNameConverter = sourceFileClassNameConverter;
+        this.sourceFileClassNameConverter = new WellKnownSourceFileClassNameConverter(sourceFileClassNameConverter, ".java");
     }
 
     @Override
@@ -64,11 +64,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
         if (sourceFileClassNameConverter.isEmpty()) {
-            String fullRebuildCause = previous.getAnnotationProcessorFullRebuildCause();
-            if (fullRebuildCause == null) {
-                fullRebuildCause = "unable to get source-classes mapping relationship from last compilation";
-            }
-            spec.setFullRebuildCause(fullRebuildCause, null);
+            spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation");
             return spec;
         }
 
@@ -149,7 +145,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
                 if (emptyAnnotationProcessorPath) {
                     continue;
                 }
-                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("resource", fileChange), null);
+                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("resource", fileChange));
                 return;
             }
         }

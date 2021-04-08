@@ -23,17 +23,16 @@ import java.io.File;
 import java.util.List;
 
 public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec implements GroovyJavaJointCompileSpec {
-    private GroovyCompileOptions compileOptions;
+    private GroovyCompileOptions groovyCompileOptions;
     private List<File> groovyClasspath;
-    private File compilationMappingFile;
 
     @Override
     public GroovyCompileOptions getGroovyCompileOptions() {
-        return compileOptions;
+        return groovyCompileOptions;
     }
 
-    public void setGroovyCompileOptions(GroovyCompileOptions compileOptions) {
-        this.compileOptions = compileOptions;
+    public void setGroovyCompileOptions(GroovyCompileOptions groovyCompileOptions) {
+        this.groovyCompileOptions = groovyCompileOptions;
     }
 
     @Override
@@ -49,11 +48,11 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
     @Override
     @Nullable
     public File getCompilationMappingFile() {
-        return compilationMappingFile;
+        return getCompileOptions().getIncrementalCompilationMappingFile();
     }
 
     @Override
     public void setCompilationMappingFile(@Nullable File compilationMappingFile) {
-        this.compilationMappingFile = compilationMappingFile;
+        getCompileOptions().setIncrementalCompilationMappingFile(compilationMappingFile);
     }
 }

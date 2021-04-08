@@ -26,8 +26,6 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.Us
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesSourceAnnotation
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis
 import org.gradle.api.internal.tasks.compile.incremental.test.AccessedFromPackagePrivateField
-import org.gradle.api.internal.tasks.compile.incremental.test.AccessedFromPrivateClass
-import org.gradle.api.internal.tasks.compile.incremental.test.AccessedFromPrivateClassPublicField
 import org.gradle.api.internal.tasks.compile.incremental.test.AccessedFromPrivateField
 import org.gradle.api.internal.tasks.compile.incremental.test.AccessedFromPrivateMethod
 import org.gradle.api.internal.tasks.compile.incremental.test.AccessedFromPrivateMethodBody
@@ -95,7 +93,7 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         then:
         analysis.accessibleClassDependencies == [UsedByNonPrivateConstantsClass.name] as Set
         analysis.privateClassDependencies == [] as Set
-        !analysis.dependencyToAll
+        !analysis.dependencyToAllReason
         analysis.constants == ['X|1'.hashCode()] as Set
 
         when:
@@ -104,7 +102,7 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         then:
         analysis.accessibleClassDependencies.isEmpty()
         analysis.privateClassDependencies.isEmpty()
-        !analysis.dependencyToAll
+        !analysis.dependencyToAllReason
         analysis.constants == ['X|1'.hashCode()] as Set
 
         when:
@@ -113,7 +111,7 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         then:
         analysis.accessibleClassDependencies == [] as Set
         analysis.privateClassDependencies == [HasNonPrivateConstants.name] as Set
-        !analysis.dependencyToAll
+        !analysis.dependencyToAllReason
         analysis.constants == [] as Set
     }
 
@@ -123,19 +121,19 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         analyze(UsesRuntimeAnnotation).privateClassDependencies  == [] as Set
         analyze(SomeRuntimeAnnotation).accessibleClassDependencies.isEmpty()
         analyze(SomeRuntimeAnnotation).privateClassDependencies.isEmpty()
-        !analyze(SomeRuntimeAnnotation).dependencyToAll
+        !analyze(SomeRuntimeAnnotation).dependencyToAllReason
 
         analyze(UsesClassAnnotation).accessibleClassDependencies == ["org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeClassAnnotation"] as Set
         analyze(UsesClassAnnotation).privateClassDependencies == [] as Set
         analyze(SomeClassAnnotation).accessibleClassDependencies.isEmpty()
         analyze(SomeClassAnnotation).privateClassDependencies.isEmpty()
-        !analyze(SomeClassAnnotation).dependencyToAll
+        !analyze(SomeClassAnnotation).dependencyToAllReason
 
         analyze(UsesSourceAnnotation).accessibleClassDependencies.isEmpty() //source annotations are wiped from the bytecode
         analyze(UsesSourceAnnotation).privateClassDependencies.isEmpty() //source annotations are wiped from the bytecode
         analyze(SomeSourceAnnotation).accessibleClassDependencies.isEmpty()
         analyze(SomeSourceAnnotation).privateClassDependencies.isEmpty()
-        analyze(SomeSourceAnnotation).dependencyToAll
+        analyze(SomeSourceAnnotation).dependencyToAllReason
     }
 
     InputStream classStream(Class aClass) {

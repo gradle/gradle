@@ -49,13 +49,16 @@ public class NotifyingBuildLoader implements BuildLoader {
         buildOperationExecutor.call(new CallableBuildOperation<Void>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Load projects").
-                    progressDisplayName("Loading projects").details(new LoadProjectsBuildOperationType.Details() {
-                    @Override
-                    public String getBuildPath() {
-                        return buildPath;
-                    }
-                });
+                //noinspection Convert2Lambda
+                return BuildOperationDescriptor
+                    .displayName("Load projects")
+                    .progressDisplayName("Loading projects")
+                    .details(new LoadProjectsBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return buildPath;
+                        }
+                    });
             }
 
             @Override
@@ -74,7 +77,9 @@ public class NotifyingBuildLoader implements BuildLoader {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(gradle.contextualize("Notify projectsLoaded listeners"))
+                //noinspection Convert2Lambda
+                return BuildOperationDescriptor
+                    .displayName(gradle.contextualize("Notify projectsLoaded listeners"))
                     .details(new NotifyProjectsLoadedBuildOperationType.Details() {
                         @Override
                         public String getBuildPath() {
@@ -101,7 +106,7 @@ public class NotifyingBuildLoader implements BuildLoader {
     }
 
     private Set<LoadProjectsBuildOperationType.Result.Project> convert(Iterable<Project> children) {
-        ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project> builder = new ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project>(PROJECT_COMPARATOR);
+        ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project> builder = new ImmutableSortedSet.Builder<>(PROJECT_COMPARATOR);
         for (org.gradle.api.Project child : children) {
             builder.add(convert(child));
         }
@@ -176,10 +181,6 @@ public class NotifyingBuildLoader implements BuildLoader {
         }
     }
 
-    private static final Comparator<LoadProjectsBuildOperationType.Result.Project> PROJECT_COMPARATOR = new Comparator<LoadProjectsBuildOperationType.Result.Project>() {
-        @Override
-        public int compare(LoadProjectsBuildOperationType.Result.Project o1, LoadProjectsBuildOperationType.Result.Project o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
-    };
+    private static final Comparator<LoadProjectsBuildOperationType.Result.Project> PROJECT_COMPARATOR =
+        (o1, o2) -> o1.getName().compareTo(o2.getName());
 }

@@ -98,6 +98,7 @@ public abstract class AbstractIntegrationTest {
         return getExecuter().inDirectory(directory);
     }
 
+    @Deprecated
     protected GradleExecuter usingBuildFile(File file) {
         return getExecuter().usingBuildScript(file);
     }
