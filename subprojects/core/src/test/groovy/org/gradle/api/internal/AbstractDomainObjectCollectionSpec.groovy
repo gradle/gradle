@@ -30,7 +30,7 @@ import org.gradle.internal.Actions
 import org.gradle.internal.DisplayName
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.Specification
