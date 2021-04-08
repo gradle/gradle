@@ -52,7 +52,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.ConfigureUtil;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;

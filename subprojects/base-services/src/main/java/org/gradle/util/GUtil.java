@@ -65,6 +65,7 @@ import static java.util.Collections.emptyList;
  *
  * @deprecated Will be removed in Gradle 8.0.
  */
+@Deprecated
 public class GUtil {
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");

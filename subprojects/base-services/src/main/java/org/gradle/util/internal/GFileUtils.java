@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
+package org.gradle.util.internal;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
-import org.gradle.util.internal.LimitedDescription;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
@@ -41,14 +40,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.Checksum;
 
-/**
- * This class is only here to maintain binary compatibility with existing plugins.
- * <p>
- * Plugins should prefer java.io, java.nio or external packages over this class.
- *
- * @deprecated Will be removed in Gradle 8.0.
- */
-@Deprecated
 public class GFileUtils {
 
     public static FileInputStream openInputStream(File file) {
@@ -236,7 +227,7 @@ public class GFileUtils {
      * @param file to read from tail
      * @param maxLines max lines to read
      * @return tail content
-     * @throws org.gradle.util.GFileUtils.TailReadingException when reading failed
+     * @throws GFileUtils.TailReadingException when reading failed
      */
     public static String tail(File file, int maxLines) throws TailReadingException {
         BufferedReader reader = null;
