@@ -34,14 +34,17 @@ public class ProgressOperations {
         if (parent != null) {
             parent.addChild(operation);
         }
-        operationsById.put(operationId, operation);
+        ProgressOperation previous = operationsById.put(operationId, operation);
+        if (previous != null) {
+            throw new IllegalStateException("Received start event for an operation that has already started (id: " + operationId + "). Currently in progress=" + operationsById.values());
+        }
         return operation;
     }
 
     public ProgressOperation progress(String description, OperationIdentifier operationId) {
         ProgressOperation op = operationsById.get(operationId);
         if (op == null) {
-            throw new IllegalStateException("Received progress event for an unknown operation (id: " + operationId + ")");
+            throw new IllegalStateException("Received progress event for an unknown operation (id: " + operationId + "). Currently in progress=" + operationsById.values());
         }
         op.setStatus(description);
         return op;
@@ -50,7 +53,7 @@ public class ProgressOperations {
     public ProgressOperation complete(OperationIdentifier operationId) {
         ProgressOperation op = operationsById.remove(operationId);
         if (op == null) {
-            throw new IllegalStateException("Received complete event for an unknown operation (id: " + operationId + ")");
+            throw new IllegalStateException("Received complete event for an unknown operation (id: " + operationId + "). Currently in progress=" + operationsById.values());
         }
         if (op.getParent() != null) {
             op.getParent().removeChild(op);
