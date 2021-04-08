@@ -25,7 +25,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 

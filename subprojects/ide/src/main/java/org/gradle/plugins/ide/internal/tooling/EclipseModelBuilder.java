@@ -71,7 +71,7 @@ import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;

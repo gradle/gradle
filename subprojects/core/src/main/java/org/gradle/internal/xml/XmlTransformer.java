@@ -30,7 +30,7 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.TextUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

@@ -78,7 +78,7 @@ import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegi
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializeMap;
 import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.IncubationLogger;
 import org.hamcrest.Matcher;

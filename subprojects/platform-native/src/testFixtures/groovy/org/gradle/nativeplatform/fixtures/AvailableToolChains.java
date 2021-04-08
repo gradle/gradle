@@ -47,7 +47,7 @@ import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.VersionNumber;
 
 import javax.annotation.Nullable;

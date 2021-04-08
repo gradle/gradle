@@ -145,7 +145,7 @@ import java.util.concurrent.Callable;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
 import static org.gradle.util.ConfigureUtil.configureUsing;
-import static org.gradle.util.GUtil.addMaps;
+import static org.gradle.util.internal.GUtil.addMaps;
 
 @NoConventionMapping
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {

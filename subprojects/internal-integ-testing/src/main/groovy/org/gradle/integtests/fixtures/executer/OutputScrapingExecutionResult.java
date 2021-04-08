@@ -23,7 +23,7 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.CollectionUtils;
 import org.junit.ComparisonFailure;
 

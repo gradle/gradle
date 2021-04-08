@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.util.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
@@ -57,14 +57,6 @@ import java.util.regex.Pattern;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
-/**
- * This class is only here to maintain binary compatibility with existing plugins.
- * <p>
- * Plugins should prefer external collection frameworks over this class.
- * Internally, all code should use {@link org.gradle.util.internal.GUtil}.
- *
- * @deprecated Will be removed in Gradle 8.0.
- */
 public class GUtil {
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");

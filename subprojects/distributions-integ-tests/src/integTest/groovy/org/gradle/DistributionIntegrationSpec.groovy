@@ -21,7 +21,7 @@ import org.apache.commons.io.IOUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.gradle.util.GradleVersion
 import org.gradle.util.PreconditionVerifier
 import org.junit.Rule

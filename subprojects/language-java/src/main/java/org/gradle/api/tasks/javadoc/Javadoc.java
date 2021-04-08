@@ -61,7 +61,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.gradle.util.GUtil.isTrue;
+import static org.gradle.util.internal.GUtil.isTrue;
 
 /**
  * <p>Generates HTML API documentation for Java classes.</p>

@@ -20,7 +20,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.Cast;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.SetSystemProperties;
 import org.gradle.util.WrapUtil;
 import org.junit.Before;

@@ -40,7 +40,7 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;

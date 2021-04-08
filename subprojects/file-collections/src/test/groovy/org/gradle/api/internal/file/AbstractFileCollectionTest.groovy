@@ -24,7 +24,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
 
 import static org.gradle.util.Matchers.isEmpty

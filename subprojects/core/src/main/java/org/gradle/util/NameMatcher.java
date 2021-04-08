@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.util.internal.GUtil;
 
 /**
  * Selects a single item from a collection based on a camel case pattern.

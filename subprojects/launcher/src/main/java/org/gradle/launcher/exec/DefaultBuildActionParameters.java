@@ -17,7 +17,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.io.Serializable;

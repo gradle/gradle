@@ -25,7 +25,7 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.Set;
 

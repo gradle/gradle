@@ -25,7 +25,7 @@ import org.gradle.api.java.archives.ManifestMergeDetails;
 import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.nio.charset.Charset;
