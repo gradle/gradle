@@ -33,7 +33,7 @@ import org.gradle.ide.visualstudio.XmlConfigFile;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;

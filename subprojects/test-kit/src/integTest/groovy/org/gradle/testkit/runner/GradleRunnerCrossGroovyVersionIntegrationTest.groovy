@@ -78,7 +78,7 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile << '''
             task testGroovyVersion {
                 doLast {
-                    assert org.gradle.util.VersionNumber.parse(GroovySystem.version) > org.gradle.util.VersionNumber.parse("3.0")
+                    assert org.gradle.util.internal.VersionNumber.parse(GroovySystem.version) > org.gradle.util.internal.VersionNumber.parse("3.0")
                 }
             }
         '''

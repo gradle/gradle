@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Issue
