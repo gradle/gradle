@@ -49,7 +49,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -261,11 +260,13 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             @Override
             @Deprecated
             public void with(ComponentSelector substitute) {
-                DeprecationLogger.deprecateMethod(Substitution.class, "with(ComponentSelector)")
+                // Do not nag for 7.1 as this introduces a performance regression with Android plugin
+                // Revisit when upgrading Android plugin
+                /*DeprecationLogger.deprecateMethod(Substitution.class, "with(ComponentSelector)")
                     .replaceWith("using(ComponentSelector)")
                     .willBeRemovedInGradle8()
                     .withUpgradeGuideSection(7, "dependency_substitutions_with")
-                    .nagUser();
+                    .nagUser();*/
 
                 using(substitute);
             }
