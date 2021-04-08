@@ -16,11 +16,13 @@
 
 package org.gradle.performance.generator
 
+import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.language.Language
 
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
+@CompileStatic
 abstract class FileContentGenerator {
     static FileContentGenerator forConfig(TestProjectGeneratorConfiguration config) {
         switch (config.dsl) {
@@ -39,7 +41,7 @@ abstract class FileContentGenerator {
         this.config = config
     }
 
-    def generateBuildGradle(Language language, Integer subProjectNumber, DependencyTree dependencyTree) {
+    String generateBuildGradle(Language language, Integer subProjectNumber, DependencyTree dependencyTree) {
         def isRoot = subProjectNumber == null
         if (isRoot && config.subProjects > 0) {
             if (config.compositeBuild) {
@@ -78,7 +80,7 @@ abstract class FileContentGenerator {
         """
     }
 
-    def generateSettingsGradle(boolean isRoot) {
+    String generateSettingsGradle(boolean isRoot) {
         if (config.compositeBuild) {
             if (!isRoot) {
                 return ""
@@ -114,7 +116,7 @@ abstract class FileContentGenerator {
 
     abstract protected String generateEnableFeaturePreviewCode()
 
-    def generateGradleProperties(boolean isRoot) {
+    String generateGradleProperties(boolean isRoot) {
         if (!isRoot && !config.compositeBuild) {
             return null
         }
@@ -131,7 +133,7 @@ abstract class FileContentGenerator {
         """
     }
 
-    def generatePomXML(Integer subProjectNumber, DependencyTree dependencyTree) {
+    String generatePomXML(Integer subProjectNumber, DependencyTree dependencyTree) {
         def body = ""
         def isParent = subProjectNumber == null || config.subProjects == 0
         def hasSources = subProjectNumber != null || config.subProjects == 0
@@ -198,12 +200,12 @@ abstract class FileContentGenerator {
             def subProjectNumbers = dependencyTree.getChildProjectIds(subProjectNumber)
             def subProjectDependencies = ''
             if (subProjectNumbers?.size() > 0) {
-                subProjectDependencies = subProjectNumbers.collect { convertToPomDependency("org.gradle.test.performance:project$it:1.0") }.join()
+                subProjectDependencies = subProjectNumbers.collect { convertToPomDependency("org.gradle.test.performance:project$it:1.0") }.join("")
             }
             body += """
             <dependencies>
-                ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join()}
-                ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join()}
+                ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join("")}
+                ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join("")}
                 ${convertToPomDependency('junit:junit:4.13', 'test')}
                 ${subProjectDependencies}
             </dependencies>
@@ -222,7 +224,7 @@ abstract class FileContentGenerator {
         """
     }
 
-    def generatePerformanceScenarios(boolean isRoot) {
+    String generatePerformanceScenarios(boolean isRoot) {
         if (isRoot) {
             def fileToChange = config.fileToChangeByScenario['assemble']
             """
@@ -307,7 +309,7 @@ abstract class FileContentGenerator {
         }
     }
 
-    def generateProductionClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
+    String generateProductionClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
         def properties = ''
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
@@ -347,7 +349,7 @@ abstract class FileContentGenerator {
         """
     }
 
-    def generateTestClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
+    String generateTestClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
         def testMethods = ""
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
@@ -397,8 +399,8 @@ abstract class FileContentGenerator {
         "org${separator}gradle${separator}test${separator}performance${separator}${config.projectName.toLowerCase()}${projectPackage}$subPackage"
     }
 
-    protected final getPropertyCount() {
-        Math.ceil(config.minLinesOfCodePerSourceFile / 10)
+    protected final int getPropertyCount() {
+        Math.ceil((double) config.minLinesOfCodePerSourceFile / 10)
     }
 
     protected final String decideOnJavaPlugin(String plugin, Boolean projectHasParents) {

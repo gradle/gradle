@@ -18,63 +18,40 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
-import java.io.File;
-import java.util.List;
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public class PreviousCompilation {
     private final PreviousCompilationData data;
-    private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
-    private final PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer;
+    private final ClassSetAnalysis classAnalysis;
 
-    private ClassSetAnalysis classAnalysis;
-
-    public PreviousCompilation(PreviousCompilationData data, ClasspathEntrySnapshotCache classpathEntrySnapshotCache, PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer) {
+    public PreviousCompilation(PreviousCompilationData data) {
         this.data = data;
-        this.classpathEntrySnapshotCache = classpathEntrySnapshotCache;
-        this.previousCompilationOutputAnalyzer = previousCompilationOutputAnalyzer;
+        this.classAnalysis = new ClassSetAnalysis(data.getOutputSnapshot(), data.getAnnotationProcessingData());
     }
 
-    public DependentsSet getDependents(Set<String> allClasses, IntSet constants) {
-        return getClassAnalysis().getRelevantDependents(allClasses, constants);
+    @Nullable
+    public ClassSetAnalysis getClasspath() {
+        return new ClassSetAnalysis(data.getClasspathSnapshot());
     }
 
-    private ClassSetAnalysis getClassAnalysis() {
-        if (classAnalysis == null) {
-            classAnalysis = previousCompilationOutputAnalyzer.getAnalysis(data.getDestinationDir()).withAnnotationProcessingData(data.getAnnotationProcessingData());
+    public DependentsSet findDependents(ClassSetAnalysis.ClassSetDiff diff) {
+        if (diff.getDependents().isDependencyToAll()) {
+            return diff.getDependents();
         }
-        return classAnalysis;
+        return classAnalysis.findTransitiveDependents(diff.getDependents().getAllDependentClasses(), diff.getConstants());
     }
 
-    public ClasspathEntrySnapshot getClasspathEntrySnapshot(File file) {
-        return classpathEntrySnapshotCache.get(file, data.getClasspathSnapshot().getFileHashes().get(file));
-    }
-
-    public Set<File> getClasspath() {
-        return data.getClasspathSnapshot().getFileHashes().keySet();
-    }
-
-    public DependentsSet getDependents(String className, IntSet newConstants) {
-        IntSet constants = new IntOpenHashSet(getClassAnalysis().getConstants(className));
+    public DependentsSet findDependents(String className, IntSet newConstants) {
+        IntSet constants = new IntOpenHashSet(classAnalysis.getConstants(className));
         constants.removeAll(newConstants);
-        return getClassAnalysis().getRelevantDependents(className, constants);
+        return classAnalysis.findTransitiveDependents(className, constants);
     }
 
     public Set<String> getTypesToReprocess() {
-        return getClassAnalysis().getTypesToReprocess();
-    }
-
-
-    public List<File> getAnnotationProcessorPath() {
-        return data.getAnnotationProcessorPath();
-    }
-
-    public String getAnnotationProcessorFullRebuildCause() {
-        return data.getAnnotationProcessingData().getFullRebuildCause();
+        return classAnalysis.getTypesToReprocess();
     }
 }

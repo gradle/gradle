@@ -16,14 +16,20 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
-import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Provides a set of classes that depend on some other class.
+ * If {@link #isDependencyToAll()} returns true, then the dependent classes can't be enumerated.
+ * In this case a description of the problem is available via {@link #getDescription()}.
+ */
 public abstract class DependentsSet {
 
     public static DependentsSet dependentClasses(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses) {
@@ -38,16 +44,43 @@ public abstract class DependentsSet {
         }
     }
 
-    public static DependentsSet dependencyToAll() {
-        return DependencyToAll.INSTANCE;
-    }
-
     public static DependentsSet dependencyToAll(String reason) {
         return new DependencyToAll(reason);
     }
 
     public static DependentsSet empty() {
         return EmptyDependentsSet.INSTANCE;
+    }
+
+    public static DependentsSet merge(Collection<DependentsSet> sets) {
+        if (sets.isEmpty()) {
+            return DependentsSet.empty();
+        }
+        if (sets.size() == 1) {
+            return sets.iterator().next();
+        }
+        int privateCount = 0;
+        int accessibleCount = 0;
+        int resourceCount = 0;
+        for (DependentsSet set : sets) {
+            if (set.isDependencyToAll()) {
+                return set;
+            }
+            privateCount += set.getPrivateDependentClasses().size();
+            accessibleCount += set.getAccessibleDependentClasses().size();
+            resourceCount += set.getDependentResources().size();
+        }
+
+        ImmutableSet.Builder<String> privateDependentClasses = ImmutableSet.builderWithExpectedSize(privateCount);
+        ImmutableSet.Builder<String> accessibleDependentClasses = ImmutableSet.builderWithExpectedSize(accessibleCount);
+        ImmutableSet.Builder<GeneratedResource> dependentResources = ImmutableSet.builderWithExpectedSize(resourceCount);
+
+        for (DependentsSet set : sets) {
+            privateDependentClasses.addAll(set.getPrivateDependentClasses());
+            accessibleDependentClasses.addAll(set.getAccessibleDependentClasses());
+            dependentResources.addAll(set.getDependentResources());
+        }
+        return DependentsSet.dependents(privateDependentClasses.build(), accessibleDependentClasses.build(), dependentResources.build());
     }
 
     public abstract boolean isEmpty();
@@ -62,7 +95,7 @@ public abstract class DependentsSet {
 
     public abstract boolean isDependencyToAll();
 
-    public abstract @Nullable String getDescription();
+    public abstract String getDescription();
 
     private DependentsSet() {
     }
@@ -107,10 +140,9 @@ public abstract class DependentsSet {
             return false;
         }
 
-        @Nullable
         @Override
         public String getDescription() {
-            return null;
+            throw new UnsupportedOperationException("This dependents does not have a problem description.");
         }
     }
 
@@ -171,17 +203,16 @@ public abstract class DependentsSet {
 
         @Override
         public String getDescription() {
-            return null;
+            throw new UnsupportedOperationException("This dependents does not have a problem description.");
         }
     }
 
     private static class DependencyToAll extends DependentsSet {
-        private static final DependencyToAll INSTANCE = new DependencyToAll();
 
         private final String reason;
 
         private DependencyToAll(String reason) {
-            this.reason = reason;
+            this.reason = Preconditions.checkNotNull(reason);
         }
 
         private DependencyToAll() {
@@ -190,32 +221,32 @@ public abstract class DependentsSet {
 
         @Override
         public boolean isEmpty() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public boolean hasDependentClasses() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public Set<String> getPrivateDependentClasses() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public Set<String> getAccessibleDependentClasses() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public Set<String> getAllDependentClasses() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
         public Set<GeneratedResource> getDependentResources() {
-            throw new UnsupportedOperationException("This instance of dependents set does not have dependent resources information.");
+            throw new UnsupportedOperationException("This dependents set does not have dependent resources information.");
         }
 
         @Override
