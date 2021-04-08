@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
+
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -23,15 +25,22 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
     @ToBeFixedForConfigurationCache(bottomSpecs = ["ScalaCompileRelocationIntegrationTest"])
     def "project is relocatable"() {
         def originalDir = file("original-dir")
+        def originalJavaHome = Jvm.current().javaHome
         originalDir.file("settings.gradle") << localCacheConfiguration()
         setupProjectIn(originalDir)
 
         def relocatedDir = file("relocated-dir")
+        def relocatedJavaHome = file("relocated-java-home")
+        relocatedJavaHome.copyFrom(originalJavaHome)
         relocatedDir.file("settings.gradle") << localCacheConfiguration()
         setupProjectIn(relocatedDir)
 
+        //We'll delete the relocated Java home of this daemon, which will make it unusable for future builds
+        executer.requireDaemon().requireIsolatedDaemons()
+
         when: "task is built in the original location"
         inDirectory(originalDir)
+        executer.withJavaHome(originalJavaHome)
         withBuildCache().run taskName
         def originalResults = extractResultsFrom(originalDir)
         then: "it is executed and cached"
@@ -46,6 +55,7 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
         when: "it is executed in the new location"
         prepareForRelocation(relocatedDir)
         inDirectory(relocatedDir)
+        executer.withJavaHome(relocatedJavaHome)
         withBuildCache().run taskName
         then: "it is loaded from cache"
         result.assertTaskSkipped taskName
