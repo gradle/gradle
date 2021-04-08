@@ -1,3 +1,16 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getPreviousCompilationData()",
+            "acceptation": "This method is for internal use only",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getPreviousCompilationData()",
+            "acceptation": "This method is for internal use only",
+            "changes": []
+        }
+    ]
 }

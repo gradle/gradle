@@ -24,7 +24,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
@@ -50,9 +49,9 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -105,6 +104,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final ModularitySpec modularity;
     private File sourceClassesMappingFile;
+    private File previousCompilationDataFile;
     private final Property<JavaCompiler> javaCompiler;
     private final ObjectFactory objectFactory;
 
@@ -174,6 +174,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         }
         sourceClassesMappingFile.delete();
         spec.getCompileOptions().setIncrementalCompilationMappingFile(sourceClassesMappingFile);
+        spec.getCompileOptions().setPreviousCompilationDataFile(previousCompilationDataFile);
         Compiler<JavaCompileSpec> compiler = createCompiler();
         compiler = makeIncremental(inputs, sourceFileClassNameConverter, (CleaningJavaCompiler<JavaCompileSpec>) compiler, getStableSources().getAsFileTree());
         WorkResult workResult = performCompilation(spec, compiler);
@@ -187,7 +188,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, SourceFileClassNameConverter sourceFileClassNameConverter, CleaningJavaCompiler<JavaCompileSpec> compiler, FileTree sources) {
         return getIncrementalCompilerFactory().makeIncremental(
             compiler,
-            getPath(),
             sources,
             createRecompilationSpec(inputs, sourceFileClassNameConverter, sources)
         );
@@ -282,17 +282,29 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     /**
-     * The Groovy source-classes mapping file. Internal use only.
+     * The source-classes mapping file. Internal use only.
      *
      * @since 6.5
      */
-    @LocalState
+    @OutputFile
     protected File getSourceClassesMappingFile() {
         if (sourceClassesMappingFile == null) {
-            File tmpDir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
-            sourceClassesMappingFile = new File(tmpDir, "source-classes-mapping.txt");
+            sourceClassesMappingFile = new File(getTemporaryDir(), "source-classes-mapping.txt");
         }
         return sourceClassesMappingFile;
+    }
+
+    /**
+     * The previous compilation analysis. Internal use only.
+     *
+     * @since 7.1
+     */
+    @OutputFile
+    protected File getPreviousCompilationData() {
+        if (previousCompilationDataFile == null) {
+            previousCompilationDataFile = new File(getTemporaryDir(), "previous-compilation-data.bin");
+        }
+        return previousCompilationDataFile;
     }
 
 

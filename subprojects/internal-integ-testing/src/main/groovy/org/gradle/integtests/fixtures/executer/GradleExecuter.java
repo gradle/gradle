@@ -76,6 +76,7 @@ public interface GradleExecuter extends Stoppable {
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
+    @Deprecated
     GradleExecuter usingSettingsFile(File settingsFile);
 
     GradleExecuter usingInitScript(File initScript);
@@ -88,6 +89,7 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Uses the given build script
      */
+    @Deprecated
     GradleExecuter usingBuildScript(File buildScript);
 
     /**

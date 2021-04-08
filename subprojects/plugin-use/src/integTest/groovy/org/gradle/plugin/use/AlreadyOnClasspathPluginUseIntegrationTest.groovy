@@ -395,7 +395,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
             publishing { repositories { maven { url = uri("../$localPluginRepoPath") } } }
         """.stripIndent()
 
-        succeeds "-b", "$pluginBundleName/build.gradle", "publish"
+        executer.inDirectory(file(pluginBundleName)).withTasks("publish").run()
 
         file("$localPluginRepoPath/com/acme/$pluginBundleName/1.0/$pluginBundleName-1.0.jar").assertExists()
         file("$localPluginRepoPath/my-plugin/my-plugin.gradle.plugin/1.0/my-plugin.gradle.plugin-1.0.pom").assertExists()

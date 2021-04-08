@@ -24,7 +24,7 @@ class BazelFileContentGenerator {
         this.config = config
     }
 
-    def generateWorkspace() {
+    String generateWorkspace() {
         """
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:maven_rules.bzl", "maven_dependency_plugin", "maven_jar")
@@ -52,7 +52,7 @@ maven_install(
 """
     }
 
-    def generateBuildFile(Integer subProjectNumber, DependencyTree dependencyTree) {
+    String generateBuildFile(Integer subProjectNumber, DependencyTree dependencyTree) {
         def isRoot = subProjectNumber == null
         def subProjectNumbers = dependencyTree.getChildProjectIds(subProjectNumber)
         def transitiveSubProjectNumbers = []
@@ -114,7 +114,7 @@ junit_tests(
         }
     }
 
-    def generateJunitHelper() {
+    String generateJunitHelper() {
         '''
 # Copyright (C) 2016 The Android Open Source Project
 #

@@ -38,7 +38,7 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         def buildFile = file("build.gradle")
         buildFile << buildScript
 
-        return executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks(taskName).run()
+        return executer.withTasks(taskName).run()
     }
 
     protected File getFile(Map options, String filename) {

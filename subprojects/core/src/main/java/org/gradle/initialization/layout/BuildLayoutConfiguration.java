@@ -34,7 +34,9 @@ public class BuildLayoutConfiguration {
     public BuildLayoutConfiguration(StartParameter startParameter) {
         currentDir = startParameter.getCurrentDir();
         searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwards();
-        settingsFile = startParameter.getSettingsFile();
+        @SuppressWarnings("deprecation")
+        File customSettingsFile = startParameter.getSettingsFile();
+        this.settingsFile = customSettingsFile;
         useEmptySettings = ((StartParameterInternal)startParameter).isUseEmptySettings();
     }
 

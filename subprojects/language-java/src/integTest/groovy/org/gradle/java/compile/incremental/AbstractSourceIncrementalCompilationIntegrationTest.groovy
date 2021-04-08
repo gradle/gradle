@@ -1079,8 +1079,34 @@ sourceSets {
 
     def "recompiles all classes in a package if the package-info file changes"() {
         given:
+        file("src/main/${languageName}/annotations/Anno.${languageName}").text = """
+            package annotations;
+            import java.lang.annotation.*;
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target(ElementType.PACKAGE)
+            public @interface Anno {}
+        """
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
-        packageFile.text = """package foo;"""
+        packageFile.text = """@Deprecated package foo;"""
+        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
+        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
+        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
+        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
+        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+
+        outputs.snapshot { succeeds language.compileTaskName }
+
+        when:
+        packageFile.text = """@Deprecated @annotations.Anno package foo;"""
+        succeeds language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "E", "package-info")
+    }
+
+    def "recompiles all classes in a package if the package-info file is added"() {
+        given:
+        def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
         file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
         file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
         file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
@@ -1097,28 +1123,25 @@ sourceSets {
         outputs.recompiledClasses("A", "B", "E", "package-info")
     }
 
-    def "recompiles all dependents when no jar analysis is present"() {
+    def "recompiles all classes in a package if the package-info file is removed"() {
         given:
-        source """class A {
-            com.google.common.base.Splitter splitter;
-        }"""
-        source """class B {}"""
+        def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
+        packageFile.text = """@Deprecated package foo;"""
+        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
+        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
+        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
+        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
+        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
 
-        buildFile << """
-            ${mavenCentralRepository()}
-            dependencies { implementation 'com.google.guava:guava:21.0' }
-        """
         outputs.snapshot { succeeds language.compileTaskName }
 
         when:
-        executer.requireOwnGradleUserHomeDir()
-        source """class B {
-            //some change
-        }"""
+        packageFile.delete()
+        succeeds language.compileTaskName
 
         then:
-        succeeds language.compileTaskName
-        outputs.recompiledClasses("A", "B")
+        outputs.recompiledClasses("A", "B", "E")
+        outputs.deletedClasses("package-info")
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9380')

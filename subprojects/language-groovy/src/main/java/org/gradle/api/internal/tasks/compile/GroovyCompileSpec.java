@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -28,9 +29,10 @@ public interface GroovyCompileSpec extends JvmLanguageCompileSpec {
 
     void setGroovyClasspath(List<File> classpath);
 
+    @Nullable
     File getCompilationMappingFile();
 
-    void setCompilationMappingFile(File compilationMappingFile);
+    void setCompilationMappingFile(@Nullable File compilationMappingFile);
 
     default boolean incrementalCompilationEnabled() {
         return getCompilationMappingFile() != null;
