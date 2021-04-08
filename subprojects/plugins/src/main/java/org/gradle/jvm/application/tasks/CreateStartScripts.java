@@ -34,6 +34,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
@@ -252,11 +253,24 @@ public class CreateStartScripts extends ConventionTask {
      */
     @ReplacedBy("mainClass")
     @Nullable
+    @Deprecated
     public String getMainClassName() {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "getMainClassName()")
+            .withAdvice("Please use the mainClass property instead.")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "start_scripts_properties")
+            .nagUser();
         return mainClass.getOrNull();
     }
 
+    @ReplacedBy("mainClass")
+    @Deprecated
     public void setMainClassName(@Nullable String mainClassName) {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "setMainClassName()")
+            .withAdvice("Please use the mainClass property instead.")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "start_scripts_properties")
+            .nagUser();
         this.mainClass.set(mainClassName);
     }
 

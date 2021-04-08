@@ -99,3 +99,10 @@ You can pass the `profile` system property to Gradle using `gradle -Dprofile=cus
 * The link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:main[main] getters and setters
 in link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec] task have been deprecated.
 Use the link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:mainClass[mainClass] property instead.
+
+[[start_scripts_properties]]
+==== Properties deprecated in CreateStartScripts task
+
+* The `mainClassName` getters and setters
+in link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html[CreateStartScripts] task have been deprecated.
+Use the link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html#org.gradle.jvm.application.tasks.CreateStartScripts:mainClass[mainClass] property instead.
