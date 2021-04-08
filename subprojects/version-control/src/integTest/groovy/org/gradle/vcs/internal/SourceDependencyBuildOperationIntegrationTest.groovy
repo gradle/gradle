@@ -106,9 +106,9 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 2
-        runTasksOps[0].displayName == "Run tasks"
+        // Build operations are run in parallel, so can appear in either order
+        [runTasksOps[0].displayName, runTasksOps[1].displayName].sort() == ["Run tasks", "Run tasks (:${buildName})"]
         runTasksOps[0].parentId == root.id
-        runTasksOps[1].displayName == "Run tasks (:${buildName})"
         runTasksOps[1].parentId == root.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
