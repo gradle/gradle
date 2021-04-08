@@ -51,6 +51,10 @@ tasks.runKtlintCheckOverKotlinScripts {
     setIncludes(listOf("*.gradle.kts"))
 }
 
+tasks.codeQuality {
+    dependsOn(tasks.ktlintCheck)
+}
+
 tasks.validatePlugins {
     failOnWarning.set(true)
     enableStricterValidation.set(true)

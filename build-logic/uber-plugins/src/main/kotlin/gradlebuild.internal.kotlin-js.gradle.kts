@@ -15,7 +15,6 @@
  */
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
-import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 
 plugins {
     kotlin("js")
@@ -48,19 +47,17 @@ tasks {
         }
     }
 
-    val ktlintCheckTasks = withType<KtLintCheckTask>()
-
     withType<Test>().configureEach {
-        shouldRunAfter(ktlintCheckTasks)
+        shouldRunAfter(ktlintCheck)
     }
 
-    named("codeQuality") {
-        dependsOn(ktlintCheckTasks)
+    codeQuality {
+        dependsOn(ktlintCheck)
     }
 
     register("quickTest") {
         dependsOn(named("test"))
-        dependsOn(ktlintCheckTasks)
+        dependsOn(ktlintCheck)
     }
 
     register("platformTest")
