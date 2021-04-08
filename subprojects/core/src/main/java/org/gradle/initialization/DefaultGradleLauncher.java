@@ -31,21 +31,21 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class DefaultGradleLauncher implements GradleLauncher {
     private enum Stage {
-        Created, LoadSettings, Configure, TaskGraph, RunTasks, Finished;
+        Created, Configure, TaskGraph, Finished;
 
         String getDisplayName() {
-            if (Configure.compareTo(this) >= 0) {
-                return "Configure";
-            } else {
+            if (TaskGraph == this) {
                 return "Build";
+            } else {
+                return "Configure";
             }
         }
     }
 
-    private final ProjectsPreparer projectsPreparer;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
     private final BuildCompletionListener buildCompletionListener;
@@ -54,9 +54,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
     private final GradleInternal gradle;
-    private final ConfigurationCache configurationCache;
-    private final SettingsPreparer settingsPreparer;
-    private final TaskExecutionPreparer taskExecutionPreparer;
+    private final BuildModelController modelController;
     private final BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter;
 
     private Stage stage = Stage.Created;
@@ -79,7 +77,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
     ) {
         this.gradle = gradle;
-        this.projectsPreparer = projectsPreparer;
+        this.modelController = new ConfigurationCacheAwareBuildModelController(gradle,
+            new VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer),
+            configurationCache);
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
         this.buildExecuter = buildExecuter;
@@ -87,9 +87,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
         this.servicesToStop = servicesToStop;
-        this.configurationCache = configurationCache;
-        this.settingsPreparer = settingsPreparer;
-        this.taskExecutionPreparer = taskExecutionPreparer;
         this.buildOptionBuildOperationProgressEventsEmitter = buildOptionBuildOperationProgressEventsEmitter;
     }
 
@@ -100,27 +97,41 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        doBuildStages(Stage.LoadSettings);
-        return gradle.getSettings();
+        return withModel(BuildModelController::getLoadedSettings);
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        doBuildStages(Stage.Configure);
-        return gradle;
+        return withModel(BuildModelController::getConfiguredModel);
+    }
+
+    @Override
+    public void scheduleTasks(final Iterable<String> taskPaths) {
+        withModel(buildModelController -> {
+            stage = Stage.TaskGraph;
+            buildModelController.scheduleTasks(taskPaths);
+            return null;
+        });
     }
 
     @Override
     public void scheduleRequestedTasks() {
-        doBuildStages(Stage.TaskGraph);
+        withModel(buildModelController -> {
+            stage = Stage.TaskGraph;
+            buildModelController.scheduleRequestedTasks();
+            return null;
+        });
     }
 
     @Override
     public void executeTasks() {
-        doBuildStages(Stage.RunTasks);
+        withModel(buildModelController -> {
+            runWork();
+            return null;
+        });
     }
 
-    private void doBuildStages(Stage upTo) {
+    private <T> T withModel(Function<BuildModelController, T> action) {
         if (stageFailure != null) {
             throw new IllegalStateException("Cannot do further work as this build has failed.");
         }
@@ -128,51 +139,17 @@ public class DefaultGradleLauncher implements GradleLauncher {
             if (stage == Stage.Created && gradle.isRootBuild()) {
                 buildOptionBuildOperationProgressEventsEmitter.emit(gradle.getStartParameter());
             }
-            if (upTo == Stage.RunTasks) {
-                prepareTaskGraph();
-                runWork();
-            } else if (upTo == Stage.TaskGraph) {
-                prepareTaskGraph();
-            } else {
-                doClassicBuildStages(upTo);
+            try {
+                return action.apply(modelController);
+            } finally {
+                if (stage == Stage.Created) {
+                    stage = Stage.Configure;
+                }
             }
         } catch (Throwable t) {
-            stage = upTo;
             stageFailure = exceptionAnalyser.transform(t);
             throw stageFailure;
         }
-    }
-
-    private void prepareTaskGraph() {
-        if (stage == Stage.TaskGraph) {
-            return;
-        }
-        if (configurationCache.canLoad()) {
-            doLoadTaskGraphFromCache();
-        } else {
-            doClassicBuildStages(Stage.TaskGraph);
-        }
-        stage = Stage.TaskGraph;
-    }
-
-    private void doClassicBuildStages(Stage upTo) {
-        if (stage == Stage.Created) {
-            configurationCache.prepareForConfiguration();
-        }
-        prepareSettings();
-        if (upTo == Stage.LoadSettings) {
-            return;
-        }
-        prepareProjects();
-        if (upTo == Stage.Configure) {
-            return;
-        }
-        prepareTaskExecution();
-        configurationCache.save();
-    }
-
-    private void doLoadTaskGraphFromCache() {
-        configurationCache.load();
     }
 
     @Override
@@ -196,50 +173,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
         stageFailure = null;
     }
 
-    private void prepareSettings() {
-        if (stage == Stage.Created) {
-            settingsPreparer.prepareSettings(gradle);
-            stage = Stage.LoadSettings;
-        }
-    }
-
-    private void prepareProjects() {
-        if (stage == Stage.LoadSettings) {
-            projectsPreparer.prepareProjects(gradle);
-            stage = Stage.Configure;
-        }
-    }
-
-    private void prepareTaskExecution() {
-        if (stage == Stage.Configure) {
-            taskExecutionPreparer.prepareForTaskExecution(gradle);
-            stage = Stage.TaskGraph;
-        }
-    }
-
-    @Override
-    public void scheduleTasks(final Iterable<String> taskPaths) {
-        boolean added = getConfiguredBuild().getStartParameter().addTaskNames(taskPaths);
-        if (!added) {
-            return;
-        }
-        // Force back to configure so that task graph will get reevaluated
-        stage = Stage.Configure;
-        doBuildStages(Stage.TaskGraph);
-    }
-
     private void runWork() {
-        if (stage != Stage.TaskGraph) {
-            throw new IllegalStateException("Cannot execute tasks: current stage = " + stage);
-        }
-
         List<Throwable> taskFailures = new ArrayList<>();
         buildExecuter.execute(gradle, taskFailures);
         if (!taskFailures.isEmpty()) {
             throw new MultipleBuildFailures(taskFailures);
         }
-
-        stage = Stage.RunTasks;
     }
 
     /**

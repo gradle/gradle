@@ -127,6 +127,31 @@ class DefaultGradleLauncherSpec extends Specification {
         gradleLauncher.finishBuild(null, consumer)
     }
 
+    void testNotifiesListenerOnLoadSettingsFailure() {
+        def failure = new RuntimeException()
+
+        when:
+        isRootBuild()
+
+        and:
+        1 * settingsPreparerMock.prepareSettings(gradleMock) >> { throw failure }
+        1 * exceptionAnalyserMock.transform({ it == failure }) >> transformedException
+
+        DefaultGradleLauncher gradleLauncher = launcher()
+        gradleLauncher.getLoadedSettings()
+
+        then:
+        def t = thrown RuntimeException
+        t == transformedException
+
+        when:
+        gradleLauncher.finishBuild(null, consumer)
+
+        then:
+        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        0 * consumer._
+    }
+
     void testGetConfiguredBuild() {
         when:
         isRootBuild()
@@ -172,16 +197,21 @@ class DefaultGradleLauncherSpec extends Specification {
         0 * consumer._
     }
 
-    void testImplicitlySchedulesRequestedTasksIfNotAlready() {
+    void testExecuteTasksDoesNotImplicitlyConfigureBuildOrScheduleTasks() {
         when:
         isRootBuild()
-        expectSettingsBuilt()
-        expectTaskGraphBuilt()
         expectTasksRun()
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()
         gradleLauncher.executeTasks()
+
+        when:
+        gradleLauncher.finishBuild(null, consumer)
+
+        then:
+        1 * buildBroadcaster.buildFinished({ it.failure == null })
+        0 * consumer._
     }
 
     void testNotifiesListenerOnSettingsInitWithFailure() {
