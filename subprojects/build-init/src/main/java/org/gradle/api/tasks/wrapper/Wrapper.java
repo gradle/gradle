@@ -32,7 +32,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.util.PropertiesUtils;
-import org.gradle.util.DistributionLocator;
+import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.WrapUtil;
 import org.gradle.wrapper.GradleWrapperMain;

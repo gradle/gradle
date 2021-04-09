@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
+package org.gradle.util.internal;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.GradleVersion;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-/**
- * This class is only here to maintain binary compatibility with existing plugins.
- *
- * @deprecated Will be removed in Gradle 8.0.
- */
-@Deprecated
 public class DistributionLocator {
     private static final String RELEASE_REPOSITORY = "https://services.gradle.org/distributions";
     private static final String SNAPSHOT_REPOSITORY = "https://services.gradle.org/distributions-snapshots";
