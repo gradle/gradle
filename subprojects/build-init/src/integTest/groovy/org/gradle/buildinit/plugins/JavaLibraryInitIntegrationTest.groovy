@@ -60,7 +60,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "testSomeLibraryMethod")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -134,7 +134,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "testSomeLibraryMethod")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -156,14 +156,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        switch (testFramework) {
-            case BuildInitTestFramework.JUNIT:
-                assertTestPassed("my.lib.LibraryTest", "testSomeLibraryMethod")
-                break
-            case BuildInitTestFramework.TESTNG:
-                assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
-                break
-        }
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         [scriptDsl, testFramework] << [ScriptDslFixture.SCRIPT_DSLS, [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG]].combinations()
