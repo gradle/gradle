@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.IoActions;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
-import org.gradle.util.AntUtil;
+import org.gradle.util.internal.AntUtil;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.BufferedWriter;
