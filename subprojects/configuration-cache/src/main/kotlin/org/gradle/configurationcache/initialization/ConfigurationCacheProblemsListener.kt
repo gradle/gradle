@@ -117,15 +117,3 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             documentationSection = RequirementsBuildListeners
         )
 }
-
-
-class NoOpConfigurationCacheProblemsListener : ConfigurationCacheProblemsListener {
-    override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-    }
-
-    override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-    }
-
-    override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-    }
-}

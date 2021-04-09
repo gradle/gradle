@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.initialization
 
+import org.gradle.initialization.DefaultSettingsLoader.BUILD_SRC_PROJECT_PATH
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.util.Path
 
@@ -26,5 +27,9 @@ class ConfigurationCacheBuildEnablement(
 ) {
     val isEnabledForCurrentBuild by lazy {
         startParameter.isEnabled && buildPath.buildPath == Path.ROOT
+    }
+
+    val isProblemListenerEnabledForCurrentBuild by lazy {
+        startParameter.isEnabled && buildPath.buildPath.path != BUILD_SRC_PROJECT_PATH
     }
 }
