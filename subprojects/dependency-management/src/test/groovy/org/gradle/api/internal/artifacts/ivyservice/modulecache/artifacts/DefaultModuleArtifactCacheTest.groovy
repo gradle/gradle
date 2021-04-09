@@ -26,7 +26,7 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.BuildCommencedTimeProvider
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
