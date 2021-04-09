@@ -92,3 +92,29 @@ if (System.getProperty("profile") == "custom") {
 }
 ```
 You can pass the `profile` system property to Gradle using `gradle -Dprofile=custom` to execute the code in the `custom` profile branch.
+
+=== Potential breaking changes
+
+The following classes were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
+
+- `Resources`
+- `RedirectStdOutAndErr`
+- `Swapper`
+- `StdInSwapper`
+- `IncubationLogger`
+- `RedirectStdIn`
+- `MultithreadedTestRule`
+- `DisconnectableInputStream`
+- `BulkReadInputStream`
+- `MockExecutor`
+- `FailsWithMessage`
+- `FailsWithMessageExtension`
+
+Also, the unused classes were deleted from `org.gradle.util`:
+
+- `DiffUtil`
+- `NoopChangeListener`
+- `EnumWithClassBody`
+- `AlwaysTrue`
+- `ReflectionEqualsMatcher`
+- `DynamicDelegate`

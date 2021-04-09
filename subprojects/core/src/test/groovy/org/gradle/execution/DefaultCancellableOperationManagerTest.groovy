@@ -18,7 +18,7 @@ package org.gradle.execution
 
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.util.DisconnectableInputStream
+import org.gradle.util.internal.DisconnectableInputStream
 import spock.lang.AutoCleanup
 
 import java.util.concurrent.Executors

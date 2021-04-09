@@ -27,7 +27,7 @@ import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.util.IncubationLogger;
+import org.gradle.util.internal.IncubationLogger;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;

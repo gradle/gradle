@@ -24,7 +24,7 @@ import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.StdinHandler;
-import org.gradle.util.StdinSwapper;
+import org.gradle.util.internal.StdinSwapper;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
