@@ -19,7 +19,7 @@ package org.gradle.testkit.runner.enduser
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.gradle.util.UsesNativeServices
 
 @NonCrossVersion

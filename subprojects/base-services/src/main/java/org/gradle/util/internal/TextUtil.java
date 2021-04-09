@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.util.internal;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -28,14 +28,6 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-/**
- * This class is only here to maintain binary compatibility with existing plugins.
- * <p>
- * Plugins should prefer external frameworks over this class.
- *
- * @deprecated Will be removed in Gradle 8.0.
- */
-@Deprecated
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");

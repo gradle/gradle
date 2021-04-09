@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.util.TextUtil.normaliseFileSeparators
+import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 

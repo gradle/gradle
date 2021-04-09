@@ -29,8 +29,8 @@ import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
-import static org.gradle.util.TextUtil.escapeString
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.escapeString
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import static org.hamcrest.core.IsNull.notNullValue
 
 @TargetCoverage({ ScalaCoverage.DEFAULT })

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.plugins
 
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 

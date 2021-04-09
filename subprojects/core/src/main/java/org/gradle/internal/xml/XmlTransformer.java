@@ -31,7 +31,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;

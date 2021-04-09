@@ -16,7 +16,7 @@
 
 package org.gradle.catalog
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 trait VersionCatalogSupport {
     void expectPlatformContents(File expectedTomlFile = file("build/version-catalog/libs.versions.toml"), String resultFile) {

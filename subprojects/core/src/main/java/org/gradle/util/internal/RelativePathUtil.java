@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.util.internal;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 

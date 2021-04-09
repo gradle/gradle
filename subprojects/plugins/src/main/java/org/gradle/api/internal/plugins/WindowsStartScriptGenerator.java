@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 public class WindowsStartScriptGenerator extends DefaultTemplateBasedStartScriptGenerator {
     public WindowsStartScriptGenerator() {

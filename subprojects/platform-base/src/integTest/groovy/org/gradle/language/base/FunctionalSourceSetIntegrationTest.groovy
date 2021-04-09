@@ -21,7 +21,7 @@ import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {

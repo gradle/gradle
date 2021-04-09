@@ -19,7 +19,7 @@ package org.gradle.ide.visualstudio.fixtures
 import org.gradle.plugins.ide.fixtures.IdeProjectFixture
 import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class SolutionFile extends IdeWorkspaceFixture {
     TestFile file
