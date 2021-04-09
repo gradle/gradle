@@ -17,11 +17,13 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.GradleLauncher;
+import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.NestedRootBuild;
@@ -30,7 +32,9 @@ import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Map;
 
 public class TestBuildScopeServices extends BuildScopeServices {
     private final File homeDir;
@@ -38,6 +42,11 @@ public class TestBuildScopeServices extends BuildScopeServices {
     public TestBuildScopeServices(ServiceRegistry parent, File homeDir) {
         super(parent);
         this.homeDir = homeDir;
+    }
+
+    @Override
+    protected GradleProperties createGradleProperties(GradlePropertiesController gradlePropertiesController) {
+        return new EmptyGradleProperties();
     }
 
     protected BuildDefinition createBuildDefinition(StartParameterInternal startParameter) {
@@ -68,5 +77,18 @@ public class TestBuildScopeServices extends BuildScopeServices {
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    private static class EmptyGradleProperties implements GradleProperties {
+        @Nullable
+        @Override
+        public String find(String propertyName) {
+            return null;
+        }
+
+        @Override
+        public Map<String, String> mergeProperties(Map<String, String> properties) {
+            return properties;
+        }
     }
 }
