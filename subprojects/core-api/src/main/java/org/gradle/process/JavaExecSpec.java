@@ -77,6 +77,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @deprecated Use {@link #getMainClass()}.set(main) instead. This method will be removed in Gradle 8.0.
      */
     @Deprecated
+    @ReplacedBy("mainClass")
     JavaExecSpec setMain(@Nullable String main);
 
     /**
