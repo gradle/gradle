@@ -9,8 +9,8 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * A simple functional test for the '${pluginId.value}' plugin.
