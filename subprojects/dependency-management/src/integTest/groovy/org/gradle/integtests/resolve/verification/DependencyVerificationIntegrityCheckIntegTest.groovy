@@ -1064,7 +1064,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails 'noop'
 
         then:
-        outputContains "Gradle properties are not loaded yet, any customization to dependency verification will be ignored until the main build script is loaded."
         failure.assertHasDescription """Dependency verification failed for configuration 'classpath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven

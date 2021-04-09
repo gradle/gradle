@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,20 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 
-public class DefaultSettingsPreparer implements SettingsPreparer {
-    private final SettingsLoaderFactory settingsLoaderFactory;
+public class InitScriptHandlingSettingsLoader implements SettingsLoader {
+    private final SettingsLoader delegate;
+    private final InitScriptHandler initScriptHandler;
 
-    public DefaultSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory) {
-        this.settingsLoaderFactory = settingsLoaderFactory;
+    public InitScriptHandlingSettingsLoader(SettingsLoader delegate, InitScriptHandler initScriptHandler) {
+        this.delegate = delegate;
+        this.initScriptHandler = initScriptHandler;
     }
 
     @Override
-    public void prepareSettings(GradleInternal gradle) {
-        SettingsLoader settingsLoader = gradle.isRootBuild() ? settingsLoaderFactory.forTopLevelBuild() : settingsLoaderFactory.forNestedBuild();
-        settingsLoader.findAndLoadSettings(gradle);
+    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
+        initScriptHandler.executeScripts(gradle);
+        return delegate.findAndLoadSettings(gradle);
     }
 }
