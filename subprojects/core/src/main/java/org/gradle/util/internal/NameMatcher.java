@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
+package org.gradle.util.internal;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -22,11 +22,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * This class is only here to maintain binary compatibility with existing plugins.
- *
- * @deprecated Will be removed in Gradle 8.0.
+ * Selects a single item from a collection based on a camel case pattern.
  */
-@Deprecated
 public class NameMatcher {
     private final SortedSet<String> matches = new TreeSet<>();
     private final Set<String> candidates = new TreeSet<>();
