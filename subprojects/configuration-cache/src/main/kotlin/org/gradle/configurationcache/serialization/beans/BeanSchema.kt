@@ -19,6 +19,7 @@ package org.gradle.configurationcache.serialization.beans
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.TaskInternal
@@ -40,7 +41,8 @@ import kotlin.reflect.KClass
 
 internal
 val unsupportedFieldDeclaredTypes = listOf(
-    Configuration::class
+    Configuration::class,
+    SourceDirectorySet::class
 )
 
 
