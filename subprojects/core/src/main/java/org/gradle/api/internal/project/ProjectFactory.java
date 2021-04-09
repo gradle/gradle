@@ -28,7 +28,7 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.util.NameValidator;
+import org.gradle.util.internal.NameValidator;
 import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;

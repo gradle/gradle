@@ -25,7 +25,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
-import org.gradle.util.NameValidator;
+import org.gradle.util.internal.NameValidator;
 import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;
