@@ -33,7 +33,7 @@ class JacocoReportRelocationIntegrationTest extends AbstractTaskRelocationIntegr
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
 
         buildFile << """
-            sourceSets.test.java.outputDir = file("build/classes/test")
+            sourceSets.test.java.destinationDirectory.set(file("build/classes/test"))
         """
 
         succeeds "test"
@@ -42,7 +42,7 @@ class JacocoReportRelocationIntegrationTest extends AbstractTaskRelocationIntegr
     @Override
     protected void moveFilesAround() {
         buildFile << """
-            sourceSets.test.java.outputDir = file("build/test-classes")
+            sourceSets.test.java.destinationDirectory.set(file("build/test-classes"))
             jacocoTestReport.executionData.from = files("build/jacoco.exec")
         """
         file("build/classes/test").assertIsDir().renameTo(file("build/test-classes"))

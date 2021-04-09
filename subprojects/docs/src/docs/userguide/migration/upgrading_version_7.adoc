@@ -92,3 +92,23 @@ if (System.getProperty("profile") == "custom") {
 }
 ```
 You can pass the `profile` system property to Gradle using `gradle -Dprofile=custom` to execute the code in the `custom` profile branch.
+
+[[compile_task_wiring]]
+=== Properties deprecated in compile task wiring
+
+* The link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir[SourceDirectorySet.outputDir]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:classesDirectory[SourceDirectorySet.classesDirectory]
+property instead.
+* The link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html#org.gradle.api.tasks.compile.JavaCompile:destinationDir[JavaCompile.destinationDir]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html#org.gradle.api.tasks.compile.JavaCompile:destinationDirectory[JavaCompile.destinationDirectory]
+property instead.
+* The link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html#org.gradle.api.tasks.compile.GroovyCompile:destinationDir[GroovyCompile.destinationDir]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html#org.gradle.api.tasks.compile.GroovyCompile:destinationDirectory[GroovyCompile.destinationDirectory]
+property instead.
+* The link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:destinationDir[ScalaCompile.destinationDir]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:destinationDirectory[ScalaCompile.destinationDirectory]
+property instead.

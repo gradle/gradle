@@ -103,7 +103,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
             sourceSets {
                 main {
-                    java.outputDir = file('out/classes/java/main')
+                    java.destinationDirectory.set(file('out/classes/java/main'))
                 }
             }
         """.stripIndent()
@@ -141,8 +141,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
             task configureCompileJava {
                 doLast {
-                    compileJava.destinationDir = file('build/out')
-                    jar.from compileJava.destinationDir
+                    compileJava.destinationDirectory.set(file('build/out'))
+                    jar.from compileJava.destinationDirectory
                 }
             }
 

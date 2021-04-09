@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
@@ -63,7 +64,7 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
                 outputs.cacheIf { true }
                 doFirst action
             }
- 
+
             task taskB {
                 def output = file("build/task-b/output.txt")
                 inputs.file input
@@ -88,14 +89,14 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
             task compileA(type: JavaCompile) {
                 destinationDirectory = file("build/compile-a")
                 doLast {
-                    file("\$destinationDir/output.txt") << "From compile task A"
+                    destinationDirectory.file("output.txt").get().asFile << "From compile task A"
                 }
             }
 
             task compileB(type: JavaCompile) {
                 destinationDirectory = file("build/compile-b")
                 doLast {
-                    file("\$destinationDir/output.txt") << "From compile task B"
+                    destinationDirectory.file("output.txt").get().asFile << "From compile task B"
                 }
             }
 
