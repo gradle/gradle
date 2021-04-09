@@ -222,7 +222,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    private void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'junit:junit:') {
+    private static void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'org.junit.jupiter') {
         dslFixture.buildFile.assertContents(
             allOf(
                 dslFixture.containsConfigurationDependencyNotation('api', 'org.apache.commons:commons-math3'),
