@@ -15,28 +15,47 @@
  */
 package org.gradle.internal.invocation;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.internal.Factory;
+import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-public class GradleBuildController implements BuildController {
+public class GradleBuildController implements BuildController, Stoppable {
     private enum State {Created, Completed}
 
     private State state = State.Created;
     private final GradleLauncher gradleLauncher;
     private final WorkerLeaseService workerLeaseService;
+    private final IncludedBuildControllers includedBuildControllers;
+    private final ExceptionAnalyser exceptionAnalyser;
 
-    public GradleBuildController(GradleLauncher gradleLauncher, WorkerLeaseService workerLeaseService) {
+    public GradleBuildController(GradleLauncher gradleLauncher, WorkerLeaseService workerLeaseService, IncludedBuildControllers includedBuildControllers, ExceptionAnalyser exceptionAnalyser) {
         this.gradleLauncher = gradleLauncher;
         this.workerLeaseService = workerLeaseService;
+        this.includedBuildControllers = includedBuildControllers;
+        this.exceptionAnalyser = exceptionAnalyser;
+    }
+
+    public GradleBuildController(GradleLauncher gradleLauncher, IncludedBuildControllers includedBuildControllers) {
+        this(gradleLauncher,
+            gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class),
+            includedBuildControllers,
+            gradleLauncher.getGradle().getServices().get(ExceptionAnalyser.class));
     }
 
     public GradleBuildController(GradleLauncher gradleLauncher) {
-        this(gradleLauncher, gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class));
+        this(gradleLauncher,
+            gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class),
+            gradleLauncher.getGradle().getServices().get(IncludedBuildControllers.class),
+            gradleLauncher.getGradle().getServices().get(ExceptionAnalyser.class));
     }
 
     public GradleLauncher getLauncher() {
@@ -52,26 +71,55 @@ public class GradleBuildController implements BuildController {
     }
 
     @Override
-    public GradleInternal run() {
-        return doBuild(GradleLauncher::executeTasks);
+    public void run() {
+        doBuild(launcher -> {
+            launcher.scheduleRequestedTasks();
+            includedBuildControllers.startTaskExecution();
+            List<Throwable> failures = new ArrayList<>();
+            try {
+                launcher.executeTasks();
+            } catch (Exception e) {
+                failures.add(e);
+            }
+            includedBuildControllers.awaitTaskCompletion(failures);
+            RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
+            if (reportableFailure != null) {
+                throw reportableFailure;
+            }
+            return null;
+        });
     }
 
     @Override
-    public GradleInternal configure() {
-        return doBuild(GradleLauncher::getConfiguredBuild);
+    public void configure() {
+        doBuild(GradleLauncher::getConfiguredBuild);
     }
 
-    public <T> T doBuild(final Transformer<T, ? super GradleLauncher> build) {
+    public <T> T doBuild(final Function<? super GradleLauncher, T> build) {
         try {
             // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
-            return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Factory<T>() {
-                @Override
-                public T create() {
-                    GradleLauncher launcher = getLauncher();
-                    T result = build.transform(launcher);
-                    launcher.finishBuild();
-                    return result;
+            return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), () -> {
+                List<Throwable> failures = new ArrayList<>();
+
+                GradleLauncher launcher = getLauncher();
+                T result = null;
+                try {
+                    result = build.apply(launcher);
+                } catch (Throwable t) {
+                    failures.add(t);
                 }
+
+                Consumer<Throwable> collector = failures::add;
+                includedBuildControllers.finishBuild(collector);
+                RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
+                launcher.finishBuild(reportableFailure, collector);
+
+                RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
+                if (finalReportableFailure != null) {
+                    throw finalReportableFailure;
+                }
+
+                return result;
             });
         } finally {
             state = State.Completed;

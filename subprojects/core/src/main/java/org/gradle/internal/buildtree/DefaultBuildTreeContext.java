@@ -16,20 +16,17 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.util.Path;
+import org.gradle.internal.service.ServiceRegistry;
 
-/**
- * The path of the root of the build tree.
- *
- * This is only ever non root for the build tree's created by the GradleBuild task.
- */
-public class BuildTreeBuildPath {
+class DefaultBuildTreeContext implements BuildTreeContext {
+    private final ServiceRegistry services;
 
-    public final Path path;
-
-    public BuildTreeBuildPath(Path path) {
-        this.path = path;
+    public DefaultBuildTreeContext(ServiceRegistry services) {
+        this.services = services;
     }
 
-    public static final BuildTreeBuildPath ROOT = new BuildTreeBuildPath(Path.ROOT);
+    @Override
+    public ServiceRegistry getBuildTreeServices() {
+        return services;
+    }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.api.Transformer
+
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
@@ -31,12 +31,14 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.Path
 import spock.lang.Specification
 
+import java.util.function.Function
+
 class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
     def factory = Mock(NestedBuildFactory)
     def launcher = Mock(GradleLauncher)
     def gradle = Mock(GradleInternal)
-    def action = Mock(Transformer)
+    def action = Mock(Function)
     def sessionServices = Mock(ServiceRegistry)
     def buildDefinition = Mock(BuildDefinition)
     def buildIdentifier = Mock(BuildIdentifier)
@@ -71,9 +73,10 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         then:
-        1 * action.transform(!null) >> { BuildController controller ->
+        1 * action.apply(!null) >> { BuildController controller ->
             '<result>'
         }
+        1 * launcher.stop()
     }
 
     def "can have null result"() {
@@ -84,8 +87,9 @@ class DefaultNestedBuildTest extends Specification {
         result == null
 
         and:
-        1 * action.transform(!null) >> { BuildController controller ->
+        1 * action.apply(!null) >> { BuildController controller ->
             return null
         }
+        1 * launcher.stop()
     }
 }

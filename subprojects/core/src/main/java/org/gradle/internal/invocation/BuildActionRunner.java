@@ -16,11 +16,15 @@
 
 package org.gradle.internal.invocation;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nullable;
 
 /**
- * Responsible for executing a {@link BuildAction} and generating the result. A {@link BuildActionRunner} runs within the root build of the build tree.
+ * Responsible for executing a {@link BuildAction} and generating the result.
  */
+@ServiceScope(Scopes.BuildTree.class)
 public interface BuildActionRunner {
     /**
      * Runs the given action, returning a result that describes the build outcome and the result that should be returned to the client.

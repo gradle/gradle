@@ -23,7 +23,7 @@ import org.gradle.internal.invocation.BuildController;
 import java.util.List;
 
 public class ChainingBuildActionRunner implements BuildActionRunner {
-    private List<? extends BuildActionRunner> runners;
+    private final List<? extends BuildActionRunner> runners;
 
     public ChainingBuildActionRunner(List<? extends BuildActionRunner> runners) {
         this.runners = runners;

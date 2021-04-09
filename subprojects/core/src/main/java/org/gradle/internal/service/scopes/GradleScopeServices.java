@@ -20,7 +20,6 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -56,7 +55,6 @@ import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
 import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ExcludedTaskFilteringBuildConfigurationAction;
-import org.gradle.execution.IncludedBuildLifecycleBuildWorkExecutor;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolver;
@@ -145,14 +143,13 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor, ProjectCacheDir projectCacheDir) {
+    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationExecutor buildOperationExecutor, ProjectCacheDir projectCacheDir) {
         return new BuildOperationFiringBuildWorkerExecutor(
             new UndefinedBuildWorkExecutor(
-                new IncludedBuildLifecycleBuildWorkExecutor(
-                    new DefaultBuildWorkExecutor(
-                        asList(new DryRunBuildExecutionAction(textOutputFactory),
-                            new SelectedTaskExecutionAction())),
-                    includedBuildControllers), projectCacheDir),
+                new DefaultBuildWorkExecutor(
+                    asList(new DryRunBuildExecutionAction(textOutputFactory),
+                        new SelectedTaskExecutionAction())),
+                projectCacheDir),
             buildOperationExecutor);
     }
 
@@ -161,20 +158,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
         return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions, projectStateRegistry);
-    }
-
-    IncludedBuildControllers createIncludedBuildControllers(GradleInternal gradle, IncludedBuildControllers sharedControllers) {
-        if (gradle.isRootBuild()) {
-            return sharedControllers;
-        } else {
-            // TODO: buildSrc shouldn't be special here, but since buildSrc is built separately from other included builds and the root build
-            // We need to treat buildSrc as if it's a root build so that it can depend on included builds that may substitute dependencies
-            // into buildSrc
-            if (gradle.getOwner().getBuildIdentifier().getName().equals(SettingsInternal.BUILD_SRC)) {
-                return new IncludedBuildControllers.BuildSrcIncludedBuildControllers(sharedControllers);
-            }
-            return IncludedBuildControllers.EMPTY;
-        }
     }
 
     TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {

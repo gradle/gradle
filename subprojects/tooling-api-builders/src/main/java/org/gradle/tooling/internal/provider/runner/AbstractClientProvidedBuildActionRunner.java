@@ -41,8 +41,6 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
 
         GradleInternal gradle = buildController.getGradle();
 
-        gradle.getStartParameter().setConfigureOnDemand(false);
-
         ActionRunningListener listener = new ActionRunningListener(gradle, action);
 
         Throwable buildFailure = null;

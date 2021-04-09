@@ -22,7 +22,6 @@ import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.ConfigurationCacheSupport;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -159,7 +158,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                           BuildOperationNotificationValve buildOperationNotificationValve,
                                                           BuildOperationProgressEventEmitter eventEmitter,
                                                           BuildCancellationToken buildCancellationToken,
-                                                          ConfigurationCacheSupport configurationCacheSupport,
                                                           WorkValidationWarningReporter workValidationWarningReporter
         ) {
             return new InProcessBuildActionExecuter(
@@ -167,7 +165,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 payloadSerializer,
                 buildOperationNotificationValve,
                 buildCancellationToken,
-                configurationCacheSupport,
                 new RunAsBuildOperationBuildActionRunner(
                     new BuildCompletionNotifyingBuildActionRunner(
                         new FileSystemWatchingBuildActionRunner(eventEmitter,

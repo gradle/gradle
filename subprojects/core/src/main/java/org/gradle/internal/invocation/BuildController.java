@@ -17,12 +17,11 @@
 package org.gradle.internal.invocation;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.concurrent.Stoppable;
 
 /**
  * This is intended to eventually replace {@link org.gradle.initialization.GradleLauncher} internally. It's pretty rough at the moment.
  */
-public interface BuildController extends Stoppable {
+public interface BuildController {
 
     /**
      * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
@@ -30,16 +29,14 @@ public interface BuildController extends Stoppable {
     GradleInternal getGradle();
 
     /**
-     * Configures the build and schedules and executes tasks specified in the {@link org.gradle.StartParameter} associated with the build.
-     *
-     * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
+     * Creates the task graph for the tasks specified in the {@link org.gradle.StartParameter} associated with the build, runs the tasks and finishes up the build.
+     * When this method returns, all user code will have completed, including 'build finished' hooks.
      */
-    GradleInternal run();
+    void run();
 
     /**
-     * Configures the build but does not schedule or run any tasks.
-     *
-     * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
+     * Configures the build, but does not schedule or run any tasks, and finishes up the build.
+     * When this method returns, all user code will have completed, including 'build finished' hooks.
      */
-    GradleInternal configure();
+    void configure();
 }
