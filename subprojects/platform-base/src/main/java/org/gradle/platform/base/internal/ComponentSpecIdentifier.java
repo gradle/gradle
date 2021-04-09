@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;
 

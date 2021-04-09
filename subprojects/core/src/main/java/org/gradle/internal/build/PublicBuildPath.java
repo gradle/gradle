@@ -17,7 +17,7 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 /**
  * A reference to public path for a build, available via the service registry.

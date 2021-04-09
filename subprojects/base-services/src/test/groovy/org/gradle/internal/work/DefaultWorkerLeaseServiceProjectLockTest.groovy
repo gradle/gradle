@@ -33,7 +33,7 @@ import java.util.concurrent.locks.ReentrantLock
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
-import static org.gradle.util.Path.path
+import static org.gradle.util.internal.Path.path
 
 class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     @Rule

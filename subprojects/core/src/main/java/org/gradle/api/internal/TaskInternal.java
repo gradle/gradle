@@ -29,7 +29,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Configurable;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import java.io.File;
 import java.util.List;

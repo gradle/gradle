@@ -16,7 +16,7 @@
 package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Task
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 
 class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
     final TaskDetailsFactory factory = Mock()

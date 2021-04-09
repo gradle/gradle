@@ -26,7 +26,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import spock.lang.Specification
 import spock.lang.Unroll
 

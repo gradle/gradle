@@ -26,7 +26,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import java.io.File;
 

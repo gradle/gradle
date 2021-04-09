@@ -53,7 +53,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
 import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import java.io.File
 
 
@@ -202,11 +202,11 @@ class ConfigurationCacheHost internal constructor(
         }
 
         override fun createBuild(
-            buildIdentifier: BuildIdentifier,
-            identityPath: Path,
-            buildDefinition: BuildDefinition,
-            isImplicit: Boolean,
-            owner: BuildState
+                buildIdentifier: BuildIdentifier,
+                identityPath: Path,
+                buildDefinition: BuildDefinition,
+                isImplicit: Boolean,
+                owner: BuildState
         ): IncludedBuildState = service<Instantiator>().newInstance(
             ConfigurationCacheIncludedBuildState::class.java,
             buildIdentifier,

@@ -28,7 +28,7 @@ import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import java.io.File;
 import java.util.Collection;

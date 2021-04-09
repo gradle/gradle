@@ -34,7 +34,7 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import java.io.File;
 import java.util.function.Consumer;

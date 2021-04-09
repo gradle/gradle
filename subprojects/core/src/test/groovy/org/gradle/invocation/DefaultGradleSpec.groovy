@@ -52,7 +52,7 @@ import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.GradleVersion
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

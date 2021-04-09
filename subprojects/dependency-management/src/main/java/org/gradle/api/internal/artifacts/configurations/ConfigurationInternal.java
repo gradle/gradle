@@ -27,7 +27,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

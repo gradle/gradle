@@ -35,7 +35,7 @@ import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification

@@ -26,7 +26,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
 

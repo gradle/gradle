@@ -17,7 +17,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.model.ModelContainer;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;
 

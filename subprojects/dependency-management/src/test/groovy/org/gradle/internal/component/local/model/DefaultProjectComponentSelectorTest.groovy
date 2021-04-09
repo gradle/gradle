@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import spock.lang.Specification
 import spock.lang.Unroll
 

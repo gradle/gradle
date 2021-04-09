@@ -26,7 +26,7 @@ import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collections;

@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import org.junit.Rule
 import org.junit.rules.TestName
 import spock.lang.Specification

@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import spock.lang.Unroll
 
 /**

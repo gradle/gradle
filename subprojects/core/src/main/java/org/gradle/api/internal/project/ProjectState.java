@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;

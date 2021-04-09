@@ -16,7 +16,7 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 public class DefaultPublicBuildPath implements PublicBuildPath {
 

@@ -82,7 +82,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;

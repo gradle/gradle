@@ -38,7 +38,7 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import java.io.File;
 import java.util.ArrayDeque;

@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import spock.lang.Specification
 
 import static org.gradle.util.internal.WrapUtil.toList

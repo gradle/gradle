@@ -40,7 +40,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 
 
 open class ConfigurationCacheIncludedBuildState(

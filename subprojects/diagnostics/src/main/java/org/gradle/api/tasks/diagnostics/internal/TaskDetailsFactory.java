@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import java.util.Set;
 

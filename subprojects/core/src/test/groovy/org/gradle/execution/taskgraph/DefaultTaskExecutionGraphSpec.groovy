@@ -62,7 +62,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 

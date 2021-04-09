@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.util.internal.GUtil;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;

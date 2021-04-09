@@ -25,7 +25,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 /**
  * Notifies listeners before and after delegating to the provided delegate to the actual evaluation,

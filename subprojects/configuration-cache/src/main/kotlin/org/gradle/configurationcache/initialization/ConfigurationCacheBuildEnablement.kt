@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.initialization
 
 import org.gradle.internal.build.PublicBuildPath
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 
 
 class ConfigurationCacheBuildEnablement(

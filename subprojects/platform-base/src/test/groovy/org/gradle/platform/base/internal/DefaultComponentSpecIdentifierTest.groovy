@@ -17,7 +17,7 @@
 package org.gradle.platform.base.internal
 
 import org.gradle.util.Matchers
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 import spock.lang.Specification
 
 

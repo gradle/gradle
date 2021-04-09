@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.util.internal
 
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.strictlyEquals
-import static org.gradle.util.Path.ROOT
-import static org.gradle.util.Path.path
+import static org.gradle.util.internal.Path.ROOT
+import static org.gradle.util.internal.Path.path
 
 class PathTest extends Specification {
     def "construction from string"() {

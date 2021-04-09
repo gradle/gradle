@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.util.Path
+import org.gradle.util.internal.Path
 
 class ComponentIdentifierSerializerTest extends SerializerSpec {
     ComponentIdentifierSerializer serializer = new ComponentIdentifierSerializer()

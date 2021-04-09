@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 import javax.annotation.Nullable;
 

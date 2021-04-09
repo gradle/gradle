@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 public class IncludedBuildTaskReference implements TaskReference, TaskDependencyContainer {
     private final String taskPath;

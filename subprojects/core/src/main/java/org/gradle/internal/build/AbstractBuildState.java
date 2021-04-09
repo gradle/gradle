@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.util.Path;
+import org.gradle.util.internal.Path;
 
 public abstract class AbstractBuildState implements BuildState {
     @Override
