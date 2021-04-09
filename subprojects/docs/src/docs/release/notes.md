@@ -4,7 +4,7 @@ This release enables [file system watching by default](#file-system-watching) to
 
 This release also introduces a feature preview for [centralized dependency versions](#centralized-versions), enables [build validation errors](#build-reliability) to make your builds more reliable, and makes it easier to [create convention plugins for settings files](#plugin-development). Many incubating features have been [promoted to stable](#promoted-features).
 
-<!-- These release notes only list what's new since Gradle 6.8. You can also see the [highlights of all the changes between Gradle 6.0 to 7.0](TODO). -->
+These release notes only list what's new since Gradle 6.8. You can also see the [highlights of all the changes between Gradle 6.0 to 7.0](https://gradle.org/whats-new/gradle-7/). 
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
@@ -302,11 +302,12 @@ includeBuild("../project-with-plugin-and-library")
 This distinction reflects what Gradle offers for repository declarations -
 repositories are specified separately for plugin dependencies and for production dependencies.
 
-<!--
-## Security improvements
-This release of Gradle fixes the following security issues.
-…
--->
+## Security advisories
+
+This release of Gradle contains fixes for the following security advisories:
+- [Local privilege escalation through system temporary directory](https://github.com/gradle/gradle/security/advisories/GHSA-89qm-pxvm-p336)
+- [Repository content filters do not work in Settings pluginManagement](https://github.com/gradle/gradle/security/advisories/GHSA-jvmj-rh6q-x395)
+- [Information disclosure through temporary directory permissions](https://github.com/gradle/gradle/security/advisories/GHSA-fp8h-qmr5-j4c8)
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
