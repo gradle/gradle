@@ -92,3 +92,15 @@ if (System.getProperty("profile") == "custom") {
 }
 ```
 You can pass the `profile` system property to Gradle using `gradle -Dprofile=custom` to execute the code in the `custom` profile branch.
+
+[[report_properties]]
+=== Properties deprecated in Report
+
+* The link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:enabled[Report.enabled]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:required[Report.required]
+property instead.
+* The link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination[Report.destination]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:outputLocation[Report.outputLocation]
+property instead.

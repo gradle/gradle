@@ -53,7 +53,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
 
     public GenerateBuildDashboard() {
         reports = getInstantiator().newInstance(DefaultBuildDashboardReports.class, this, getCollectionCallbackActionDecorator());
-        reports.getHtml().setEnabled(true);
+        reports.getHtml().getRequired().set(true);
     }
 
     @Inject
@@ -74,7 +74,8 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
                 // A report to be generated, ignore
                 continue;
             }
-            inputs.add(new ReportState(report.getDisplayName(), report.getDestination(), report.getDestination().exists()));
+            File outputLocation = report.getOutputLocation().get().getAsFile();
+            inputs.add(new ReportState(report.getDisplayName(), outputLocation, outputLocation.exists()));
         }
         return inputs;
     }
@@ -187,7 +188,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
 
     @TaskAction
     void run() {
-        if (getReports().getHtml().isEnabled()) {
+        if (getReports().getHtml().getRequired().get()) {
             BuildDashboardGenerator generator = new BuildDashboardGenerator();
             generator.render(getEnabledInputReports(), reports.getHtml().getEntryPoint());
         } else {

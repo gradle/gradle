@@ -103,7 +103,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
         if (report instanceof DirectoryReport) {
             return ((DirectoryReport) report).getEntryPoint();
         } else {
-            return report.getDestination();
+            return report.getOutputLocation().get().getAsFile();
         }
     }
 }
