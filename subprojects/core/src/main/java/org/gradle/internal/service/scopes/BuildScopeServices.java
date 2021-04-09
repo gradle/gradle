@@ -514,15 +514,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
         ModelConfigurationListener modelConfigurationListener = listenerManager.getBroadcaster(ModelConfigurationListener.class);
         return new BuildOperationFiringProjectsPreparer(
-                        new BuildTreePreparingProjectsPreparer(
-                                new DefaultProjectsPreparer(
-                                        projectConfigurer,
-                                        modelConfigurationListener,
-                                        buildOperationExecutor),
-                                buildLoader,
-                                buildStateRegistry,
-                                buildSourceBuilder),
-                        buildOperationExecutor);
+            new BuildTreePreparingProjectsPreparer(
+                new DefaultProjectsPreparer(
+                    projectConfigurer,
+                    modelConfigurationListener,
+                    buildOperationExecutor),
+                buildLoader,
+                buildStateRegistry,
+                buildSourceBuilder),
+            buildOperationExecutor);
     }
 
     protected ProjectAccessHandler createProjectAccessHandler() {
@@ -569,8 +569,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected DefaultToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
-                                                                                final BuildOperationExecutor buildOperationExecutor,
-                                                                                ProjectStateRegistry projectStateRegistry) {
+                                                                                       final BuildOperationExecutor buildOperationExecutor,
+                                                                                       ProjectStateRegistry projectStateRegistry) {
         DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry);
         for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
             registryAction.execute(registry);

@@ -38,8 +38,10 @@ public class StartParamsValidatingActionExecuter implements BuildActionExecuter<
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         StartParameter startParameter = action.getStartParameter();
-        if (startParameter.getBuildFile() != null) {
-            validateIsFileAndExists(startParameter.getBuildFile(), "build file");
+        @SuppressWarnings("deprecation")
+        File customBuildFile = startParameter.getBuildFile();
+        if (customBuildFile != null) {
+            validateIsFileAndExists(customBuildFile, "build file");
         }
         if (startParameter.getProjectDir() != null) {
             if (!startParameter.getProjectDir().isDirectory()) {
@@ -49,8 +51,10 @@ public class StartParamsValidatingActionExecuter implements BuildActionExecuter<
                 throw new IllegalArgumentException(String.format("The specified project directory '%s' is not a directory.", startParameter.getProjectDir()));
             }
         }
-        if (startParameter.getSettingsFile() != null) {
-            validateIsFileAndExists(startParameter.getSettingsFile(), "settings file");
+        @SuppressWarnings("deprecation")
+        File customSettingsFile = startParameter.getSettingsFile();
+        if (customSettingsFile != null) {
+            validateIsFileAndExists(customSettingsFile, "settings file");
         }
         for (File initScript : startParameter.getInitScripts()) {
             validateIsFileAndExists(initScript, "initialization script");

@@ -15,8 +15,8 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
@@ -40,7 +40,7 @@ public class TestBuildScopeServices extends BuildScopeServices {
         this.homeDir = homeDir;
     }
 
-    protected BuildDefinition createBuildDefinition(StartParameter startParameter) {
+    protected BuildDefinition createBuildDefinition(StartParameterInternal startParameter) {
         return BuildDefinition.fromStartParameter(startParameter, null);
     }
 

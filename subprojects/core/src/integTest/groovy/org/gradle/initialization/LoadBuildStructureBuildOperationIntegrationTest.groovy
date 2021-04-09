@@ -64,7 +64,8 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         """
 
         when:
-        executer.withArguments("--settings-file", customSettingsFile.absolutePath)
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+        executer.usingSettingsFile(customSettingsFile)
         succeeds('help')
 
         then:

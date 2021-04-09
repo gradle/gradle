@@ -31,7 +31,7 @@ public class BuildDefinition {
     private final String name;
     @Nullable
     private final File buildRootDir;
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
     private final PluginRequests injectedSettingsPlugins;
     private final Action<? super DependencySubstitutions> dependencySubstitutions;
     private final PublicBuildPath fromBuild;
@@ -40,7 +40,7 @@ public class BuildDefinition {
     private BuildDefinition(
         @Nullable String name,
         @Nullable File buildRootDir,
-        StartParameter startParameter,
+        StartParameterInternal startParameter,
         PluginRequests injectedSettingsPlugins,
         Action<? super DependencySubstitutions> dependencySubstitutions,
         PublicBuildPath fromBuild,
@@ -82,7 +82,7 @@ public class BuildDefinition {
         return fromBuild;
     }
 
-    public StartParameter getStartParameter() {
+    public StartParameterInternal getStartParameter() {
         return startParameter;
     }
 
@@ -99,7 +99,7 @@ public class BuildDefinition {
     }
 
     public static BuildDefinition fromStartParameterForBuild(
-        StartParameter startParameter,
+        StartParameterInternal startParameter,
         String name,
         File buildRootDir,
         PluginRequests pluginRequests,
@@ -117,14 +117,14 @@ public class BuildDefinition {
             pluginBuild);
     }
 
-    public static BuildDefinition fromStartParameter(StartParameter startParameter, @Nullable PublicBuildPath fromBuild) {
+    public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable PublicBuildPath fromBuild) {
         return new BuildDefinition(null, null, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild, false);
     }
 
-    private static StartParameter startParameterForIncludedBuildFrom(StartParameter startParameter, File buildRootDir) {
-        StartParameter includedBuildStartParam = startParameter.newBuild();
+    private static StartParameterInternal startParameterForIncludedBuildFrom(StartParameterInternal startParameter, File buildRootDir) {
+        StartParameterInternal includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
-        ((StartParameterInternal) includedBuildStartParam).doNotSearchUpwards();
+        includedBuildStartParam.doNotSearchUpwards();
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
         includedBuildStartParam.setExcludedTaskNames(startParameter.getExcludedTaskNames());

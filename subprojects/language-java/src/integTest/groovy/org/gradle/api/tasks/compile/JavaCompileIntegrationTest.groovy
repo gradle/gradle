@@ -80,9 +80,9 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
     def "detects change in classpath order"() {
-        jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
-        jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        jarWithClasses(file("lib1.jar"), Thing: "class Thing {public void foo() {} }")
+        jarWithClasses(file("lib2.jar"), Thing: "class Thing { public void bar() {} }")
+        file("src/main/java/Foo.java") << "public class Foo extends Thing {}"
 
         buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
 

@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
@@ -32,6 +31,9 @@ import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild, Stoppable {
     private final Path identityPath;
@@ -69,10 +71,13 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public <T> T run(Transformer<T, ? super BuildController> buildAction) {
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
+    public <T> T run(Function<? super BuildController, T> buildAction) {
+        // Create a wrapper for the controllers, to prevent the build controller from finishing any other builds
+        IncludedBuildControllers controllers = gradleLauncher.getGradle().getServices().get(IncludedBuildControllers.class);
+        IncludedBuildControllers noFinishController = new DoNoFinishIncludedBuildControllers(controllers);
+        GradleBuildController buildController = new GradleBuildController(gradleLauncher, noFinishController);
         try {
-            return buildAction.transform(buildController);
+            return buildAction.apply(buildController);
         } finally {
             buildController.stop();
         }
@@ -106,5 +111,43 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public GradleInternal getBuild() {
         return gradleLauncher.getGradle();
+    }
+
+    private static class DoNoFinishIncludedBuildControllers implements IncludedBuildControllers {
+        private final IncludedBuildControllers controllers;
+
+        public DoNoFinishIncludedBuildControllers(IncludedBuildControllers controllers) {
+            this.controllers = controllers;
+        }
+
+        @Override
+        public void rootBuildOperationStarted() {
+            controllers.rootBuildOperationStarted();
+        }
+
+        @Override
+        public void populateTaskGraphs() {
+            controllers.populateTaskGraphs();
+        }
+
+        @Override
+        public void startTaskExecution() {
+            controllers.startTaskExecution();
+        }
+
+        @Override
+        public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
+            controllers.awaitTaskCompletion(taskFailures);
+        }
+
+        @Override
+        public void finishBuild(Consumer<? super Throwable> collector) {
+            // Do not finish any other builds
+        }
+
+        @Override
+        public IncludedBuildController getBuildController(BuildIdentifier buildIdentifier) {
+            return controllers.getBuildController(buildIdentifier);
+        }
     }
 }

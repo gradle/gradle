@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
@@ -30,11 +31,12 @@ import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsS
 
 class ClassSetAnalysisDataSerializerTest extends Specification {
 
+    HashCode hash = HashCode.fromInt(0)
     @Subject serializer = new ClassSetAnalysisData.Serializer(new StringInterner())
 
     def "serializes"() {
-        def data = new ClassSetAnalysisData(["A", "B", "C", "D"] as Set,
-            ["A": dependentClasses(["B", "C"] as Set, [] as Set), "B": dependentClasses(["C"] as Set, [] as Set), "C": dependentClasses([] as Set, [] as Set), "D": dependencyToAll(),],
+        def data = new ClassSetAnalysisData(["A": hash, "B": hash, "C": hash, "D": hash],
+            ["A": dependentClasses(["B", "C"] as Set, [] as Set), "B": dependentClasses(["C"] as Set, [] as Set), "C": dependentClasses([] as Set, [] as Set), "D": dependencyToAll("reason"),],
             [C: new IntOpenHashSet([1, 2]) as IntSet, D: IntSets.EMPTY_SET]
             ,"Because"
         )

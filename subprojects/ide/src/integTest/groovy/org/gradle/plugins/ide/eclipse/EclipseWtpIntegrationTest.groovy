@@ -182,7 +182,7 @@ apply plugin: "eclipse-wtp"
 apply plugin: "groovy"
         """
 
-        executer.usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.withTasks("eclipse").run()
     }
 
 	private Set getHandleFilenames(projectModules) {

@@ -17,7 +17,6 @@
 import gradlebuild.basics.accessors.kotlin
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 
 
 plugins {
@@ -26,7 +25,7 @@ plugins {
     id("org.gradle.kotlin-dsl.ktlint-convention")
 }
 
-val transitiveSourcesElements by configurations.getting {
+configurations.transitiveSourcesElements {
     val main = sourceSets.main.get()
     main.kotlin.srcDirs.forEach {
         outgoing.artifact(it)
@@ -44,10 +43,8 @@ tasks {
         }
     }
 
-    val ktlintCheckTasks = withType<KtLintCheckTask>()
-
-    named("codeQuality") {
-        dependsOn(ktlintCheckTasks)
+    codeQuality {
+        dependsOn(ktlintCheck)
     }
 
     runKtlintCheckOverKotlinScripts {
@@ -57,7 +54,7 @@ tasks {
 
     withType<Test>().configureEach {
 
-        shouldRunAfter(ktlintCheckTasks)
+        shouldRunAfter(ktlintCheck)
 
         // enables stricter ClassLoaderScope behaviour
         systemProperty(

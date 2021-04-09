@@ -31,7 +31,7 @@ class DependencyTreeTest extends Specification {
         def classCount = 4
 
         when:
-        tree.calculateClassDependencies(0, classCount)
+        tree.calculateClassDependencies(0, 0, classCount)
 
         then:
         tree.getTransitiveChildClassIds(3) == [0, 1, 2]
@@ -48,7 +48,7 @@ class DependencyTreeTest extends Specification {
         def maxLevel = 4
         def classCount = amount(3, maxLevel) + 1
         when:
-        tree.calculateClassDependencies(0, classCount)
+        tree.calculateClassDependencies(0, 0, classCount)
 
         then:
         def level4Class = classCount - 1
@@ -77,7 +77,7 @@ class DependencyTreeTest extends Specification {
 
         for (int i = 0; i < projectCount; i++) {
             //for each project, we need at least one class
-            tree.calculateClassDependencies(i, i + 1)
+            tree.calculateClassDependencies(i, i, i + 1)
         }
         tree.calculateProjectDependencies()
 
@@ -113,7 +113,7 @@ class DependencyTreeTest extends Specification {
         when:
 
         for (int i = 0; i < projectCount; i++) {
-            tree.calculateClassDependencies(i * classPerProjectCount, ((i+1) * classPerProjectCount) - 1)
+            tree.calculateClassDependencies(i, i * classPerProjectCount, ((i+1) * classPerProjectCount) - 1)
         }
         tree.calculateProjectDependencies()
 
@@ -146,7 +146,7 @@ class DependencyTreeTest extends Specification {
         when:
 
         for (int i = 0; i < projectCount; i++) {
-            tree.calculateClassDependencies(i * classPerProjectCount, ((i+1) * classPerProjectCount) - 1)
+            tree.calculateClassDependencies(i, i * classPerProjectCount, ((i+1) * classPerProjectCount) - 1)
         }
         tree.calculateProjectDependencies()
 

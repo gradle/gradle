@@ -142,7 +142,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             task configureCompileJava {
                 doLast {
                     compileJava.destinationDir = file('build/out')
-                    jar.from compileJava
+                    jar.from compileJava.destinationDir
                 }
             }
 

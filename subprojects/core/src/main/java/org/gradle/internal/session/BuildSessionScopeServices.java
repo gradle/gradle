@@ -18,6 +18,7 @@ package org.gradle.internal.session;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
@@ -88,14 +89,14 @@ import java.util.List;
  */
 public class BuildSessionScopeServices {
 
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
     private final BuildRequestMetaData buildRequestMetaData;
     private final ClassPath injectedPluginClassPath;
     private final BuildCancellationToken buildCancellationToken;
     private final BuildClientMetaData buildClientMetaData;
     private final BuildEventConsumer buildEventConsumer;
 
-    public BuildSessionScopeServices(StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken, BuildClientMetaData buildClientMetaData, BuildEventConsumer buildEventConsumer) {
+    public BuildSessionScopeServices(StartParameterInternal startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken, BuildClientMetaData buildClientMetaData, BuildEventConsumer buildEventConsumer) {
         this.startParameter = startParameter;
         this.buildRequestMetaData = buildRequestMetaData;
         this.injectedPluginClassPath = injectedPluginClassPath;
@@ -105,7 +106,7 @@ public class BuildSessionScopeServices {
     }
 
     void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
-        registration.add(StartParameter.class, startParameter);
+        registration.add(StartParameterInternal.class, startParameter);
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
             pluginServiceRegistry.registerBuildSessionServices(registration);
         }

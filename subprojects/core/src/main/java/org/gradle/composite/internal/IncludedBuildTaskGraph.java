@@ -18,9 +18,12 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 
+@ServiceScope(Scopes.BuildTree.class)
 public interface IncludedBuildTaskGraph {
     void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
 

@@ -16,7 +16,7 @@
 
 package org.gradle.java.compile.incremental
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,16 +26,16 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     CompiledLanguage language = CompiledLanguage.JAVA
 
     @Unroll
-    def "change in an upstream class with non-private constant causes rebuild if same constant is used (#constantType)"() {
-        source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class ImplA extends A { $constantType foo() { return $constantValue; }}", "class ImplB {int foo() { return 2; }}"]
+    def "change in an upstream class with non-private constant causes rebuild (#constantType)"() {
+        source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class ImplA extends A {}", "class ImplB {}"]
         impl.snapshot { run language.compileTaskName }
 
         when:
         source api: ["class B { /* change */ }"]
-        run "impl:${language.compileTaskName}"
+        run "impl:${language.compileTaskName}", "--info"
 
         then:
-        // impl.recompiledClasses('ImplA') //  Can re-enable with compiler plugins. See gradle/gradle#1474
+        outputContains("Full recompilation is required because an inlineable constant in 'B' has changed.")
         impl.recompiledClasses('ImplA', 'ImplB')
 
         where:
@@ -49,34 +49,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         'double'     | '7d'
         'String'     | '"foo"'
         'String'     | '"foo" + "bar"'
-    }
-
-    // This test describes the current behavior, not the intended one, expressed by the test just above
-    def "changing an unused non-private constant causes full rebuild"() {
-        println(buildFile.text)
-        source api: ["class A {}", "class B { final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { /* change */ }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses('ImplA', 'ImplB')
-    }
-
-    @NotYetImplemented
-    //  Can re-enable with compiler plugins. See gradle/gradle#1474
-    def "changing an unused non-private constant doesn't cause full rebuild"() {
-        source api: ["class A {}", "class B { final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { /* change */ }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses('ImplB')
     }
 
     // This behavior is kept for backward compatibility - may be removed in the future
@@ -117,30 +89,46 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
     def "recompiles when upstream module-info changes"() {
+        given:
+        settingsFile << "include 'otherApi'"
+        file("impl/build.gradle") << "dependencies { implementation(project(':otherApi')) }"
+
         file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
-        file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"
-        def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
-        moduleInfo.text = """
+        file("api/src/main/${language.name}/module-info.${language.name}") << """
             module api {
                 exports a;
             }
         """
+        file("otherApi/src/main/${language.name}/a2/A.${language.name}").text = "package a2; public class A {}"
+        file("otherApi/src/main/${language.name}/module-info.${language.name}") << """
+            module otherApi {
+                exports a2;
+            }
+        """
+        file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; class B extends a.A{}"
+        file("impl/src/main/${language.name}/b/B2.${language.name}").text = "package b; class B2 extends a2.A{}"
         file("impl/src/main/${language.name}/module-info.${language.name}").text = """
             module impl {
                 requires api;
+                requires otherApi;
             }
         """
         succeeds "impl:${language.compileTaskName}"
 
         when:
-        moduleInfo.text = """
-            module api {
+        file("$module/src/main/${language.name}/module-info.${language.name}").text = """
+            module $module {
             }
         """
 
         then:
         fails "impl:${language.compileTaskName}"
-        result.hasErrorOutput("package a is not visible")
+        result.hasErrorOutput("package $pkg is not visible")
+
+        where:
+        module | pkg
+        "api"  | "a"
+        "otherApi" | "a2"
     }
 
     def "recompiles in case of conflicting changing constant values"() {

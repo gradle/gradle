@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.deps;
+package org.gradle.internal.buildtree;
 
-import java.util.Set;
+import org.gradle.internal.service.ServiceRegistry;
 
-public class ClassChanges {
+class DefaultBuildTreeContext implements BuildTreeContext {
+    private final ServiceRegistry services;
 
-    private final Set<String> modified;
-    private final Set<String> addedClasses;
-
-    public ClassChanges(Set<String> modified, Set<String> addedClasses) {
-        this.modified = modified;
-        this.addedClasses = addedClasses;
+    public DefaultBuildTreeContext(ServiceRegistry services) {
+        this.services = services;
     }
 
-    public Set<String> getModified() {
-        return modified;
-    }
-
-    public Set<String> getAdded() {
-        return addedClasses;
+    @Override
+    public ServiceRegistry getBuildTreeServices() {
+        return services;
     }
 }

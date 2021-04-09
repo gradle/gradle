@@ -17,6 +17,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.StartParameterInternal;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -91,11 +92,14 @@ public class GradleBuild extends ConventionTask {
      * org.gradle.api.Project#DEFAULT_BUILD_FILE} in the project directory.
      *
      * @return The build file. May be null.
+     * @deprecated Use {@link #getDir()} instead to get the root of the nested build.
+     * This method will be removed in Gradle 8.0.
      */
     @Nullable
     @Optional
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFile
+    @Deprecated
     public File getBuildFile() {
         return getStartParameter().getBuildFile();
     }
@@ -105,7 +109,10 @@ public class GradleBuild extends ConventionTask {
      *
      * @param file The build file. May be null to use the default build file for the build.
      * @since 4.0
+     * @deprecated Use {@link #setDir(File)} instead to set the root of the nested build.
+     * This method will be removed in Gradle 8.0.
      */
+    @Deprecated
     public void setBuildFile(@Nullable File file) {
         setBuildFile((Object) file);
     }
@@ -114,7 +121,10 @@ public class GradleBuild extends ConventionTask {
      * Sets the build file that should be used for this build.
      *
      * @param file The build file. May be null to use the default build file for the build.
+     * @deprecated Use {@link #setDir(Object)} instead to set the root of the nested build.
+     * This method will be removed in Gradle 8.0.
      */
+    @Deprecated
     public void setBuildFile(@Nullable Object file) {
         getStartParameter().setBuildFile(getProject().file(file));
     }
@@ -174,6 +184,6 @@ public class GradleBuild extends ConventionTask {
     @TaskAction
     void build() {
         // TODO: Allow us to inject plugins into nested builds too.
-        runNestedRootBuild(buildName, getStartParameter(), getServices());
+        runNestedRootBuild(buildName, (StartParameterInternal) getStartParameter(), getServices());
     }
 }

@@ -28,7 +28,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
@@ -51,9 +50,9 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -93,6 +92,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final Property<JavaLauncher> javaLauncher;
     private File sourceClassesMappingFile;
+    private File previousCompilationDataFile;
 
     public GroovyCompile() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -168,13 +168,25 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      *
      * @since 5.6
      */
-    @LocalState
+    @OutputFile
     protected File getSourceClassesMappingFile() {
         if (sourceClassesMappingFile == null) {
-            File tmpDir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
-            sourceClassesMappingFile = new File(tmpDir, "source-classes-mapping.txt");
+            sourceClassesMappingFile = new File(getTemporaryDir(), "source-classes-mapping.txt");
         }
         return sourceClassesMappingFile;
+    }
+
+    /**
+     * The previous compilation analysis. Internal use only.
+     *
+     * @since 7.1
+     */
+    @OutputFile
+    protected File getPreviousCompilationData() {
+        if (previousCompilationDataFile == null) {
+            previousCompilationDataFile = new File(getTemporaryDir(), "previous-compilation-data.bin");
+        }
+        return previousCompilationDataFile;
     }
 
     private void warnIfCompileAvoidanceEnabled() {
@@ -191,7 +203,6 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
             IncrementalCompilerFactory factory = getIncrementalCompilerFactory();
             return factory.makeIncremental(
                 cleaningGroovyCompiler,
-                getPath(),
                 getStableSources().getAsFileTree(),
                 createRecompilationSpecProvider(inputChanges, sourceClassesMapping)
             );
@@ -299,6 +310,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         if (getOptions().isIncremental()) {
             validateIncrementalCompilationOptions(sourceRoots, spec.annotationProcessingConfigured());
             spec.setCompilationMappingFile(getSourceClassesMappingFile());
+            spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
         }
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
             File dir = new File(getTemporaryDir(), "groovy-java-stubs");

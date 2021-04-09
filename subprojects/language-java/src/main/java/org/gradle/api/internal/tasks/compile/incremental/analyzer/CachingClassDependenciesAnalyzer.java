@@ -18,13 +18,14 @@ package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.cache.Cache;
 import org.gradle.internal.hash.HashCode;
 
 public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
     private final ClassDependenciesAnalyzer analyzer;
-    private final ClassAnalysisCache cache;
+    private final Cache<HashCode, ClassAnalysis> cache;
 
-    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, ClassAnalysisCache cache) {
+    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, Cache<HashCode, ClassAnalysis> cache) {
         this.analyzer = analyzer;
         this.cache = cache;
     }

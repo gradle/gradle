@@ -485,10 +485,10 @@ Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fi
 == Environment options
 You can customize many aspects about where build scripts, settings, caches, and so on through the options below. Learn more about customizing your <<build_environment.adoc#build_environment, build environment>>.
 
-`-b`, `--build-file`::
-Specifies the build file. For example: `gradle --build-file=foo.gradle`. The default is `build.gradle`, then `build.gradle.kts`, then `myProjectName.gradle`.
+`-b`, `--build-file` (deprecated)::
+Specifies the build file. For example: `gradle --build-file=foo.gradle`. The default is `build.gradle`, then `build.gradle.kts`.
 
-`-c`, `--settings-file`::
+`-c`, `--settings-file` (deprecated)::
 Specifies the settings file. For example: `gradle --settings-file=somewhere/else/settings.gradle`
 
 `-g`, `--gradle-user-home`::

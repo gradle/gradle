@@ -37,8 +37,6 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
 
         GradleInternal gradle = buildController.getGradle();
 
-        gradle.getStartParameter().setConfigureOnDemand(false);
-
         ClientProvidedPhasedAction clientProvidedPhasedAction = (ClientProvidedPhasedAction) action;
         PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
 

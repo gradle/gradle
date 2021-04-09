@@ -22,7 +22,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 
 /**
- * An {@link BuildActionRunner} that wraps all work in a build operation.
+ * An {@link BuildActionRunner} that notifies the GE plugin manager that the build has completed.
  */
 public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
@@ -32,7 +32,7 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     }
 
     @Override
-    public Result run(final BuildAction action, final BuildController buildController) {
+    public Result run(final BuildAction action, BuildController buildController) {
         GradleEnterprisePluginManager gradleEnterprisePluginManager = buildController.getGradle().getServices()
             .get(GradleEnterprisePluginManager.class);
 

@@ -20,7 +20,9 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.Stoppable;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.util.function.Consumer;
 
 /**
  * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into {@link org.gradle.internal.invocation.BuildController} and {@link org.gradle.internal.build.BuildState}.
@@ -30,14 +32,14 @@ public interface GradleLauncher extends Stoppable {
     GradleInternal getGradle();
 
     /**
-     * Evaluates the settings for this build.
+     * Evaluates the settings for this build, if not already available.
      *
      * @return The loaded settings instance.
      */
     SettingsInternal getLoadedSettings();
 
     /**
-     * Configures the build.
+     * Configures the build, if not already available.
      *
      * @return The configured Gradle build instance.
      */
@@ -56,16 +58,22 @@ public interface GradleLauncher extends Stoppable {
     void scheduleTasks(final Iterable<String> tasks);
 
     /**
-     * Executes the tasks scheduled for this build.
-     *
-     * @return The configured Gradle build instance.
+     * Schedule requested tasks.
      */
-    GradleInternal executeTasks();
+    void scheduleRequestedTasks();
 
     /**
-     * Stops task execution threads and calls the `buildFinished` listener event.
+     * Executes the tasks scheduled for this build.
      */
-    void finishBuild();
+    void executeTasks();
+
+    /**
+     * Stops task execution threads and calls the `buildFinished` hooks and other user code clean up.
+     * Failures to finish the build are passed to the given consumer rather than thrown.
+     *
+     * @param failure The build failure that should be reported to the buildFinished hooks. When null, this launcher may use whatever failure it has already collected.
+     */
+    void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector);
 
     /**
      * <p>Adds a listener to this build instance. Receives events for this build only.

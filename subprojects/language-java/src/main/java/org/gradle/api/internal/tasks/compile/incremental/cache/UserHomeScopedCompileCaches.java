@@ -16,8 +16,55 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
+import org.gradle.cache.Cache;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.MinimalPersistentCache;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.serialize.HashCodeSerializer;
 
-public interface UserHomeScopedCompileCaches {
-    ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache();
+import java.io.Closeable;
+
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
+public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closeable {
+    private final Cache<HashCode, ClassSetAnalysisData> classpathEntrySnapshotCache;
+    private final PersistentCache cache;
+    private final Cache<HashCode, ClassAnalysis> classAnalysisCache;
+
+    public UserHomeScopedCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+        cache = cacheRepository
+            .cache("javaCompile")
+            .withDisplayName("Java compile cache")
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .open();
+        PersistentIndexedCacheParameters<HashCode, ClassSetAnalysisData> jarCacheParameters = PersistentIndexedCacheParameters.of("jarAnalysis", new HashCodeSerializer(), new ClassSetAnalysisData.Serializer(interner))
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
+        this.classpathEntrySnapshotCache = new MinimalPersistentCache<>(cache.createCache(jarCacheParameters));
+
+        PersistentIndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = PersistentIndexedCacheParameters.of("classAnalysis", new HashCodeSerializer(), new ClassAnalysis.Serializer(interner))
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
+        this.classAnalysisCache = new MinimalPersistentCache<>(cache.createCache(classCacheParameters));
+    }
+
+    @Override
+    public void close() {
+        cache.close();
+    }
+
+    @Override
+    public Cache<HashCode, ClassSetAnalysisData> getClassSetAnalysisCache() {
+        return classpathEntrySnapshotCache;
+    }
+
+    @Override
+    public Cache<HashCode, ClassAnalysis> getClassAnalysisCache() {
+        return classAnalysisCache;
+    }
 }

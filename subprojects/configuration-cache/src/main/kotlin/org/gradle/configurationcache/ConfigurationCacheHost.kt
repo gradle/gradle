@@ -30,7 +30,6 @@ import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.initialization.BuildOperationFiringSettingsPreparer
 import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
@@ -94,14 +93,7 @@ class ConfigurationCacheHost internal constructor(
 
         init {
             gradle.run {
-                // Fire build operation required by build scan to determine startup duration and settings evaluated duration
-                val settingsPreparer = BuildOperationFiringSettingsPreparer(
-                    { settings = processSettings() },
-                    service<BuildOperationExecutor>(),
-                    service<BuildDefinition>().fromBuild
-                )
-                settingsPreparer.prepareSettings(this)
-
+                settings = processSettings()
                 setBaseProjectClassLoaderScope(coreScope)
                 rootProjectDescriptor().name = rootProjectName
             }
@@ -143,8 +135,8 @@ class ConfigurationCacheHost internal constructor(
         fun fireBuildOperationsRequiredByBuildScans() {
             // Fire build operation required by build scans to determine the build's project structure (and build load time)
             val buildOperationExecutor = service<BuildOperationExecutor>()
-            val buildLoader = NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor)
-            buildLoader.load(gradle.settings, gradle)
+            NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor)
+                .load(gradle.settings, gradle)
 
             // Fire build operation required by build scans to determine the root path
             buildOperationExecutor.run(object : RunnableBuildOperation {

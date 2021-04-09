@@ -31,7 +31,7 @@ class RelevantProjectsRegistry : ProjectAccessHandler {
     fun relevantProjects(nodes: List<Node>): Set<ProjectInternal> =
         targetProjects +
             nodes.mapNotNullTo(mutableListOf()) { node ->
-                node.owningProject?.takeIf { it.parent != null }
+                node.owningProject
             }
 
     override fun beforeRequestingTaskByPath(targetProject: ProjectInternal) {

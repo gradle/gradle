@@ -16,6 +16,9 @@
 
 package org.gradle.performance.generator
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class TestProjectGenerator {
 
     TestProjectGeneratorConfiguration config
@@ -38,12 +41,12 @@ class TestProjectGenerator {
 
     def populateDependencyTree(DependencyTree dependencyTree) {
         if (config.subProjects == 0) {
-            dependencyTree.calculateClassDependencies(0, config.sourceFiles - 1)
+            dependencyTree.calculateClassDependencies(0, 0, config.sourceFiles - 1)
         } else {
             for (int subProjectNumber = 0; subProjectNumber < config.subProjects; subProjectNumber++) {
                 def sourceFileRangeStart = subProjectNumber * config.sourceFiles
                 def sourceFileRangeEnd = sourceFileRangeStart + config.sourceFiles - 1
-                dependencyTree.calculateClassDependencies(sourceFileRangeStart, sourceFileRangeEnd)
+                dependencyTree.calculateClassDependencies(subProjectNumber, sourceFileRangeStart, sourceFileRangeEnd)
             }
         }
         dependencyTree.calculateProjectDependencies()
@@ -97,13 +100,13 @@ class TestProjectGenerator {
         file projectDir, "buildSrc/build.gradle", "compileJava.options.incremental = true"
     }
 
-    void file(File dir, String name, String content) {
+    static void file(File dir, String name, String content) {
         if (content == null) {
             return
         }
         def file = new File(dir, name)
         file.parentFile.mkdirs()
-        file.text = content.stripIndent().trim()
+        file.setText(content.stripIndent().trim())
     }
 
     static void main(String[] args) {

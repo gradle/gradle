@@ -89,9 +89,13 @@ public class BuildActionSerializer {
             stringSetSerializer.write(encoder, startParameter.getExcludedTaskNames());
 
             // Layout
-            nullableFileSerializer.write(encoder, startParameter.getBuildFile());
+            @SuppressWarnings("deprecation")
+            File customBuildFile = startParameter.getBuildFile();
+            nullableFileSerializer.write(encoder, customBuildFile);
             nullableFileSerializer.write(encoder, startParameter.getProjectDir());
-            nullableFileSerializer.write(encoder, startParameter.getSettingsFile());
+            @SuppressWarnings("deprecation")
+            File customSettingsFile = startParameter.getSettingsFile();
+            nullableFileSerializer.write(encoder, customSettingsFile);
             FILE_SERIALIZER.write(encoder, startParameter.getCurrentDir());
             FILE_SERIALIZER.write(encoder, startParameter.getGradleUserHomeDir());
             nullableFileSerializer.write(encoder, startParameter.getGradleHomeDir());
@@ -145,6 +149,7 @@ public class BuildActionSerializer {
             }
         }
 
+        @SuppressWarnings("deprecation") // StartParameter.setBuildFile and StartParameter.setSettingsFile
         @Override
         public ExecuteBuildAction read(Decoder decoder) throws Exception {
             StartParameterInternal startParameter = new StartParameterInternal();

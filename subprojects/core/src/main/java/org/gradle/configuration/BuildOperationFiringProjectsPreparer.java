@@ -62,6 +62,7 @@ public class BuildOperationFiringProjectsPreparer implements ProjectsPreparer {
                 builder.metadata(BuildOperationCategory.CONFIGURE_BUILD);
             }
             builder.totalProgress(gradle.getSettings().getProjectRegistry().size());
+            //noinspection Convert2Lambda
             return builder.details(new ConfigureBuildBuildOperationType.Details() {
                 @Override
                 public String getBuildPath() {
