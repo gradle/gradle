@@ -55,7 +55,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("some.thing.LibraryTest", "testSomeLibraryMethod")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -77,7 +77,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("my.lib.LibraryTest", "testSomeLibraryMethod")
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
