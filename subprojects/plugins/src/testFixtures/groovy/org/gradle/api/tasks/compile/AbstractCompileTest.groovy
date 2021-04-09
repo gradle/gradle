@@ -18,7 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 
 abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final String TEST_PATTERN_1 = "pattern1"

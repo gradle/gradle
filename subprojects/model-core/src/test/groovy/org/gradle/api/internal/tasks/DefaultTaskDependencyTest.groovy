@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.internal.WrapUtil.toSet
 
 class DefaultTaskDependencyTest extends Specification {
     private final TaskResolver resolver = Mock(TaskResolver.class)

@@ -37,7 +37,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.hasMessage
-import static org.gradle.util.WrapUtil.toList
+import static org.gradle.util.internal.WrapUtil.toList
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assume.assumeTrue

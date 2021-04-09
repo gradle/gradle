@@ -22,7 +22,7 @@ import org.gradle.internal.Cast;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.SetSystemProperties;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.internal.WrapUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

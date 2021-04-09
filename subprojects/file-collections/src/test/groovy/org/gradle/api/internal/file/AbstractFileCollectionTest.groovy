@@ -28,9 +28,9 @@ import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
 
 import static org.gradle.util.Matchers.isEmpty
-import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.gradle.util.WrapUtil.toList
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.internal.WrapUtil.toLinkedSet
+import static org.gradle.util.internal.WrapUtil.toList
+import static org.gradle.util.internal.WrapUtil.toSet
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.core.IsInstanceOf.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
