@@ -990,4 +990,54 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         expect:
         succeeds("compileJava")
     }
+
+    def "CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory is deprecated"() {
+        when:
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            tasks.withType(JavaCompile) {
+                doLast {
+                    println(options.annotationProcessorGeneratedSourcesDirectory)
+                }
+            }
+        """
+        file("src/main/java/com/example/Main.java") << """
+            package com.example;
+            public class Main {
+              public static void main(String[] args) {
+                System.out.println("Hello, world!");
+              }
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_options_properties")
+
+        then:
+        succeeds("compileJava")
+    }
+
+    def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory is deprecated"() {
+        when:
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            tasks.withType(JavaCompile) {
+                options.annotationProcessorGeneratedSourcesDirectory = file("build/annotation-processor-out")
+            }
+        """
+        file("src/main/java/com/example/Main.java") << """
+            package com.example;
+            public class Main {
+              public static void main(String[] args) {
+                System.out.println("Hello, world!");
+              }
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(File) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_options_properties")
+
+        then:
+        succeeds("compileJava")
+    }
 }

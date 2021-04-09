@@ -83,7 +83,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            compileJava.options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
+            compileJava.options.generatedSourceOutputDirectory = file("build/generated-sources")
         """
 
         expect:
@@ -98,7 +98,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            compileJava.options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
+            compileJava.options.generatedSourceOutputDirectory = file("build/generated-sources")
         """
         succeeds "compileJava"
 
