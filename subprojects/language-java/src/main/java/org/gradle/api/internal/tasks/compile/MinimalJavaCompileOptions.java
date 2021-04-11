@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
@@ -46,8 +47,10 @@ public class MinimalJavaCompileOptions implements Serializable {
     private File headerOutputDirectory;
     private String javaModuleVersion;
     private String javaModuleMainClass;
+    private boolean supportsCompilerApi;
     private File incrementalCompilationMappingFile;
     private File previousCompilationDataFile;
+    private File incrementalCompilationConstantsMapping;
 
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
         FileCollection sourcepath = compileOptions.getSourcepath();
@@ -232,4 +235,22 @@ public class MinimalJavaCompileOptions implements Serializable {
     public void setPreviousCompilationDataFile(@Nullable File previousCompilationDataFile) {
         this.previousCompilationDataFile = previousCompilationDataFile;
     }
+
+    @Nullable
+    public File getIncrementalCompilationConstantsMappingFile() {
+        return incrementalCompilationConstantsMapping;
+    }
+
+    public void setIncrementalCompilationConstantsMappingFile(@Nullable File incrementalCompilationConstantsMapping) {
+        this.incrementalCompilationConstantsMapping = incrementalCompilationConstantsMapping;
+    }
+
+    public boolean supportsCompilerApi() {
+        return supportsCompilerApi;
+    }
+
+    public void setSupportsCompilerApi(boolean supportsCompilerApi) {
+        this.supportsCompilerApi = supportsCompilerApi;
+    }
+
 }

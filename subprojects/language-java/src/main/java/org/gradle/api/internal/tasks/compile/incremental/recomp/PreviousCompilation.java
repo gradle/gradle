@@ -30,7 +30,7 @@ public class PreviousCompilation {
 
     public PreviousCompilation(PreviousCompilationData data) {
         this.data = data;
-        this.classAnalysis = new ClassSetAnalysis(data.getOutputSnapshot(), data.getAnnotationProcessingData());
+        this.classAnalysis = new ClassSetAnalysis(data.getOutputSnapshot(), data.getAnnotationProcessingData(), data.getCompilerApiData());
     }
 
     @Nullable

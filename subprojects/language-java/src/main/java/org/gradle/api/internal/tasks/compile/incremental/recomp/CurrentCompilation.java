@@ -51,4 +51,8 @@ public class CurrentCompilation {
         return new ClassSetAnalysis(classpathSnapshotter.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath())));
     }
 
+    public boolean isConstantsTrackingEnabled() {
+        return spec.getCompileOptions().supportsCompilerApi();
+    }
+
 }

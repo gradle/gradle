@@ -19,9 +19,11 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
@@ -45,16 +47,19 @@ public class ClassSetAnalysis {
 
     private final ClassSetAnalysisData classAnalysis;
     private final AnnotationProcessingData annotationProcessingData;
+    private final CompilerApiData compilerApiData;
     private final ImmutableSetMultimap<String, String> classDependenciesFromAnnotationProcessing;
     private final ImmutableSetMultimap<String, GeneratedResource> resourceDependenciesFromAnnotationProcessing;
+    private final Map<Integer, Set<String>> constantDependentsCache = new Int2ObjectOpenHashMap<>(100);
 
     public ClassSetAnalysis(ClassSetAnalysisData classAnalysis) {
-        this(classAnalysis, new AnnotationProcessingData());
+        this(classAnalysis, new AnnotationProcessingData(), new CompilerApiData());
     }
 
-    public ClassSetAnalysis(ClassSetAnalysisData classAnalysis, AnnotationProcessingData annotationProcessingData) {
+    public ClassSetAnalysis(ClassSetAnalysisData classAnalysis, AnnotationProcessingData annotationProcessingData, CompilerApiData compilerApiData) {
         this.classAnalysis = classAnalysis;
         this.annotationProcessingData = annotationProcessingData;
+        this.compilerApiData = compilerApiData;
         ImmutableSetMultimap.Builder<String, String> classDependenciesFromAnnotationProcessing = ImmutableSetMultimap.builder();
         for (Map.Entry<String, Set<String>> entry : annotationProcessingData.getGeneratedTypesByOrigin().entrySet()) {
             for (String generated : entry.getValue()) {
@@ -144,24 +149,29 @@ public class ClassSetAnalysis {
         if (fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(fullRebuildCause);
         }
+
         DependentsSet deps = getDependents(className);
         if (deps.isDependencyToAll()) {
             return deps;
         }
-        if (!constants.isEmpty()) {
+        if (!constants.isEmpty() && !compilerApiData.isAvailable()) {
             return DependentsSet.dependencyToAll("an inlineable constant in '" + className + "' has changed");
         }
         Set<String> classesDependingOnAllOthers = annotationProcessingData.participatesInClassGeneration(className) ? annotationProcessingData.getGeneratedTypesDependingOnAllOthers() : Collections.emptySet();
         Set<GeneratedResource> resourcesDependingOnAllOthers = annotationProcessingData.participatesInResourceGeneration(className) ? annotationProcessingData.getGeneratedResourcesDependingOnAllOthers() : Collections.emptySet();
-        if (!deps.hasDependentClasses() && classesDependingOnAllOthers.isEmpty() && resourcesDependingOnAllOthers.isEmpty()) {
+        Set<String> constantsDependents = constantDependentsForClass(className);
+        if (!deps.hasDependentClasses() && classesDependingOnAllOthers.isEmpty() && resourcesDependingOnAllOthers.isEmpty() && constantsDependents.isEmpty()) {
             return deps;
         }
+
+        Set<String> dependents = new HashSet<>(deps.getAccessibleDependentClasses());
 
         Set<String> privateResultClasses = new HashSet<>();
         Set<String> accessibleResultClasses = new HashSet<>();
         Set<GeneratedResource> resultResources = new HashSet<>(resourcesDependingOnAllOthers);
-        processDependentClasses(new HashSet<>(), privateResultClasses, accessibleResultClasses, resultResources, deps.getPrivateDependentClasses(), deps.getAccessibleDependentClasses());
+        processDependentClasses(new HashSet<>(), privateResultClasses, accessibleResultClasses, resultResources, deps.getPrivateDependentClasses(), dependents);
         processDependentClasses(new HashSet<>(), privateResultClasses, accessibleResultClasses, resultResources, Collections.emptySet(), classesDependingOnAllOthers);
+        processDependentClasses(new HashSet<>(), privateResultClasses, accessibleResultClasses, resultResources, Collections.emptySet(), constantsDependents);
         accessibleResultClasses.remove(className);
         privateResultClasses.remove(className);
 
@@ -238,12 +248,24 @@ public class ClassSetAnalysis {
         if (dependents.isDependencyToAll()) {
             return dependents;
         }
-        ImmutableSet<String> additionalClassDeps = classDependenciesFromAnnotationProcessing.get(className);
-        ImmutableSet<GeneratedResource> additionalResourceDeps = resourceDependenciesFromAnnotationProcessing.get(className);
-        if (additionalClassDeps.isEmpty() && additionalResourceDeps.isEmpty()) {
+        ImmutableSet<String> annotationProcessingClassDeps = classDependenciesFromAnnotationProcessing.get(className);
+        ImmutableSet<GeneratedResource> annotationProcessingResourceDeps = resourceDependenciesFromAnnotationProcessing.get(className);
+        Set<String> constantsProcessingClassDeps = constantDependentsForClass(className);
+        if (annotationProcessingClassDeps.isEmpty() && annotationProcessingResourceDeps.isEmpty() && constantsProcessingClassDeps.isEmpty()) {
             return dependents;
         }
-        return DependentsSet.dependents(dependents.getPrivateDependentClasses(), Sets.union(dependents.getAccessibleDependentClasses(), additionalClassDeps), Sets.union(dependents.getDependentResources(), additionalResourceDeps));
+        Set<String> additionalClassDeps = Sets.union(annotationProcessingClassDeps, constantsProcessingClassDeps);
+        return DependentsSet.dependents(dependents.getPrivateDependentClasses(),
+            Sets.union(dependents.getAccessibleDependentClasses(), additionalClassDeps),
+            Sets.union(dependents.getDependentResources(), annotationProcessingResourceDeps)
+        );
+    }
+
+    private Set<String> constantDependentsForClass(String constantOrigin) {
+        if (compilerApiData.isAvailable()) {
+            return constantDependentsCache.computeIfAbsent(constantOrigin.hashCode(), compilerApiData::constantDependentsForClassHash);
+        }
+        return Collections.emptySet();
     }
 
     public IntSet getConstants(String className) {

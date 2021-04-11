@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps
 import com.google.common.collect.Maps
 import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
@@ -32,10 +33,11 @@ class ClassSetAnalysisTest extends Specification {
 
     static ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
                                      Map<String, IntSet> classToConstants = [:],
-                                     DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
+                                     DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null, CompilerApiData compilerApiData = null) {
         new ClassSetAnalysis(
             new ClassSetAnalysisData(Maps.transformValues(dependents) { hash }, dependents, classToConstants, fullRebuildCause),
-            new AnnotationProcessingData([:], aggregatedTypes.getAllDependentClasses(), dependentsOnAll.getAllDependentClasses(), [:], dependentsOnAll.dependentResources, null)
+            new AnnotationProcessingData([:], aggregatedTypes.getAllDependentClasses(), dependentsOnAll.getAllDependentClasses(), [:], dependentsOnAll.dependentResources, null),
+            compilerApiData
         )
     }
 
@@ -284,6 +286,64 @@ class ClassSetAnalysisTest extends Specification {
 
         expect:
         a.isDependencyToAll("DoesNotMatter")
+    }
+
+    def "marks as dependency to all if constants has change and compilerApi is not available"() {
+        given:
+        CompilerApiData compilerApiData = Stub(CompilerApiData)
+        def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
+        compilerApiData.isAvailable() >> false
+
+        when:
+        def deps = a.getRelevantDependents("Foo", IntSet.of(1))
+
+        then:
+        deps.isDependencyToAll()
+    }
+
+    def "find class constant dependents"() {
+        given:
+        CompilerApiData compilerApiData = Stub(CompilerApiData)
+        def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
+        compilerApiData.isAvailable() >> true
+        compilerApiData.constantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
+
+        when:
+        def deps = a.getRelevantDependents("Foo", IntSet.of(1))
+
+        then:
+        deps.getAccessibleDependentClasses() == ["Bar"] as Set
+    }
+
+    def "find class constant dependents when constants hash analysis returns empty set"() {
+        given:
+        CompilerApiData compilerApiData = Stub(CompilerApiData)
+        def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
+        compilerApiData.isAvailable() >> true
+        compilerApiData.constantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
+
+        when:
+        def deps = a.getRelevantDependents("Foo", IntSets.EMPTY_SET)
+
+        then:
+        deps.getAccessibleDependentClasses() == ["Bar"] as Set
+    }
+
+    def "find class constant dependents recursively"() {
+        given:
+        CompilerApiData compilerApiData = Stub(CompilerApiData)
+        def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
+        compilerApiData.isAvailable() >> true
+        compilerApiData.constantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
+        compilerApiData.constantDependentsForClassHash("Bar".hashCode()) >> ["FooBar"]
+        compilerApiData.constantDependentsForClassHash("FooBar".hashCode()) >> ["BarFoo"]
+        compilerApiData.constantDependentsForClassHash("X".hashCode()) >> ["Y"]
+
+        when:
+        def deps = a.getRelevantDependents("Foo", IntSets.EMPTY_SET)
+
+        then:
+        deps.getAccessibleDependentClasses() == ["Bar", "FooBar", "BarFoo"] as Set
     }
 
     private static DependentsSet dependentSet(boolean dependencyToAll, Collection<String> privateClasses, Collection<String> accessibleClasses) {

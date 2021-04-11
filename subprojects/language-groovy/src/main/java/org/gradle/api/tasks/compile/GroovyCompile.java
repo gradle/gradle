@@ -204,7 +204,11 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
             IncrementalCompilerFactory factory = getIncrementalCompilerFactory();
             return factory.makeIncremental(
                 cleaningGroovyCompiler,
+                null,
+                null,
                 getStableSources().getAsFileTree(),
+                getStableSources(),
+                inputChanges,
                 createRecompilationSpecProvider(inputChanges, sourceClassesMapping)
             );
         } else {

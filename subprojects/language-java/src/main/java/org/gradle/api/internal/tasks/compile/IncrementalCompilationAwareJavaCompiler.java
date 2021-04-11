@@ -19,5 +19,5 @@ import javax.tools.JavaCompiler;
 import java.io.File;
 
 public interface IncrementalCompilationAwareJavaCompiler extends JavaCompiler {
-    JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, File mappingFile, CompilationSourceDirs compilationSourceDirs);
+    JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, File mappingFile, File constantsMapping, CompilationSourceDirs compilationSourceDirs);
 }

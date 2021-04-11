@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -27,11 +28,13 @@ public class PreviousCompilationData {
     private final ClassSetAnalysisData outputSnapshot;
     private final AnnotationProcessingData annotationProcessingData;
     private final ClassSetAnalysisData classpathSnapshot;
+    private final CompilerApiData compilerApiData;
 
-    public PreviousCompilationData(ClassSetAnalysisData outputSnapshot, AnnotationProcessingData annotationProcessingData, ClassSetAnalysisData classpathSnapshot) {
+    public PreviousCompilationData(ClassSetAnalysisData outputSnapshot, AnnotationProcessingData annotationProcessingData, ClassSetAnalysisData classpathSnapshot, CompilerApiData compilerApiData) {
         this.outputSnapshot = outputSnapshot;
         this.annotationProcessingData = annotationProcessingData;
         this.classpathSnapshot = classpathSnapshot;
+        this.compilerApiData = compilerApiData;
     }
 
     public ClassSetAnalysisData getOutputSnapshot() {
@@ -46,13 +49,19 @@ public class PreviousCompilationData {
         return classpathSnapshot;
     }
 
+    public CompilerApiData getCompilerApiData() {
+        return compilerApiData;
+    }
+
     public static class Serializer extends AbstractSerializer<PreviousCompilationData> {
         private final ClassSetAnalysisData.Serializer analysisSerializer;
         private final AnnotationProcessingData.Serializer annotationProcessingDataSerializer;
+        private final CompilerApiData.Serializer compilerApiDataSerializer;
 
         public Serializer(StringInterner interner) {
             analysisSerializer = new ClassSetAnalysisData.Serializer(interner);
             annotationProcessingDataSerializer = new AnnotationProcessingData.Serializer();
+            compilerApiDataSerializer = new CompilerApiData.Serializer(interner);
         }
 
         @Override
@@ -60,7 +69,8 @@ public class PreviousCompilationData {
             ClassSetAnalysisData outputSnapshot = analysisSerializer.read(decoder);
             AnnotationProcessingData annotationProcessingData = annotationProcessingDataSerializer.read(decoder);
             ClassSetAnalysisData classpathSnapshot = analysisSerializer.read(decoder);
-            return new PreviousCompilationData(outputSnapshot, annotationProcessingData, classpathSnapshot);
+            CompilerApiData compilerApiData = compilerApiDataSerializer.read(decoder);
+            return new PreviousCompilationData(outputSnapshot, annotationProcessingData, classpathSnapshot, compilerApiData);
         }
 
         @Override
@@ -68,6 +78,7 @@ public class PreviousCompilationData {
             analysisSerializer.write(encoder, value.outputSnapshot);
             annotationProcessingDataSerializer.write(encoder, value.annotationProcessingData);
             analysisSerializer.write(encoder, value.classpathSnapshot);
+            compilerApiDataSerializer.write(encoder, value.compilerApiData);
         }
     }
 }
