@@ -133,11 +133,11 @@ abstract class PmdInvoker {
                 }
 
                 if (reports.html.required.get()) {
-                    assert reports.html.outputLocation.asFile.get.parentFile.exists()
-                    formatter(type: htmlFormat, toFile: reports.html.outputLocation.asFile.get)
+                    assert reports.html.outputLocation.asFile.get().parentFile.exists()
+                    formatter(type: htmlFormat, toFile: reports.html.outputLocation.asFile.get())
                 }
                 if (reports.xml.required.get()) {
-                    formatter(type: 'xml', toFile: reports.xml.outputLocation.asFile.get)
+                    formatter(type: 'xml', toFile: reports.xml.outputLocation.asFile.get())
                 }
 
                 if (consoleOutput) {
@@ -154,7 +154,7 @@ abstract class PmdInvoker {
                 def message = "$failureCount PMD rule violations were found."
                 def report = reports.firstEnabled
                 if (report) {
-                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.outputLocation.asFile.get)
+                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.outputLocation.asFile.get())
                     message += " See the report at: $reportUrl"
                 }
                 if (ignoreFailures || ((failureCount as Integer) <= maxFailures)) {

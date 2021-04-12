@@ -549,7 +549,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             if (!html.getRequired().get()) {
                 getLogger().info("Test report disabled, omitting generation of the HTML test report.");
             } else {
-                testReporter.generateReport(testResultsProvider, html.getOutputLocation().getAsFile().get());
+                testReporter.generateReport(testResultsProvider, html.getOutputLocation().getAsFile().getOrNull());
             }
         } finally {
             CompositeStoppable.stoppable(testResultsProvider).stop();

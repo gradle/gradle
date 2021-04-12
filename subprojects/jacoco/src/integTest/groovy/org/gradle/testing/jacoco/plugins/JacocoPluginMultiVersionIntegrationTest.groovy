@@ -53,8 +53,8 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         buildFile << """
             jacocoTestReport {
                 reports {
-                    xml.enabled true
-                    csv.enabled true
+                    xml.required = true
+                    csv.required = true
                     html.destination file("\${buildDir}/jacocoHtml")
                 }
             }
@@ -73,8 +73,8 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         given:
         buildFile << """
             jacocoTestReport {
-                reports.xml.enabled = true
-                reports.csv.enabled = true
+                reports.xml.required = true
+                reports.csv.required = true
             }
             reporting{
                 baseDir = "\$buildDir/customReports"
@@ -94,8 +94,8 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         def customReportDirectory = "customJacocoReportDir"
         buildFile << """
             jacocoTestReport {
-                reports.xml.enabled = true
-                reports.csv.enabled = true
+                reports.xml.required = true
+                reports.csv.required = true
             }
             jacoco {
                 reportsDirectory = new File(buildDir, "$customReportDirectory")
@@ -215,8 +215,8 @@ public class ThingTest {
 
         jacocoTestReport {
             reports {
-                xml.enabled false
-                csv.enabled false
+                xml.required = false
+                csv.required = false
                 html.destination file("\${buildDir}/reports/jacoco/integ")
             }
             executionData test

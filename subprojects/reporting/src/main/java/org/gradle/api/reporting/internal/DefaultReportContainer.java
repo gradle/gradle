@@ -41,7 +41,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         enabled = matching(new Spec<T>() {
             @Override
             public boolean isSatisfiedBy(T element) {
-                return element.isEnabled();
+                return element.getRequired().get();
             }
         });
     }

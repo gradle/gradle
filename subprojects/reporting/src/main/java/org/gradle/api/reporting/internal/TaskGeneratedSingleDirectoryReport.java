@@ -48,7 +48,7 @@ public abstract class TaskGeneratedSingleDirectoryReport extends TaskGeneratedRe
         if (relativeEntryPath == null) {
             return getOutputLocation().getAsFile().get();
         } else {
-            return getOutputLocation().get().dir(relativeEntryPath).getAsFile();
+            return new File(getOutputLocation().getAsFile().getOrNull(), relativeEntryPath);
         }
     }
 }

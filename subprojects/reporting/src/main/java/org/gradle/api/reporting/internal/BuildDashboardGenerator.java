@@ -76,7 +76,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
                         ul();
                         for (Report report : reports) {
                             li();
-                            if (report.getDestination().exists()) {
+                            if (report.getOutputLocation().get().getAsFile().exists()) {
                                 a().href(RelativePathUtil.relativePath(outputFile.getParentFile(), getHtmlLinkedFileFromReport(report))).text(report.getDisplayName());
                             } else {
                                 span().classAttr("unavailable").text(report.getDisplayName());

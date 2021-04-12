@@ -279,7 +279,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         when:
         buildFile << """
             checkstyleMain.reports {
-                html.enabled true
+                html.required = true
                 html.stylesheet resources.text.fromFile('${sampleStylesheet()}')
             }
         """
@@ -297,8 +297,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         buildFile << '''
             tasks.withType(Checkstyle) {
                 reports {
-                    xml.enabled false
-                    html.enabled true
+                    xml.required = false
+                    html.required = true
                 }
             }
         '''.stripIndent()
@@ -381,8 +381,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         buildFile << """
             tasks.withType(Checkstyle) {
                 reports {
-                    html.enabled false
-                    xml.enabled false
+                    html.required = false
+                    xml.required = false
                 }
             }
         """

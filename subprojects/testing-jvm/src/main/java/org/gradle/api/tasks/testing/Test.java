@@ -101,7 +101,9 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  * The sample below shows various configuration options.
  *
  * <pre class='autoTested'>
- * apply plugin: 'java' // adds 'test' task
+ * plugins {
+ *     id 'java' // adds 'test' task
+ * }
  *
  * test {
  *   // enable TestNG support (default is JUnit)
@@ -807,7 +809,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * Typically, this would be configured to use the output of a source set:
      * <pre class='autoTested'>
-     * apply plugin: 'java'
+     * plugins {
+     *     id 'java'
+     * }
      *
      * sourceSets {
      *    integrationTest {

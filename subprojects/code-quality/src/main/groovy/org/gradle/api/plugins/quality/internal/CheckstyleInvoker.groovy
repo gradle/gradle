@@ -84,7 +84,7 @@ abstract class CheckstyleInvoker {
                 }
             }
 
-            if (reports.html.enabled) {
+            if (reports.html.getRequired().get()) {
                 def stylesheet = reports.html.stylesheet ? reports.html.stylesheet.asString() :
                     Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl').text
                 ant.xslt(in: xmlDestination, out: reports.html.outputLocation.asFile.get()) {
@@ -114,7 +114,7 @@ abstract class CheckstyleInvoker {
     }
 
     private static parseCheckstyleXml(CheckstyleReports reports) {
-        return reports.xml.required.get() ? new XmlParser().parse(reports.xml.outputLocation.asFile.get) : null
+        return reports.xml.required.get() ? new XmlParser().parse(reports.xml.outputLocation.asFile.get()) : null
     }
 
     private static String getMessage(CheckstyleReports reports, Node reportXml) {
@@ -127,7 +127,7 @@ abstract class CheckstyleInvoker {
 
     private static String getReportUrlMessage(CheckstyleReports reports) {
         def report = reports.html.required.get() ? reports.html : reports.xml.required.get() ? reports.xml : null
-        return report ? " See the report at: ${new ConsoleRenderer().asClickableFileUrl(report.outputLocation.asFile.get)}" : "\n"
+        return report ? " See the report at: ${new ConsoleRenderer().asClickableFileUrl(report.outputLocation.asFile.get())}" : "\n"
     }
 
     private static String getViolationMessage(Node reportXml) {
