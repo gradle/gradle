@@ -74,7 +74,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                         if ($fixConflict) {
                             substitute(module('cglib:cglib-nodep'))
                                 .because('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
-                                .with(module('cglib:cglib:3.2.5'))
+                                .using(module('cglib:cglib:3.2.5'))
                         }
                     }
                 }
@@ -177,8 +177,8 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                    resolutionStrategy {
                        dependencySubstitution {
                            if ($fixConflict) {
-                              substitute module('org.apache:groovy') with module('org.apache:groovy-all:1.0')
-                              substitute module('org.apache:groovy-json') with module('org.apache:groovy-all:1.0')
+                              substitute module('org.apache:groovy') using module('org.apache:groovy-all:1.0')
+                              substitute module('org.apache:groovy-json') using module('org.apache:groovy-all:1.0')
                            }
                        }
                    }
@@ -298,7 +298,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                   configurations.all {
                       resolutionStrategy {
                           dependencySubstitution {
-                              if ($fixConflict) { substitute module('org.apache:groovy-all') with module('org.apache:groovy-json:1.0') }
+                              if ($fixConflict) { substitute module('org.apache:groovy-all') using module('org.apache:groovy-json:1.0') }
                           }
                       }
                   }
@@ -471,7 +471,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             configurations.all {
                 resolutionStrategy {
                    dependencySubstitution {
-                      if ($fixConflict) { substitute module('org:testA') with module('org:testB:1.0') }
+                      if ($fixConflict) { substitute module('org:testA') using module('org:testB:1.0') }
                    }
                 }
             }

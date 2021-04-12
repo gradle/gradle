@@ -18,7 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest

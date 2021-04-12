@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.Collections;

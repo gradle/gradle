@@ -19,7 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 @Contextual
 public class ArtifactResolveException extends GradleException {

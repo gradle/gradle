@@ -18,7 +18,7 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmVendor
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 
 class JavaToolchainComparatorTest extends Specification {

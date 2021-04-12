@@ -23,7 +23,7 @@ import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

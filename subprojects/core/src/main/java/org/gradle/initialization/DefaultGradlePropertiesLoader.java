@@ -19,7 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.Cast;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

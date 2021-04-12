@@ -45,7 +45,7 @@ import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;

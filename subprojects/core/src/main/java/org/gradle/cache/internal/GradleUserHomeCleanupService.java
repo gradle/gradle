@@ -21,7 +21,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.util.Properties;

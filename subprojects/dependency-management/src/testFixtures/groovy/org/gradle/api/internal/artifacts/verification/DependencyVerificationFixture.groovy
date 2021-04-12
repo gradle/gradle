@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifie
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 @CompileStatic
 class DependencyVerificationFixture {

@@ -23,7 +23,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Ignore

@@ -18,6 +18,7 @@ package org.gradle.util
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.LineBufferingOutputStream
 import org.gradle.internal.io.TextStream
+import org.gradle.util.internal.TextUtil
 import spock.lang.Shared
 import spock.lang.Specification
 

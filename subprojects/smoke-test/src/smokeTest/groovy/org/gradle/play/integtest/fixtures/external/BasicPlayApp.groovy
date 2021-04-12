@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.fixtures.external
 
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 class BasicPlayApp extends PlayApp {
 

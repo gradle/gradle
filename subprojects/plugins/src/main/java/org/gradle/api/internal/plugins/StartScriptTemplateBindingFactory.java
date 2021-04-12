@@ -22,7 +22,7 @@ import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;

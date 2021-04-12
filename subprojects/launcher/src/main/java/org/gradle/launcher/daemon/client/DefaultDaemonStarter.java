@@ -40,8 +40,8 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandle;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;

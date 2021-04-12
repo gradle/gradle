@@ -23,7 +23,8 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.CollectionUtils;
 import org.junit.ComparisonFailure;
 
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private Set<String> tasks;
 
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
-        return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
+        return CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
     }
 
     /**

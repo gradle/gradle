@@ -19,7 +19,7 @@ package org.gradle.execution;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.List;
 

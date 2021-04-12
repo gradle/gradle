@@ -29,8 +29,8 @@ import java.util.concurrent.Callable;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static org.gradle.util.WrapUtil.toList;
-import static org.gradle.util.WrapUtil.toMap;
+import static org.gradle.util.internal.WrapUtil.toList;
+import static org.gradle.util.internal.WrapUtil.toMap;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertEquals;

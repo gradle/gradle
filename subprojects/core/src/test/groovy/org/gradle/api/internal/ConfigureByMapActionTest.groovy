@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal
 
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 
 class ConfigureByMapActionTest extends Specification {
 
     ConfigureByMapAction action(Object[] args) {
-        new ConfigureByMapAction(*args)        
+        new ConfigureByMapAction(*args)
     }
 
     def canConfigureObjectPropertyUsingMap() {

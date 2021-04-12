@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class DetailedModelReportIntegrationTest extends AbstractIntegrationSpec {

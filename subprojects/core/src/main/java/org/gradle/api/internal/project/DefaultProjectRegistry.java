@@ -18,7 +18,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.util.HashMap;

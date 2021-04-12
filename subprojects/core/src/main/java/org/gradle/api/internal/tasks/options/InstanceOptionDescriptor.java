@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.options;
 
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -21,7 +21,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.util.DeferredUtil;
+import org.gradle.util.internal.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;

@@ -20,6 +20,12 @@ import org.gradle.internal.UncheckedException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+/**
+ * This class is only here to maintain binary compatibility with existing plugins.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ */
+@Deprecated
 public class DistributionLocator {
     private static final String RELEASE_REPOSITORY = "https://services.gradle.org/distributions";
     private static final String SNAPSHOT_REPOSITORY = "https://services.gradle.org/distributions-snapshots";

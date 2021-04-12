@@ -47,7 +47,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
-import static org.gradle.util.CollectionUtils.single
+import static org.gradle.util.internal.CollectionUtils.single
 
 class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
     def registry

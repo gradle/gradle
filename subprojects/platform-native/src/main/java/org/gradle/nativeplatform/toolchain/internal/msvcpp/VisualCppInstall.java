@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import org.gradle.api.Named;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
 import java.util.Map;

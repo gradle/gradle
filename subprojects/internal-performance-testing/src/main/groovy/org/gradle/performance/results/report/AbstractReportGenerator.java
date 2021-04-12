@@ -26,7 +26,7 @@ import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
 import org.gradle.performance.results.ScenarioBuildResultData;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;

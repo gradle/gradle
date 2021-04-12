@@ -65,7 +65,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import javax.inject.Inject;
 import java.io.File;

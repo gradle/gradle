@@ -17,7 +17,7 @@
 package org.gradle.internal.exceptions;
 
 import org.gradle.api.GradleException;
-import org.gradle.util.TreeVisitor;
+import org.gradle.util.internal.TreeVisitor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

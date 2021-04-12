@@ -18,7 +18,7 @@ package org.gradle.profile;
 import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
