@@ -28,6 +28,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -83,8 +84,17 @@ class SwiftDepsHandler {
         IoActions.writeTextFile(moduleSwiftDeps, new Action<BufferedWriter>() {
             @Override
             public void execute(BufferedWriter bufferedWriter) {
-                Yaml yaml = new Yaml();
-                yaml.dump(swiftDeps, bufferedWriter);
+                // Rewrite swiftc generated YAML file with our understanding of the current state of
+                // swift sources. This doesn't use Yaml.dump because snakeyaml produces a YAML file
+                // that swiftc cannot read.
+                PrintWriter pw = new PrintWriter(bufferedWriter);
+                pw.println("version: \"" + swiftDeps.version + "\"");
+                pw.println("options: \"" + swiftDeps.options + "\"");
+                pw.println("build_time: [" + swiftDeps.build_time.get(0) + ", " + swiftDeps.build_time.get(1) + "]");
+                pw.println("inputs:");
+                swiftDeps.inputs.forEach((file, timestamp) -> {
+                    pw.println("  \"" + file + "\": [" + timestamp.get(0) + ", " + timestamp.get(1) + "]");
+                });
             }
         });
     }
@@ -141,6 +151,16 @@ class SwiftDepsHandler {
 
         public void setInputs(Map<String, List> inputs) {
             this.inputs = inputs;
+        }
+
+        @Override
+        public String toString() {
+            return "SwiftDeps{" +
+                    "version='" + version + '\'' +
+                    ", options='" + options + '\'' +
+                    ", build_time=" + build_time +
+                    ", inputs=" + inputs +
+                    '}';
         }
     }
     //CHECKSTYLE:ON

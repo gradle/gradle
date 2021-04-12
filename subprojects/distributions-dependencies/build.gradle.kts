@@ -34,7 +34,7 @@ val asmVersion = "7.3.1"
 val awsS3Version = "1.11.633"
 val bouncycastleVersion = "1.64"
 val googleApiVersion = "1.25.0"
-val jacksonVersion = "2.10.2"
+val jacksonVersion = "2.12.1"
 val jettyVersion = "9.4.31.v20200723"
 val mavenVersion = "3.0.5"
 val mavenWagonVersion = "3.0.0"
@@ -67,7 +67,7 @@ dependencies {
         api(libs.bsh)                   { version { strictly("2.0b6") }}
         api(libs.commonsCodec)          { version { strictly("1.13") }}
         api(libs.commonsCompress)       { version { strictly("1.19") }}
-        api(libs.commonsHttpclient)     { version { strictly("4.5.10") }}
+        api(libs.commonsHttpclient)     { version { strictly("4.5.13") }}
         api(libs.commonsIo)             { version { strictly("2.6") }}
         api(libs.commonsLang)           { version { strictly("2.6") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
@@ -141,7 +141,7 @@ dependencies {
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.simple)                { version { strictly("4.1.21") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
-        api(libs.snakeyaml)             { version { strictly("1.17") }}
+        api(libs.snakeyaml)             { version { strictly("1.28") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
         api(libs.trove4j)               { version { strictly("1.0.20181211") }}
