@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.BlockingResultHandler
 import org.gradle.tooling.model.GradleProject
-import org.gradle.util.RedirectStdIn
+import org.gradle.util.internal.RedirectStdIn
 import org.junit.Rule
 import spock.lang.IgnoreIf
 

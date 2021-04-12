@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.dispatch
 
-import org.gradle.util.MultithreadedTestRule
+import org.gradle.util.internal.MultithreadedTestRule
 import org.junit.Rule
 import spock.lang.Specification
 

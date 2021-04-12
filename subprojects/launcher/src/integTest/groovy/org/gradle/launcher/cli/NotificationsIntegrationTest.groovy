@@ -21,7 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.util.GradleVersion
-import org.gradle.util.ToBeImplemented
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 
 class NotificationsIntegrationTest extends AbstractIntegrationSpec {

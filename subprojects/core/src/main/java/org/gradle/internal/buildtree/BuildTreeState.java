@@ -31,11 +31,11 @@ import java.util.function.Function;
 public class BuildTreeState implements Closeable {
     private final ServiceRegistry services;
 
-    public BuildTreeState(ServiceRegistry parent, BuildType buildType, BuildTreeBuildPath buildTreeBuildPath) {
+    public BuildTreeState(ServiceRegistry parent, BuildType buildType) {
         services = ServiceRegistryBuilder.builder()
             .displayName("build tree services")
             .parent(parent)
-            .provider(new BuildTreeScopeServices(this, buildType, buildTreeBuildPath))
+            .provider(new BuildTreeScopeServices(this, buildType))
             .build();
 
         // This initialization construct should be generalized for all types of service registries.
@@ -49,8 +49,8 @@ public class BuildTreeState implements Closeable {
     /**
      * Runs the given action against the state of this build tree.
      */
-    public <T> T run(Function<BuildTreeContext, T> action) {
-        return action.apply(() -> services);
+    public <T> T run(Function<? super BuildTreeContext, T> action) {
+        return action.apply(new DefaultBuildTreeContext(services));
     }
 
     @Override

@@ -103,3 +103,28 @@ For example, a dependency substitution rule `substitute(project(':a')).with(proj
 With chaining you can, for example, add a reason for a substitution like this:
 `substitute(project(':a')).using(project(':b')).because("a reason")`.
 
+=== Potential breaking changes
+
+The following classes were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
+
+- `Resources`
+- `RedirectStdOutAndErr`
+- `Swapper`
+- `StdInSwapper`
+- `IncubationLogger`
+- `RedirectStdIn`
+- `MultithreadedTestRule`
+- `DisconnectableInputStream`
+- `BulkReadInputStream`
+- `MockExecutor`
+- `FailsWithMessage`
+- `FailsWithMessageExtension`
+
+Also, the unused classes were deleted from `org.gradle.util`:
+
+- `DiffUtil`
+- `NoopChangeListener`
+- `EnumWithClassBody`
+- `AlwaysTrue`
+- `ReflectionEqualsMatcher`
+- `DynamicDelegate`

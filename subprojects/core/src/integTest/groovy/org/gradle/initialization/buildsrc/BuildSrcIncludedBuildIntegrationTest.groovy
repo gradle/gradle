@@ -172,6 +172,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("help")
         then:
+        failure.assertHasDescription("Execution failed for task ':included:compileJava'.")
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
     }
 

@@ -380,8 +380,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         }
 
         override fun getAllInitScripts(): List<File> = emptyList()
-        override fun newInstance(): StartParameter = throw UnsupportedOperationException()
-        override fun newBuild(): StartParameter = throw UnsupportedOperationException()
+        override fun newInstance(): StartParameterInternal = throw UnsupportedOperationException()
+        override fun newBuild(): StartParameterInternal = throw UnsupportedOperationException()
     }
 
     private

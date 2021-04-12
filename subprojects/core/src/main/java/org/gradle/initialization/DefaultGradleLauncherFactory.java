@@ -23,8 +23,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildWorkExecutor;
@@ -35,7 +35,6 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeBuildPath;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
@@ -187,8 +186,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildScopeServices serviceRegistry,
         List<?> servicesToStop
     ) {
-
-        IncludedBuildControllers includedBuildControllers = gradle.getServices().get(IncludedBuildControllers.class);
         ProjectsPreparer projectsPreparer = serviceRegistry.get(ProjectsPreparer.class);
         SettingsPreparer settingsPreparer = serviceRegistry.get(SettingsPreparer.class);
         TaskExecutionPreparer taskExecutionPreparer = gradle.getServices().get(TaskExecutionPreparer.class);
@@ -204,7 +201,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getServices().get(BuildWorkExecutor.class),
             serviceRegistry,
             servicesToStop,
-            includedBuildControllers,
             settingsPreparer,
             taskExecutionPreparer,
             gradle.getServices().get(ConfigurationCache.class),
@@ -258,10 +254,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         @Override
         public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, NestedRootBuild build) {
-            StartParameter startParameter = buildDefinition.getStartParameter();
+            StartParameterInternal startParameter = buildDefinition.getStartParameter();
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
             BuildSessionState buildSessionState = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-            BuildTreeState nestedBuildTree = new BuildTreeState(buildSessionState.getServices(), BuildType.TASKS, new BuildTreeBuildPath(build.getIdentityPath()));
+            // Configuration cache is not supported for nested build trees
+            startParameter.setConfigurationCache(false);
+            BuildTreeState nestedBuildTree = new BuildTreeState(buildSessionState.getServices(), BuildType.TASKS);
             return doNewInstance(buildDefinition, build, parent, nestedBuildTree, ImmutableList.of(nestedBuildTree, buildSessionState));
         }
 

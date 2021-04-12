@@ -45,4 +45,9 @@ public class ClientProvidedBuildAction extends SubscribableBuildAction {
     public boolean isRunTasks() {
         return runTasks;
     }
+
+    @Override
+    public boolean isCreateModel() {
+        return true;
+    }
 }

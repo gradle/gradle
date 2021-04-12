@@ -144,4 +144,24 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
     }
+
+    def "build fails when task in root build fails"() {
+        buildA.buildFile << """
+            task broken {
+                doLast {
+                    throw new RuntimeException("broken")
+                }
+            }
+            processResources.dependsOn(broken)
+        """
+        dependency("org.test:buildB:1.0")
+
+        when:
+        fails(buildA, "assemble")
+
+        then:
+        result.assertTaskExecuted(":broken")
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+    }
 }

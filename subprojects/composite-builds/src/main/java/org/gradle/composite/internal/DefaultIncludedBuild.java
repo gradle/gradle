@@ -37,6 +37,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState, IncludedBuild, Stoppable {
     private final BuildIdentifier buildIdentifier;
@@ -189,8 +190,8 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public void finishBuild() {
-        gradleLauncher.finishBuild();
+    public void finishBuild(Consumer<? super Throwable> collector) {
+        gradleLauncher.finishBuild(null, collector);
     }
 
     @Override

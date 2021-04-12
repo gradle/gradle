@@ -34,4 +34,9 @@ public class ExecuteBuildAction implements BuildAction {
     public boolean isRunTasks() {
         return true;
     }
+
+    @Override
+    public boolean isCreateModel() {
+        return false;
+    }
 }
