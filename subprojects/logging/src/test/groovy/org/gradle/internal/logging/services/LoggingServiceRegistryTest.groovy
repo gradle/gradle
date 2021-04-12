@@ -23,7 +23,7 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
-import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import org.slf4j.LoggerFactory

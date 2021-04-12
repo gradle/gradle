@@ -418,6 +418,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         Double.name                          | "12.1"                                                        | "12.1"
         double.name                          | "12.1"                                                        | "12.1"
         Class.name                           | "SomeBean"                                                    | "class SomeBean"
+        URL.name                             | "new URL('https://gradle.org/')"                              | "https://gradle.org/"
+        URI.name                             | "URI.create('https://gradle.org/')"                           | "https://gradle.org/"
         "SomeEnum"                           | "SomeEnum.Two"                                                | "Two"
         "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
         "List<String>"                       | "['a', 'b', 'c']"                                             | "[a, b, c]"
