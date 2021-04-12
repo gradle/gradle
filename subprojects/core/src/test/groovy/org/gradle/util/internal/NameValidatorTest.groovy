@@ -33,6 +33,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
