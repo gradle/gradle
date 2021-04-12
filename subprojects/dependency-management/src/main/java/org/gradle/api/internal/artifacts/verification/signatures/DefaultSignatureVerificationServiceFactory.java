@@ -38,7 +38,7 @@ import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.PublicKeyServiceChain;
 import org.gradle.security.internal.SecuritySupport;
-import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.io.File;
 import java.io.IOException;

@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.internal.Resources
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -412,7 +412,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
-                    assert org.gradle.util.CollectionUtils.single(lazyInputs.files).toPath().endsWith("${expectedDirName}")
+                    assert org.gradle.util.internal.CollectionUtils.single(lazyInputs.files).toPath().endsWith("${expectedDirName}")
                 }
             }
         """

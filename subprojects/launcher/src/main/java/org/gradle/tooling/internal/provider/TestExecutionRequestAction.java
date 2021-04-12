@@ -27,7 +27,7 @@ import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;

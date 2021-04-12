@@ -27,7 +27,7 @@ import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.binding.StructBindingsStore
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger

@@ -39,7 +39,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;

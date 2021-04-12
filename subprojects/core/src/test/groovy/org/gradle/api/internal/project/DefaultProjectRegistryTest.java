@@ -27,8 +27,8 @@ import org.junit.Test;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.gradle.util.WrapUtil.toSet;
-import static org.gradle.util.WrapUtil.toSortedSet;
+import static org.gradle.util.internal.WrapUtil.toSet;
+import static org.gradle.util.internal.WrapUtil.toSortedSet;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 

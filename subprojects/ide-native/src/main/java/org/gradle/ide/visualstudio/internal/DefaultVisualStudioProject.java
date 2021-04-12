@@ -32,8 +32,8 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.XmlConfigFile;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -45,7 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.

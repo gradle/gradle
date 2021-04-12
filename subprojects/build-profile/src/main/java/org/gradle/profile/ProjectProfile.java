@@ -15,7 +15,7 @@
  */
 package org.gradle.profile;
 
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.List;

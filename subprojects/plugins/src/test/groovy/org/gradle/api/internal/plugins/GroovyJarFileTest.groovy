@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.plugins
 
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 
 class GroovyJarFileTest extends Specification {

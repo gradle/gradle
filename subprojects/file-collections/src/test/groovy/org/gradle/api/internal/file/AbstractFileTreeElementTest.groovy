@@ -20,7 +20,7 @@ import org.gradle.internal.file.Chmod
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
+import org.gradle.util.internal.GFileUtils
 
 class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
     final chmod = Mock(Chmod)

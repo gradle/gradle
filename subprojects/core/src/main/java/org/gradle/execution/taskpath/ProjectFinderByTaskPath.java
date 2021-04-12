@@ -19,7 +19,7 @@ package org.gradle.execution.taskpath;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.NameMatcher;
+import org.gradle.util.internal.NameMatcher;
 
 import java.util.Map;
 

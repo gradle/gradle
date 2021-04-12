@@ -26,7 +26,7 @@ class LocalStateFixture {
                 assert !localStateFile.exists()
             }
             new File("build/output.txt").text = "Output"
-            localStateFile = org.gradle.util.DeferredUtil.unpackOrNull(localStateFile)
+            localStateFile = org.gradle.util.internal.DeferredUtil.unpackOrNull(localStateFile)
             if (localStateFile != null) {
                 localStateFile.text = "['Some internal state']"
             }

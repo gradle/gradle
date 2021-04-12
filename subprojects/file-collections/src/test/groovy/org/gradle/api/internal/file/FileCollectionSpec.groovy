@@ -25,7 +25,7 @@ import spock.lang.Specification
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContains
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForFileSet
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForMatchingTask
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.internal.WrapUtil.toSet
 
 @UsesNativeServices // via DirectoryFileTree
 abstract class FileCollectionSpec extends Specification {

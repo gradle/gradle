@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

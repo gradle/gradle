@@ -385,7 +385,7 @@ repositories {
 configurations {
     lockedConf {
         resolutionStrategy.dependencySubstitution {
-            substitute module('org:test') with module('org:test:1.0')
+            substitute module('org:test') using module('org:test:1.0')
         }
     }
 }

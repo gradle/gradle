@@ -48,8 +48,8 @@ import java.util.concurrent.TimeUnit;
  *
  *     // add dependency substitution rules
  *     dependencySubstitution {
- *       substitute module('org.gradle:api') with project(':api')
- *       substitute project(':util') with module('org.gradle:util:3.0')
+ *       substitute module('org.gradle:api') using project(':api')
+ *       substitute project(':util') using module('org.gradle:util:3.0')
  *     }
  *
  *     // cache dynamic versions for 10 minutes
@@ -351,11 +351,11 @@ public interface ResolutionStrategy {
      * configurations.all {
      *   resolutionStrategy.dependencySubstitution {
      *     // Substitute project and module dependencies
-     *     substitute module('org.gradle:api') with project(':api')
-     *     substitute project(':util') with module('org.gradle:util:3.0')
+     *     substitute module('org.gradle:api') using project(':api')
+     *     substitute project(':util') using module('org.gradle:util:3.0')
      *
      *     // Substitute one module dependency for another
-     *     substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
+     *     substitute module('org.gradle:api:2.0') using module('org.gradle:api:2.1')
      *   }
      * }
      * </pre>

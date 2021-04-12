@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.internal.typeconversion.NotationParserBuilder
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
 class ExcludeRuleNotationConverterTest extends Specification {

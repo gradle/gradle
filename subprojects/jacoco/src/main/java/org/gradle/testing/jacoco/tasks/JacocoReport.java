@@ -26,7 +26,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoReport;
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl;
-import org.gradle.util.ClosureBackedAction;
+import org.gradle.util.internal.ClosureBackedAction;
 
 import java.io.File;
 

@@ -19,7 +19,7 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class TestTaskRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 

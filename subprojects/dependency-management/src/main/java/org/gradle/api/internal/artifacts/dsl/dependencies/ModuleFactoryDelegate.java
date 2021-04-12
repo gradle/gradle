@@ -22,7 +22,7 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 public class ModuleFactoryDelegate {
     private final ClientModule clientModule;

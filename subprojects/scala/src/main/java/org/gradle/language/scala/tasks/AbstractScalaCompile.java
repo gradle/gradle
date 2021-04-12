@@ -49,7 +49,7 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;

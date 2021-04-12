@@ -21,6 +21,12 @@ import org.gradle.api.InvalidUserDataException;
 
 import java.util.Arrays;
 
+/**
+ * This class is only here to maintain binary compatibility with existing plugins.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ */
+@Deprecated
 public final class NameValidator {
 
     private static final char[] FORBIDDEN_CHARACTERS = new char[] {'/', '\\', ':', '<', '>', '"', '?', '*', '|'};

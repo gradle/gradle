@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
-import static org.gradle.util.ConfigureUtil.configure;
+import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning workspace details (*.iws file) of the IDEA plugin.

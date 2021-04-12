@@ -63,8 +63,8 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         dependency "org.test:b2:1.0"
 
         includeBuild buildB, """
-            substitute module("org.test:buildB") with project(":")
-            substitute module("org.test:b1:1.0") with project(":b1")
+            substitute module("org.test:buildB") using project(":")
+            substitute module("org.test:b1:1.0") using project(":b1")
 """
 
         expect:
@@ -88,7 +88,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         includeBuild buildB
         includeBuild buildC, """
-            substitute module("org.test:XXX") with project(":")
+            substitute module("org.test:XXX") using project(":")
 """
 
         expect:
@@ -113,7 +113,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         includeBuild buildB
         includeBuild buildC, """
-            substitute module("org.test:XXX") with project(":")
+            substitute module("org.test:XXX") using project(":")
 """
 
         expect:
@@ -149,7 +149,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         includeBuild buildB
         includeBuild buildC, """
-            substitute module("org.test:XXX") with project(":")
+            substitute module("org.test:XXX") using project(":")
 """
 
         when:
@@ -166,7 +166,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         when:
         includeBuild buildB, """
-            substitute module("org.test:buildX") with project(":b1")
+            substitute module("org.test:buildX") using project(":b1")
 """
 
         then:
@@ -195,7 +195,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         when:
         // The project path ':' is resolved using the rootProject.name of buildB2
         includeBuild buildB2, """
-            substitute module("org.gradle:buildX") with project(":")
+            substitute module("org.gradle:buildX") using project(":")
 """
 
         then:
@@ -214,8 +214,8 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         when:
         includeBuild buildB, """
-            substitute module("org.test:buildB") with project(":")
-            substitute module("org.test:b2:1.0") with project(":b2")
+            substitute module("org.test:buildB") using project(":")
+            substitute module("org.test:b2:1.0") using project(":b2")
 """
 
         then:
@@ -279,7 +279,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         when:
         includeBuild(platform, """
-            substitute $source with $dest
+            substitute $source using $dest
         """)
 
         then:
@@ -348,7 +348,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         when:
         includeBuild buildB, """
-            substitute $source with $dest
+            substitute $source using $dest
         """
 
         then:

@@ -42,7 +42,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resource.ResourceLocation;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;

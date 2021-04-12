@@ -94,7 +94,7 @@ import static org.gradle.internal.instantiation.generator.AbstractClassGenerator
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.TestUtil.TEST_CLOSURE;
 import static org.gradle.util.TestUtil.call;
-import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.internal.WrapUtil.toList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;

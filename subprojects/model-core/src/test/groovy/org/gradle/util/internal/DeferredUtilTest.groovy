@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.util.internal
 
 import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.internal.provider.Providers

@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.server.OneRequestServerExpectation
 import org.gradle.test.fixtures.server.ServerExpectation
 import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
-import org.gradle.util.GFileUtils
+import org.gradle.util.internal.GFileUtils
 import org.hamcrest.Matcher
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.http.HttpHeader

@@ -20,7 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;

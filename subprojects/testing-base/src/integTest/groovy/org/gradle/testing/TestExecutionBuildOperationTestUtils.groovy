@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperatio
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 abstract class TestExecutionBuildOperationTestUtils {
 

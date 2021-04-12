@@ -52,7 +52,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
-import static org.gradle.util.CollectionUtils.single;
+import static org.gradle.util.internal.CollectionUtils.single;
 
 public class WrapperDistributionCleanupAction implements DirectoryCleanupAction {
 

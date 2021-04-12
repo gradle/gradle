@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.api.internal.ConventionTask
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 

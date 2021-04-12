@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testing.internal.util.RetryUtil
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Assert
 
 class UrlValidator {

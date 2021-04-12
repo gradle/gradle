@@ -28,7 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.internal.WrapUtil.toLinkedSet
 import static org.hamcrest.CoreMatchers.*
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue

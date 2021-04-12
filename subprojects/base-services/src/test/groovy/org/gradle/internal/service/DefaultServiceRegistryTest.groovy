@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeToken
 import org.gradle.api.Action
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 import java.lang.annotation.Annotation

@@ -787,7 +787,7 @@ compileClasspath - Compile classpath for source set 'main'.
                 }
 
                 configurations.compile.resolutionStrategy.dependencySubstitution {
-                    substitute module('org.utils:api:1.3') with project(':api2')
+                    substitute module('org.utils:api:1.3') using project(':api2')
                 }
             }
 """
@@ -873,8 +873,8 @@ compile
                 }
 
                 configurations.compile.resolutionStrategy.dependencySubstitution {
-                    substitute module('org.original:original') with module('org.other:another:0.1')
-                    substitute module('org.utils:api') with module('org.utils:api:0.1')
+                    substitute module('org.original:original') using module('org.other:another:0.1')
+                    substitute module('org.utils:api') using module('org.utils:api:0.1')
                 }
             }
 """

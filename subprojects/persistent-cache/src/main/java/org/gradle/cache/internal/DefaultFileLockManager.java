@@ -40,7 +40,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.io.IOQuery;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
