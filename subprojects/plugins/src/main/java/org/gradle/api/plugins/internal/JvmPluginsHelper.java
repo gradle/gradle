@@ -57,7 +57,7 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;

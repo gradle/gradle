@@ -23,7 +23,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class GitIgnoreGeneratorTest extends Specification {
 

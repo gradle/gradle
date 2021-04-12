@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 
 class CachedDirectorySensitivityIntegrationSpec extends AbstractDirectorySensitivityIntegrationSpec {

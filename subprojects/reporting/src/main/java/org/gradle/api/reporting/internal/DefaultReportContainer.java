@@ -26,7 +26,7 @@ import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import java.util.Map;

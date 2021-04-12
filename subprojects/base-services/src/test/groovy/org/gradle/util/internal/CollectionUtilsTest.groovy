@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.util.internal
 
 import org.gradle.api.Transformer
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.util.CollectionUtils.addAll
-import static org.gradle.util.CollectionUtils.collect
-import static org.gradle.util.CollectionUtils.collectMap
-import static org.gradle.util.CollectionUtils.collectMapValues
-import static org.gradle.util.CollectionUtils.compact
-import static org.gradle.util.CollectionUtils.diffSetsBy
-import static org.gradle.util.CollectionUtils.every
-import static org.gradle.util.CollectionUtils.filter
-import static org.gradle.util.CollectionUtils.flattenCollections
-import static org.gradle.util.CollectionUtils.groupBy
-import static org.gradle.util.CollectionUtils.inject
-import static org.gradle.util.CollectionUtils.intersection
-import static org.gradle.util.CollectionUtils.join
-import static org.gradle.util.CollectionUtils.nonEmptyOrNull
-import static org.gradle.util.CollectionUtils.partition
-import static org.gradle.util.CollectionUtils.replace
-import static org.gradle.util.CollectionUtils.sort
-import static org.gradle.util.CollectionUtils.stringize
-import static org.gradle.util.CollectionUtils.toList
-import static org.gradle.util.CollectionUtils.toSet
-import static org.gradle.util.CollectionUtils.toStringList
-import static org.gradle.util.CollectionUtils.unpack
+import static org.gradle.util.internal.CollectionUtils.addAll
+import static org.gradle.util.internal.CollectionUtils.collect
+import static org.gradle.util.internal.CollectionUtils.collectMap
+import static org.gradle.util.internal.CollectionUtils.collectMapValues
+import static org.gradle.util.internal.CollectionUtils.compact
+import static org.gradle.util.internal.CollectionUtils.diffSetsBy
+import static org.gradle.util.internal.CollectionUtils.every
+import static org.gradle.util.internal.CollectionUtils.filter
+import static org.gradle.util.internal.CollectionUtils.flattenCollections
+import static org.gradle.util.internal.CollectionUtils.groupBy
+import static org.gradle.util.internal.CollectionUtils.inject
+import static org.gradle.util.internal.CollectionUtils.intersection
+import static org.gradle.util.internal.CollectionUtils.join
+import static org.gradle.util.internal.CollectionUtils.nonEmptyOrNull
+import static org.gradle.util.internal.CollectionUtils.partition
+import static org.gradle.util.internal.CollectionUtils.replace
+import static org.gradle.util.internal.CollectionUtils.sort
+import static org.gradle.util.internal.CollectionUtils.stringize
+import static org.gradle.util.internal.CollectionUtils.toList
+import static org.gradle.util.internal.CollectionUtils.toSet
+import static org.gradle.util.internal.CollectionUtils.toStringList
+import static org.gradle.util.internal.CollectionUtils.unpack
 
 @Unroll
 class CollectionUtilsTest extends Specification {

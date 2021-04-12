@@ -34,7 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.util.ConfigureUtil.configure;
+import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
     public AbstractFileTree() {

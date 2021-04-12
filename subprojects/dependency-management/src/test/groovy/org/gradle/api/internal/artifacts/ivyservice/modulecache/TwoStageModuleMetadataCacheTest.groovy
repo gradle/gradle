@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
-import org.gradle.util.BuildCommencedTimeProvider
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Subject
 

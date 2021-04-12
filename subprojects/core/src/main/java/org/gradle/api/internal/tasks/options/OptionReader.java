@@ -21,7 +21,7 @@ import com.google.common.collect.ListMultimap;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

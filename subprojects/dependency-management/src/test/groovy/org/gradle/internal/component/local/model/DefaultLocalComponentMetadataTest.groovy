@@ -35,7 +35,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
 class DefaultLocalComponentMetadataTest extends Specification {

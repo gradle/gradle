@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import groovy.io.FileType
 import org.gradle.internal.FileUtils
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 import java.util.function.Predicate
 

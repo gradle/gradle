@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

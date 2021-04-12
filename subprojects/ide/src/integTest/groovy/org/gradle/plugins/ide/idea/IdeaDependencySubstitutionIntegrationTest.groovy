@@ -42,7 +42,7 @@ project(":project2") {
 
     configurations.all {
         resolutionStrategy.dependencySubstitution {
-            substitute module("junit:junit:4.7") with project(":project1")
+            substitute module("junit:junit:4.7") using project(":project1")
         }
     }
 }
@@ -77,7 +77,7 @@ project(":project2") {
 
     configurations.all {
         resolutionStrategy.dependencySubstitution {
-            substitute module("org.gradle:module2:1.0") with project(":project1")
+            substitute module("org.gradle:module2:1.0") using project(":project1")
         }
     }
 }
@@ -108,7 +108,7 @@ project(":project2") {
 
     configurations.all {
         resolutionStrategy.dependencySubstitution {
-            substitute project(":project1") with module("junit:junit:4.7")
+            substitute project(":project1") using module("junit:junit:4.7")
         }
     }
 }

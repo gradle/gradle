@@ -664,7 +664,7 @@ project.extensions.create("some", SomeExtension)
         buildFile << """
         class SomeExtension {
             def innerThing(Closure closure) {
-                org.gradle.util.ConfigureUtil.configure(closure, new InnerThing())
+                org.gradle.util.internal.ConfigureUtil.configure(closure, new InnerThing())
             }
             class InnerThing {}
         }

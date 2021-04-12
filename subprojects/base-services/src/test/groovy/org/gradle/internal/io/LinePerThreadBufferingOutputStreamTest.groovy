@@ -17,7 +17,7 @@
 package org.gradle.internal.io
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class LinePerThreadBufferingOutputStreamTest extends ConcurrentSpec {
     def interleavesLinesFromEachThread() {

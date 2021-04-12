@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 
 import static org.hamcrest.CoreMatchers.startsWith

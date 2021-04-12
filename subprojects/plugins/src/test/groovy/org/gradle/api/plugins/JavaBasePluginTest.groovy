@@ -46,7 +46,7 @@ import spock.lang.Unroll
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.reflect.TypeOf.typeOf
-import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.internal.WrapUtil.toLinkedSet
 
 class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     @Rule

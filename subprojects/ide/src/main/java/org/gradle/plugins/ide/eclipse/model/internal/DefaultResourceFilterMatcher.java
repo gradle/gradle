@@ -22,7 +22,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher;
-import org.gradle.util.ClosureBackedAction;
+import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import java.util.Set;

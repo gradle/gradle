@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependencies
-import org.gradle.util.TextUtil.convertLineSeparatorsToUnix
+import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
 
 import java.util.concurrent.Future
 

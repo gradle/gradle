@@ -29,15 +29,12 @@ import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.util.BiFunction
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Issue
 
 import static AsmBackedClassGeneratorTest.Bean
 import static AsmBackedClassGeneratorTest.InterfaceBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfacePropertyBean
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NestedBeanClass
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.UsesToStringInConstructor
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)

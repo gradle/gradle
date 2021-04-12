@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 public class TemplateValue {
     private final String value;

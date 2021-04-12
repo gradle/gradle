@@ -26,7 +26,7 @@ import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.StatusEvent
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
-import org.gradle.util.DistributionLocator
+import org.gradle.util.internal.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification

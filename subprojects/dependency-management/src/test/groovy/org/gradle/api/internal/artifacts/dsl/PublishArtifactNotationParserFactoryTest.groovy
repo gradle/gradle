@@ -34,7 +34,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.TestUtil
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 import java.awt.*

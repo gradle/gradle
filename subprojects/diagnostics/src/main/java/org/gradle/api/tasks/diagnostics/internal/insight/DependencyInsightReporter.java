@@ -42,7 +42,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyE
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.LinkedList;

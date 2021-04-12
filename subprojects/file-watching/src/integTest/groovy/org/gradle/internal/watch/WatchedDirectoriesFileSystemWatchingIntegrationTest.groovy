@@ -24,7 +24,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll

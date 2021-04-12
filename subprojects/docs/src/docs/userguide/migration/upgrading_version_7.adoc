@@ -93,9 +93,29 @@ if (System.getProperty("profile") == "custom") {
 ```
 You can pass the `profile` system property to Gradle using `gradle -Dprofile=custom` to execute the code in the `custom` profile branch.
 
-=== Potential breaking changes
+[[dependency_substitutions_with]]
+=== Substitution.with replaced with Substitution.using
 
-The following classes were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
+<<resolution_rules#sec:dependency_substitution_rules, Dependency substitutions>> using `with` method have been deprecated
+and are replaced with `using` method that also allows chaining.
+For example, a dependency substitution rule `substitute(project(':a')).with(project(':b'))` should be replaced with
+`substitute(project(':a')).using(project(':b'))`.
+With chaining you can, for example, add a reason for a substitution like this:
+`substitute(project(':a')).using(project(':b')).because("a reason")`.
+
+=== Potential breaking changes
+Despite being an internal package, `org.gradle.util` is used by several Gradle plugins. In Gradle 7.1 we did a major cleanup there.
+
+The following classes have known usages in external plugins. They are now deprecated and set for removal in Gradle 8.0:
+
+- `VersionNumber`
+- `TextUtil`
+- `WrapUtil`
+- `RelativePathUtil`
+- `DistributionLocator`
+- `SingleMessageLogger`
+
+The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
 
 - `Resources`
 - `RedirectStdOutAndErr`
@@ -109,8 +129,11 @@ The following classes were moved from `org.gradle.util` to the `org.gradle.util.
 - `MockExecutor`
 - `FailsWithMessage`
 - `FailsWithMessageExtension`
+- `TreeVisitor`
+- `AntUtil`
+- `JarUtil`
 
-Also, the unused classes were deleted from `org.gradle.util`:
+The last set of classes have no external or internal usages and therefore were deleted:
 
 - `DiffUtil`
 - `NoopChangeListener`
@@ -118,6 +141,18 @@ Also, the unused classes were deleted from `org.gradle.util`:
 - `AlwaysTrue`
 - `ReflectionEqualsMatcher`
 - `DynamicDelegate`
+- `IncubationLogger`
+- `NoOpChangeListener`
+- `DeferredUtil`
+
+
+
+
+
+
+
+
+
 
 [[java_exec_properties]]
 ==== Properties deprecated in JavaExec task

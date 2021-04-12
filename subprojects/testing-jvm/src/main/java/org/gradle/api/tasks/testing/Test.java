@@ -79,7 +79,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -92,7 +92,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.gradle.util.ConfigureUtil.configureUsing;
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 /**
  * Executes JUnit (3.8.x, 4.x or 5.x) or TestNG tests. Test are always run in (one or more) separate JVMs.

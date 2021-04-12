@@ -17,7 +17,7 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileRepository
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class IvyPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 

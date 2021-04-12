@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public class TextUtil {
 
     /**
-     * TODO - hack to avoid classloading issues. We should use org.gradle.util.TextUtil
+     * TODO - hack to avoid classloading issues. We should use org.gradle.util.internal.TextUtil
      *
      * Currently we can't use it reliably because it causes CNF issues with cross version integration tests running against tooling api < 1.3.
      */

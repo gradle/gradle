@@ -17,7 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class StdioIntegrationTest extends AbstractIntegrationSpec {
 

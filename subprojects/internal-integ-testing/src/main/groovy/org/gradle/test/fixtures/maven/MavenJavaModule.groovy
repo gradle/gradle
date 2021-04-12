@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.PublishedJavaModule
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 
 class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements PublishedJavaModule {
     final static String MAIN_FEATURE = 'main'

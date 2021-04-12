@@ -26,7 +26,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.util.DistributionLocator;
+import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
 import org.gradle.wrapper.WrapperConfiguration;

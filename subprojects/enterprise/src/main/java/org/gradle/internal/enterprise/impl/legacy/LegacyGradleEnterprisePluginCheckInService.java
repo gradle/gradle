@@ -25,7 +25,7 @@ import org.gradle.internal.scan.config.BuildScanConfig;
 import org.gradle.internal.scan.config.BuildScanConfigProvider;
 import org.gradle.internal.scan.config.BuildScanPluginMetadata;
 import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;

@@ -27,8 +27,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static org.gradle.util.CollectionUtils.collect;
-import static org.gradle.util.CollectionUtils.filter;
+import static org.gradle.util.internal.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.filter;
 
 public class GenerateModuleMapFile {
     public static void generateFile(File moduleMapFile, String moduleName, List<String> publicHeaderDirs) {

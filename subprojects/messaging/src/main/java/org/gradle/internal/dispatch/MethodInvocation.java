@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.dispatch;
 
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;

@@ -32,7 +32,7 @@ import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.BufferedInputStream;

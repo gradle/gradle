@@ -34,7 +34,7 @@ import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.IdentityHashMap;
 import java.util.List;

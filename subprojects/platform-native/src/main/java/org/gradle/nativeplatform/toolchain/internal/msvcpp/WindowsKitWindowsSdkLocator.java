@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 

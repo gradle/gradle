@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.util.ConfigureUtil.configureUsing;
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
     private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);

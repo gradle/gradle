@@ -17,7 +17,7 @@
 package org.gradle.api.internal.classloading;
 
 import org.gradle.api.GradleException;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

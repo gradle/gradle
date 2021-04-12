@@ -25,7 +25,7 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly

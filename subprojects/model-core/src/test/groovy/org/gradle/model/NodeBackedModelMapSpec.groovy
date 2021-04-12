@@ -34,10 +34,10 @@ import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
-import org.gradle.util.ClosureBackedAction
+import org.gradle.util.internal.ClosureBackedAction
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> extends ProjectRegistrySpec {
     abstract Class<T> getItemClass()

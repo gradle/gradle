@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.specs.Spec;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;

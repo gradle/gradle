@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
-import org.gradle.util.DeferredUtil;
+import org.gradle.util.internal.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
