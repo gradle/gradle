@@ -35,6 +35,7 @@
             <trusting group="^com[.]gradle($|([.].*))" regex="true"/>
             <trusting group="com.gradle" name="gradle-enterprise-gradle-plugin"/>
          </trusted-key>
+         <trusted-key id="33fd4bfd33554634053d73c0c2148900bcd3c2af" group="org.jetbrains.trove4j"/>
          <trusted-key id="34d6ff19930adf43ac127792a50569c7ca7fa1f0" group="com.jcraft"/>
          <trusted-key id="36390de6a0e61ee4c7b4ba02c1d3063467f1ebd1" group="org.asciidoctor"/>
          <trusted-key id="3872ed7d5904493d23d78fa2c4c8cb73b1435348" group="^com[.]android[.]tools($|([.].*))" regex="true"/>
