@@ -145,6 +145,7 @@
             <trusting group="org.junit.platform"/>
          </trusted-key>
          <trusted-key id="ff986d345395d4ad1dc48137bb6fd5ad91d01857" group="org.seleniumhq.selenium"/>
+         <trusted-key id="33fd4bfd33554634053d73c0c2148900bcd3c2af" group="org.jetbrains.trove4j"/>
       </trusted-keys>
    </configuration>
    <components>
