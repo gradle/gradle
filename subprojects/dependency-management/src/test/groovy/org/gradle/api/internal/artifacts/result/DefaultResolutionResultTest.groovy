@@ -30,7 +30,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependenc
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency

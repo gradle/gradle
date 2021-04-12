@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
     private final BuildIdentifier buildIdentifier;

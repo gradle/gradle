@@ -26,7 +26,7 @@ import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.FileUtils
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultSettingsLoaderTest extends Specification {

@@ -27,7 +27,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers.multiParser

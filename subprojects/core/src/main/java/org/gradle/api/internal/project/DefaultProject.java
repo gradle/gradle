@@ -127,7 +127,7 @@ import org.gradle.process.JavaExecSpec;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.Configurable;
 import org.gradle.util.internal.ConfigureUtil;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;

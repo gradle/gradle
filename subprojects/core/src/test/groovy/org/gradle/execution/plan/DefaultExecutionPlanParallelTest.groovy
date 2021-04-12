@@ -35,7 +35,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented

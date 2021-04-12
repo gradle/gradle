@@ -18,7 +18,7 @@ package org.gradle.platform.base.internal;
 import com.google.common.base.Objects;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 

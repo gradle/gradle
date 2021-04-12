@@ -27,7 +27,7 @@ import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultIncludedBuildTest extends Specification {

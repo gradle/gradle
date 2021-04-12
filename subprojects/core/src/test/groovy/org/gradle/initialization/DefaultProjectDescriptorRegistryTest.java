@@ -17,7 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 import org.junit.Test;
 
 import java.io.File;

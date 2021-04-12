@@ -59,7 +59,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;

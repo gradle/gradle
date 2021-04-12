@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.Collections;

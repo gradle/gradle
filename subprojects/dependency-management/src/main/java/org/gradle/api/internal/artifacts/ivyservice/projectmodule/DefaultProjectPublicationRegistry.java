@@ -20,7 +20,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Cast;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.Collection;

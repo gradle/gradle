@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.util.concurrent.atomic.AtomicLong;
 

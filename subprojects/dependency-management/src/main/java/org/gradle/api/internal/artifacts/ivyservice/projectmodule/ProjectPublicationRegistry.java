@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;

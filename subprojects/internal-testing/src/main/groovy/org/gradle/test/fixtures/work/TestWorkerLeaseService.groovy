@@ -20,7 +20,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 
 
 class TestWorkerLeaseService implements WorkerLeaseService {

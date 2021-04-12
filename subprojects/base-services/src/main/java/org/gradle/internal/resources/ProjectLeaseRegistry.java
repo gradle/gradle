@@ -17,7 +17,7 @@
 package org.gradle.internal.resources;
 
 import org.gradle.internal.Factory;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.util.Collection;
 

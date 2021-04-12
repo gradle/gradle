@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 public class DefaultComponentIdentifierFactory implements ComponentIdentifierFactory {
     private final BuildState currentBuild;

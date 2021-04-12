@@ -39,7 +39,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 
 import static java.util.Collections.singletonMap

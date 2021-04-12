@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.project.DefaultProjectRegistry;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 public class DefaultProjectDescriptorRegistry extends DefaultProjectRegistry<DefaultProjectDescriptor> implements ProjectDescriptorRegistry {
 

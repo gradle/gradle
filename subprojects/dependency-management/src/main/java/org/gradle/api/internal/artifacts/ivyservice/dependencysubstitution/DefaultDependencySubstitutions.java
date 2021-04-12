@@ -56,7 +56,7 @@ import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.util.LinkedHashSet;

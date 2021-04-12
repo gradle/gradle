@@ -64,7 +64,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ExecutionGradleServices
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.gradle.work.InputChanges
 import spock.lang.Unroll
 

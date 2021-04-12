@@ -30,7 +30,7 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

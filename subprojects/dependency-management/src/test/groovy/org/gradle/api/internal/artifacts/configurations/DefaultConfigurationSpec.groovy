@@ -70,7 +70,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification

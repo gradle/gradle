@@ -36,7 +36,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.function.Function;

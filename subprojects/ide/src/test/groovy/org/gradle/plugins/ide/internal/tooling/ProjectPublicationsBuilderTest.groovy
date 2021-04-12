@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectCompone
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.tooling.model.gradle.ProjectPublications
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 
 class ProjectPublicationsBuilderTest extends AbstractProjectBuilderSpec {

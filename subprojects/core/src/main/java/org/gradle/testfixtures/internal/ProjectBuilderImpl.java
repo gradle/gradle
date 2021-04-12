@@ -67,7 +67,7 @@ import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;

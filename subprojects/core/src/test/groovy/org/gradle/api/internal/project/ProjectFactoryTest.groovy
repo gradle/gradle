@@ -27,7 +27,7 @@ import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.resource.EmptyFileTextResource
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 

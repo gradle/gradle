@@ -40,7 +40,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification

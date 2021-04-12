@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.io.File;
 

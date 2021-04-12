@@ -28,7 +28,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.util.function.Function

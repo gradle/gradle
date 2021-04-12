@@ -28,7 +28,7 @@ import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 
 class TaskFactoryTest extends AbstractProjectBuilderSpec {
     def instantiationScheme = Mock(InstantiationScheme)

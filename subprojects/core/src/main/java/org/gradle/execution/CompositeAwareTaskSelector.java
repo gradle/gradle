@@ -23,7 +23,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.io.File;
 

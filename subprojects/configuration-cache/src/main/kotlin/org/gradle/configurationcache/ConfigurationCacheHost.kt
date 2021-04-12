@@ -53,7 +53,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
 import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import java.io.File
 
 

@@ -44,7 +44,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 

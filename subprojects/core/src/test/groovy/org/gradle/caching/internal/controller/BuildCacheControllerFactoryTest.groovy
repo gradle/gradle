@@ -31,7 +31,7 @@ import org.gradle.caching.internal.services.BuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

@@ -37,7 +37,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 

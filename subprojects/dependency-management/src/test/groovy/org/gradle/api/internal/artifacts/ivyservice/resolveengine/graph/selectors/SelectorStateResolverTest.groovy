@@ -46,7 +46,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import spock.lang.Specification
 import spock.lang.Unroll
 

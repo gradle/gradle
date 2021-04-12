@@ -33,11 +33,11 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
-import static org.gradle.util.internal.Path.path
+import static org.gradle.util.Path.path
 
 class ComponentSelectorSerializerTest extends SerializerSpec {
     private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()))

@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 import java.util.function.Consumer
 
-import static org.gradle.util.internal.Path.path
+import static org.gradle.util.Path.path
 
 class DefaultGradleLauncherSpec extends Specification {
     def settingsPreparerMock = Mock(SettingsPreparer)

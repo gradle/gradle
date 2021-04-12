@@ -61,7 +61,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.io.File;

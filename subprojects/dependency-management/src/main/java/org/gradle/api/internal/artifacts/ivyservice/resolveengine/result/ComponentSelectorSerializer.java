@@ -37,7 +37,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.io.IOException;
 import java.util.Collection;

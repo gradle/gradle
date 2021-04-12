@@ -23,7 +23,7 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.execution.plan.TaskInAnotherBuild
-import org.gradle.util.internal.Path.path
+import org.gradle.util.Path.path
 
 
 class TaskInAnotherBuildCodec(

@@ -26,7 +26,7 @@ import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 
 import static org.junit.Assert.assertTrue
 

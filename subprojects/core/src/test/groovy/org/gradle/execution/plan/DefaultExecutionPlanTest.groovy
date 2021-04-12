@@ -27,7 +27,7 @@ import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.file.Stat
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll

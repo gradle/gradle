@@ -33,7 +33,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
-import org.gradle.util.internal.Path;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.function.Function;

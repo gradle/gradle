@@ -19,17 +19,12 @@ package org.gradle.util;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * This class is only here to maintain binary compatibility with existing plugins.
- *
- * @deprecated Will be removed in Gradle 8.0.
- */
-@Deprecated
 public class Path implements Comparable<Path> {
     public static final Path ROOT = new Path(new String[0], true);
 

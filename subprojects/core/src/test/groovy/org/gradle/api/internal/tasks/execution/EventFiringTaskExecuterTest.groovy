@@ -28,7 +28,7 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.taskgraph.TaskListenerInternal
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class EventFiringTaskExecuterTest extends Specification {

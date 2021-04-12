@@ -34,7 +34,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.Path
+import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
