@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-import static org.gradle.util.TextUtil.escapeString
+import static org.gradle.util.internal.TextUtil.escapeString
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value="maven")

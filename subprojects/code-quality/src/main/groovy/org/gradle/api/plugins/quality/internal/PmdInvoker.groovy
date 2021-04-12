@@ -25,7 +25,7 @@ import org.gradle.internal.Cast
 import org.gradle.internal.Factory
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.ConsoleRenderer
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 import java.lang.reflect.Field
 

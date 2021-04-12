@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification

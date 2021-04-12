@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.junit.Assume
 
 import java.util.regex.Pattern

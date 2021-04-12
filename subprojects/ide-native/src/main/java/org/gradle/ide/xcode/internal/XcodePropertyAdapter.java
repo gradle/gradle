@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.Project;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.Arrays;
 import java.util.List;

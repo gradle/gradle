@@ -25,7 +25,7 @@ import org.gradle.api.internal.PropertyListTransformer;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import static org.gradle.util.ConfigureUtil.configureUsing;
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 public abstract class PropertyListPersistableConfigurationObject<T extends NSObject> extends AbstractPersistableConfigurationObject {
     private final Class<T> clazz;

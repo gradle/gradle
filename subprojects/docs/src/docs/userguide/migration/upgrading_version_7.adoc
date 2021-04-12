@@ -104,8 +104,18 @@ With chaining you can, for example, add a reason for a substitution like this:
 `substitute(project(':a')).using(project(':b')).because("a reason")`.
 
 === Potential breaking changes
+Despite being an internal package, `org.gradle.util` is used by several Gradle plugins. In Gradle 7.1 we did a major cleanup there.
 
-The following classes were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
+The following classes have known usages in external plugins. They are now deprecated and set for removal in Gradle 8.0:
+
+- `VersionNumber`
+- `TextUtil`
+- `WrapUtil`
+- `RelativePathUtil`
+- `DistributionLocator`
+- `SingleMessageLogger`
+
+The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
 
 - `Resources`
 - `RedirectStdOutAndErr`
@@ -119,8 +129,11 @@ The following classes were moved from `org.gradle.util` to the `org.gradle.util.
 - `MockExecutor`
 - `FailsWithMessage`
 - `FailsWithMessageExtension`
+- `TreeVisitor`
+- `AntUtil`
+- `JarUtil`
 
-Also, the unused classes were deleted from `org.gradle.util`:
+The last set of classes have no external or internal usages and therefore were deleted:
 
 - `DiffUtil`
 - `NoopChangeListener`
@@ -128,3 +141,15 @@ Also, the unused classes were deleted from `org.gradle.util`:
 - `AlwaysTrue`
 - `ReflectionEqualsMatcher`
 - `DynamicDelegate`
+- `IncubationLogger`
+- `NoOpChangeListener`
+- `DeferredUtil`
+
+
+
+
+
+
+
+
+

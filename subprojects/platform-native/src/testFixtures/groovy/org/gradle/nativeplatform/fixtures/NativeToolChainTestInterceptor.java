@@ -20,7 +20,7 @@ package org.gradle.nativeplatform.fixtures;
 import com.google.common.collect.Maps;
 import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 import org.spockframework.runtime.extension.IMethodInvocation;
 
 import java.util.Collection;

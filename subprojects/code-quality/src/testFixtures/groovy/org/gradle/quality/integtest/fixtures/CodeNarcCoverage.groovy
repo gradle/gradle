@@ -18,7 +18,7 @@ package org.gradle.quality.integtest.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.quality.CodeNarcPlugin
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 class CodeNarcCoverage {
     private static final List<String> ALL = [CodeNarcPlugin.DEFAULT_CODENARC_VERSION, "0.17", "0.21", "0.23", "0.24.1", "0.25.2", "1.0", "1.6.1"].asImmutable()

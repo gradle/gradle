@@ -24,7 +24,7 @@ import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.net.URI;
 import java.nio.charset.Charset;

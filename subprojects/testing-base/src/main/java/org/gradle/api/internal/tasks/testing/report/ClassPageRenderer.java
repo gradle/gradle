@@ -23,7 +23,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.reporting.CodePanelRenderer;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.IOException;
 import java.util.Arrays;

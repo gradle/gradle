@@ -21,8 +21,8 @@ import org.gradle.api.specs.Spec;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.util.CollectionUtils.filter;
-import static org.gradle.util.CollectionUtils.join;
+import static org.gradle.util.internal.CollectionUtils.filter;
+import static org.gradle.util.internal.CollectionUtils.join;
 
 public class GroupedTransformationFixture {
     private final String initialSubjectType;

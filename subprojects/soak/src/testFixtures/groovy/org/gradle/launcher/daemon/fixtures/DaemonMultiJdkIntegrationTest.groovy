@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.util.EmptyStatement
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 import org.junit.rules.TestRule
 import org.junit.runner.Description

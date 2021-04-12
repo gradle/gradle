@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 public class DefaultComponentSelectorConverter implements ComponentSelectorConverter {
     private static final ModuleVersionSelector UNKNOWN_MODULE_VERSION_SELECTOR = DefaultModuleVersionSelector.newSelector(DefaultModuleIdentifier.newId("", "unknown"), "");

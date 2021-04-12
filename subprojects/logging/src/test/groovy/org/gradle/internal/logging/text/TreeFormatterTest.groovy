@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 import java.util.function.Consumer
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class TreeFormatterTest extends Specification {
     def formatter = new TreeFormatter()

@@ -19,7 +19,7 @@ package org.gradle.configuration.project;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.ArrayList;
 import java.util.List;

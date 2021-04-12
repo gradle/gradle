@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations
 
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 

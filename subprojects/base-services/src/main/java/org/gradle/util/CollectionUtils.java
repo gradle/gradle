@@ -52,6 +52,15 @@ import static org.gradle.internal.Cast.cast;
 import static org.gradle.internal.Cast.castNullable;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
+/**
+ * This class is only here to maintain binary compatibility with existing plugins.
+ * <p>
+ * Plugins should prefer external collection frameworks over this class.
+ * Internally, all code should use {@link org.gradle.util.internal.CollectionUtils}.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ */
+@Deprecated
 public abstract class CollectionUtils {
 
     /**

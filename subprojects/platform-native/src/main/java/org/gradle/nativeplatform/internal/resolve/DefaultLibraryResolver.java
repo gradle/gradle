@@ -27,7 +27,7 @@ import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.Set;
 

@@ -20,7 +20,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.CollectionUtils
+import org.gradle.util.internal.CollectionUtils
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification

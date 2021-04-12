@@ -39,7 +39,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.

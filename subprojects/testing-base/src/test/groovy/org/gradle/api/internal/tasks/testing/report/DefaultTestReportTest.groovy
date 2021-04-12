@@ -31,7 +31,7 @@ import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll

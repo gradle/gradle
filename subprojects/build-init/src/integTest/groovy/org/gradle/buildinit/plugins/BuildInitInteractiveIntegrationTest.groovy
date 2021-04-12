@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 

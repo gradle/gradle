@@ -124,9 +124,9 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
-import org.gradle.util.ClosureBackedAction;
+import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.Configurable;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -144,8 +144,8 @@ import java.util.concurrent.Callable;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
-import static org.gradle.util.ConfigureUtil.configureUsing;
-import static org.gradle.util.GUtil.addMaps;
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+import static org.gradle.util.internal.GUtil.addMaps;
 
 @NoConventionMapping
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {

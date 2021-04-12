@@ -118,7 +118,7 @@ You can find an example for capturing user input to configure runtime behavior i
 
 Instead of `org.gradle.internal.os.OperatingSystem`, use another method to detect operating system, such as link:https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/SystemUtils.html[Apache commons-lang SystemUtils] or `System.getProperty("os.name")`.
 
-Use other collections or I/O frameworks instead of `org.gradle.util.CollectionUtils`, `org.gradle.util.GFileUtils`, and other classes under `org.gradle.util.*`.
+Use other collections or I/O frameworks instead of `org.gradle.util.CollectionUtils`, `org.gradle.util.internal.GFileUtils`, and other classes under `org.gradle.util.*`.
 
 Gradle plugin authors may find the Designing Gradle Plugins subsection on <<designing_gradle_plugins.adoc#restricting_the_plugin_implementation_to_gradle_s_public_api,restricting the plugin implementation to Gradle's public API>> helpful.
 

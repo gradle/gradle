@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.util.internal
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
@@ -32,7 +32,9 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
-import org.gradle.util.internal.IncubationLogger
+import org.gradle.util.AttributeTestUtil
+import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject

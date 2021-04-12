@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 import org.gradle.plugins.ide.fixtures.IdeProjectFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 import javax.annotation.Nullable
 

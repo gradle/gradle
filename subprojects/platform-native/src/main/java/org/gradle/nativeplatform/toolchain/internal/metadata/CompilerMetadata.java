@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.metadata;
 
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 public interface CompilerMetadata {
     String getVendor();

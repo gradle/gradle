@@ -19,7 +19,7 @@ package org.gradle.internal.resource.cached;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.nio.file.Path;
 

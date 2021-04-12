@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.report.unbound
 
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 class UnboundRulesReporterTest extends Specification {
