@@ -47,7 +47,13 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         run 'help'
 
         then:
-        !file('.gradle/configuration-cache/gc.properties').exists()
+        !file('.gradle/configuration-cache').exists()
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        file('.gradle/configuration-cache').isDirectory()
     }
 
     def "configuration cache honours --project-cache-dir"() {
@@ -58,10 +64,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun 'help', '--project-cache-dir', 'custom-cache-dir'
 
         then:
-        !file('.gradle/configuration-cache/gc.properties').exists()
+        !file('.gradle/configuration-cache').exists()
 
         and:
-        file('custom-cache-dir/configuration-cache/gc.properties').exists()
+        file('custom-cache-dir/configuration-cache').isDirectory()
 
         and:
         configurationCache.assertStateStored()
