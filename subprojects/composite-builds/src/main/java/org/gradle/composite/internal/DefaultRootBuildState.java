@@ -16,12 +16,11 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.StartParameter;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -37,6 +36,7 @@ import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Function;
 
 class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
@@ -77,20 +77,20 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
-    public <T> T run(Transformer<T, ? super BuildController> buildAction) {
-        final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
+    public <T> T run(Function<? super BuildController, T> action) {
+        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
         GradleInternal gradle = buildController.getGradle();
         buildLifecycleListener.afterStart(gradle);
         try {
-            return buildAction.transform(buildController);
+            return action.apply(buildController);
         } finally {
             buildLifecycleListener.beforeComplete(gradle);
         }
     }
 
     @Override
-    public StartParameter getStartParameter() {
+    public StartParameterInternal getStartParameter() {
         return gradleLauncher.getGradle().getStartParameter();
     }
 

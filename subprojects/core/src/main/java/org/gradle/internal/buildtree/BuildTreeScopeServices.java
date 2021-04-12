@@ -39,12 +39,10 @@ import java.util.List;
 public class BuildTreeScopeServices {
     private final BuildTreeState buildTree;
     private final BuildType buildType;
-    private final BuildTreeBuildPath buildTreeBuildPath;
 
-    public BuildTreeScopeServices(BuildTreeState buildTree, BuildType buildType, BuildTreeBuildPath buildTreeBuildPath) {
+    public BuildTreeScopeServices(BuildTreeState buildTree, BuildType buildType) {
         this.buildTree = buildTree;
         this.buildType = buildType;
-        this.buildTreeBuildPath = buildTreeBuildPath;
     }
 
     protected void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
@@ -53,7 +51,6 @@ public class BuildTreeScopeServices {
         }
         registration.add(BuildTreeState.class, buildTree);
         registration.add(BuildType.class, buildType);
-        registration.add(BuildTreeBuildPath.class, buildTreeBuildPath);
         registration.add(GradleEnterprisePluginManager.class);
     }
 

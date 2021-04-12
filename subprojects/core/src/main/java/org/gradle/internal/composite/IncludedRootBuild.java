@@ -55,7 +55,7 @@ public class IncludedRootBuild implements IncludedBuild {
         return new IncludedRootBuildTaskReference(rootBuild, path);
     }
 
-    public class IncludedRootBuildTaskReference implements TaskReference, TaskDependencyContainer {
+    private static class IncludedRootBuildTaskReference implements TaskReference, TaskDependencyContainer {
         private final String taskPath;
         private final CompositeBuildParticipantBuildState rootBuildState;
 

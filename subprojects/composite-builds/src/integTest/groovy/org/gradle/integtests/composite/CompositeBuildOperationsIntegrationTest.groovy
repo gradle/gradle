@@ -184,9 +184,9 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         runTasksOps.size() == 3
         runTasksOps[0].displayName == "Run tasks (:buildB)"
         runTasksOps[0].parentId == root.id
-        runTasksOps[1].displayName == "Run tasks"
+        // Build operations are run in parallel, so can appear in either order
+        [runTasksOps[1].displayName, runTasksOps[2].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[1].parentId == root.id
-        runTasksOps[2].displayName == "Run tasks (:buildB)"
         runTasksOps[2].parentId == root.id
 
         // Task graph ready event sent only once

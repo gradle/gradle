@@ -16,8 +16,8 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 
 public class BuildModelAction extends SubscribableBuildAction {
     private final StartParameterInternal startParameter;
@@ -45,8 +45,8 @@ public class BuildModelAction extends SubscribableBuildAction {
         return runTasks;
     }
 
-    public boolean isModelRequest() {
+    @Override
+    public boolean isCreateModel() {
         return !ModelIdentifier.NULL_MODEL.equals(modelName);
     }
-
 }

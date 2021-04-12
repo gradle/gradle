@@ -157,7 +157,9 @@ class GenerateProjectAccessors(
 
     override fun visitIdentityInputs(visitor: InputVisitor) {
         visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY) { hashCodeFor(projectSchema) }
-        visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, NON_INCREMENTAL,
+        visitor.visitInputFileProperty(
+            CLASSPATH_INPUT_PROPERTY,
+            NON_INCREMENTAL,
             FileValueSupplier(
                 classPath,
                 ClasspathNormalizer::class.java,

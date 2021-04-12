@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
 
-public enum EnumWithClassBody {
-    DUCK {
-        @Override
-        void foo() {
-        }
-    },
-    GOOSE {
-        @Override
-        void foo() {
-        }
-    };
+package org.gradle.configurationcache.serialization.codecs
 
-    abstract void foo();
+import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.serialization.WriteContext
+import java.net.URL
+
+
+object UrlCodec : Codec<URL> {
+
+    override suspend fun WriteContext.encode(value: URL) {
+        writeString(value.toExternalForm())
+    }
+
+    override suspend fun ReadContext.decode(): URL =
+        URL(readString())
 }

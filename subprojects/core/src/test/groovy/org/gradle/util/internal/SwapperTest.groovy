@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.util.internal
 
 import org.gradle.api.Action
 import org.gradle.internal.Factory
@@ -29,34 +29,33 @@ class SwapperTest extends Specification {
     def swap(newValue, whileSwapped) {
         new Swapper(getter as Factory, setter as Action).swap(newValue, whileSwapped as Factory)
     }
-    
+
     def "can swap values"() {
         given:
         def newValue = 2
         def returnValue = 3
-        
+
         expect:
-        returnValue == swap(newValue) { 
+        returnValue == swap(newValue) {
             assert value == newValue
             returnValue
-        } 
-        
+        }
+
         and:
         value == originalValue
     }
-    
-    def "value is swapped back when exception thrown"() {        
+
+    def "value is swapped back when exception thrown"() {
         when:
-        swap(2) { 
+        swap(2) {
             throw new IllegalStateException()
-        } 
-        
+        }
+
         then:
         value == originalValue
-        
+
         and:
         thrown IllegalStateException
-        
     }
-    
+
 }

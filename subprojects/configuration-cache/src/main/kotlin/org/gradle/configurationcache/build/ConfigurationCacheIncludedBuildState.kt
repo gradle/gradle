@@ -81,7 +81,6 @@ open class ConfigurationCacheIncludedBuildState(
                     gradle.serviceOf(),
                     serviceRegistry,
                     servicesToStop,
-                    gradle.serviceOf(),
                     settingsPreparer,
                     taskExecutionPreparer,
                     NullConfigurationCache,

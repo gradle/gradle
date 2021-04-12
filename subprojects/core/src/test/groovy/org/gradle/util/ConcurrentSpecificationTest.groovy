@@ -15,6 +15,8 @@
  */
 package org.gradle.util
 
+import org.gradle.util.internal.FailsWithMessage
+
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import org.spockframework.mock.TooManyInvocationsError

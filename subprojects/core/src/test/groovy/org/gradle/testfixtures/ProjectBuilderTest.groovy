@@ -25,8 +25,8 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.IncubationLogger
-import org.gradle.util.Resources
+import org.gradle.util.internal.IncubationLogger
+import org.gradle.util.internal.Resources
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
