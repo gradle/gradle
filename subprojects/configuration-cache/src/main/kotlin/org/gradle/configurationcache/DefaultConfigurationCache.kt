@@ -35,7 +35,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.util.IncubationLogger
+import org.gradle.util.internal.IncubationLogger
 import java.io.File
 import java.io.FileInputStream
 import java.io.OutputStream
