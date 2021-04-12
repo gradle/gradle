@@ -50,16 +50,16 @@ import java.io.OutputStream
 @ServiceScope(Scopes.Build::class)
 internal
 class ConfigurationCacheFingerprintController internal constructor(
-        private val startParameter: ConfigurationCacheStartParameter,
-        private val taskInputsListeners: TaskInputsListeners,
-        private val valueSourceProviderFactory: ValueSourceProviderFactory,
-        private val fileSystemAccess: FileSystemAccess,
-        private val fingerprinterRegistry: FileCollectionFingerprinterRegistry,
-        private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
-        private val listenerManager: ListenerManager,
-        private val buildTreeListenerManager: BuildTreeListenerManager,
-        private val fileCollectionFactory: FileCollectionFactory,
-        private val directoryFileTreeFactory: DirectoryFileTreeFactory
+    private val startParameter: ConfigurationCacheStartParameter,
+    private val taskInputsListeners: TaskInputsListeners,
+    private val valueSourceProviderFactory: ValueSourceProviderFactory,
+    private val fileSystemAccess: FileSystemAccess,
+    private val fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
+    private val listenerManager: ListenerManager,
+    private val buildTreeListenerManager: BuildTreeListenerManager,
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Stoppable {
     private
     val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.DEFAULT))
