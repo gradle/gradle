@@ -1,1 +1,0 @@
-includeFlat "api", "common", "webservice", "groovyproject", "javabaseproject", "webAppWithVars", "webAppJava6"
