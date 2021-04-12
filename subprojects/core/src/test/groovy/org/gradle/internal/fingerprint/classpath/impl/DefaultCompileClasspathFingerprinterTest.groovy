@@ -46,17 +46,13 @@ class DefaultCompileClasspathFingerprinterTest extends Specification {
     def fingerprinter = new DefaultCompileClasspathFingerprinter(cacheService, fileCollectionSnapshotter, stringInterner)
 
     def "gradle api jars have the same hash"() {
-        def windowsJar = new File("<path>/windows-api-jar.jar")
-        def linuxJar = new File("<path>/linux-api-jar.jar")
+        def currentGradleApiJar = new File(new File(System.getProperty("user.home")), ".gradle/caches/7.1-20210328220041+0000/generated-gradle-jars/gradle-api-7.1-20210328220041+0000.jar")
 
-        def windowsApiJarFingerprint = fingerprinter.fingerprint(files(windowsJar))
-        def linuxApiJarFingerprint = fingerprinter.fingerprint(files(linuxJar))
-        println("Linux hash: ${linuxApiJarFingerprint.hash}")
+        def apiJarFingerprint = fingerprinter.fingerprint(files(currentGradleApiJar))
+        println("Api JAR compile fingerprint hash: ${apiJarFingerprint.hash}")
         expect:
-        windowsJar.file
-        linuxJar.file
-        windowsApiJarFingerprint.hash == linuxApiJarFingerprint.hash
-        linuxApiJarFingerprint.hash == HashCode.fromString('39ae4d759967d412393a681e07dcb862')
+        currentGradleApiJar.file
+        apiJarFingerprint.hash == HashCode.fromString('39ae4d759967d412393a681e07dcb862')
     }
 
     private static FileCollection files(File... files) {
