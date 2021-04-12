@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
@@ -1005,11 +1006,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         """
         file("src/main/java/com/example/Main.java") << """
             package com.example;
-            public class Main {
-              public static void main(String[] args) {
-                System.out.println("Hello, world!");
-              }
-            }
+            public class Main {}
         """
         executer.expectDocumentedDeprecationWarning("The CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_options_properties")
 
@@ -1017,6 +1014,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         succeeds("compileJava")
     }
 
+    // Enable deprecation nagging: https://github.com/gradle/gradle/issues/16782
+    @NotYetImplemented
     def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory is deprecated"() {
         when:
         buildFile << """
@@ -1029,11 +1028,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         """
         file("src/main/java/com/example/Main.java") << """
             package com.example;
-            public class Main {
-              public static void main(String[] args) {
-                System.out.println("Hello, world!");
-              }
-            }
+            public class Main {}
         """
         executer.expectDocumentedDeprecationWarning("The CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(File) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_options_properties")
 
