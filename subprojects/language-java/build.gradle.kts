@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":language-jvm"))
     implementation(project(":build-events"))
     implementation(project(":tooling-api"))
+    implementation(project(":java-compiler-plugin-api"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
@@ -37,6 +38,7 @@ dependencies {
     implementation(libs.inject)
 
     runtimeOnly(project(":java-compiler-plugin"))
+    runtimeOnly(project(":java-compiler-plugin-api"))
 
     testImplementation(project(":base-services-groovy"))
     testImplementation(libs.commonsIo)

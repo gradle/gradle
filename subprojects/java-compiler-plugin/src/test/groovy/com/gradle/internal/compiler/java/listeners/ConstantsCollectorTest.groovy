@@ -16,7 +16,9 @@
 
 package com.gradle.internal.compiler.java.listeners
 
+
 import org.gradle.internal.compiler.java.TestCompiler
+import org.gradle.internal.compiler.java.listeners.constants.ConstantDependentsConsumer
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Requires
@@ -30,17 +32,24 @@ class ConstantsCollectorTest extends Specification {
     TemporaryFolder temporaryFolder = new TemporaryFolder()
 
     TestCompiler compiler
-    Map<String, Collection<String>> collectedConstants
+    Map<String, Collection<String>> privateDependentToConstants
+    Map<String, Collection<String>> publicDependentToConstants
     File sourceFolder
 
     def setup() {
         sourceFolder = temporaryFolder.newFolder()
-        collectedConstants = [:]
+        privateDependentToConstants = [:]
+        publicDependentToConstants = [:]
+        ConstantDependentsConsumer consumer = new ConstantDependentsConsumer(
+            (String constantOrigin, String dependent) -> publicDependentToConstants.computeIfAbsent(dependent, { new LinkedHashSet<>() }).add(constantOrigin),
+            (String constantOrigin, String dependent) -> privateDependentToConstants.computeIfAbsent(dependent, { new LinkedHashSet<>() }).add(constantOrigin)
+        )
         compiler = new TestCompiler(
             temporaryFolder.newFolder(),
             { f -> Optional.empty() },
             {},
-            { m -> collectedConstants += m })
+            consumer
+        )
     }
 
     def "collect all constants from annotations on class"() {
@@ -61,7 +70,8 @@ class A<@Annotation(Constant2.CONSTANT2 $addition) T> {
         compiler.compile(classes)
 
         then:
-        collectedConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4', 'Constant5', 'Constant6'] as Set
+        privateDependentToConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4', 'Constant5', 'Constant6'] as Set
+        publicDependentToConstants.isEmpty()
 
         where:
         constantType | constantValue | addition
@@ -81,8 +91,8 @@ import java.util.Map;
 class A {
     @Annotation(Constant1.CONSTANT1 $addition)
     private Map<@Annotation(Constant2.CONSTANT2 $addition) String, @Annotation(Constant3.CONSTANT3 $addition) String> field;
-    private static final $constantType STATIC_FINAL_FIELD = Constant4.CONSTANT4 $addition;
-    private static final $constantType STATIC_FINAL_FIELD_2;
+    static final $constantType STATIC_FINAL_FIELD = Constant4.CONSTANT4 $addition;
+    static final $constantType STATIC_FINAL_FIELD_2;
     private final $constantType finalField = Constant5.CONSTANT5 $addition;
     private $constantType fieldDecleration = Constant6.CONSTANT6 $addition;
     static {
@@ -96,7 +106,8 @@ class A {
         compiler.compile(classes)
 
         then:
-        collectedConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4', 'Constant5', 'Constant6', 'Constant7'] as Set
+        privateDependentToConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant5', 'Constant6', 'Constant7'] as Set
+        publicDependentToConstants["A"] == ['Constant4'] as Set
 
         where:
         constantType | constantValue | addition
@@ -128,7 +139,8 @@ class A {
         compiler.compile(classes)
 
         then:
-        collectedConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4', 'Constant5', 'Constant6', 'Constant7'] as Set
+        privateDependentToConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4', 'Constant5', 'Constant6', 'Constant7'] as Set
+        publicDependentToConstants.isEmpty()
 
         where:
         constantType | constantValue | addition
@@ -160,7 +172,7 @@ class A {
         compiler.compile(classes)
 
         then:
-        collectedConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4'] as Set
+        privateDependentToConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4'] as Set
 
         where:
         constantType | constantValue | addition
@@ -202,8 +214,9 @@ class A {
         compiler.compile(classes)
 
         then:
-        collectedConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4', 'Constant5',
-                                    'Constant6', 'Constant7', 'Constant8', 'Constant9', 'Constant10'] as Set
+        privateDependentToConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4', 'Constant5',
+                                             'Constant6', 'Constant7', 'Constant8', 'Constant9', 'Constant10'] as Set
+        publicDependentToConstants.isEmpty()
 
         where:
         constantType | constantValue | addition
@@ -257,10 +270,11 @@ class A {
         compiler.compile(classes)
 
         then:
-        collectedConstants["A"] == ['gradle.unit.test.Constant1', 'gradle.unit.test.Constant2',
-                                    'gradle.unit.test.Constant3', 'gradle.unit.test.Constant4', 'gradle.unit.test.Constant5',
-                                    'gradle.unit.test.Constant6', 'gradle.unit.test.Constant7', 'gradle.unit.test.Constant8',
-                                    'gradle.unit.test.Constant9', 'gradle.unit.test.Constant10'] as Set
+        privateDependentToConstants["A"] == ['gradle.unit.test.Constant1', 'gradle.unit.test.Constant2',
+                                             'gradle.unit.test.Constant3', 'gradle.unit.test.Constant4', 'gradle.unit.test.Constant5',
+                                             'gradle.unit.test.Constant6', 'gradle.unit.test.Constant7', 'gradle.unit.test.Constant8',
+                                             'gradle.unit.test.Constant9', 'gradle.unit.test.Constant10'] as Set
+        publicDependentToConstants.isEmpty()
 
         where:
         constantType | constantValue | addition
@@ -290,7 +304,8 @@ public @interface A {
         compiler.compile(classes)
 
         then:
-        collectedConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4'] as Set
+        privateDependentToConstants["A"] == ['Constant1', 'Constant2', 'Constant3', 'Constant4'] as Set
+        publicDependentToConstants.isEmpty()
 
         where:
         constantType | constantValue | addition
@@ -303,7 +318,41 @@ public @interface A {
         "boolean"    | "true"        | "& false"
     }
 
-    def "collect all constants for chained constants reference"() {
+    def "collects constants from accessible static fields as public dependents"() {
+        given:
+        String clazz = """
+class A {
+    static final int STATIC_FINAL_FIELD = Constant1.CONSTANT1;
+}
+"""
+        List<File> classes = toSourceFile(clazz) + getConstants("int", "1")
+
+        when:
+        compiler.compile(classes)
+
+        then:
+        publicDependentToConstants["A"] == ['Constant1'] as Set
+        privateDependentToConstants.isEmpty()
+    }
+
+    def "collects constants from private static fields as private dependents"() {
+        given:
+        String clazz = """
+class A {
+    private static final int STATIC_FINAL_FIELD = Constant1.CONSTANT1;
+}
+"""
+        List<File> classes = toSourceFile(clazz) + getConstants("int", "1")
+
+        when:
+        compiler.compile(classes)
+
+        then:
+        privateDependentToConstants["A"] == ['Constant1'] as Set
+        publicDependentToConstants.isEmpty()
+    }
+
+    def "collect all constants for chained accessible constants reference"() {
         given:
         List<String> classes = [
             "class A { static final int CONSTANT = Constant1.CONSTANT1; }",
@@ -318,11 +367,52 @@ public @interface A {
         compiler.compile(sourceFiles)
 
         then:
-        collectedConstants["A"] == ['Constant1'] as Set
-        collectedConstants["B"] == ['A'] as Set
-        collectedConstants["C"] == ['B'] as Set
-        collectedConstants["D"] == ['C'] as Set
-        collectedConstants["E"].isEmpty()
+        publicDependentToConstants["A"] == ['Constant1'] as Set
+        publicDependentToConstants["B"] == ['A'] as Set
+        publicDependentToConstants["C"] == ['B'] as Set
+        publicDependentToConstants["D"] == ['C'] as Set
+        publicDependentToConstants["E"] == null
+        privateDependentToConstants.isEmpty()
+    }
+
+    def "collect constants from accessible static fields as private dependents when static block is used"() {
+        given:
+        String clazz = """
+class A {
+    static final int STATIC_FINAL_FIELD;
+    static {
+        STATIC_FINAL_FIELD = Constant1.CONSTANT1;
+    }
+}
+"""
+        List<File> classes = toSourceFile(clazz) + getConstants("int", "1")
+
+        when:
+        compiler.compile(classes)
+
+        then:
+        privateDependentToConstants["A"] == ['Constant1'] as Set
+        publicDependentToConstants.isEmpty()
+    }
+
+    def "collect constants from accessible static fields as private dependents on method invocation"() {
+        given:
+        String clazz = """
+class A {
+    static final int STATIC_FINAL_FIELD = get(Constant1.CONSTANT1);
+    public static int get(int value) {
+        return value;
+    }
+}
+"""
+        List<File> classes = toSourceFile(clazz) + getConstants("int", "1")
+
+        when:
+        compiler.compile(classes)
+
+        then:
+        privateDependentToConstants["A"] == ['Constant1'] as Set
+        publicDependentToConstants.isEmpty()
     }
 
     def "collect constants from inner classes"() {
@@ -362,11 +452,12 @@ class OuterClass {
         compiler.compile(sourceFiles)
 
         then:
-        collectedConstants["OuterClass\$1"] == ['Constant1', 'OuterClass\$C', 'OuterClass\$D'] as Set
-        collectedConstants["OuterClass\$A"] == ['Constant2', 'OuterClass\$C', 'OuterClass\$D'] as Set
-        collectedConstants["OuterClass\$B"] == ['Constant3', 'OuterClass\$C', 'OuterClass\$D'] as Set
-        collectedConstants["OuterClass\$C"].isEmpty()
-        collectedConstants["OuterClass\$D"].isEmpty()
+        privateDependentToConstants["OuterClass\$1"] == ['Constant1', 'OuterClass\$C', 'OuterClass\$D'] as Set
+        privateDependentToConstants["OuterClass\$A"] == ['Constant2', 'OuterClass\$C', 'OuterClass\$D'] as Set
+        privateDependentToConstants["OuterClass\$B"] == ['Constant3', 'OuterClass\$C', 'OuterClass\$D'] as Set
+        privateDependentToConstants["OuterClass\$C"] == null
+        privateDependentToConstants["OuterClass\$D"] == null
+        publicDependentToConstants.isEmpty()
     }
 
     def "should not return self as a constant origin class"() {
@@ -384,7 +475,8 @@ class A {
         compiler.compile(toSourceFile(clazz) + getAnnotation("int"))
 
         then:
-        collectedConstants["A"].isEmpty()
+        privateDependentToConstants["A"] == null
+        publicDependentToConstants["A"] == null
     }
 
 
@@ -401,7 +493,8 @@ interface A {
         compiler.compile(toSourceFile(clazz) + getAnnotation("int") + getConstants("int", "1"))
 
         then:
-        collectedConstants["A"] == ['Constant1', 'Constant2'] as Set
+        privateDependentToConstants["A"] == ["Constant1"] as Set
+        publicDependentToConstants["A"] == ["Constant2"] as Set
     }
 
     def "should not collect non-primitive constants"() {
@@ -414,8 +507,30 @@ interface A {
         compiler.compile(toSourceFiles(classes))
 
         then:
-        collectedConstants["A"].isEmpty()
-        collectedConstants["B"].isEmpty()
+        privateDependentToConstants.isEmpty()
+        publicDependentToConstants.isEmpty()
+    }
+
+    def "inherited constants points to original class"() {
+        given:
+        String clazz = """
+class A {
+    static final String STATIC_FINAL_FIELD = "hello";
+}
+class B extends A {
+}
+class C {
+    static final String STATIC_FINAL_FIELD = B.STATIC_FINAL_FIELD;
+}
+"""
+        List<File> classes = toSourceFile(clazz)
+
+        when:
+        compiler.compile(classes)
+
+        then:
+        publicDependentToConstants["C"] == ['A'] as Set
+        privateDependentToConstants.isEmpty()
     }
 
     @Requires({ javaVersion >= 12 })
@@ -453,7 +568,8 @@ public class Constant {
         compiler.compile(classesSourceFiles + packageSourceFile)
 
         then:
-        collectedConstants["gradle.unit.test"] == ["gradle.unit.test.Constant"] as Set
+        privateDependentToConstants["gradle.unit.test"] == ["gradle.unit.test.Constant"] as Set
+        publicDependentToConstants.isEmpty()
     }
 
     List<File> toSourceFiles(List<String> bodies) {

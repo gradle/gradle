@@ -70,9 +70,8 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
         File classToFileMappingFile = compileOptions.getIncrementalCompilationMappingFile();
-        File constantsMappingFile = compileOptions.getIncrementalCompilationConstantsMappingFile();
-        if (classToFileMappingFile != null && constantsMappingFile != null && compiler instanceof IncrementalCompilationAwareJavaCompiler) {
-            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(task, classToFileMappingFile, constantsMappingFile, new CompilationSourceDirs(spec.getSourceRoots()));
+        if (classToFileMappingFile != null && compiler instanceof IncrementalCompilationAwareJavaCompiler) {
+            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(task, classToFileMappingFile, result.getConstantsAnalysisResult(), new CompilationSourceDirs(spec.getSourceRoots()));
         }
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());

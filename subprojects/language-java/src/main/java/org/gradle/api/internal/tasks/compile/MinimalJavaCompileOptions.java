@@ -51,6 +51,7 @@ public class MinimalJavaCompileOptions implements Serializable {
     private File incrementalCompilationMappingFile;
     private File previousCompilationDataFile;
     private File incrementalCompilationConstantsMapping;
+    private Multimap<String, String> previousCompilationMappings;
 
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
         FileCollection sourcepath = compileOptions.getSourcepath();
@@ -225,6 +226,15 @@ public class MinimalJavaCompileOptions implements Serializable {
 
     public void setIncrementalCompilationMappingFile(@Nullable File incrementalCompilationMappingFile) {
         this.incrementalCompilationMappingFile = incrementalCompilationMappingFile;
+    }
+
+    public void setPreviousIncrementalCompilationMapping(@Nullable Multimap<String, String> previousCompilationMappings) {
+        this.previousCompilationMappings = previousCompilationMappings;
+    }
+
+    @Nullable
+    public Multimap<String, String> getPreviousIncrementalCompilationMapping() {
+        return previousCompilationMappings;
     }
 
     @Nullable

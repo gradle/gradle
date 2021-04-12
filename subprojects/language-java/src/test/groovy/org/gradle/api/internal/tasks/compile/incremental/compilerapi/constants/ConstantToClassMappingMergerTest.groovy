@@ -25,74 +25,89 @@ class ConstantToClassMappingMergerTest extends Specification {
 
     def "maps new class-to-constant mapping to expected constant-to-class mapping if previous was null"() {
         given:
-        Map<String, Collection<String>> newMapping = [
-            "a": ["d", "e", "f"],
-            "b": ["e", "f"],
-            "c": []
-        ]
+        ConstantToClassMapping newMapping = ConstantToClassMapping.builder()
+            .addPublicDependent("a".hashCode(), "1")
+            .addPublicDependent("a".hashCode(), "2")
+            .addPublicDependent("b".hashCode(), "3")
+            .addPrivateDependent("c".hashCode(), "4")
+            .build()
 
         when:
         ConstantToClassMapping mapping = merger.merge(newMapping, null, [] as Set)
 
         then:
-        mapping.constantDependentsForClassHash("d".hashCode()) == ["a"] as Set
-        mapping.constantDependentsForClassHash("e".hashCode()) == ["a", "b"] as Set
-        mapping.constantDependentsForClassHash("f".hashCode()) == ["a", "b"] as Set
-        mapping.getClassNames().size() == 2
-        mapping.getClassNames().containsAll(["a", "b"])
-        mapping.getConstantToClassIndexes().keySet() == ["d".hashCode(), "e".hashCode(), "f".hashCode()] as Set
+        mapping.findPublicConstantDependentsForClassHash("a".hashCode()) == ["1", "2"] as Set
+        mapping.findPublicConstantDependentsForClassHash("b".hashCode()) == ["3"] as Set
+        mapping.findPublicConstantDependentsForClassHash("c".hashCode()) == [] as Set
+
+        mapping.findPrivateConstantDependentsForClassHash("a".hashCode()) == [] as Set
+        mapping.findPrivateConstantDependentsForClassHash("b".hashCode()) == [] as Set
+        mapping.findPrivateConstantDependentsForClassHash("c".hashCode()) == ["4"] as Set
+
+        mapping.getClassNames().size() == 4
+        mapping.getClassNames().containsAll(["1", "2", "3", "4"])
+        mapping.getPublicConstantDependents().keySet() == ["a".hashCode(), "b".hashCode()] as Set
+        mapping.getPrivateConstantDependents().keySet() == ["c".hashCode()] as Set
     }
 
-    def "merges new class-to-constant to constant-to-class mapping with previous"() {
+    def "merges new mappings with old mappings"() {
         given:
-        ConstantToClassMapping oldMapping = ConstantToClassMapping.of(["a", "b", "c"], [
-            ("d".hashCode()): IntSet.of(0), // d: a
-            ("e".hashCode()): IntSet.of(1), // e: b
-            ("f".hashCode()): IntSet.of(2)  // f: c
-        ] as Map)
-        Map<String, Collection<String>> newMapping = [
-            "a": ["d", "e", "f"],
-            "b": ["e", "f"],
-            "c": ["g"]
-        ]
+        ConstantToClassMapping oldMapping = ConstantToClassMapping.builder()
+            .addPublicDependent("a".hashCode(), "1")
+            .addPublicDependent("b".hashCode(), "2")
+            .build()
+        ConstantToClassMapping newMapping = ConstantToClassMapping.builder()
+            .addPublicDependent("a".hashCode(), "1")
+            .addPublicDependent("a".hashCode(), "2")
+            .addPrivateDependent("b".hashCode(), "3")
+            .addPublicDependent("c".hashCode(), "4")
+            .build()
 
         when:
         ConstantToClassMapping mapping = merger.merge(newMapping, oldMapping, [] as Set)
 
         then:
-        mapping.constantDependentsForClassHash("d".hashCode()) == ["a"] as Set
-        mapping.constantDependentsForClassHash("e".hashCode()) == ["a", "b"] as Set
-        mapping.constantDependentsForClassHash("f".hashCode()) == ["a", "b"] as Set
-        mapping.constantDependentsForClassHash("g".hashCode()) == ["c"] as Set
-        mapping.getClassNames().size() == 3
-        mapping.getClassNames().containsAll(["a", "b", "c"])
-        mapping.getConstantToClassIndexes().keySet() == ["d".hashCode(), "e".hashCode(), "f".hashCode(), "g".hashCode()] as Set
+        mapping.findPublicConstantDependentsForClassHash("a".hashCode()) == ["1", "2"] as Set
+        mapping.findPublicConstantDependentsForClassHash("b".hashCode()) == [] as Set
+        mapping.findPublicConstantDependentsForClassHash("c".hashCode()) == ["4"] as Set
+
+        mapping.findPrivateConstantDependentsForClassHash("a".hashCode()) == [] as Set
+        mapping.findPrivateConstantDependentsForClassHash("b".hashCode()) == ["3"] as Set
+        mapping.findPrivateConstantDependentsForClassHash("c".hashCode()) == [] as Set
+
+        mapping.getClassNames().size() == 4
+        mapping.getClassNames().containsAll(["1", "2", "3", "4"])
     }
 
-    def "removes all removed classes from constant-to-class mapping on merge"() {
+    def "removes all removed classes from mapping on merge"() {
         given:
-        ConstantToClassMapping oldMapping = ConstantToClassMapping.of(["a", "b", "c"], [
-            ("d".hashCode()): IntSet.of(0), // d: a
-            ("e".hashCode()): IntSet.of(1), // e: b
-            ("f".hashCode()): IntSet.of(2)  // f: c
-        ] as Map)
-        Map<String, Collection<String>> newMapping = [
-            "a": ["d", "e", "f"],
-            "b": ["e", "f"],
-            "c": ["f"]
-        ]
+        ConstantToClassMapping oldMapping = ConstantToClassMapping.builder()
+            .addPublicDependent("a".hashCode(), "1")
+            .addPublicDependent("b".hashCode(), "2")
+            .build()
+        ConstantToClassMapping newMapping = ConstantToClassMapping.builder()
+            .addPublicDependent("a".hashCode(), "1")
+            .addPublicDependent("a".hashCode(), "2")
+            .addPrivateDependent("b".hashCode(), "3")
+            .addPublicDependent("c".hashCode(), "4")
+            .build()
+
         Set<String> removedClasses = ["a", "c"] as Set
 
         when:
         ConstantToClassMapping mapping = merger.merge(newMapping, oldMapping, removedClasses)
 
         then:
-        mapping.constantDependentsForClassHash("d".hashCode()).isEmpty()
-        mapping.constantDependentsForClassHash("e".hashCode()) == ["b"] as Set
-        mapping.constantDependentsForClassHash("f".hashCode()) == ["b"] as Set
+        mapping.findPublicConstantDependentsForClassHash("a".hashCode()).isEmpty()
+        mapping.findPublicConstantDependentsForClassHash("b".hashCode()).isEmpty()
+        mapping.findPublicConstantDependentsForClassHash("c".hashCode()).isEmpty()
+
+        mapping.findPrivateConstantDependentsForClassHash("a".hashCode()).isEmpty()
+        mapping.findPrivateConstantDependentsForClassHash("b".hashCode()) == ["3"] as Set
+        mapping.findPrivateConstantDependentsForClassHash("c".hashCode()).isEmpty()
+
         mapping.getClassNames().size() == 1
-        mapping.getClassNames().containsAll(["b"])
-        mapping.getConstantToClassIndexes().keySet() == ["e".hashCode(), "f".hashCode()] as Set
+        mapping.getClassNames().containsAll(["3"])
     }
 
     def "removes all classes with empty constant dependencies from constant-to-class mapping on merge"() {
@@ -101,7 +116,7 @@ class ConstantToClassMappingMergerTest extends Specification {
             ("d".hashCode()): IntSet.of(0), // d: a
             ("e".hashCode()): IntSet.of(1), // e: b
             ("f".hashCode()): IntSet.of(2)  // f: c
-        ] as Map)
+        ] as Map, [:])
         Map<String, Collection<String>> newMapping = [
             "a": [],
             "b": ["e", "f"],
@@ -112,9 +127,9 @@ class ConstantToClassMappingMergerTest extends Specification {
         ConstantToClassMapping mapping = merger.merge(newMapping, oldMapping, [] as Set)
 
         then:
-        mapping.constantDependentsForClassHash("d".hashCode()) == [] as Set
-        mapping.constantDependentsForClassHash("e".hashCode()) == ["b"] as Set
-        mapping.constantDependentsForClassHash("f".hashCode()) == ["b", "c"] as Set
+        mapping.findPublicConstantDependentsForClassHash("d".hashCode()) == [] as Set
+        mapping.findPublicConstantDependentsForClassHash("e".hashCode()) == ["b"] as Set
+        mapping.findPublicConstantDependentsForClassHash("f".hashCode()) == ["b", "c"] as Set
         mapping.getClassNames().size() == 2
         mapping.getClassNames().containsAll(["b", "c"])
         mapping.getConstantToClassIndexes().keySet() == ["e".hashCode(), "f".hashCode()] as Set
@@ -126,7 +141,7 @@ class ConstantToClassMappingMergerTest extends Specification {
             ("d".hashCode()): IntSet.of(0), // d: a
             ("e".hashCode()): IntSet.of(1), // e: b
             ("f".hashCode()): IntSet.of(2)  // f: c
-        ] as Map)
+        ] as Map, [:])
         Map<String, Collection<String>> newMapping = [
             "b": ["e", "f"]
         ]
@@ -135,9 +150,9 @@ class ConstantToClassMappingMergerTest extends Specification {
         ConstantToClassMapping mapping = merger.merge(newMapping, oldMapping, [] as Set)
 
         then:
-        mapping.constantDependentsForClassHash("d".hashCode()) == ["a"] as Set
-        mapping.constantDependentsForClassHash("e".hashCode()) == ["b"] as Set
-        mapping.constantDependentsForClassHash("f".hashCode()) == ["b", "c"] as Set
+        mapping.findPublicConstantDependentsForClassHash("d".hashCode()) == ["a"] as Set
+        mapping.findPublicConstantDependentsForClassHash("e".hashCode()) == ["b"] as Set
+        mapping.findPublicConstantDependentsForClassHash("f".hashCode()) == ["b", "c"] as Set
         mapping.getClassNames().size() == 3
         mapping.getClassNames().containsAll(["a", "b", "c"])
         mapping.getConstantToClassIndexes().keySet() == ["d".hashCode(), "e".hashCode(), "f".hashCode()] as Set

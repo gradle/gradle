@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
@@ -30,11 +31,9 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.DefaultSourceFileClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceFileClassNameConverter;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -56,19 +55,13 @@ import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.cons
 class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Compiler<T> {
 
     private final Compiler<T> delegate;
-    private final SourceFileClassNameConverter sourceFileClassNameConverter;
     private final CurrentCompilationAccess classpathSnapshotter;
     private final PreviousCompilationAccess previousCompilationAccess;
     private final InputChanges inputChanges;
     private final FileCollection stableSources;
-    private final PreviousCompilationData previousCompilationData;
 
-    IncrementalResultStoringCompiler(Compiler<T> delegate, SourceFileClassNameConverter sourceFileClassNameConverter, PreviousCompilationData previousCompilationData,
-                                     CurrentCompilationAccess classpathSnapshotter,
-                                     PreviousCompilationAccess previousCompilationAccess, InputChanges inputChanges, FileCollection stableSources) {
+    IncrementalResultStoringCompiler(Compiler<T> delegate, CurrentCompilationAccess classpathSnapshotter, PreviousCompilationAccess previousCompilationAccess, InputChanges inputChanges, FileCollection stableSources) {
         this.delegate = delegate;
-        this.sourceFileClassNameConverter = sourceFileClassNameConverter;
-        this.previousCompilationData = previousCompilationData;
         this.classpathSnapshotter = classpathSnapshotter;
         this.previousCompilationAccess = previousCompilationAccess;
         this.inputChanges = inputChanges;
@@ -122,28 +115,31 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
         );
     }
 
-    private CompilerApiData getCompilerApiData(JavaCompileSpec spec, WorkResult workResult) {
+    private CompilerApiData getCompilerApiData(JavaCompileSpec spec, WorkResult result) {
         if (spec.getCompileOptions().supportsCompilerApi()) {
-            Set<String> removedClasses = mergeClassFileMappingAndReturnRemovedClasses(spec, workResult);
+            Set<String> removedClasses = mergeClassFileMappingAndReturnRemovedClasses(spec);
             ConstantToClassMapping previousConstantToClassMapping = null;
-            if (previousCompilationData != null) {
-                previousConstantToClassMapping = previousCompilationData.getCompilerApiData().getConstantToClassMapping();
+            if (result instanceof IncrementalCompilationResult) {
+                previousConstantToClassMapping = ((IncrementalCompilationResult) result).getPreviousCompilationData().getCompilerApiData().getConstantToClassMapping();
+                result = ((IncrementalCompilationResult) result).getCompilerResult();
             }
-            File compilationClassToConstantsFile = Objects.requireNonNull(spec.getCompileOptions().getIncrementalCompilationConstantsMappingFile());
-            Map<String, Collection<String>> newMapping = readConstantsClassesMappingFile(compilationClassToConstantsFile);
-            ConstantToClassMapping newConstantsMapping = new ConstantToClassMappingMerger().merge(newMapping, previousConstantToClassMapping, removedClasses);
-            return new CompilerApiData(newConstantsMapping);
+            if (result instanceof JdkJavaCompilerResult) {
+                ConstantToClassMapping constantToDependentsMapping = ((JdkJavaCompilerResult) result).getConstantsAnalysisResult().getConstantsToClassMapping();
+                ConstantToClassMapping newConstantsMapping = new ConstantToClassMappingMerger().merge(constantToDependentsMapping, previousConstantToClassMapping, removedClasses);
+                return CompilerApiData.availableOf(newConstantsMapping);
+            }
         }
-        return new CompilerApiData();
+        return CompilerApiData.unavailableOf();
     }
 
-    private Set<String> mergeClassFileMappingAndReturnRemovedClasses(JavaCompileSpec spec, WorkResult workResult) {
-        File classToFileMappingFile = spec.getCompileOptions().getIncrementalCompilationMappingFile();
+    private Set<String> mergeClassFileMappingAndReturnRemovedClasses(JavaCompileSpec spec) {
+        File classToFileMappingFile = Objects.requireNonNull(spec.getCompileOptions().getIncrementalCompilationMappingFile());
+        Multimap<String, String> previousMappings = spec.getCompileOptions().getPreviousIncrementalCompilationMapping();
 
-        if (classToFileMappingFile != null && workResult instanceof IncrementalCompilationResult) {
+        if (previousMappings != null) {
             // The compilation will generate the new mapping file
             // Only merge old mappings into new mapping on incremental recompilation
-            return mergeIncrementalMappingsIntoOldMappings(classToFileMappingFile, stableSources, inputChanges, ((DefaultSourceFileClassNameConverter) sourceFileClassNameConverter).getSourceClassesMapping());
+            return mergeIncrementalMappingsIntoOldMappings(classToFileMappingFile, stableSources, inputChanges, previousMappings);
         }
 
         // Compilation was not incremental

@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.workers.internal.DefaultWorkResult;
 
 public class JdkJavaCompilerResult extends DefaultWorkResult {
 
     private final AnnotationProcessingResult annotationProcessingResult = new AnnotationProcessingResult();
+    private final ConstantsAnalysisResult constantsAnalysisResult = new ConstantsAnalysisResult();
 
     JdkJavaCompilerResult() {
         super(true, null);
@@ -30,4 +32,9 @@ public class JdkJavaCompilerResult extends DefaultWorkResult {
     public AnnotationProcessingResult getAnnotationProcessingResult() {
         return annotationProcessingResult;
     }
+
+    public ConstantsAnalysisResult getConstantsAnalysisResult() {
+        return constantsAnalysisResult;
+    }
+
 }

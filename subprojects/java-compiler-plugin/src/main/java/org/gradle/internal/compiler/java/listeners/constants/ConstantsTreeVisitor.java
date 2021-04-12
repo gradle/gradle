@@ -16,86 +16,106 @@
 
 package org.gradle.internal.compiler.java.listeners.constants;
 
+import com.sun.source.tree.AssignmentTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.PackageTree;
+import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
-import com.sun.tools.javac.code.Symbol;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.Set;
 
-public class ConstantsTreeVisitor extends TreePathScanner<Collection<String>, Collection<String>> {
+import static com.sun.source.tree.Tree.Kind.METHOD_INVOCATION;
+
+public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContext, ConstantsVisitorContext> {
 
     private final Elements elements;
     private final Trees trees;
-    private final Map<String, Collection<String>> mapping;
+    private final ConstantDependentsConsumer consumer;
 
-    public ConstantsTreeVisitor(Elements elements, Trees trees, Map<String, Collection<String>> mapping) {
+    public ConstantsTreeVisitor(Elements elements, Trees trees, ConstantDependentsConsumer consumer) {
         this.elements = elements;
         this.trees = trees;
-        this.mapping = mapping;
+        this.consumer = consumer;
     }
 
     @Override
-    public Collection<String> visitCompilationUnit(CompilationUnitTree node, Collection<String> strings) {
-        return super.visitCompilationUnit(node, strings);
+    public ConstantsVisitorContext visitCompilationUnit(CompilationUnitTree node, ConstantsVisitorContext constantConsumer) {
+        return super.visitCompilationUnit(node, constantConsumer);
+    }
+
+    @Override
+    public ConstantsVisitorContext visitAssignment(AssignmentTree node, ConstantsVisitorContext constantConsumer) {
+        return super.visitAssignment(node, constantConsumer);
     }
 
     @Override
     @SuppressWarnings("Since15")
-    public Collection<String> visitPackage(PackageTree node, Collection<String> collectedClasses) {
+    public ConstantsVisitorContext visitPackage(PackageTree node, ConstantsVisitorContext constantConsumer) {
         Element element = trees.getElement(getCurrentPath());
 
         // Collect classes for visited class
-        String visitedClass = ((Symbol.TypeSymbol) element).getQualifiedName().toString();
-        super.visitPackage(node, mapping.computeIfAbsent(visitedClass, k -> new HashSet<>()));
-        // Remove self
-        mapping.get(visitedClass).remove(visitedClass);
+        String visitedClass = ((PackageElement) element).getQualifiedName().toString();
+        super.visitPackage(node, new ConstantsVisitorContext(visitedClass, consumer::consumePrivateDependent));
 
         // Return back previous collected classes
-        return collectedClasses;
+        return constantConsumer;
     }
 
     @Override
-    public Collection<String> visitClass(ClassTree node, Collection<String> collectedClasses) {
+    public ConstantsVisitorContext visitClass(ClassTree node, ConstantsVisitorContext constantConsumer) {
         Element element = trees.getElement(getCurrentPath());
 
         // Collect classes for visited class
         String visitedClass = getBinaryClassName((TypeElement) element);
-        super.visitClass(node, mapping.computeIfAbsent(visitedClass, k -> new HashSet<>()));
-        // Remove self
-        mapping.get(visitedClass).remove(visitedClass);
+        super.visitClass(node, new ConstantsVisitorContext(visitedClass, consumer::consumePrivateDependent));
 
         // Return back previous collected classes
-        return collectedClasses;
+        return constantConsumer;
     }
 
     @Override
-    public Collection<String> visitMemberSelect(MemberSelectTree node, Collection<String> collectedClasses) {
-        Element element = trees.getElement(getCurrentPath());
-        if (isPrimitiveConstantVariable(element)) {
-            collectedClasses.add(getBinaryClassName((TypeElement) element.getEnclosingElement()));
+    public ConstantsVisitorContext visitVariable(VariableTree node, ConstantsVisitorContext constantConsumer) {
+        if (isAccessibleConstantVariableDeclaration(node) && node.getInitializer() != null && node.getInitializer().getKind() != METHOD_INVOCATION) {
+            // We now just check, that constant declaration is not `static {}` or `CONSTANT = methodInvocation()`,
+            // but it could be further optimized to check if expression is one that can be inlined or not.
+            return super.visitVariable(node, new ConstantsVisitorContext(constantConsumer.getVisitedClass(), consumer::consumePublicDependent));
+        } else {
+            return super.visitVariable(node, constantConsumer);
         }
-        return super.visitMemberSelect(node, collectedClasses);
+    }
+
+    private boolean isAccessibleConstantVariableDeclaration(VariableTree node) {
+        Set<Modifier> modifiers = node.getModifiers().getFlags();
+        return modifiers.contains(Modifier.FINAL) && modifiers.contains(Modifier.STATIC) && !modifiers.contains(Modifier.PRIVATE);
     }
 
     @Override
-    public Collection<String> visitIdentifier(IdentifierTree node, Collection<String> collectedClasses) {
+    public ConstantsVisitorContext visitMemberSelect(MemberSelectTree node, ConstantsVisitorContext context) {
+        Element element = trees.getElement(getCurrentPath());
+        if (isPrimitiveConstantVariable(element)) {
+            context.addConstantOrigin(getBinaryClassName((TypeElement) element.getEnclosingElement()));
+        }
+        return super.visitMemberSelect(node, context);
+    }
+
+    @Override
+    public ConstantsVisitorContext visitIdentifier(IdentifierTree node, ConstantsVisitorContext context) {
         Element element = trees.getElement(getCurrentPath());
 
         if (isPrimitiveConstantVariable(element)) {
-            collectedClasses.add(getBinaryClassName((TypeElement) element.getEnclosingElement()));
+            context.addConstantOrigin(getBinaryClassName((TypeElement) element.getEnclosingElement()));
         }
-        return super.visitIdentifier(node, collectedClasses);
+        return super.visitIdentifier(node, context);
     }
 
     private String getBinaryClassName(TypeElement typeElement) {

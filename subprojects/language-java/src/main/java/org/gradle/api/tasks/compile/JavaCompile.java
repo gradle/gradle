@@ -22,7 +22,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -39,8 +38,6 @@ import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFact
 import org.gradle.api.internal.tasks.compile.incremental.recomp.DefaultSourceFileClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.FileNameDerivingClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceFileClassNameConverter;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
@@ -82,7 +79,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -180,29 +176,23 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
             File constantsMappingFile = getConstantsMappingFile();
             spec.getCompileOptions().setIncrementalCompilationConstantsMappingFile(constantsMappingFile);
         } else {
+            oldMappings = null;
             sourceFileClassNameConverter = new FileNameDerivingClassNameConverter();
         }
         sourceClassesMappingFile.delete();
         spec.getCompileOptions().setIncrementalCompilationMappingFile(sourceClassesMappingFile);
+        spec.getCompileOptions().setPreviousIncrementalCompilationMapping(oldMappings);
         spec.getCompileOptions().setPreviousCompilationDataFile(previousCompilationDataFile);
-        File previousCompilationDataFile = Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
-        PreviousCompilationAccess previousCompilationAccess = new PreviousCompilationAccess(new StringInterner());
-        // TODO Change how this is handled, now PreviousCompilationData is read twice, once here and second time SelectiveCompiler
-        PreviousCompilationData previousCompilationData = previousCompilationDataFile.exists()
-            ? previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile)
-            : null;
 
         Compiler<JavaCompileSpec> compiler = createCompiler();
-        compiler = makeIncremental(inputs, sourceFileClassNameConverter, previousCompilationData, (CleaningJavaCompiler<JavaCompileSpec>) compiler, getStableSources());
+        compiler = makeIncremental(inputs, sourceFileClassNameConverter, (CleaningJavaCompiler<JavaCompileSpec>) compiler, getStableSources());
         performCompilation(spec, compiler);
     }
 
-    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, SourceFileClassNameConverter sourceFileClassNameConverter, PreviousCompilationData previousCompilationData, CleaningJavaCompiler<JavaCompileSpec> compiler, FileCollection stableSources) {
+    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, SourceFileClassNameConverter sourceFileClassNameConverter, CleaningJavaCompiler<JavaCompileSpec> compiler, FileCollection stableSources) {
         FileTree sources = stableSources.getAsFileTree();
         return getIncrementalCompilerFactory().makeIncremental(
             compiler,
-            sourceFileClassNameConverter,
-            previousCompilationData,
             sources,
             stableSources,
             inputs,
@@ -323,7 +313,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         }
         return previousCompilationDataFile;
     }
-    
+
     private WorkResult performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
         WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationExecutor.class)).execute(spec);
         setDidWork(result.getDidWork());

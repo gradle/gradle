@@ -183,6 +183,23 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.recompiledClasses('X', 'Y', 'Z')
     }
 
+    def "changing upstream constant does not cause recompilation if not public dependent of constant for literal"() {
+        source api: ["class A { final static int x = 1; }"],
+            impl: ["class X { final static int x = A.x; }",
+                   "class Y { final static int x = 1; int method() { return X.x; } }",
+                   // Z is not recompiled, since Y has constant of X in method body
+                   "class Z { final static int x = Y.x;  }",
+                   "class W {  }"]
+        impl.snapshot { run language.compileTaskName }
+
+        when:
+        source api: ["class A { final static int x = 2; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        run "impl:${language.compileTaskName}"
+
+        then:
+        impl.recompiledClasses('X', 'Y')
+    }
+
     def "changing upstream constant causes compilation for downstream constants for binary expression"() {
         source api: ["class A { final static int x = 1; }", "class B { final static int x = A.x + 1; }"],
             impl: ["class X { final static int x = B.x + 1; }",

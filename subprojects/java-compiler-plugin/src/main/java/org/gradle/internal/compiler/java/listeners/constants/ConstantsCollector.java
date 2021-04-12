@@ -22,20 +22,23 @@ import com.sun.source.util.TaskEvent.Kind;
 import com.sun.source.util.TaskListener;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
+import org.gradle.internal.compiler.java.CompilerConstantDependentsConsumer;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class ConstantsCollector implements TaskListener {
 
     private final JavacTask task;
     private final Map<String, Collection<String>> mapping;
+    private final ConstantDependentsConsumer constantDependentsConsumer;
 
-    public ConstantsCollector(JavacTask task) {
+    public ConstantsCollector(JavacTask task, ConstantDependentsConsumer constantDependentsConsumer) {
         this.task = task;
         this.mapping = new HashMap<>();
+        this.constantDependentsConsumer = constantDependentsConsumer;
     }
 
     public Map<String, Collection<String>> getMapping() {
@@ -51,9 +54,9 @@ public class ConstantsCollector implements TaskListener {
     public void finished(TaskEvent e) {
         if (e.getKind() == Kind.ANALYZE) {
             Trees trees = Trees.instance(task);
-            ConstantsTreeVisitor visitor = new ConstantsTreeVisitor(task.getElements(), trees, mapping);
+            ConstantsTreeVisitor visitor = new ConstantsTreeVisitor(task.getElements(), trees, constantDependentsConsumer);
             TreePath path = trees.getPath(e.getCompilationUnit(), e.getCompilationUnit());
-            visitor.scan(path, new HashSet<>());
+            visitor.scan(path, null);
         }
     }
 

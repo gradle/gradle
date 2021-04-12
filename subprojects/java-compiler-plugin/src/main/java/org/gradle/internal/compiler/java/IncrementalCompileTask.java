@@ -17,6 +17,7 @@ package org.gradle.internal.compiler.java;
 
 import com.sun.source.util.JavacTask;
 import org.gradle.internal.compiler.java.listeners.classnames.ClassNameCollector;
+import org.gradle.internal.compiler.java.listeners.constants.ConstantDependentsConsumer;
 import org.gradle.internal.compiler.java.listeners.constants.ConstantsCollector;
 
 import javax.annotation.processing.Processor;
@@ -26,6 +27,7 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -44,16 +46,17 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
     private final Function<File, Optional<String>> relativize;
     private final Consumer<Map<String, Collection<String>>> classNameConsumer;
-    private final Consumer<Map<String, Collection<String>>> constantsConsumer;
+    private final ConstantDependentsConsumer constantDependentsConsumer;
     private final JavacTask delegate;
 
     public IncrementalCompileTask(JavaCompiler.CompilationTask delegate,
                                   Function<File, Optional<String>> relativize,
                                   Consumer<Map<String, Collection<String>>> classNamesConsumer,
-                                  Consumer<Map<String, Collection<String>>> constantsConsumer) {
+                                  BiConsumer<String, String> publicDependentDelegate,
+                                  BiConsumer<String, String> privateDependentDelegate) {
         this.relativize = relativize;
         this.classNameConsumer = classNamesConsumer;
-        this.constantsConsumer = constantsConsumer;
+        this.constantDependentsConsumer = new ConstantDependentsConsumer(publicDependentDelegate, privateDependentDelegate);
         if (delegate instanceof JavacTask) {
             this.delegate = (JavacTask) delegate;
         } else {
@@ -79,14 +82,13 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
     @Override
     public Boolean call() {
         ClassNameCollector classNameCollector = new ClassNameCollector(relativize, delegate.getElements());
-        ConstantsCollector constantsCollector = new ConstantsCollector(delegate);
+        ConstantsCollector constantsCollector = new ConstantsCollector(delegate, constantDependentsConsumer);
         delegate.addTaskListener(classNameCollector);
         delegate.addTaskListener(constantsCollector);
         try {
             return delegate.call();
         } finally {
             classNameConsumer.accept(classNameCollector.getMapping());
-            constantsConsumer.accept(constantsCollector.getMapping());
         }
     }
 

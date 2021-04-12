@@ -24,15 +24,10 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClassSetAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceFileClassNameConverter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.work.InputChanges;
-
-import java.io.File;
-import java.util.Objects;
 
 public class IncrementalCompilerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
@@ -45,13 +40,13 @@ public class IncrementalCompilerFactory {
         this.classSetAnalyzer = classSetAnalyzer;
     }
 
-    public <T extends JavaCompileSpec> Compiler<T> makeIncremental(CleaningJavaCompiler<T> cleaningJavaCompiler, SourceFileClassNameConverter sourceFileClassNameConverter, PreviousCompilationData previousCompilationData,
-                                                                   FileTree sources, FileCollection stableSources, InputChanges inputChanges, RecompilationSpecProvider recompilationSpecProvider) {
+    public <T extends JavaCompileSpec> Compiler<T> makeIncremental(CleaningJavaCompiler<T> cleaningJavaCompiler, FileTree sources, FileCollection stableSources,
+                                                                   InputChanges inputChanges, RecompilationSpecProvider recompilationSpecProvider) {
         Compiler<T> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
         CurrentCompilationAccess currentCompilationAccess = new CurrentCompilationAccess(classSetAnalyzer, buildOperationExecutor);
         PreviousCompilationAccess previousCompilationAccess = new PreviousCompilationAccess(interner);
         Compiler<T> compiler = new SelectiveCompiler<>(cleaningJavaCompiler, rebuildAllCompiler, recompilationSpecProvider, currentCompilationAccess, previousCompilationAccess);
-        return new IncrementalResultStoringCompiler<>(compiler, sourceFileClassNameConverter, previousCompilationData, currentCompilationAccess, previousCompilationAccess, inputChanges, stableSources);
+        return new IncrementalResultStoringCompiler<>(compiler, currentCompilationAccess, previousCompilationAccess, inputChanges, stableSources);
     }
 
     private <T extends JavaCompileSpec> Compiler<T> createRebuildAllCompiler(CleaningJavaCompiler<T> cleaningJavaCompiler, FileTree sourceFiles) {

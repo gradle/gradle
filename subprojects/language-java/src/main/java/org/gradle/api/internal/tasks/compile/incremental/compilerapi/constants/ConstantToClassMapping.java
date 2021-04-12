@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.cache.StringInterner;
@@ -28,6 +32,7 @@ import org.gradle.internal.serialize.IntSetSerializer;
 import org.gradle.internal.serialize.InterningStringSerializer;
 import org.gradle.internal.serialize.ListSerializer;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -44,25 +49,44 @@ import java.util.Set;
 public class ConstantToClassMapping {
 
     private final List<String> classNames;
-    private final Map<Integer, IntSet> constantToClassIndexes;
+    private final Map<Integer, IntSet> privateConstantDependents;
+    private final Map<Integer, IntSet> publicConstantDependents;
 
     private ConstantToClassMapping(List<String> classNames,
-                                  Map<Integer, IntSet> constantToClassIndexes) {
+                                   Map<Integer, IntSet> privateConstantDependents,
+                                   Map<Integer, IntSet> publicConstantDependents) {
         this.classNames = classNames;
-        this.constantToClassIndexes = constantToClassIndexes;
+        this.privateConstantDependents = privateConstantDependents;
+        this.publicConstantDependents = publicConstantDependents;
     }
 
     public List<String> getClassNames() {
         return classNames;
     }
 
-    public Map<Integer, IntSet> getConstantToClassIndexes() {
-        return constantToClassIndexes;
+    public Map<Integer, IntSet> getPublicConstantDependents() {
+        return publicConstantDependents;
     }
 
-    public Set<String> constantDependentsForClassHash(int constantOriginHash) {
-        if (constantToClassIndexes.containsKey(constantOriginHash)) {
-            IntSet classIndexes = constantToClassIndexes.get(constantOriginHash);
+    public Map<Integer, IntSet> getPrivateConstantDependents() {
+        return privateConstantDependents;
+    }
+
+    public Set<String> findPrivateConstantDependentsForClassHash(int constantOriginHash) {
+        return findDependentsForClassHash(privateConstantDependents, constantOriginHash);
+    }
+
+    public Set<String> findPublicConstantDependentsForClassHash(int constantOriginHash) {
+        return findDependentsForClassHash(publicConstantDependents, constantOriginHash);
+    }
+
+    public boolean containsAny(int constantOriginHash) {
+        return publicConstantDependents.containsKey(constantOriginHash) || privateConstantDependents.containsKey(constantOriginHash);
+    }
+
+    private Set<String> findDependentsForClassHash(Map<Integer, IntSet> collection, int constantOriginHash) {
+        if (collection.containsKey(constantOriginHash)) {
+            IntSet classIndexes = collection.get(constantOriginHash);
             Set<String> dependents = new ObjectOpenHashSet<>(classIndexes.size());
             classIndexes.forEach(index -> dependents.add(classNames.get(index)));
             return dependents;
@@ -71,11 +95,61 @@ public class ConstantToClassMapping {
     }
 
     public static ConstantToClassMapping empty() {
-        return new ConstantToClassMapping(Collections.emptyList(), Collections.emptyMap());
+        return new ConstantToClassMapping(Collections.emptyList(), Collections.emptyMap(), Collections.emptyMap());
     }
 
-    static ConstantToClassMapping of(List<String> classNames, Map<Integer, IntSet> constantToClassIndexes) {
-        return new ConstantToClassMapping(classNames, constantToClassIndexes);
+    public static ConstantToClassMappingBuilder builder() {
+        return new ConstantToClassMappingBuilder();
+    }
+
+    public static final class ConstantToClassMappingBuilder {
+        private final List<String> classNames;
+        private final Map<Integer, IntSet> privateDependentsIndexes;
+        private final Map<Integer, IntSet> publicDependentsIndexes;
+        private final Map<String, Integer> classNameToIndex;
+
+        ConstantToClassMappingBuilder() {
+            this.classNames = new ArrayList<>();
+            this.classNameToIndex = new Object2IntOpenHashMap<>();
+            this.privateDependentsIndexes = new Object2ObjectOpenHashMap<>();
+            this.publicDependentsIndexes = new Object2ObjectOpenHashMap<>();
+        }
+
+        public ConstantToClassMappingBuilder addPrivateDependent(int constantOriginHash, String dependent) {
+            IntSet publicDependents = publicDependentsIndexes.getOrDefault(constantOriginHash, IntSets.EMPTY_SET);
+            IntSet privateDependents = privateDependentsIndexes.computeIfAbsent(constantOriginHash, k -> new IntOpenHashSet());
+            int dependentIndex = classNameToIndex.getOrDefault(dependent, -1);
+            if (dependentIndex < 0 || !publicDependents.contains(dependentIndex)) {
+                addDependent(privateDependents, dependent);
+            }
+            return this;
+        }
+
+        public ConstantToClassMappingBuilder addPublicDependent(int constantOriginHash, String dependent) {
+            IntSet publicDependents = publicDependentsIndexes.computeIfAbsent(constantOriginHash, k -> new IntOpenHashSet());
+            IntSet privateDependents = privateDependentsIndexes.getOrDefault(constantOriginHash, IntSets.EMPTY_SET);
+            int dependentIndex = addDependent(publicDependents, dependent);
+            if (!privateDependents.isEmpty()) {
+                privateDependents.remove(dependentIndex);
+            }
+            return this;
+        }
+
+        private int addDependent(IntSet dependents, String dependent) {
+            int dependentIndex = classNameToIndex.computeIfAbsent(dependent, k -> {
+                classNames.add(dependent);
+                return classNames.size() - 1;
+            });
+            dependents.add(dependentIndex);
+            return dependentIndex;
+        }
+
+        public ConstantToClassMapping build() {
+            privateDependentsIndexes.values().removeIf(Set::isEmpty);
+            publicDependentsIndexes.values().removeIf(Set::isEmpty);
+            return new ConstantToClassMapping(this.classNames, this.privateDependentsIndexes, publicDependentsIndexes);
+        }
+
     }
 
     public static final class Serializer extends AbstractSerializer<ConstantToClassMapping> {
@@ -92,14 +166,16 @@ public class ConstantToClassMapping {
         @Override
         public ConstantToClassMapping read(Decoder decoder) throws Exception {
             List<String> classNames = classNamesSerializer.read(decoder);
-            Map<Integer, IntSet> constantToClassIndexes = mapSerializer.read(decoder);
-            return new ConstantToClassMapping(classNames, constantToClassIndexes);
+            Map<Integer, IntSet> privateDependentsIndexes = mapSerializer.read(decoder);
+            Map<Integer, IntSet> publicDependentsIndexes = mapSerializer.read(decoder);
+            return new ConstantToClassMapping(classNames, privateDependentsIndexes, publicDependentsIndexes);
         }
 
         @Override
         public void write(Encoder encoder, ConstantToClassMapping value) throws Exception {
             classNamesSerializer.write(encoder, value.classNames);
-            mapSerializer.write(encoder, value.constantToClassIndexes);
+            mapSerializer.write(encoder, value.getPrivateConstantDependents());
+            mapSerializer.write(encoder, value.getPublicConstantDependents());
         }
     }
 

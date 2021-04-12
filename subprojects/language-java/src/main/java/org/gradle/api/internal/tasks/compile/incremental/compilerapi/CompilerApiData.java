@@ -29,18 +29,17 @@ public class CompilerApiData {
     private final boolean isAvailable;
     private final ConstantToClassMapping constantToClassMapping;
 
-    public CompilerApiData() {
-        this.isAvailable = false;
-        this.constantToClassMapping = ConstantToClassMapping.empty();
-    }
-
-    public CompilerApiData(ConstantToClassMapping constantToClassMapping) {
-        this.isAvailable = true;
+    private CompilerApiData(boolean isAvailable, ConstantToClassMapping constantToClassMapping) {
+        this.isAvailable = isAvailable;
         this.constantToClassMapping = constantToClassMapping;
     }
 
-    public Set<String> constantDependentsForClassHash(int constantOriginHash) {
-        return constantToClassMapping.constantDependentsForClassHash(constantOriginHash);
+    public Set<String> accessibleConstantDependentsForClassHash(int constantOriginHash) {
+        return constantToClassMapping.findPublicConstantDependentsForClassHash(constantOriginHash);
+    }
+
+    public Set<String> privateConstantDependentsForClassHash(int constantOriginHash) {
+        return constantToClassMapping.findPrivateConstantDependentsForClassHash(constantOriginHash);
     }
 
     public ConstantToClassMapping getConstantToClassMapping() {
@@ -49,6 +48,14 @@ public class CompilerApiData {
 
     public boolean isAvailable() {
         return isAvailable;
+    }
+
+    public static CompilerApiData unavailableOf() {
+        return new CompilerApiData(false, ConstantToClassMapping.empty());
+    }
+
+    public static CompilerApiData availableOf(ConstantToClassMapping constantToClassMapping) {
+        return new CompilerApiData(true, constantToClassMapping);
     }
 
     public static final class Serializer extends AbstractSerializer<CompilerApiData> {
@@ -60,13 +67,21 @@ public class CompilerApiData {
 
         @Override
         public CompilerApiData read(Decoder decoder) throws Exception {
-            ConstantToClassMapping mapping = constantsToClassSerializer.read(decoder);
-            return new CompilerApiData(mapping);
+            boolean isAvailable = decoder.readBoolean();
+            if (isAvailable) {
+                ConstantToClassMapping mapping = constantsToClassSerializer.read(decoder);
+                return CompilerApiData.availableOf(mapping);
+            } else {
+                return CompilerApiData.unavailableOf();
+            }
         }
 
         @Override
         public void write(Encoder encoder, CompilerApiData value) throws Exception {
-            constantsToClassSerializer.write(encoder, value.getConstantToClassMapping());
+            encoder.writeBoolean(value.isAvailable());
+            if (value.isAvailable()) {
+                constantsToClassSerializer.write(encoder, value.getConstantToClassMapping());
+            }
         }
     }
 

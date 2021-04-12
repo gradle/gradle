@@ -306,7 +306,7 @@ class ClassSetAnalysisTest extends Specification {
         CompilerApiData compilerApiData = Stub(CompilerApiData)
         def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
         compilerApiData.isAvailable() >> true
-        compilerApiData.constantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
+        compilerApiData.accessibleConstantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
 
         when:
         def deps = a.getRelevantDependents("Foo", IntSet.of(1))
@@ -320,7 +320,7 @@ class ClassSetAnalysisTest extends Specification {
         CompilerApiData compilerApiData = Stub(CompilerApiData)
         def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
         compilerApiData.isAvailable() >> true
-        compilerApiData.constantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
+        compilerApiData.accessibleConstantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
 
         when:
         def deps = a.getRelevantDependents("Foo", IntSets.EMPTY_SET)
@@ -334,10 +334,10 @@ class ClassSetAnalysisTest extends Specification {
         CompilerApiData compilerApiData = Stub(CompilerApiData)
         def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
         compilerApiData.isAvailable() >> true
-        compilerApiData.constantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
-        compilerApiData.constantDependentsForClassHash("Bar".hashCode()) >> ["FooBar"]
-        compilerApiData.constantDependentsForClassHash("FooBar".hashCode()) >> ["BarFoo"]
-        compilerApiData.constantDependentsForClassHash("X".hashCode()) >> ["Y"]
+        compilerApiData.accessibleConstantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
+        compilerApiData.accessibleConstantDependentsForClassHash("Bar".hashCode()) >> ["FooBar"]
+        compilerApiData.accessibleConstantDependentsForClassHash("FooBar".hashCode()) >> ["BarFoo"]
+        compilerApiData.accessibleConstantDependentsForClassHash("X".hashCode()) >> ["Y"]
 
         when:
         def deps = a.getRelevantDependents("Foo", IntSets.EMPTY_SET)

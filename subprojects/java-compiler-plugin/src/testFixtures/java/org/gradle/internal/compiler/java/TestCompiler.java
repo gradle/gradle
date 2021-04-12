@@ -16,6 +16,8 @@
 
 package org.gradle.internal.compiler.java;
 
+import org.gradle.internal.compiler.java.listeners.constants.ConstantDependentsConsumer;
+
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
@@ -37,16 +39,16 @@ public class TestCompiler {
     private final File outputFolder;
     private final Function<File, Optional<String>> relativize;
     private final Consumer<Map<String, Collection<String>>> classNameConsumer;
-    private final Consumer<Map<String, Collection<String>>> constantsConsumer;
+    private final ConstantDependentsConsumer constantDependentsConsumer;
 
     public TestCompiler(File outputFolder,
                         Function<File, Optional<String>> relativize,
                         Consumer<Map<String, Collection<String>>> classNamesConsumer,
-                        Consumer<Map<String, Collection<String>>> constantsConsumer) {
+                        ConstantDependentsConsumer constantDependentsConsumer) {
         this.outputFolder = outputFolder;
         this.relativize = relativize;
         this.classNameConsumer = classNamesConsumer;
-        this.constantsConsumer = constantsConsumer;
+        this.constantDependentsConsumer = constantDependentsConsumer;
     }
 
     public void compile(List<File> sourceFiles) {
@@ -56,7 +58,7 @@ public class TestCompiler {
         Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(sourceFiles);
         List<String> arguments = Arrays.asList("-d", outputFolder.getAbsolutePath());
         JavaCompiler.CompilationTask delegate = compiler.getTask(output, fileManager, null, arguments, null, compilationUnits);
-        IncrementalCompileTask task = new IncrementalCompileTask(delegate, relativize, classNameConsumer, constantsConsumer);
+        IncrementalCompileTask task = new IncrementalCompileTask(delegate, relativize, classNameConsumer, constantDependentsConsumer::consumePublicDependent, constantDependentsConsumer::consumePrivateDependent);
         if (!task.call()) {
             throw new RuntimeException(output.toString());
         }

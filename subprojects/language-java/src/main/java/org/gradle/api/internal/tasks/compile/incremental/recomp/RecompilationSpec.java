@@ -28,7 +28,12 @@ public class RecompilationSpec {
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
     private final Set<String> relativeSourcePathsToCompile = new LinkedHashSet<>();
+    private final PreviousCompilation previousCompilation;
     private String fullRebuildCause;
+
+    public RecompilationSpec(PreviousCompilation previousCompilation) {
+        this.previousCompilation = previousCompilation;
+    }
 
     @Override
     public String toString() {
@@ -49,6 +54,10 @@ public class RecompilationSpec {
 
     public Collection<String> getClassesToCompile() {
         return Collections.unmodifiableCollection(classesToCompile);
+    }
+
+    public PreviousCompilation getPreviousCompilation() {
+        return previousCompilation;
     }
 
     public void addRelativeSourcePathsToCompile(String path) {

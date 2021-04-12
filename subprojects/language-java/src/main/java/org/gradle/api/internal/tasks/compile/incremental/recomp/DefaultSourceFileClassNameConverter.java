@@ -49,8 +49,4 @@ public class DefaultSourceFileClassNameConverter implements SourceFileClassNameC
         return Optional.ofNullable(classSourceMapping.get(fqcn));
     }
 
-    public Multimap<String, String> getSourceClassesMapping() {
-        return sourceClassesMapping;
-    }
-
 }
