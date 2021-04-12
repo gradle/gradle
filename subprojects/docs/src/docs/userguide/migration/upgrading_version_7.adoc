@@ -94,7 +94,7 @@ if (System.getProperty("profile") == "custom") {
 You can pass the `profile` system property to Gradle using `gradle -Dprofile=custom` to execute the code in the `custom` profile branch.
 
 === Potential breaking changes
-Despite being an internal package, `org.gradle.util` is used by several Gradle plugins. In Gradle 7.1 we did a major cleanup there. 
+Despite being an internal package, `org.gradle.util` is used by several Gradle plugins. In Gradle 7.1 we did a major cleanup there.
 
 The following classes have known usages in external plugins. They are now deprecated and set for removal in Gradle 8.0:
 
@@ -103,6 +103,7 @@ The following classes have known usages in external plugins. They are now deprec
 - `WrapUtil`
 - `RelativePathUtil`
 - `DistributionLocator`
+- `SingleMessageLogger`
 
 The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
 
@@ -118,6 +119,9 @@ The following classes have only internal usages and were moved from `org.gradle.
 - `MockExecutor`
 - `FailsWithMessage`
 - `FailsWithMessageExtension`
+- `TreeVisitor`
+- `AntUtil`
+- `JarUtil`
 
 The last set of classes have no external or internal usages and therefore were deleted:
 
@@ -127,11 +131,7 @@ The last set of classes have no external or internal usages and therefore were d
 - `AlwaysTrue`
 - `ReflectionEqualsMatcher`
 - `DynamicDelegate`
-- `TreeVisitor`
-- `SingleMessageLogger`
 - `IncubationLogger`
-- `AntUtil`
-- `JarUtil`
 - `NoOpChangeListener`
 - `DeferredUtil`
 
