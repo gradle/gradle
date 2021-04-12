@@ -27,7 +27,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
-"""
+        """
         new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
     }
 
@@ -1855,7 +1855,7 @@ repositories {
 
 configurations.all {
     resolutionStrategy.dependencySubstitution {
-        substitute module('org:project') with project(':sub')
+        substitute module('org:project') using project(':sub')
     }
 }
 

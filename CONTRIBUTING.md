@@ -120,7 +120,7 @@ All code contributions should contain the following:
 Your code needs to run on all supported Java versions and operating systems. The [Gradle CI](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
 * Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
-* Normalise file paths in tests. The `org.gradle.util.TextUtil` class has some useful functions for this purpose.
+* Normalise file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
 
 ### Development Workflow
 

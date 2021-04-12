@@ -15,7 +15,7 @@
  */
 package org.gradle.api.specs;
 
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

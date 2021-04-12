@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 /**
  * See {@link org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor} for information on running these tests.

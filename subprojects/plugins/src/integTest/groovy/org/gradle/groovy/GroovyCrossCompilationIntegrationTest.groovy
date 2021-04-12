@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 
 @TargetVersions(["1.6", "1.7", "1.8"])

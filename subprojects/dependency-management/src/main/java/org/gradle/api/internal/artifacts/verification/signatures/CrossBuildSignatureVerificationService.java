@@ -35,7 +35,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.InterningStringSerializer;
 import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.security.internal.PublicKeyService;
-import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.io.File;
 import java.util.List;

@@ -34,7 +34,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static java.util.Collections.emptySet
-import static org.gradle.util.CollectionUtils.toSet
+import static org.gradle.util.internal.CollectionUtils.toSet
 
 class ValidatingMavenPublisherTest extends Specification {
     @Rule

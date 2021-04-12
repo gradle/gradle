@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
 import java.io.File;

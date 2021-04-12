@@ -18,7 +18,7 @@ package org.gradle.api.plugins.quality.checkstyle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.util.TextUtil.getPlatformLineSeparator
+import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator
 
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 

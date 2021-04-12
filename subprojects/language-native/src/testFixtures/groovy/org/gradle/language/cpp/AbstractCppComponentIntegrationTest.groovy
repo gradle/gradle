@@ -21,7 +21,7 @@ import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     @ToBeFixedForConfigurationCache

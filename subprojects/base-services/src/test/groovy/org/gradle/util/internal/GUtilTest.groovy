@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.util.internal
 
 import spock.lang.Specification
 
 import java.nio.CharBuffer
 
-import static org.gradle.util.GUtil.addToCollection
-import static org.gradle.util.GUtil.asPath
-import static org.gradle.util.GUtil.collectionize
-import static org.gradle.util.GUtil.endsWith
-import static org.gradle.util.GUtil.flatten
-import static org.gradle.util.GUtil.flattenElements
-import static org.gradle.util.GUtil.isSecureUrl
-import static org.gradle.util.GUtil.toCamelCase
-import static org.gradle.util.GUtil.toConstant
-import static org.gradle.util.GUtil.toEnum
-import static org.gradle.util.GUtil.toEnumSet
-import static org.gradle.util.GUtil.toLowerCamelCase
-import static org.gradle.util.GUtil.toWords
+import static org.gradle.util.internal.GUtil.addToCollection
+import static org.gradle.util.internal.GUtil.asPath
+import static org.gradle.util.internal.GUtil.collectionize
+import static org.gradle.util.internal.GUtil.endsWith
+import static org.gradle.util.internal.GUtil.flatten
+import static org.gradle.util.internal.GUtil.flattenElements
+import static org.gradle.util.internal.GUtil.isSecureUrl
+import static org.gradle.util.internal.GUtil.toCamelCase
+import static org.gradle.util.internal.GUtil.toConstant
+import static org.gradle.util.internal.GUtil.toEnum
+import static org.gradle.util.internal.GUtil.toEnumSet
+import static org.gradle.util.internal.GUtil.toLowerCamelCase
+import static org.gradle.util.internal.GUtil.toWords
 
 class GUtilTest extends Specification {
     static sep = File.pathSeparator
@@ -228,7 +228,7 @@ class GUtilTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Cannot convert value '2' of type 'java.lang.Integer' to enum type 'org.gradle.util.GUtilTest\$TestEnum'"
+        e.message == "Cannot convert value '2' of type 'java.lang.Integer' to enum type 'org.gradle.util.internal.GUtilTest\$TestEnum'"
 
     }
 
@@ -243,7 +243,7 @@ class GUtilTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Cannot convert string value '$value' to an enum value of type 'org.gradle.util.GUtilTest\$TestEnum' (valid case insensitive values: ENUM1, ENUM2, ENUM3, ENUM_4_1, STANDARD_OUT)"
+        e.message == "Cannot convert string value '$value' to an enum value of type 'org.gradle.util.internal.GUtilTest\$TestEnum' (valid case insensitive values: ENUM1, ENUM2, ENUM3, ENUM_4_1, STANDARD_OUT)"
 
         where:
         value      | _

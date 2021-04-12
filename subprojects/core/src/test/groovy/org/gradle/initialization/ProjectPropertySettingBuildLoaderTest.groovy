@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Specification
 

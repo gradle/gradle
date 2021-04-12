@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleHandle
 
-import static org.gradle.util.TextUtil.getPlatformLineSeparator
+import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator
 
 final class BuildScanUserInputFixture {
 
@@ -55,7 +55,7 @@ final class BuildScanUserInputFixture {
     static String buildScanPluginApplication() {
         """
             apply plugin: BuildScanPlugin
-            
+
             task $DUMMY_TASK_NAME
         """
     }

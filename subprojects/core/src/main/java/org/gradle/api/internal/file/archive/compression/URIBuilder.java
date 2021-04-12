@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.net.URI;
 

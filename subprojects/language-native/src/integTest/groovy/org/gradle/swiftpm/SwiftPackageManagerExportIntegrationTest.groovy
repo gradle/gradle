@@ -17,7 +17,7 @@
 package org.gradle.swiftpm
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 class SwiftPackageManagerExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 

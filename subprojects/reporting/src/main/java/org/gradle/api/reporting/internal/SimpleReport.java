@@ -23,7 +23,7 @@ import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import java.io.File;
 

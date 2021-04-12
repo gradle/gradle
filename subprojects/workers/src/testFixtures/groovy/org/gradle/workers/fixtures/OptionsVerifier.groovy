@@ -17,7 +17,7 @@
 package org.gradle.workers.fixtures
 
 import groovy.json.JsonSlurper
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class OptionsVerifier {
     private static final ARGUMENTS = "arguments"

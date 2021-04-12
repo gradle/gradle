@@ -21,7 +21,7 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 import spock.lang.Unroll
 

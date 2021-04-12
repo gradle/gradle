@@ -20,6 +20,12 @@ import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 
+/**
+ * This class is only here to maintain binary compatibility with existing plugins.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ */
+@Deprecated
 public class RelativePathUtil {
     /**
      * Returns a relative path from 'from' to 'to'

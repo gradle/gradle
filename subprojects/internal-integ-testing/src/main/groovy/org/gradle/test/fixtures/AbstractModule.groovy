@@ -22,7 +22,7 @@ import org.apache.tools.zip.ZipOutputStream
 import org.gradle.internal.IoActions
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 abstract class AbstractModule implements Module {
     /**

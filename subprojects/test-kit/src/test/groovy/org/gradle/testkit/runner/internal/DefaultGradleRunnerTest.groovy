@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll

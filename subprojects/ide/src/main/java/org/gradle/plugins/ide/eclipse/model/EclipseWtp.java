@@ -23,7 +23,7 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
 import javax.inject.Inject;
 
-import static org.gradle.util.ConfigureUtil.configure;
+import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin

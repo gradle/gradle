@@ -33,8 +33,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Common methods to wrap objects in generic collections.
+ * This class is only here to maintain binary compatibility with existing plugins.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
  */
+@Deprecated
 public class WrapUtil {
     /**
      * Wraps the given items in a mutable unordered set.

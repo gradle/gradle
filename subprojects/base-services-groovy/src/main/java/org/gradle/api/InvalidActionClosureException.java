@@ -18,7 +18,7 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import org.gradle.internal.Cast;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.List;
 

@@ -26,7 +26,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;

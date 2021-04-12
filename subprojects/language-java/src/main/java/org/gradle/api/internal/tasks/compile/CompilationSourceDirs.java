@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.util.RelativePathUtil;
+import org.gradle.util.internal.RelativePathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

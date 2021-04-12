@@ -270,7 +270,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.internal.jvm.Jvm
-            import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
+            import static org.gradle.util.internal.TextUtil.normaliseFileAndLineSeparators
 
             apply plugin: 'java'
 

@@ -21,7 +21,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ReflectionDispatch;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

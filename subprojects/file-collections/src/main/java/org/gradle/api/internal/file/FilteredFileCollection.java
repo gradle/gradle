@@ -19,7 +19,7 @@ package org.gradle.api.internal.file;
 import com.google.common.collect.Iterators;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.util.Iterator;

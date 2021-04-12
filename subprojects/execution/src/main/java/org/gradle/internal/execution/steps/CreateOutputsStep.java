@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-import static org.gradle.util.GFileUtils.mkdirs;
+import static org.gradle.util.internal.GFileUtils.mkdirs;
 
 public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateOutputsStep.class);

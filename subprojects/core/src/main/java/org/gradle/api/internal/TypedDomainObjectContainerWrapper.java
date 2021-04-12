@@ -33,7 +33,7 @@ import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.internal.metaobject.PropertyAccess;
 import org.gradle.internal.metaobject.PropertyMixIn;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.Collection;
 import java.util.Iterator;

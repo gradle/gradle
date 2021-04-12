@@ -19,8 +19,8 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp.version
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
-import org.gradle.util.TextUtil
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.TextUtil
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.LEGACY
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.VS2017_OR_LATER

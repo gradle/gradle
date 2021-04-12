@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 @CompileStatic
 trait VersionCatalogErrorMessages {

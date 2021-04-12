@@ -18,7 +18,7 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class JavaSourceCliIncrementalCompilationIntegrationTest extends BaseJavaSourceIncrementalCompilationIntegrationTest {
 

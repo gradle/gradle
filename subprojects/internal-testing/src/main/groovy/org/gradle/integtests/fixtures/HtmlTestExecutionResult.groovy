@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import org.gradle.internal.FileUtils
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document

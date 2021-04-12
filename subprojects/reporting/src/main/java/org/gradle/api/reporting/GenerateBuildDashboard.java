@@ -32,8 +32,8 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ClosureBackedAction;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;

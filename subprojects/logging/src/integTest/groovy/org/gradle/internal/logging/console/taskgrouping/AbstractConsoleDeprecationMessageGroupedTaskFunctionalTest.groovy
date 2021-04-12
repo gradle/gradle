@@ -18,7 +18,7 @@ package org.gradle.internal.logging.console.taskgrouping
 
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 abstract class AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
 

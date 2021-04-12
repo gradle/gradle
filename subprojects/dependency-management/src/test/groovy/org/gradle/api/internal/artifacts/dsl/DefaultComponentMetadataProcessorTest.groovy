@@ -45,7 +45,7 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.BuildCommencedTimeProvider
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner

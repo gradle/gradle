@@ -47,7 +47,7 @@ import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
 import org.gradle.tooling.internal.consumer.parameters.BuildProgressListenerAdapter;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.io.Closeable;
 import java.util.ArrayList;

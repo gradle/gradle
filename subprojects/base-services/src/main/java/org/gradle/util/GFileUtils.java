@@ -41,6 +41,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.Checksum;
 
+/**
+ * This class is only here to maintain binary compatibility with existing plugins.
+ * <p>
+ * Plugins should prefer java.io, java.nio or external packages over this class.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ */
+@Deprecated
 public class GFileUtils {
 
     public static FileInputStream openInputStream(File file) {
