@@ -33,4 +33,9 @@ dependencies {
     jmh(libs.guava)
 }
 
+classycle {
+    // Needed for the factory methods in the base class
+    excludePatterns.add("org/gradle/util/GradleVersion**")
+}
+
 jmh.include = listOf("HashingAlgorithmsBenchmark")
