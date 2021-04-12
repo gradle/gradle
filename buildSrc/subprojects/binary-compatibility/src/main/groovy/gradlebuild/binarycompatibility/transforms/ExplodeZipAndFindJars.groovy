@@ -42,7 +42,7 @@ abstract class ExplodeZipAndFindJars implements TransformAction<TransformParamet
     void transform(TransformOutputs outputs) {
         File gradleJars = outputs.dir("gradle-jars")
         File dependencies = outputs.dir("gradle-dependencies")
-        try (ZipInputStream zin = new ZipInputStream(artifact.get().asFile.newInputStream())) {
+        new ZipInputStream(artifact.get().asFile.newInputStream()).withCloseable { zin ->
             ZipEntry zipEntry
             while (zipEntry = zin.nextEntry) {
                 String shortName = zipEntry.name
