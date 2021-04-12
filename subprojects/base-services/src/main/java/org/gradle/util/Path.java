@@ -25,6 +25,9 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 
+/**
+ * Represents a path in Gradle.
+ */
 public class Path implements Comparable<Path> {
     public static final Path ROOT = new Path(new String[0], true);
 

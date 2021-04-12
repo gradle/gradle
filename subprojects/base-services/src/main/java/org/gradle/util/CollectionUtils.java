@@ -604,6 +604,12 @@ public abstract class CollectionUtils {
         return Pair.of(left, right);
     }
 
+    /**
+     * Injection step.
+     * @param <T> target type.
+     * @param <I> item type.
+     */
+    @Deprecated
     public static class InjectionStep<T, I> {
         private final T target;
         private final I item;
