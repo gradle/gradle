@@ -20,7 +20,7 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.util.IncubationLogger;
+import org.gradle.util.internal.IncubationLogger;
 
 public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildOperationExecutor buildOperationExecutor;

@@ -22,7 +22,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
-import org.gradle.util.StdinSwapper;
+import org.gradle.util.internal.StdinSwapper;
 
 import java.io.InputStream;
 

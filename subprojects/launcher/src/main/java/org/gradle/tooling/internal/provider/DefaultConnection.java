@@ -57,7 +57,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.IncubationLogger;
+import org.gradle.util.internal.IncubationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

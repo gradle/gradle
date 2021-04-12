@@ -61,7 +61,7 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.util.IncubationLogger;
+import org.gradle.util.internal.IncubationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;

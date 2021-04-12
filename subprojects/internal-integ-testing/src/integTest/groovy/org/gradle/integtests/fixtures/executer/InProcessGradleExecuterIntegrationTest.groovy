@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures.executer
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Requires
 import spock.lang.Specification

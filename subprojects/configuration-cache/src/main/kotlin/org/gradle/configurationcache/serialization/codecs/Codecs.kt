@@ -294,6 +294,7 @@ class Codecs(
 
         bind(EnumCodec)
         bind(RegexpPatternCodec)
+        bind(UrlCodec)
 
         javaTimeTypes()
     }

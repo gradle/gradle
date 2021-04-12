@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
-import org.gradle.util.Resources
+import org.gradle.util.internal.Resources
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.junit.Rule
