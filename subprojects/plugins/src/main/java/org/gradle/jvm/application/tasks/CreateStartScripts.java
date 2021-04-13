@@ -263,7 +263,6 @@ public class CreateStartScripts extends ConventionTask {
         return mainClass.getOrNull();
     }
 
-    @ReplacedBy("mainClass")
     @Deprecated
     public void setMainClassName(@Nullable String mainClassName) {
         DeprecationLogger.deprecateMethod(CreateStartScripts.class, "setMainClassName()")
