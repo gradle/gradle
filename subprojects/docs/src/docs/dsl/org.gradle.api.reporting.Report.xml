@@ -11,6 +11,9 @@
                 <td>destination</td>
             </tr>
             <tr>
+                <td>outputLocation</td>
+            </tr>
+            <tr>
                 <td>displayName</td>
             </tr>
             <tr>
@@ -21,6 +24,9 @@
             </tr>
             <tr>
                 <td>enabled</td>
+            </tr>
+            <tr>
+                <td>required</td>
             </tr>
         </table>
     </section>

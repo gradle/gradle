@@ -36,7 +36,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFrame
 public class Description {
     public final static Description JAVA = new Description(
         Language.JAVA,
-        JUNIT,
+        JUNIT_JUPITER,
         Arrays.asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK),
         null, null
     );

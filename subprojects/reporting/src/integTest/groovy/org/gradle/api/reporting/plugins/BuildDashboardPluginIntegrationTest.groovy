@@ -240,7 +240,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         buildFile << """
             buildDashboard {
-                reports.html.enabled = false
+                reports.html.required = false
             }
         """
 
@@ -289,7 +289,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         buildFile << """
             codenarcMain {
-                reports.text.enabled = true
+                reports.text.required = true
             }
         """
 

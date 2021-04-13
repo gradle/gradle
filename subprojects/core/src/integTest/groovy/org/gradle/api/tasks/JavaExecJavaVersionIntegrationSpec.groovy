@@ -92,7 +92,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
 
             task runHelloWorld(type: JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath
-                main = "Hello"
+                mainClass = "Hello"
                 outputs.dir "$buildDir/runHelloWorld"
             }
         '''
