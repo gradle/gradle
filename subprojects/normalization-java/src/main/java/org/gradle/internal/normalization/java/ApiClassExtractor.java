@@ -16,6 +16,7 @@
 
 package org.gradle.internal.normalization.java;
 
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.normalization.java.impl.ApiMemberSelector;
 import org.gradle.internal.normalization.java.impl.ApiMemberWriter;
 import org.gradle.internal.normalization.java.impl.MethodStubbingApiMemberAdapter;
@@ -84,6 +85,13 @@ public class ApiClassExtractor {
             return Optional.empty();
         }
         return Optional.of(apiClassWriter.toByteArray());
+    }
+
+    public void appendConfigurationToHasher(Hasher hasher) {
+        hasher.putString(getClass().getName());
+        if (exportedPackages != null) {
+            exportedPackages.forEach(hasher::putString);
+        }
     }
 
     private static String packageNameOf(String internalClassName) {
