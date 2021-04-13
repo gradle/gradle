@@ -173,7 +173,7 @@ Use the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api
 property instead.
 
 [[compile_task_wiring]]
-=== Properties deprecated in compile task wiring
+=== Deprecated properties in `compile` task
 
 * The link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir[SourceDirectorySet.outputDir]
 property has been deprecated.
