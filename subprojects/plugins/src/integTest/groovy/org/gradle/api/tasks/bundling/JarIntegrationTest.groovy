@@ -181,7 +181,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
             }
             task jar(type: Jar) {
                 dependsOn jar1, jar2
-                from zipTree(jar1.archivePath), zipTree(jar2.archivePath)
+                from zipTree(jar1.archiveFile), zipTree(jar2.archiveFile)
                 manifest { attributes(attr: 'value') }
                 destinationDirectory = buildDir
                 archiveFileName = 'test.jar'

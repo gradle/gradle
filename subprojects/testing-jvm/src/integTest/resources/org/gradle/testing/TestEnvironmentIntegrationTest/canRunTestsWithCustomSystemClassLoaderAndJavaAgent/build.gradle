@@ -17,5 +17,5 @@ jar {
 test {
     dependsOn jar
     systemProperties 'java.system.class.loader':'org.gradle.MySystemClassLoader'
-    jvmArgs "-javaagent:${jar.archivePath}"
+    jvmArgs "-javaagent:${jar.archiveFile.asFile.get()}"
 }
