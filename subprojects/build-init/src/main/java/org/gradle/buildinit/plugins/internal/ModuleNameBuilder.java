@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 public class ModuleNameBuilder {
     public static String toModuleName(String name) {

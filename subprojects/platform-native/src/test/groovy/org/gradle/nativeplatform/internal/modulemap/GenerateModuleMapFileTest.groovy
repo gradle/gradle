@@ -21,7 +21,7 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 import static org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile.generateFile
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class GenerateModuleMapFileTest extends Specification {
     @Rule TemporaryFolder tempDir = new TemporaryFolder()

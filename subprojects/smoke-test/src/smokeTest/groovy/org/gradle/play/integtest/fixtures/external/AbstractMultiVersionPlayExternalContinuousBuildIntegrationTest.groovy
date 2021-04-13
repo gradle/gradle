@@ -20,7 +20,7 @@ package org.gradle.play.integtest.fixtures.external
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.play.integtest.fixtures.PlayCoverage
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 @TargetCoverage({ PlayCoverage.DEFAULT })
 @MultiVersionTest

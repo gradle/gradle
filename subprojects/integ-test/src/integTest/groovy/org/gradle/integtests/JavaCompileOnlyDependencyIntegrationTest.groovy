@@ -18,7 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class JavaCompileOnlyDependencyIntegrationTest extends AbstractIntegrationSpec {
     def "can compile against compile only dependency"() {

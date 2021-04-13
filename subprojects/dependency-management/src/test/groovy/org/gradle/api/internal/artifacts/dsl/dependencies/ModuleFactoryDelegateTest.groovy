@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.util.TestUtil
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
 class ModuleFactoryDelegateTest extends Specification {

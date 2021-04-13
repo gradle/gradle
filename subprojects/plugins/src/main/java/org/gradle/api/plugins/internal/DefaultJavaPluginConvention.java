@@ -36,7 +36,7 @@ import org.gradle.testing.base.plugins.TestingBasePlugin;
 import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
-import static org.gradle.util.ConfigureUtil.configure;
+import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public class DefaultJavaPluginConvention extends JavaPluginConvention implements HasPublicType {
     private ProjectInternal project;

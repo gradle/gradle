@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.util.AntUtil;
+import org.gradle.util.internal.AntUtil;
 
 import java.io.File;
 import java.util.Collections;

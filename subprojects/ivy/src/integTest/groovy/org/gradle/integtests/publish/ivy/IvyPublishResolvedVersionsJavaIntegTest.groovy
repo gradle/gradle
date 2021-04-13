@@ -500,7 +500,7 @@ $append
             """
             configurations.all {
                 resolutionStrategy.dependencySubstitution {
-                    substitute(module('org:foo')).with(module('org:baz:1.0'))
+                    substitute(module('org:foo')).using(module('org:baz:1.0'))
                 }
             }
             """
@@ -520,7 +520,7 @@ $append
 
             configurations.all {
                 resolutionStrategy.dependencySubstitution {
-                    substitute(module('org:foo')) with(project(':lib'))
+                    substitute(module('org:foo')) using(project(':lib'))
                 }
             }
 
@@ -606,7 +606,7 @@ $append
 
             configurations.all {
                 resolutionStrategy.dependencySubstitution {
-                    substitute(project(':a')).with(project(':b'))
+                    substitute(project(':a')).using(project(':b'))
                 }
             }
 

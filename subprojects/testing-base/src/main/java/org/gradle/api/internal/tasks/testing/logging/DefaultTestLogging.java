@@ -24,8 +24,8 @@ import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import java.util.EnumSet;
 import java.util.Set;
 
-import static org.gradle.util.GUtil.toEnum;
-import static org.gradle.util.GUtil.toEnumSet;
+import static org.gradle.util.internal.GUtil.toEnum;
+import static org.gradle.util.internal.GUtil.toEnumSet;
 
 public class DefaultTestLogging implements TestLogging {
     private Set<TestLogEvent> events = EnumSet.noneOf(TestLogEvent.class);

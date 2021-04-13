@@ -17,7 +17,7 @@
 package org.gradle.internal.resolve
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 class ArtifactNotFoundExceptionTest extends Specification {

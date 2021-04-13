@@ -33,7 +33,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fileOperationsFor
 import org.gradle.kotlin.dsl.invoke
 
-import org.gradle.util.ConfigureUtil.configureByMap
+import org.gradle.util.internal.ConfigureUtil.configureByMap
 
 
 class KotlinScriptHost<out T : Any>(

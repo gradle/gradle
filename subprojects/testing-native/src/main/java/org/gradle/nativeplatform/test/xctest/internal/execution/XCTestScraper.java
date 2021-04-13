@@ -31,7 +31,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.Deque;

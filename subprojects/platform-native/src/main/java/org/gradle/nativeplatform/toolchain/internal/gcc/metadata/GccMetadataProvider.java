@@ -31,7 +31,7 @@ import org.gradle.nativeplatform.toolchain.internal.metadata.AbstractMetadataPro
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.BufferedReader;
 import java.io.File;

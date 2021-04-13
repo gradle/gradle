@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.classloading;
 
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.List;
 

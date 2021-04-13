@@ -15,7 +15,7 @@ tasks.bootJar {
 }
 
 tasks.bootRun {
-    main = 'com.example.demo.Demo'
+    mainClass = 'com.example.demo.Demo'
     args '--spring.profiles.active=demo'
 }
 // end::accessors[]
@@ -27,7 +27,7 @@ tasks.named('bootJar') {
 }
 
 tasks.named('bootRun') {
-    main = 'com.example.demo.Demo'
+    mainClass = 'com.example.demo.Demo'
     args '--spring.profiles.active=demo'
 }
 // end::lazy[]

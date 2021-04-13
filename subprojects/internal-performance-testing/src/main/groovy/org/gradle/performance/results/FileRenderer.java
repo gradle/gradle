@@ -17,7 +17,7 @@
 package org.gradle.performance.results;
 
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;

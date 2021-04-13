@@ -27,7 +27,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.io.NullOutputStream
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Shared
 import spock.lang.Unroll
 
@@ -64,12 +64,12 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             class ${className}Service implements BuildCacheService ${isLocal ? ", ${LocalBuildCacheService.name}" : ""} {
                 ${className}Service(${className} configuration) {
                 }
-    
+
                 @Override
                 boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
                     ${isLocal ? "" : loadBody ?: ""}
                 }
-    
+
                 @Override
                 void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
                     ${isLocal ? "" : storeBody ?: ""}
@@ -79,15 +79,15 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
                 void loadLocally(BuildCacheKey key, Action<? super File> reader) {
                     ${isLocal ? loadBody ?: "" : ""}
                 }
-    
+
                 // @Override
                 void storeLocally(BuildCacheKey key, File file) {
                     ${isLocal ? storeBody ?: "" : ""}
                 }
-    
+
                 void withTempFile(BuildCacheKey key, Action<? super File> action) {
                     new $DefaultBuildCacheTempFileStore.name(new File("${TextUtil.normaliseFileSeparators(file("tmp").absolutePath)}")).withTempFile(key, action)
-                } 
+                }
 
                 @Override
                 void close() throws IOException {
@@ -104,16 +104,16 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         """
             @CacheableTask
             class CustomTask extends DefaultTask {
-            
+
                 @Input
                 String val = "foo"
-                
+
                 @Input
                 List<String> paths = []
-                 
+
                 @OutputDirectory
                 File dir = project.file("build/dir")
-                
+
                 @OutputDirectory
                 File otherDir = project.file("build/otherDir")
 
@@ -204,8 +204,8 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         when:
         remote("", "throw new ${exceptionType.name}('!')")
         settingsFile << """
-            buildCache { 
-                remote($remoteCacheClass).push = true 
+            buildCache {
+                remote($remoteCacheClass).push = true
             }
         """
         buildFile << cacheableTask() << """
@@ -261,7 +261,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile << """
             buildCache {
-                $config   
+                $config
             }
         """
 
@@ -325,7 +325,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             buildCache {
                 ${buildCache.localCacheConfiguration()}
-                $config   
+                $config
             }
         """
 

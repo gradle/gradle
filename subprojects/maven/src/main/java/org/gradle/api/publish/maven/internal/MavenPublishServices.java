@@ -30,7 +30,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.maven.MavenModule;
 import org.gradle.maven.MavenPomArtifact;
-import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class MavenPublishServices extends AbstractPluginServiceRegistry {
     @Override

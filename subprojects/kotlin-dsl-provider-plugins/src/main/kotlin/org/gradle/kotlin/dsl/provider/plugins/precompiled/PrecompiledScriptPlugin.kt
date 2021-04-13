@@ -25,7 +25,7 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
 
-import org.gradle.util.TextUtil.convertLineSeparatorsToUnix
+import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens

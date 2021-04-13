@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 /**
  * Tests for bugfixes to maven publishing scenarios

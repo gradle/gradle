@@ -24,7 +24,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ModelObject
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Unroll
 
 import java.util.concurrent.Callable

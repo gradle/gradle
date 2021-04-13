@@ -23,7 +23,7 @@ import org.gradle.reporting.HtmlPageBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.RelativePathUtil;
+import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;
 import java.io.Writer;

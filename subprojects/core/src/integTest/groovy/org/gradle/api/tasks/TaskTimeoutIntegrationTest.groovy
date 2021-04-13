@@ -125,7 +125,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
             task block(type: JavaExec) {
                 classpath = sourceSets.main.output
-                main = 'Block'
+                mainClass = 'Block'
                 timeout = Duration.ofMillis($TIMEOUT)
             }
             """

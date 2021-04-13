@@ -41,7 +41,7 @@ import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.TextUtil.replaceLineSeparatorsOf
+import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString

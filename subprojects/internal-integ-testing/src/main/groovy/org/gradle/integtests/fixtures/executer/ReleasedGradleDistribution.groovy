@@ -16,7 +16,7 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.DistributionLocator
+import org.gradle.util.internal.DistributionLocator
 
 class ReleasedGradleDistribution extends DownloadableGradleDistribution {
 

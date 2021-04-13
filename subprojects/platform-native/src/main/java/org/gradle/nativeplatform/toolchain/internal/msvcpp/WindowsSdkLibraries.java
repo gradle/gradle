@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 /**
  * System libraries provided by the windows SDK.

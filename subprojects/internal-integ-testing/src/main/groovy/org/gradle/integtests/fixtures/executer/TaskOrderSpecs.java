@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.Sets;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;

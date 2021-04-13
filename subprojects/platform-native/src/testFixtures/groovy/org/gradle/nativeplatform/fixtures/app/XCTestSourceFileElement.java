@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.integtests.fixtures.TestClassExecutionResult;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 import org.hamcrest.CoreMatchers;
 
 import java.util.List;

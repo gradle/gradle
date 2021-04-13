@@ -25,7 +25,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.nio.charset.Charset;

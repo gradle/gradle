@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
+import org.gradle.util.internal.GFileUtils
 
 /**
  * Gradle's performance slightly depends on the length of the Gradle home path. This

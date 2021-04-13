@@ -31,7 +31,7 @@ import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
 abstract class AbstractDependencyDescriptorFactoryInternalSpec extends Specification {

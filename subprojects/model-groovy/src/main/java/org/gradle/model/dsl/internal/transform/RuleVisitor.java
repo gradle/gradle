@@ -33,7 +33,7 @@ import org.gradle.groovy.scripts.internal.ExpressionReplacingVisitorSupport;
 import org.gradle.internal.SystemProperties;
 import org.gradle.model.dsl.internal.inputs.PotentialInputs;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.lang.reflect.Modifier;
 import java.net.URI;

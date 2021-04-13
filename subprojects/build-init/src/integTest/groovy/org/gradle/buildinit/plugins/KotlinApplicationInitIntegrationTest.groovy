@@ -55,7 +55,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "testAppHasAGreeting")
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
 
         when:
         run("run")
@@ -83,7 +83,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("my.app.AppTest", "testAppHasAGreeting")
+        assertTestPassed("my.app.AppTest", "appHasAGreeting")
 
         when:
         run("run")
