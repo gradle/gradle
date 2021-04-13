@@ -24,6 +24,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextFileResourceLoader;
@@ -70,6 +71,10 @@ public class ProjectFactory implements IProjectFactory {
             baseClassLoaderScope
         );
         project.beforeEvaluate(p -> {
+            if (!contains(project.getRootProject().getProjectDir(), project.getProjectDir())) {
+                // TODO Find a right place
+                DeprecationLogger.deprecateBehaviour("Subproject located outside of the root project.").willBeRemovedInGradle8().undocumented().nagUser();
+            }
             NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
             gradle.getServices().get(DependenciesAccessors.class).createExtensions(project);
             gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
@@ -82,4 +87,17 @@ public class ProjectFactory implements IProjectFactory {
         projectContainer.attachMutableModel(project);
         return project;
     }
+
+    private static boolean contains(File base, File f) {
+        // TODO probably there is there a utility method for this
+        // TODO canonical paths
+        if (f == null) {
+            return false;
+        } else if (f.equals(base)) {
+            return true;
+        } else {
+            return contains(base, f.getParentFile());
+        }
+    }
+
 }
