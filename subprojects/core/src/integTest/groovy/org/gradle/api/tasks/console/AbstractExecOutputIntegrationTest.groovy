@@ -38,7 +38,7 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
                 doLast {
                     project.javaexec {
                         classpath = sourceSets.main.runtimeClasspath
-                        main = 'Main'
+                        mainClass = 'Main'
                     }
                 }
             }
@@ -64,7 +64,7 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
             task run(type: JavaExec) {
                 dependsOn 'compileJava'
                 classpath = sourceSets.main.runtimeClasspath
-                main = 'Main'
+                mainClass = 'Main'
             }
         """
 
