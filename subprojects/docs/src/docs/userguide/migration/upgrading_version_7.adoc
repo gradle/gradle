@@ -144,15 +144,7 @@ The last set of classes have no external or internal usages and therefore were d
 - `IncubationLogger`
 - `NoOpChangeListener`
 - `DeferredUtil`
-
-
-
-
-
-
-
-
-
+- `ChangeListener`
 
 [[java_exec_properties]]
 ==== Properties deprecated in JavaExec task
