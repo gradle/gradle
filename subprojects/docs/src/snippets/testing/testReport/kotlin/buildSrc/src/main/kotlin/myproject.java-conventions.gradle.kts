@@ -5,7 +5,7 @@ plugins {
 
 // Disable the test report for the individual test task
 tasks.named<Test>("test") {
-    reports.html.isEnabled = false
+    reports.html.required.set(false)
 }
 
 // Share the test report data to be aggregated for the whole project

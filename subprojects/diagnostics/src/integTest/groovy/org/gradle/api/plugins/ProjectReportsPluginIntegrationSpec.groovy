@@ -94,7 +94,7 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildFile << """
             htmlDependencyReport {
-                reports.html.enabled = false
+                reports.html.required = false
             }
         """
 

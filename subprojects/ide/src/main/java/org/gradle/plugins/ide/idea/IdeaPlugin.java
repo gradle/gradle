@@ -266,10 +266,11 @@ public class IdeaPlugin extends IdePlugin {
         module.setName(defaultModuleName);
 
         ConventionMapping conventionMapping = ((IConventionAware) module).getConventionMapping();
+        Set<File> sourceDirs = Sets.newLinkedHashSet();
         conventionMapping.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
-                return Sets.newLinkedHashSet();
+                return sourceDirs;
             }
         });
         conventionMapping.map("contentRoot", new Callable<File>() {
@@ -278,31 +279,35 @@ public class IdeaPlugin extends IdePlugin {
                 return project.getProjectDir();
             }
         });
+        Set<File> testSourceDirs = Sets.newLinkedHashSet();
         conventionMapping.map("testSourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
-                return Sets.newLinkedHashSet();
+                return testSourceDirs;
             }
         });
+        Set<File> resourceDirs = Sets.newLinkedHashSet();
         conventionMapping.map("resourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
-                return Sets.newLinkedHashSet();
+                return resourceDirs;
             }
         });
+        Set<File> testResourceDirs = Sets.newLinkedHashSet();
         conventionMapping.map("testResourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
-                return Sets.newLinkedHashSet();
+                return testResourceDirs;
             }
         });
+
+        Set<File> excludeDirs = Sets.newLinkedHashSet();
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
-                Set<File> defaultExcludes = Sets.newLinkedHashSet();
-                defaultExcludes.add(project.file(".gradle"));
-                defaultExcludes.add(project.getBuildDir());
-                return defaultExcludes;
+                excludeDirs.add(project.file(".gradle"));
+                excludeDirs.add(project.getBuildDir());
+                return excludeDirs;
             }
         });
 

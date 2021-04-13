@@ -311,7 +311,7 @@ public class SubClassTests extends SuperClassTests {
         buildScript """
             $junitSetup
             test {
-                reports.all { it.enabled = true }
+                reports.all { it.required = true }
             }
         """
 
@@ -326,7 +326,7 @@ public class SubClassTests extends SuperClassTests {
         failure.assertHasCause("There were failing tests. See the report at: ")
 
         when:
-        buildFile << "\ntest.reports.html.enabled = false\n"
+        buildFile << "\ntest.reports.html.required = false\n"
         fails "test"
 
         then:
@@ -334,7 +334,7 @@ public class SubClassTests extends SuperClassTests {
         failure.assertHasCause("There were failing tests. See the results at: ")
 
         when:
-        buildFile << "\ntest.reports.junitXml.enabled = false\n"
+        buildFile << "\ntest.reports.junitXml.required = false\n"
         fails "test"
 
         then:

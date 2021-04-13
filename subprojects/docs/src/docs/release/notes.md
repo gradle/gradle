@@ -4,7 +4,8 @@ This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-[Victor Merkulov](https://github.com/urdak).
+[Victor Merkulov](https://github.com/urdak),
+[Stefan Oehme](https://github.com/oehme).
 
 ## Upgrade Instructions
 
