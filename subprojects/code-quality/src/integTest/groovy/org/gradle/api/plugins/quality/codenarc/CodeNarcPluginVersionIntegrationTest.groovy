@@ -90,8 +90,8 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         given:
         buildFile << """
             codenarcMain.reports {
-                xml.enabled true
-                text.enabled true
+                xml.required = true
+                text.required = true
             }
         """
 

@@ -68,7 +68,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
 
     public HtmlDependencyReportTask() {
         reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this, getCallbackActionDecorator());
-        reports.getHtml().setEnabled(true);
+        reports.getHtml().getRequired().set(true);
         getOutputs().upToDateWhen(element -> false);
     }
 
@@ -122,13 +122,13 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
 
     @TaskAction
     public void generate() {
-        if (!reports.getHtml().isEnabled()) {
+        if (!reports.getHtml().getRequired().get()) {
             setDidWork(false);
             return;
         }
 
         HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
-        reporter.render(getProjects(), reports.getHtml().getDestination());
+        reporter.render(getProjects(), reports.getHtml().getOutputLocation().getAsFile().get());
 
         getProject().getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));
     }

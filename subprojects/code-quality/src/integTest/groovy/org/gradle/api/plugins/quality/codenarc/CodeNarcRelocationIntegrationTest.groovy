@@ -55,8 +55,8 @@ class CodeNarcRelocationIntegrationTest extends AbstractProjectRelocationIntegra
             task codenarc(type: CodeNarc) {
                 source "src/main/groovy"
                 ignoreFailures = true
-                reports.html.enabled = false
-                reports.text.enabled = true
+                reports.html.required = false
+                reports.text.required = true
             }
 
             ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
