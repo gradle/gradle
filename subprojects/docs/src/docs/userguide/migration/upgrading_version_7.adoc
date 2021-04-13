@@ -157,9 +157,29 @@ The last set of classes have no external or internal usages and therefore were d
 - `DeferredUtil`
 - `ChangeListener`
 
+[[exec_properties]]
+=== Properties deprecated in Exec task
+
+* The link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:execResult[Exec.execResult]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:executionResult[Exec.executionResult]
+property instead.
+
 [[java_exec_properties]]
 ==== Properties deprecated in JavaExec task
 
 * The link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:main[main] getters and setters
 in link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec] task have been deprecated.
 Use the link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:mainClass[mainClass] property instead.
+
+[[report_properties]]
+=== Properties deprecated in Report
+
+* The link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:enabled[Report.enabled]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:required[Report.required]
+property instead.
+* The link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination[Report.destination]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:outputLocation[Report.outputLocation]
+property instead.

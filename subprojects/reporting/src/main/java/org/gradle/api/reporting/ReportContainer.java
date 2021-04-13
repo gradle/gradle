@@ -34,7 +34,7 @@ import java.util.SortedSet;
  * <p>
  * Things that produce reports (typically tasks) expose a report container that contains {@link Report} objects for each
  * possible report that they can produce. Each report object can be configured individually, including whether or not it should
- * be produced by way of its {@link Report#setEnabled(boolean) enabled} property.
+ * be produced by way of its {@link Report#getRequired()} required} property.
  * <p>
  * {@code ReportContainer} implementations are <b>immutable</b> in that standard collection methods such as {@code add()}, {@code remove()}
  * and {@code clear()} will throw an {@link ImmutableViolationException}. However, implementations may provide new methods that allow

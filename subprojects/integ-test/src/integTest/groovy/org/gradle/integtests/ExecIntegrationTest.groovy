@@ -383,4 +383,21 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             'javaexecTask', 'javaexecProjectMethod', 'javaexecInjectedTaskAction'
         ]
     }
+
+    def "execResult property is deprecated"() {
+        when:
+        buildFile << """
+            task run(type: Exec) {
+                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                args("-version")
+                doLast {
+                    println(execResult)
+                }
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The AbstractExecTask.getExecResult() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the getExecutionResult() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#exec_properties")
+
+        then:
+        succeeds("run")
+    }
 }
