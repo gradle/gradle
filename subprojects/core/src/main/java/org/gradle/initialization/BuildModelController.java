@@ -20,7 +20,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 
 /**
- * Transitions the build model through its lifecycle.
+ * Transitions the model of an individual build in the build tree through its lifecycle.
+ * See {@link org.gradle.internal.invocation.BuildController}
  */
 public interface BuildModelController {
     /**

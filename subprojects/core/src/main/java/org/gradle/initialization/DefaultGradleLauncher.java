@@ -19,7 +19,6 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.exception.ExceptionAnalyser;
@@ -63,7 +62,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     public DefaultGradleLauncher(
         GradleInternal gradle,
-        ProjectsPreparer projectsPreparer,
+        BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,
         BuildListener buildListener,
         BuildCompletionListener buildCompletionListener,
@@ -71,15 +70,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
         BuildWorkExecutor buildExecuter,
         BuildScopeServices buildServices,
         List<?> servicesToStop,
-        SettingsPreparer settingsPreparer,
-        TaskExecutionPreparer taskExecutionPreparer,
-        ConfigurationCache configurationCache,
         BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
     ) {
         this.gradle = gradle;
-        this.modelController = new ConfigurationCacheAwareBuildModelController(gradle,
-            new VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer),
-            configurationCache);
+        this.modelController = buildModelController;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
         this.buildExecuter = buildExecuter;

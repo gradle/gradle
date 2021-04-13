@@ -25,7 +25,6 @@ import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.initialization.exception.ExceptionAnalyser;
@@ -120,7 +119,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         GradleLauncherInstantiator gradleLauncherInstantiator,
         Function<ServiceRegistry, BuildScopeServices> buildScopeServicesInstantiator
     ) {
-
         final BuildScopeServices serviceRegistry = buildScopeServicesInstantiator.apply(buildTree.getServices());
         serviceRegistry.add(BuildDefinition.class, buildDefinition);
         serviceRegistry.add(BuildState.class, owner);
@@ -173,7 +171,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry.get(ServiceRegistryFactory.class)
         );
 
-        GradleLauncher gradleLauncher = gradleLauncherInstantiator.gradleLauncherFor(gradle, serviceRegistry, servicesToStop);
+        BuildModelControllerFactory buildModelControllerFactory = gradle.getServices().get(BuildModelControllerFactory.class);
+        BuildModelController buildModelController = buildModelControllerFactory.create(gradle);
+
+        GradleLauncher gradleLauncher = gradleLauncherInstantiator.gradleLauncherFor(gradle, buildModelController, serviceRegistry, servicesToStop);
         nestedBuildFactory.setParent(gradleLauncher);
         nestedBuildFactory.setBuildCancellationToken(
             buildTree.getServices().get(BuildCancellationToken.class)
@@ -183,17 +184,15 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
     private GradleLauncher createDefaultGradleLauncher(
         GradleInternal gradle,
+        BuildModelController buildModelController,
         BuildScopeServices serviceRegistry,
         List<?> servicesToStop
     ) {
-        ProjectsPreparer projectsPreparer = serviceRegistry.get(ProjectsPreparer.class);
-        SettingsPreparer settingsPreparer = serviceRegistry.get(SettingsPreparer.class);
-        TaskExecutionPreparer taskExecutionPreparer = gradle.getServices().get(TaskExecutionPreparer.class);
         final ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
 
         return new DefaultGradleLauncher(
             gradle,
-            projectsPreparer,
+            buildModelController,
             serviceRegistry.get(ExceptionAnalyser.class),
             gradle.getBuildListenerBroadcaster(),
             listenerManager.getBroadcaster(BuildCompletionListener.class),
@@ -201,9 +200,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getServices().get(BuildWorkExecutor.class),
             serviceRegistry,
             servicesToStop,
-            settingsPreparer,
-            taskExecutionPreparer,
-            gradle.getServices().get(ConfigurationCache.class),
             new BuildOptionBuildOperationProgressEventsEmitter(
                 gradle.getServices().get(BuildOperationProgressEventEmitter.class)
             )
@@ -214,6 +210,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     public interface GradleLauncherInstantiator {
         GradleLauncher gradleLauncherFor(
             GradleInternal gradle,
+            BuildModelController buildModelController,
             BuildScopeServices serviceRegistry,
             List<?> servicesToStop
         );

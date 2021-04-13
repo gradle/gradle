@@ -22,7 +22,7 @@ import org.gradle.api.internal.SettingsInternal;
 import java.util.function.Function;
 
 /**
- * Controls the lifecycle of a build, allowing a single action to be run against the build.
+ * Controls the lifecycle of the build tree, allowing a single action to be run against the root build.
  */
 public interface BuildController {
 
