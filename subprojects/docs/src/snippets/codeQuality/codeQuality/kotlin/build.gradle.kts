@@ -37,8 +37,8 @@ dependencies {
 // tag::customize-checkstyle-report[]
 tasks.withType<Checkstyle>().configureEach {
     reports {
-        xml.isEnabled = false
-        html.isEnabled = true
+        xml.required.set(false)
+        html.required.set(true)
         html.stylesheet = resources.text.fromFile("config/xsl/checkstyle-custom.xsl")
     }
 }

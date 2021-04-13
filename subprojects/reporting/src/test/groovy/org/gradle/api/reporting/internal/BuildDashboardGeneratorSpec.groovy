@@ -16,6 +16,8 @@
 
 package org.gradle.api.reporting.internal
 
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.reporting.DirectoryReport
 import org.gradle.api.reporting.Report
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,16 +43,28 @@ class BuildDashboardGeneratorSpec extends Specification {
     }
 
     Report mockReport(String name, File destination) {
+        def directory = Mock(Directory) {
+            getAsFile() >> destination
+        }
+        def destinationProperty = Mock(DirectoryProperty) {
+            get() >> directory
+        }
         Stub(Report) {
             getDisplayName() >> name
-            getDestination() >> destination
+            getOutputLocation() >> destinationProperty
         }
     }
 
     Report mockDirectoryReport(String name, File destinationDirectory) {
+        def directory = Mock(Directory) {
+            getAsFile() >> destinationDirectory
+        }
+        def destinationProperty = Mock(DirectoryProperty) {
+            get() >> directory
+        }
         Stub(DirectoryReport) {
             getDisplayName() >> name
-            getDestination() >> destinationDirectory
+            getOutputLocation() >> destinationProperty
             getEntryPoint() >> new File(destinationDirectory, "index.html")
         }
     }

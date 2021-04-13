@@ -120,8 +120,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
         reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
-        reports.getJunitXml().setEnabled(true);
-        reports.getHtml().setEnabled(true);
+        reports.getJunitXml().getRequired().set(true);
+        reports.getHtml().getRequired().set(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
     }
@@ -536,20 +536,20 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
-            if (junitXml.isEnabled()) {
+            if (junitXml.getRequired().get()) {
                 JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
                     junitXml.isOutputPerTestCase(),
                     junitXml.getMergeReruns().get()
                 );
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, xmlResultOptions, getBuildOperationExecutor(), getHostnameLookup().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getOutputLocation().getAsFile().get(), testResultsProvider, xmlResultOptions, getBuildOperationExecutor(), getHostnameLookup().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 
             DirectoryReport html = reports.getHtml();
-            if (!html.isEnabled()) {
+            if (!html.getRequired().get()) {
                 getLogger().info("Test report disabled, omitting generation of the HTML test report.");
             } else {
-                testReporter.generateReport(testResultsProvider, html.getDestination());
+                testReporter.generateReport(testResultsProvider, html.getOutputLocation().getAsFile().getOrNull());
             }
         } finally {
             CompositeStoppable.stoppable(testResultsProvider).stop();
@@ -617,12 +617,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         String message = "There were failing tests";
 
         DirectoryReport htmlReport = getReports().getHtml();
-        if (htmlReport.isEnabled()) {
+        if (htmlReport.getRequired().get()) {
             String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
             message = message.concat(". See the report at: " + reportUrl);
         } else {
             DirectoryReport junitXmlReport = getReports().getJunitXml();
-            if (junitXmlReport.isEnabled()) {
+            if (junitXmlReport.getRequired().get()) {
                 String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
                 message = message.concat(". See the results at: " + resultsUrl);
             }

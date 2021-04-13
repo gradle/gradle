@@ -19,6 +19,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -368,12 +369,19 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      *
      * @return The result. Returns {@code null} if this task has not been executed yet.
      * @see #getExecutionResult() for the preferred way of accessing this property.
+     *
+     * @deprecated Use {@link #getExecutionResult()} instead. This method will be removed in Gradle 8.0.
      */
+    @Deprecated
     @Internal
     @Nullable
     public ExecResult getExecResult() {
-        // TODO: Once getExecutionResult is stable, make this deprecated
-        // DeprecationLogger.deprecateMethod(AbstractExecTask.class, "getExecResult()").replaceWith("AbstractExecTask.getExecutionResult()").undocumented().nagUser();
+        DeprecationLogger.deprecateMethod(AbstractExecTask.class, "getExecResult()")
+            .replaceWith("getExecutionResult()")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "exec_properties")
+            .nagUser();
+
         return execResult.getOrNull();
     }
 
