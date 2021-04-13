@@ -41,6 +41,7 @@ import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerp
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.normalization.java.ApiClassExtractor;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -51,6 +52,7 @@ import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierar
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -209,7 +211,12 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         @Nullable
         private HashCode hashContent(RegularFileSnapshot fileSnapshot, RelativePathSupplier relativePath) {
             RegularFileSnapshotContext fileSnapshotContext = new DefaultRegularFileSnapshotContext(() -> Iterables.toArray(relativePath.getSegments(), String.class), fileSnapshot);
-            if (ZipHasher.isZipFile(fileSnapshotContext.getSnapshot().getName())) {
+            String name = fileSnapshotContext.getSnapshot().getName();
+            if (ZipHasher.isZipFile(name)) {
+                if (name.startsWith("gradle-api-")) {
+                    return ApiClassExtractor.withLogContext(new File("/tmp/shaded-jar-logs/" + name + "-fingerprinting.txt"),
+                        () -> cacheService.hashFile(fileSnapshotContext, zipHasher, zipHasherConfigurationHash));
+                }
                 return cacheService.hashFile(fileSnapshotContext, zipHasher, zipHasherConfigurationHash);
             } else if (relativePath.isRoot()) {
                 return nonZipFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());

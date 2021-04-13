@@ -16,14 +16,19 @@
 
 package org.gradle.internal.normalization.java;
 
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.normalization.java.impl.ApiMemberSelector;
 import org.gradle.internal.normalization.java.impl.ApiMemberWriter;
 import org.gradle.internal.normalization.java.impl.MethodStubbingApiMemberAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 /**
@@ -36,6 +41,7 @@ public class ApiClassExtractor {
     private final Set<String> exportedPackages;
     private final boolean apiIncludesPackagePrivateMembers;
     private final ApiMemberWriterFactory apiMemberWriterFactory;
+    private static final ThreadLocal<PrintWriter> DEBUG_LOGGER = new ThreadLocal<>();
 
     public ApiClassExtractor(Set<String> exportedPackages) {
         this(exportedPackages, classWriter -> new ApiMemberWriter(new MethodStubbingApiMemberAdapter(classWriter)));
@@ -45,6 +51,26 @@ public class ApiClassExtractor {
         this.exportedPackages = exportedPackages.isEmpty() ? null : exportedPackages;
         this.apiIncludesPackagePrivateMembers = exportedPackages.isEmpty();
         this.apiMemberWriterFactory = apiMemberWriterFactory;
+    }
+
+    public static <T> T withLogContext(File logFile, Supplier<T> action) {
+        logFile.getParentFile().mkdirs();
+        try (PrintWriter wrt = new PrintWriter(logFile, "utf-8")) {
+            DEBUG_LOGGER.set(wrt);
+            return action.get();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            DEBUG_LOGGER.remove();
+        }
+        return null;
+    }
+
+    private static void debugLog(String line) {
+        PrintWriter printWriter = DEBUG_LOGGER.get();
+        if (printWriter != null) {
+            printWriter.println(line);
+        }
     }
 
     private boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
@@ -78,12 +104,16 @@ public class ApiClassExtractor {
             return Optional.empty();
         }
         ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        ApiMemberSelector visitor = new ApiMemberSelector(originalClassReader.getClassName(), apiMemberWriterFactory.makeApiMemberWriter(apiClassWriter), apiIncludesPackagePrivateMembers);
+        String className = originalClassReader.getClassName();
+        ApiMemberSelector visitor = new ApiMemberSelector(className, apiMemberWriterFactory.makeApiMemberWriter(apiClassWriter), apiIncludesPackagePrivateMembers);
         originalClassReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         if (visitor.isPrivateInnerClass()) {
+            debugLog(className + ";skipped");
             return Optional.empty();
         }
-        return Optional.of(apiClassWriter.toByteArray());
+        byte[] apiBytes = apiClassWriter.toByteArray();
+        debugLog(className + ";" + Hashing.hashBytes(apiBytes));
+        return Optional.of(apiBytes);
     }
 
     private static String packageNameOf(String internalClassName) {

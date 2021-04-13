@@ -25,6 +25,7 @@ import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -41,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,6 +60,8 @@ class RuntimeShadedJarCreator {
     private static final String CLASS_DESC = "Ljava/lang/Class;";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarCreator.class);
+
+    private static final ThreadLocal<PrintWriter> DEBUG_LOGGER = new ThreadLocal<>();
 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final ImplementationDependencyRelocator remapper;
@@ -77,10 +81,23 @@ class RuntimeShadedJarCreator {
         progressLogger.setDescription("Generating " + outputJar.getName());
         progressLogger.started();
         try {
-            createFatJar(outputJar, files, progressLogger);
+            File logFile = new File("/tmp/shaded-jar-logs/" + outputJar.getName() + "-shading.txt");
+            logFile.getParentFile().mkdirs();
+            try (PrintWriter wrt = new PrintWriter(logFile, "utf-8")) {
+                DEBUG_LOGGER.set(wrt);
+                createFatJar(outputJar, files, progressLogger);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                DEBUG_LOGGER.remove();
+            }
         } finally {
             progressLogger.completed();
         }
+    }
+
+    private static void debugLog(String line) {
+        DEBUG_LOGGER.get().println(line);
     }
 
     private void createFatJar(final File outputJar, final Iterable<? extends File> files, final ProgressLogger progressLogger) {
@@ -212,7 +229,7 @@ class RuntimeShadedJarCreator {
         }
         byte[] bytes = entry.getContent();
         byte[] remappedClass = remapClass(className, bytes);
-
+        debugLog(className + ";" + Hashing.hashBytes(bytes) + ";" + Hashing.hashBytes(remappedClass));
         String remappedClassName = remapper.maybeRelocateResource(className);
         String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
 
