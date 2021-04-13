@@ -133,7 +133,7 @@ abstract class AbstractSmokeTest extends Specification {
         static artifactoryRepoOSSVersion = "6.16.0"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "5.3.0"
+        static aspectj = "5.3.3.3"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
         static undercouchDownload = Versions.of("4.1.1")

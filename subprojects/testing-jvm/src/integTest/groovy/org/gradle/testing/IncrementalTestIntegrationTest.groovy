@@ -131,10 +131,10 @@ public class BarTest {
         buildFile << """
             test {
                 reports.html {
-                    enabled = true
+                    required = true
                 }
                 reports.junitXml {
-                    enabled = false
+                    required = false
                     outputPerTestCase = Boolean.parseBoolean(project.property('outputPerTestCase'))
                 }
             }

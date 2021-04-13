@@ -45,7 +45,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
             task run(type: JavaExec) {
                 classpath = project.layout.files(compileJava)
-                main "driver.Driver"
+                mainClass = "driver.Driver"
                 args "1"
             }
         """
@@ -261,7 +261,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-
     @Issue("https://github.com/gradle/gradle/issues/12832")
     def "classpath can be replaced with a file collection including the replaced value"() {
         given:
@@ -275,6 +274,51 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        when:
+        run "run"
+
+        then:
+        executedAndNotSkipped ":run"
+    }
+
+    def "main setter method is deprecated"() {
+        given:
+        buildFile.text = """
+            plugins {
+                id("java")
+            }
+
+            task run(type: JavaExec) {
+                classpath = project.layout.files(compileJava)
+                main = "driver.Driver"
+            }
+        """
+
+        executer.expectDocumentedDeprecationWarning("The JavaExec.setMain(String) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#java_exec_properties")
+        when:
+        run "run"
+
+        then:
+        executedAndNotSkipped ":run"
+    }
+
+    def "main getter method is deprecated"() {
+        given:
+        buildFile.text = """
+            plugins {
+                id("java")
+            }
+
+            task run(type: JavaExec) {
+                classpath = project.layout.files(compileJava)
+                mainClass = "driver.Driver"
+                doLast {
+                    println main
+                }
+            }
+        """
+
+        executer.expectDocumentedDeprecationWarning("The JavaExec.getMain() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#java_exec_properties")
         when:
         run "run"
 

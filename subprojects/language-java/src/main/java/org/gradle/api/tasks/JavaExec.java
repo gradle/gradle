@@ -27,6 +27,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -63,7 +64,7 @@ import java.util.Map;
  * task runApp(type: JavaExec) {
  *   classpath = sourceSets.main.runtimeClasspath
  *
- *   main = 'package.Main'
+ *   mainClass = 'package.Main'
  *
  *   // arguments to pass to the application
  *   args 'appArg1'
@@ -123,7 +124,8 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         execResult = objectFactory.property(ExecResult.class);
 
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
-        javaExecSpec.getMainClass().convention(getMainClass().orElse(getProviderFactory().provider(this::getMain))); // go through 'main' to keep this compatible with existing convention mappings
+        javaExecSpec.getMainClass().convention(getMainClass().orElse(getProviderFactory()
+            .provider(() -> DeprecationLogger.whileDisabled(this::getMain)))); // go through 'main' to keep this compatible with existing convention mappings
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
         javaLauncher = objectFactory.property(JavaLauncher.class);
@@ -390,7 +392,14 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public String getMain() {
+        DeprecationLogger.deprecateMethod(JavaExec.class, "getMain()")
+            .withAdvice("Please use the mainClass property instead.")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "java_exec_properties")
+            .nagUser();
+
         return getMainClass().getOrNull();
     }
 
@@ -398,7 +407,14 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public JavaExec setMain(String mainClassName) {
+        DeprecationLogger.deprecateMethod(JavaExec.class, "setMain(String)")
+            .withAdvice("Please use the mainClass property instead.")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "java_exec_properties")
+            .nagUser();
+
         getMainClass().set(mainClassName);
         return this;
     }

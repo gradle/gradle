@@ -57,8 +57,8 @@ def codeCoverageReport = tasks.register('codeCoverageReport', JacocoReport) {
     executionData(coverageDataPath.incoming.artifactView { lenient(true) }.files.filter { it.exists() })
 
     reports {
-        html.enabled = true
-        xml.enabled = true
+        html.required = true
+        xml.required = true
     }
 }
 
