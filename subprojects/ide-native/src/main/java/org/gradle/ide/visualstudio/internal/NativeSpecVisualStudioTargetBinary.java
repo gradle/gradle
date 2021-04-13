@@ -38,8 +38,8 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;

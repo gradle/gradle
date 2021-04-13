@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.fixtures.msvcpp;
 
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 public enum VisualStudioVersion {
     VISUALSTUDIO_2012("11.0", "2012"),

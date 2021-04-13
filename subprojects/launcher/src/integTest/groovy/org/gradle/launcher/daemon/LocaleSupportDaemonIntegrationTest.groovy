@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.apache.commons.lang.LocaleUtils
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -92,7 +93,7 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
         Locale locale = Locale.ENGLISH
         buildScript """
             import org.gradle.util.GradleVersion
-            
+
             task printLocale {
                 doFirst {
                     println "GradleVersion: " + GradleVersion.current()
@@ -102,7 +103,7 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
         """
 
         when:
-        executer.withEnvironmentVars(("${GradleVersion.VERSION_OVERRIDE_VAR}".toString()): overrideVersion)
+        executer.withEnvironmentVars(("${DefaultGradleVersion.VERSION_OVERRIDE_VAR}".toString()): overrideVersion)
         runWithLocale(locale)
 
         then:

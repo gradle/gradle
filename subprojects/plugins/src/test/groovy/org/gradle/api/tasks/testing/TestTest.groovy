@@ -50,8 +50,8 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder
 
 import java.lang.ref.WeakReference
 
-import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.internal.WrapUtil.toLinkedSet
+import static org.gradle.util.internal.WrapUtil.toSet
 
 class TestTest extends AbstractConventionTaskTest {
     static final String TEST_PATTERN_1 = "pattern1"

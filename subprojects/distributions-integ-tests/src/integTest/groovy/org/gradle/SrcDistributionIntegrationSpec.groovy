@@ -20,7 +20,7 @@ import org.apache.tools.ant.taskdefs.Expand
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.AntUtil
+import org.gradle.util.internal.AntUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

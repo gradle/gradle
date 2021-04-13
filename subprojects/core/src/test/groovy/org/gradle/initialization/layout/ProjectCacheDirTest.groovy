@@ -49,7 +49,7 @@ class ProjectCacheDirTest extends Specification implements VersionSpecificCacheC
         def oldButRecentlyUsedCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.4.5"), USED_TODAY)
         def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_USED_WITHIN_7_DAYS)
         def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_7_DAYS)
-        def newerCacheDir = createVersionSpecificCacheDir(currentVersion.getNextMajor(), NOT_USED_WITHIN_7_DAYS)
+        def newerCacheDir = createVersionSpecificCacheDir(currentVersion.getNextMajorVersion(), NOT_USED_WITHIN_7_DAYS)
 
         when:
         projectCacheDir.stop()

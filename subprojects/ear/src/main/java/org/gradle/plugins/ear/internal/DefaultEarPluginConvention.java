@@ -24,7 +24,7 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.plugins.ear.EarPluginConvention;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;

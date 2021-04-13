@@ -27,7 +27,7 @@ import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -58,11 +58,11 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     public static TestExecutionRequestAction create(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, ProviderInternalTestExecutionRequest testExecutionRequest) {
         ImmutableSet<String> classNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
         return new TestExecutionRequestAction(clientSubscriptions, startParameter,
-                ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),
-                classNames,
-                getInternalJvmTestRequests(testExecutionRequest, classNames),
-                getDebugOptions(testExecutionRequest),
-                getTaskAndTests(testExecutionRequest));
+            ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),
+            classNames,
+            getInternalJvmTestRequests(testExecutionRequest, classNames),
+            getDebugOptions(testExecutionRequest),
+            getTaskAndTests(testExecutionRequest));
     }
 
     private static Set<InternalJvmTestRequest> getInternalJvmTestRequests(ProviderInternalTestExecutionRequest testExecutionRequest, Set<String> classNames) {
@@ -110,6 +110,11 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     @Override
     public boolean isRunTasks() {
         return true;
+    }
+
+    @Override
+    public boolean isCreateModel() {
+        return false;
     }
 
     public Collection<String> getTestClassNames() {

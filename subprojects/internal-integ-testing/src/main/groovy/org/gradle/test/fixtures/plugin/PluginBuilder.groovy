@@ -31,7 +31,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyRepository
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class PluginBuilder {
     static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";

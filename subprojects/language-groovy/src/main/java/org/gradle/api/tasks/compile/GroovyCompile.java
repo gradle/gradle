@@ -64,8 +64,8 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.IncubationLogger;
+import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 

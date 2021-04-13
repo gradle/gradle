@@ -32,7 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.gradle.util.CollectionUtils.any;
+import static org.gradle.util.internal.CollectionUtils.any;
 
 public class AggregateTestResultsProvider implements TestResultsProvider {
     private final Iterable<TestResultsProvider> providers;

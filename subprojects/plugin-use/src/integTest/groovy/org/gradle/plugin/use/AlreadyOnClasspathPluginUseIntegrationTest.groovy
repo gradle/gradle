@@ -18,7 +18,7 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 
 class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec {

@@ -29,14 +29,14 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.Transformers;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Uploads the artifacts of a {@link Configuration} to a set of repositories.

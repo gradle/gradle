@@ -21,7 +21,7 @@ import org.gradle.internal.logging.events.FlushOutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.time.MockClock
-import org.gradle.util.MockExecutor
+import org.gradle.util.internal.MockExecutor
 import spock.lang.Subject
 
 class ThrottlingOutputEventListenerTest extends OutputSpecification {

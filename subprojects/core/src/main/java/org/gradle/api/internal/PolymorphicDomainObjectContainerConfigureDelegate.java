@@ -20,7 +20,7 @@ import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 public class PolymorphicDomainObjectContainerConfigureDelegate<T> extends ConfigureDelegate {
     private final PolymorphicDomainObjectContainer<T> _container;

@@ -67,7 +67,7 @@ import java.lang.annotation.Annotation
 
 import static ModifierAnnotationCategory.NORMALIZATION
 import static org.gradle.internal.reflect.validation.Severity.WARNING
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeMetadataStoreTest extends Specification implements ValidationMessageChecker {
     static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()

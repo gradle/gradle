@@ -25,7 +25,7 @@ import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.time.Clock;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

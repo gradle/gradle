@@ -18,6 +18,8 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -25,6 +27,7 @@ import java.util.Collection;
 /**
  * A registry of all the builds present in a build tree.
  */
+@ServiceScope(Scopes.BuildTree.class)
 public interface BuildStateRegistry {
     /**
      * Creates the root build.

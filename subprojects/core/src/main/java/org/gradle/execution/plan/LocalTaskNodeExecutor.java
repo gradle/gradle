@@ -32,7 +32,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.util.ArrayDeque;

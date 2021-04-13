@@ -43,7 +43,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
-            add(DefaultConfigurationCacheSupport::class.java)
             add(BuildTreeListenerManager::class.java)
             add(ConfigurationCacheStartParameter::class.java)
             add(DefaultInjectedClasspathInstrumentationStrategy::class.java)

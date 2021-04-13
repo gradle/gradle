@@ -32,7 +32,7 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLibraries;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.metadata.VisualCppMetadata;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.List;

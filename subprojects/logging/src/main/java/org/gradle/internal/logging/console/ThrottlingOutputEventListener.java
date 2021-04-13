@@ -90,9 +90,10 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     }
 
     private void renderNow() {
-        for (OutputEvent event : queue) {
+        // Remove event only as it is handled, and leave unhandled events in the queue
+        while (!queue.isEmpty()) {
+            OutputEvent event = queue.remove(0);
             listener.onOutput(event);
         }
-        queue.clear();
     }
 }

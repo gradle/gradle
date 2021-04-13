@@ -30,8 +30,8 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.Arrays;
 import java.util.List;

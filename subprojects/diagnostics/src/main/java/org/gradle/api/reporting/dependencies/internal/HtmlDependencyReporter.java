@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.util.Set;

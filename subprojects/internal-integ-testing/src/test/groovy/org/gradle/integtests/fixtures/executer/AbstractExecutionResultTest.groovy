@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 

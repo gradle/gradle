@@ -17,6 +17,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.StartParameterInternal;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -183,6 +184,6 @@ public class GradleBuild extends ConventionTask {
     @TaskAction
     void build() {
         // TODO: Allow us to inject plugins into nested builds too.
-        runNestedRootBuild(buildName, getStartParameter(), getServices());
+        runNestedRootBuild(buildName, (StartParameterInternal) getStartParameter(), getServices());
     }
 }

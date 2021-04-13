@@ -33,7 +33,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;

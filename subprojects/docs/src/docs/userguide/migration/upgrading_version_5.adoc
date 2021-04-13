@@ -444,7 +444,7 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
 
 ==== Other Deprecated Behaviors and APIs
 
-* The `org.gradle.util.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
+* The `org.gradle.util.internal.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
 * The deprecated class `org.gradle.api.tasks.compile.CompilerArgumentProvider` has been removed.
   Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[org.gradle.process.CommandLineArgumentProvider] instead.
 * The deprecated class `org.gradle.api.ConventionProperty` has been removed.

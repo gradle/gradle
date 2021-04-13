@@ -17,7 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.ToBeImplemented
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll

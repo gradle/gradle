@@ -34,7 +34,7 @@ import org.gradle.internal.stream.EncodedStream;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.DataOutputStream;
 import java.io.File;

@@ -19,7 +19,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.tasks.AbstractConventionTaskTest
 
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 
 import static org.gradle.api.tasks.compile.AbstractCompileTest.*
 

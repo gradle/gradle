@@ -23,7 +23,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import static org.gradle.api.internal.notations.ModuleNotationValidation.*;
 

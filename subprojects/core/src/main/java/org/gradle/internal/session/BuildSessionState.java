@@ -16,7 +16,7 @@
 
 package org.gradle.internal.session;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildEventConsumer;
@@ -40,7 +40,7 @@ public class BuildSessionState implements Closeable {
 
     public BuildSessionState(GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry,
                              CrossBuildSessionState crossBuildSessionServices,
-                             StartParameter startParameter,
+                             StartParameterInternal startParameter,
                              BuildRequestMetaData requestMetaData,
                              ClassPath injectedPluginClassPath,
                              BuildCancellationToken buildCancellationToken,

@@ -45,7 +45,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                         maven { url "${mavenRepo.uri}" }
                     }
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }
@@ -55,7 +55,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
                 throw new RuntimeException('exception thrown on configure')
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -77,7 +77,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 implementation "org.different:buildB:1.0"
                 implementation "org.test:buildC:1.0"
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -95,7 +95,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             dependencies {
                 implementation "org.test:buildB:1.0"
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -120,7 +120,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             dependencies {
                 implementation "org.test:buildB:1.0"
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -142,7 +142,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         singleProjectBuild("buildC") {
             buildFile << """
                 apply plugin: 'java'
-"""
+            """
         }
         withArgs(["--include-build", '../buildB', "--include-build", '../buildC'])
         buildA.buildFile << """
@@ -150,7 +150,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 implementation "org.test:buildB:1.0"
                 implementation "org.test:buildC:1.0"
             }
-"""
+        """
         includedBuilds = []
 
         when:
@@ -176,7 +176,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 implementation "org.test:b1:1.0"
                 implementation "org.test:b2:1.0"
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -200,12 +200,12 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             dependencies {
                 implementation "org.test:buildB:1.0"
             }
-"""
+        """
         buildB.buildFile << """
             dependencies {
                 implementation "org.test:b2:1.0"
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -231,12 +231,12 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             dependencies {
                 implementation "org.test:buildB:1.0"
             }
-"""
+        """
         buildB.buildFile << """
             dependencies {
                 implementation "org.test:transitive2:1.0"
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -259,10 +259,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             dependencies {
                 implementation "org.test:buildB:1.0"
             }
-"""
+        """
         buildB.settingsFile << """
-include ':b1:b11'
-"""
+            include ':b1:b11'
+        """
         buildB.buildFile << """
             dependencies {
                 implementation project(':b1')
@@ -273,7 +273,7 @@ include ':b1:b11'
                     implementation project("b11") // Relative project path
                 }
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -298,14 +298,14 @@ include ':b1:b11'
             dependencies {
                 implementation("org.test:buildB:1.0")
             }
-"""
+        """
         buildB.buildFile << """
             dependencies {
                 implementation("org.test:transitive2:1.0")  {
                     exclude module: 'transitive1'
                 }
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -326,16 +326,16 @@ include ':b1:b11'
             dependencies {
                 implementation "org.test:buildB:1.0"
             }
-"""
+        """
         buildB.buildFile << """
             dependencies {
                 implementation "org.test:buildC:1.0"
             }
-"""
+        """
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
                 apply plugin: 'java'
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -363,7 +363,7 @@ include ':b1:b11'
             dependencies {
                 implementation "org.external:external-dep:1.0"
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -384,7 +384,7 @@ include ':b1:b11'
             dependencies {
                 implementation("org.test:buildB:1.0") { force = true }
             }
-"""
+        """
 
         when:
         executer.expectDeprecationWarning()
@@ -408,7 +408,7 @@ include ':b1:b11'
                 implementation "org.external:external-dep:1.0"
             }
             configurations.runtimeClasspath.resolutionStrategy.force("org.test:buildB:5.0")
-"""
+        """
 
         when:
         checkDependencies()
@@ -441,10 +441,10 @@ include ':b1:b11'
                     }
                 }
                 dependencySubstitution {
-                    substitute module("org.other:something-else:1.0") with module("org.test:b1:1.0")
+                    substitute module("org.other:something-else:1.0") using module("org.test:b1:1.0")
                 }
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -469,13 +469,13 @@ include ':b1:b11'
             dependencies {
                 implementation "group.requires.subproject.evaluation:b1:1.0"
             }
-"""
+        """
 
         buildB.file("b1", "build.gradle") << """
-afterEvaluate {
-    group = 'group.requires.subproject.evaluation'
-}
-"""
+            afterEvaluate {
+                group = 'group.requires.subproject.evaluation'
+            }
+        """
 
         when:
         withArgs(args)
@@ -503,17 +503,17 @@ afterEvaluate {
                 implementation "org.test:buildB:1.0"
                 implementation "org.test:buildC:1.0"
             }
-"""
+        """
 
         def buildC = rootDir.file("hierarchy", "buildB");
         buildC.file('settings.gradle') << """
             rootProject.name = 'buildC'
-"""
+        """
         buildC.file('build.gradle') << """
             apply plugin: 'java'
             group = 'org.test'
             version = '1.0'
-"""
+        """
 
         includeBuildAs(buildC, 'buildC')
 
@@ -540,7 +540,7 @@ afterEvaluate {
                 allprojects {
                     apply plugin: 'java'
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -549,7 +549,7 @@ afterEvaluate {
                 implementation "org.test:b1:1.0"
                 implementation "org.test:c1:1.0"
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -575,7 +575,7 @@ afterEvaluate {
                     apply plugin: 'java'
                     version = '3.0'
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -583,7 +583,7 @@ afterEvaluate {
             dependencies {
                 implementation "org.test:b1:1.0"
             }
-"""
+        """
 
         when:
         checkDependenciesFails()
@@ -598,19 +598,19 @@ afterEvaluate {
         def buildC = multiProjectBuild("buildC", ['c1', 'c2']);
         buildC.settingsFile << """
             include ':nested:c1'
-"""
+        """
         buildC.buildFile << """
             allprojects {
                 apply plugin: 'java'
             }
-"""
+        """
         includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
                 implementation "org.test:c1:1.0"
             }
-"""
+        """
 
         when:
         checkDependenciesFails()
@@ -654,7 +654,7 @@ afterEvaluate {
                     apply plugin: 'java'
                     version = '3.0'
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -662,13 +662,13 @@ afterEvaluate {
             dependencies {
                 implementation ${dependencyNotation}
             }
-"""
+        """
 
         buildA.buildFile << """
             dependencies {
                 implementation "org.test:buildB:1.0"
             }
-"""
+        """
     }
 
     def "handles unused participant with no defined configurations"() {
@@ -680,7 +680,7 @@ afterEvaluate {
             dependencies {
                 implementation "org.test:buildB:1.0"
             }
-"""
+        """
 
         when:
         checkDependencies()
@@ -703,7 +703,7 @@ afterEvaluate {
             dependencies {
                 implementation "org.test:buildC:1.0"
             }
-"""
+        """
 
         when:
         checkDependenciesFails()

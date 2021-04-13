@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.versions
 
 import org.gradle.api.JavaVersion
 import org.gradle.internal.Factory
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 import static org.junit.Assume.assumeTrue
 

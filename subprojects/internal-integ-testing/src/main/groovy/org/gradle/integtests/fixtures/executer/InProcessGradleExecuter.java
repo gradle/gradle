@@ -77,10 +77,10 @@ import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializeMap;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.IncubationLogger;
+import org.gradle.util.internal.IncubationLogger;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
 

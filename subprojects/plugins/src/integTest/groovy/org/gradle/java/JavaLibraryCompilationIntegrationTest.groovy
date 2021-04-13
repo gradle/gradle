@@ -411,7 +411,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
-                    assert org.gradle.util.CollectionUtils.single(lazyInputs.files).toPath().endsWith('${expectedDirName}')
+                    assert org.gradle.util.internal.CollectionUtils.single(lazyInputs.files).toPath().endsWith('${expectedDirName}')
                 }
             }
         """

@@ -19,7 +19,7 @@ package org.gradle.configurationcache.fixtures
 import groovy.transform.Immutable
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.util.GFileUtils.relativePathOf
+import static org.gradle.util.internal.GFileUtils.relativePathOf
 
 class ScriptChangeFixture {
 

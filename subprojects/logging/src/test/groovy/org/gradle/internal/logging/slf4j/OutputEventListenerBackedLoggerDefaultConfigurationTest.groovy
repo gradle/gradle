@@ -18,8 +18,8 @@ package org.gradle.internal.logging.slf4j
 
 import org.gradle.api.logging.Logging
 import org.gradle.internal.time.Time
-import org.gradle.util.RedirectStdOutAndErr
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.RedirectStdOutAndErr
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Specification

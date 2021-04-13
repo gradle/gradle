@@ -22,7 +22,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Unroll
 
-import static org.gradle.util.GUtil.toCamelCase
+import static org.gradle.util.internal.GUtil.toCamelCase
 
 class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     @Override

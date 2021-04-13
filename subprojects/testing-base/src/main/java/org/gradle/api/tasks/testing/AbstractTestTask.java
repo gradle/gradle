@@ -76,8 +76,8 @@ import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.util.ClosureBackedAction;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;

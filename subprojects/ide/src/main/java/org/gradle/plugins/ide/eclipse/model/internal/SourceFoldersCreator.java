@@ -36,7 +36,7 @@ import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;

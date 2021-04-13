@@ -56,7 +56,7 @@ import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.BuildCommencedTimeProvider
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject

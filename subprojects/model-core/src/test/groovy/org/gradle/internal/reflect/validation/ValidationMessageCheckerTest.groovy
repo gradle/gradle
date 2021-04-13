@@ -19,7 +19,7 @@ package org.gradle.internal.reflect.validation
 import groovy.transform.CompileStatic
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.util.GradleVersion
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 import java.util.regex.Pattern

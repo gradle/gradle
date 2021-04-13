@@ -20,7 +20,7 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule

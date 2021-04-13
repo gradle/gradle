@@ -24,15 +24,15 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.util.Matchers
-import org.gradle.util.Resources
-import org.gradle.util.ToBeImplemented
+import org.gradle.util.internal.Resources
+import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
 

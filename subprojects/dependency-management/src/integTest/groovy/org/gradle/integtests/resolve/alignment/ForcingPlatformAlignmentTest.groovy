@@ -158,7 +158,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
             configurations {
                 conf.resolutionStrategy.dependencySubstitution {
-                    substitute module("org:databind") with module("org:databind:2.7.9")
+                    substitute module("org:databind") using module("org:databind:2.7.9")
                 }
             }
         """
@@ -287,8 +287,8 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         buildFile << """
             configurations {
                 conf.resolutionStrategy.dependencySubstitution {
-                    substitute module('org:core') with module('org:core:2.9.4')
-                    substitute module('org:databind') with module('org:databind:2.7.9')
+                    substitute module('org:core') using module('org:core:2.9.4')
+                    substitute module('org:databind') using module('org:databind:2.7.9')
                 }
             }
             dependencies {

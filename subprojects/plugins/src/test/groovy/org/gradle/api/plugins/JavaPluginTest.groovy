@@ -31,8 +31,8 @@ import org.junit.Assert
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.internal.WrapUtil.toLinkedSet
+import static org.gradle.util.internal.WrapUtil.toSet
 
 class JavaPluginTest extends AbstractProjectBuilderSpec {
     def "adds configurations to the project"() {
