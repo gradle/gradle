@@ -42,11 +42,11 @@ def codeCoverageReport = tasks.register('codeCoverageReport', JacocoReport) {
     reports {
         // xml is usually used to integrate code coverage with
         // other tools like SonarQube, Coveralls or Codecov
-        xml.enabled true
+        xml.required = true
 
         // HTML reports can be used to see code coverage
         // without any external tools
-        html.enabled true
+        html.required = true
     }
 }
 
