@@ -43,7 +43,7 @@ object PublicApi {
         "org/gradle/vcs/**",
         "org/gradle/work/**",
         "org/gradle/workers/**",
-        "org/gradle/util/**",
+        "org/gradle/util/**", // contains Path that clashes with `org.gradle.api.model.Path` imported above. This line should not appear before "org/gradle/api/**"
     )
 
     val excludes = listOf("**/internal/**")
