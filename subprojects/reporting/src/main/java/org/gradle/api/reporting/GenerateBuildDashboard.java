@@ -98,7 +98,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
         getProject().allprojects(new Action<Project>() {
             @Override
             public void execute(Project project) {
-                project.getTasks().all(new Action<Task>() {
+                project.getTasks().configureEach(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
                         if (!(task instanceof Reporting)) {
