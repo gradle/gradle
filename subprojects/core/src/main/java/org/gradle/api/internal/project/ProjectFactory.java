@@ -74,6 +74,7 @@ public class ProjectFactory implements IProjectFactory {
             if (!contains(project.getRootProject().getProjectDir(), project.getProjectDir())) {
                 // TODO Find a right place
                 DeprecationLogger.deprecateBehaviour("Subproject located outside of the root project.").willBeRemovedInGradle8().undocumented().nagUser();
+                throw new IllegalStateException("Subproject located outside of the root project.");
             }
             NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
             gradle.getServices().get(DependenciesAccessors.class).createExtensions(project);
