@@ -153,3 +153,10 @@ The last set of classes have no external or internal usages and therefore were d
 
 
 
+
+[[java_exec_properties]]
+==== Properties deprecated in JavaExec task
+
+* The link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:main[main] getters and setters
+in link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec] task have been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:mainClass[mainClass] property instead.

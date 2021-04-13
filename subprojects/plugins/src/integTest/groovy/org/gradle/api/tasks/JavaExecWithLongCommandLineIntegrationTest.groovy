@@ -43,7 +43,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
             task run(type: JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath
                 classpath extraClasspath
-                main "driver.Driver"
+                mainClass = "driver.Driver"
             }
 
             task runWithJavaExec {
@@ -54,7 +54,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                             executable run.executable
                         }
                         classpath = run.classpath
-                        main run.main
+                        mainClass = run.mainClass
                         args run.args
                     }
                 }
@@ -64,7 +64,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 dependsOn sourceSets.main.runtimeClasspath
                 def runExecutable = run.executable ? run.executable : null
                 def runClasspath = run.classpath
-                def runMain = run.main
+                def runMain = run.mainClass
                 def runArgs = run.args
                 def execOps = services.get(ExecOperations)
                 doLast {
@@ -73,7 +73,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                            executable = runExecutable
                         }
                         classpath = runClasspath
-                        main runMain
+                        mainClass = runMain
                         args runArgs
                     }
                 }
