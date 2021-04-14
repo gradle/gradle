@@ -20,6 +20,7 @@ import com.google.common.base.Supplier;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.file.archive.ZipEntry;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,10 +28,12 @@ class JdkZipEntry implements ZipEntry {
 
     private final java.util.zip.ZipEntry entry;
     private final Supplier<InputStream> inputStreamSupplier;
+    private final Runnable closeAction;
 
-    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier) {
+    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier, @Nullable Runnable closeAction) {
         this.entry = entry;
         this.inputStreamSupplier = inputStreamSupplier;
+        this.closeAction = closeAction;
     }
 
     @Override
@@ -45,19 +48,33 @@ class JdkZipEntry implements ZipEntry {
 
     @Override
     public byte[] getContent() throws IOException {
-        int size = size();
-        if (size >= 0) {
-            byte[] content = new byte[size];
-            ByteStreams.readFully(getInputStream(), content);
-            return content;
-        } else {
-            return ByteStreams.toByteArray(getInputStream());
-        }
+        return withInputStream(new InputStreamAction<byte[]>() {
+            @Override
+            public byte[] run(InputStream inputStream) throws IOException {
+                int size = size();
+                if (size >= 0) {
+                    byte[] content = new byte[size];
+                    ByteStreams.readFully(inputStream, content);
+                    return content;
+                } else {
+                    return ByteStreams.toByteArray(inputStream);
+                }
+            }
+        });
     }
 
     @Override
-    public InputStream getInputStream() {
-        return inputStreamSupplier.get();
+    public <T> T withInputStream(InputStreamAction<T> action) throws IOException {
+        InputStream is = inputStreamSupplier.get();
+        try {
+            return action.run(is);
+        } finally {
+            if (closeAction != null) {
+                closeAction.run();
+            } else {
+                is.close();
+            }
+        }
     }
 
     @Override

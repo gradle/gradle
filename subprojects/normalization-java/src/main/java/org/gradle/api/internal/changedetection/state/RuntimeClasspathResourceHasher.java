@@ -42,8 +42,10 @@ public class RuntimeClasspathResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
         HashingOutputStream hasher = Hashing.primitiveStreamHasher();
-        ByteStreams.copy(zipEntryContext.getEntry().getInputStream(), hasher);
-        return hasher.hash();
+        return zipEntryContext.getEntry().withInputStream(inputStream -> {
+            ByteStreams.copy(inputStream, hasher);
+            return hasher.hash();
+        });
     }
 
     @Override

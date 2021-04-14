@@ -54,9 +54,10 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     private final HashingExceptionReporter hashingExceptionReporter;
 
     public ZipHasher(ResourceHasher resourceHasher) {
-        this(resourceHasher, (s, e) -> {
-            LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e);
-        });
+        this(
+            resourceHasher,
+            (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e)
+        );
     }
 
     public ZipHasher(ResourceHasher resourceHasher, HashingExceptionReporter hashingExceptionReporter) {
@@ -109,7 +110,10 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
             ZipEntryContext zipEntryContext = new ZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
-                fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(zipEntry.getInputStream()));
+                zipEntryContext.getEntry().withInputStream((ZipEntry.InputStreamAction<Void>) inputStream -> {
+                    fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
+                    return null;
+                });
             } else {
                 fingerprintZipEntry(zipEntryContext, fingerprints);
             }

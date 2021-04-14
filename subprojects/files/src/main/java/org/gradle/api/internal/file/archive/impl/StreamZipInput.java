@@ -51,6 +51,15 @@ public class StreamZipInput implements ZipInput {
                     public InputStream get() {
                         return in;
                     }
+                }, new Runnable() {
+                    @Override
+                    public void run()  {
+                        try {
+                            in.closeEntry();
+                        } catch (IOException e) {
+                            throw new FileException(e);
+                        }
+                    }
                 });
             }
         };
