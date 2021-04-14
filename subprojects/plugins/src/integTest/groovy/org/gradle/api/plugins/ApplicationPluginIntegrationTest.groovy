@@ -528,7 +528,7 @@ startScripts {
             }
         """)
 
-        executer.expectDocumentedDeprecationWarning("The CreateStartScripts.setMainClassName() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#start_scripts_properties")
+        executer.expectDocumentedDeprecationWarning("The CreateStartScripts.mainClassName property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. See https://docs.gradle.org/current/dsl/org.gradle.jvm.application.tasks.CreateStartScripts.html#org.gradle.jvm.application.tasks.CreateStartScripts:mainClassName for more details.")
 
         then:
         succeeds("startScripts")
@@ -548,7 +548,7 @@ startScripts {
             }
         """)
 
-        executer.expectDocumentedDeprecationWarning("The CreateStartScripts.getMainClassName() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#start_scripts_properties")
+        executer.expectDocumentedDeprecationWarning("The CreateStartScripts.mainClassName property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. See https://docs.gradle.org/current/dsl/org.gradle.jvm.application.tasks.CreateStartScripts.html#org.gradle.jvm.application.tasks.CreateStartScripts:mainClassName for more details.")
 
         then:
         succeeds("startScripts")

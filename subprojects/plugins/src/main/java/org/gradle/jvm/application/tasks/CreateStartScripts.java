@@ -255,21 +255,23 @@ public class CreateStartScripts extends ConventionTask {
     @Nullable
     @Deprecated
     public String getMainClassName() {
-        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "getMainClassName()")
-            .withAdvice("Please use the mainClass property instead.")
+        DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
+            .replaceWith("mainClass")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "start_scripts_properties")
+            .withDslReference()
             .nagUser();
+
         return mainClass.getOrNull();
     }
 
     @Deprecated
     public void setMainClassName(@Nullable String mainClassName) {
-        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "setMainClassName()")
-            .withAdvice("Please use the mainClass property instead.")
+        DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
+            .replaceWith("mainClass")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "start_scripts_properties")
+            .withDslReference()
             .nagUser();
+
         this.mainClass.set(mainClassName);
     }
 
