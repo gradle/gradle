@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 
-import java.util.Collection;
+import java.util.function.Consumer;
 
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
@@ -54,7 +54,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     }
 
     @Override
-    public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
+    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
         // Start task execution if necessary: this is required for building plugin artifacts,
         // since these are built on-demand prior to the regular start signal for included builds.
         includedBuilds.populateTaskGraphs();

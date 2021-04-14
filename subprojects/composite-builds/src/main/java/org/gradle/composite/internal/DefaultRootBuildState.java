@@ -27,6 +27,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.concurrent.Stoppable;
@@ -68,7 +69,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public File getBuildRootDir() {
-        return gradleLauncher.getBuildRootDir();
+        return gradleLauncher.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
@@ -78,8 +79,8 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public <T> T run(Function<? super BuildController, T> action) {
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
+        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         GradleInternal gradle = buildController.getGradle();
         buildLifecycleListener.afterStart(gradle);
         try {

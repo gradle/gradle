@@ -17,11 +17,9 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.Stoppable;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.function.Consumer;
 
 /**
@@ -32,7 +30,7 @@ public interface GradleLauncher extends Stoppable {
     GradleInternal getGradle();
 
     /**
-     * Evaluates the settings for this build, if not already available.
+     * Configures the settings for this build, if not already available.
      *
      * @return The loaded settings instance.
      */
@@ -46,29 +44,22 @@ public interface GradleLauncher extends Stoppable {
     GradleInternal getConfiguredBuild();
 
     /**
-     * The root directory of the build, never null.
-     *
-     * @see BuildLayout#getRootDirectory()
-     */
-    File getBuildRootDir();
-
-    /**
-     * Schedules the specified tasks for this build.
+     * Schedules the specified tasks for this build. Configures the build, if necessary.
      */
     void scheduleTasks(final Iterable<String> tasks);
 
     /**
-     * Schedule requested tasks.
+     * Schedule requested tasks, as defined in the {@link org.gradle.StartParameter} for this build. Configures the build, if necessary.
      */
     void scheduleRequestedTasks();
 
     /**
-     * Executes the tasks scheduled for this build.
+     * Executes the tasks scheduled for this build. Does not automatically configure the build or schedule any tasks.
      */
     void executeTasks();
 
     /**
-     * Stops task execution threads and calls the `buildFinished` hooks and other user code clean up.
+     * Calls the `buildFinished` hooks and other user code clean up.
      * Failures to finish the build are passed to the given consumer rather than thrown.
      *
      * @param failure The build failure that should be reported to the buildFinished hooks. When null, this launcher may use whatever failure it has already collected.

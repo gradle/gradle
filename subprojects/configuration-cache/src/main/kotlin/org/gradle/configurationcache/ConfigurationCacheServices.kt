@@ -70,6 +70,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
             add(DefaultConfigurationCache::class.java)
+            add(DefaultBuildModelControllerFactory::class.java)
         }
     }
 }

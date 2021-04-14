@@ -20,20 +20,16 @@ import org.gradle.StartParameter
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.SettingsInternal
 import org.gradle.composite.internal.DefaultIncludedBuild
-import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.initialization.BuildCompletionListener
+import org.gradle.initialization.BuildModelController
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter
-import org.gradle.initialization.ConfigurationCache
 import org.gradle.initialization.DefaultGradleLauncher
 import org.gradle.initialization.DefaultGradleLauncherFactory
 import org.gradle.initialization.GradleLauncher
-import org.gradle.initialization.internal.InternalBuildFinishedListener
-import org.gradle.initialization.SettingsPreparer
-import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.exception.ExceptionAnalyser
+import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.build.BuildState
@@ -65,15 +61,13 @@ open class ConfigurationCacheIncludedBuildState(
                         }
                 }
             },
-            { gradle: GradleInternal, serviceRegistry: BuildScopeServices, servicesToStop: List<*> ->
-                // Create a GradleLauncher with empty project, settings and task execution preparers
+            { gradle: GradleInternal, _: BuildModelController, serviceRegistry: BuildScopeServices, servicesToStop: List<*> ->
+                // Create a GradleLauncher with a no-op model controller
+                val controller = NoOpBuildModelController(gradle)
                 val listenerManager = serviceRegistry.get(ListenerManager::class.java)
-                val projectsPreparer = ProjectsPreparer {}
-                val settingsPreparer = SettingsPreparer {}
-                val taskExecutionPreparer = TaskExecutionPreparer {}
                 DefaultGradleLauncher(
                     gradle,
-                    projectsPreparer,
+                    controller,
                     serviceRegistry.get(ExceptionAnalyser::class.java),
                     gradle.buildListenerBroadcaster,
                     listenerManager.getBroadcaster(BuildCompletionListener::class.java),
@@ -81,9 +75,6 @@ open class ConfigurationCacheIncludedBuildState(
                     gradle.serviceOf(),
                     serviceRegistry,
                     servicesToStop,
-                    settingsPreparer,
-                    taskExecutionPreparer,
-                    NullConfigurationCache,
                     BuildOptionBuildOperationProgressEventsEmitter(gradle.serviceOf())
                 )
             }
@@ -93,25 +84,20 @@ open class ConfigurationCacheIncludedBuildState(
     private
     fun nestedBuildFactoryInternal(): DefaultGradleLauncherFactory.NestedBuildFactoryInternal =
         owner.nestedBuildFactory as DefaultGradleLauncherFactory.NestedBuildFactoryInternal
-
-    override fun loadSettings(): SettingsInternal =
-        gradle.settings
-
-    override fun getConfiguredBuild(): GradleInternal =
-        gradle
-
-    override fun addTasks(taskPaths: MutableIterable<String>) =
-        throw UnsupportedOperationException("Cannot add tasks ${taskPaths.toList()} to included build loaded from the cache.")
-
-    override fun scheduleTasks(tasks: MutableIterable<String>) =
-        Unit
 }
 
 
+// The model for this build is already fully populated and the tasks scheduled when it is created, so this controller does not need to do anything
 private
-object NullConfigurationCache : ConfigurationCache {
-    override fun canLoad(): Boolean = false
-    override fun load() = throw UnsupportedOperationException()
-    override fun prepareForConfiguration() = Unit
-    override fun save() = Unit
+class NoOpBuildModelController(val gradle: GradleInternal) : BuildModelController {
+    // TODO - this method should fail, as the fully configured settings object is not actually available
+    override fun getLoadedSettings() = gradle.settings
+    // TODO - this method should fail, as the fully configured build model is not actually available
+    override fun getConfiguredModel() = gradle
+    // TODO - this method should fail, as the tasks are already scheduled for this build
+    override fun scheduleTasks(tasks: Iterable<String>) {
+    }
+    override fun scheduleRequestedTasks() {
+        // Already done
+    }
 }

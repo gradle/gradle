@@ -19,35 +19,32 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class DefaultGradleLauncher implements GradleLauncher {
     private enum Stage {
-        LoadSettings, Configure, TaskGraph, RunTasks, Finished;
+        Created, Configure, TaskGraph, Finished;
 
         String getDisplayName() {
-            if (Configure.compareTo(this) >= 0) {
-                return "Configure";
-            } else {
+            if (TaskGraph == this) {
                 return "Build";
+            } else {
+                return "Configure";
             }
         }
     }
 
-    private final ProjectsPreparer projectsPreparer;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
     private final BuildCompletionListener buildCompletionListener;
@@ -56,18 +53,16 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
     private final GradleInternal gradle;
-    private final ConfigurationCache configurationCache;
-    private final SettingsPreparer settingsPreparer;
-    private final TaskExecutionPreparer taskExecutionPreparer;
+    private final BuildModelController modelController;
     private final BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter;
 
-    private Stage stage;
+    private Stage stage = Stage.Created;
     @Nullable
     private RuntimeException stageFailure;
 
     public DefaultGradleLauncher(
         GradleInternal gradle,
-        ProjectsPreparer projectsPreparer,
+        BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,
         BuildListener buildListener,
         BuildCompletionListener buildCompletionListener,
@@ -75,13 +70,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
         BuildWorkExecutor buildExecuter,
         BuildScopeServices buildServices,
         List<?> servicesToStop,
-        SettingsPreparer settingsPreparer,
-        TaskExecutionPreparer taskExecutionPreparer,
-        ConfigurationCache configurationCache,
         BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
     ) {
         this.gradle = gradle;
-        this.projectsPreparer = projectsPreparer;
+        this.modelController = buildModelController;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
         this.buildExecuter = buildExecuter;
@@ -89,9 +81,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
         this.servicesToStop = servicesToStop;
-        this.configurationCache = configurationCache;
-        this.settingsPreparer = settingsPreparer;
-        this.taskExecutionPreparer = taskExecutionPreparer;
         this.buildOptionBuildOperationProgressEventsEmitter = buildOptionBuildOperationProgressEventsEmitter;
     }
 
@@ -101,90 +90,65 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     @Override
-    public File getBuildRootDir() {
-        return buildServices.get(BuildLayout.class).getRootDirectory();
-    }
-
-    @Override
     public SettingsInternal getLoadedSettings() {
-        doBuildStages(Stage.LoadSettings);
-        return gradle.getSettings();
+        return withModel(BuildModelController::getLoadedSettings);
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        doBuildStages(Stage.Configure);
-        return gradle;
+        return withModel(BuildModelController::getConfiguredModel);
+    }
+
+    @Override
+    public void scheduleTasks(final Iterable<String> taskPaths) {
+        withModel(buildModelController -> {
+            stage = Stage.TaskGraph;
+            buildModelController.scheduleTasks(taskPaths);
+            return null;
+        });
     }
 
     @Override
     public void scheduleRequestedTasks() {
-        doBuildStages(Stage.TaskGraph);
+        withModel(buildModelController -> {
+            stage = Stage.TaskGraph;
+            buildModelController.scheduleRequestedTasks();
+            return null;
+        });
     }
 
     @Override
     public void executeTasks() {
-        doBuildStages(Stage.RunTasks);
+        withModel(buildModelController -> {
+            runWork();
+            return null;
+        });
     }
 
-    private void doBuildStages(Stage upTo) {
+    private <T> T withModel(Function<BuildModelController, T> action) {
         if (stageFailure != null) {
             throw new IllegalStateException("Cannot do further work as this build has failed.");
         }
         try {
-            if (stage == null && gradle.isRootBuild()) {
+            if (stage == Stage.Created && gradle.isRootBuild()) {
                 buildOptionBuildOperationProgressEventsEmitter.emit(gradle.getStartParameter());
             }
-            if (upTo == Stage.RunTasks) {
-                prepareTaskGraph();
-                runWork();
-            } else if (upTo == Stage.TaskGraph) {
-                prepareTaskGraph();
-            } else {
-                doClassicBuildStages(upTo);
+            try {
+                return action.apply(modelController);
+            } finally {
+                if (stage == Stage.Created) {
+                    stage = Stage.Configure;
+                }
             }
         } catch (Throwable t) {
-            stage = upTo;
             stageFailure = exceptionAnalyser.transform(t);
             throw stageFailure;
         }
     }
 
-    private void prepareTaskGraph() {
-        if (stage == Stage.TaskGraph) {
-            return;
-        }
-        if (configurationCache.canLoad()) {
-            doLoadTaskGraphFromCache();
-        } else {
-            doClassicBuildStages(Stage.TaskGraph);
-        }
-        stage = Stage.TaskGraph;
-    }
-
-    private void doClassicBuildStages(Stage upTo) {
-        if (stage == null) {
-            configurationCache.prepareForConfiguration();
-        }
-        prepareSettings();
-        if (upTo == Stage.LoadSettings) {
-            return;
-        }
-        prepareProjects();
-        if (upTo == Stage.Configure) {
-            return;
-        }
-        prepareTaskExecution();
-        configurationCache.save();
-    }
-
-    private void doLoadTaskGraphFromCache() {
-        configurationCache.load();
-    }
-
     @Override
     public void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector) {
-        if (stage == null || stage == Stage.Finished) {
+        if (stage == Stage.Created || stage == Stage.Finished) {
             return;
         }
 
@@ -203,55 +167,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
         stageFailure = null;
     }
 
-    private void prepareSettings() {
-        if (stage == null) {
-            settingsPreparer.prepareSettings(gradle);
-            stage = Stage.LoadSettings;
-        }
-    }
-
-    private void prepareProjects() {
-        if (stage == Stage.LoadSettings) {
-            projectsPreparer.prepareProjects(gradle);
-            stage = Stage.Configure;
-        }
-    }
-
-    private void prepareTaskExecution() {
-        if (stage == Stage.Configure) {
-            taskExecutionPreparer.prepareForTaskExecution(gradle);
-
-            stage = Stage.TaskGraph;
-        }
-    }
-
-    @Override
-    public void scheduleTasks(final Iterable<String> taskPaths) {
-        boolean added = getConfiguredBuild().getStartParameter().addTaskNames(taskPaths);
-        if (!added) {
-            return;
-        }
-        reevaluateTaskGraph();
-    }
-
-    private void reevaluateTaskGraph() {
-        // Force back to configure so that task graph will get reevaluated
-        stage = Stage.Configure;
-        doBuildStages(Stage.TaskGraph);
-    }
-
     private void runWork() {
-        if (stage != Stage.TaskGraph) {
-            throw new IllegalStateException("Cannot execute tasks: current stage = " + stage);
-        }
-
         List<Throwable> taskFailures = new ArrayList<>();
         buildExecuter.execute(gradle, taskFailures);
         if (!taskFailures.isEmpty()) {
             throw new MultipleBuildFailures(taskFailures);
         }
-
-        stage = Stage.RunTasks;
     }
 
     /**
@@ -267,6 +188,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     @Override
     public void stop() {
+        if (stage != Stage.Created && stage != Stage.Finished) {
+            throw new IllegalStateException("This build has not been finished.");
+        }
         try {
             CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
         } finally {
