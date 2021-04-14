@@ -450,7 +450,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestExecutionSpec executionSpec = createTestExecutionSpec();
 
-        final File binaryResultsDir = getBinResultsDir();
+        final File binaryResultsDir = getBinaryResultsDirectory().getAsFile().get();
         FileSystemOperations fs = getFileSystemOperations();
         fs.delete(new Action<DeleteSpec>() {
             @Override
