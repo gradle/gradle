@@ -455,7 +455,7 @@ allprojects { p ->
             // TODO - should not require forUseAtConfigurationTime()
             producerConfig = """
                 output.convention(layout.buildDirectory.file(providers.gradleProperty("\${project.name}FileName").forUseAtConfigurationTime().orElse("\${project.name}.jar")))
-                content.convention(providers.gradleProperty("\${project.name}Content").orElse(project.name))
+                content.convention(providers.gradleProperty("\${project.name}Content").forUseAtConfigurationTime().orElse(project.name))
             """.stripIndent()
             // TODO - should not require forUseAtConfigurationTime()
             producerConfigOverrides = """
