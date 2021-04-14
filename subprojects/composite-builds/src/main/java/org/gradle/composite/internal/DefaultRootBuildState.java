@@ -42,10 +42,12 @@ import java.util.function.Function;
 class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
     private final GradleLauncher gradleLauncher;
+    private final GradleBuildController buildController;
 
     DefaultRootBuildState(BuildDefinition buildDefinition, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeState owner) {
         this.listenerManager = listenerManager;
         this.gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, this, owner);
+        buildController = new GradleBuildController(gradleLauncher);
     }
 
     @Override
@@ -80,13 +82,11 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     @Override
     public <T> T run(Function<? super BuildController, T> action) {
         RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
-        GradleInternal gradle = buildController.getGradle();
-        buildLifecycleListener.afterStart(gradle);
+        buildLifecycleListener.afterStart();
         try {
             return action.apply(buildController);
         } finally {
-            buildLifecycleListener.beforeComplete(gradle);
+            buildLifecycleListener.beforeComplete();
         }
     }
 

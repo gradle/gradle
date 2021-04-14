@@ -24,7 +24,6 @@ import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
@@ -197,12 +196,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild = new LocationsWrittenByCurrentBuild();
             listenerManager.addListener(new RootBuildLifecycleListener() {
                 @Override
-                public void afterStart(GradleInternal gradle) {
+                public void afterStart() {
                     locationsWrittenByCurrentBuild.buildStarted();
                 }
 
                 @Override
-                public void beforeComplete(GradleInternal gradle) {
+                public void beforeComplete() {
                     locationsWrittenByCurrentBuild.buildFinished();
                 }
             });
@@ -273,7 +272,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             });
             listenerManager.addListener(new RootBuildLifecycleListener() {
                 @Override
-                public void afterStart(GradleInternal gradle) {
+                public void afterStart() {
                     // Reset default excludes for each build
                     DirectoryScanner.resetDefaultExcludes();
                     String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
@@ -282,7 +281,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 }
 
                 @Override
-                public void beforeComplete(GradleInternal gradle) {
+                public void beforeComplete() {
                 }
             });
             return fileSystemAccess;
@@ -371,7 +370,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             );
 
             listenerManager.addListener(new DefaultExcludesBuildListener(buildSessionsScopedVirtualFileSystem));
-            listenerManager.addListener((OutputChangeListener) affectedOutputPaths -> buildSessionsScopedVirtualFileSystem.write(affectedOutputPaths, () -> {}));
+            listenerManager.addListener((OutputChangeListener) affectedOutputPaths -> buildSessionsScopedVirtualFileSystem.write(affectedOutputPaths, () -> {
+            }));
 
             return buildSessionsScopedVirtualFileSystem;
         }
@@ -455,5 +455,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
     }
 
-    interface WatchFilter extends Predicate<String> {}
+    interface WatchFilter extends Predicate<String> {
+    }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
@@ -32,10 +31,10 @@ public interface RootBuildLifecycleListener {
     /**
      * Called at the start of the root build, immediately after the creation of the root build services.
      */
-    void afterStart(GradleInternal gradle);
+    void afterStart();
 
     /**
      * Called at the completion of the root build, immediately before destruction of the root build services.
      */
-    void beforeComplete(GradleInternal gradle);
+    void beforeComplete();
 }

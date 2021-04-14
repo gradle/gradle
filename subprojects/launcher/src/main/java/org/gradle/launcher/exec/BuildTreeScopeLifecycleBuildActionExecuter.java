@@ -37,7 +37,7 @@ public class BuildTreeScopeLifecycleBuildActionExecuter implements SessionScopeB
         }
 
         try (BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), buildType)) {
-            return buildTree.run(context -> context.execute(action, context));
+            return buildTree.run(context -> context.execute(action));
         }
     }
 }
