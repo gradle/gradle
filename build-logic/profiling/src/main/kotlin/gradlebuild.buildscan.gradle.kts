@@ -22,6 +22,7 @@ import gradlebuild.basics.BuildEnvironment.isJenkins
 import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.tasks.ClasspathManifest
+import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -32,15 +33,14 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
+import java.net.InetAddress
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
-import org.gradle.kotlin.dsl.*
-import gradlebuild.identity.extension.ModuleIdentityExtension
-import java.net.InetAddress
 
 plugins {
     id("gradlebuild.module-identity")
@@ -116,7 +116,7 @@ fun isExpectedAsciidoctorCacheMiss() =
 // 3. buildScanPerformance test, which doesn't depend on compileAll
 // 4. buildScanPerformance test, which doesn't depend on compileAll
     isInBuild(
-        "Check_CompileAll",
+        "Check_CompileAllBuild",
         "Check_BuildDistributions",
         "Component_GradlePlugin_Performance_PerformanceLatestMaster",
         "Component_GradlePlugin_Performance_PerformanceLatestReleased"
@@ -129,7 +129,7 @@ fun isExpectedCompileCacheMiss() =
 // 3. buildScanPerformance test, which doesn't depend on compileAll
 // 4. buildScanPerformance test, which doesn't depend on compileAll
     isInBuild(
-        "Check_CompileAll",
+        "Check_CompileAllBuild",
         "Component_GradlePlugin_Performance_PerformanceLatestMaster",
         "Component_GradlePlugin_Performance_PerformanceLatestReleased",
         "Check_Gradleception"
