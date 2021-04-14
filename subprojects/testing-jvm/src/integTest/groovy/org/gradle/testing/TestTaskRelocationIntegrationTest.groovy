@@ -51,7 +51,7 @@ class TestTaskRelocationIntegrationTest extends AbstractProjectRelocationIntegra
                 testImplementation "junit:junit:4.13"
             }
 
-            sourceSets.test.java.outputDir = file("build/classes/test")
+            sourceSets.test.java.destinationDirectory.set(file("build/classes/test"))
         """
     }
 

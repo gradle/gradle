@@ -32,7 +32,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         buildFile << """
             jacocoTestReport.dependsOn test
 
-            sourceSets.test.java.outputDir = file("build/classes/test")
+            sourceSets.test.java.destinationDirectory.set(file("build/classes/test"))
 
             test {
                 jacoco {

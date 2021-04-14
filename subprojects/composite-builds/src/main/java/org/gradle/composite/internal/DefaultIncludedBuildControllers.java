@@ -29,7 +29,6 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -89,7 +88,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
+    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.awaitTaskCompletion(taskFailures);
         }

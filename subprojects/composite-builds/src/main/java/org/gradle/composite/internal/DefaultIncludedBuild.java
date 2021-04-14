@@ -219,10 +219,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         gradleLauncher.scheduleTasks(tasks);
     }
 
-    protected final GradleLauncher getGradleLauncher() {
-        return gradleLauncher;
-    }
-
     protected GradleInternal getGradle() {
         return gradleLauncher.getGradle();
     }
