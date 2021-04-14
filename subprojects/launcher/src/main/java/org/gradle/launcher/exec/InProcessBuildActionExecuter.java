@@ -19,6 +19,7 @@ package org.gradle.launcher.exec;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildtree.BuildTreeBuildActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -38,7 +39,7 @@ public class InProcessBuildActionExecuter implements BuildTreeBuildActionExecuto
     }
 
     @Override
-    public BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildTreeContext buildTree) {
+    public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
         buildOperationNotificationValve.start();
         try {
             RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));

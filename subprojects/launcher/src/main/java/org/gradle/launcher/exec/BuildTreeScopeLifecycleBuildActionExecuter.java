@@ -21,14 +21,14 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.session.BuildSessionContext;
-import org.gradle.tooling.internal.provider.SessionScopeBuildActionExecutor;
+import org.gradle.internal.session.SessionScopeBuildActionExecutor;
 
 /**
  * A {@link BuildActionExecuter} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
  */
 public class BuildTreeScopeLifecycleBuildActionExecuter implements SessionScopeBuildActionExecutor {
     @Override
-    public BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
+    public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
         BuildType buildType = action.isRunTasks() ? BuildType.TASKS : BuildType.MODEL;
         if (action.isCreateModel()) {
             // When creating a model, do not use configure on demand or configuration cache
@@ -37,8 +37,7 @@ public class BuildTreeScopeLifecycleBuildActionExecuter implements SessionScopeB
         }
 
         try (BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), buildType)) {
-            return buildTree.run(context ->
-                context.getBuildTreeServices().get(BuildTreeBuildActionExecutor.class).execute(action, actionParameters, context));
+            return buildTree.run(context -> context.execute(action, context));
         }
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
 
 class DefaultBuildTreeContext implements BuildTreeContext {
@@ -26,7 +28,7 @@ class DefaultBuildTreeContext implements BuildTreeContext {
     }
 
     @Override
-    public ServiceRegistry getBuildTreeServices() {
-        return services;
+    public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
+        return services.get(BuildTreeBuildActionExecutor.class).execute(action, buildTreeContext);
     }
 }

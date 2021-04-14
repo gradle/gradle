@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.internal.session;
 
-import org.gradle.internal.buildtree.BuildTreeContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree.class)
-public interface BuildTreeBuildActionExecutor {
-    BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildTreeContext context);
+@ServiceScope(Scopes.BuildSession.class)
+public interface SessionScopeBuildActionExecutor {
+    BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context);
 }

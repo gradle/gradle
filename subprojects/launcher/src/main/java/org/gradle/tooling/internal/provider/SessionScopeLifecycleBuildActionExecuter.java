@@ -47,13 +47,17 @@ public class SessionScopeLifecycleBuildActionExecuter implements BuildActionExec
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         StartParameterInternal startParameter = action.getStartParameter();
+        if (action.isCreateModel()) {
+            // When creating a model, do not use continuous mode
+            startParameter.setContinuous(false);
+        }
         try (CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter)) {
             try (BuildSessionState buildSessionState = new BuildSessionState(userHomeServiceRegistry, crossBuildSessionState, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
                 return buildSessionState.run(context -> {
                     SessionLifecycleListener sessionLifecycleListener = context.getServices().get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
                     try {
                         sessionLifecycleListener.afterStart();
-                        BuildActionRunner.Result result = context.getServices().get(SessionScopeBuildActionExecutor.class).execute(action, actionParameters, context);
+                        BuildActionRunner.Result result = context.execute(action);
                         PayloadSerializer payloadSerializer = context.getServices().get(PayloadSerializer.class);
                         if (result.getBuildFailure() == null) {
                             return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));

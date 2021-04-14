@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.internal.buildtree;
 
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.session.BuildSessionContext;
-import org.gradle.launcher.exec.BuildActionParameters;
 
-@ServiceScope(Scopes.BuildSession.class)
-public interface SessionScopeBuildActionExecutor {
-    BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext context);
+/**
+ * Responsible for running the given action against a build tree.
+ */
+@ServiceScope(Scopes.BuildTree.class)
+public interface BuildTreeBuildActionExecutor {
+    /**
+     * Runs the given action and returns the result. Failures should be packaged in the result.
+     * When this method returns, all user code will have completed, including 'build finished' hooks.
+     */
+    BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext);
 }

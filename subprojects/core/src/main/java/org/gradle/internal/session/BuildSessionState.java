@@ -23,6 +23,8 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -68,6 +70,11 @@ public class BuildSessionState implements Closeable {
             @Override
             public ServiceRegistry getServices() {
                 return sessionScopeServices;
+            }
+
+            @Override
+            public BuildActionRunner.Result execute(BuildAction action) {
+                return sessionScopeServices.get(SessionScopeBuildActionExecutor.class).execute(action, this);
             }
         });
     }

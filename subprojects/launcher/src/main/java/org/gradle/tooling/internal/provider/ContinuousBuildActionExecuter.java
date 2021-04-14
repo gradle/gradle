@@ -45,10 +45,8 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.session.BuildSessionContext;
+import org.gradle.internal.session.SessionScopeBuildActionExecutor;
 import org.gradle.internal.time.Clock;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.util.internal.DisconnectableInputStream;
 
 import java.util.function.Supplier;
@@ -95,17 +93,17 @@ public class ContinuousBuildActionExecuter implements SessionScopeBuildActionExe
     }
 
     @Override
-    public BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
-        if (actionParameters.isContinuous()) {
+    public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
+        if (action.getStartParameter().isContinuous()) {
             DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
             final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestMetaData, cancellationToken);
-            return executeMultipleBuilds(action, requestMetaData, actionParameters, buildSession, cancellationToken, cancellableOperationManager, alwaysOpenExecutionGate);
+            return executeMultipleBuilds(action, requestMetaData, buildSession, cancellationToken, cancellableOperationManager, alwaysOpenExecutionGate);
         } else {
             try {
-                return delegate.execute(action, actionParameters, buildSession);
+                return delegate.execute(action, buildSession);
             } finally {
                 final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestMetaData, cancellationToken);
-                waitForDeployments(action, requestMetaData, actionParameters, buildSession, cancellationToken, cancellableOperationManager);
+                waitForDeployments(action, requestMetaData, buildSession, cancellationToken, cancellableOperationManager);
             }
         }
     }
@@ -124,7 +122,7 @@ public class ContinuousBuildActionExecuter implements SessionScopeBuildActionExe
         return cancellableOperationManager;
     }
 
-    private void waitForDeployments(BuildAction action, BuildRequestMetaData requestContext, BuildActionParameters actionParameters, BuildSessionContext buildSession, BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager) {
+    private void waitForDeployments(BuildAction action, BuildRequestMetaData requestContext, BuildSessionContext buildSession, BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager) {
         if (!deploymentRegistry.getRunningDeployments().isEmpty()) {
             // Deployments are considered outOfDate until initial execution with file watching
             for (Deployment deployment : deploymentRegistry.getRunningDeployments()) {
@@ -133,19 +131,19 @@ public class ContinuousBuildActionExecuter implements SessionScopeBuildActionExe
             logger.println().println("Reloadable deployment detected. Entering continuous build.");
             resetBuildStartedTime();
             ContinuousExecutionGate deploymentRequestExecutionGate = deploymentRegistry.getExecutionGate();
-            executeMultipleBuilds(action, requestContext, actionParameters, buildSession, cancellationToken, cancellableOperationManager, deploymentRequestExecutionGate);
+            executeMultipleBuilds(action, requestContext, buildSession, cancellationToken, cancellableOperationManager, deploymentRequestExecutionGate);
         }
         cancellableOperationManager.closeInput();
     }
 
-    private BuildActionRunner.Result executeMultipleBuilds(BuildAction action, BuildRequestMetaData requestContext, BuildActionParameters actionParameters, BuildSessionContext buildSession,
-                                                    BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
+    private BuildActionRunner.Result executeMultipleBuilds(BuildAction action, BuildRequestMetaData requestContext, BuildSessionContext buildSession,
+                                                           BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildActionRunner.Result lastResult;
         while (true) {
             PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
             final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
             try {
-                lastResult = executeBuildAndAccumulateInputs(action, actionParameters, waiter, buildSession);
+                lastResult = executeBuildAndAccumulateInputs(action, waiter, buildSession);
 
                 if (!waiter.isWatching()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
@@ -196,13 +194,12 @@ public class ContinuousBuildActionExecuter implements SessionScopeBuildActionExe
 
     private BuildActionRunner.Result executeBuildAndAccumulateInputs(
         BuildAction action,
-        BuildActionParameters actionParameters,
         FileSystemChangeWaiter waiter,
         BuildSessionContext buildSession
     ) {
         return withTaskInputsListener(
             (task, fileSystemInputs) -> waiter.watch(FileSystemSubset.of(fileSystemInputs)),
-            () -> delegate.execute(action, actionParameters, buildSession)
+            () -> delegate.execute(action, buildSession)
         );
     }
 

@@ -127,7 +127,7 @@ public class DaemonMessageSerializer {
                         encoder.writeByte((byte) 2);
                         payloadSerializer.write(encoder, result.getResult());
                     }
-                } else if (result.getFailure() != null){
+                } else if (result.getFailure() != null) {
                     encoder.writeByte((byte) 3);
                     encoder.writeBoolean(result.wasCancelled());
                     payloadSerializer.write(encoder, result.getFailure());
@@ -294,7 +294,6 @@ public class DaemonMessageSerializer {
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, parameters.getEnvVariables());
             logLevelSerializer.write(encoder, parameters.getLogLevel());
             encoder.writeBoolean(parameters.isUseDaemon()); // Can probably skip this
-            encoder.writeBoolean(parameters.isContinuous());
             classPathSerializer.write(encoder, parameters.getInjectedPluginClasspath().getAsFiles());
         }
 
@@ -305,9 +304,8 @@ public class DaemonMessageSerializer {
             Map<String, String> envVariables = NO_NULL_STRING_MAP_SERIALIZER.read(decoder);
             LogLevel logLevel = logLevelSerializer.read(decoder);
             boolean useDaemon = decoder.readBoolean();
-            boolean continuous = decoder.readBoolean();
             ClassPath classPath = DefaultClassPath.of(classPathSerializer.read(decoder));
-            return new DefaultBuildActionParameters(sysProperties, envVariables, currentDir, logLevel, useDaemon, continuous, classPath);
+            return new DefaultBuildActionParameters(sysProperties, envVariables, currentDir, logLevel, useDaemon, classPath);
         }
     }
 

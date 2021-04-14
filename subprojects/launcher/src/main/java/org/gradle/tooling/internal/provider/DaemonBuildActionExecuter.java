@@ -25,7 +25,6 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 public class DaemonBuildActionExecuter implements BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> {
@@ -37,21 +36,11 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<Connection
 
     @Override
     public BuildActionResult execute(BuildAction action, ConnectionOperationParameters parameters, BuildRequestContext buildRequestContext) {
-        boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous() && isNotBuildingModel(action);
         ProviderOperationParameters operationParameters = parameters.getOperationParameters();
         ClassPath classPath = DefaultClassPath.of(operationParameters.getInjectedPluginClasspath());
 
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
-        BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(), daemonParameters.getEnvironmentVariables(), SystemProperties.getInstance().getCurrentDir(), operationParameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, classPath);
+        BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(), daemonParameters.getEnvironmentVariables(), SystemProperties.getInstance().getCurrentDir(), operationParameters.getBuildLogLevel(), daemonParameters.isEnabled(), classPath);
         return executer.execute(action, actionParameters, buildRequestContext);
     }
-
-    private boolean isNotBuildingModel(BuildAction action) {
-        if (!(action instanceof BuildModelAction)) {
-            return true;
-        }
-        String modelName = ((BuildModelAction) action).getModelName();
-        return modelName.equals(ModelIdentifier.NULL_MODEL);
-    }
-
 }

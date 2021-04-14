@@ -25,7 +25,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.session.BuildSessionContext;
-import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.internal.session.SessionScopeBuildActionExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,13 +54,13 @@ public class SubscribableBuildActionExecuter implements SessionScopeBuildActionE
     }
 
     @Override
-    public BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
+    public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
         if (action instanceof SubscribableBuildAction) {
             SubscribableBuildAction subscribableBuildAction = (SubscribableBuildAction) action;
             registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), eventConsumer);
         }
         try {
-            return delegate.execute(action, actionParameters, buildSession);
+            return delegate.execute(action, buildSession);
         } finally {
             for (Object listener : listeners) {
                 listenerManager.removeListener(listener);
