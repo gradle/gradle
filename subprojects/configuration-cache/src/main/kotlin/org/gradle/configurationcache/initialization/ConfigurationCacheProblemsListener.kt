@@ -35,7 +35,7 @@ import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(Scopes.Build::class)
+@ServiceScope(Scopes.BuildTree::class)
 interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener
 
 
