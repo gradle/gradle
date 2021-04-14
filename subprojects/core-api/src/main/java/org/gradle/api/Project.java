@@ -501,7 +501,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #task(String, Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     Task task(Map<String, ?> args, String name, Closure configureClosure);
 
     /**
@@ -514,7 +517,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #task(String, Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     Task task(String name, Closure configureClosure);
 
     /**
@@ -604,7 +610,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the project.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #project(String, Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     Project project(String path, Closure configureClosure);
 
     /**
@@ -777,7 +786,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #files(Object, Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     ConfigurableFileCollection files(Object paths, Closure configureClosure);
 
     /**
@@ -849,7 +861,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #fileTree(Object, Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
 
     /**
@@ -1026,7 +1041,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #javaexec(Action)} nstead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     ExecResult javaexec(Closure closure);
 
     /**
@@ -1045,7 +1063,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #exec(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     ExecResult exec(Closure closure);
 
     /**
@@ -1143,7 +1164,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #ant(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     AntBuilder ant(Closure configureClosure);
 
     /**
@@ -1174,8 +1198,25 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
      *
      * @param configureClosure the closure to use to configure the dependency configurations.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #configurations(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     void configurations(Closure configureClosure);
+
+    /**
+     * <p>Configures the dependency configurations for this project.
+     *
+     * <p>This method executes the given action against the {@link ConfigurationContainer}
+     * for this project.
+     *
+     * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
+     *
+     * @param configureAction the action to use to configure the dependency configurations.
+     * @since 7.1
+     */
+    @Incubating
+    void configurations(Action<? super ConfigurationContainer> configureAction);
 
     /**
      * Returns a handler for assigning artifacts produced by the project to configurations.
@@ -1208,7 +1249,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </pre>
      *
      * @param configureClosure the closure to use to configure the published artifacts.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #artifacts(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     void artifacts(Closure configureClosure);
 
     /**
@@ -1287,7 +1331,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Project} is passed to the closure as the closure's delegate.</p>
      *
      * @param configureClosure The closure to execute.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #subprojects(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     void subprojects(Closure configureClosure);
 
     /**
@@ -1306,7 +1353,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * is passed to the closure as the closure's delegate.</p>
      *
      * @param configureClosure The closure to execute.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #allprojects(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     void allprojects(Closure configureClosure);
 
     /**
@@ -1328,7 +1378,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * as a parameter.</p>
      *
      * @param closure The closure to call.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #beforeEvaluate(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     void beforeEvaluate(Closure closure);
 
     /**
@@ -1339,7 +1392,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * run.</p>
      *
      * @param closure The closure to call.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #afterEvaluate(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     void afterEvaluate(Closure closure);
 
     /**
@@ -1470,8 +1526,39 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param object The object to configure
      * @param configureClosure The closure with configure statements
      * @return The configured object
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #configure(Object, Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     Object configure(Object object, Closure configureClosure);
+
+    /**
+     * <p>Configures an object with an action. This way you don't
+     * have to specify the context of a configuration statement multiple times. <p> Instead of:</p>
+     * <pre>
+     * MyType myType = new MyType()
+     * myType.doThis()
+     * myType.doThat()
+     * </pre>
+     * <p> you can do:
+     * <pre>
+     * MyType myType = configure(new MyType()) {
+     *     doThis()
+     *     doThat()
+     * }
+     * </pre>
+     *
+     * <pre>
+     * configure(someObj) { obj -&gt; obj.doThis() }
+     * </pre>
+     *
+     * @param object The object to configure
+     * @param configureAction The closure with configure statements
+     * @return The configured object
+     * @since 7.1
+     */
+    @Incubating
+    <T> T configure(T object, Action<? super T> configureAction);
 
     /**
      * Configures a collection of objects via a closure. This is equivalent to calling {@link #configure(Object,
@@ -1480,7 +1567,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param objects The objects to configure
      * @param configureClosure The closure with configure statements
      * @return The configured objects.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #configure(Iterable, Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     Iterable<?> configure(Iterable<?> objects, Closure configureClosure);
 
     /**
@@ -1507,8 +1597,22 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * RepositoryHandler} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the repositories.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #repositories(Action)} instead.
      */
+    @SuppressWarnings("rawtypes")
+    @Deprecated
     void repositories(Closure configureClosure);
+
+    /**
+     * <p>Configures the repositories for this project.
+     *
+     * <p>This method executes the given action against the {@link RepositoryHandler} for this project.
+     *
+     * @param configureAction the action to use to configure the repositories.
+     * @since 7.1
+     */
+    @Incubating
+    void repositories(Action<? super RepositoryHandler> configureAction);
 
     /**
      * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding
@@ -1532,8 +1636,25 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * See docs for {@link DependencyHandler}
      *
      * @param configureClosure the closure to use to configure the dependencies.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #dependencies(Action)} instead.
      */
+    @SuppressWarnings("rawtypes")
+    @Deprecated
     void dependencies(Closure configureClosure);
+
+    /**
+     * <p>Configures the dependencies for this project.
+     *
+     * <p>This method executes the given action against the {@link DependencyHandler} for this project.
+     *
+     * <h3>Examples:</h3>
+     * See docs for {@link DependencyHandler}
+     *
+     * @param configureAction the action to use to configure the dependencies.
+     * @since 7.1
+     */
+    @Incubating
+    void dependencies(Action<? super DependencyHandler> configureAction);
 
     /**
      * Returns the build script handler for this project. You can use this handler to query details about the build
@@ -1550,8 +1671,22 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the build script classpath.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #buildscript(Action)} instead.
      */
+    @SuppressWarnings("rawtypes")
+    @Deprecated
     void buildscript(Closure configureClosure);
+
+    /**
+     * <p>Configures the build script classpath for this project.
+     *
+     * <p>The given action is executed against this project's {@link ScriptHandler}.
+     *
+     * @param configureAction the action to use to configure the build script classpath.
+     * @since 7.1
+     */
+    @Incubating
+    void buildscript(Action<? super ScriptHandler> configureAction);
 
     /**
      * Copies the specified files.  The given closure is used to configure a {@link CopySpec}, which is then used to
@@ -1579,7 +1714,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure Closure to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #copy(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     WorkResult copy(Closure closure);
 
     /**
@@ -1609,7 +1747,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure Closure to configure the CopySpec
      * @return The CopySpec
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #copySpec(Action)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     CopySpec copySpec(Closure closure);
 
     /**
@@ -1706,7 +1847,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param factoryClosure The closure to use to create object instances.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     * @deprecated This method is scheduled for removal in Gradle 8.0. Use {@link #container(Class, NamedDomainObjectFactory)} instead.
      */
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure);
 
     /**

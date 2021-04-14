@@ -43,6 +43,7 @@ public abstract class ProjectScript extends PluginsAwareScript {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // TODO (donat) tackle this next
     public void buildscript(Closure configureClosure) {
         getScriptTarget().buildscript(configureClosure);
     }

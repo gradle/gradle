@@ -64,6 +64,7 @@ import java.util.concurrent.Callable
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
  */
+@Suppress("deprecation")
 abstract class ProjectDelegate : Project {
 
     internal
@@ -138,11 +139,17 @@ abstract class ProjectDelegate : Project {
     override fun buildscript(configureClosure: Closure<*>) =
         delegate.buildscript(configureClosure)
 
+    override fun buildscript(configureAction: Action<in ScriptHandler>) =
+        delegate.buildscript(configureAction)
+
     override fun getProject(): Project =
         delegate.project
 
     override fun dependencies(configureClosure: Closure<*>) =
         delegate.dependencies(configureClosure)
+
+    override fun dependencies(configureActopm: Action<in DependencyHandler>) =
+        delegate.dependencies(configureActopm)
 
     override fun getPath(): String =
         delegate.path
@@ -168,6 +175,10 @@ abstract class ProjectDelegate : Project {
     override fun repositories(configureClosure: Closure<*>) =
         delegate.repositories(configureClosure)
 
+    override fun repositories(configureAction: Action<in RepositoryHandler>) {
+        delegate.repositories(configureAction)
+    }
+
     override fun evaluationDependsOnChildren() =
         delegate.evaluationDependsOnChildren()
 
@@ -180,6 +191,9 @@ abstract class ProjectDelegate : Project {
     override fun <T : Any?> configure(objects: Iterable<T>, configureAction: Action<in T>): Iterable<T> =
         delegate.configure(objects, configureAction)
 
+    override fun <T : Any> configure(obj: T, configureAction: Action<in T>): T =
+        delegate.configure(obj, configureAction)
+
     override fun exec(closure: Closure<*>): ExecResult =
         delegate.exec(closure)
 
@@ -191,6 +205,9 @@ abstract class ProjectDelegate : Project {
 
     override fun configurations(configureClosure: Closure<*>) =
         delegate.configurations(configureClosure)
+
+    override fun configurations(configureAction: Action<in ConfigurationContainer>) =
+        delegate.configurations(configureAction)
 
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions

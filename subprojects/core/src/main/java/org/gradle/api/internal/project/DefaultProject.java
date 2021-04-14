@@ -45,6 +45,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -915,6 +916,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ConfigurableFileCollection files(Object paths, Closure closure) {
         return ConfigureUtil.configure(closure, files(paths));
     }
@@ -932,6 +934,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
         return ConfigureUtil.configure(closure, fileTree(baseDir));
     }
@@ -1026,12 +1029,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void beforeEvaluate(Closure closure) {
         assertMutatingMethodAllowed("beforeEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void afterEvaluate(Closure closure) {
         assertMutatingMethodAllowed("afterEvaluate(Closure)");
         failAfterProjectIsEvaluated("afterEvaluate(Closure)");
@@ -1099,6 +1104,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public WorkResult copy(Closure closure) {
         return copy(configureUsing(closure));
     }
@@ -1114,6 +1120,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public CopySpec copySpec(Closure closure) {
         return ConfigureUtil.configure(closure, copySpec());
     }
@@ -1136,6 +1143,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ExecResult javaexec(Closure closure) {
         return javaexec(configureUsing(closure));
     }
@@ -1146,6 +1154,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ExecResult exec(Closure closure) {
         return exec(configureUsing(closure));
     }
@@ -1171,6 +1180,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public AntBuilder ant(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getAnt());
     }
@@ -1183,16 +1193,19 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void subprojects(Closure configureClosure) {
         getProjectConfigurator().subprojects(getSubprojects(), ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void allprojects(Closure configureClosure) {
         getProjectConfigurator().allprojects(getAllprojects(), ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Project project(String path, Closure configureClosure) {
         return getProjectConfigurator().project(project(path), ConfigureUtil.configureUsing(configureClosure));
     }
@@ -1203,11 +1216,19 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Object configure(Object object, Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, object);
     }
 
     @Override
+    public <T> T configure(T object, Action<? super T> configureAction) {
+        configureAction.execute(object);
+        return object;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     public Iterable<?> configure(Iterable<?> objects, Closure configureClosure) {
         for (Object object : objects) {
             configure(object, configureClosure);
@@ -1216,21 +1237,40 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void configurations(Closure configureClosure) {
         ((Configurable<?>) getConfigurations()).configure(configureClosure);
     }
 
     @Override
+    public void configurations(Action<? super ConfigurationContainer> configureAction) {
+        configureAction.execute(getConfigurations());
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     public void repositories(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getRepositories());
     }
 
     @Override
+    public void repositories(Action<? super RepositoryHandler> configureAction) {
+        configureAction.execute(getRepositories());
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     public void dependencies(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getDependencies());
     }
 
     @Override
+    public void dependencies(Action<? super DependencyHandler> configureAction) {
+        configureAction.execute(getDependencies());
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     public void artifacts(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getArtifacts());
     }
@@ -1241,8 +1281,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void buildscript(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getBuildscript());
+    }
+
+    @Override
+    public void buildscript(Action<? super ScriptHandler> configureAction) {
+        configureAction.execute(getBuildscript());
     }
 
     @Override
@@ -1260,6 +1306,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Task task(String task, Closure configureClosure) {
         return taskContainer.create(task).configure(configureClosure);
     }
@@ -1278,6 +1325,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Task task(Map options, String task, Closure configureClosure) {
         return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
     }
@@ -1359,6 +1407,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factoryClosure);
     }
