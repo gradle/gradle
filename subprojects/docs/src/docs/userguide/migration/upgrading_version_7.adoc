@@ -145,14 +145,6 @@ The last set of classes have no external or internal usages and therefore were d
 - `NoOpChangeListener`
 - `DeferredUtil`
 
-[[exec_properties]]
-=== Properties deprecated in Exec task
-
-* The link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:execResult[Exec.execResult]
-property has been deprecated.
-Use the link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:executionResult[Exec.executionResult]
-property instead.
-
 [[java_exec_properties]]
 ==== Properties deprecated in JavaExec task
 
