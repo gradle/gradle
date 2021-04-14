@@ -175,10 +175,10 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     @Override
     @Deprecated
     public File getOutputDir() {
-        DeprecationLogger.deprecateMethod(SourceDirectorySet.class, "getOutputDir()")
-            .withAdvice("Please use the destinationDirectory property instead.")
+        DeprecationLogger.deprecateProperty(SourceDirectorySet.class, "outputDir")
+            .replaceWith("classesDirectory")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "compile_task_wiring")
+            .withDslReference()
             .nagUser();
 
         return destinationDirectory.getAsFile().get();
@@ -190,7 +190,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         DeprecationLogger.deprecateMethod(SourceDirectorySet.class, "setOutputDir(Provider<File>)")
             .withAdvice("Please use the destinationDirectory property instead.")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "compile_task_wiring")
+            .withDslReference(SourceDirectorySet.class, "destinationDirectory")
             .nagUser();
 
         destinationDirectory.set(classesDirectory.fileProvider(provider));
@@ -202,7 +202,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         DeprecationLogger.deprecateMethod(SourceDirectorySet.class, "setOutputDir(File)")
             .withAdvice("Please use the destinationDirectory property instead.")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "compile_task_wiring")
+            .withDslReference(SourceDirectorySet.class, "destinationDirectory")
             .nagUser();
 
         destinationDirectory.set(outputDir);
