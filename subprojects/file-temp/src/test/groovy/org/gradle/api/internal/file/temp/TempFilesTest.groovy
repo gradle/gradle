@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
+package org.gradle.api.internal.file.temp
 
-description = "Utilities for working with temporary files & directories"
+import spock.lang.Specification
+import spock.lang.TempDir
 
-gradlebuildJava.usedInWorkers()
+class TempFilesTest extends Specification {
 
-dependencies {
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
+    @TempDir
+    File tempDir;
 
-    implementation(libs.inject)
+    def "can generate temp files for short prefixes"() {
+        when:
+        def file = TempFiles.createTempFile("ok", "", tempDir)
 
-    testImplementation(testFixtures(project(":core-api")))
+        then:
+        file.exists()
+    }
 
-    testFixturesImplementation(libs.jetbrainsAnnotations)
+    def "can generate temp files for no prefix"() {
+        when:
+        def file = TempFiles.createTempFile(null, null, tempDir)
+
+        then:
+        file.exists()
+    }
 }
