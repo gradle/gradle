@@ -76,7 +76,6 @@ class DefaultNestedBuildTest extends Specification {
         1 * action.apply(!null) >> { BuildController controller ->
             '<result>'
         }
-        1 * launcher.stop()
     }
 
     def "can have null result"() {
@@ -90,6 +89,5 @@ class DefaultNestedBuildTest extends Specification {
         1 * action.apply(!null) >> { BuildController controller ->
             return null
         }
-        1 * launcher.stop()
     }
 }

@@ -14,7 +14,7 @@ ant.importBuild("build.xml") { oldTargetName ->
 sourceSets {
     main {
         java.setSrcDirs(listOf(ant.properties["src.dir"]))
-        java.outputDir = file(ant.properties["classes.dir"] ?: "$buildDir/classes")
+        java.destinationDirectory.set(file(ant.properties["classes.dir"] ?: "$buildDir/classes"))
     }
 }
 // end::source-sets[]
