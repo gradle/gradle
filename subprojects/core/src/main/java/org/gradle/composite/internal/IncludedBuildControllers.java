@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collection;
 import java.util.function.Consumer;
 
 @ServiceScope(Scopes.BuildTree.class)
@@ -43,7 +42,7 @@ public interface IncludedBuildControllers {
     /**
      * Blocks until all scheduled tasks have completed.
      */
-    void awaitTaskCompletion(Collection<? super Throwable> taskFailures);
+    void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
 
     /**
      * Completes the build, blocking until complete.

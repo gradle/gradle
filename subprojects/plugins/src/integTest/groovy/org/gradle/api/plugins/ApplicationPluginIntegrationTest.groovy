@@ -516,6 +516,44 @@ startScripts {
         OperatingSystem.current().isWindows() ? runViaWindowsStartScript(startScriptDir) : runViaUnixStartScript(startScriptDir)
     }
 
+    def "setMainClassName method startScripts task is deprecated"() {
+        when:
+        buildFile.setText("""
+            plugins {
+                id("application")
+            }
+
+            tasks.named("startScripts") {
+                mainClassName = 'org.gradle.test.Main'
+            }
+        """)
+
+        executer.expectDocumentedDeprecationWarning("The CreateStartScripts.setMainClassName() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#start_scripts_properties")
+
+        then:
+        succeeds("startScripts")
+    }
+
+    def "getMainClassName method in startScripts task deprecated"() {
+        when:
+        buildFile.setText("""
+            plugins {
+                id("application")
+            }
+
+            tasks.named("startScripts") {
+                doLast {
+                    println(mainClassName)
+                }
+            }
+        """)
+
+        executer.expectDocumentedDeprecationWarning("The CreateStartScripts.getMainClassName() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#start_scripts_properties")
+
+        then:
+        succeeds("startScripts")
+    }
+
     private void createSampleProjectSetup() {
         createMainClass()
         populateBuildFile()

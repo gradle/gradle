@@ -18,6 +18,7 @@ package org.gradle.internal.vfs
 
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
@@ -75,6 +76,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         """
     }
 
+    @UnsupportedWithConfigurationCache(because = "DirectoryScanner.addDefaultExclude")
     def "default excludes defined in settings.gradle are used"() {
         settingsFile << addDefaultExclude(EXCLUDED_FILE_NAME)
 
@@ -97,6 +99,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         skipped(":copyTask")
     }
 
+    @UnsupportedWithConfigurationCache(because = "DirectoryScanner.addDefaultExclude")
     def "default excludes are reset if nothing is defined in settings"() {
         settingsFile << addDefaultExclude(EXCLUDED_FILE_NAME)
 
