@@ -65,6 +65,8 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
 
         // Collect classes for visited class
         String visitedClass = ((PackageElement) element).getQualifiedName().toString();
+        // Always add self, so we know this class was visited
+        consumer.consumePrivateDependent(visitedClass, visitedClass);
         super.visitPackage(node, new ConstantsVisitorContext(visitedClass, consumer::consumePrivateDependent));
 
         // Return back previous collected classes
@@ -77,6 +79,8 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
 
         // Collect classes for visited class
         String visitedClass = getBinaryClassName((TypeElement) element);
+        // Always add self, so we know this class was visited
+        consumer.consumePrivateDependent(visitedClass, visitedClass);
         super.visitClass(node, new ConstantsVisitorContext(visitedClass, consumer::consumePrivateDependent));
 
         // Return back previous collected classes
@@ -88,7 +92,7 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
         if (isAccessibleConstantVariableDeclaration(node) && node.getInitializer() != null && node.getInitializer().getKind() != METHOD_INVOCATION) {
             // We now just check, that constant declaration is not `static {}` or `CONSTANT = methodInvocation()`,
             // but it could be further optimized to check if expression is one that can be inlined or not.
-            return super.visitVariable(node, new ConstantsVisitorContext(constantConsumer.getVisitedClass(), consumer::consumePublicDependent));
+            return super.visitVariable(node, new ConstantsVisitorContext(constantConsumer.getVisitedClass(), consumer::consumeAccessibleDependent));
         } else {
             return super.visitVariable(node, constantConsumer);
         }

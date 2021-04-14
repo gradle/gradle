@@ -407,6 +407,32 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.recompiledClasses 'X'
     }
 
+    def "recompile subclass and super class when super class has accessible constant on constant origin change"() {
+        source api: ["class A { static final int X = 1; }"],
+            impl: ["class B { static final int X = A.X; }", "class C extends B { }"]
+        impl.snapshot { run language.compileTaskName }
+
+        when:
+        source api: ["class A { static final int X = 2; int method() { return 1; } }"]
+        run "impl:${language.compileTaskName}"
+
+        then:
+        impl.recompiledClasses 'B', 'C'
+    }
+
+    def "recompile only super class when super class has private constant on constant origin change"() {
+        source api: ["class A { static final int X = 1; }"],
+            impl: ["class B { int foo() { return A.X; } }", "class C extends B { }"]
+        impl.snapshot { run language.compileTaskName }
+
+        when:
+        source api: ["class A { static final int X = 2; int method() { return 1; } }"]
+        run "impl:${language.compileTaskName}"
+
+        then:
+        impl.recompiledClasses 'B'
+    }
+
     // This behavior is kept for backward compatibility - may be removed in the future
     @Requires(TestPrecondition.JDK9_OR_LATER)
     def "recompiles when upstream module-info changes with manual module path"() {

@@ -22,12 +22,10 @@ import com.sun.source.util.TaskEvent.Kind;
 import com.sun.source.util.TaskListener;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
-import org.gradle.internal.compiler.java.CompilerConstantDependentsConsumer;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 public class ConstantsCollector implements TaskListener {
 

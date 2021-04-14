@@ -49,7 +49,6 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
@@ -171,10 +170,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         if (spec.getCompileOptions().supportsCompilerApi()) {
             oldMappings = readSourceClassesMappingFile(sourceClassesMappingFile);
             sourceFileClassNameConverter = new DefaultSourceFileClassNameConverter(oldMappings);
-
-            // Setup constants mapping file
-            File constantsMappingFile = getConstantsMappingFile();
-            spec.getCompileOptions().setIncrementalCompilationConstantsMappingFile(constantsMappingFile);
         } else {
             oldMappings = null;
             sourceFileClassNameConverter = new FileNameDerivingClassNameConverter();

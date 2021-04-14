@@ -20,25 +20,25 @@ import java.util.function.BiConsumer;
 
 public class ConstantDependentsConsumer {
 
-    private final BiConsumer<String, String> publicDependentDelegate;
+    private final BiConsumer<String, String> accessibleDependentDelegate;
     private final BiConsumer<String, String> privateDependentDelegate;
 
-    public ConstantDependentsConsumer(BiConsumer<String, String> publicDependentDelegate, BiConsumer<String, String> privateDependentDelegate) {
-        this.publicDependentDelegate = publicDependentDelegate;
-        this.privateDependentDelegate = privateDependentDelegate;
+    public ConstantDependentsConsumer(BiConsumer<String, String> accessibleDependentConsumer, BiConsumer<String, String> privateDependentConsumer) {
+        this.accessibleDependentDelegate = accessibleDependentConsumer;
+        this.privateDependentDelegate = privateDependentConsumer;
     }
 
     /**
-     * Consume "public" dependents of a constant. Private dependents in this context
+     * Consume "accessible" dependents of a constant. Accessible dependents in this context
      * are dependents that have a constant calculated from constant from origin.
      *
-     * Example of public dependent:
+     * Example of accessible dependent:
      * class A {
-     *     public static final int CALCULATE_PUBLIC_CONSTANT = CONSTANT;
+     *     public static final int CALCULATE_ACCESSIBLE_CONSTANT = CONSTANT;
      * }
      */
-    public void consumePublicDependent(String constantOrigin, String constantDependent) {
-        publicDependentDelegate.accept(constantOrigin, constantDependent);
+    public void consumeAccessibleDependent(String constantOrigin, String constantDependent) {
+        accessibleDependentDelegate.accept(constantOrigin, constantDependent);
     }
 
     /**

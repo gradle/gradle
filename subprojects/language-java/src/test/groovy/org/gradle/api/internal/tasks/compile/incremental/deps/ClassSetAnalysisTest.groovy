@@ -31,9 +31,10 @@ class ClassSetAnalysisTest extends Specification {
 
     static def hash = HashCode.fromInt(0)
 
-    static ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
+    CompilerApiData compilerApiData = Stub(CompilerApiData)
+    ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
                                      Map<String, IntSet> classToConstants = [:],
-                                     DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null, CompilerApiData compilerApiData = null) {
+                                     DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
         new ClassSetAnalysis(
             new ClassSetAnalysisData(Maps.transformValues(dependents) { hash }, dependents, classToConstants, fullRebuildCause),
             new AnnotationProcessingData([:], aggregatedTypes.getAllDependentClasses(), dependentsOnAll.getAllDependentClasses(), [:], dependentsOnAll.dependentResources, null),
@@ -290,12 +291,11 @@ class ClassSetAnalysisTest extends Specification {
 
     def "marks as dependency to all if constants has change and compilerApi is not available"() {
         given:
-        CompilerApiData compilerApiData = Stub(CompilerApiData)
-        def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
+        def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> false
 
         when:
-        def deps = a.getRelevantDependents("Foo", IntSet.of(1))
+        def deps = a.findTransitiveDependents("Foo", IntSet.of(1))
 
         then:
         deps.isDependencyToAll()
@@ -303,27 +303,27 @@ class ClassSetAnalysisTest extends Specification {
 
     def "find class constant dependents"() {
         given:
-        CompilerApiData compilerApiData = Stub(CompilerApiData)
-        def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
+        def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> true
         compilerApiData.accessibleConstantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
+        compilerApiData.privateConstantDependentsForClassHash("Foo".hashCode()) >> ["BarBar"]
 
         when:
-        def deps = a.getRelevantDependents("Foo", IntSet.of(1))
+        def deps = a.findTransitiveDependents("Foo", IntSet.of(1))
 
         then:
         deps.getAccessibleDependentClasses() == ["Bar"] as Set
+        deps.getPrivateDependentClasses() == ["BarBar"] as Set
     }
 
     def "find class constant dependents when constants hash analysis returns empty set"() {
         given:
-        CompilerApiData compilerApiData = Stub(CompilerApiData)
-        def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
+        def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> true
         compilerApiData.accessibleConstantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
 
         when:
-        def deps = a.getRelevantDependents("Foo", IntSets.EMPTY_SET)
+        def deps = a.findTransitiveDependents("Foo", IntSets.EMPTY_SET)
 
         then:
         deps.getAccessibleDependentClasses() == ["Bar"] as Set
@@ -331,8 +331,7 @@ class ClassSetAnalysisTest extends Specification {
 
     def "find class constant dependents recursively"() {
         given:
-        CompilerApiData compilerApiData = Stub(CompilerApiData)
-        def a = analysis([:], [:], empty(), empty(), null, compilerApiData)
+        def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> true
         compilerApiData.accessibleConstantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
         compilerApiData.accessibleConstantDependentsForClassHash("Bar".hashCode()) >> ["FooBar"]
@@ -340,7 +339,7 @@ class ClassSetAnalysisTest extends Specification {
         compilerApiData.accessibleConstantDependentsForClassHash("X".hashCode()) >> ["Y"]
 
         when:
-        def deps = a.getRelevantDependents("Foo", IntSets.EMPTY_SET)
+        def deps = a.findTransitiveDependents("Foo", IntSets.EMPTY_SET)
 
         then:
         deps.getAccessibleDependentClasses() == ["Bar", "FooBar", "BarFoo"] as Set

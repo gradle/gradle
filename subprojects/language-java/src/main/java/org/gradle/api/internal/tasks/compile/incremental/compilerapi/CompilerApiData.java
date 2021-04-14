@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToClassMapping;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToDependentsMapping;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -27,23 +27,23 @@ import java.util.Set;
 public class CompilerApiData {
 
     private final boolean isAvailable;
-    private final ConstantToClassMapping constantToClassMapping;
+    private final ConstantToDependentsMapping constantToDependentsMapping;
 
-    private CompilerApiData(boolean isAvailable, ConstantToClassMapping constantToClassMapping) {
+    private CompilerApiData(boolean isAvailable, ConstantToDependentsMapping constantToDependentsMapping) {
         this.isAvailable = isAvailable;
-        this.constantToClassMapping = constantToClassMapping;
+        this.constantToDependentsMapping = constantToDependentsMapping;
     }
 
     public Set<String> accessibleConstantDependentsForClassHash(int constantOriginHash) {
-        return constantToClassMapping.findPublicConstantDependentsForClassHash(constantOriginHash);
+        return constantToDependentsMapping.findAccessibleConstantDependentsFor(constantOriginHash);
     }
 
     public Set<String> privateConstantDependentsForClassHash(int constantOriginHash) {
-        return constantToClassMapping.findPrivateConstantDependentsForClassHash(constantOriginHash);
+        return constantToDependentsMapping.findPrivateConstantDependentsFor(constantOriginHash);
     }
 
-    public ConstantToClassMapping getConstantToClassMapping() {
-        return constantToClassMapping;
+    public ConstantToDependentsMapping getConstantToClassMapping() {
+        return constantToDependentsMapping;
     }
 
     public boolean isAvailable() {
@@ -51,25 +51,25 @@ public class CompilerApiData {
     }
 
     public static CompilerApiData unavailableOf() {
-        return new CompilerApiData(false, ConstantToClassMapping.empty());
+        return new CompilerApiData(false, ConstantToDependentsMapping.empty());
     }
 
-    public static CompilerApiData availableOf(ConstantToClassMapping constantToClassMapping) {
-        return new CompilerApiData(true, constantToClassMapping);
+    public static CompilerApiData availableOf(ConstantToDependentsMapping constantToDependentsMapping) {
+        return new CompilerApiData(true, constantToDependentsMapping);
     }
 
     public static final class Serializer extends AbstractSerializer<CompilerApiData> {
-        private final ConstantToClassMapping.Serializer constantsToClassSerializer;
+        private final ConstantToDependentsMapping.Serializer constantsToClassSerializer;
 
         public Serializer(StringInterner interner) {
-            constantsToClassSerializer = new ConstantToClassMapping.Serializer(interner);
+            constantsToClassSerializer = new ConstantToDependentsMapping.Serializer(interner);
         }
 
         @Override
         public CompilerApiData read(Decoder decoder) throws Exception {
             boolean isAvailable = decoder.readBoolean();
             if (isAvailable) {
-                ConstantToClassMapping mapping = constantsToClassSerializer.read(decoder);
+                ConstantToDependentsMapping mapping = constantsToClassSerializer.read(decoder);
                 return CompilerApiData.availableOf(mapping);
             } else {
                 return CompilerApiData.unavailableOf();

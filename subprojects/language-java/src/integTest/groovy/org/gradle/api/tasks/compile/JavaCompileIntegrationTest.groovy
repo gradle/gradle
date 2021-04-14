@@ -140,7 +140,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             }
         """
     }
-
+    
     @Requires(TestPrecondition.LINUX)
     def "can compile after package case-rename"() {
         buildFile << """

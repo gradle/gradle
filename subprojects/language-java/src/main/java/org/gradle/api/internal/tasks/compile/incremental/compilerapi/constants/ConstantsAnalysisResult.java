@@ -16,28 +16,35 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToClassMapping.ConstantToClassMappingBuilder;
-import org.gradle.internal.compiler.java.CompilerConstantDependentsConsumer;
+import java.io.Serializable;
 
-public class ConstantsAnalysisResult implements CompilerConstantDependentsConsumer {
+public class ConstantsAnalysisResult implements Serializable {
 
-    private final ConstantToClassMappingBuilder constantToClassMappingBuilder;
+    private final ConstantToDependentsMappingBuilder constantToDependentsMappingBuilder;
 
     public ConstantsAnalysisResult() {
-        this.constantToClassMappingBuilder = new ConstantToClassMappingBuilder();
+        this.constantToDependentsMappingBuilder = ConstantToDependentsMapping.builder();
     }
 
-    public ConstantToClassMapping getConstantsToClassMapping() {
-        return constantToClassMappingBuilder.build();
+    public ConstantToDependentsMapping getConstantsToDependentsMapping() {
+        return constantToDependentsMappingBuilder.build();
     }
 
-    @Override
-    public void consumePublicDependent(String constantOrigin, String constantDependent) {
-        constantToClassMappingBuilder.addPublicDependent(constantOrigin.hashCode(), constantDependent);
+    public void addPublicDependent(String constantOrigin, String constantDependent) {
+        if (constantOrigin.equals(constantDependent)) {
+            // Don't add self as dependent but just as visited
+            constantToDependentsMappingBuilder.addVisitedClass(constantDependent);
+        } else {
+            constantToDependentsMappingBuilder.addAccessibleDependent(constantOrigin.hashCode(), constantDependent);
+        }
     }
 
-    @Override
-    public void consumePrivateDependent(String constantOrigin, String constantDependent) {
-        constantToClassMappingBuilder.addPrivateDependent(constantOrigin.hashCode(), constantDependent);
+    public void addPrivateDependent(String constantOrigin, String constantDependent) {
+        if (constantOrigin.equals(constantDependent)) {
+            // Don't add self as dependent but just as visited
+            constantToDependentsMappingBuilder.addVisitedClass(constantDependent);
+        } else {
+            constantToDependentsMappingBuilder.addPrivateDependent(constantOrigin.hashCode(), constantDependent);
+        }
     }
 }

@@ -164,8 +164,8 @@ public class JdkTools {
             return DirectInstantiator.instantiate(incrementalCompileTaskClass, task,
                 (Function<File, Optional<String>>) file -> compilationSourceDirs.relativize(file),
                 (Consumer<Map<String, Collection<String>>>) mapping -> SourceClassesMappingFileAccessor.writeSourceClassesMappingFile(classToFileMapping, mapping),
-                (BiConsumer<String, String>) constantsAnalysisResult::consumePublicDependent,
-                (BiConsumer<String, String>) constantsAnalysisResult::consumePrivateDependent
+                (BiConsumer<String, String>) constantsAnalysisResult::addPublicDependent,
+                (BiConsumer<String, String>) constantsAnalysisResult::addPrivateDependent
             );
         }
     }

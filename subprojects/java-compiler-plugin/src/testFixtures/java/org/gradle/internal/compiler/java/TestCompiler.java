@@ -58,7 +58,7 @@ public class TestCompiler {
         Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(sourceFiles);
         List<String> arguments = Arrays.asList("-d", outputFolder.getAbsolutePath());
         JavaCompiler.CompilationTask delegate = compiler.getTask(output, fileManager, null, arguments, null, compilationUnits);
-        IncrementalCompileTask task = new IncrementalCompileTask(delegate, relativize, classNameConsumer, constantDependentsConsumer::consumePublicDependent, constantDependentsConsumer::consumePrivateDependent);
+        IncrementalCompileTask task = new IncrementalCompileTask(delegate, relativize, classNameConsumer, constantDependentsConsumer::consumeAccessibleDependent, constantDependentsConsumer::consumePrivateDependent);
         if (!task.call()) {
             throw new RuntimeException(output.toString());
         }

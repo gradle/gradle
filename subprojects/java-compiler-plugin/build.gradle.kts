@@ -4,11 +4,6 @@ plugins {
 
 description = "A Java compiler plugin used by Gradle's incremental compiler"
 
-dependencies {
-    implementation(project(":java-compiler-plugin-api"))
-    testFixturesImplementation(project(":java-compiler-plugin-api"))
-}
-
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(null as? Int)
     sourceCompatibility = "8"

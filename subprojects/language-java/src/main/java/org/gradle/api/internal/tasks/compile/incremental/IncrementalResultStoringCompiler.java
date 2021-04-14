@@ -24,8 +24,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToClassMapping;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToClassMappingMerger;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToDependentsMapping;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToDependentsMappingMerger;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
@@ -40,14 +40,11 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.work.InputChanges;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.mergeIncrementalMappingsIntoOldMappings;
-import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsMappingFileAccessor.readConstantsClassesMappingFile;
 
 /**
  * Stores the incremental class dependency analysis after compilation has finished.
@@ -118,14 +115,14 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     private CompilerApiData getCompilerApiData(JavaCompileSpec spec, WorkResult result) {
         if (spec.getCompileOptions().supportsCompilerApi()) {
             Set<String> removedClasses = mergeClassFileMappingAndReturnRemovedClasses(spec);
-            ConstantToClassMapping previousConstantToClassMapping = null;
+            ConstantToDependentsMapping previousConstantToDependentsMapping = null;
             if (result instanceof IncrementalCompilationResult) {
-                previousConstantToClassMapping = ((IncrementalCompilationResult) result).getPreviousCompilationData().getCompilerApiData().getConstantToClassMapping();
+                previousConstantToDependentsMapping = ((IncrementalCompilationResult) result).getPreviousCompilationData().getCompilerApiData().getConstantToClassMapping();
                 result = ((IncrementalCompilationResult) result).getCompilerResult();
             }
             if (result instanceof JdkJavaCompilerResult) {
-                ConstantToClassMapping constantToDependentsMapping = ((JdkJavaCompilerResult) result).getConstantsAnalysisResult().getConstantsToClassMapping();
-                ConstantToClassMapping newConstantsMapping = new ConstantToClassMappingMerger().merge(constantToDependentsMapping, previousConstantToClassMapping, removedClasses);
+                ConstantToDependentsMapping constantToDependentsMapping = ((JdkJavaCompilerResult) result).getConstantsAnalysisResult().getConstantsToDependentsMapping();
+                ConstantToDependentsMapping newConstantsMapping = new ConstantToDependentsMappingMerger().merge(constantToDependentsMapping, previousConstantToDependentsMapping, removedClasses);
                 return CompilerApiData.availableOf(newConstantsMapping);
             }
         }

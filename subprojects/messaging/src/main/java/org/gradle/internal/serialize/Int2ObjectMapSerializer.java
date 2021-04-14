@@ -21,7 +21,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.Map;
 
-public class Int2ObjectMapSerializer<V> extends AbstractSerializer<Map<Integer, V>> {
+public class Int2ObjectMapSerializer<V> extends AbstractSerializer<Map<Integer, ? extends V>> {
 
     private final Serializer<Integer> keySerializer;
     private final Serializer<V> valueSerializer;
@@ -44,9 +44,9 @@ public class Int2ObjectMapSerializer<V> extends AbstractSerializer<Map<Integer, 
     }
 
     @Override
-    public void write(Encoder encoder, Map<Integer, V> value) throws Exception {
+    public void write(Encoder encoder, Map<Integer, ? extends V> value) throws Exception {
         encoder.writeInt(value.size());
-        for (Map.Entry<Integer, V> entry : value.entrySet()) {
+        for (Map.Entry<Integer, ? extends V> entry : value.entrySet()) {
             keySerializer.write(encoder, entry.getKey());
             valueSerializer.write(encoder, entry.getValue());
         }

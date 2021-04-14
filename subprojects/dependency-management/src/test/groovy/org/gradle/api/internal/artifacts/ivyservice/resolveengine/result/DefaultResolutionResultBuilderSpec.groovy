@@ -161,12 +161,12 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
         a2.is(a)
 
-        first(b.dependents).is(first(a.dependencies))
-        first(c.dependents).is(first(b.dependencies))
+        first(b.getVisitedClasses).is(first(a.dependencies))
+        first(c.getVisitedClasses).is(first(b.dependencies))
         first(a.dependents).is(first(c.dependencies))
 
-        first(b.dependents).from.is(a)
-        first(c.dependents).from.is(b)
+        first(b.getVisitedClasses).from.is(a)
+        first(c.getVisitedClasses).from.is(b)
         first(a.dependents).from.is(c)
     }
 
