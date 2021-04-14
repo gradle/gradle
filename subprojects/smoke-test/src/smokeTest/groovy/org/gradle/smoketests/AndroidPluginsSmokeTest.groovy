@@ -43,6 +43,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         AndroidHome.assertIsSet()
     }
 
+    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
