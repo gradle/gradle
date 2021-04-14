@@ -40,6 +40,7 @@ import org.gradle.internal.filewatch.FileWatcherEventListener;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
@@ -52,8 +53,8 @@ import org.gradle.util.internal.DisconnectableInputStream;
 
 import java.util.function.Supplier;
 
-public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildSessionContext> {
-    private final BuildActionExecuter<BuildActionParameters, BuildSessionContext> delegate;
+public class ContinuousBuildActionExecuter implements SessionScopeBuildActionExecutor {
+    private final SessionScopeBuildActionExecutor delegate;
     private final TaskInputsListeners inputsListeners;
     private final BuildRequestMetaData requestMetaData;
     private final OperatingSystem operatingSystem;
@@ -77,7 +78,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         ListenerManager listenerManager,
         BuildStartedTime buildStartedTime,
         Clock clock,
-        BuildActionExecuter<BuildActionParameters, BuildSessionContext> delegate
+        SessionScopeBuildActionExecutor delegate
     ) {
         this.inputsListeners = inputsListeners;
         this.requestMetaData = requestMetaData;
@@ -94,7 +95,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
+    public BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
         if (actionParameters.isContinuous()) {
             DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
             final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestMetaData, cancellationToken);
@@ -137,9 +138,9 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         cancellableOperationManager.closeInput();
     }
 
-    private BuildActionResult executeMultipleBuilds(BuildAction action, BuildRequestMetaData requestContext, BuildActionParameters actionParameters, BuildSessionContext buildSession,
+    private BuildActionRunner.Result executeMultipleBuilds(BuildAction action, BuildRequestMetaData requestContext, BuildActionParameters actionParameters, BuildSessionContext buildSession,
                                                     BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
-        BuildActionResult lastResult;
+        BuildActionRunner.Result lastResult;
         while (true) {
             PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
             final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
@@ -193,7 +194,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         }
     }
 
-    private BuildActionResult executeBuildAndAccumulateInputs(
+    private BuildActionRunner.Result executeBuildAndAccumulateInputs(
         BuildAction action,
         BuildActionParameters actionParameters,
         FileSystemChangeWaiter waiter,

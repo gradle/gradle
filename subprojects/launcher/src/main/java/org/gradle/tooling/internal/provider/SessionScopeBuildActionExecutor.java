@@ -16,9 +16,14 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.session.BuildSessionContext;
-import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 
-public interface SessionScopeBuildActionExecutor extends BuildActionExecuter<BuildActionParameters, BuildSessionContext> {
+@ServiceScope(Scopes.BuildSession.class)
+public interface SessionScopeBuildActionExecutor {
+    BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext context);
 }

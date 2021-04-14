@@ -17,9 +17,12 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.internal.buildtree.BuildTreeContext;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildTree.class)
-public interface BuildTreeBuildActionExecutor extends BuildActionExecuter<BuildActionParameters, BuildTreeContext> {
+public interface BuildTreeBuildActionExecutor {
+    BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildTreeContext context);
 }

@@ -19,14 +19,16 @@ package org.gradle.launcher.exec;
 import org.gradle.api.internal.BuildType;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.session.BuildSessionContext;
+import org.gradle.tooling.internal.provider.SessionScopeBuildActionExecutor;
 
 /**
  * A {@link BuildActionExecuter} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
  */
-public class BuildTreeScopeLifecycleBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildSessionContext> {
+public class BuildTreeScopeLifecycleBuildActionExecuter implements SessionScopeBuildActionExecutor {
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
+    public BuildActionRunner.Result execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
         BuildType buildType = action.isRunTasks() ? BuildType.TASKS : BuildType.MODEL;
         if (action.isCreateModel()) {
             // When creating a model, do not use configure on demand or configuration cache

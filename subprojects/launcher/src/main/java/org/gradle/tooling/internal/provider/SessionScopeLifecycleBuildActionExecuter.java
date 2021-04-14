@@ -21,6 +21,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
@@ -29,9 +30,10 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 /**
- * A {@link BuildExecuter} responsible for establishing the session to execute a {@link BuildAction} within.
+ * A {@link BuildExecuter} responsible for establishing the {@link BuildSessionState} to execute a {@link BuildAction} within.
  */
 public class SessionScopeLifecycleBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
     private final ServiceRegistry globalServices;
@@ -51,7 +53,15 @@ public class SessionScopeLifecycleBuildActionExecuter implements BuildActionExec
                     SessionLifecycleListener sessionLifecycleListener = context.getServices().get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
                     try {
                         sessionLifecycleListener.afterStart();
-                        return context.getServices().get(SessionScopeBuildActionExecutor.class).execute(action, actionParameters, context);
+                        BuildActionRunner.Result result = context.getServices().get(SessionScopeBuildActionExecutor.class).execute(action, actionParameters, context);
+                        PayloadSerializer payloadSerializer = context.getServices().get(PayloadSerializer.class);
+                        if (result.getBuildFailure() == null) {
+                            return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
+                        }
+                        if (requestContext.getCancellationToken().isCancellationRequested()) {
+                            return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));
+                        }
+                        return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));
                     } finally {
                         sessionLifecycleListener.beforeComplete();
                     }

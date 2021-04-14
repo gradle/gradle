@@ -154,17 +154,13 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
         BuildTreeBuildActionExecutor createActionExecuter(List<BuildActionRunner> buildActionRunners,
                                                           StyledTextOutputFactory styledTextOutputFactory,
                                                           BuildStateRegistry buildStateRegistry,
-                                                          PayloadSerializer payloadSerializer,
                                                           BuildOperationNotificationValve buildOperationNotificationValve,
                                                           BuildOperationProgressEventEmitter eventEmitter,
-                                                          BuildCancellationToken buildCancellationToken,
                                                           WorkValidationWarningReporter workValidationWarningReporter
         ) {
             return new InProcessBuildActionExecuter(
                 buildStateRegistry,
-                payloadSerializer,
                 buildOperationNotificationValve,
-                buildCancellationToken,
                 new RunAsBuildOperationBuildActionRunner(
                     new BuildCompletionNotifyingBuildActionRunner(
                         new FileSystemWatchingBuildActionRunner(eventEmitter,
