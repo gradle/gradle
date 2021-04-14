@@ -111,7 +111,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
             file,
-            mode(FileLockManager.LockMode.Exclusive),
+            mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation(),
             "instrumented jar cache"
         );
     }
