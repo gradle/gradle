@@ -66,6 +66,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -86,7 +87,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Abstract class for all test task.
+ * Abstract class for all test tasks.
  *
  * <ul>
  *     <li>Support for test listeners</li>
@@ -206,10 +207,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Returns the root folder for the test results in internal binary format.
      *
      * @return the test result directory, containing the test results in binary format.
+     *
+     * @deprecated Use {@link #getBinaryResultsDirectory()} instead. This method will be removed in Gradle 8.0.
      */
     @ReplacedBy("binaryResultsDirectory")
     @Deprecated
     public File getBinResultsDir() {
+        DeprecationLogger.deprecateProperty(AbstractTestTask.class, "binResultsDir").replaceWith("binaryResultsDirectory")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
         return binaryResultsDirectory.getAsFile().getOrNull();
     }
 
@@ -217,9 +225,16 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Sets the root folder for the test results in internal binary format.
      *
      * @param binResultsDir The root folder
+     *
+     * @deprecated Use {@link #getBinaryResultsDirectory()}.set() instead. This method will be removed in Gradle 8.0.
      */
     @Deprecated
     public void setBinResultsDir(File binResultsDir) {
+        DeprecationLogger.deprecateProperty(AbstractTestTask.class, "binResultsDir").replaceWith("binaryResultsDirectory")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
         this.binaryResultsDirectory.set(binResultsDir);
     }
 
