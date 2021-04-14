@@ -226,6 +226,10 @@ public class GFileUtils {
         return FileUtils.deleteQuietly(file);
     }
 
+    /**
+     * Tail reading exception.
+     */
+    @Deprecated
     public static class TailReadingException extends RuntimeException {
         public TailReadingException(Throwable throwable) {
             super(throwable);
@@ -233,6 +237,8 @@ public class GFileUtils {
     }
 
     /**
+     * Returns the tail of a file.
+     *
      * @param file to read from tail
      * @param maxLines max lines to read
      * @return tail content

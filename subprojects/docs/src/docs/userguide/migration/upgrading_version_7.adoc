@@ -104,9 +104,20 @@ With chaining you can, for example, add a reason for a substitution like this:
 `substitute(project(':a')).using(project(':b')).because("a reason")`.
 
 === Potential breaking changes
-Despite being an internal package, `org.gradle.util` is used by several Gradle plugins. In Gradle 7.1 we did a major cleanup there.
 
-The following classes have known usages in external plugins. They are now deprecated and set for removal in Gradle 8.0:
+==== The `org.gradle.util` package is now a public API
+
+Officially, the `org.gradle.util` package is not part of the public API.
+But, because this package name doesn't contain the word `internal`, many Gradle plugins already consider as one.
+Gradle 7.1 addresses the situation and marks the package as public.
+The classes that were unintentionally exposed are either deprecated or removed, depending on their external usage.
+
+The following classes are now officially recognized as public API:
+- `GradleVersion`
+- `Path`
+- `Configurable`
+
+The following classes have known usages in external plugins and are now deprecated and set for removal in Gradle 8.0:
 
 - `VersionNumber`
 - `TextUtil`
@@ -144,6 +155,7 @@ The last set of classes have no external or internal usages and therefore were d
 - `IncubationLogger`
 - `NoOpChangeListener`
 - `DeferredUtil`
+- `ChangeListener`
 
 [[java_exec_properties]]
 ==== Properties deprecated in JavaExec task
