@@ -20,10 +20,10 @@ package org.gradle.composite.internal
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.initialization.GradleLauncher
+import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.work.WorkerLeaseService
@@ -36,7 +36,7 @@ import java.util.function.Function
 class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
     def factory = Mock(NestedBuildFactory)
-    def launcher = Mock(GradleLauncher)
+    def launcher = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
     def action = Mock(Function)
     def sessionServices = Mock(ServiceRegistry)
@@ -73,7 +73,7 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         then:
-        1 * action.apply(!null) >> { BuildController controller ->
+        1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             '<result>'
         }
     }
@@ -86,7 +86,7 @@ class DefaultNestedBuildTest extends Specification {
         result == null
 
         and:
-        1 * action.apply(!null) >> { BuildController controller ->
+        1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             return null
         }
     }

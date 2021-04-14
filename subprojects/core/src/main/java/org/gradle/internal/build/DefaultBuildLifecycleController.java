@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.internal.build;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
@@ -21,6 +21,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.initialization.BuildCompletionListener;
+import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -32,7 +34,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class DefaultGradleLauncher implements GradleLauncher {
+public class DefaultBuildLifecycleController implements BuildLifecycleController {
     private enum Stage {
         Created, Configure, TaskGraph, Finished;
 
@@ -60,7 +62,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     @Nullable
     private RuntimeException stageFailure;
 
-    public DefaultGradleLauncher(
+    public DefaultBuildLifecycleController(
         GradleInternal gradle,
         BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,

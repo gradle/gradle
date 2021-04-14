@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.invocation;
+package org.gradle.internal.buildtree;
 
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -31,7 +32,7 @@ public interface BuildActionRunner {
      *
      * <p>Build failures should be packaged in the returned result, rather than thrown.
      */
-    Result run(BuildAction action, BuildController buildController);
+    Result run(BuildAction action, BuildTreeLifecycleController buildController);
 
     /**
      * Packages up the result of a {@link BuildAction}, either success plus an optional result object, or failure.

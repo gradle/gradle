@@ -21,11 +21,11 @@ import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.session.BuildSessionContext;
-import org.gradle.internal.session.SessionScopeBuildActionExecutor;
+import org.gradle.internal.session.BuildSessionActionExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +33,9 @@ import java.util.List;
 /**
  * Attaches build operation listeners to forward relevant operations back to the client.
  */
-public class SubscribableBuildActionExecuter implements SessionScopeBuildActionExecutor {
+public class SubscribableBuildActionExecuter implements BuildSessionActionExecutor {
     private final BuildEventConsumer eventConsumer;
-    private final SessionScopeBuildActionExecutor delegate;
+    private final BuildSessionActionExecutor delegate;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final List<Object> listeners = new ArrayList<>();
@@ -45,7 +45,7 @@ public class SubscribableBuildActionExecuter implements SessionScopeBuildActionE
                                            BuildOperationListenerManager buildOperationListenerManager,
                                            BuildEventListenerFactory factory,
                                            BuildEventConsumer eventConsumer,
-                                           SessionScopeBuildActionExecutor delegate) {
+                                           BuildSessionActionExecutor delegate) {
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.factory = factory;

@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree;
+package org.gradle.internal.session;
 
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-/**
- * Responsible for running the given action against a build tree.
- */
-@ServiceScope(Scopes.BuildTree.class)
-public interface BuildTreeBuildActionExecutor {
-    /**
-     * Runs the given action and returns the result. Failures should be packaged in the result.
-     * When this method returns, all user code will have completed, including 'build finished' hooks.
-     */
-    BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext);
+@ServiceScope(Scopes.BuildSession.class)
+public interface BuildSessionActionExecutor {
+    BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context);
 }

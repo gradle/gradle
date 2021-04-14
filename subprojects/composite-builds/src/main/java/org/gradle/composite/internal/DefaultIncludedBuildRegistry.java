@@ -34,7 +34,7 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
@@ -51,7 +51,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
-    private final BuildTreeState owner;
+    private final BuildTreeController owner;
     private final IncludedBuildFactory includedBuildFactory;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -69,7 +69,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<Path, IncludedBuildState> libraryBuilds = new LinkedHashMap<>();
     private final Set<IncludedBuildState> currentlyConfiguring = new HashSet<>();
 
-    public DefaultIncludedBuildRegistry(BuildTreeState owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager) {
+    public DefaultIncludedBuildRegistry(BuildTreeController owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager) {
         this.owner = owner;
         this.includedBuildFactory = includedBuildFactory;
         this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;

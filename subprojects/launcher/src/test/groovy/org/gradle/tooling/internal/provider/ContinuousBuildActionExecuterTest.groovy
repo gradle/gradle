@@ -34,7 +34,7 @@ import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.session.BuildSessionContext
-import org.gradle.internal.session.SessionScopeBuildActionExecutor
+import org.gradle.internal.session.BuildSessionActionExecutor
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.internal.DisconnectableInputStream
@@ -49,7 +49,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     @Rule
     RedirectStdIn redirectStdIn = new RedirectStdIn()
 
-    def delegate = Mock(SessionScopeBuildActionExecutor)
+    def delegate = Mock(BuildSessionActionExecutor)
     def action = Mock(BuildAction)
     def cancellationToken = new DefaultBuildCancellationToken()
     def buildExecutionTimer = Mock(BuildStartedTime)

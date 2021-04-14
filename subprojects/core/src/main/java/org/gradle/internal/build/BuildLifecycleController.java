@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -23,9 +23,9 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 /**
- * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into {@link org.gradle.internal.invocation.BuildController} and {@link org.gradle.internal.build.BuildState}.
+ * Controls the lifecycle of an individual build in the build tree.
  */
-public interface GradleLauncher extends Stoppable {
+public interface BuildLifecycleController extends Stoppable {
 
     GradleInternal getGradle();
 

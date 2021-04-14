@@ -23,7 +23,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.session.BuildSessionContext
-import org.gradle.internal.session.SessionScopeBuildActionExecutor
+import org.gradle.internal.session.BuildSessionActionExecutor
 import org.gradle.tooling.events.OperationType
 import spock.lang.Specification
 
@@ -31,7 +31,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
 
     def "removes listeners after executing build action"() {
         given:
-        def delegate = Mock(SessionScopeBuildActionExecutor)
+        def delegate = Mock(BuildSessionActionExecutor)
         def listenerManager = Mock(ListenerManager)
         def buildOperationListenerManager = Mock(BuildOperationListenerManager)
         def buildAction = Stub(SubscribableBuildAction) {

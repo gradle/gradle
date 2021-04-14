@@ -19,13 +19,13 @@ package org.gradle.launcher.exec;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeBuildActionExecutor;
+import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeContext;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 
-public class InProcessBuildActionExecuter implements BuildTreeBuildActionExecutor {
+public class InProcessBuildActionExecuter implements BuildTreeActionExecutor {
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
     private final BuildOperationNotificationValve buildOperationNotificationValve;

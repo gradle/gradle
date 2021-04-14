@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.internal.build
 
 import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.MultipleBuildFailures
+import org.gradle.initialization.BuildCompletionListener
+import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.internal.concurrent.Stoppable
@@ -32,7 +34,7 @@ import java.util.function.Consumer
 
 import static org.gradle.util.Path.path
 
-class DefaultGradleLauncherTest extends Specification {
+class DefaultBuildLifecycleControllerTest extends Specification {
     def buildBroadcaster = Mock(BuildListener)
     def buildExecuter = Mock(BuildWorkExecutor)
 
@@ -55,8 +57,8 @@ class DefaultGradleLauncherTest extends Specification {
         _ * exceptionAnalyser.transform(failure) >> transformedException
     }
 
-    DefaultGradleLauncher launcher() {
-        return new DefaultGradleLauncher(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
+    DefaultBuildLifecycleController launcher() {
+        return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
             buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService],
             Mock(BuildOptionBuildOperationProgressEventsEmitter))
     }
@@ -93,7 +95,7 @@ class DefaultGradleLauncherTest extends Specification {
         expectTasksRun()
         expectBuildFinished()
 
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
         gradleLauncher.finishBuild(null, consumer)
@@ -104,7 +106,7 @@ class DefaultGradleLauncherTest extends Specification {
         isRootBuild()
         expectSettingsBuilt()
 
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         def result = gradleLauncher.getLoadedSettings()
 
         then:
@@ -125,7 +127,7 @@ class DefaultGradleLauncherTest extends Specification {
         1 * buildModelController.loadedSettings >> { throw failure }
         1 * exceptionAnalyser.transform({ it == failure }) >> transformedException
 
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.getLoadedSettings()
 
         then:
@@ -147,7 +149,7 @@ class DefaultGradleLauncherTest extends Specification {
         and:
         1 * buildModelController.configuredModel >> gradleMock
 
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         def result = gradleLauncher.getConfiguredBuild()
 
         then:
@@ -168,7 +170,7 @@ class DefaultGradleLauncherTest extends Specification {
         1 * buildModelController.configuredModel >> { throw failure }
         1 * exceptionAnalyser.transform({ it == failure }) >> transformedException
 
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.getConfiguredBuild()
 
         then:
@@ -189,7 +191,7 @@ class DefaultGradleLauncherTest extends Specification {
         expectTasksRun()
 
         then:
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.executeTasks()
 
         when:
@@ -208,7 +210,7 @@ class DefaultGradleLauncherTest extends Specification {
         1 * buildModelController.scheduleRequestedTasks() >> { throw failure }
 
         when:
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
 
         then:
@@ -233,7 +235,7 @@ class DefaultGradleLauncherTest extends Specification {
         1 * exceptionAnalyser.transform({ it instanceof MultipleBuildFailures && it.cause == failure }) >> transformedException
 
         when:
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
 
@@ -261,7 +263,7 @@ class DefaultGradleLauncherTest extends Specification {
         1 * exceptionAnalyser.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
 
         when:
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
 
@@ -286,7 +288,7 @@ class DefaultGradleLauncherTest extends Specification {
         expectTasksRun()
 
         and:
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
         gradleLauncher.executeTasks()
 
@@ -312,7 +314,7 @@ class DefaultGradleLauncherTest extends Specification {
         1 * exceptionAnalyser.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
 
         and:
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.scheduleRequestedTasks()
 
         when:
@@ -333,7 +335,7 @@ class DefaultGradleLauncherTest extends Specification {
 
     void testCleansUpOnStop() throws IOException {
         when:
-        DefaultGradleLauncher gradleLauncher = launcher()
+        DefaultBuildLifecycleController gradleLauncher = launcher()
         gradleLauncher.stop()
 
         then:

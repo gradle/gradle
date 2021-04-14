@@ -17,7 +17,7 @@
 package org.gradle.internal.session;
 
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
 
 class DefaultBuildSessionContext implements BuildSessionContext {
@@ -39,7 +39,7 @@ class DefaultBuildSessionContext implements BuildSessionContext {
             throw new IllegalStateException("Cannot run more than one action for a session.");
         }
         try {
-            return sessionScopeServices.get(SessionScopeBuildActionExecutor.class).execute(action, this);
+            return sessionScopeServices.get(BuildSessionActionExecutor.class).execute(action, this);
         } finally {
             completed = true;
         }

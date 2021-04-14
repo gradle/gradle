@@ -18,15 +18,15 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     @Override
-    public Result run(BuildAction action, BuildController buildController) {
+    public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         if (!(action instanceof ClientProvidedBuildAction)) {
             return Result.nothing();
         }

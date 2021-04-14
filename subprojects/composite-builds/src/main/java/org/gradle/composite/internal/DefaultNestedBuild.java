@@ -20,15 +20,15 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.initialization.GradleLauncher;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.invocation.GradleBuildController;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -40,14 +40,14 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     private final BuildState owner;
     private final BuildIdentifier buildIdentifier;
     private final BuildDefinition buildDefinition;
-    private final GradleLauncher gradleLauncher;
+    private final BuildLifecycleController buildLifecycleController;
 
     DefaultNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.owner = owner;
-        this.gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition, this);
+        this.buildLifecycleController = owner.getNestedBuildFactory().nestedInstance(buildDefinition, this);
     }
 
     @Override
@@ -67,26 +67,26 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public void stop() {
-        gradleLauncher.stop();
+        buildLifecycleController.stop();
     }
 
     @Override
-    public <T> T run(Function<? super BuildController, T> buildAction) {
+    public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
         // Create a wrapper for the controllers, to prevent the build controller from finishing any other builds
-        IncludedBuildControllers controllers = gradleLauncher.getGradle().getServices().get(IncludedBuildControllers.class);
+        IncludedBuildControllers controllers = buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class);
         IncludedBuildControllers noFinishController = new DoNoFinishIncludedBuildControllers(controllers);
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher, noFinishController);
+        DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, noFinishController);
         return buildAction.apply(buildController);
     }
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        return gradleLauncher.getGradle().getSettings();
+        return buildLifecycleController.getGradle().getSettings();
     }
 
     @Override
     public NestedBuildFactory getNestedBuildFactory() {
-        return gradleLauncher.getGradle().getServices().get(NestedBuildFactory.class);
+        return buildLifecycleController.getGradle().getServices().get(NestedBuildFactory.class);
     }
 
     @Override
@@ -96,17 +96,17 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
-        return gradleLauncher.getGradle().getIdentityPath().append(projectPath);
+        return buildLifecycleController.getGradle().getIdentityPath().append(projectPath);
     }
 
     @Override
     public File getBuildRootDir() {
-        return gradleLauncher.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
+        return buildLifecycleController.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
     public GradleInternal getBuild() {
-        return gradleLauncher.getGradle();
+        return buildLifecycleController.getGradle();
     }
 
     private static class DoNoFinishIncludedBuildControllers implements IncludedBuildControllers {

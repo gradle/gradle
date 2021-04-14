@@ -40,19 +40,19 @@ import org.gradle.internal.filewatch.FileWatcherEventListener;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.session.BuildSessionContext;
-import org.gradle.internal.session.SessionScopeBuildActionExecutor;
+import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.internal.DisconnectableInputStream;
 
 import java.util.function.Supplier;
 
-public class ContinuousBuildActionExecuter implements SessionScopeBuildActionExecutor {
-    private final SessionScopeBuildActionExecutor delegate;
+public class ContinuousBuildActionExecuter implements BuildSessionActionExecutor {
+    private final BuildSessionActionExecutor delegate;
     private final TaskInputsListeners inputsListeners;
     private final BuildRequestMetaData requestMetaData;
     private final OperatingSystem operatingSystem;
@@ -76,7 +76,7 @@ public class ContinuousBuildActionExecuter implements SessionScopeBuildActionExe
         ListenerManager listenerManager,
         BuildStartedTime buildStartedTime,
         Clock clock,
-        SessionScopeBuildActionExecutor delegate
+        BuildSessionActionExecutor delegate
     ) {
         this.inputsListeners = inputsListeners;
         this.requestMetaData = requestMetaData;

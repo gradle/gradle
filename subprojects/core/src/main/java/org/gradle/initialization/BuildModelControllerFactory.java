@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.build.BuildModelController;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 

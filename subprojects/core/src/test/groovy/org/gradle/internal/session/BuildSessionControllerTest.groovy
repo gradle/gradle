@@ -27,7 +27,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import spock.lang.Specification
 
-class BuildSessionStateTest extends Specification {
+class BuildSessionControllerTest extends Specification {
     def userHomeServiceRegistry = Mock(GradleUserHomeScopeServiceRegistry)
     def crossBuildState = Mock(CrossBuildSessionState)
     def startParameter = new StartParameterInternal()
@@ -36,14 +36,14 @@ class BuildSessionStateTest extends Specification {
     def cancellationToken = Mock(BuildCancellationToken)
     def eventConsumer = Mock(BuildEventConsumer)
     def classPath = ClassPath.EMPTY
-    BuildSessionState state
+    BuildSessionController state
 
     def setup() {
         _ * userHomeServiceRegistry.getServicesFor(_) >> new DefaultServiceRegistry()
         def services = new DefaultServiceRegistry()
-        services.add(SessionScopeBuildActionExecutor, Stub(SessionScopeBuildActionExecutor))
+        services.add(BuildSessionActionExecutor, Stub(BuildSessionActionExecutor))
         _ * crossBuildState.services >> services
-        state = new BuildSessionState(userHomeServiceRegistry, crossBuildState, startParameter, buildRequestMetadata, classPath, cancellationToken, clientMetadata, eventConsumer)
+        state = new BuildSessionController(userHomeServiceRegistry, crossBuildState, startParameter, buildRequestMetadata, classPath, cancellationToken, clientMetadata, eventConsumer)
     }
 
     def "cannot run multiple actions against a session"() {

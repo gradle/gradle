@@ -17,7 +17,6 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
 
 public interface BuildTreeContext {
     /**

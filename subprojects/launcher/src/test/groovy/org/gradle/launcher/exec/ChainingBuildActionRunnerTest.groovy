@@ -17,8 +17,8 @@
 package org.gradle.launcher.exec
 
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.internal.invocation.BuildActionRunner
-import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.buildtree.BuildActionRunner
+import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import spock.lang.Specification
 
 class ChainingBuildActionRunnerTest extends Specification {
@@ -29,7 +29,7 @@ class ChainingBuildActionRunnerTest extends Specification {
 
     def "invokes runners until a result is produced"() {
         def action = Stub(BuildAction)
-        def controller = Mock(BuildController)
+        def controller = Mock(BuildTreeLifecycleController)
 
         when:
         runner.run(action, controller)
@@ -42,7 +42,7 @@ class ChainingBuildActionRunnerTest extends Specification {
 
     def "invokes runners until a failure is produced"() {
         def action = Stub(BuildAction)
-        def controller = Mock(BuildController)
+        def controller = Mock(BuildTreeLifecycleController)
 
         when:
         runner.run(action, controller)

@@ -28,11 +28,11 @@ import java.util.function.Function;
 /**
  * Encapsulates the state for a particular build tree.
  */
-public class BuildTreeState implements Closeable {
+public class BuildTreeController implements Closeable {
     private final ServiceRegistry services;
     private final DefaultBuildTreeContext context;
 
-    public BuildTreeState(ServiceRegistry parent, BuildType buildType) {
+    public BuildTreeController(ServiceRegistry parent, BuildType buildType) {
         services = ServiceRegistryBuilder.builder()
             .displayName("build tree services")
             .parent(parent)

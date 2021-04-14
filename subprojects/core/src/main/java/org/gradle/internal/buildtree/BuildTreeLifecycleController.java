@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.invocation;
+package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -24,7 +24,7 @@ import java.util.function.Function;
 /**
  * Controls the lifecycle of the build tree, allowing a single action to be run against the root build.
  */
-public interface BuildController {
+public interface BuildTreeLifecycleController {
 
     /**
      * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.

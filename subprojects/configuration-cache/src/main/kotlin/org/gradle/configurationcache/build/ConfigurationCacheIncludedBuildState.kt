@@ -23,11 +23,11 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.composite.internal.DefaultIncludedBuild
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.initialization.BuildCompletionListener
-import org.gradle.initialization.BuildModelController
+import org.gradle.internal.build.BuildModelController
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter
-import org.gradle.initialization.DefaultGradleLauncher
+import org.gradle.internal.build.DefaultBuildLifecycleController
 import org.gradle.initialization.DefaultGradleLauncherFactory
-import org.gradle.initialization.GradleLauncher
+import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.initialization.layout.BuildLayout
@@ -48,7 +48,7 @@ open class ConfigurationCacheIncludedBuildState(
     parentLease: WorkerLeaseRegistry.WorkerLease
 ) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, parentLease) {
 
-    override fun createGradleLauncher(): GradleLauncher {
+    override fun createGradleLauncher(): BuildLifecycleController {
         return nestedBuildFactoryInternal().nestedInstance(
             buildDefinition,
             this,
@@ -65,7 +65,7 @@ open class ConfigurationCacheIncludedBuildState(
                 // Create a GradleLauncher with a no-op model controller
                 val controller = NoOpBuildModelController(gradle)
                 val listenerManager = serviceRegistry.get(ListenerManager::class.java)
-                DefaultGradleLauncher(
+                DefaultBuildLifecycleController(
                     gradle,
                     controller,
                     serviceRegistry.get(ExceptionAnalyser::class.java),

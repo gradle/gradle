@@ -16,19 +16,20 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * <p>A {@code GradleLauncherFactory} is responsible for creating a {@link GradleLauncher} instance for a root build.
+ * <p>A {@code GradleLauncherFactory} is responsible for creating a {@link BuildLifecycleController} instance for a root build.
  *
- * Caller must call {@link GradleLauncher#stop()} when finished with the launcher.
+ * Caller must call {@link BuildLifecycleController#stop()} when finished with the launcher.
  *
  * Note: you should be using {@link org.gradle.internal.build.BuildStateRegistry} instead of this interface to create builds.
  */
 @ServiceScope(Scopes.BuildSession.class)
 public interface GradleLauncherFactory {
-    GradleLauncher newInstance(BuildDefinition buildDefinition, RootBuildState build, BuildTreeState owner);
+    BuildLifecycleController newInstance(BuildDefinition buildDefinition, RootBuildState build, BuildTreeController owner);
 }
