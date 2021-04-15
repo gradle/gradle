@@ -21,9 +21,8 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
-import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.internal.build.NestedBuildState;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
@@ -58,11 +57,6 @@ public class TestBuildScopeServices extends BuildScopeServices {
 
     protected NestedBuildFactory createNestedBuildFactory() {
         return new NestedBuildFactory() {
-            @Override
-            public BuildLifecycleController nestedInstance(BuildDefinition buildDefinition, NestedBuildState build) {
-                throw new UnsupportedOperationException();
-            }
-
             @Override
             public BuildLifecycleController nestedBuildTree(BuildDefinition buildDefinition, NestedRootBuild build) {
                 throw new UnsupportedOperationException();

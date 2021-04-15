@@ -26,7 +26,9 @@ import java.util.function.Consumer;
  * Controls the lifecycle of an individual build in the build tree.
  */
 public interface BuildLifecycleController extends Stoppable {
-
+    /**
+     * Returns the current state of the mutable model for this build.
+     */
     GradleInternal getGradle();
 
     /**

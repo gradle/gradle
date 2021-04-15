@@ -87,4 +87,9 @@ public interface BuildState {
     File getBuildRootDir();
 
     GradleInternal getBuild();
+
+    /**
+     * Returns the current state of the mutable model of this build.
+     */
+    GradleInternal getMutableModel();
 }

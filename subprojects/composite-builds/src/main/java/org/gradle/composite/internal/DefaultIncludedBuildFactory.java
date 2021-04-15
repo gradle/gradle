@@ -19,9 +19,11 @@ package org.gradle.composite.internal;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -31,10 +33,14 @@ import java.io.File;
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
     private final WorkerLeaseService workerLeaseService;
+    private final BuildTreeController buildTree;
+    private final GradleLauncherFactory gradleLauncherFactory;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, WorkerLeaseService workerLeaseService, BuildTreeController buildTree, GradleLauncherFactory gradleLauncherFactory) {
         this.instantiator = instantiator;
         this.workerLeaseService = workerLeaseService;
+        this.buildTree = buildTree;
+        this.gradleLauncherFactory = gradleLauncherFactory;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -56,7 +62,9 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             buildDefinition,
             isImplicit,
             owner,
-            workerLeaseService.getCurrentWorkerLease()
+            buildTree,
+            workerLeaseService.getCurrentWorkerLease(),
+            gradleLauncherFactory
         );
     }
 }

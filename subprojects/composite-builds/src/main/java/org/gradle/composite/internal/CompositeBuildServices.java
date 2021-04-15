@@ -65,7 +65,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
                                                               ObjectFactory objectFactory,
                                                               NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                                               ImmutableAttributesFactory attributesFactory) {
-            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
+            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService, owner, gradleLauncherFactory);
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
             IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
             return new DefaultIncludedBuildRegistry(owner, includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager);

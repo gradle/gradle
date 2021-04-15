@@ -16,13 +16,13 @@
 
 package org.gradle.composite.internal
 
-
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
@@ -35,8 +35,10 @@ import java.util.function.Function
 
 class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
-    def factory = Mock(NestedBuildFactory)
+    def tree = Mock(BuildTreeController)
+    def factory = Mock(GradleLauncherFactory)
     def launcher = Mock(BuildLifecycleController)
+    def parentGradle = Mock(GradleInternal)
     def gradle = Mock(GradleInternal)
     def action = Mock(Function)
     def sessionServices = Mock(ServiceRegistry)
@@ -45,16 +47,16 @@ class DefaultNestedBuildTest extends Specification {
     DefaultNestedBuild build
 
     def setup() {
-        _ * owner.nestedBuildFactory >> factory
         _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
-        _ * factory.nestedInstance(buildDefinition, _) >> launcher
+        _ * owner.mutableModel >> parentGradle
+        _ * factory.newInstance(buildDefinition, _, parentGradle, tree) >> launcher
         _ * buildDefinition.name >> "nested"
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
 
-        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner)
+        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree, factory)
     }
 
     def "stops launcher on stop"() {

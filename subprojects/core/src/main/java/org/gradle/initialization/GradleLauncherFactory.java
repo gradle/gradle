@@ -16,11 +16,14 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+
+import javax.annotation.Nullable;
 
 /**
  * <p>A {@code GradleLauncherFactory} is responsible for creating a {@link BuildLifecycleController} instance for a root build.
@@ -31,5 +34,5 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scopes.BuildSession.class)
 public interface GradleLauncherFactory {
-    BuildLifecycleController newInstance(BuildDefinition buildDefinition, RootBuildState build, BuildTreeController owner);
+    BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel, BuildTreeController buildTree);
 }

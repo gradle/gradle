@@ -21,6 +21,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildTreeScopeInitializer;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
 import java.util.function.Function;
@@ -28,6 +30,7 @@ import java.util.function.Function;
 /**
  * Encapsulates the state for a particular build tree.
  */
+@ServiceScope(Scopes.BuildTree.class)
 public class BuildTreeController implements Closeable {
     private final ServiceRegistry services;
     private final DefaultBuildTreeContext context;

@@ -20,15 +20,17 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -42,12 +44,17 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     private final BuildDefinition buildDefinition;
     private final BuildLifecycleController buildLifecycleController;
 
-    DefaultNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
+    DefaultNestedBuild(BuildIdentifier buildIdentifier,
+                       Path identityPath,
+                       BuildDefinition buildDefinition,
+                       BuildState owner,
+                       BuildTreeController buildTree,
+                       GradleLauncherFactory gradleLauncherFactory) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.owner = owner;
-        this.buildLifecycleController = owner.getNestedBuildFactory().nestedInstance(buildDefinition, this);
+        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildTree);
     }
 
     @Override
@@ -106,6 +113,11 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public GradleInternal getBuild() {
+        return buildLifecycleController.getGradle();
+    }
+
+    @Override
+    public GradleInternal getMutableModel() {
         return buildLifecycleController.getGradle();
     }
 

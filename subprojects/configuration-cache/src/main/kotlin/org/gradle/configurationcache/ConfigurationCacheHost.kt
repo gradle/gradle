@@ -35,6 +35,7 @@ import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.layout.BuildLayout
@@ -43,6 +44,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.BuildOperationContext
@@ -214,7 +216,9 @@ class ConfigurationCacheHost internal constructor(
             buildDefinition,
             isImplicit,
             owner,
-            service<WorkerLeaseService>().currentWorkerLease
+            service<BuildTreeController>(),
+            service<WorkerLeaseService>().currentWorkerLease,
+            service<GradleLauncherFactory>()
         )
 
         override fun prepareBuild(includedBuild: IncludedBuildState) {

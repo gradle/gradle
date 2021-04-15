@@ -27,12 +27,14 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter
 import org.gradle.internal.build.DefaultBuildLifecycleController
 import org.gradle.initialization.DefaultGradleLauncherFactory
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -45,8 +47,10 @@ open class ConfigurationCacheIncludedBuildState(
     buildDefinition: BuildDefinition,
     isImplicit: Boolean,
     owner: BuildState,
-    parentLease: WorkerLeaseRegistry.WorkerLease
-) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, parentLease) {
+    buildTree: BuildTreeController,
+    parentLease: WorkerLeaseRegistry.WorkerLease,
+    gradleLauncherFactory: GradleLauncherFactory
+) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, gradleLauncherFactory) {
 
     override fun createGradleLauncher(): BuildLifecycleController {
         return nestedBuildFactoryInternal().nestedInstance(
