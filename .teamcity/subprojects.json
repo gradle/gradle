@@ -289,7 +289,7 @@
   {
     "dirName": "file-temp",
     "name": "file-temp",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
