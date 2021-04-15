@@ -25,7 +25,6 @@ import org.gradle.initialization.BuildCompletionListener
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
-import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
@@ -46,7 +45,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     def buildCompletionListener = Mock(BuildCompletionListener.class)
     def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def buildServices = Mock(BuildScopeServices.class)
-    def otherService = Mock(Stoppable)
     def consumer = Mock(Consumer)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -59,8 +57,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     DefaultBuildLifecycleController launcher() {
         return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
-            buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService],
-            Mock(BuildOptionBuildOperationProgressEventsEmitter))
+            buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, Mock(BuildOptionBuildOperationProgressEventsEmitter))
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {
@@ -340,7 +337,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * buildServices.close()
-        1 * otherService.stop()
         1 * buildCompletionListener.completed()
     }
 

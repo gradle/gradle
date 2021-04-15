@@ -27,6 +27,7 @@ import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeController
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -37,6 +38,7 @@ class DefaultIncludedBuildTest extends Specification {
     def buildDefinition = Stub(BuildDefinition)
     def gradleLauncher = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
+    def buildTree = Mock(BuildTreeController)
     DefaultIncludedBuild build
 
     def setup() {
@@ -44,8 +46,9 @@ class DefaultIncludedBuildTest extends Specification {
         _ * buildFactory.newInstance(_, _, _, _) >> gradleLauncher
         _ * gradleLauncher.gradle >> gradle
         _ * gradle.settings >> Stub(SettingsInternal)
+        _ * buildTree.services >> new DefaultServiceRegistry()
 
-        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, Stub(BuildTreeController), Stub(WorkerLeaseRegistry.WorkerLease), buildFactory)
+        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, Stub(WorkerLeaseRegistry.WorkerLease), buildFactory)
     }
 
     def "creates a foreign id for projects"() {

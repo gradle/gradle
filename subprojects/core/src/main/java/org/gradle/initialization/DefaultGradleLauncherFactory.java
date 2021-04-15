@@ -28,14 +28,12 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildModelController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.DefaultBuildLifecycleController;
-import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -43,31 +41,25 @@ import org.gradle.invocation.DefaultGradle;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.function.Function;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
-    private final BuildTreeController buildTree;
-
-    public DefaultGradleLauncherFactory(BuildTreeController buildTree) {
-        this.buildTree = buildTree;
-    }
-
     @Override
-    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel) {
-        return doNewInstance(buildDefinition, owner, parentModel);
+    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel, BuildScopeServices buildScopeServices) {
+        return doNewInstance(buildDefinition, owner, parentModel, buildScopeServices);
     }
 
     private BuildLifecycleController doNewInstance(
         BuildDefinition buildDefinition,
         BuildState owner,
-        @Nullable GradleInternal parent
+        @Nullable GradleInternal parent,
+        BuildScopeServices buildScopeServices
     ) {
         return doNewInstance(
             buildDefinition,
             owner,
             parent,
             this::createDefaultGradleLauncher,
-            BuildScopeServices::new
+            buildScopeServices
         );
     }
 
@@ -75,10 +67,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildDefinition buildDefinition,
         BuildState owner,
         @Nullable GradleInternal parent,
-        Function<ServiceRegistry, BuildScopeServices> buildScopeServicesInstantiator,
+        BuildScopeServices buildScopeServices,
         GradleLauncherInstantiator gradleLauncherInstantiator
     ) {
-        return doNewInstance(buildDefinition, owner, parent, gradleLauncherInstantiator, buildScopeServicesInstantiator);
+        return doNewInstance(buildDefinition, owner, parent, gradleLauncherInstantiator, buildScopeServices);
     }
 
     private BuildLifecycleController doNewInstance(
@@ -86,9 +78,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildState owner,
         @Nullable GradleInternal parent,
         GradleLauncherInstantiator gradleLauncherInstantiator,
-        Function<ServiceRegistry, BuildScopeServices> buildScopeServicesInstantiator
+        BuildScopeServices serviceRegistry
     ) {
-        final BuildScopeServices serviceRegistry = buildScopeServicesInstantiator.apply(buildTree.getServices());
         serviceRegistry.add(BuildDefinition.class, buildDefinition);
         serviceRegistry.add(BuildState.class, owner);
 

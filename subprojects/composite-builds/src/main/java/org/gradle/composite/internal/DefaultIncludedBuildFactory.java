@@ -31,11 +31,13 @@ import org.gradle.util.Path;
 import java.io.File;
 
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
+    private final BuildTreeController buildTree;
     private final Instantiator instantiator;
     private final WorkerLeaseService workerLeaseService;
     private final GradleLauncherFactory gradleLauncherFactory;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, WorkerLeaseService workerLeaseService, GradleLauncherFactory gradleLauncherFactory) {
+    public DefaultIncludedBuildFactory(BuildTreeController buildTree, Instantiator instantiator, WorkerLeaseService workerLeaseService, GradleLauncherFactory gradleLauncherFactory) {
+        this.buildTree = buildTree;
         this.instantiator = instantiator;
         this.workerLeaseService = workerLeaseService;
         this.gradleLauncherFactory = gradleLauncherFactory;
@@ -60,6 +62,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             buildDefinition,
             isImplicit,
             owner,
+            buildTree,
             workerLeaseService.getCurrentWorkerLease(),
             gradleLauncherFactory
         );

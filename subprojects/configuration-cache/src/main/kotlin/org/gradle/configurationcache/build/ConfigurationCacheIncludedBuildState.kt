@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.build
 
-import org.gradle.StartParameter
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
@@ -28,12 +27,11 @@ import org.gradle.initialization.DefaultGradleLauncherFactory
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
-import org.gradle.initialization.layout.BuildLayout
-import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.DefaultBuildLifecycleController
+import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -46,25 +44,19 @@ open class ConfigurationCacheIncludedBuildState(
     buildDefinition: BuildDefinition,
     isImplicit: Boolean,
     owner: BuildState,
+    buildTree: BuildTreeController,
     parentLease: WorkerLeaseRegistry.WorkerLease,
     gradleLauncherFactory: GradleLauncherFactory
-) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, parentLease, gradleLauncherFactory) {
+) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, gradleLauncherFactory) {
 
-    override fun createGradleLauncher(gradleLauncherFactory: GradleLauncherFactory, owner: BuildState): BuildLifecycleController {
+    override fun createGradleLauncher(gradleLauncherFactory: GradleLauncherFactory, owner: BuildState, buildTree: BuildTreeController): BuildLifecycleController {
         val internalFactory = gradleLauncherFactory as DefaultGradleLauncherFactory
+        val buildScopeServices = BuildScopeServices(buildTree.services)
         return internalFactory.nestedInstance(
             buildDefinition,
             this,
             owner.mutableModel,
-            { parent ->
-                // Avoid BuildLayout discovery
-                object : BuildScopeServices(parent) {
-                    override fun createBuildLayout(buildLayoutFactory: BuildLayoutFactory, startParameter: StartParameter) =
-                        buildDefinition.buildRootDir.let { rootDir ->
-                            BuildLayout(rootDir, rootDir, null)
-                        }
-                }
-            },
+            buildScopeServices,
             { gradle: GradleInternal, _: BuildModelController, serviceRegistry: BuildScopeServices ->
                 // Create a GradleLauncher with a no-op model controller
                 val controller = NoOpBuildModelController(gradle)

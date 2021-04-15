@@ -45,6 +45,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionController;
 import org.gradle.internal.session.CrossBuildSessionState;
@@ -83,7 +84,8 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         buildTree = new BuildTreeController(session.getServices(), BuildType.TASKS);
         // Create the controller using the services of the nested tree
         GradleLauncherFactory gradleLauncherFactory = buildTree.getServices().get(GradleLauncherFactory.class);
-        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, owner.getMutableModel());
+        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
     }
 
     public void attach() {

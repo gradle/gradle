@@ -31,7 +31,9 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -55,6 +57,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildDefinition buildDefinition,
         boolean isImplicit,
         BuildState owner,
+        BuildTreeController buildTree,
         WorkerLeaseRegistry.WorkerLease parentLease,
         GradleLauncherFactory gradleLauncherFactory
     ) {
@@ -64,12 +67,13 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.isImplicit = isImplicit;
         this.owner = owner;
         this.parentLease = parentLease;
-        this.buildLifecycleController = createGradleLauncher(gradleLauncherFactory, owner);
+        this.buildLifecycleController = createGradleLauncher(gradleLauncherFactory, owner, buildTree);
     }
 
-    protected BuildLifecycleController createGradleLauncher(GradleLauncherFactory gradleLauncherFactory, BuildState owner) {
+    protected BuildLifecycleController createGradleLauncher(GradleLauncherFactory gradleLauncherFactory, BuildState owner, BuildTreeController buildTree) {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
-        return gradleLauncherFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel());
+        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        return gradleLauncherFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildScopeServices);
     }
 
     protected BuildDefinition getBuildDefinition() {

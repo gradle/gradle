@@ -28,6 +28,7 @@ import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
@@ -52,7 +53,7 @@ class DefaultRootBuildStateTest extends Specification {
     DefaultRootBuildState build
 
     def setup() {
-        _ * factory.newInstance(buildDefinition, _, null, buildTree) >> launcher
+        _ * factory.newInstance(buildDefinition, _, null, _) >> launcher
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         _ * sessionServices.get(ProjectStateRegistry) >> projectStateRegistry
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
@@ -61,6 +62,7 @@ class DefaultRootBuildStateTest extends Specification {
         _ * sessionServices.get(ExceptionAnalyser) >> exceptionAnalyzer
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
+        _ * buildTree.services >> new DefaultServiceRegistry()
         _ * projectStateRegistry.withLenientState(_) >> { args -> return args[0].create() }
 
         build = new DefaultRootBuildState(buildDefinition, factory, listenerManager, buildTree)

@@ -25,6 +25,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
@@ -49,10 +50,11 @@ class DefaultNestedBuildTest extends Specification {
     def setup() {
         _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
         _ * owner.mutableModel >> parentGradle
-        _ * factory.newInstance(buildDefinition, _, parentGradle, tree) >> launcher
+        _ * factory.newInstance(buildDefinition, _, parentGradle, _) >> launcher
         _ * buildDefinition.name >> "nested"
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
+        _ * tree.services >> new DefaultServiceRegistry()
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
 
