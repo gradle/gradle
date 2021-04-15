@@ -73,12 +73,6 @@ public class ProjectFactory implements IProjectFactory {
         );
         project.beforeEvaluate(p -> {
             nagUserAboutDeprecatedFlatProjectLayout(project);
-            if (!isParentDir(project.getRootProject().getProjectDir(), project.getProjectDir())) {
-                DeprecationLogger.deprecateBehaviour(String.format("Subproject %s has location outside of project root: %s", project.getPath(), project.getProjectDir().getAbsolutePath()))
-                    .willBeRemovedInGradle8()
-                    .withUpgradeGuideSection(7, "deprecated_flat_project_structure")
-                    .nagUser();
-            }
             NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
             gradle.getServices().get(DependenciesAccessors.class).createExtensions(project);
             gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
@@ -93,8 +87,10 @@ public class ProjectFactory implements IProjectFactory {
     }
 
     private void nagUserAboutDeprecatedFlatProjectLayout(DefaultProject project) {
-        if (!isParentDir(FileUtils.canonicalize((project.getRootProject().getProjectDir())), FileUtils.canonicalize(project.getProjectDir()))) {
-            DeprecationLogger.deprecateBehaviour(String.format("Subproject %s has location outside of project root: %s", project.getPath(), project.getProjectDir().getAbsolutePath()))
+        File rootDir = FileUtils.canonicalize((project.getRootProject().getProjectDir()));
+        File projectDir = FileUtils.canonicalize(project.getProjectDir());
+        if (!isParentDir(rootDir, projectDir)) {
+            DeprecationLogger.deprecateBehaviour(String.format("Subproject '%s' has location '%s' which is outside of the project root.", project.getPath(), project.getProjectDir().getAbsolutePath()))
                 .willBeRemovedInGradle8()
                 .withUpgradeGuideSection(7, "deprecated_flat_project_structure")
                 .nagUser();
