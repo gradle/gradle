@@ -34,7 +34,6 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
-import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
@@ -51,11 +50,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
-    private final BuildTreeController owner;
     private final IncludedBuildFactory includedBuildFactory;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
     private final GradleLauncherFactory gradleLauncherFactory;
-    private final ListenerManager listenerManager;
     private final BuildAddedListener buildAddedBroadcaster;
     private final BuildStateFactory buildStateFactory;
 
@@ -70,12 +67,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<Path, IncludedBuildState> libraryBuilds = new LinkedHashMap<>();
     private final Set<IncludedBuildState> currentlyConfiguring = new HashSet<>();
 
-    public DefaultIncludedBuildRegistry(BuildTreeController owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
-        this.owner = owner;
+    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
         this.includedBuildFactory = includedBuildFactory;
         this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;
         this.gradleLauncherFactory = gradleLauncherFactory;
-        this.listenerManager = listenerManager;
         this.buildAddedBroadcaster = listenerManager.getBroadcaster(BuildAddedListener.class);
         this.buildStateFactory = buildStateFactory;
     }
@@ -93,7 +88,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         if (rootBuild != null) {
             throw new IllegalStateException("Root build already defined.");
         }
-        rootBuild = new DefaultRootBuildState(buildDefinition, gradleLauncherFactory, listenerManager, owner);
+        rootBuild = buildStateFactory.createRootBuild(buildDefinition);
         addBuild(rootBuild);
         return rootBuild;
     }
@@ -193,7 +188,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
         Path identityPath = assignPath(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
         BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
-        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, this.owner, gradleLauncherFactory);
+        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, gradleLauncherFactory);
         addBuild(build);
         return build;
     }

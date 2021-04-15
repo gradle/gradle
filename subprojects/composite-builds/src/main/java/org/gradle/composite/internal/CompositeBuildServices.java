@@ -31,7 +31,6 @@ import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
-import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -62,15 +61,14 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
                                                               WorkerLeaseService workerLeaseService,
                                                               GradleLauncherFactory gradleLauncherFactory,
                                                               ListenerManager listenerManager,
-                                                              BuildTreeController owner,
                                                               ObjectFactory objectFactory,
                                                               NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                                               ImmutableAttributesFactory attributesFactory,
                                                               BuildStateFactory buildStateFactory) {
-            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService, owner, gradleLauncherFactory);
+            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService, gradleLauncherFactory);
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
             IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
-            return new DefaultIncludedBuildRegistry(owner, includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, buildStateFactory);
+            return new DefaultIncludedBuildRegistry(includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, buildStateFactory);
         }
 
         public CompositeBuildContext createCompositeBuildContext() {

@@ -34,7 +34,6 @@ import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.DefaultBuildLifecycleController
-import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -47,18 +46,16 @@ open class ConfigurationCacheIncludedBuildState(
     buildDefinition: BuildDefinition,
     isImplicit: Boolean,
     owner: BuildState,
-    buildTree: BuildTreeController,
     parentLease: WorkerLeaseRegistry.WorkerLease,
     gradleLauncherFactory: GradleLauncherFactory
-) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, gradleLauncherFactory) {
+) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, parentLease, gradleLauncherFactory) {
 
-    override fun createGradleLauncher(gradleLauncherFactory: GradleLauncherFactory, owner: BuildState, buildTree: BuildTreeController): BuildLifecycleController {
+    override fun createGradleLauncher(gradleLauncherFactory: GradleLauncherFactory, owner: BuildState): BuildLifecycleController {
         val internalFactory = gradleLauncherFactory as DefaultGradleLauncherFactory
         return internalFactory.nestedInstance(
             buildDefinition,
             this,
             owner.mutableModel,
-            buildTree,
             { parent ->
                 // Avoid BuildLayout discovery
                 object : BuildScopeServices(parent) {
@@ -68,7 +65,7 @@ open class ConfigurationCacheIncludedBuildState(
                         }
                 }
             },
-            { gradle: GradleInternal, _: BuildModelController, serviceRegistry: BuildScopeServices, servicesToStop: List<*> ->
+            { gradle: GradleInternal, _: BuildModelController, serviceRegistry: BuildScopeServices ->
                 // Create a GradleLauncher with a no-op model controller
                 val controller = NoOpBuildModelController(gradle)
                 val listenerManager = serviceRegistry.get(ListenerManager::class.java)
@@ -81,7 +78,6 @@ open class ConfigurationCacheIncludedBuildState(
                     listenerManager.getBroadcaster(InternalBuildFinishedListener::class.java),
                     gradle.serviceOf(),
                     serviceRegistry,
-                    servicesToStop,
                     BuildOptionBuildOperationProgressEventsEmitter(gradle.serviceOf())
                 )
             }

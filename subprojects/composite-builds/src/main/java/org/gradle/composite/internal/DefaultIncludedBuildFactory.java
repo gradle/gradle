@@ -33,13 +33,11 @@ import java.io.File;
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
     private final WorkerLeaseService workerLeaseService;
-    private final BuildTreeController buildTree;
     private final GradleLauncherFactory gradleLauncherFactory;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, WorkerLeaseService workerLeaseService, BuildTreeController buildTree, GradleLauncherFactory gradleLauncherFactory) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, WorkerLeaseService workerLeaseService, GradleLauncherFactory gradleLauncherFactory) {
         this.instantiator = instantiator;
         this.workerLeaseService = workerLeaseService;
-        this.buildTree = buildTree;
         this.gradleLauncherFactory = gradleLauncherFactory;
     }
 
@@ -62,7 +60,6 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             buildDefinition,
             isImplicit,
             owner,
-            buildTree,
             workerLeaseService.getCurrentWorkerLease(),
             gradleLauncherFactory
         );

@@ -31,7 +31,6 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
 import org.gradle.internal.concurrent.Stoppable;
@@ -47,9 +46,9 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     private final DefaultBuildTreeLifecycleController buildController;
     private boolean completed;
 
-    DefaultRootBuildState(BuildDefinition buildDefinition, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeController owner) {
+    DefaultRootBuildState(BuildDefinition buildDefinition, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager) {
         this.listenerManager = listenerManager;
-        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, null, owner);
+        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, null);
         this.buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController);
     }
 

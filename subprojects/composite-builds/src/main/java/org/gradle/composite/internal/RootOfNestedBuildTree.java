@@ -67,7 +67,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
                                  BuildIdentifier buildIdentifier,
                                  Path identityPath,
                                  BuildState owner,
-                                 GradleLauncherFactory gradleLauncherFactory,
                                  GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
                                  CrossBuildSessionState crossBuildSessionState,
                                  BuildCancellationToken buildCancellationToken) {
@@ -82,7 +81,9 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         // Configuration cache is not supported for nested build trees
         startParameter.setConfigurationCache(false);
         buildTree = new BuildTreeController(session.getServices(), BuildType.TASKS);
-        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, null, buildTree);
+        // Create the controller using the services of the nested tree
+        GradleLauncherFactory gradleLauncherFactory = buildTree.getServices().get(GradleLauncherFactory.class);
+        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, owner.getMutableModel());
     }
 
     public void attach() {

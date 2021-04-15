@@ -19,7 +19,6 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -32,7 +31,7 @@ import javax.annotation.Nullable;
  *
  * Note: you should be using {@link org.gradle.internal.build.BuildStateRegistry} instead of this interface to create builds.
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scopes.BuildTree.class)
 public interface GradleLauncherFactory {
-    BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel, BuildTreeController buildTree);
+    BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel);
 }

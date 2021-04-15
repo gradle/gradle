@@ -16,7 +16,6 @@
 
 package org.gradle.initialization;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.BuildDefinition;
@@ -44,28 +43,29 @@ import org.gradle.invocation.DefaultGradle;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.List;
 import java.util.function.Function;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
+    private final BuildTreeController buildTree;
+
+    public DefaultGradleLauncherFactory(BuildTreeController buildTree) {
+        this.buildTree = buildTree;
+    }
+
     @Override
-    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel, BuildTreeController buildTree) {
-        return doNewInstance(buildDefinition, owner, parentModel, buildTree, ImmutableList.of());
+    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel) {
+        return doNewInstance(buildDefinition, owner, parentModel);
     }
 
     private BuildLifecycleController doNewInstance(
         BuildDefinition buildDefinition,
         BuildState owner,
-        @Nullable GradleInternal parent,
-        BuildTreeController buildTree,
-        List<?> servicesToStop
+        @Nullable GradleInternal parent
     ) {
         return doNewInstance(
             buildDefinition,
             owner,
             parent,
-            buildTree,
-            servicesToStop,
             this::createDefaultGradleLauncher,
             BuildScopeServices::new
         );
@@ -75,19 +75,16 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildDefinition buildDefinition,
         BuildState owner,
         @Nullable GradleInternal parent,
-        BuildTreeController buildTree,
         Function<ServiceRegistry, BuildScopeServices> buildScopeServicesInstantiator,
         GradleLauncherInstantiator gradleLauncherInstantiator
     ) {
-        return doNewInstance(buildDefinition, owner, parent, buildTree, ImmutableList.of(), gradleLauncherInstantiator, buildScopeServicesInstantiator);
+        return doNewInstance(buildDefinition, owner, parent, gradleLauncherInstantiator, buildScopeServicesInstantiator);
     }
 
     private BuildLifecycleController doNewInstance(
         BuildDefinition buildDefinition,
         BuildState owner,
         @Nullable GradleInternal parent,
-        BuildTreeController buildTree,
-        List<?> servicesToStop,
         GradleLauncherInstantiator gradleLauncherInstantiator,
         Function<ServiceRegistry, BuildScopeServices> buildScopeServicesInstantiator
     ) {
@@ -142,14 +139,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildModelControllerFactory buildModelControllerFactory = gradle.getServices().get(BuildModelControllerFactory.class);
         BuildModelController buildModelController = buildModelControllerFactory.create(gradle);
 
-        return gradleLauncherInstantiator.gradleLauncherFor(gradle, buildModelController, serviceRegistry, servicesToStop);
+        return gradleLauncherInstantiator.gradleLauncherFor(gradle, buildModelController, serviceRegistry);
     }
 
     private BuildLifecycleController createDefaultGradleLauncher(
         GradleInternal gradle,
         BuildModelController buildModelController,
-        BuildScopeServices serviceRegistry,
-        List<?> servicesToStop
+        BuildScopeServices serviceRegistry
     ) {
         final ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
 
@@ -162,7 +158,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
             gradle.getServices().get(BuildWorkExecutor.class),
             serviceRegistry,
-            servicesToStop,
             new BuildOptionBuildOperationProgressEventsEmitter(
                 gradle.getServices().get(BuildOperationProgressEventEmitter.class)
             )
@@ -174,8 +169,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildLifecycleController gradleLauncherFor(
             GradleInternal gradle,
             BuildModelController buildModelController,
-            BuildScopeServices serviceRegistry,
-            List<?> servicesToStop
+            BuildScopeServices serviceRegistry
         );
     }
 }
