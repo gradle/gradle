@@ -23,6 +23,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
@@ -71,9 +72,11 @@ public class ProjectFactory implements IProjectFactory {
             baseClassLoaderScope
         );
         project.beforeEvaluate(p -> {
-            if (!contains(project.getRootProject().getProjectDir(), project.getProjectDir())) {
-                // TODO Find a right place
-                DeprecationLogger.deprecateBehaviour("Subproject located outside of the root project.").willBeRemovedInGradle8().undocumented().nagUser();
+            if (!isParentDir(project.getRootProject().getProjectDir(), project.getProjectDir())) {
+                DeprecationLogger.deprecateBehaviour(String.format("Subproject %s has location outside of project root: %s", project.getPath(), project.getProjectDir().getAbsolutePath()))
+                    .willBeRemovedInGradle8()
+                    .withUpgradeGuideSection(7, "deprecated_flat_project_structure")
+                    .nagUser();
             }
             NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
             gradle.getServices().get(DependenciesAccessors.class).createExtensions(project);
@@ -88,16 +91,17 @@ public class ProjectFactory implements IProjectFactory {
         return project;
     }
 
-    private static boolean contains(File base, File f) {
-        // TODO probably there is there a utility method for this
-        // TODO canonical paths
-        if (f == null) {
-            return false;
-        } else if (f.equals(base)) {
-            return true;
-        } else {
-            return contains(base, f.getParentFile());
-        }
+    private static boolean isParentDir(File parent, File f) {
+        return isParentDirRecurse(FileUtils.canonicalize(parent), FileUtils.canonicalize(f));
     }
 
+    private static boolean isParentDirRecurse(File parent, File f) {
+        if (f == null) {
+            return false;
+        } else if (f.equals(parent)) {
+            return true;
+        } else {
+            return isParentDirRecurse(parent, f.getParentFile());
+        }
+    }
 }
