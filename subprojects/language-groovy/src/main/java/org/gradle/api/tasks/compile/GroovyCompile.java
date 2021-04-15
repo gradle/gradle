@@ -28,6 +28,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
@@ -171,7 +172,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     @OutputFile
     protected File getSourceClassesMappingFile() {
         if (sourceClassesMappingFile == null) {
-            sourceClassesMappingFile = new File(getTemporaryDir(), "source-classes-mapping.txt");
+            sourceClassesMappingFile = new File(getTemporaryDirWithoutCreating(), "source-classes-mapping.txt");
         }
         return sourceClassesMappingFile;
     }
@@ -184,7 +185,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     @OutputFile
     protected File getPreviousCompilationData() {
         if (previousCompilationDataFile == null) {
-            previousCompilationDataFile = new File(getTemporaryDir(), "previous-compilation-data.bin");
+            previousCompilationDataFile = new File(getTemporaryDirWithoutCreating(), "previous-compilation-data.bin");
         }
         return previousCompilationDataFile;
     }
@@ -451,5 +452,10 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     @Inject
     protected FeaturePreviews getFeaturePreviews() {
         throw new UnsupportedOperationException();
+    }
+
+    private File getTemporaryDirWithoutCreating() {
+        // Do not create the temporary folder, since that causes problems.
+        return getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
     }
 }
