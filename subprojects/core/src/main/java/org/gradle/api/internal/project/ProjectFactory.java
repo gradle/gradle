@@ -72,6 +72,7 @@ public class ProjectFactory implements IProjectFactory {
             baseClassLoaderScope
         );
         project.beforeEvaluate(p -> {
+            nagUserAboutDeprecatedFlatProjectLayout(project);
             if (!isParentDir(project.getRootProject().getProjectDir(), project.getProjectDir())) {
                 DeprecationLogger.deprecateBehaviour(String.format("Subproject %s has location outside of project root: %s", project.getPath(), project.getProjectDir().getAbsolutePath()))
                     .willBeRemovedInGradle8()
@@ -91,17 +92,22 @@ public class ProjectFactory implements IProjectFactory {
         return project;
     }
 
-    private static boolean isParentDir(File parent, File f) {
-        return isParentDirRecurse(FileUtils.canonicalize(parent), FileUtils.canonicalize(f));
+    private void nagUserAboutDeprecatedFlatProjectLayout(DefaultProject project) {
+        if (!isParentDir(FileUtils.canonicalize((project.getRootProject().getProjectDir())), FileUtils.canonicalize(project.getProjectDir()))) {
+            DeprecationLogger.deprecateBehaviour(String.format("Subproject %s has location outside of project root: %s", project.getPath(), project.getProjectDir().getAbsolutePath()))
+                .willBeRemovedInGradle8()
+                .withUpgradeGuideSection(7, "deprecated_flat_project_structure")
+                .nagUser();
+        }
     }
 
-    private static boolean isParentDirRecurse(File parent, File f) {
+    private static boolean isParentDir(File parent, File f) {
         if (f == null) {
             return false;
         } else if (f.equals(parent)) {
             return true;
         } else {
-            return isParentDirRecurse(parent, f.getParentFile());
+            return isParentDir(parent, f.getParentFile());
         }
     }
 }
