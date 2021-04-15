@@ -46,19 +46,3 @@ val executableJar by tasks.registering(Jar::class) {
 tasks.jar {
     from(executableJar)
 }
-
-// === TODO remove and address the following when we have a good reason to change the wrapper jar
-executableJar {
-    val cliClasspath = layout.buildDirectory.file("gradle-cli-classpath.properties") // This file was accidentally included into the gradle-wrapper.jar
-    val cliParameterNames = layout.buildDirectory.file("gradle-cli-parameter-names.properties")  // This file was accidentally included into the gradle-wrapper.jar
-    doFirst {
-        cliClasspath.get().asFile.writeText("projects=\nruntime=\n")
-        cliParameterNames.get().asFile.writeText("")
-    }
-    from(cliClasspath)
-    from(cliParameterNames)
-}
-strictCompile {
-    ignoreRawTypes() // Raw type used in 'org.gradle.wrapper.Install', fix this or add an ignore/suppress annotation there
-}
-// ===
