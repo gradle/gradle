@@ -46,6 +46,8 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -62,6 +64,7 @@ import java.io.Closeable;
  *
  * This set of services is added as a parent of each build session scope.
  */
+@ServiceScope(Scopes.BuildSession.class)
 public class CrossBuildSessionState implements Closeable {
     private final ServiceRegistry services;
 
@@ -92,15 +95,16 @@ public class CrossBuildSessionState implements Closeable {
             this.startParameter = startParameter;
         }
 
+        CrossBuildSessionState createCrossBuildSessionState() {
+            return CrossBuildSessionState.this;
+        }
+
         ParallelismConfiguration createParallelismConfiguration() {
             return new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
         }
 
         GradleLauncherFactory createGradleLauncherFactory(GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
-            return new DefaultGradleLauncherFactory(
-                userHomeDirServiceRegistry,
-                CrossBuildSessionState.this
-            );
+            return new DefaultGradleLauncherFactory();
         }
 
         WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfiguration parallelismConfiguration) {

@@ -57,6 +57,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final GradleLauncherFactory gradleLauncherFactory;
     private final ListenerManager listenerManager;
     private final BuildAddedListener buildAddedBroadcaster;
+    private final BuildStateFactory buildStateFactory;
 
     // TODO: Locking around this state
     private RootBuildState rootBuild;
@@ -69,13 +70,14 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<Path, IncludedBuildState> libraryBuilds = new LinkedHashMap<>();
     private final Set<IncludedBuildState> currentlyConfiguring = new HashSet<>();
 
-    public DefaultIncludedBuildRegistry(BuildTreeController owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager) {
+    public DefaultIncludedBuildRegistry(BuildTreeController owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
         this.owner = owner;
         this.includedBuildFactory = includedBuildFactory;
         this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.listenerManager = listenerManager;
         this.buildAddedBroadcaster = listenerManager.getBroadcaster(BuildAddedListener.class);
+        this.buildStateFactory = buildStateFactory;
     }
 
     @Override
@@ -206,7 +208,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         validateNameIsNotBuildSrc(name, dir);
         Path identityPath = assignPath(owner, name, dir);
         BuildIdentifier buildIdentifier = idFor(name);
-        RootOfNestedBuildTree rootOfNestedBuildTree = new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner);
+        RootOfNestedBuildTree rootOfNestedBuildTree = buildStateFactory.createNestedTree(buildDefinition, buildIdentifier, identityPath, owner);
         // Attach the build only after it has been fully constructed.
         rootOfNestedBuildTree.attach();
         return rootOfNestedBuildTree;

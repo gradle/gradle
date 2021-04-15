@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
@@ -117,11 +116,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     @Override
     public SettingsInternal getLoadedSettings() {
         return buildLifecycleController.getGradle().getSettings();
-    }
-
-    @Override
-    public NestedBuildFactory getNestedBuildFactory() {
-        return buildLifecycleController.getGradle().getServices().get(NestedBuildFactory.class);
     }
 
     @Override

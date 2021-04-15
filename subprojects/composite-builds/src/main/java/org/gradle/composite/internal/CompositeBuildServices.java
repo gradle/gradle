@@ -54,6 +54,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     private static class CompositeBuildTreeScopeServices {
         public void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(DefaultIncludedBuildControllers.class);
+            serviceRegistration.add(BuildStateFactory.class);
         }
 
         public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context,
@@ -64,11 +65,12 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
                                                               BuildTreeController owner,
                                                               ObjectFactory objectFactory,
                                                               NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-                                                              ImmutableAttributesFactory attributesFactory) {
+                                                              ImmutableAttributesFactory attributesFactory,
+                                                              BuildStateFactory buildStateFactory) {
             IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService, owner, gradleLauncherFactory);
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
             IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
-            return new DefaultIncludedBuildRegistry(owner, includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager);
+            return new DefaultIncludedBuildRegistry(owner, includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, buildStateFactory);
         }
 
         public CompositeBuildContext createCompositeBuildContext() {

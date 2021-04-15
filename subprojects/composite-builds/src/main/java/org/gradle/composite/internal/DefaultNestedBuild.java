@@ -21,7 +21,6 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -89,11 +88,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public SettingsInternal getLoadedSettings() {
         return buildLifecycleController.getGradle().getSettings();
-    }
-
-    @Override
-    public NestedBuildFactory getNestedBuildFactory() {
-        return buildLifecycleController.getGradle().getServices().get(NestedBuildFactory.class);
     }
 
     @Override

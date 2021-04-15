@@ -37,7 +37,6 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.LegacyTypesSupport;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Factory;
@@ -238,11 +237,6 @@ public class ProjectBuilderImpl {
 
         @Override
         public SettingsInternal getLoadedSettings() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public NestedBuildFactory getNestedBuildFactory() {
             throw new UnsupportedOperationException();
         }
 

@@ -23,17 +23,17 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.composite.internal.DefaultIncludedBuild
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.initialization.BuildCompletionListener
-import org.gradle.internal.build.BuildModelController
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter
-import org.gradle.internal.build.DefaultBuildLifecycleController
 import org.gradle.initialization.DefaultGradleLauncherFactory
 import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.DefaultBuildLifecycleController
 import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeServices
@@ -52,10 +52,13 @@ open class ConfigurationCacheIncludedBuildState(
     gradleLauncherFactory: GradleLauncherFactory
 ) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, gradleLauncherFactory) {
 
-    override fun createGradleLauncher(): BuildLifecycleController {
-        return nestedBuildFactoryInternal().nestedInstance(
+    override fun createGradleLauncher(gradleLauncherFactory: GradleLauncherFactory, owner: BuildState, buildTree: BuildTreeController): BuildLifecycleController {
+        val internalFactory = gradleLauncherFactory as DefaultGradleLauncherFactory
+        return internalFactory.nestedInstance(
             buildDefinition,
             this,
+            owner.mutableModel,
+            buildTree,
             { parent ->
                 // Avoid BuildLayout discovery
                 object : BuildScopeServices(parent) {
@@ -84,10 +87,6 @@ open class ConfigurationCacheIncludedBuildState(
             }
         )
     }
-
-    private
-    fun nestedBuildFactoryInternal(): DefaultGradleLauncherFactory.NestedBuildFactoryInternal =
-        owner.nestedBuildFactory as DefaultGradleLauncherFactory.NestedBuildFactoryInternal
 }
 
 
@@ -96,11 +95,14 @@ private
 class NoOpBuildModelController(val gradle: GradleInternal) : BuildModelController {
     // TODO - this method should fail, as the fully configured settings object is not actually available
     override fun getLoadedSettings() = gradle.settings
+
     // TODO - this method should fail, as the fully configured build model is not actually available
     override fun getConfiguredModel() = gradle
+
     // TODO - this method should fail, as the tasks are already scheduled for this build
     override fun scheduleTasks(tasks: Iterable<String>) {
     }
+
     override fun scheduleRequestedTasks() {
         // Already done
     }

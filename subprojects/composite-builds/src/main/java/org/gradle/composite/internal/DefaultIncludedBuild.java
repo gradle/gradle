@@ -28,7 +28,6 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
@@ -47,9 +46,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final BuildDefinition buildDefinition;
     private final boolean isImplicit;
     private final BuildState owner;
-    private final BuildTreeController buildTree;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
-    private final GradleLauncherFactory gradleLauncherFactory;
 
     private final BuildLifecycleController buildLifecycleController;
 
@@ -68,23 +65,17 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
         this.owner = owner;
-        this.buildTree = buildTree;
         this.parentLease = parentLease;
-        this.gradleLauncherFactory = gradleLauncherFactory;
-        this.buildLifecycleController = createGradleLauncher();
+        this.buildLifecycleController = createGradleLauncher(gradleLauncherFactory, owner, buildTree);
     }
 
-    protected BuildLifecycleController createGradleLauncher() {
+    protected BuildLifecycleController createGradleLauncher(GradleLauncherFactory gradleLauncherFactory, BuildState owner, BuildTreeController buildTree) {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         return gradleLauncherFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildTree);
     }
 
     protected BuildDefinition getBuildDefinition() {
         return buildDefinition;
-    }
-
-    protected BuildState getOwner() {
-        return owner;
     }
 
     @Override
@@ -131,11 +122,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public String getName() {
         return identityPath.getName();
-    }
-
-    @Override
-    public NestedBuildFactory getNestedBuildFactory() {
-        return gradleService(NestedBuildFactory.class);
     }
 
     @Override
