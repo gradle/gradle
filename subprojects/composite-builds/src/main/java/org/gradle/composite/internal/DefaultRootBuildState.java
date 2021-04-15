@@ -22,18 +22,18 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.initialization.GradleLauncher;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.invocation.GradleBuildController;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -41,11 +41,13 @@ import java.util.function.Function;
 
 class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
-    private final GradleLauncher gradleLauncher;
+    private final BuildLifecycleController buildLifecycleController;
+    private final DefaultBuildTreeLifecycleController buildController;
 
-    DefaultRootBuildState(BuildDefinition buildDefinition, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeState owner) {
+    DefaultRootBuildState(BuildDefinition buildDefinition, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeController owner) {
         this.listenerManager = listenerManager;
-        this.gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, this, owner);
+        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, owner);
+        buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController);
     }
 
     @Override
@@ -69,40 +71,38 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public File getBuildRootDir() {
-        return gradleLauncher.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
+        return buildLifecycleController.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
     public void stop() {
-        gradleLauncher.stop();
+        buildLifecycleController.stop();
     }
 
     @Override
-    public <T> T run(Function<? super BuildController, T> action) {
+    public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
         RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
-        GradleInternal gradle = buildController.getGradle();
-        buildLifecycleListener.afterStart(gradle);
+        buildLifecycleListener.afterStart();
         try {
             return action.apply(buildController);
         } finally {
-            buildLifecycleListener.beforeComplete(gradle);
+            buildLifecycleListener.beforeComplete();
         }
     }
 
     @Override
     public StartParameterInternal getStartParameter() {
-        return gradleLauncher.getGradle().getStartParameter();
+        return buildLifecycleController.getGradle().getStartParameter();
     }
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        return gradleLauncher.getGradle().getSettings();
+        return buildLifecycleController.getGradle().getSettings();
     }
 
     @Override
     public NestedBuildFactory getNestedBuildFactory() {
-        return gradleLauncher.getGradle().getServices().get(NestedBuildFactory.class);
+        return buildLifecycleController.getGradle().getServices().get(NestedBuildFactory.class);
     }
 
     @Override
@@ -117,6 +117,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public GradleInternal getBuild() {
-        return gradleLauncher.getGradle();
+        return buildLifecycleController.getGradle();
     }
 }

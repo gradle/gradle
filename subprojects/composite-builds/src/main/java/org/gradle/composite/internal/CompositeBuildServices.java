@@ -31,7 +31,7 @@ import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -61,7 +61,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
                                                               WorkerLeaseService workerLeaseService,
                                                               GradleLauncherFactory gradleLauncherFactory,
                                                               ListenerManager listenerManager,
-                                                              BuildTreeState owner,
+                                                              BuildTreeController owner,
                                                               ObjectFactory objectFactory,
                                                               NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                                               ImmutableAttributesFactory attributesFactory) {

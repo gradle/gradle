@@ -24,7 +24,7 @@ import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.build.event.BuildEventSubscriptions
-import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -71,7 +71,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         }
     }
     def buildResult = Mock(BuildResult)
-    def buildController = Mock(BuildController) {
+    def buildController = Mock(BuildTreeLifecycleController) {
         run() >> {
             listener.projectsLoaded(gradle)
             listener.projectsEvaluated(gradle)
@@ -143,7 +143,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
 
     def "build failures are propagated"() {
         def failure = new RuntimeException()
-        def buildController = Mock(BuildController)
+        def buildController = Mock(BuildTreeLifecycleController)
 
         when:
         def result = runner.run(clientProvidedPhasedAction, buildController)

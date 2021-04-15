@@ -18,6 +18,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.ProjectsPreparer;
+import org.gradle.internal.build.BuildModelController;
 
 public class VintageBuildModelController implements BuildModelController {
     private enum Stage {

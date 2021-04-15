@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.buildtree;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.build.BuildModelController;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Gradle.class)
-public interface BuildModelControllerFactory {
+/**
+ * Responsible for running the given action against a build tree.
+ */
+@ServiceScope(Scopes.BuildTree.class)
+public interface BuildTreeActionExecutor {
     /**
-     * Creates the {@link BuildModelController} for the given build model instance.
+     * Runs the given action and returns the result. Failures should be packaged in the result.
+     * When this method returns, all user code will have completed, including 'build finished' hooks.
      */
-    BuildModelController create(GradleInternal gradle);
+    BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext);
 }

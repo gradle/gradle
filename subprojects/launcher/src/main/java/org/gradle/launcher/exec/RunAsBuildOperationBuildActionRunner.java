@@ -18,8 +18,8 @@ package org.gradle.launcher.exec;
 
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -39,7 +39,7 @@ public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public Result run(final BuildAction action, final BuildController buildController) {
+    public Result run(final BuildAction action, final BuildTreeLifecycleController buildController) {
         BuildOperationExecutor buildOperationExecutor = buildController.getGradle().getServices().get(BuildOperationExecutor.class);
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override

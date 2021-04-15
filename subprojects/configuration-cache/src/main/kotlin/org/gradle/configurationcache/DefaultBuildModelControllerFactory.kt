@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.GradleInternal
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
-import org.gradle.initialization.BuildModelController
+import org.gradle.internal.build.BuildModelController
 import org.gradle.initialization.BuildModelControllerFactory
 import org.gradle.initialization.ConfigurationCache
 import org.gradle.initialization.ConfigurationCacheAwareBuildModelController

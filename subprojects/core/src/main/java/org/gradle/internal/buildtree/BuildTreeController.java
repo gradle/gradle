@@ -28,15 +28,17 @@ import java.util.function.Function;
 /**
  * Encapsulates the state for a particular build tree.
  */
-public class BuildTreeState implements Closeable {
+public class BuildTreeController implements Closeable {
     private final ServiceRegistry services;
+    private final DefaultBuildTreeContext context;
 
-    public BuildTreeState(ServiceRegistry parent, BuildType buildType) {
+    public BuildTreeController(ServiceRegistry parent, BuildType buildType) {
         services = ServiceRegistryBuilder.builder()
             .displayName("build tree services")
             .parent(parent)
             .provider(new BuildTreeScopeServices(this, buildType))
             .build();
+        context = new DefaultBuildTreeContext(services);
 
         // This initialization construct should be generalized for all types of service registries.
         services.getAll(BuildTreeScopeInitializer.class).forEach(BuildTreeScopeInitializer::initializeBuildTreeScope);
@@ -50,7 +52,7 @@ public class BuildTreeState implements Closeable {
      * Runs the given action against the state of this build tree.
      */
     public <T> T run(Function<? super BuildTreeContext, T> action) {
-        return action.apply(new DefaultBuildTreeContext(services));
+        return action.apply(context);
     }
 
     @Override

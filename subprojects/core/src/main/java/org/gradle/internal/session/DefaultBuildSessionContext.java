@@ -14,26 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree;
+package org.gradle.internal.session;
 
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
 
-class DefaultBuildTreeContext implements BuildTreeContext {
-    private final ServiceRegistry services;
+class DefaultBuildSessionContext implements BuildSessionContext {
+    private final ServiceRegistry sessionScopeServices;
     private boolean completed;
 
-    public DefaultBuildTreeContext(ServiceRegistry services) {
-        this.services = services;
+    public DefaultBuildSessionContext(ServiceRegistry sessionScopeServices) {
+        this.sessionScopeServices = sessionScopeServices;
+    }
+
+    @Override
+    public ServiceRegistry getServices() {
+        return sessionScopeServices;
     }
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action) {
         if (completed) {
-            throw new IllegalStateException("Cannot run more than one action for a build tree.");
+            throw new IllegalStateException("Cannot run more than one action for a session.");
         }
         try {
-            return services.get(BuildTreeActionExecutor.class).execute(action, this);
+            return sessionScopeServices.get(BuildSessionActionExecutor.class).execute(action, this);
         } finally {
             completed = true;
         }

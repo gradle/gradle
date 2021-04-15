@@ -23,8 +23,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.session.BuildSessionContext
-import org.gradle.launcher.exec.BuildActionExecuter
-import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.internal.session.BuildSessionActionExecutor
 import org.gradle.tooling.events.OperationType
 import spock.lang.Specification
 
@@ -32,14 +31,13 @@ class SubscribableBuildActionExecuterSpec extends Specification {
 
     def "removes listeners after executing build action"() {
         given:
-        def delegate = Mock(BuildActionExecuter)
+        def delegate = Mock(BuildSessionActionExecutor)
         def listenerManager = Mock(ListenerManager)
         def buildOperationListenerManager = Mock(BuildOperationListenerManager)
         def buildAction = Stub(SubscribableBuildAction) {
             getClientSubscriptions() >> new BuildEventSubscriptions(EnumSet.allOf(OperationType))
         }
         def consumer = Stub(BuildEventConsumer)
-        def buildActionParameters = Stub(BuildActionParameters)
         def buildSessionContext = Stub(BuildSessionContext)
 
         def listener1 = Stub(BuildOperationListener)
@@ -51,7 +49,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
         def runner = new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, factory, consumer, delegate)
 
         when:
-        runner.execute(buildAction, buildActionParameters, buildSessionContext)
+        runner.execute(buildAction, buildSessionContext)
 
         then:
         1 * listenerManager.addListener(listener1)
@@ -60,7 +58,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
         1 * buildOperationListenerManager.addListener(listener2)
 
         then:
-        1 * delegate.execute(buildAction, buildActionParameters, buildSessionContext)
+        1 * delegate.execute(buildAction, buildSessionContext)
 
         then:
         1 * listenerManager.removeListener(listener1)

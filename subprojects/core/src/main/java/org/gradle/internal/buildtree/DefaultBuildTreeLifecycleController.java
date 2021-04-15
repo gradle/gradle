@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.invocation;
+package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
-import org.gradle.initialization.GradleLauncher;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -28,34 +28,34 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class GradleBuildController implements BuildController {
+public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
     private enum State {Created, Running, Completed}
 
     private State state = State.Created;
-    private final GradleLauncher gradleLauncher;
+    private final BuildLifecycleController buildLifecycleController;
     private final WorkerLeaseService workerLeaseService;
     private final IncludedBuildControllers includedBuildControllers;
     private final ExceptionAnalyser exceptionAnalyser;
 
-    public GradleBuildController(GradleLauncher gradleLauncher, WorkerLeaseService workerLeaseService, IncludedBuildControllers includedBuildControllers, ExceptionAnalyser exceptionAnalyser) {
-        this.gradleLauncher = gradleLauncher;
+    public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController, WorkerLeaseService workerLeaseService, IncludedBuildControllers includedBuildControllers, ExceptionAnalyser exceptionAnalyser) {
+        this.buildLifecycleController = buildLifecycleController;
         this.workerLeaseService = workerLeaseService;
         this.includedBuildControllers = includedBuildControllers;
         this.exceptionAnalyser = exceptionAnalyser;
     }
 
-    public GradleBuildController(GradleLauncher gradleLauncher, IncludedBuildControllers includedBuildControllers) {
-        this(gradleLauncher,
-            gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class),
+    public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController, IncludedBuildControllers includedBuildControllers) {
+        this(buildLifecycleController,
+            buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class),
             includedBuildControllers,
-            gradleLauncher.getGradle().getServices().get(ExceptionAnalyser.class));
+            buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class));
     }
 
-    public GradleBuildController(GradleLauncher gradleLauncher) {
-        this(gradleLauncher,
-            gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class),
-            gradleLauncher.getGradle().getServices().get(IncludedBuildControllers.class),
-            gradleLauncher.getGradle().getServices().get(ExceptionAnalyser.class));
+    public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController) {
+        this(buildLifecycleController,
+            buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class),
+            buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class),
+            buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class GradleBuildController implements BuildController {
         if (state == State.Completed) {
             throw new IllegalStateException("Cannot use Gradle object after build has finished.");
         }
-        return gradleLauncher.getGradle();
+        return buildLifecycleController.getGradle();
     }
 
     @Override
@@ -104,14 +104,14 @@ public class GradleBuildController implements BuildController {
 
                 T result = null;
                 try {
-                    result = build.run(gradleLauncher, collector);
+                    result = build.run(buildLifecycleController, collector);
                 } catch (Throwable t) {
                     failures.add(t);
                 }
 
                 includedBuildControllers.finishBuild(collector);
                 RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
-                gradleLauncher.finishBuild(reportableFailure, collector);
+                buildLifecycleController.finishBuild(reportableFailure, collector);
 
                 RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
                 if (finalReportableFailure != null) {
@@ -126,6 +126,6 @@ public class GradleBuildController implements BuildController {
     }
 
     private interface BuildAction<T> {
-        T run(GradleLauncher gradleLauncher, Consumer<Throwable> failures);
+        T run(BuildLifecycleController buildLifecycleController, Consumer<Throwable> failures);
     }
 }

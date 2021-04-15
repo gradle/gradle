@@ -33,19 +33,20 @@ import java.util.function.Function;
 /**
  * Encapsulates the state for a build session.
  */
-public class BuildSessionState implements Closeable {
+public class BuildSessionController implements Closeable {
     private final GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry;
     private final ServiceRegistry userHomeServices;
     private final ServiceRegistry sessionScopeServices;
+    private final DefaultBuildSessionContext context;
 
-    public BuildSessionState(GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry,
-                             CrossBuildSessionState crossBuildSessionServices,
-                             StartParameterInternal startParameter,
-                             BuildRequestMetaData requestMetaData,
-                             ClassPath injectedPluginClassPath,
-                             BuildCancellationToken buildCancellationToken,
-                             BuildClientMetaData buildClientMetaData,
-                             BuildEventConsumer buildEventConsumer) {
+    public BuildSessionController(GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry,
+                                  CrossBuildSessionState crossBuildSessionServices,
+                                  StartParameterInternal startParameter,
+                                  BuildRequestMetaData requestMetaData,
+                                  ClassPath injectedPluginClassPath,
+                                  BuildCancellationToken buildCancellationToken,
+                                  BuildClientMetaData buildClientMetaData,
+                                  BuildEventConsumer buildEventConsumer) {
         this.userHomeScopeServiceRegistry = userHomeScopeServiceRegistry;
         userHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
         sessionScopeServices = ServiceRegistryBuilder.builder()
@@ -54,6 +55,7 @@ public class BuildSessionState implements Closeable {
             .parent(crossBuildSessionServices.getServices())
             .provider(new BuildSessionScopeServices(startParameter, requestMetaData, injectedPluginClassPath, buildCancellationToken, buildClientMetaData, buildEventConsumer))
             .build();
+        context = new DefaultBuildSessionContext(sessionScopeServices);
     }
 
     public ServiceRegistry getServices() {
@@ -63,13 +65,8 @@ public class BuildSessionState implements Closeable {
     /**
      * Runs the given action against the build session state. Should be called once only for a given session instance.
      */
-    public <T> T run(Function<BuildSessionContext, T> action) {
-        return action.apply(new BuildSessionContext() {
-            @Override
-            public ServiceRegistry getServices() {
-                return sessionScopeServices;
-            }
-        });
+    public <T> T run(Function<? super BuildSessionContext, T> action) {
+        return action.apply(context);
     }
 
     @Override

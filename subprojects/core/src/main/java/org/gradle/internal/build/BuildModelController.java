@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 
 /**
  * Transitions the model of an individual build in the build tree through its lifecycle.
- * See {@link org.gradle.internal.invocation.BuildController}
+ * See also {@link BuildTreeLifecycleController} and {@link BuildLifecycleController}.
  */
 public interface BuildModelController {
     /**

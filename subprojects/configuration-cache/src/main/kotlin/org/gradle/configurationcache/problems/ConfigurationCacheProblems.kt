@@ -18,7 +18,6 @@ package org.gradle.configurationcache.problems
 
 import org.gradle.BuildAdapter
 import org.gradle.BuildResult
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
@@ -176,9 +175,9 @@ class ConfigurationCacheProblems(
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {
 
-        override fun afterStart(gradle: GradleInternal) = Unit
+        override fun afterStart() = Unit
 
-        override fun beforeComplete(gradle: GradleInternal) {
+        override fun beforeComplete() {
             if (cacheAction == null) return
             val hasProblems = problems.isNotEmpty()
             val hasTooManyProblems = problems.size > startParameter.maxProblems

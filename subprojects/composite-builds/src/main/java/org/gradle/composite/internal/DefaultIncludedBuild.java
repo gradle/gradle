@@ -26,7 +26,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.tasks.TaskReference;
-import org.gradle.initialization.GradleLauncher;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildState;
@@ -47,7 +47,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final BuildState owner;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
 
-    private final GradleLauncher gradleLauncher;
+    private final BuildLifecycleController buildLifecycleController;
 
     public DefaultIncludedBuild(
         BuildIdentifier buildIdentifier,
@@ -63,10 +63,10 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.isImplicit = isImplicit;
         this.owner = owner;
         this.parentLease = parentLease;
-        this.gradleLauncher = createGradleLauncher();
+        this.buildLifecycleController = createGradleLauncher();
     }
 
-    protected GradleLauncher createGradleLauncher() {
+    protected BuildLifecycleController createGradleLauncher() {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         return owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
     }
@@ -165,7 +165,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public SettingsInternal loadSettings() {
-        return gradleLauncher.getLoadedSettings();
+        return buildLifecycleController.getLoadedSettings();
     }
 
     @Override
@@ -175,7 +175,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        return gradleLauncher.getConfiguredBuild();
+        return buildLifecycleController.getConfiguredBuild();
     }
 
     @Override
@@ -191,7 +191,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public void finishBuild(Consumer<? super Throwable> collector) {
-        gradleLauncher.finishBuild(null, collector);
+        buildLifecycleController.finishBuild(null, collector);
     }
 
     @Override
@@ -201,26 +201,26 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public synchronized void execute(final Iterable<String> tasks, final Object listener) {
-        gradleLauncher.addListener(listener);
+        buildLifecycleController.addListener(listener);
         scheduleTasks(tasks);
         WorkerLeaseService workerLeaseService = gradleService(WorkerLeaseService.class);
         workerLeaseService.withSharedLease(
             parentLease,
-            gradleLauncher::executeTasks
+            buildLifecycleController::executeTasks
         );
     }
 
     @Override
     public void stop() {
-        gradleLauncher.stop();
+        buildLifecycleController.stop();
     }
 
     protected void scheduleTasks(Iterable<String> tasks) {
-        gradleLauncher.scheduleTasks(tasks);
+        buildLifecycleController.scheduleTasks(tasks);
     }
 
     protected GradleInternal getGradle() {
-        return gradleLauncher.getGradle();
+        return buildLifecycleController.getGradle();
     }
 
     private <T> T gradleService(Class<T> serviceType) {
