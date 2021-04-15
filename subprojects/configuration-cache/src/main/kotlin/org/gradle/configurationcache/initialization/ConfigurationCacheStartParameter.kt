@@ -62,6 +62,9 @@ class ConfigurationCacheStartParameter(
     val settingsDirectory: File
         get() = buildLayout.settingsDir
 
+    val cacheDir: File
+        get() = startParameter.projectCacheDir ?: rootDirectory.resolve(".gradle")
+
     @Suppress("DEPRECATION")
     val settingsFile: File?
         get() = startParameter.settingsFile
