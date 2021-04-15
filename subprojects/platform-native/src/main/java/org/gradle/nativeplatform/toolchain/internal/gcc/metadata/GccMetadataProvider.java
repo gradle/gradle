@@ -144,7 +144,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
                     if (isCygwin) {
                         include = mapCygwinPath(cygpathExe, include);
                     }
-                    builder.add(FileUtils.normalize(new File(include)));
+                    builder.add(FileUtils.normalize(new File(include).toPath().toRealPath().toFile()));
                 }
             }
             return builder.build();
