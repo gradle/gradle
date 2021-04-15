@@ -149,6 +149,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return string == null ? null : string.toLowerCase();
     }
 
+    /**
+     * Returns the version number scheme.
+     */
+    @Deprecated
     public interface Scheme {
         VersionNumber parse(String value);
 

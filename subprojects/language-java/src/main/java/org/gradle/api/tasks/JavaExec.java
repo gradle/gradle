@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -393,11 +394,12 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @Deprecated
+    @ReplacedBy("mainClass")
     public String getMain() {
-        DeprecationLogger.deprecateMethod(JavaExec.class, "getMain()")
-            .withAdvice("Please use the mainClass property instead.")
+        DeprecationLogger.deprecateProperty(JavaExec.class, "main")
+            .replaceWith("mainClass")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "java_exec_properties")
+            .withDslReference()
             .nagUser();
 
         return getMainClass().getOrNull();
@@ -409,10 +411,10 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Deprecated
     public JavaExec setMain(String mainClassName) {
-        DeprecationLogger.deprecateMethod(JavaExec.class, "setMain(String)")
-            .withAdvice("Please use the mainClass property instead.")
+        DeprecationLogger.deprecateProperty(JavaExec.class, "main")
+            .replaceWith("mainClass")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "java_exec_properties")
+            .withDslReference()
             .nagUser();
 
         getMainClass().set(mainClassName);

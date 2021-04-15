@@ -1008,7 +1008,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             package com.example;
             public class Main {}
         """
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_options_properties")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
 
         then:
         succeeds("compileJava")
@@ -1030,7 +1030,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             package com.example;
             public class Main {}
         """
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(File) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_options_properties")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
 
         then:
         succeeds("compileJava")

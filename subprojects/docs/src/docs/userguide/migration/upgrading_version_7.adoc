@@ -104,9 +104,20 @@ With chaining you can, for example, add a reason for a substitution like this:
 `substitute(project(':a')).using(project(':b')).because("a reason")`.
 
 === Potential breaking changes
-Despite being an internal package, `org.gradle.util` is used by several Gradle plugins. In Gradle 7.1 we did a major cleanup there.
 
-The following classes have known usages in external plugins. They are now deprecated and set for removal in Gradle 8.0:
+==== The `org.gradle.util` package is now a public API
+
+Officially, the `org.gradle.util` package is not part of the public API.
+But, because this package name doesn't contain the word `internal`, many Gradle plugins already consider as one.
+Gradle 7.1 addresses the situation and marks the package as public.
+The classes that were unintentionally exposed are either deprecated or removed, depending on their external usage.
+
+The following classes are now officially recognized as public API:
+- `GradleVersion`
+- `Path`
+- `Configurable`
+
+The following classes have known usages in external plugins and are now deprecated and set for removal in Gradle 8.0:
 
 - `VersionNumber`
 - `TextUtil`
@@ -144,14 +155,7 @@ The last set of classes have no external or internal usages and therefore were d
 - `IncubationLogger`
 - `NoOpChangeListener`
 - `DeferredUtil`
-
-[[exec_properties]]
-=== Properties deprecated in Exec task
-
-* The link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:execResult[Exec.execResult]
-property has been deprecated.
-Use the link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:executionResult[Exec.executionResult]
-property instead.
+- `ChangeListener`
 
 [[java_exec_properties]]
 ==== Properties deprecated in JavaExec task
@@ -160,25 +164,9 @@ property instead.
 in link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec] task have been deprecated.
 Use the link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:mainClass[mainClass] property instead.
 
-[[report_properties]]
-=== Properties deprecated in Report
-
-* The link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:enabled[Report.enabled]
-property has been deprecated.
-Use the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:required[Report.required]
-property instead.
-* The link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination[Report.destination]
-property has been deprecated.
-Use the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:outputLocation[Report.outputLocation]
-property instead.
-
 [[compile_task_wiring]]
 === Deprecated properties in `compile` task
 
-* The link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir[SourceDirectorySet.outputDir]
-property has been deprecated.
-Use the link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:classesDirectory[SourceDirectorySet.classesDirectory]
-property instead.
 * The link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html#org.gradle.api.tasks.compile.JavaCompile:destinationDir[JavaCompile.destinationDir]
 property has been deprecated.
 Use the link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html#org.gradle.api.tasks.compile.JavaCompile:destinationDirectory[JavaCompile.destinationDirectory]
@@ -191,18 +179,3 @@ property instead.
 property has been deprecated.
 Use the link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:destinationDirectory[ScalaCompile.destinationDirectory]
 property instead.
-
-[[compile_options_properties]]
-=== Properties deprecated in CompileOptions
-
-* The link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory[CompileOptions.annotationProcessorGeneratedSourcesDirectory]
-property has been deprecated.
-Use the link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:generatedSourceOutputDirectory[CompileOptions.generatedSourceOutputDirectory]
-property instead.
-
-[[start_scripts_properties]]
-==== Properties deprecated in CreateStartScripts task
-
-* The `mainClassName` getters and setters
-in link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html[CreateStartScripts] task have been deprecated.
-Use the link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html#org.gradle.jvm.application.tasks.CreateStartScripts:mainClass[mainClass] property instead.

@@ -28,6 +28,7 @@ import org.gradle.api.InvalidActionClosureException;
  * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
  *
  * @deprecated Will be removed in Gradle 8.0.
+ * @param <T> The action type.
  */
 @Deprecated
 public class ClosureBackedAction<T> implements Action<T> {

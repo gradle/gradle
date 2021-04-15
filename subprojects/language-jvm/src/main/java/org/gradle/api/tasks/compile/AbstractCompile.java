@@ -86,8 +86,8 @@ public abstract class AbstractCompile extends SourceTask {
     @Deprecated
     public File getDestinationDir() {
         // Used in Kotlin plugin - needs updating there and bumping the version first. Followup with https://github.com/gradle/gradle/issues/16783
-        /*DeprecationLogger.deprecateMethod(AbstractCompile.class, "getDestinationDir()")
-            .withAdvice("Please use the destinationDirectory property instead.")
+        /*DeprecationLogger.deprecateProperty(AbstractCompile.class, "destinationDir")
+            .replaceWith("destinationDirectory")
             .willBeRemovedInGradle8()
             .withUpgradeGuideSection(7, "compile_task_wiring")
             .nagUser();*/
@@ -104,8 +104,8 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @Deprecated
     public void setDestinationDir(File destinationDir) {
-        DeprecationLogger.deprecateMethod(AbstractCompile.class, "setDestinationDir(File)")
-            .withAdvice("Please use the destinationDirectory property instead.")
+        DeprecationLogger.deprecateProperty(AbstractCompile.class, "destinationDir")
+            .replaceWith("destinationDirectory")
             .willBeRemovedInGradle8()
             .withUpgradeGuideSection(7, "compile_task_wiring")
             .nagUser();
@@ -124,8 +124,8 @@ public abstract class AbstractCompile extends SourceTask {
     @Deprecated
     public void setDestinationDir(Provider<File> destinationDir) {
         // Used by Android plugin. Followup with https://github.com/gradle/gradle/issues/16782
-        /*DeprecationLogger.deprecateMethod(AbstractCompile.class, "setDestinationDir(Provider<File>)")
-            .withAdvice("Please use the destinationDirectory property instead.")
+        /*DeprecationLogger.deprecateProperty(AbstractCompile.class, "destinationDir")
+            .replaceWith("destinationDirectory")
             .willBeRemovedInGradle8()
             .withUpgradeGuideSection(7, "compile_task_wiring")
             .nagUser();*/
