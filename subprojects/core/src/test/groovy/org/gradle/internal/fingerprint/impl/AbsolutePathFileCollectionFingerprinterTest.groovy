@@ -24,7 +24,6 @@ import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -278,4 +277,12 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     private static FileCollection files(File... files) {
         TestFiles.fixed(files)
     }
+}
+
+interface ChangeListener<T> {
+    void added(T element);
+
+    void removed(T element);
+
+    void changed(T element);
 }

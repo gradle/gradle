@@ -294,7 +294,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("The JavaExec.setMain(String) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#java_exec_properties")
+        executer.expectDocumentedDeprecationWarning("The JavaExec.main property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:main for more details.")
         when:
         run "run"
 
@@ -318,7 +318,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("The JavaExec.getMain() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#java_exec_properties")
+        executer.expectDocumentedDeprecationWarning("The JavaExec.main property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:main for more details.")
         when:
         run "run"
 

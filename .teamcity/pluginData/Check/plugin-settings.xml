@@ -43,48 +43,6 @@
         <build-type id="bt270451" />
       </build-types>
     </webhook>
-    <webhook url="http://dev12.gradle.org:3003/teamcity" enabled="true" template="legacy-tailored-json">
-      <states>
-        <state type="buildAddedToQueue" enabled="false" />
-        <state type="buildRemovedFromQueue" enabled="false" />
-        <state type="buildStarted" enabled="false" />
-        <state type="changesLoaded" enabled="false" />
-        <state type="buildInterrupted" enabled="false" />
-        <state type="beforeBuildFinish" enabled="false" />
-        <state type="buildFinished" enabled="true" />
-        <state type="buildSuccessful" enabled="true" />
-        <state type="buildFailed" enabled="true" />
-        <state type="buildFixed" enabled="false" />
-        <state type="buildBroken" enabled="false" />
-        <state type="responsibilityChanged" enabled="false" />
-        <state type="buildPinned" enabled="false" />
-        <state type="buildUnpinned" enabled="false" />
-      </states>
-      <build-types enabled-for-all="false" enabled-for-subprojects="false">
-        <build-type id="bt273984" />
-      </build-types>
-    </webhook>
-    <webhook url="http://dev12.gradle.org:3003/teamcity_slacktemplate" enabled="true" template="slack.com">
-      <states>
-        <state type="buildAddedToQueue" enabled="false" />
-        <state type="buildRemovedFromQueue" enabled="true" />
-        <state type="buildStarted" enabled="true" />
-        <state type="changesLoaded" enabled="false" />
-        <state type="buildInterrupted" enabled="true" />
-        <state type="beforeBuildFinish" enabled="false" />
-        <state type="buildFinished" enabled="true" />
-        <state type="buildSuccessful" enabled="true" />
-        <state type="buildFailed" enabled="true" />
-        <state type="buildFixed" enabled="false" />
-        <state type="buildBroken" enabled="false" />
-        <state type="responsibilityChanged" enabled="false" />
-        <state type="buildPinned" enabled="false" />
-        <state type="buildUnpinned" enabled="false" />
-      </states>
-      <build-types enabled-for-all="false" enabled-for-subprojects="false">
-        <build-type id="bt273984" />
-      </build-types>
-    </webhook>
   </webhooks>
 </settings>
 

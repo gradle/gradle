@@ -83,6 +83,8 @@
         <module name="UnusedImports"/>
         <module name="IllegalImport">
             <property name="illegalPkgs" value="jdk.internal,com.beust,org.testng.collections"/>
+            <!-- The variants from org.gradle.util.internal should be used instead-->
+            <property name="illegalClasses" value="^org\.gradle\.util\.(CollectionUtils|NameMatcher|NameValidator|VersionNumber|TextUtil|WrapUtil|RelativePathUtil|DistributionLocator|SingleMessageLogger|ClosureBackedAction|ConfigureUtil)"/>
         </module>
 
         <!-- Naming -->

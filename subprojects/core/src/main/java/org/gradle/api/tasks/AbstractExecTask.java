@@ -17,6 +17,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -373,13 +374,13 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * @deprecated Use {@link #getExecutionResult()} instead. This method will be removed in Gradle 8.0.
      */
     @Deprecated
-    @Internal
+    @ReplacedBy("executionResult")
     @Nullable
     public ExecResult getExecResult() {
-        DeprecationLogger.deprecateMethod(AbstractExecTask.class, "getExecResult()")
-            .replaceWith("getExecutionResult()")
+        DeprecationLogger.deprecateProperty(AbstractExecTask.class, "execResult")
+            .replaceWith("executionResult")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "exec_properties")
+            .withDslReference()
             .nagUser();
 
         return execResult.getOrNull();

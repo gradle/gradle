@@ -395,7 +395,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        executer.expectDocumentedDeprecationWarning("The AbstractExecTask.getExecResult() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the getExecutionResult() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#exec_properties")
+        executer.expectDocumentedDeprecationWarning("The AbstractExecTask.execResult property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the executionResult property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.AbstractExecTask.html#org.gradle.api.tasks.AbstractExecTask:execResult for more details.")
 
         then:
         succeeds("run")

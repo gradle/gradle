@@ -59,10 +59,10 @@ public abstract class SimpleReport implements ConfigurableReport {
     @Override
     @Deprecated
     public File getDestination() {
-        DeprecationLogger.deprecateMethod(Report.class, "getDestination()")
-            .replaceWith("getOutputLocation()")
+        DeprecationLogger.deprecateProperty(Report.class, "destination")
+            .replaceWith("outputLocation")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "report_properties")
+            .withDslReference()
             .nagUser();
 
         return getOutputLocation().getAsFile().getOrNull();
@@ -90,10 +90,10 @@ public abstract class SimpleReport implements ConfigurableReport {
 
     @Override
     public boolean isEnabled() {
-        DeprecationLogger.deprecateMethod(Report.class, "isEnabled()")
-            .withAdvice("Please use the `required` property instead.")
+        DeprecationLogger.deprecateProperty(Report.class, "enabled")
+            .replaceWith("required")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "report_properties")
+            .withDslReference()
             .nagUser();
 
         return getRequired().get();
@@ -101,10 +101,10 @@ public abstract class SimpleReport implements ConfigurableReport {
 
     @Override
     public void setEnabled(boolean enabled) {
-        DeprecationLogger.deprecateMethod(Report.class, "setEnabled()")
-            .withAdvice("Please use the `required` property instead.")
+        DeprecationLogger.deprecateProperty(Report.class, "enabled")
+            .replaceWith("required")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "report_properties")
+            .withDslReference()
             .nagUser();
 
         getRequired().set(enabled);

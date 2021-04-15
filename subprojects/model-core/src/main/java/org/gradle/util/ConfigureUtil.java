@@ -76,6 +76,10 @@ public class ConfigureUtil {
         return configureByMap(properties, delegate);
     }
 
+    /**
+     * Incomplete input exception.
+     */
+    @Deprecated
     public static class IncompleteInputException extends RuntimeException {
         private final Collection missingKeys;
 
@@ -162,6 +166,12 @@ public class ConfigureUtil {
         new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
     }
 
+    /**
+     * Wrapper configure action.
+     *
+     * @param <T> the action type.
+     */
+    @Deprecated
     public static class WrappedConfigureAction<T> implements Action<T> {
         private final Closure configureClosure;
 

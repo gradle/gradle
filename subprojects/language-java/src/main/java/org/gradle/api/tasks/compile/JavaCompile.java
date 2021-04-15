@@ -24,6 +24,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
@@ -289,7 +290,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     @OutputFile
     protected File getSourceClassesMappingFile() {
         if (sourceClassesMappingFile == null) {
-            sourceClassesMappingFile = new File(getTemporaryDir(), "source-classes-mapping.txt");
+            sourceClassesMappingFile = new File(getTemporaryDirWithoutCreating(), "source-classes-mapping.txt");
         }
         return sourceClassesMappingFile;
     }
@@ -302,11 +303,10 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     @OutputFile
     protected File getPreviousCompilationData() {
         if (previousCompilationDataFile == null) {
-            previousCompilationDataFile = new File(getTemporaryDir(), "previous-compilation-data.bin");
+            previousCompilationDataFile = new File(getTemporaryDirWithoutCreating(), "previous-compilation-data.bin");
         }
         return previousCompilationDataFile;
     }
-
 
     private WorkResult performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
         WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationExecutor.class)).execute(spec);
@@ -401,6 +401,11 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
             spec.setSourceCompatibility(getSourceCompatibility());
         }
         spec.setCompileOptions(compileOptions);
+    }
+
+    private File getTemporaryDirWithoutCreating() {
+        // Do not create the temporary folder, since that causes problems.
+        return getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
     }
 
     /**
