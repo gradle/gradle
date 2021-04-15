@@ -183,7 +183,7 @@ property instead.
 [[upload_task_deprecation]]
 === Deprecated `Upload` task
 
-Gradle used to have two way of publishing artifacts.
+Gradle used to have two ways of publishing artifacts.
 Now, the situation has been cleared and all build should use the `maven-publish` plugin.
 The last remaining artifact of the old way of publishing is the `Upload` task that has been deprecated and scheduled for removal in Gradle 8.0.
 Existing clients should migrate to the `maven-publish` plugin.
