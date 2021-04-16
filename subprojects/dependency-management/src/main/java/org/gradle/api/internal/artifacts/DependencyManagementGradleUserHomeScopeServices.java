@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
@@ -28,21 +26,17 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.ManualEvictionInMemoryCache;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.service.ServiceRegistry;
-
-import java.io.File;
 
 public class DependencyManagementGradleUserHomeScopeServices {
 
@@ -96,21 +90,11 @@ public class DependencyManagementGradleUserHomeScopeServices {
     ImmutableTransformationWorkspaceServices createTransformerWorkspaceServices(
         ArtifactCachesProvider artifactCaches,
         CacheRepository cacheRepository,
+        CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        ListenerManager listenerManager
+        GlobalCacheLocations globalCacheLocations
     ) {
-        ManualEvictionInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache = new ManualEvictionInMemoryCache<>();
-        listenerManager.addListener(new RootBuildLifecycleListener() {
-            @Override
-            public void afterStart(GradleInternal gradle) {
-            }
-
-            @Override
-            public void beforeComplete(GradleInternal gradle) {
-                identityCache.clear();
-            }
-        });
         return new ImmutableTransformationWorkspaceServices(
             cacheRepository
                 .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
@@ -118,7 +102,11 @@ public class DependencyManagementGradleUserHomeScopeServices {
                 .withDisplayName("Artifact transforms cache"),
             fileAccessTimeJournal,
             executionHistoryStore,
-            identityCache
+            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result
+                .map(transformedFiles -> transformedFiles.stream()
+                    .allMatch(transformedFile -> globalCacheLocations.isInsideGlobalCache(transformedFile.getAbsolutePath()))
+                ).getOrMapFailure(__ -> false)
+            )
         );
     }
 }
