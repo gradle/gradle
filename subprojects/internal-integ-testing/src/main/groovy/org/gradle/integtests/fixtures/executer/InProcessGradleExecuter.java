@@ -547,6 +547,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
+        public ExecutionResult assertNotPostBuildOutput(String expectedOutput) {
+            outputResult.assertNotPostBuildOutput(expectedOutput);
+            return this;
+        }
+
+        @Override
         public boolean hasErrorOutput(String expectedOutput) {
             return outputResult.hasErrorOutput(expectedOutput);
         }

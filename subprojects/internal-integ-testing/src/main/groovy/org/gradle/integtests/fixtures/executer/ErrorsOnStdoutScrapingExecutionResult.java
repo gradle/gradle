@@ -112,6 +112,12 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public ExecutionResult assertNotPostBuildOutput(String expectedOutput) {
+        delegate.assertNotPostBuildOutput(expectedOutput);
+        return this;
+    }
+
+    @Override
     public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
         delegate.assertTasksExecutedInOrder(taskPaths);
         return this;
