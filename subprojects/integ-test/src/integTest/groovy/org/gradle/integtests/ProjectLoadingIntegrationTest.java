@@ -18,7 +18,6 @@ package org.gradle.integtests;
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.test.fixtures.file.TestFile;
-import org.junit.Ignore;
 import org.junit.Test;
 import spock.lang.Issue;
 

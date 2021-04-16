@@ -26,7 +26,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 

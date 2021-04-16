@@ -87,7 +87,7 @@ public class ProjectFactory implements IProjectFactory {
     }
 
     private void nagUserAboutDeprecatedFlatProjectLayout(DefaultProject project) {
-        File rootDir = FileUtils.canonicalize((project.getRootProject().getProjectDir()));
+        File rootDir = FileUtils.canonicalize(project.getRootProject().getProjectDir());
         File projectDir = FileUtils.canonicalize(project.getProjectDir());
         if (!isParentDir(rootDir, projectDir)) {
             DeprecationLogger.deprecateBehaviour(String.format("Subproject '%s' has location '%s' which is outside of the project root.", project.getPath(), project.getProjectDir().getAbsolutePath()))
