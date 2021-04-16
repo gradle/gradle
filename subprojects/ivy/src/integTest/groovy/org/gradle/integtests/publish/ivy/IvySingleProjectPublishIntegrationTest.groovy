@@ -162,7 +162,7 @@ tasks.withType(Upload) {
         """
 
         when:
-        expectUploadTaskDeprecationWarning('uploadPublish')
+        expectUploadTaskDeprecationWarning("uploadPublish$n")
         run "uploadPublish$n"
 
         then:
