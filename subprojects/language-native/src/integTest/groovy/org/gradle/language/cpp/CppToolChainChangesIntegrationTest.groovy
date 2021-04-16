@@ -129,11 +129,12 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         }
         int numberOfToolChains = availableToolChains.size()
         Assume.assumeTrue('2 or more tool chains are required for this test', numberOfToolChains >= 2)
-        (0..<(numberOfToolChains - 1)).collectMany { first ->
-            ((first+1)..<numberOfToolChains).collect { second ->
+        List<List<InstalledToolChain>> result = (0..<(numberOfToolChains - 1)).collectMany { first ->
+            ((first + 1)..<numberOfToolChains).collect { second ->
                 [availableToolChains[first], availableToolChains[second]]
             }
         }
+        // To avoid [gcc, g++] pair because they have same display name
+        return result.findAll { it[0].displayName != it[1].displayName }
     }
-
 }
