@@ -16,15 +16,14 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.build.BuildModelController;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
-public interface BuildModelControllerFactory {
+@ServiceScope(Scopes.BuildTree.class)
+public interface BuildModelControllerServices {
     /**
-     * Creates the {@link BuildModelController} for the given build model instance.
+     * Registers the services required to produce a {@link BuildModelControllerFactory} for the given build.
      */
-    BuildModelController create(GradleInternal gradle);
+    void supplyBuildScopeServices(BuildScopeServices services);
 }

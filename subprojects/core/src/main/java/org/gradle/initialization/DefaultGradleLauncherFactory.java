@@ -52,32 +52,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildDefinition buildDefinition,
         BuildState owner,
         @Nullable GradleInternal parent,
-        BuildScopeServices buildScopeServices
-    ) {
-        return doNewInstance(
-            buildDefinition,
-            owner,
-            parent,
-            this::createDefaultGradleLauncher,
-            buildScopeServices
-        );
-    }
-
-    public BuildLifecycleController nestedInstance(
-        BuildDefinition buildDefinition,
-        BuildState owner,
-        @Nullable GradleInternal parent,
-        BuildScopeServices buildScopeServices,
-        GradleLauncherInstantiator gradleLauncherInstantiator
-    ) {
-        return doNewInstance(buildDefinition, owner, parent, gradleLauncherInstantiator, buildScopeServices);
-    }
-
-    private BuildLifecycleController doNewInstance(
-        BuildDefinition buildDefinition,
-        BuildState owner,
-        @Nullable GradleInternal parent,
-        GradleLauncherInstantiator gradleLauncherInstantiator,
         BuildScopeServices serviceRegistry
     ) {
         serviceRegistry.add(BuildDefinition.class, buildDefinition);
@@ -127,10 +101,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry.get(ServiceRegistryFactory.class)
         );
 
-        BuildModelControllerFactory buildModelControllerFactory = gradle.getServices().get(BuildModelControllerFactory.class);
+        BuildModelControllerFactory buildModelControllerFactory = serviceRegistry.get(BuildModelControllerFactory.class);
         BuildModelController buildModelController = buildModelControllerFactory.create(gradle);
 
-        return gradleLauncherInstantiator.gradleLauncherFor(gradle, buildModelController, serviceRegistry);
+        return createDefaultGradleLauncher(gradle, buildModelController, serviceRegistry);
     }
 
     private BuildLifecycleController createDefaultGradleLauncher(
@@ -152,15 +126,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             new BuildOptionBuildOperationProgressEventsEmitter(
                 gradle.getServices().get(BuildOperationProgressEventEmitter.class)
             )
-        );
-    }
-
-    @FunctionalInterface
-    public interface GradleLauncherInstantiator {
-        BuildLifecycleController gradleLauncherFor(
-            GradleInternal gradle,
-            BuildModelController buildModelController,
-            BuildScopeServices serviceRegistry
         );
     }
 }

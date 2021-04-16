@@ -26,6 +26,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.tasks.TaskReference;
+import org.gradle.initialization.BuildModelControllerServices;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -59,7 +60,8 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildState owner,
         BuildTreeController buildTree,
         WorkerLeaseRegistry.WorkerLease parentLease,
-        GradleLauncherFactory gradleLauncherFactory
+        GradleLauncherFactory gradleLauncherFactory,
+        BuildModelControllerServices buildModelControllerServices
     ) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
@@ -67,12 +69,13 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.isImplicit = isImplicit;
         this.owner = owner;
         this.parentLease = parentLease;
-        this.buildLifecycleController = createGradleLauncher(gradleLauncherFactory, owner, buildTree);
+        this.buildLifecycleController = createGradleLauncher(owner, buildTree, gradleLauncherFactory, buildModelControllerServices);
     }
 
-    protected BuildLifecycleController createGradleLauncher(GradleLauncherFactory gradleLauncherFactory, BuildState owner, BuildTreeController buildTree) {
+    protected BuildLifecycleController createGradleLauncher(BuildState owner, BuildTreeController buildTree, GradleLauncherFactory gradleLauncherFactory, BuildModelControllerServices buildModelControllerServices) {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
         return gradleLauncherFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildScopeServices);
     }
 

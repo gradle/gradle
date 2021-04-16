@@ -24,6 +24,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildModelControllerServices;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -68,6 +69,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
                                  BuildIdentifier buildIdentifier,
                                  Path identityPath,
                                  BuildState owner,
+                                 BuildModelControllerServices buildModelControllerServices,
                                  GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
                                  CrossBuildSessionState crossBuildSessionState,
                                  BuildCancellationToken buildCancellationToken) {
@@ -85,6 +87,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         // Create the controller using the services of the nested tree
         GradleLauncherFactory gradleLauncherFactory = buildTree.getServices().get(GradleLauncherFactory.class);
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
         this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
     }
 

@@ -20,19 +20,13 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.composite.internal.DefaultIncludedBuild
-import org.gradle.configurationcache.extensions.serviceOf
-import org.gradle.initialization.BuildCompletionListener
-import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter
-import org.gradle.initialization.DefaultGradleLauncherFactory
+import org.gradle.initialization.BuildModelControllerFactory
+import org.gradle.initialization.BuildModelControllerServices
 import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.initialization.exception.ExceptionAnalyser
-import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.build.DefaultBuildLifecycleController
 import org.gradle.internal.buildtree.BuildTreeController
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
@@ -46,34 +40,24 @@ open class ConfigurationCacheIncludedBuildState(
     owner: BuildState,
     buildTree: BuildTreeController,
     parentLease: WorkerLeaseRegistry.WorkerLease,
-    gradleLauncherFactory: GradleLauncherFactory
-) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, gradleLauncherFactory) {
-
-    override fun createGradleLauncher(gradleLauncherFactory: GradleLauncherFactory, owner: BuildState, buildTree: BuildTreeController): BuildLifecycleController {
-        val internalFactory = gradleLauncherFactory as DefaultGradleLauncherFactory
-        val buildScopeServices = BuildScopeServices(buildTree.services)
-        return internalFactory.nestedInstance(
-            buildDefinition,
-            this,
-            owner.mutableModel,
-            buildScopeServices,
-            { gradle: GradleInternal, _: BuildModelController, serviceRegistry: BuildScopeServices ->
-                // Create a GradleLauncher with a no-op model controller
-                val controller = NoOpBuildModelController(gradle)
-                val listenerManager = serviceRegistry.get(ListenerManager::class.java)
-                DefaultBuildLifecycleController(
-                    gradle,
-                    controller,
-                    serviceRegistry.get(ExceptionAnalyser::class.java),
-                    gradle.buildListenerBroadcaster,
-                    listenerManager.getBroadcaster(BuildCompletionListener::class.java),
-                    listenerManager.getBroadcaster(InternalBuildFinishedListener::class.java),
-                    gradle.serviceOf(),
-                    serviceRegistry,
-                    BuildOptionBuildOperationProgressEventsEmitter(gradle.serviceOf())
-                )
+    gradleLauncherFactory: GradleLauncherFactory,
+    buildModelControllerServices: BuildModelControllerServices
+) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, gradleLauncherFactory, buildModelControllerServices) {
+    override fun createGradleLauncher(owner: BuildState, buildTree: BuildTreeController, gradleLauncherFactory: GradleLauncherFactory, buildModelControllerServices: BuildModelControllerServices): BuildLifecycleController {
+        val buildScopeServices = object : BuildScopeServices(buildTree.services) {
+            fun createBuildModelControllerFactory(): BuildModelControllerFactory {
+                return NoOpBuildModelControllerFactory
             }
-        )
+        }
+        return gradleLauncherFactory.newInstance(buildDefinition, this, owner.mutableModel, buildScopeServices)
+    }
+}
+
+
+private
+object NoOpBuildModelControllerFactory : BuildModelControllerFactory {
+    override fun create(gradle: GradleInternal): BuildModelController {
+        return NoOpBuildModelController(gradle)
     }
 }
 

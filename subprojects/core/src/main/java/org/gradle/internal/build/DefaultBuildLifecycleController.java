@@ -126,7 +126,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     private <T> T withModel(Function<BuildModelController, T> action) {
         if (stageFailure != null) {
-            throw new IllegalStateException("Cannot do further work as this build has failed.");
+            throw new IllegalStateException("Cannot do further work as this build has failed.", stageFailure);
         }
         try {
             if (stage == Stage.Created && gradle.isRootBuild()) {

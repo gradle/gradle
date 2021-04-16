@@ -50,6 +50,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheReport::class.java)
             add(ConfigurationCacheProblems::class.java)
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
+            add(DefaultBuildModelControllerServices::class.java)
         }
     }
 
@@ -70,7 +71,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
             add(DefaultConfigurationCache::class.java)
-            add(DefaultBuildModelControllerFactory::class.java)
         }
     }
 }

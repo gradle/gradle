@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildModelControllerServices;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.RootBuildState;
@@ -35,6 +36,7 @@ import org.gradle.util.Path;
 public class BuildStateFactory {
     private final BuildTreeController buildTreeController;
     private final GradleLauncherFactory gradleLauncherFactory;
+    private final BuildModelControllerServices buildModelControllerServices;
     private final ListenerManager listenerManager;
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final CrossBuildSessionState crossBuildSessionState;
@@ -42,12 +44,14 @@ public class BuildStateFactory {
 
     public BuildStateFactory(BuildTreeController buildTreeController,
                              GradleLauncherFactory gradleLauncherFactory,
+                             BuildModelControllerServices buildModelControllerServices,
                              ListenerManager listenerManager,
                              GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
                              CrossBuildSessionState crossBuildSessionState,
                              BuildCancellationToken buildCancellationToken) {
         this.buildTreeController = buildTreeController;
         this.gradleLauncherFactory = gradleLauncherFactory;
+        this.buildModelControllerServices = buildModelControllerServices;
         this.listenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
         this.crossBuildSessionState = crossBuildSessionState;
@@ -55,17 +59,17 @@ public class BuildStateFactory {
     }
 
     public RootBuildState createRootBuild(BuildDefinition buildDefinition) {
-        return new DefaultRootBuildState(buildDefinition, gradleLauncherFactory, listenerManager, buildTreeController);
+        return new DefaultRootBuildState(buildDefinition, buildTreeController, gradleLauncherFactory, buildModelControllerServices, listenerManager);
     }
 
     public StandAloneNestedBuild createNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
-        return new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeController, gradleLauncherFactory);
+        return new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeController, gradleLauncherFactory, buildModelControllerServices);
     }
 
     public RootOfNestedBuildTree createNestedTree(BuildDefinition buildDefinition,
                                                   BuildIdentifier buildIdentifier,
                                                   Path identityPath,
                                                   BuildState owner) {
-        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
+        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, buildModelControllerServices, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
     }
 }

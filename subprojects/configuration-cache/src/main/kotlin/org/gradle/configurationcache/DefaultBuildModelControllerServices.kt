@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.configurationcache
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.build.BuildModelController;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.initialization.BuildModelControllerServices
+import org.gradle.internal.service.scopes.BuildScopeServices
 
-@ServiceScope(Scopes.Build.class)
-public interface BuildModelControllerFactory {
-    /**
-     * Creates the {@link BuildModelController} for the given build model instance.
-     */
-    BuildModelController create(GradleInternal gradle);
+
+class DefaultBuildModelControllerServices : BuildModelControllerServices {
+    override fun supplyBuildScopeServices(services: BuildScopeServices) {
+        services.register {
+            add(DefaultBuildModelControllerFactory::class.java)
+        }
+    }
 }
