@@ -42,6 +42,7 @@ abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractInt
         ivyRepo = server.remoteIvyRepo
         module = ivyRepo.module("org.gradle", "publish", "2")
         configureUploadTask()
+        executer.expectDocumentedDeprecationWarning("The task type org.gradle.api.tasks.Upload (used by the :uploadArchives task) has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
     }
 
     @Issue("GRADLE-3440")
