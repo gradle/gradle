@@ -53,7 +53,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final InternalBuildFinishedListener buildFinishedListener;
     private final BuildWorkExecutor buildExecuter;
     private final BuildScopeServices buildServices;
-    private final List<?> servicesToStop;
     private final GradleInternal gradle;
     private final BuildModelController modelController;
     private final BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter;
@@ -71,7 +70,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         InternalBuildFinishedListener buildFinishedListener,
         BuildWorkExecutor buildExecuter,
         BuildScopeServices buildServices,
-        List<?> servicesToStop,
         BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
     ) {
         this.gradle = gradle;
@@ -82,7 +80,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
-        this.servicesToStop = servicesToStop;
         this.buildOptionBuildOperationProgressEventsEmitter = buildOptionBuildOperationProgressEventsEmitter;
     }
 
@@ -129,7 +126,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     private <T> T withModel(Function<BuildModelController, T> action) {
         if (stageFailure != null) {
-            throw new IllegalStateException("Cannot do further work as this build has failed.");
+            throw new IllegalStateException("Cannot do further work as this build has failed.", stageFailure);
         }
         try {
             if (stage == Stage.Created && gradle.isRootBuild()) {
@@ -194,7 +191,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             throw new IllegalStateException("This build has not been finished.");
         }
         try {
-            CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
+            CompositeStoppable.stoppable(buildServices).stop();
         } finally {
             buildCompletionListener.completed();
         }

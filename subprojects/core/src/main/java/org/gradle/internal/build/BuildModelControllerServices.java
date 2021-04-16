@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,14 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.BuildDefinition;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.Path;
 
 @ServiceScope(Scopes.BuildTree.class)
-public interface IncludedBuildFactory {
-    IncludedBuildState createBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner);
-
+public interface BuildModelControllerServices {
     /**
-     * Should be called after the build is included and any listeners notified
-     * This ensures that the required classloaders are created in the right order which is required for configuration cache
+     * Registers the services required to produce a {@link BuildModelControllerFactory} for the given build.
      */
-    default void prepareBuild(IncludedBuildState includedBuild) {
-        includedBuild.loadSettings();
-    }
+    void supplyBuildScopeServices(BuildScopeServices services);
 }

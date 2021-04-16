@@ -20,15 +20,18 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -42,12 +45,20 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     private final BuildDefinition buildDefinition;
     private final BuildLifecycleController buildLifecycleController;
 
-    DefaultNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
+    DefaultNestedBuild(BuildIdentifier buildIdentifier,
+                       Path identityPath,
+                       BuildDefinition buildDefinition,
+                       BuildState owner,
+                       BuildTreeController buildTree,
+                       BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+                       BuildModelControllerServices buildModelControllerServices) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.owner = owner;
-        this.buildLifecycleController = owner.getNestedBuildFactory().nestedInstance(buildDefinition, this);
+        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
+        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
     }
 
     @Override
@@ -85,11 +96,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public NestedBuildFactory getNestedBuildFactory() {
-        return buildLifecycleController.getGradle().getServices().get(NestedBuildFactory.class);
-    }
-
-    @Override
     public Path getCurrentPrefixForProjectsInChildBuilds() {
         return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildDefinition.getName());
     }
@@ -106,6 +112,11 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public GradleInternal getBuild() {
+        return buildLifecycleController.getGradle();
+    }
+
+    @Override
+    public GradleInternal getMutableModel() {
         return buildLifecycleController.getGradle();
     }
 

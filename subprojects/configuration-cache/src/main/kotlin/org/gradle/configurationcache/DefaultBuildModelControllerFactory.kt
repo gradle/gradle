@@ -18,24 +18,25 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.configuration.ProjectsPreparer
+import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
-import org.gradle.internal.build.BuildModelController
-import org.gradle.initialization.BuildModelControllerFactory
+import org.gradle.internal.build.BuildModelControllerFactory
 import org.gradle.initialization.ConfigurationCache
 import org.gradle.initialization.ConfigurationCacheAwareBuildModelController
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.VintageBuildModelController
+import org.gradle.internal.build.BuildModelController
 
 
 class DefaultBuildModelControllerFactory(
     val startParameter: ConfigurationCacheStartParameter,
-    val projectsPreparer: ProjectsPreparer,
-    val settingsPreparer: SettingsPreparer,
-    val taskExecutionPreparer: TaskExecutionPreparer,
-    val configurationCache: ConfigurationCache
 ) : BuildModelControllerFactory {
     override fun create(gradle: GradleInternal): BuildModelController {
+        val projectsPreparer: ProjectsPreparer = gradle.services.get()
+        val settingsPreparer: SettingsPreparer = gradle.services.get()
+        val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
+        val configurationCache: ConfigurationCache = gradle.services.get()
         val vintageController = VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer)
         return if (startParameter.isEnabled) {
             ConfigurationCacheAwareBuildModelController(gradle, vintageController, configurationCache)

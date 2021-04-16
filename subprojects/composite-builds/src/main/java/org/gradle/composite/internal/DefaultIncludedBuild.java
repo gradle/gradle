@@ -26,12 +26,15 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.tasks.TaskReference;
-import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -55,7 +58,10 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildDefinition buildDefinition,
         boolean isImplicit,
         BuildState owner,
-        WorkerLeaseRegistry.WorkerLease parentLease
+        BuildTreeController buildTree,
+        WorkerLeaseRegistry.WorkerLease parentLease,
+        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+        BuildModelControllerServices buildModelControllerServices
     ) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
@@ -63,20 +69,18 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.isImplicit = isImplicit;
         this.owner = owner;
         this.parentLease = parentLease;
-        this.buildLifecycleController = createGradleLauncher();
+        this.buildLifecycleController = createGradleLauncher(owner, buildTree, buildLifecycleControllerFactory, buildModelControllerServices);
     }
 
-    protected BuildLifecycleController createGradleLauncher() {
+    protected BuildLifecycleController createGradleLauncher(BuildState owner, BuildTreeController buildTree, BuildLifecycleControllerFactory buildLifecycleControllerFactory, BuildModelControllerServices buildModelControllerServices) {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
-        return owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
+        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
+        return buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildScopeServices);
     }
 
     protected BuildDefinition getBuildDefinition() {
         return buildDefinition;
-    }
-
-    protected BuildState getOwner() {
-        return owner;
     }
 
     @Override
@@ -123,11 +127,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public String getName() {
         return identityPath.getName();
-    }
-
-    @Override
-    public NestedBuildFactory getNestedBuildFactory() {
-        return gradleService(NestedBuildFactory.class);
     }
 
     @Override
@@ -220,6 +219,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     protected GradleInternal getGradle() {
+        return buildLifecycleController.getGradle();
+    }
+
+    @Override
+    public GradleInternal getMutableModel() {
         return buildLifecycleController.getGradle();
     }
 
