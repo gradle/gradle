@@ -19,8 +19,8 @@ package org.gradle.composite.internal;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.initialization.BuildModelControllerServices;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
@@ -35,18 +35,18 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final BuildTreeController buildTree;
     private final Instantiator instantiator;
     private final WorkerLeaseService workerLeaseService;
-    private final GradleLauncherFactory gradleLauncherFactory;
+    private final BuildLifecycleControllerFactory buildLifecycleControllerFactory;
     private final BuildModelControllerServices buildModelControllerServices;
 
     public DefaultIncludedBuildFactory(BuildTreeController buildTree,
                                        Instantiator instantiator,
                                        WorkerLeaseService workerLeaseService,
-                                       GradleLauncherFactory gradleLauncherFactory,
+                                       BuildLifecycleControllerFactory buildLifecycleControllerFactory,
                                        BuildModelControllerServices buildModelControllerServices) {
         this.buildTree = buildTree;
         this.instantiator = instantiator;
         this.workerLeaseService = workerLeaseService;
-        this.gradleLauncherFactory = gradleLauncherFactory;
+        this.buildLifecycleControllerFactory = buildLifecycleControllerFactory;
         this.buildModelControllerServices = buildModelControllerServices;
     }
 
@@ -71,7 +71,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             owner,
             buildTree,
             workerLeaseService.getCurrentWorkerLease(),
-            gradleLauncherFactory,
+            buildLifecycleControllerFactory,
             buildModelControllerServices
         );
     }

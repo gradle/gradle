@@ -20,9 +20,9 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.composite.internal.DefaultIncludedBuild
-import org.gradle.initialization.BuildModelControllerFactory
-import org.gradle.initialization.BuildModelControllerServices
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.internal.build.BuildModelControllerFactory
+import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildState
@@ -40,16 +40,16 @@ open class ConfigurationCacheIncludedBuildState(
     owner: BuildState,
     buildTree: BuildTreeController,
     parentLease: WorkerLeaseRegistry.WorkerLease,
-    gradleLauncherFactory: GradleLauncherFactory,
+    buildLifecycleControllerFactory: BuildLifecycleControllerFactory,
     buildModelControllerServices: BuildModelControllerServices
-) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, gradleLauncherFactory, buildModelControllerServices) {
-    override fun createGradleLauncher(owner: BuildState, buildTree: BuildTreeController, gradleLauncherFactory: GradleLauncherFactory, buildModelControllerServices: BuildModelControllerServices): BuildLifecycleController {
+) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, buildLifecycleControllerFactory, buildModelControllerServices) {
+    override fun createGradleLauncher(owner: BuildState, buildTree: BuildTreeController, buildLifecycleControllerFactory: BuildLifecycleControllerFactory, buildModelControllerServices: BuildModelControllerServices): BuildLifecycleController {
         val buildScopeServices = object : BuildScopeServices(buildTree.services) {
             fun createBuildModelControllerFactory(): BuildModelControllerFactory {
                 return NoOpBuildModelControllerFactory
             }
         }
-        return gradleLauncherFactory.newInstance(buildDefinition, this, owner.mutableModel, buildScopeServices)
+        return buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.mutableModel, buildScopeServices)
     }
 }
 

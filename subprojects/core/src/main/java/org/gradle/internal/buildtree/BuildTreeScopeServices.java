@@ -20,7 +20,7 @@ import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
@@ -53,7 +53,7 @@ public class BuildTreeScopeServices {
         registration.add(BuildTreeController.class, buildTree);
         registration.add(BuildType.class, buildType);
         registration.add(GradleEnterprisePluginManager.class);
-        registration.add(DefaultGradleLauncherFactory.class);
+        registration.add(DefaultBuildLifecycleControllerFactory.class);
     }
 
     protected ListenerManager createListenerManager(ListenerManager parent) {

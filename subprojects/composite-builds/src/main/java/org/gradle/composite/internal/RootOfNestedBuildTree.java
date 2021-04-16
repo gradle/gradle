@@ -24,10 +24,10 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildModelControllerServices;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
 import org.gradle.initialization.layout.BuildLayout;
@@ -85,10 +85,10 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         startParameter.setConfigurationCache(false);
         buildTree = new BuildTreeController(session.getServices(), BuildType.TASKS);
         // Create the controller using the services of the nested tree
-        GradleLauncherFactory gradleLauncherFactory = buildTree.getServices().get(GradleLauncherFactory.class);
+        BuildLifecycleControllerFactory buildLifecycleControllerFactory = buildTree.getServices().get(BuildLifecycleControllerFactory.class);
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
-        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
+        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
     }
 
     public void attach() {

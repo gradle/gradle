@@ -19,8 +19,8 @@ package org.gradle.composite.internal
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.initialization.BuildModelControllerServices
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeController
@@ -38,7 +38,7 @@ import java.util.function.Function
 class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
     def tree = Mock(BuildTreeController)
-    def factory = Mock(GradleLauncherFactory)
+    def factory = Mock(BuildLifecycleControllerFactory)
     def launcher = Mock(BuildLifecycleController)
     def parentGradle = Mock(GradleInternal)
     def gradle = Mock(GradleInternal)

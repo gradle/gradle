@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.initialization.BuildModelControllerServices;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -50,7 +50,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
                        BuildDefinition buildDefinition,
                        BuildState owner,
                        BuildTreeController buildTree,
-                       GradleLauncherFactory gradleLauncherFactory,
+                       BuildLifecycleControllerFactory buildLifecycleControllerFactory,
                        BuildModelControllerServices buildModelControllerServices) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
@@ -58,7 +58,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         this.owner = owner;
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
-        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
+        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
     }
 
     @Override

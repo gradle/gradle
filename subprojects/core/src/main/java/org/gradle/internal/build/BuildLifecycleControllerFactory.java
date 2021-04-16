@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.build;
 
-package org.gradle.initialization;
-
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.build.BuildModelController;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
-public interface BuildModelControllerFactory {
-    /**
-     * Creates the {@link BuildModelController} for the given build model instance.
-     */
-    BuildModelController create(GradleInternal gradle);
+import javax.annotation.Nullable;
+
+/**
+ * <p>Responsible for creating a {@link BuildLifecycleController} instance for a build.
+ *
+ * Caller must call {@link BuildLifecycleController#stop()} when finished with the launcher.
+ */
+@ServiceScope(Scopes.BuildTree.class)
+public interface BuildLifecycleControllerFactory {
+    BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel, BuildScopeServices buildScopeServices);
 }

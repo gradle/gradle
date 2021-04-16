@@ -20,7 +20,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
-import org.gradle.initialization.BuildModelControllerFactory
+import org.gradle.internal.build.BuildModelControllerFactory
 import org.gradle.initialization.ConfigurationCache
 import org.gradle.initialization.ConfigurationCacheAwareBuildModelController
 import org.gradle.initialization.SettingsPreparer

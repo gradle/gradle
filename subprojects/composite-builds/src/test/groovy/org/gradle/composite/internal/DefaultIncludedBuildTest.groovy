@@ -23,8 +23,8 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
-import org.gradle.initialization.BuildModelControllerServices
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeController
@@ -35,7 +35,7 @@ import spock.lang.Specification
 
 class DefaultIncludedBuildTest extends Specification {
     def owningBuild = Mock(BuildState)
-    def buildFactory = Mock(GradleLauncherFactory)
+    def buildFactory = Mock(BuildLifecycleControllerFactory)
     def buildDefinition = Stub(BuildDefinition)
     def gradleLauncher = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)

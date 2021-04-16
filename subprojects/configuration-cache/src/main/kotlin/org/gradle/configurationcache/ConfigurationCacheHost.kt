@@ -30,13 +30,13 @@ import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.initialization.BuildModelControllerServices
+import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.layout.BuildLayout
@@ -219,7 +219,7 @@ class ConfigurationCacheHost internal constructor(
             owner,
             service<BuildTreeController>(),
             service<WorkerLeaseService>().currentWorkerLease,
-            service<GradleLauncherFactory>(),
+            service<BuildLifecycleControllerFactory>(),
             service<BuildModelControllerServices>()
         )
 

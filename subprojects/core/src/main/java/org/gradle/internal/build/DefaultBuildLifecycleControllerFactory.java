@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.build;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -22,12 +22,10 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.initialization.BuildCompletionListener;
+import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
-import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildModelController;
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.DefaultBuildLifecycleController;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
@@ -42,7 +40,7 @@ import org.gradle.invocation.DefaultGradle;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
+public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleControllerFactory {
     @Override
     public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel, BuildScopeServices buildScopeServices) {
         return doNewInstance(buildDefinition, owner, parentModel, buildScopeServices);

@@ -24,8 +24,8 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
-import org.gradle.initialization.BuildModelControllerServices;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.layout.BuildLayout;
@@ -51,13 +51,13 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     DefaultRootBuildState(BuildDefinition buildDefinition,
                           BuildTreeController buildTree,
-                          GradleLauncherFactory gradleLauncherFactory,
+                          BuildLifecycleControllerFactory buildLifecycleControllerFactory,
                           BuildModelControllerServices buildModelControllerServices,
                           ListenerManager listenerManager) {
         this.listenerManager = listenerManager;
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
-        this.buildLifecycleController = gradleLauncherFactory.newInstance(buildDefinition, this, null, buildScopeServices);
+        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, null, buildScopeServices);
         this.buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController);
     }
 
