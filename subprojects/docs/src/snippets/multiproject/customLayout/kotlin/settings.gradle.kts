@@ -8,5 +8,5 @@ println(project(":project-a").name)
 // tag::change-project[]
 rootProject.name = "main"
 project(":project-a").projectDir = file("my-project-a")
-project(":project-a").buildFileName = "project-a.gradle`
+project(":project-a").buildFileName = "project-a.gradle"
 // end::change-project[]
