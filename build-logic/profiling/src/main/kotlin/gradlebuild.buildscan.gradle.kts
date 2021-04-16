@@ -99,7 +99,7 @@ fun buildCacheEnabled() = gradle.startParameter.isBuildCacheEnabled
 
 fun isNotTaggedYet() = cacheMissTagged.compareAndSet(false, true)
 
-fun Task.isCacheMiss() = !state.skipped && (isCompileCacheMiss() || isAsciidoctorCacheMiss())
+fun Task.isCacheMiss() = !state.skipped && state.failure == null && (isCompileCacheMiss() || isAsciidoctorCacheMiss())
 
 fun Task.isCompileCacheMiss() = isMonitoredCompileTask() && !isExpectedCompileCacheMiss()
 
