@@ -18,11 +18,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.junit.Rule
-import spock.lang.Issue
-import spock.lang.Unroll
 
 class UploadIntegrationTest extends AbstractIntegrationSpec {
 
