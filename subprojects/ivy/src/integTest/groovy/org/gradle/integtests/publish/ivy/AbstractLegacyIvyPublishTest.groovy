@@ -18,9 +18,14 @@ package org.gradle.integtests.publish.ivy
 
 import org.gradle.api.publish.ivy.WithUploadArchives
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 class AbstractLegacyIvyPublishTest extends AbstractIntegrationSpec implements WithUploadArchives {
     def setup() {
         configureUploadTask()
+    }
+
+    GradleExecuter expectUploadTaskDeprecationWarning(taskName) {
+        executer.expectDocumentedDeprecationWarning("The task type org.gradle.api.tasks.Upload (used by the :$taskName task) has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
     }
 }

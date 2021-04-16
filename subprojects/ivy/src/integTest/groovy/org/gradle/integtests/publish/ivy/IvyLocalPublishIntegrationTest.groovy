@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.publish.ivy
 
-
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
@@ -43,6 +42,7 @@ uploadArchives {
 }
 """
         when:
+        expectUploadTaskDeprecationWarning('uploadArchives')
         succeeds 'uploadArchives'
 
         then:
@@ -77,6 +77,7 @@ uploadArchives {
 }
 """
         when:
+        expectUploadTaskDeprecationWarning('uploadArchives')
         succeeds 'uploadArchives'
 
         then:
@@ -112,6 +113,7 @@ task ivyXml(type: Upload) {
 }
 '''
         when:
+        expectUploadTaskDeprecationWarning('ivyXml')
         succeeds 'ivyXml'
 
         then:
@@ -155,6 +157,7 @@ task ivyXml(type: Upload) {
 }
 """
         when:
+        expectUploadTaskDeprecationWarning('ivyXml')
         succeeds 'ivyXml'
 
         then:
@@ -198,6 +201,7 @@ task ivyXml(type: Upload) {
         """
 
         when:
+        expectUploadTaskDeprecationWarning('uploadArchives')
         succeeds 'uploadArchives'
 
         then:
@@ -225,6 +229,7 @@ task ivyXml(type: Upload) {
         """
 
         when:
+        expectUploadTaskDeprecationWarning('uploadArchives')
         fails 'uploadArchives'
 
         then:
