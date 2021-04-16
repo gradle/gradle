@@ -17,6 +17,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import model.CIBuildModel
 import model.FlameGraphGeneration
 import model.FunctionalTestBucketProvider
+import model.GRADLE_BUILD_SMOKE_TEST_NAME
 import model.PerformanceTestBucketProvider
 import model.PerformanceTestCoverage
 import model.SpecificBuild
@@ -90,6 +91,12 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
             val crossVersionTests = functionalTests.filter { it.testCoverage.testType in setOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion) }
             if (crossVersionTests.size > 1) {
                 buildType(PartialTrigger("All Cross-Version Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_CrossVersionTests", model, crossVersionTests))
+            }
+
+            // in gradleBuildSmokeTest, most of the tests are for using the configuration cache on gradle/gradle
+            val configCacheTests = (functionalTests + specificBuildTypes).filter { it.name.toLowerCase().contains("configcache") || it.name.contains(GRADLE_BUILD_SMOKE_TEST_NAME) }
+            if (configCacheTests.size > 1) {
+                buildType(PartialTrigger("All ConfigCache Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_ConfigCacheTests", model, configCacheTests))
             }
             if (specificBuildTypes.size > 1) {
                 buildType(PartialTrigger("All Specific Builds for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_SpecificBuilds", model, specificBuildTypes))
