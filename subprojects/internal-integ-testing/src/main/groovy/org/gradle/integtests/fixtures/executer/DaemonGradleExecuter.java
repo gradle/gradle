@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.integtests.fixtures.FileSystemWatchingHelper;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.GradleVersion;
@@ -36,6 +38,18 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
         super.requireDaemon();
+        waitForChangesToBePickedUpBeforeExecution();
+    }
+
+    private void waitForChangesToBePickedUpBeforeExecution() {
+        // File system watching is now on by default, so we need to wait for changes to be picked up before each execution.
+        beforeExecute(executer -> {
+            try {
+                FileSystemWatchingHelper.waitForChangesToBePickedUp();
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        });
     }
 
     @Override
