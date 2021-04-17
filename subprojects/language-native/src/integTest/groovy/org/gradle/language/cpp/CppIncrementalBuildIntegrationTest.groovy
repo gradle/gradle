@@ -22,10 +22,12 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
+@Ignore('https://github.com/gradle/gradle-private/issues/3365')
 class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     private static final String LIBRARY = ':library'
