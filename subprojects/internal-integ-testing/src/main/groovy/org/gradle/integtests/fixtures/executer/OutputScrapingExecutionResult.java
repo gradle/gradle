@@ -188,6 +188,15 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public ExecutionResult assertNotPostBuildOutput(String expectedOutput) {
+        String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
+        if (postBuild.withNormalizedEol().contains(expectedText)) {
+            failureOnUnexpectedOutput(String.format("Found unexpected text in post-build output.%nExpected not present: %s%n", expectedText));
+        }
+        return this;
+    }
+
+    @Override
     public ExecutionResult assertNotOutput(String expectedOutput) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
         if (getOutput().contains(expectedText)|| getError().contains(expectedText)) {
