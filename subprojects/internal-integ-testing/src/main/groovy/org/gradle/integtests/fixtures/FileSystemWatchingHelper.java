@@ -16,13 +16,17 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.os.OperatingSystem;
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY;
 
 public class FileSystemWatchingHelper {
 
-    private static final int WAIT_FOR_CHANGES_PICKED_UP_MILLIS = 120;
+    private static final int WAIT_FOR_CHANGES_PICKED_UP_MILLIS = (OperatingSystem.current().isWindows() || JavaVersion.current().isJava11Compatible())
+        ? 120
+        : 500;
 
     public static void waitForChangesToBePickedUp() throws InterruptedException {
         Thread.sleep(WAIT_FOR_CHANGES_PICKED_UP_MILLIS);
