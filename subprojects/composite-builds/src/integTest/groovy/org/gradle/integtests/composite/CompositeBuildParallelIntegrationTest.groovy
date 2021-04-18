@@ -106,8 +106,11 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
             buildFile << """
                 allprojects {
                     apply plugin: 'java'
-                    compileJava.doLast {
-                        ${server.callFromBuildUsingExpression('project.name')}
+                    compileJava {
+                        def projectName = project.name
+                        doLast {
+                            ${server.callFromBuildUsingExpression('projectName')}
+                        }
                     }
                 }
             """

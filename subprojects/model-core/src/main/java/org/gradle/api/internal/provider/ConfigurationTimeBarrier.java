@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scopes.BuildTree.class)
 public interface ConfigurationTimeBarrier {
     boolean isAtConfigurationTime();
 }

@@ -1038,4 +1038,24 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
     }
 
+    def "report task problems from included build with complete task path"() {
+        given:
+        settingsFile << """
+            includeBuild 'inc'
+        """
+        file("inc/settings.gradle") << """
+            include 'sub'
+        """
+        file("inc/sub/build.gradle") << """
+            tasks.register('broken') {
+                doFirst { println(project.name) }
+            }
+        """
+
+        when:
+        configurationCacheFails ":inc:sub:broken"
+
+        then:
+        outputContains "Configuration cache entry discarded with 1 problem."
+    }
 }
