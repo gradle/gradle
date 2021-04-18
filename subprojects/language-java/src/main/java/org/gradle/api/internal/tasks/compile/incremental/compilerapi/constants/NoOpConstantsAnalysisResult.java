@@ -16,15 +16,24 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
-
+import java.io.Serializable;
 import java.util.Optional;
 
-public interface ConstantsAnalysisResult {
+public class NoOpConstantsAnalysisResult implements ConstantsAnalysisResult, Serializable {
 
-    Optional<ConstantToDependentsMapping> getConstantToDependentsMapping();
+    @Override
+    public Optional<ConstantToDependentsMapping> getConstantToDependentsMapping() {
+        return Optional.empty();
+    }
 
-    void addPublicDependent(String constantOrigin, String constantDependent);
+    @Override
+    public void addPublicDependent(String constantOrigin, String constantDependent) {
 
-    void addPrivateDependent(String constantOrigin, String constantDependent);
+    }
+
+    @Override
+    public void addPrivateDependent(String constantOrigin, String constantDependent) {
+
+    }
 
 }

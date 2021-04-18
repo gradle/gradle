@@ -155,7 +155,7 @@ class A2{}
 
     def 'merge old class source mappings if no recompilation required'() {
         given:
-        File a =source('class A { }')
+        File a = source('class A { }')
         source('class B { }')
         run 'compileGroovy'
 

@@ -26,54 +26,54 @@ class ConstantToDependentsMappingMergerTest extends Specification {
     def "maps new mapping to expected mapping if previous was null"() {
         given:
         ConstantToDependentsMapping newMapping = ConstantToDependentsMapping.builder()
-            .addAccessibleDependent("a".hashCode(), "1")
-            .addAccessibleDependent("a".hashCode(), "2")
-            .addAccessibleDependent("b".hashCode(), "3")
-            .addPrivateDependent("c".hashCode(), "4")
+            .addAccessibleDependent("a", "1")
+            .addAccessibleDependent("a", "2")
+            .addAccessibleDependent("b", "3")
+            .addPrivateDependent("c", "4")
             .build()
 
         when:
         ConstantToDependentsMapping mapping = merger.merge(newMapping, null, [] as Set)
 
         then:
-        mapping.findAccessibleConstantDependentsFor("a".hashCode()) == ["1", "2"] as Set
-        mapping.findAccessibleConstantDependentsFor("b".hashCode()) == ["3"] as Set
-        mapping.findAccessibleConstantDependentsFor("c".hashCode()) == [] as Set
+        mapping.findAccessibleConstantDependentsFor("a") == ["1", "2"] as Set
+        mapping.findAccessibleConstantDependentsFor("b") == ["3"] as Set
+        mapping.findAccessibleConstantDependentsFor("c") == [] as Set
 
-        mapping.findPrivateConstantDependentsFor("a".hashCode()) == [] as Set
-        mapping.findPrivateConstantDependentsFor("b".hashCode()) == [] as Set
-        mapping.findPrivateConstantDependentsFor("c".hashCode()) == ["4"] as Set
+        mapping.findPrivateConstantDependentsFor("a") == [] as Set
+        mapping.findPrivateConstantDependentsFor("b") == [] as Set
+        mapping.findPrivateConstantDependentsFor("c") == ["4"] as Set
 
         mapping.getDependentClasses().size() == 4
         mapping.getDependentClasses().containsAll(["1", "2", "3", "4"])
-        mapping.getAccessibleConstantDependents().keySet() == ["a".hashCode(), "b".hashCode()] as Set
-        mapping.getPrivateConstantDependents().keySet() == ["c".hashCode()] as Set
+        mapping.getAccessibleConstantDependents().keySet() == ["a", "b"] as Set
+        mapping.getPrivateConstantDependents().keySet() == ["c"] as Set
     }
 
     def "merges new mappings with old mappings"() {
         given:
         ConstantToDependentsMapping oldMapping = ConstantToDependentsMapping.builder()
-            .addAccessibleDependent("a".hashCode(), "1")
-            .addAccessibleDependent("b".hashCode(), "2")
+            .addAccessibleDependent("a", "1")
+            .addAccessibleDependent("b", "2")
             .build()
         ConstantToDependentsMapping newMapping = ConstantToDependentsMapping.builder()
-            .addAccessibleDependent("a".hashCode(), "1")
-            .addAccessibleDependent("a".hashCode(), "2")
-            .addPrivateDependent("b".hashCode(), "3")
-            .addAccessibleDependent("c".hashCode(), "4")
+            .addAccessibleDependent("a", "1")
+            .addAccessibleDependent("a", "2")
+            .addPrivateDependent("b", "3")
+            .addAccessibleDependent("c", "4")
             .build()
 
         when:
         ConstantToDependentsMapping mapping = merger.merge(newMapping, oldMapping, [] as Set)
 
         then:
-        mapping.findAccessibleConstantDependentsFor("a".hashCode()) == ["1", "2"] as Set
-        mapping.findAccessibleConstantDependentsFor("b".hashCode()) == [] as Set
-        mapping.findAccessibleConstantDependentsFor("c".hashCode()) == ["4"] as Set
+        mapping.findAccessibleConstantDependentsFor("a") == ["1", "2"] as Set
+        mapping.findAccessibleConstantDependentsFor("b") == [] as Set
+        mapping.findAccessibleConstantDependentsFor("c") == ["4"] as Set
 
-        mapping.findPrivateConstantDependentsFor("a".hashCode()) == [] as Set
-        mapping.findPrivateConstantDependentsFor("b".hashCode()) == ["3"] as Set
-        mapping.findPrivateConstantDependentsFor("c".hashCode()) == [] as Set
+        mapping.findPrivateConstantDependentsFor("a") == [] as Set
+        mapping.findPrivateConstantDependentsFor("b") == ["3"] as Set
+        mapping.findPrivateConstantDependentsFor("c") == [] as Set
 
         mapping.getDependentClasses().size() == 4
         mapping.getDependentClasses().containsAll(["1", "2", "3", "4"])
@@ -82,14 +82,14 @@ class ConstantToDependentsMappingMergerTest extends Specification {
     def "removes all removed classes from mapping on merge"() {
         given:
         ConstantToDependentsMapping oldMapping = ConstantToDependentsMapping.builder()
-            .addAccessibleDependent("a".hashCode(), "1")
-            .addAccessibleDependent("b".hashCode(), "2")
+            .addAccessibleDependent("a", "1")
+            .addAccessibleDependent("b", "2")
             .build()
         ConstantToDependentsMapping newMapping = ConstantToDependentsMapping.builder()
-            .addAccessibleDependent("a".hashCode(), "1")
-            .addAccessibleDependent("a".hashCode(), "2")
-            .addPrivateDependent("b".hashCode(), "3")
-            .addAccessibleDependent("c".hashCode(), "4")
+            .addAccessibleDependent("a", "1")
+            .addAccessibleDependent("a", "2")
+            .addPrivateDependent("b", "3")
+            .addAccessibleDependent("c", "4")
             .build()
 
         Set<String> removedClasses = ["a", "c"] as Set
@@ -98,13 +98,13 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         ConstantToDependentsMapping mapping = merger.merge(newMapping, oldMapping, removedClasses)
 
         then:
-        mapping.findAccessibleConstantDependentsFor("a".hashCode()).isEmpty()
-        mapping.findAccessibleConstantDependentsFor("b".hashCode()).isEmpty()
-        mapping.findAccessibleConstantDependentsFor("c".hashCode()).isEmpty()
+        mapping.findAccessibleConstantDependentsFor("a").isEmpty()
+        mapping.findAccessibleConstantDependentsFor("b").isEmpty()
+        mapping.findAccessibleConstantDependentsFor("c").isEmpty()
 
-        mapping.findPrivateConstantDependentsFor("a".hashCode()).isEmpty()
-        mapping.findPrivateConstantDependentsFor("b".hashCode()) == ["3"] as Set
-        mapping.findPrivateConstantDependentsFor("c".hashCode()).isEmpty()
+        mapping.findPrivateConstantDependentsFor("a").isEmpty()
+        mapping.findPrivateConstantDependentsFor("b") == ["3"] as Set
+        mapping.findPrivateConstantDependentsFor("c").isEmpty()
 
         mapping.getDependentClasses().size() == 1
         mapping.getDependentClasses().containsAll(["3"])
@@ -113,9 +113,9 @@ class ConstantToDependentsMappingMergerTest extends Specification {
     def "removes all classes that were visited but are not dependents anymore from mapping on merge"() {
         given:
         ConstantToDependentsMapping oldMapping = ConstantToDependentsMapping.builder()
-            .addAccessibleDependent("a".hashCode(), "1")
-            .addAccessibleDependent("a".hashCode(), "2")
-            .addAccessibleDependent("b".hashCode(), "2")
+            .addAccessibleDependent("a", "1")
+            .addAccessibleDependent("a", "2")
+            .addAccessibleDependent("b", "2")
             .build()
         ConstantToDependentsMapping newMapping = ConstantToDependentsMapping.builder()
             .addVisitedClass("2")
@@ -125,17 +125,17 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         ConstantToDependentsMapping mapping = merger.merge(newMapping, oldMapping, [] as Set)
 
         then:
-        mapping.findAccessibleConstantDependentsFor("a".hashCode()) == ["1"] as Set
-        mapping.findAccessibleConstantDependentsFor("b".hashCode()) == [] as Set
+        mapping.findAccessibleConstantDependentsFor("a") == ["1"] as Set
+        mapping.findAccessibleConstantDependentsFor("b") == [] as Set
         mapping.getDependentClasses() as Set == ["1"] as Set
     }
 
     def "does not remove classes that are not in new mapping from mapping on merge"() {
         given:
         ConstantToDependentsMapping oldMapping = ConstantToDependentsMapping.builder()
-            .addAccessibleDependent("a".hashCode(), "1")
-            .addAccessibleDependent("a".hashCode(), "2")
-            .addAccessibleDependent("b".hashCode(), "2")
+            .addAccessibleDependent("a", "1")
+            .addAccessibleDependent("a", "2")
+            .addAccessibleDependent("b", "2")
             .build()
         ConstantToDependentsMapping newMapping = ConstantToDependentsMapping.builder()
             .addVisitedClass("3")
@@ -145,8 +145,8 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         ConstantToDependentsMapping mapping = merger.merge(newMapping, oldMapping, [] as Set)
 
         then:
-        mapping.findAccessibleConstantDependentsFor("a".hashCode()) == ["1", "2"] as Set
-        mapping.findAccessibleConstantDependentsFor("b".hashCode()) == ["2"] as Set
+        mapping.findAccessibleConstantDependentsFor("a") == ["1", "2"] as Set
+        mapping.findAccessibleConstantDependentsFor("b") == ["2"] as Set
         mapping.getDependentClasses().size() == 2
         mapping.getDependentClasses() as Set == ["1", "2"] as Set
     }
@@ -154,9 +154,9 @@ class ConstantToDependentsMappingMergerTest extends Specification {
     def "removes all removed classes from visited"() {
         given:
         ConstantToDependentsMapping oldMapping = ConstantToDependentsMapping.builder()
-            .addAccessibleDependent("a".hashCode(), "1")
-            .addAccessibleDependent("a".hashCode(), "2")
-            .addAccessibleDependent("b".hashCode(), "2")
+            .addAccessibleDependent("a", "1")
+            .addAccessibleDependent("a", "2")
+            .addAccessibleDependent("b", "2")
             .build()
         ConstantToDependentsMapping newMapping = ConstantToDependentsMapping.builder()
             .addVisitedClass("3")
@@ -167,8 +167,8 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         ConstantToDependentsMapping mapping = merger.merge(newMapping, oldMapping, ["1", "4"] as Set)
 
         then:
-        mapping.findAccessibleConstantDependentsFor("a".hashCode()) == ["2"] as Set
-        mapping.findAccessibleConstantDependentsFor("b".hashCode()) == ["2"] as Set
+        mapping.findAccessibleConstantDependentsFor("a") == ["2"] as Set
+        mapping.findAccessibleConstantDependentsFor("b") == ["2"] as Set
         mapping.getDependentClasses() as Set == ["2"] as Set
     }
 

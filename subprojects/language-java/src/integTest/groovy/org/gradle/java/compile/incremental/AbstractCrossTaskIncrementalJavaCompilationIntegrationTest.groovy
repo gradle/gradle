@@ -31,7 +31,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run language.compileTaskName }
 
         when:
-        source api: ["class B { final static $constantType x = $newValue; /* change */ void bla() { /* avoid flakiness */ } }"]
+        source api: ["class B { final static $constantType x = $newValue; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -58,7 +58,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
         when:
         // A is changed so we expect X to recompile
-        source api: ["class A { final static int x = 2; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        source api: ["class A { final static int x = 2; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -67,7 +67,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         when:
         impl.snapshot()
         // B is changed so we expect Y to recompile
-        source api: ["class B { final static int y = 2; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        source api: ["class B { final static int y = 2; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -99,7 +99,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run language.compileTaskName }
 
         when:
-        source api: ["class B { final static $constantType x = $newValue; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        source api: ["class B { final static $constantType x = $newValue; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -124,7 +124,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run language.compileTaskName }
 
         when:
-        source api: ["class B { final static $constantType x = $newValue; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        source api: ["class B { final static $constantType x = $newValue; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -176,7 +176,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run language.compileTaskName }
 
         when:
-        source api: ["class A { final static int x = 2; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        source api: ["class A { final static int x = 2; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -193,7 +193,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run language.compileTaskName }
 
         when:
-        source api: ["class A { final static int x = 2; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        source api: ["class A { final static int x = 2; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -209,7 +209,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run language.compileTaskName }
 
         when:
-        source api: ["class A { final static int x = 2; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        source api: ["class A { final static int x = 2; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -222,7 +222,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run language.compileTaskName }
 
         when:
-        source api: ["class B { final static int x = 2; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ }  }"]
+        source api: ["class B { final static int x = 2; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -247,7 +247,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run language.compileTaskName }
 
         when:
-        source api: ["class B { final static int x = 2; /* change */ void blah() { /* avoid flakiness by changing compiled file length*/ }  }"]
+        source api: ["class B { final static int x = 2; }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -317,7 +317,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run("impl:${language.compileTaskName}") }
 
         when:
-        source api: ["class A { public static final int EVIL = 0; void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        source api: ["class A { public static final int EVIL = 0; }"]
         run("impl:${language.compileTaskName}")
 
         then:
@@ -347,7 +347,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run("impl:${language.compileTaskName}") }
 
         when:
-        source api: ["class A { public static final int CST = 1234; void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        source api: ["class A { public static final int CST = 1234; }"]
         run("impl:${language.compileTaskName}")
 
         then:

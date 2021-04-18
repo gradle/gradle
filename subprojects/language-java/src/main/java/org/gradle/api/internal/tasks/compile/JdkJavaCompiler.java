@@ -16,6 +16,9 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.DefaultConstantsAnalysisResult;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.NoOpConstantsAnalysisResult;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
 import org.gradle.api.tasks.WorkResult;
@@ -50,7 +53,10 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling with JDK Java compiler API.");
 
-        JdkJavaCompilerResult result = new JdkJavaCompilerResult();
+        ConstantsAnalysisResult constantsAnalysisResult = spec.getCompileOptions().supportsConstantAnalysis()
+            ? new DefaultConstantsAnalysisResult()
+            : new NoOpConstantsAnalysisResult();
+        JdkJavaCompilerResult result = new JdkJavaCompilerResult(constantsAnalysisResult);
         JavaCompiler.CompilationTask task = createCompileTask(spec, result);
         boolean success = task.call();
         if (!success) {

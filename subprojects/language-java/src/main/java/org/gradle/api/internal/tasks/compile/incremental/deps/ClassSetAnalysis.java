@@ -19,10 +19,10 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
@@ -51,8 +51,8 @@ public class ClassSetAnalysis {
     private final CompilerApiData compilerApiData;
     private final ImmutableSetMultimap<String, String> classDependenciesFromAnnotationProcessing;
     private final ImmutableSetMultimap<String, GeneratedResource> resourceDependenciesFromAnnotationProcessing;
-    private final Map<Integer, Set<String>> accessibleConstantDependentsCache = new Int2ObjectOpenHashMap<>(100);
-    private final Map<Integer, Set<String>> privateConstantDependentsCache = new Int2ObjectOpenHashMap<>(100);
+    private final Map<String, Set<String>> accessibleConstantDependentsCache = new Object2ObjectOpenHashMap<>(100);
+    private final Map<String, Set<String>> privateConstantDependentsCache = new Object2ObjectOpenHashMap<>(100);
 
     public ClassSetAnalysis(ClassSetAnalysisData classAnalysis) {
         this(classAnalysis, new AnnotationProcessingData(), CompilerApiData.unavailableOf());
@@ -278,14 +278,14 @@ public class ClassSetAnalysis {
 
     private Set<String> accessibleConstantDependentsForClass(String constantOrigin) {
         if (compilerApiData.isAvailable()) {
-            return accessibleConstantDependentsCache.computeIfAbsent(constantOrigin.hashCode(), compilerApiData::accessibleConstantDependentsForClassHash);
+            return accessibleConstantDependentsCache.computeIfAbsent(constantOrigin, compilerApiData::accessibleConstantDependentsForClassHash);
         }
         return Collections.emptySet();
     }
 
     private Set<String> privateConstantDependentsForClass(String constantOrigin) {
         if (compilerApiData.isAvailable()) {
-            return privateConstantDependentsCache.computeIfAbsent(constantOrigin.hashCode(), compilerApiData::privateConstantDependentsForClassHash);
+            return privateConstantDependentsCache.computeIfAbsent(constantOrigin, compilerApiData::privateConstantDependentsForClassHash);
         }
         return Collections.emptySet();
     }

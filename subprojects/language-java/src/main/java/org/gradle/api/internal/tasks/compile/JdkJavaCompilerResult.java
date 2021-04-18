@@ -23,10 +23,11 @@ import org.gradle.workers.internal.DefaultWorkResult;
 public class JdkJavaCompilerResult extends DefaultWorkResult {
 
     private final AnnotationProcessingResult annotationProcessingResult = new AnnotationProcessingResult();
-    private final ConstantsAnalysisResult constantsAnalysisResult = new ConstantsAnalysisResult();
+    private final ConstantsAnalysisResult constantsAnalysisResult;
 
-    JdkJavaCompilerResult() {
+    JdkJavaCompilerResult(ConstantsAnalysisResult constantsAnalysisResult) {
         super(true, null);
+        this.constantsAnalysisResult = constantsAnalysisResult;
     }
 
     public AnnotationProcessingResult getAnnotationProcessingResult() {

@@ -305,8 +305,8 @@ class ClassSetAnalysisTest extends Specification {
         given:
         def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> true
-        compilerApiData.accessibleConstantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
-        compilerApiData.privateConstantDependentsForClassHash("Foo".hashCode()) >> ["BarBar"]
+        compilerApiData.accessibleConstantDependentsForClassHash("Foo") >> ["Bar"]
+        compilerApiData.privateConstantDependentsForClassHash("Foo") >> ["BarBar"]
 
         when:
         def deps = a.findTransitiveDependents("Foo", IntSet.of(1))
@@ -320,7 +320,7 @@ class ClassSetAnalysisTest extends Specification {
         given:
         def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> true
-        compilerApiData.accessibleConstantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
+        compilerApiData.accessibleConstantDependentsForClassHash("Foo") >> ["Bar"]
 
         when:
         def deps = a.findTransitiveDependents("Foo", IntSets.EMPTY_SET)
@@ -333,10 +333,10 @@ class ClassSetAnalysisTest extends Specification {
         given:
         def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> true
-        compilerApiData.accessibleConstantDependentsForClassHash("Foo".hashCode()) >> ["Bar"]
-        compilerApiData.accessibleConstantDependentsForClassHash("Bar".hashCode()) >> ["FooBar"]
-        compilerApiData.accessibleConstantDependentsForClassHash("FooBar".hashCode()) >> ["BarFoo"]
-        compilerApiData.accessibleConstantDependentsForClassHash("X".hashCode()) >> ["Y"]
+        compilerApiData.accessibleConstantDependentsForClassHash("Foo") >> ["Bar"]
+        compilerApiData.accessibleConstantDependentsForClassHash("Bar") >> ["FooBar"]
+        compilerApiData.accessibleConstantDependentsForClassHash("FooBar") >> ["BarFoo"]
+        compilerApiData.accessibleConstantDependentsForClassHash("X") >> ["Y"]
 
         when:
         def deps = a.findTransitiveDependents("Foo", IntSets.EMPTY_SET)

@@ -40,7 +40,6 @@ import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.DefaultSourceFileClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
@@ -78,7 +77,6 @@ import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE;
-import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.mergeIncrementalMappingsIntoOldMappings;
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.readSourceClassesMappingFile;
 
 /**
@@ -147,15 +145,11 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
 
     private void doIncrementalCompile(GroovyJavaJointCompileSpec spec, InputChanges inputChanges) {
         Multimap<String, String> oldMappings = readSourceClassesMappingFile(getSourceClassesMappingFile());
+        spec.getCompileOptions().setSupportsCompilerApi(true);
+        spec.getCompileOptions().setIncrementalCompilationMappingFile(getSourceClassesMappingFile());
+        spec.getCompileOptions().setPreviousIncrementalCompilationMapping(oldMappings);
         getSourceClassesMappingFile().delete();
-
-        WorkResult result = doCompile(spec, inputChanges, oldMappings);
-
-        if (result instanceof IncrementalCompilationResult) {
-            // The compilation will generate the new mapping file
-            // Only merge old mappings into new mapping on incremental recompilation
-            mergeIncrementalMappingsIntoOldMappings(getSourceClassesMappingFile(), getStableSources(), inputChanges, oldMappings);
-        }
+        doCompile(spec, inputChanges, oldMappings);
     }
 
     private WorkResult doCompile(GroovyJavaJointCompileSpec spec, InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {

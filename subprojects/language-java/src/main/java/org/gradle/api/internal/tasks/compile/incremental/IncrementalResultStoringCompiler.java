@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
@@ -113,16 +114,23 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     }
 
     private CompilerApiData getCompilerApiData(JavaCompileSpec spec, WorkResult result) {
+        Set<String> removedClasses = null;
         if (spec.getCompileOptions().supportsCompilerApi()) {
-            Set<String> removedClasses = mergeClassFileMappingAndReturnRemovedClasses(spec);
+            removedClasses = mergeClassFileMappingAndReturnRemovedClasses(spec);
+        }
+        if (spec.getCompileOptions().supportsConstantAnalysis()) {
+            Objects.requireNonNull(removedClasses);
             ConstantToDependentsMapping previousConstantToDependentsMapping = null;
             if (result instanceof IncrementalCompilationResult) {
                 previousConstantToDependentsMapping = ((IncrementalCompilationResult) result).getPreviousCompilationData().getCompilerApiData().getConstantToClassMapping();
                 result = ((IncrementalCompilationResult) result).getCompilerResult();
             }
             if (result instanceof JdkJavaCompilerResult) {
-                ConstantToDependentsMapping constantToDependentsMapping = ((JdkJavaCompilerResult) result).getConstantsAnalysisResult().getConstantsToDependentsMapping();
-                ConstantToDependentsMapping newConstantsMapping = new ConstantToDependentsMappingMerger().merge(constantToDependentsMapping, previousConstantToDependentsMapping, removedClasses);
+                JdkJavaCompilerResult jdkJavaResult = (JdkJavaCompilerResult) result;
+                ConstantToDependentsMapping newConstantsToDependentsMapping = jdkJavaResult.getConstantsAnalysisResult()
+                    .getConstantToDependentsMapping()
+                    .orElseThrow(() -> new GradleException("Constants to dependents mapping not present, but it should be"));
+                ConstantToDependentsMapping newConstantsMapping = new ConstantToDependentsMappingMerger().merge(newConstantsToDependentsMapping, previousConstantToDependentsMapping, removedClasses);
                 return CompilerApiData.availableOf(newConstantsMapping);
             }
         }

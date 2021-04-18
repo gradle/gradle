@@ -48,6 +48,7 @@ public class MinimalJavaCompileOptions implements Serializable {
     private String javaModuleVersion;
     private String javaModuleMainClass;
     private boolean supportsCompilerApi;
+    private boolean supportsConstantsAnalysis;
     private File incrementalCompilationMappingFile;
     private File previousCompilationDataFile;
     private Multimap<String, String> previousCompilationMappings;
@@ -251,6 +252,14 @@ public class MinimalJavaCompileOptions implements Serializable {
 
     public void setSupportsCompilerApi(boolean supportsCompilerApi) {
         this.supportsCompilerApi = supportsCompilerApi;
+    }
+
+    public boolean supportsConstantAnalysis() {
+        return supportsConstantsAnalysis;
+    }
+
+    public void setSupportsConstantAnalysis(boolean supportsConstantsAnalysis) {
+        this.supportsConstantsAnalysis = supportsConstantsAnalysis;
     }
 
 }

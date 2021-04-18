@@ -104,7 +104,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final ModularitySpec modularity;
     private File sourceClassesMappingFile;
     private File previousCompilationDataFile;
-    private File constantsMappingFile;
     private final Property<JavaCompiler> javaCompiler;
     private final ObjectFactory objectFactory;
 
@@ -161,7 +160,9 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     private void performIncrementalCompilation(InputChanges inputs, DefaultJavaCompileSpec spec) {
-        spec.getCompileOptions().setSupportsCompilerApi(!isUsingCliCompiler(spec));
+        boolean isUsingCliCompiler = isUsingCliCompiler(spec);
+        spec.getCompileOptions().setSupportsCompilerApi(!isUsingCliCompiler);
+        spec.getCompileOptions().setSupportsConstantAnalysis(!isUsingCliCompiler);
 
         // Read sources mapping
         File sourceClassesMappingFile = getSourceClassesMappingFile();
