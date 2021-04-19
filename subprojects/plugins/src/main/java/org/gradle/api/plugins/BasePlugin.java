@@ -24,6 +24,7 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
+import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.tasks.Jar;
@@ -43,21 +44,24 @@ public class BasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        BasePluginConvention convention = new DefaultBasePluginConvention(project);
+        BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
+        BasePluginConvention convention = new DefaultBasePluginConvention(baseExtension);
+
         project.getConvention().getPlugins().put("base", convention);
 
+
         configureBuildConfigurationRule(project);
-        configureArchiveDefaults(project, convention);
+        configureArchiveDefaults(project, baseExtension);
         configureConfigurations(project);
         configureAssemble((ProjectInternal) project);
     }
 
-    private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
+    private void configureArchiveDefaults(final Project project, final BasePluginExtension extension) {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(task -> {
             if (task instanceof Jar) {
-                task.getDestinationDirectory().convention(pluginConvention.getLibsDirectory());
+                task.getDestinationDirectory().convention(extension.getLibsDirectory());
             } else {
-                task.getDestinationDirectory().convention(pluginConvention.getDistsDirectory());
+                task.getDestinationDirectory().convention(extension.getDistsDirectory());
             }
 
             task.getArchiveVersion().convention(
@@ -65,7 +69,7 @@ public class BasePlugin implements Plugin<Project> {
             );
 
             task.getArchiveBaseName().convention(
-                project.provider(() -> pluginConvention.getArchivesBaseName())
+                project.provider(() -> extension.getArchivesBaseName())
             );
         });
     }

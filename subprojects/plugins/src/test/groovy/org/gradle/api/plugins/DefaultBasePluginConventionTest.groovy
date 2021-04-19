@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.internal.DefaultBasePluginConvention
+import org.gradle.api.plugins.internal.DefaultBasePluginExtension
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Before
@@ -32,9 +33,11 @@ class DefaultBasePluginConventionTest {
 
     private ProjectInternal project = TestUtil.create(temporaryFolder).rootProject()
     private BasePluginConvention convention
+    private BasePluginExtension extension
 
     @Before void setUp() {
-        convention = new DefaultBasePluginConvention(project)
+        extension = new DefaultBasePluginExtension(project)
+        convention = new DefaultBasePluginConvention(extension)
     }
 
     @Test void defaultValues() {
@@ -43,6 +46,12 @@ class DefaultBasePluginConventionTest {
         assertEquals(new File(project.buildDir, 'distributions'), convention.distsDirectory.getAsFile().get())
         assertEquals('libs', convention.libsDirName)
         assertEquals(new File(project.buildDir, 'libs'), convention.libsDirectory.getAsFile().get())
+
+        assertEquals(project.name, extension.archivesBaseName)
+        assertEquals('distributions', extension.distsDirName)
+        assertEquals(new File(project.buildDir, 'distributions'), extension.distsDirectory.getAsFile().get())
+        assertEquals('libs', extension.libsDirName)
+        assertEquals(new File(project.buildDir, 'libs'), extension.libsDirectory.getAsFile().get())
     }
 
     @Test void dirsRelativeToBuildDir() {
@@ -51,6 +60,12 @@ class DefaultBasePluginConventionTest {
         assertEquals(project.file('mybuild/mydists'), convention.distsDirectory.getAsFile().get())
         convention.libsDirName = 'mylibs'
         assertEquals(project.file('mybuild/mylibs'), convention.libsDirectory.getAsFile().get())
+
+        project.buildDir = project.file('mybuild')
+        extension.distsDirName = 'mydists'
+        assertEquals(project.file('mybuild/mydists'), extension.distsDirectory.getAsFile().get())
+        extension.libsDirName = 'mylibs'
+        assertEquals(project.file('mybuild/mylibs'), extension.libsDirectory.getAsFile().get())
     }
 
     @Test void dirsAreCachedProperly() {
@@ -65,5 +80,18 @@ class DefaultBasePluginConventionTest {
         assertEquals(project.file('mybuild/mylibs2'), convention.libsDirectory.getAsFile().get())
         project.buildDir = project.file('mybuild2')
         assertEquals(project.file('mybuild2/mylibs2'), convention.libsDirectory.getAsFile().get())
+
+        project.buildDir = project.file('mybuild')
+        extension.distsDirName = 'mydists'
+        assertEquals(project.file('mybuild/mydists'), extension.distsDirectory.getAsFile().get())
+        extension.libsDirName = 'mylibs'
+        assertEquals(project.file('mybuild/mylibs'), extension.libsDirectory.getAsFile().get())
+        extension.distsDirName = 'mydists2'
+        assertEquals(project.file('mybuild/mydists2'), extension.distsDirectory.getAsFile().get())
+        extension.libsDirName = 'mylibs2'
+        assertEquals(project.file('mybuild/mylibs2'), extension.libsDirectory.getAsFile().get())
+        project.buildDir = project.file('mybuild2')
+        assertEquals(project.file('mybuild2/mylibs2'), extension.libsDirectory.getAsFile().get())
+
     }
 }
