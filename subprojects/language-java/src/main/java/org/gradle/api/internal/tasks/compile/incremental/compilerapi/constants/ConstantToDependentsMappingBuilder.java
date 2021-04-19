@@ -35,8 +35,8 @@ public class ConstantToDependentsMappingBuilder implements Serializable {
 
     private final Set<String> visitedClasses;
     private final List<String> dependents;
-    private final Map<String, Set<Integer>> privateDependentsIndexes;
-    private final Map<String, Set<Integer>> accessibleDependentsIndexes;
+    private final Map<String, IntSet> privateDependentsIndexes;
+    private final Map<String, IntSet> accessibleDependentsIndexes;
     private final Map<String, Integer> classNameToIndex;
 
     ConstantToDependentsMappingBuilder() {
@@ -58,8 +58,8 @@ public class ConstantToDependentsMappingBuilder implements Serializable {
     }
 
     public ConstantToDependentsMappingBuilder addPrivateDependent(String constantOrigin, String dependent) {
-        Set<Integer> accessibleDependents = accessibleDependentsIndexes.getOrDefault(constantOrigin, IntSet.of());
-        Set<Integer> privateDependents = privateDependentsIndexes.computeIfAbsent(constantOrigin, k -> new IntOpenHashSet());
+        IntSet accessibleDependents = accessibleDependentsIndexes.getOrDefault(constantOrigin, IntSet.of());
+        IntSet privateDependents = privateDependentsIndexes.computeIfAbsent(constantOrigin, k -> new IntOpenHashSet());
         int dependentIndex = classNameToIndex.getOrDefault(dependent, -1);
         if (dependentIndex < 0 || !accessibleDependents.contains(dependentIndex)) {
             addDependent(privateDependents, dependent);
@@ -68,8 +68,8 @@ public class ConstantToDependentsMappingBuilder implements Serializable {
     }
 
     public ConstantToDependentsMappingBuilder addAccessibleDependent(String constantOrigin, String dependent) {
-        Set<Integer> accessibleDependents = accessibleDependentsIndexes.computeIfAbsent(constantOrigin, k -> new IntOpenHashSet());
-        Set<Integer> privateDependents = privateDependentsIndexes.getOrDefault(constantOrigin, IntSet.of());
+        IntSet accessibleDependents = accessibleDependentsIndexes.computeIfAbsent(constantOrigin, k -> new IntOpenHashSet());
+        IntSet privateDependents = privateDependentsIndexes.getOrDefault(constantOrigin, IntSet.of());
         int dependentIndex = addDependent(accessibleDependents, dependent);
         if (!privateDependents.isEmpty()) {
             privateDependents.remove(dependentIndex);
@@ -82,7 +82,7 @@ public class ConstantToDependentsMappingBuilder implements Serializable {
         return this;
     }
 
-    private int addDependent(Set<Integer> dependentIndexes, String dependent) {
+    private int addDependent(IntSet dependentIndexes, String dependent) {
         int dependentIndex = classNameToIndex.computeIfAbsent(dependent, k -> {
             addVisitedClass(dependent);
             dependents.add(dependent);

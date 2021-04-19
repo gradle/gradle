@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.io.FileType
+import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.internal.FileUtils
 import org.gradle.util.internal.TextUtil
 
@@ -149,5 +150,15 @@ class CompilationOutputsFixture {
             }
         }
         changed
+    }
+
+    Object evaluate(@GroovyBuildScriptLanguage String script) {
+        CompilerConfiguration config = new CompilerConfiguration()
+        config.classpath.add("${targetDir}/$lang/$sourceSet".toString())
+        new GroovyShell(config).evaluate(script)
+    }
+
+    void execute(@GroovyBuildScriptLanguage String script) {
+        evaluate(script)
     }
 }

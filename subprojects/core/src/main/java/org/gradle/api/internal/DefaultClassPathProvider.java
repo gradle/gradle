@@ -50,7 +50,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             return classpath;
         }
         if (name.equals("JAVA-COMPILER")) {
-            return addJavaCompilerModules(ClassPath.EMPTY);
+            return addJavaCompilerModules(moduleRegistry.getExternalModule("fastutil").getClasspath());
         }
         if (name.equals("DEPENDENCIES-EXTENSION-COMPILER")) {
             ClassPath classpath = ClassPath.EMPTY;

@@ -191,6 +191,12 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
                    "class Z { final static int x = Y.x;  }",
                    "class W {  }"]
         impl.snapshot { run language.compileTaskName }
+        impl.execute("""
+            assert X.x == 1
+            assert Y.x == 1
+            assert new Y().method() == 1
+            assert Z.x == 1
+        """)
 
         when:
         source api: ["class A { final static int x = 2; }"]
@@ -198,6 +204,14 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
         then:
         impl.recompiledClasses('X', 'Y')
+
+        and:
+        impl.execute("""
+            assert X.x == 2
+            assert Y.x == 1
+            assert new Y().method() == 2
+            assert Z.x == 1
+        """)
     }
 
     def "changing upstream constant causes compilation for downstream constants for binary expression"() {

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.api.internal.cache.StringInterner;
@@ -35,7 +34,8 @@ import java.util.Set;
 
 /**
  * A data structure that holds constant to class mapping.
- * It consists of dependents class names `dependentClasses` and dependents `privateConstantDependents` and `accessibleConstantDependents` as `constant hash` => set(indexes) mapping.
+ * It consists of dependents class names `dependentClasses` and dependents `privateConstantDependents`
+ * and `accessibleConstantDependents` as `constant hash` => set(indexes) mapping.
  *
  * The idea here is that Strings take a lot of memory and there is one-to-many relationship between constant to dependents.
  * So that is why we store String names of dependents in a separate list and we access them via indexes.
@@ -49,13 +49,13 @@ public class ConstantToDependentsMapping {
     private transient final Set<String> visitedClasses;
 
     private final List<String> dependentClasses;
-    private final Map<String, Set<Integer>> privateConstantDependents;
-    private final Map<String, Set<Integer>> accessibleConstantDependents;
+    private final Map<String, IntSet> privateConstantDependents;
+    private final Map<String, IntSet> accessibleConstantDependents;
 
     ConstantToDependentsMapping(Set<String> visitedClasses,
                                         List<String> dependentClasses,
-                                        Map<String, Set<Integer>> privateConstantDependents,
-                                        Map<String, Set<Integer>> accessibleConstantDependents) {
+                                        Map<String, IntSet> privateConstantDependents,
+                                        Map<String, IntSet> accessibleConstantDependents) {
         this.visitedClasses = visitedClasses;
         this.dependentClasses = dependentClasses;
         this.privateConstantDependents = privateConstantDependents;
@@ -70,11 +70,11 @@ public class ConstantToDependentsMapping {
         return visitedClasses;
     }
 
-    public Map<String, Set<Integer>> getAccessibleConstantDependents() {
+    public Map<String, IntSet> getAccessibleConstantDependents() {
         return accessibleConstantDependents;
     }
 
-    public Map<String, Set<Integer>> getPrivateConstantDependents() {
+    public Map<String, IntSet> getPrivateConstantDependents() {
         return privateConstantDependents;
     }
 
@@ -86,7 +86,7 @@ public class ConstantToDependentsMapping {
         return findDependentsFor(accessibleConstantDependents, constantOrigin);
     }
 
-    private Set<String> findDependentsFor(Map<String, Set<Integer>> collection, String constantOrigin) {
+    private Set<String> findDependentsFor(Map<String, IntSet> collection, String constantOrigin) {
         if (collection.containsKey(constantOrigin)) {
             Set<Integer> classIndexes = collection.get(constantOrigin);
             Set<String> dependents = new ObjectOpenHashSet<>(classIndexes.size());
@@ -106,7 +106,7 @@ public class ConstantToDependentsMapping {
 
     public static final class Serializer extends AbstractSerializer<ConstantToDependentsMapping> {
 
-        private final MapSerializer<String, Set<Integer>> mapSerializer;
+        private final MapSerializer<String, IntSet> mapSerializer;
         private final ListSerializer<String> classNamesSerializer;
 
         public Serializer(StringInterner interner) {
@@ -118,8 +118,8 @@ public class ConstantToDependentsMapping {
         @Override
         public ConstantToDependentsMapping read(Decoder decoder) throws Exception {
             List<String> classNames = classNamesSerializer.read(decoder);
-            Map<String, Set<Integer>> privateDependentsIndexes = mapSerializer.read(decoder);
-            Map<String, Set<Integer>> publicDependentsIndexes = mapSerializer.read(decoder);
+            Map<String, IntSet> privateDependentsIndexes = mapSerializer.read(decoder);
+            Map<String, IntSet> publicDependentsIndexes = mapSerializer.read(decoder);
             return new ConstantToDependentsMapping(Collections.emptySet(), classNames, privateDependentsIndexes, publicDependentsIndexes);
         }
 
@@ -131,19 +131,15 @@ public class ConstantToDependentsMapping {
         }
     }
 
-    private static final class JavaSetToIntSetSerializer implements org.gradle.internal.serialize.Serializer<Set<Integer>> {
+    private static final class JavaSetToIntSetSerializer implements org.gradle.internal.serialize.Serializer<IntSet> {
         @Override
-        public Set<Integer> read(Decoder decoder) throws Exception {
+        public IntSet read(Decoder decoder) throws Exception {
             return IntSetSerializer.INSTANCE.read(decoder);
         }
 
         @Override
-        public void write(Encoder encoder, Set<Integer> value) throws Exception {
-            if (value instanceof IntSet) {
-                IntSetSerializer.INSTANCE.write(encoder, (IntSet) value);
-            } else {
-                IntSetSerializer.INSTANCE.write(encoder, new IntOpenHashSet(value));
-            }
+        public void write(Encoder encoder, IntSet value) throws Exception {
+            IntSetSerializer.INSTANCE.write(encoder, value);
         }
     }
 
