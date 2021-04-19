@@ -40,8 +40,10 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         buildFile.writelns(
                 "apply plugin: 'war'",
                 "buildDir = 'output'",
-                "libsDirName = 'archives'",
-                "archivesBaseName = 'test'",
+                "base {",
+                "    archivesBaseName = 'test'",
+                "    libsDirName = 'archives'",
+                "}",
                 "version = '0.5-RC2'"
         );
         testFile("src/main/resources/org/gradle/resource.file").write("some resource");

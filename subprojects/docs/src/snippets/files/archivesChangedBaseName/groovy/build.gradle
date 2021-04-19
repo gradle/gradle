@@ -3,7 +3,9 @@ plugins {
 }
 
 version = 1.0
-archivesBaseName = "gradle"
+base {
+    archivesBaseName = "gradle"
+}
 
 tasks.register('myZip', Zip) {
     from 'somedir'

@@ -43,7 +43,10 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'signing'
-            archivesBaseName = '$artifactId'
+
+            base {
+                archivesBaseName = '$artifactId'
+            }
             group = 'sign'
             version = '$version'
         """

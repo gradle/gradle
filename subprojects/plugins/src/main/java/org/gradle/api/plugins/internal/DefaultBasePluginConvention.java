@@ -21,6 +21,7 @@ import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.BasePluginExtension;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
+@Deprecated
 public class DefaultBasePluginConvention extends BasePluginConvention {
 
     private BasePluginExtension extension;
@@ -31,49 +32,49 @@ public class DefaultBasePluginConvention extends BasePluginConvention {
 
     @Override
     public DirectoryProperty getDistsDirectory() {
-        DeprecationLogger.deprecate("Ujuj getDistsDirectory.").willBeRemovedInGradle8().undocumented().nagUser();
+        DeprecationLogger.deprecateBehaviour("Reading 'distsDirectory' convention property").withAdvice("Add the read and set the property in the base { } block backed by BasePluginExtension").willBeRemovedInGradle8().undocumented().nagUser();
         return extension.getDistsDirectory();
     }
 
     @Override
     public DirectoryProperty getLibsDirectory() {
-        DeprecationLogger.deprecate("Ujuj getLibsDirectory.").willBeRemovedInGradle8().undocumented().nagUser();
+        DeprecationLogger.deprecateBehaviour("Reading 'libsDirectory' convention property").withAdvice("Add the read and set the property in the base { } block backed by BasePluginExtension").willBeRemovedInGradle8().undocumented().nagUser();
         return extension.getLibsDirectory();
     }
 
     @Override
     public String getDistsDirName() {
-        DeprecationLogger.deprecate("Ujuj getDistsDirName.").willBeRemovedInGradle8().undocumented().nagUser();
+        DeprecationLogger.deprecateBehaviour("Reading 'distsDirName' convention property").withAdvice("Add the read and set the property in the base { } block backed by BasePluginExtension").willBeRemovedInGradle8().undocumented().nagUser();
         return extension.getDistsDirName();
     }
 
     @Override
     public void setDistsDirName(String distsDirName) {
-        DeprecationLogger.deprecate("Ujuj setDistsDirName.").willBeRemovedInGradle8().undocumented().nagUser();
+        DeprecationLogger.deprecateBehaviour("Setting 'distsDirName' convention property").withAdvice("Add the read and set the property in the base { } block backed by BasePluginExtension").willBeRemovedInGradle8().undocumented().nagUser();
         extension.setDistsDirName(distsDirName);
     }
 
     @Override
     public String getLibsDirName() {
-        DeprecationLogger.deprecate("Ujuj getLibsDirName.").willBeRemovedInGradle8().undocumented().nagUser();
+        DeprecationLogger.deprecateBehaviour("Reading 'libsDirName' convention property").withAdvice("Add the read and set the property in the base { } block backed by BasePluginExtension").willBeRemovedInGradle8().undocumented().nagUser();
         return extension.getLibsDirName();
     }
 
     @Override
     public void setLibsDirName(String libsDirName) {
-        DeprecationLogger.deprecate("Ujuj setLibsDirName.").willBeRemovedInGradle8().undocumented().nagUser();
+        DeprecationLogger.deprecateBehaviour("Setting 'libsDirName' convention property").withAdvice("Add the read and set the property in the base { } block backed by BasePluginExtension").willBeRemovedInGradle8().undocumented().nagUser();
         extension.setLibsDirName(libsDirName);
     }
 
     @Override
     public String getArchivesBaseName() {
-        DeprecationLogger.deprecate("Ujuj getArchivesBaseName.").willBeRemovedInGradle8().undocumented().nagUser();
+        DeprecationLogger.deprecateBehaviour("Reading 'archivesBaseName' convention property").withAdvice("Add the read and set the property in the base { } block backed by BasePluginExtension").willBeRemovedInGradle8().undocumented().nagUser();
         return extension.getArchivesBaseName();
     }
 
     @Override
     public void setArchivesBaseName(String archivesBaseName) {
-        DeprecationLogger.deprecate("Ujuj setArchivesBaseName.").willBeRemovedInGradle8().undocumented().nagUser();
+        DeprecationLogger.deprecateBehaviour("Setting 'archivesBaseName' convention property").withAdvice("Add the read and set the property in the base { } block backed by BasePluginExtension").willBeRemovedInGradle8().undocumented().nagUser();
         extension.setArchivesBaseName(archivesBaseName);
     }
 }

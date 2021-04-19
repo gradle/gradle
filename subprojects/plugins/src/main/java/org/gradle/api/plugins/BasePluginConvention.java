@@ -20,7 +20,10 @@ import org.gradle.api.file.DirectoryProperty;
 
 /**
  * <p>A {@link Convention} used for the BasePlugin.</p>
+ *
+ * @deprecated Use {@link BasePluginExtension} instead. This class is scheduled for removal in Gradle 8.0.
  */
+@Deprecated
 public abstract class BasePluginConvention {
     /**
      * Returns the directory to generate TAR and ZIP archives into.
