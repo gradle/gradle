@@ -33,17 +33,21 @@ class MavenGcsRepoErrorsIntegrationTest extends AbstractGcsDependencyResolutionT
     def setup() {
         module = mavenGcsRepo.module("org.gradle", "test", artifactVersion)
         buildFile << """
-configurations { compile }
+            configurations {
+                compile {
+                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
+                }
+            }
 
-dependencies{
-    compile 'org.gradle:test:$artifactVersion'
-}
+            dependencies {
+                compile 'org.gradle:test:$artifactVersion'
+            }
 
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'libs'
-}
-"""
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
     }
 
     @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
@@ -66,16 +70,16 @@ task retrieve(type: Sync) {
     def "fails when providing PasswordCredentials with decent error"() {
         setup:
         buildFile << """
-repositories {
-    maven {
-        url "${mavenGcsRepo.uri}"
-        credentials {
-            username "someUserName"
-            password "someSecret"
-        }
-    }
-}
-"""
+            repositories {
+                maven {
+                    url "${mavenGcsRepo.uri}"
+                    credentials {
+                        username "someUserName"
+                        password "someSecret"
+                    }
+                }
+            }
+        """
         when:
         fails 'retrieve'
         then:

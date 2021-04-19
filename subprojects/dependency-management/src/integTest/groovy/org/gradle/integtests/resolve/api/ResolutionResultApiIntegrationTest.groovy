@@ -50,7 +50,9 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                conf {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
             configurations.conf.resolutionStrategy.force 'org:leaf:2.0'
             dependencies {
@@ -102,7 +104,9 @@ baz:1.0 requested
         when:
         file("build.gradle") << """
             configurations {
-                conf
+                conf {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
 
             repositories {
@@ -158,6 +162,7 @@ baz:1.0 requested
         file("build.gradle") << """
             configurations {
                 conf {
+                    attributes.attribute(Attribute.of("test", String), "test")
                     resolutionStrategy {
                         dependencySubstitution {
                             all {
@@ -240,7 +245,9 @@ baz:1.0 requested
             }
 
             configurations {
-                conf
+                conf {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
             dependencies {
                 conf "org:foo:1.0"
@@ -304,7 +311,9 @@ baz:1.0 requested
             }
 
             configurations {
-                conf
+                conf {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
             dependencies {
                 conf("org:foo:1.0") {
@@ -359,7 +368,9 @@ baz:1.0 requested
             }
 
             configurations {
-                conf
+                conf {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
 
             def attr = Attribute.of("myAttribute", String)

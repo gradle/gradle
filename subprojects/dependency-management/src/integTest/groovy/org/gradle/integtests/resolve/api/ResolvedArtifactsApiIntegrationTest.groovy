@@ -24,30 +24,30 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
-rootProject.name = 'test'
-include 'a', 'b'
-"""
+            rootProject.name = 'test'
+            include 'a', 'b'
+        """
         buildFile << """
-def usage = Attribute.of('usage', String)
-def flavor = Attribute.of('flavor', String)
-def buildType = Attribute.of('buildType', String)
+            def usage = Attribute.of('usage', String)
+            def flavor = Attribute.of('flavor', String)
+            def buildType = Attribute.of('buildType', String)
 
-allprojects {
-    dependencies {
-       attributesSchema {
-          attribute(usage)
-          attribute(flavor)
-          attribute(buildType)
-       }
-    }
-    configurations {
-        compile
-        create("default") {
-            extendsFrom compile
-        }
-    }
-}
-"""
+            allprojects {
+                dependencies {
+                   attributesSchema {
+                      attribute(usage)
+                      attribute(flavor)
+                      attribute(buildType)
+                   }
+                }
+                configurations {
+                    compile
+                    create("default") {
+                        extendsFrom compile
+                    }
+                }
+            }
+        """
     }
 
     def "result includes artifacts from local and external components and file dependencies in fixed order"() {
@@ -58,6 +58,7 @@ allprojects {
 allprojects {
     repositories { maven { url '$mavenRepo.uri' } }
 }
+configurations.compile.attributes.attribute(usage, 'compile')
 dependencies {
     compile files('test-lib.jar')
     compile project(':a')
@@ -574,6 +575,7 @@ task show {
 include 'a', 'b'
 """
         buildFile << """
+configurations.compile.attributes.attribute(usage, 'compile')
 dependencies {
     compile project(':a')
     compile files('lib.jar')
@@ -650,6 +652,7 @@ dependencies {
     compile 'org:test2:2.0'
 }
 
+configurations.compile.attributes.attribute(usage, 'compile')
 ${showFailuresTask(expression)}
 """
 
@@ -729,6 +732,7 @@ dependencies {
     compile 'org:test2:2.0'
 }
 
+configurations.compile.attributes.attribute(usage, 'compile')
 ${showFailuresTask(expression)}
 """
 
@@ -762,6 +766,7 @@ dependencies {
     compile files('lib.jar')
 }
 
+configurations.compile.attributes.attribute(usage, 'compile')
 ${showFailuresTask(expression)}
 """
         when:
@@ -795,11 +800,15 @@ dependencies {
 
 project(':a') {
     configurations.default.outgoing.variants {
-        v1 { }
-        v2 { }
+        v1 {
+            attributes.attribute(usage, 'compile')
+        }
+        v2 {
+            attributes.attribute(usage, 'compile')
+        }
     }
 }
-
+configurations.compile.attributes.attribute(usage, 'compile')
 ${showFailuresTask(expression)}
 """
 
@@ -820,7 +829,7 @@ ${showFailuresTask(expression)}
         failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
-        failure.assertHasCause("More than one variant of project :a matches the consumer attributes")
+        failure.assertHasCause("The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:")
 
         where:
         expression                                                    | _

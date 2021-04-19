@@ -26,57 +26,59 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
         mavenRepo.module("group", "test2", "1.0").publish()
 
         settingsFile << """
-rootProject.name = "main"
-include "child1", "child2"
-"""
+            rootProject.name = "main"
+            include "child1", "child2"
+        """
         buildFile << """
-allprojects {
-    repositories {
-        maven { url '${mavenRepo.uri}' }
-    }
-    configurations {
-        compile
-        create('default') { extendsFrom compile }
-    }
-}
-artifacts {
-    compile file("main.jar")
-}
-dependencies {
-    compile files("lib.jar")
-    compile "group:test1:1.0"
-    compile project(':child1')
-    compile project(':child2')
-}
-project(':child1') {
-    artifacts {
-        compile file("child1.jar")
-    }
-    dependencies {
-        compile files("child1-lib.jar")
-        compile "group:test2:1.0"
-    }
-}
-project(':child2') {
-    artifacts {
-        compile file("child2.jar")
-    }
-}
+            allprojects {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                configurations {
+                    compile {
+                        attributes.attribute(Attribute.of("test", String), "test")
+                    }
+                    create('default') { extendsFrom compile }
+                }
+            }
+            artifacts {
+                compile file("main.jar")
+            }
+            dependencies {
+                compile files("lib.jar")
+                compile "group:test1:1.0"
+                compile project(':child1')
+                compile project(':child2')
+            }
+            project(':child1') {
+                artifacts {
+                    compile file("child1.jar")
+                }
+                dependencies {
+                    compile files("child1-lib.jar")
+                    compile "group:test2:1.0"
+                }
+            }
+            project(':child2') {
+                artifacts {
+                    compile file("child2.jar")
+                }
+            }
 
-task verify {
-    doLast {
-        println "file-dependencies: " + configurations.compile.files { it instanceof FileCollectionDependency }.collect { it.name }
-        println "file-dependencies resolved-config: " + configurations.compile.resolvedConfiguration.getFiles { it instanceof FileCollectionDependency }.collect { it.name }
-        println "file-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof FileCollectionDependency }.collect { it.file.name }
-        println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
-        println "external-dependencies resolved-config: " + configurations.compile.resolvedConfiguration.getFiles { it instanceof ExternalDependency }.collect { it.name }
-        println "external-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ExternalDependency }.collect { it.file.name }
-        println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
-        println "child1-dependencies resolved-config: " + configurations.compile.resolvedConfiguration.getFiles { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
-        println "child1-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.file.name }
-    }
-}
-"""
+            task verify {
+                doLast {
+                    println "file-dependencies: " + configurations.compile.files { it instanceof FileCollectionDependency }.collect { it.name }
+                    println "file-dependencies resolved-config: " + configurations.compile.resolvedConfiguration.getFiles { it instanceof FileCollectionDependency }.collect { it.name }
+                    println "file-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof FileCollectionDependency }.collect { it.file.name }
+                    println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
+                    println "external-dependencies resolved-config: " + configurations.compile.resolvedConfiguration.getFiles { it instanceof ExternalDependency }.collect { it.name }
+                    println "external-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ExternalDependency }.collect { it.file.name }
+                    println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
+                    println "child1-dependencies resolved-config: " + configurations.compile.resolvedConfiguration.getFiles { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
+                    println "child1-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.file.name }
+                }
+            }
+        """
 
         when:
         run "verify"
@@ -98,47 +100,49 @@ task verify {
         mavenRepo.module("group", "test2", "1.0").publish()
 
         settingsFile << """
-rootProject.name = "main"
-include "child1", "child2"
-"""
+            rootProject.name = "main"
+            include "child1", "child2"
+        """
         buildFile << """
-allprojects {
-    repositories {
-        maven { url '${mavenRepo.uri}' }
-    }
-    configurations {
-        compile
-        create('default') { extendsFrom compile }
-    }
-}
-dependencies {
-    compile files("lib.jar")
-    compile "group:test1:1.0"
-    compile project(':child1')
-}
-artifacts {
-    compile file("main.jar")
-}
-project(':child1') {
-    artifacts {
-        compile file("child1.jar")
-    }
-    dependencies {
-        compile files("child1-lib.jar")
-        compile "group:test2:1.0"
-        compile project(":")
-    }
-}
+            allprojects {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                configurations {
+                    compile {
+                        attributes.attribute(Attribute.of("test", String), "test")
+                    }
+                    create('default') { extendsFrom compile }
+                }
+            }
+            dependencies {
+                compile files("lib.jar")
+                compile "group:test1:1.0"
+                compile project(':child1')
+            }
+            artifacts {
+                compile file("main.jar")
+            }
+            project(':child1') {
+                artifacts {
+                    compile file("child1.jar")
+                }
+                dependencies {
+                    compile files("child1-lib.jar")
+                    compile "group:test2:1.0"
+                    compile project(":")
+                }
+            }
 
-task verify {
-    doLast {
-        println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
-        println "external-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ExternalDependency }.collect { it.file.name }
-        println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
-        println "child1-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.file.name }
-    }
-}
-"""
+            task verify {
+                doLast {
+                    println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
+                    println "external-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ExternalDependency }.collect { it.file.name }
+                    println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
+                    println "child1-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.file.name }
+                }
+            }
+        """
 
         when:
         run "verify"
@@ -153,42 +157,44 @@ task verify {
     // Note: this captures existing behaviour (all files are built) rather than desired behaviour (only those files reachable from selected deps are built)
     def "can use filtered configuration as task input"() {
         settingsFile << """
-rootProject.name = "main"
-include "child1", "child2"
-"""
+            rootProject.name = "main"
+            include "child1", "child2"
+        """
         buildFile << """
-allprojects {
-    configurations {
-        compile
-        create('default') { extendsFrom compile }
-    }
-    task jar {
-        outputs.file file("\${project.name}.jar")
-    }
-    task lib {
-        outputs.file file("\${project.name}-lib.jar")
-    }
-}
-artifacts {
-    compile file: jar.outputs.files.singleFile, builtBy: jar
-}
-dependencies {
-    compile lib.outputs.files
-    compile project(':child1')
-}
-project(':child1') {
-    artifacts {
-        compile file: jar.outputs.files.singleFile, builtBy: jar
-    }
-    dependencies {
-        compile lib.outputs.files
-    }
-}
+            allprojects {
+                configurations {
+                    compile {
+                        attributes.attribute(Attribute.of("test", String), "test")
+                    }
+                    create('default') { extendsFrom compile }
+                }
+                task jar {
+                    outputs.file file("\${project.name}.jar")
+                }
+                task lib {
+                    outputs.file file("\${project.name}-lib.jar")
+                }
+            }
+            artifacts {
+                compile file: jar.outputs.files.singleFile, builtBy: jar
+            }
+            dependencies {
+                compile lib.outputs.files
+                compile project(':child1')
+            }
+            project(':child1') {
+                artifacts {
+                    compile file: jar.outputs.files.singleFile, builtBy: jar
+                }
+                dependencies {
+                    compile lib.outputs.files
+                }
+            }
 
-task verify {
-    inputs.files configurations.compile.fileCollection { it instanceof ProjectDependency }
-}
-"""
+            task verify {
+                inputs.files configurations.compile.fileCollection { it instanceof ProjectDependency }
+            }
+        """
 
         when:
         run "verify"

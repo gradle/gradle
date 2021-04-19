@@ -41,16 +41,20 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                compile {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+            }
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.moduleMetadata.expectGet()
@@ -100,16 +104,20 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                compile {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+            }
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.artifact.expectGet()
@@ -350,21 +358,23 @@ task checkRelease {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations {
-    debug
-}
-dependencies {
-    debug 'test:a:1.2'
-}
-task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['a_main.jar', 'a_extra.jar', 'a.zip'] }
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                debug {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+            }
+            dependencies {
+                debug 'test:a:1.2'
+            }
+            task checkDebug {
+                doLast { assert configurations.debug.files*.name == ['a_main.jar', 'a_extra.jar', 'a.zip'] }
+            }
+        """
 
         a.pom.expectGet()
         a.moduleMetadata.expectGet()
@@ -424,21 +434,23 @@ task checkDebug {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations {
-    debug
-}
-dependencies {
-    debug 'test:a:1.2'
-}
-task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['file1.jar', 'a-1.2.jar', 'a-3.jar', 'file4.jar', 'a_5.jar'] }
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                debug {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+            }
+            dependencies {
+                debug 'test:a:1.2'
+            }
+            task checkDebug {
+                doLast { assert configurations.debug.files*.name == ['file1.jar', 'a-1.2.jar', 'a-3.jar', 'file4.jar', 'a_5.jar'] }
+            }
+        """
 
         a.pom.expectGet()
         a.moduleMetadata.expectGet()
@@ -666,16 +678,20 @@ task checkRelease {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                compile {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+            }
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGetMissing()
 
@@ -714,16 +730,20 @@ Required by:
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                compile {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+            }
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.moduleMetadata.expectGetBroken()
@@ -759,16 +779,20 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                compile {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+            }
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.moduleMetadata.expectGet()
@@ -819,16 +843,20 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                compile {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+            }
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.moduleMetadata.expectGet()

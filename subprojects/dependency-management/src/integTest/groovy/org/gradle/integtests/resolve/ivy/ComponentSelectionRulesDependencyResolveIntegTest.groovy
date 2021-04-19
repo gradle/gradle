@@ -442,6 +442,7 @@ Required by:
                 modules
                 modulesA {
                     extendsFrom modules
+                    attributes.attribute(Attribute.of("test", String), "test")
                     resolutionStrategy {
                         componentSelection {
                             all { ComponentSelection selection ->
@@ -455,6 +456,7 @@ Required by:
                 }
                 modulesB {
                     extendsFrom modules
+                    attributes.attribute(Attribute.of("test", String), "test")
                     resolutionStrategy {
                         componentSelection {
                             all { ComponentSelection selection ->

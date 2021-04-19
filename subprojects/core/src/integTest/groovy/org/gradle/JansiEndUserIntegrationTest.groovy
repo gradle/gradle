@@ -148,7 +148,9 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations {
-                customAnnotation
+                customAnnotation {
+                    attributes.attribute(Attribute.of("customAnnotation", String), "customAnnotation")
+                }
             }
 
             dependencies {

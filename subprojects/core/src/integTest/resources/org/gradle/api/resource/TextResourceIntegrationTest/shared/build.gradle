@@ -25,7 +25,9 @@ task generateConfigZip(type: Zip) {
 }
 
 configurations {
-    sharedConfig
+    sharedConfig {
+        attributes.attribute(Attribute.of("shared", String), "shared")
+    }
 }
 
 dependencies {

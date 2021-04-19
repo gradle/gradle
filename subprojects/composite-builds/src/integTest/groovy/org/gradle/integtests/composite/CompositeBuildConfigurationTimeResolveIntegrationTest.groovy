@@ -147,7 +147,9 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
     private void configurationTimeDependency(BuildTestFile sourceBuild = buildA, String notation) {
         sourceBuild.buildFile << """
             configurations {
-                dummyConf
+                dummyConf {
+                    attributes.attribute(Attribute.of("dummy", String), "dummy")
+                }
             }
             dependencies {
                 dummyConf '$notation'
