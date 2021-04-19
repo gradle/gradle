@@ -607,6 +607,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
                 .nagUser();
         }
+        if (configurationAttributes.isEmpty()) {
+            DeprecationLogger.deprecateAction("Resolving a configuration without attributes (configurationName=" + this.name + ")")
+                .willBecomeAnErrorInGradle8()
+                .withUpgradeGuideSection(7, "resolving_configuration_without_attributes")
+                .nagUser();
+        }
     }
 
     private ResolveState resolveExclusively(InternalState requestedState) {

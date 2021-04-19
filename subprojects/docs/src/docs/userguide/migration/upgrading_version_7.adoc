@@ -187,3 +187,8 @@ Gradle used to have two ways of publishing artifacts.
 Now, the situation has been cleared and all build should use the `maven-publish` plugin.
 The last remaining artifact of the old way of publishing is the `Upload` task that has been deprecated and scheduled for removal in Gradle 8.0.
 Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,`maven-publish` plugin>>.
+
+[[resolving_configuration_without_attributes]]
+=== Resolving configuration without attributes
+
+TODO
