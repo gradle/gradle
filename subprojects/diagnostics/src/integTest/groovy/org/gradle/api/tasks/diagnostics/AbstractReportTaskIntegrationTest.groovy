@@ -34,7 +34,7 @@ class AbstractReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "can extend AbstractReportTask"() {
         given:
-        buildFile """
+        buildFile << """
             import ${AbstractReportTask.name}
             import ${TextReportRenderer.name}
             import ${ReportRenderer.name}
