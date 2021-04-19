@@ -16,9 +16,7 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
-
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
-import spock.lang.Ignore
 
 class UndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
@@ -33,10 +31,5 @@ class UndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractUndecla
         buildFile << """
             apply plugin: SneakyPlugin
         """
-    }
-
-    @Ignore
-    def "can reference methods from kotlin function"() {
-        expect: false
     }
 }
