@@ -357,6 +357,27 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         postBuildOutputContains("Watching too many directories in the file system (watching 2, limit 1), dropping some state from the virtual file system")
     }
 
+    def "does not show unsupported watching hierarchies warning for test directory"() {
+        buildFile << """
+            task myTask {
+                def inputFile = file("input.txt")
+                def outputFile = file("output.txt")
+                inputs.file(inputFile)
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = inputFile.text
+                }
+            }
+        """
+        file("input.txt").text = "input"
+
+        when:
+        run "myTask", "--info"
+        then:
+        assertWatchedHierarchies([testDirectory])
+        result.assertNotPostBuildOutput("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching.")
+    }
+
     void assertWatchableHierarchies(List<Set<File>> expectedWatchableHierarchies) {
         assert determineWatchableHierarchies(output) == expectedWatchableHierarchies
     }

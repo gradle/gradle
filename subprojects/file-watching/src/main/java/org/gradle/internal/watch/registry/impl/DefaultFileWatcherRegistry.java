@@ -38,7 +38,6 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
@@ -53,9 +52,9 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private final FileWatcher watcher;
     private final BlockingQueue<FileWatchEvent> fileEvents;
     private final Thread eventConsumerThread;
-    private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
     private final FileWatcherUpdater fileWatcherUpdater;
 
+    private volatile MutableFileWatchingStatistics fileWatchingStatistics = new MutableFileWatchingStatistics();
     private volatile boolean consumeEvents = true;
     private volatile boolean stopping = false;
 
@@ -82,14 +81,14 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                         nextEvent.handleEvent(new FileWatchEvent.Handler() {
                             @Override
                             public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
-                                fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::eventReceived);
+                                fileWatchingStatistics.eventReceived();
                                 handler.handleChange(convertType(type), Paths.get(absolutePath));
                             }
 
                             @Override
                             public void handleUnknownEvent(String absolutePath) {
                                 LOGGER.error("Received unknown event for {}", absolutePath);
-                                fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
+                                fileWatchingStatistics.unknownEventEncountered();
                                 handler.stopWatchingAfterError();
                             }
 
@@ -109,7 +108,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             @Override
                             public void handleFailure(Throwable failure) {
                                 LOGGER.error("Error while receiving file changes", failure);
-                                fileWatchingStatistics.updateAndGet(statistics -> statistics.errorWhileReceivingFileChanges(failure));
+                                fileWatchingStatistics.errorWhileReceivingFileChanges(failure);
                                 handler.stopWatchingAfterError();
                             }
 
@@ -163,7 +162,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public FileWatchingStatistics getAndResetStatistics() {
-        MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics.getAndSet(new MutableFileWatchingStatistics());
+        MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
+        fileWatchingStatistics = new MutableFileWatchingStatistics();
         int numberOfWatchedHierarchies = fileWatcherUpdater.getWatchedHierarchies().size();
         return new FileWatchingStatistics() {
             @Override
@@ -231,21 +231,18 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
             return numberOfReceivedEvents;
         }
 
-        public MutableFileWatchingStatistics eventReceived() {
+        public void eventReceived() {
             numberOfReceivedEvents++;
-            return this;
         }
 
-        public MutableFileWatchingStatistics errorWhileReceivingFileChanges(Throwable error) {
+        public void errorWhileReceivingFileChanges(Throwable error) {
             if (errorWhileReceivingFileChanges != null) {
                 errorWhileReceivingFileChanges = error;
             }
-            return this;
         }
 
-        public MutableFileWatchingStatistics unknownEventEncountered() {
+        public void unknownEventEncountered() {
             unknownEventEncountered = true;
-            return this;
         }
     }
 }

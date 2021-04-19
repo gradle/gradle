@@ -90,6 +90,7 @@ class IvyHttpPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
         module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
+        expectUploadTaskDeprecationWarning('uploadArchives')
         run 'uploadArchives'
 
         then:
@@ -127,6 +128,7 @@ class IvyHttpPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
         server.allowPut('/repo/org.gradle/publish/2/publish-2.jar', 'testuser', 'password')
 
         when:
+        expectUploadTaskDeprecationWarning('uploadArchives')
         fails 'uploadArchives'
 
         then:
@@ -164,6 +166,7 @@ class IvyHttpPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
         server.addBroken("/")
 
         then:
+        expectUploadTaskDeprecationWarning('uploadArchives')
         fails 'uploadArchives'
 
         and:
@@ -175,6 +178,7 @@ class IvyHttpPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
         server.stop()
 
         then:
+        expectUploadTaskDeprecationWarning('uploadArchives')
         fails 'uploadArchives'
 
         and:
@@ -213,6 +217,7 @@ class IvyHttpPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
         module.ivy.sha512.expectPut()
 
         when:
+        expectUploadTaskDeprecationWarning('uploadArchives')
         run 'uploadArchives'
 
         then:
@@ -267,6 +272,7 @@ class IvyHttpPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
         module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
+        expectUploadTaskDeprecationWarning('uploadTools')
         run 'uploadTools'
 
         then:

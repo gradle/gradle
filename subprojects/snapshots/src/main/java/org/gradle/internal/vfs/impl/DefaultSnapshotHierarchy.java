@@ -90,7 +90,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
             return empty();
         }
         return rootNode.invalidate(relativePath, caseSensitivity, diffListener)
-            .<SnapshotHierarchy>map(it -> new DefaultSnapshotHierarchy(it, caseSensitivity))
+            .<SnapshotHierarchy>map(it -> (it == rootNode) ? this : new DefaultSnapshotHierarchy(it, caseSensitivity))
             .orElseGet(() -> empty(caseSensitivity));
     }
 
