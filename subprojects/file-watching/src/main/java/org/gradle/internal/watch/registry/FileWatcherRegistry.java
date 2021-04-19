@@ -41,7 +41,8 @@ public interface FileWatcherRegistry extends Closeable {
         CREATED,
         MODIFIED,
         REMOVED,
-        INVALIDATED
+        INVALIDATED,
+        OVERFLOW
     }
 
     /**

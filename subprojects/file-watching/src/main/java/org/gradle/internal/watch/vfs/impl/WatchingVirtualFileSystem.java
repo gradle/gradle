@@ -350,6 +350,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchy(SnapshotHierarchy currentRoot) {
+        LOGGER.error("Stopping file watching and invalidating VFS after an error happened");
         if (watchRegistry != null) {
             try {
                 FileWatcherRegistry toBeClosed = watchRegistry;
