@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
@@ -41,11 +40,11 @@ import java.util.List;
  */
 public class BuildTreeScopeServices {
     private final BuildTreeController buildTree;
-    private final BuildType buildType;
+    private final BuildTreeModelControllerServices.Supplier modelServices;
 
-    public BuildTreeScopeServices(BuildTreeController buildTree, BuildType buildType) {
+    public BuildTreeScopeServices(BuildTreeController buildTree, BuildTreeModelControllerServices.Supplier modelServices) {
         this.buildTree = buildTree;
-        this.buildType = buildType;
+        this.modelServices = modelServices;
     }
 
     protected void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
@@ -53,9 +52,9 @@ public class BuildTreeScopeServices {
             pluginServiceRegistry.registerBuildTreeServices(registration);
         }
         registration.add(BuildTreeController.class, buildTree);
-        registration.add(BuildType.class, buildType);
         registration.add(GradleEnterprisePluginManager.class);
         registration.add(DefaultBuildLifecycleControllerFactory.class);
+        modelServices.applyServicesTo(registration);
     }
 
     protected ListenerManager createListenerManager(ListenerManager parent) {

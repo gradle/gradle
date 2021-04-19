@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.api.internal.BuildType;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -35,11 +34,11 @@ public class BuildTreeController implements Closeable {
     private final ServiceRegistry services;
     private final DefaultBuildTreeContext context;
 
-    public BuildTreeController(ServiceRegistry parent, BuildType buildType) {
+    public BuildTreeController(ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
         services = ServiceRegistryBuilder.builder()
             .displayName("build tree services")
             .parent(parent)
-            .provider(new BuildTreeScopeServices(this, buildType))
+            .provider(new BuildTreeScopeServices(this, modelServices))
             .build();
         context = new DefaultBuildTreeContext(services);
 

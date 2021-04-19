@@ -38,7 +38,6 @@ import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.util.internal.IncubationLogger
 import java.io.File
 import java.io.FileInputStream
 import java.io.OutputStream
@@ -310,9 +309,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun logBootstrapSummary(message: String, vararg args: Any?) {
-        if (!startParameter.isQuiet) {
-            IncubationLogger.incubatingFeatureUsed("Configuration cache")
-        }
         log(message, *args)
     }
 

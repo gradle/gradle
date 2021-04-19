@@ -37,6 +37,12 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         }
     }
 
+    override fun registerBuildSessionServices(registration: ServiceRegistration) {
+        registration.run {
+            add(DefaultBuildTreeModelControllerServices::class.java)
+        }
+    }
+
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
             add(BuildTreeListenerManager::class.java)
