@@ -39,6 +39,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.convention.plugins.base instanceof BasePluginConvention
         project.extensions.findByType(DefaultArtifactPublicationSet) != null
+        project.extensions.findByType(BasePluginExtension) != null
     }
 
     def "creates tasks and applies mappings"() {

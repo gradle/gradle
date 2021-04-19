@@ -16,80 +16,64 @@
 
 package org.gradle.api.plugins.internal;
 
-import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.BasePluginConvention;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.plugins.BasePluginExtension;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
+public class DefaultBasePluginConvention extends BasePluginConvention {
 
-public class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
-    private final DirectoryProperty buildDirectory;
-    private final DirectoryProperty distsDirectory;
-    private final DirectoryProperty libsDirectory;
+    private BasePluginExtension extension;
 
-    private String distsDirName;
-    private String libsDirName;
-    private String archivesBaseName;
-
-    public DefaultBasePluginConvention(Project project) {
-        this.buildDirectory = project.getLayout().getBuildDirectory();
-        this.archivesBaseName = project.getName();
-
-        this.distsDirName = "distributions";
-        this.distsDirectory = project.getObjects().directoryProperty();
-        distsDirectory.convention(buildDirectory.dir(distsDirName));
-
-        this.libsDirName = "libs";
-        this.libsDirectory = project.getObjects().directoryProperty();
-        libsDirectory.convention(buildDirectory.dir(libsDirName));
-    }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return typeOf(BasePluginConvention.class);
+    public DefaultBasePluginConvention(BasePluginExtension extension) {
+        this.extension = extension;
     }
 
     @Override
     public DirectoryProperty getDistsDirectory() {
-        return distsDirectory;
+        DeprecationLogger.deprecate("Ujuj getDistsDirectory.").willBeRemovedInGradle8().undocumented().nagUser();
+        return extension.getDistsDirectory();
     }
 
     @Override
     public DirectoryProperty getLibsDirectory() {
-        return libsDirectory;
+        DeprecationLogger.deprecate("Ujuj getLibsDirectory.").willBeRemovedInGradle8().undocumented().nagUser();
+        return extension.getLibsDirectory();
     }
 
     @Override
     public String getDistsDirName() {
-        return distsDirName;
+        DeprecationLogger.deprecate("Ujuj getDistsDirName.").willBeRemovedInGradle8().undocumented().nagUser();
+        return extension.getDistsDirName();
     }
 
     @Override
     public void setDistsDirName(String distsDirName) {
-        this.distsDirName = distsDirName;
-        distsDirectory.set(buildDirectory.dir(distsDirName));
+        DeprecationLogger.deprecate("Ujuj setDistsDirName.").willBeRemovedInGradle8().undocumented().nagUser();
+        extension.setDistsDirName(distsDirName);
     }
 
     @Override
     public String getLibsDirName() {
-        return libsDirName;
+        DeprecationLogger.deprecate("Ujuj getLibsDirName.").willBeRemovedInGradle8().undocumented().nagUser();
+        return extension.getLibsDirName();
     }
 
     @Override
     public void setLibsDirName(String libsDirName) {
-        this.libsDirName = libsDirName;
-        libsDirectory.set(buildDirectory.dir(libsDirName));
+        DeprecationLogger.deprecate("Ujuj setLibsDirName.").willBeRemovedInGradle8().undocumented().nagUser();
+        extension.setLibsDirName(libsDirName);
     }
 
     @Override
     public String getArchivesBaseName() {
-        return archivesBaseName;
+        DeprecationLogger.deprecate("Ujuj getArchivesBaseName.").willBeRemovedInGradle8().undocumented().nagUser();
+        return extension.getArchivesBaseName();
     }
 
     @Override
     public void setArchivesBaseName(String archivesBaseName) {
-        this.archivesBaseName = archivesBaseName;
+        DeprecationLogger.deprecate("Ujuj setArchivesBaseName.").willBeRemovedInGradle8().undocumented().nagUser();
+        extension.setArchivesBaseName(archivesBaseName);
     }
 }
