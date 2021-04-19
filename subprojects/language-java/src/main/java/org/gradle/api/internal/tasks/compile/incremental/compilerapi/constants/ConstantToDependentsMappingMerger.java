@@ -44,7 +44,7 @@ public class ConstantToDependentsMappingMerger {
             });
 
         oldMapping.getPrivateConstantDependents().keySet().stream()
-            .filter(constantOriginHash -> !removedClasses.contains(constantOriginHash))
+            .filter(constantOrigin -> !removedClasses.contains(constantOrigin))
             .forEach(constantOriginHash -> {
                 Set<String> constantDependents = oldMapping.findPrivateConstantDependentsFor(constantOriginHash);
                 constantDependents.removeIf(wasDependentVisitedOrRemoved(removedClasses, visitedClasses));
@@ -52,7 +52,7 @@ public class ConstantToDependentsMappingMerger {
             });
 
         newMapping.getAccessibleConstantDependents().keySet().stream()
-            .filter(constantOriginHash -> !removedClasses.contains(constantOriginHash))
+            .filter(constantOrigin -> !removedClasses.contains(constantOrigin))
             .forEach(constantOriginHash -> {
                 Set<String> constantDependents = newMapping.findAccessibleConstantDependentsFor(constantOriginHash);
                 constantDependents.removeIf(wasDependentRemoved(removedClasses));

@@ -305,8 +305,8 @@ class ClassSetAnalysisTest extends Specification {
         given:
         def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> true
-        compilerApiData.accessibleConstantDependentsForClassHash("Foo") >> ["Bar"]
-        compilerApiData.privateConstantDependentsForClassHash("Foo") >> ["BarBar"]
+        compilerApiData.accessibleConstantDependentsForClass("Foo") >> ["Bar"]
+        compilerApiData.privateConstantDependentsForClass("Foo") >> ["BarBar"]
 
         when:
         def deps = a.findTransitiveDependents("Foo", IntSet.of(1))
@@ -320,7 +320,7 @@ class ClassSetAnalysisTest extends Specification {
         given:
         def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> true
-        compilerApiData.accessibleConstantDependentsForClassHash("Foo") >> ["Bar"]
+        compilerApiData.accessibleConstantDependentsForClass("Foo") >> ["Bar"]
 
         when:
         def deps = a.findTransitiveDependents("Foo", IntSets.EMPTY_SET)
@@ -333,10 +333,10 @@ class ClassSetAnalysisTest extends Specification {
         given:
         def a = analysis([:], [:], empty(), empty(), null)
         compilerApiData.isAvailable() >> true
-        compilerApiData.accessibleConstantDependentsForClassHash("Foo") >> ["Bar"]
-        compilerApiData.accessibleConstantDependentsForClassHash("Bar") >> ["FooBar"]
-        compilerApiData.accessibleConstantDependentsForClassHash("FooBar") >> ["BarFoo"]
-        compilerApiData.accessibleConstantDependentsForClassHash("X") >> ["Y"]
+        compilerApiData.accessibleConstantDependentsForClass("Foo") >> ["Bar"]
+        compilerApiData.accessibleConstantDependentsForClass("Bar") >> ["FooBar"]
+        compilerApiData.accessibleConstantDependentsForClass("FooBar") >> ["BarFoo"]
+        compilerApiData.accessibleConstantDependentsForClass("X") >> ["Y"]
 
         when:
         def deps = a.findTransitiveDependents("Foo", IntSets.EMPTY_SET)

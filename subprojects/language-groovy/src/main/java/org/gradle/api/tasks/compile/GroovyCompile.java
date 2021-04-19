@@ -152,10 +152,9 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         doCompile(spec, inputChanges, oldMappings);
     }
 
-    private WorkResult doCompile(GroovyJavaJointCompileSpec spec, InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
+    private void doCompile(GroovyJavaJointCompileSpec spec, InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
         WorkResult result = getCompiler(spec, inputChanges, sourceClassesMapping).execute(spec);
         setDidWork(result.getDidWork());
-        return result;
     }
 
     /**

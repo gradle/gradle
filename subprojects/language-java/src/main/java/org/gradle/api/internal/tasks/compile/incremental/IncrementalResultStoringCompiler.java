@@ -70,6 +70,7 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     public WorkResult execute(T spec) {
         WorkResult result = delegate.execute(spec);
         if (result instanceof RecompilationNotNecessary) {
+            mergeClassFileMappingAndReturnRemovedClasses(spec);
             return result;
         }
         storeResult(spec, result);
@@ -114,10 +115,7 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     }
 
     private CompilerApiData getCompilerApiData(JavaCompileSpec spec, WorkResult result) {
-        Set<String> removedClasses = null;
-        if (spec.getCompileOptions().supportsCompilerApi()) {
-            removedClasses = mergeClassFileMappingAndReturnRemovedClasses(spec);
-        }
+        Set<String> removedClasses = mergeClassFileMappingAndReturnRemovedClasses(spec);
         if (spec.getCompileOptions().supportsConstantAnalysis()) {
             Objects.requireNonNull(removedClasses);
             ConstantToDependentsMapping previousConstantToDependentsMapping = null;
@@ -138,17 +136,15 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
     }
 
     private Set<String> mergeClassFileMappingAndReturnRemovedClasses(JavaCompileSpec spec) {
-        File classToFileMappingFile = Objects.requireNonNull(spec.getCompileOptions().getIncrementalCompilationMappingFile());
-        Multimap<String, String> previousMappings = spec.getCompileOptions().getPreviousIncrementalCompilationMapping();
-
-        if (previousMappings != null) {
-            // The compilation will generate the new mapping file
-            // Only merge old mappings into new mapping on incremental recompilation
-            return mergeIncrementalMappingsIntoOldMappings(classToFileMappingFile, stableSources, inputChanges, previousMappings);
+        if (!spec.getCompileOptions().supportsCompilerApi()) {
+            // Class file mapping is generated always if Compiler api is supported,
+            // if it's not supported there is nothing to be done
+            return Collections.emptySet();
         }
 
-        // Compilation was not incremental
-        return Collections.emptySet();
+        File classToFileMappingFile = Objects.requireNonNull(spec.getCompileOptions().getIncrementalCompilationMappingFile());
+        Multimap<String, String> previousMappings = Objects.requireNonNull(spec.getCompileOptions().getPreviousIncrementalCompilationMapping());
+        return mergeIncrementalMappingsIntoOldMappings(classToFileMappingFile, stableSources, inputChanges, previousMappings);
     }
 
 }

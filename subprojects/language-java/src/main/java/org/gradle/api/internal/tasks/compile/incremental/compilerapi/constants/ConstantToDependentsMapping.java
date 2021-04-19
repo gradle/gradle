@@ -112,7 +112,7 @@ public class ConstantToDependentsMapping {
         public Serializer(StringInterner interner) {
             InterningStringSerializer stringSerializer = new InterningStringSerializer(interner);
             classNamesSerializer = new ListSerializer<>(stringSerializer);
-            mapSerializer = new MapSerializer<>(stringSerializer, new JavaSetToIntSetSerializer());
+            mapSerializer = new MapSerializer<>(stringSerializer, IntSetSerializer.INSTANCE);
         }
 
         @Override
@@ -128,18 +128,6 @@ public class ConstantToDependentsMapping {
             classNamesSerializer.write(encoder, value.dependentClasses);
             mapSerializer.write(encoder, value.getPrivateConstantDependents());
             mapSerializer.write(encoder, value.getAccessibleConstantDependents());
-        }
-    }
-
-    private static final class JavaSetToIntSetSerializer implements org.gradle.internal.serialize.Serializer<IntSet> {
-        @Override
-        public IntSet read(Decoder decoder) throws Exception {
-            return IntSetSerializer.INSTANCE.read(decoder);
-        }
-
-        @Override
-        public void write(Encoder encoder, IntSet value) throws Exception {
-            IntSetSerializer.INSTANCE.write(encoder, value);
         }
     }
 

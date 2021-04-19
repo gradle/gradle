@@ -136,7 +136,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         'String'     | '"foo" + "bar"' | '"bar"'
     }
 
-    def "non-abi change to constant origin class does not cause recompilation but constant change"() {
+    def "non-abi change to constant origin class does not cause recompilation but constant change does"() {
         source api: ["class A {}", "class B { final static int x = 1; int method() { return 1; } }"], impl: ["class X { int method() { return B.x; } }", "class Y {}"]
         impl.snapshot { run language.compileTaskName }
 

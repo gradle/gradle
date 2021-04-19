@@ -34,11 +34,11 @@ public class CompilerApiData {
         this.constantToDependentsMapping = constantToDependentsMapping;
     }
 
-    public Set<String> accessibleConstantDependentsForClassHash(String constantOrigin) {
+    public Set<String> accessibleConstantDependentsForClass(String constantOrigin) {
         return constantToDependentsMapping.findAccessibleConstantDependentsFor(constantOrigin);
     }
 
-    public Set<String> privateConstantDependentsForClassHash(String constantOrigin) {
+    public Set<String> privateConstantDependentsForClass(String constantOrigin) {
         return constantToDependentsMapping.findPrivateConstantDependentsFor(constantOrigin);
     }
 
