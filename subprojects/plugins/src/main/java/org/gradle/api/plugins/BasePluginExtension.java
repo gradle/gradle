@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 
 /**
- *An extension used for the BasePlugin.
+ * An extension used for {@link BasePlugin}.
  * <p>
  * Replaces {@link BasePluginConvention}.
  *
@@ -32,38 +32,34 @@ public interface BasePluginExtension {
      * Returns the directory to generate TAR and ZIP archives into.
      *
      * @return The directory. Never returns null.
-     *
-     * @since 6.0
      */
-    public abstract DirectoryProperty getDistsDirectory();
+    DirectoryProperty getDistsDirectory();
 
     /**
      * Returns the directory to generate JAR and WAR archives into.
      *
      * @return The directory. Never returns null.
-     *
-     * @since 6.0
      */
-    public abstract DirectoryProperty getLibsDirectory();
+    DirectoryProperty getLibsDirectory();
 
     /**
      * The name for the distributions directory. This in interpreted relative to the project' build directory.
      */
-    public abstract String getDistsDirName();
+    String getDistsDirName();
 
-    public abstract void setDistsDirName(String distsDirName);
+    void setDistsDirName(String distsDirName);
 
     /**
      * The name for the libs directory. This in interpreted relative to the project' build directory.
      */
-    public abstract String getLibsDirName();
+    String getLibsDirName();
 
-    public abstract void setLibsDirName(String libsDirName);
+    void setLibsDirName(String libsDirName);
 
     /**
      * The base name to use for archive files.
      */
-    public abstract String getArchivesBaseName();
+    String getArchivesBaseName();
 
-    public abstract void setArchivesBaseName(String archivesBaseName);
+    void setArchivesBaseName(String archivesBaseName);
 }
