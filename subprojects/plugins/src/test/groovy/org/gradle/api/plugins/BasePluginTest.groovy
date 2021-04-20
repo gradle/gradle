@@ -42,6 +42,14 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         project.extensions.findByType(BasePluginExtension) != null
     }
 
+    def "adds extension object"() {
+        when:
+        project.pluginManager.apply(BasePlugin)
+
+        then:
+        project.extensions.findByType(BasePluginExtension) != null
+    }
+
     def "creates tasks and applies mappings"() {
         when:
         project.pluginManager.apply(BasePlugin)
