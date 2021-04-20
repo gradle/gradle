@@ -57,7 +57,7 @@ public abstract class FileTimeStampInspector {
         workDir.mkdirs();
 
         if (markerFile.exists()) {
-            lastBuildTimestamp = readBuildTimestampFromMarkerFile();
+            lastBuildTimestamp = timestampOfMarkerFile();
         } else {
             lastBuildTimestamp = 0;
         }
@@ -73,13 +73,13 @@ public abstract class FileTimeStampInspector {
             throw new UncheckedIOException("Could not update " + markerFile, e);
         }
 
-        lastBuildTimestamp = readBuildTimestampFromMarkerFile();
+        lastBuildTimestamp = timestampOfMarkerFile();
     }
 
     protected long currentTimestamp() {
         File file = temporaryFileProvider.createTemporaryFile("this-build", "bin");
         try {
-            return readTimestampFrom(file);
+            return timestampOf(file);
         } finally {
             file.delete();
         }
@@ -93,11 +93,11 @@ public abstract class FileTimeStampInspector {
         return timestamp != lastBuildTimestamp;
     }
 
-    private long readBuildTimestampFromMarkerFile() {
-        return readTimestampFrom(markerFile);
+    private long timestampOfMarkerFile() {
+        return timestampOf(markerFile);
     }
 
-    private long readTimestampFrom(File file) {
+    private long timestampOf(File file) {
         return file.lastModified();
     }
 }
