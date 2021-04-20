@@ -122,9 +122,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     private final CompositeStoppable registries = new CompositeStoppable();
 
-    public GradleScopeServices(final ServiceRegistry parent, final GradleInternal gradle) {
+    public GradleScopeServices(final ServiceRegistry parent) {
         super(parent);
-        add(GradleInternal.class, gradle);
         register(registration -> {
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerGradleServices(registration);
