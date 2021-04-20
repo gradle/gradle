@@ -257,7 +257,7 @@ abstract class UnifyTrove4jVersionRule : ComponentMetadataRule {
             withDependencies {
                 if (any { it.name == "trove4j" }) {
                     removeAll { it.name == "trove4j" }
-                    add("org.jetbrains.intellij.deps:trove4j:trove4j:1.0.20181211")
+                    add("org.jetbrains.intellij.deps:trove4j:trove4j")
                 }
             }
         }

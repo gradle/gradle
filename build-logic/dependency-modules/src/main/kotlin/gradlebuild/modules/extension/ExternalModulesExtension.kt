@@ -252,7 +252,6 @@ abstract class ExternalModulesExtension {
         testng to License.Apache2,
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
-        agp to License.Apache2,
         xbeanReflect to License.Apache2,
         xerces to License.Apache2,
         xmlApis to License.Apache2
