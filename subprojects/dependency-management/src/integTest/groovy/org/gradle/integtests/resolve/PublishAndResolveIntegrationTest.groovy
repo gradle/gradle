@@ -143,7 +143,9 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
     def taskWhichResolves(lib, resolveVersion) {
         return """
             configurations {
-                testartifacts
+                testartifacts {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
 
             dependencies {

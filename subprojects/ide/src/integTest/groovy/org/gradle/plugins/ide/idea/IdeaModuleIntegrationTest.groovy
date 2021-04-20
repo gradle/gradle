@@ -175,10 +175,16 @@ apply plugin: "java"
 apply plugin: "idea"
 
 configurations {
-  bar
-  foo
-  foo.extendsFrom(bar)
-  baz
+  bar {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
+  foo {
+    extendsFrom(bar)
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
+  baz {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 dependencies {
@@ -214,7 +220,9 @@ apply plugin: "java"
 apply plugin: "idea"
 
 configurations {
-  bar
+  bar {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 idea {
@@ -531,7 +539,9 @@ repositories {
 }
 
 configurations {
-  myCustom
+  myCustom {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 dependencies {
@@ -569,7 +579,9 @@ repositories {
 }
 
 configurations {
-  myCustom
+  myCustom {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 dependencies {
@@ -638,8 +650,12 @@ repositories {
 }
 
 configurations {
-    myPlusConfig
-    myMinusConfig
+    myPlusConfig {
+        attributes.attribute(Attribute.of("test", String), "test")
+    }
+    myMinusConfig {
+        attributes.attribute(Attribute.of("test", String), "test")
+    }
 }
 
 dependencies {

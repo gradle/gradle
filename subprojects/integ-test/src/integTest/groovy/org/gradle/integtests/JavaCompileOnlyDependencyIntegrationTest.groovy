@@ -132,9 +132,11 @@ repositories {
 configurations {
     implementationClasspath {
         extendsFrom implementation
+        attributes.attribute(Attribute.of("test", String), "test")
     }
     compileOnlyClasspath {
         extendsFrom compileOnly
+        attributes.attribute(Attribute.of("test", String), "test")
     }
 }
 
@@ -225,9 +227,11 @@ project(':projectB') {
                 configurations {
                     compileOnlyClasspath {
                         extendsFrom compileOnly
+                        attributes.attribute(Attribute.of("test", String), "test")
                     }
                     implementationClasspath {
                         extendsFrom implementation
+                        attributes.attribute(Attribute.of("test", String), "test")
                     }
                 }
 

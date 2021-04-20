@@ -342,7 +342,9 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
             gradle.buildFinished {
                println "Executing hook"
                allprojects {
-                   println configurations.detachedConfiguration(dependencies.create("org:foo:1.0")).files
+                   def conf = configurations.detachedConfiguration(dependencies.create("org:foo:1.0"))
+                   conf.attributes.attribute(Attribute.of("test", String), "test")
+                   println conf.files
                }
             }
         """

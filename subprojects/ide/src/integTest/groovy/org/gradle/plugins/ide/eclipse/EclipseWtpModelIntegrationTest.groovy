@@ -47,8 +47,12 @@ apply plugin: 'war'
 apply plugin: 'eclipse-wtp'
 
 configurations {
-  configOne
-  configTwo
+  configOne {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
+  configTwo {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 repositories {
@@ -256,8 +260,12 @@ apply plugin: 'war'
 apply plugin: 'eclipse-wtp'
 
 configurations {
-  configOne
-  configTwo
+  configOne {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
+  configTwo {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 dependencies {

@@ -55,7 +55,11 @@ project(':java') {
 }
 
 project(':consumer') {
-    configurations { consume }
+    configurations {
+        consume {
+            attributes.attribute(Attribute.of("test", String), "test")
+        }
+    }
     dependencies { consume project(':java') }
     task resolve {
         inputs.files configurations.consume

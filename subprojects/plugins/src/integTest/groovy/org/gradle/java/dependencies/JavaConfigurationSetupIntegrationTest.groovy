@@ -220,6 +220,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
             }
             configurations.create('path') {
                extendsFrom(configurations.$configuration)
+               attributes.attribute(Attribute.of("test", String), "test")
             }
             tasks.register('resolvePath') {
               doLast { println(configurations.path.collect { it.name }) }

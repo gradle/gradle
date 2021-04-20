@@ -238,7 +238,10 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
             }
 
             configurations {
-                conf.extendsFrom(api)
+                conf {
+                    extendsFrom(api)
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
         """
 

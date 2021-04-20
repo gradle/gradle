@@ -44,6 +44,7 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
 
             configurations {
                 runtimeClasspath {
+                    attributes.attribute(Attribute.of("test", String), "test")
                     canBeConsumed = false
                     canBeResolved = true
                 }

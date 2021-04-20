@@ -93,8 +93,12 @@ repositories {
 }
 
 configurations {
-    myPlusConfig
-    myMinusConfig
+    myPlusConfig {
+        attributes.attribute(Attribute.of("test", String), "test")
+    }
+    myMinusConfig {
+        attributes.attribute(Attribute.of("test", String), "test")
+    }
 }
 
 dependencies {
@@ -431,7 +435,9 @@ sourceSets.main.java.srcDirs.each { it.mkdirs() }
 sourceSets.main.resources.srcDirs.each { it.mkdirs() }
 
 configurations {
-  someConfig
+  someConfig {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 dependencies {
@@ -496,7 +502,9 @@ sourceSets.main.java.srcDirs.each { it.mkdirs() }
 sourceSets.main.resources.srcDirs.each { it.mkdirs() }
 
 configurations {
-  someConfig
+  someConfig {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 eclipse {
@@ -529,8 +537,12 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 configurations {
-  someConfig
-  someOtherConfig
+  someConfig {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
+  someOtherConfig {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 dependencies {
@@ -563,8 +575,12 @@ allprojects {
 }
 
 configurations {
-  someConfig
-  someOtherConfig
+  someConfig {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
+  someOtherConfig {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 dependencies {
@@ -597,8 +613,12 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 configurations {
-  someConfig
-  someOtherConfig
+  someConfig {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
+  someOtherConfig {
+    attributes.attribute(Attribute.of("test", String), "test")
+  }
 }
 
 repositories {

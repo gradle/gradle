@@ -221,7 +221,10 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
             }
 
             configurations {
-                myCompileClasspath.extendsFrom(compileClasspath)
+                myCompileClasspath {
+                    extendsFrom(compileClasspath)
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
 
         """

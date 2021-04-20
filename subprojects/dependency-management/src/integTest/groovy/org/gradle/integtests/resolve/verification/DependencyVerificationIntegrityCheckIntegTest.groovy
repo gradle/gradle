@@ -946,6 +946,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             tasks.register("resolve") {
                 doLast {
                     def conf = configurations.detachedConfiguration(dependencies.create("org:foo:1.0"))
+                    conf.attributes.attribute(Attribute.of("test", String), "test")
                     if (project.hasProperty("disableVerification")) {
                         conf.resolutionStrategy.disableDependencyVerification()
                     }

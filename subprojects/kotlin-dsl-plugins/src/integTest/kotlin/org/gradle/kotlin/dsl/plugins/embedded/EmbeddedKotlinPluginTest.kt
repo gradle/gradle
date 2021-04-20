@@ -66,7 +66,10 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             }
 
             configurations {
-                create("compileOnlyClasspath") { extendsFrom(configurations["compileOnly"]) }
+                create("compileOnlyClasspath") {
+                    extendsFrom(configurations["compileOnly"])
+                    attributes.attribute(Attribute.of("test", String::class.java), "test")
+                }
             }
 
             $repositoriesBlock
@@ -196,6 +199,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
             val customConfiguration by configurations.creating
             customConfiguration.extendsFrom(configurations["embeddedKotlin"])
+            customConfiguration.attributes.attribute(Attribute.of("test", String::class.java), "test")
 
             configurations["customConfiguration"].files.map { println(it) }
             """

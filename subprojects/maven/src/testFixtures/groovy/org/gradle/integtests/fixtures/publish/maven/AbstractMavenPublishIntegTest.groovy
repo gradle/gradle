@@ -67,13 +67,19 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        def attributes = params.variant == null ?
-            "" :
+        def attributes = params.variant == null
+            ?
             """
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
-    }
-"""
+                attributes {
+                    attribute(Attribute.of("resolve", String), "resolve")
+                }
+            """
+            :
+            """
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
+                }
+            """
         String extraArtifacts = ""
         if (params.additionalArtifacts) {
             String artifacts = params.additionalArtifacts.collect {

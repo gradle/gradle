@@ -166,6 +166,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         buildFile << """
             configurations {
                 conf1 {
+                    attributes.attribute(Attribute.of("test", String), "test")
                     canBeResolved = true
                     canBeConsumed = false
                 }
@@ -221,7 +222,9 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
         buildFile << """
             configurations {
-                conf
+                conf {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
             dependencies {
                 implementation "org:foo:1.0"

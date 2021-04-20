@@ -213,7 +213,10 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         createBuildScripts("""
             configurations {
-                extra.extendsFrom(api)
+                extra {
+                    extendsFrom(api)
+                    attributes.attribute(Attribute.of("resolve", String), "resolve")
+                }
             }
             dependencies {
                 api "org.test:foo:1.0"

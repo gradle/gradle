@@ -52,7 +52,10 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
 
             project(':shared:model') {
                 configurations {
-                    utilities { extendsFrom testImplementation }
+                    utilities {
+                        extendsFrom testImplementation
+                        attributes.attribute(Attribute.of("test", String), "test")
+                    }
                 }
                 dependencies {
                     utilities project(':util')

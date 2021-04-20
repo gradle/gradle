@@ -126,7 +126,9 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
             }
             project(':c') {
                 configurations {
-                    processor
+                    processor {
+                        attributes.attribute(Attribute.of("test", String), "test")
+                    }
                 }
                 dependencies {
                     implementation project(':a')

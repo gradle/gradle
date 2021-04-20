@@ -138,7 +138,10 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             }
 
             configurations {
-                conf.extendsFrom(api)
+                conf {
+                    extendsFrom(api)
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
         """
 

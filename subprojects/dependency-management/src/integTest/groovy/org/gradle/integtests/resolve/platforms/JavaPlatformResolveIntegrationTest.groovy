@@ -442,7 +442,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         buildFile << """
-            configurations { conf }
+            configurations { conf { attributes.attribute(Attribute.of("test", String), "test") } }
             dependencies {
                 conf "org:platform:1.0"
             }
@@ -689,7 +689,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         buildFile << """
             configurations {
-                conf.dependencies.clear()
+                conf {
+                    dependencies.clear()
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
 
             dependencies {
@@ -816,7 +819,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         buildFile << """
             configurations {
-                conf.dependencies.clear()
+                conf {
+                    dependencies.clear()
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
 
             dependencies {
@@ -922,7 +928,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         buildFile << """
             configurations {
-                conf.dependencies.clear()
+                conf {
+                    dependencies.clear()
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
 
             dependencies {
