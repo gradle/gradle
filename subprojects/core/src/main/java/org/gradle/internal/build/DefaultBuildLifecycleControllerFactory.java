@@ -86,8 +86,7 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
 
         GradleInternal gradle = buildScopeServices.get(GradleInternal.class);
 
-        BuildModelControllerFactory buildModelControllerFactory = buildScopeServices.get(BuildModelControllerFactory.class);
-        BuildModelController buildModelController = buildModelControllerFactory.create(gradle);
+        BuildModelController buildModelController = buildScopeServices.get(BuildModelController.class);
 
         return new DefaultBuildLifecycleController(
             gradle,

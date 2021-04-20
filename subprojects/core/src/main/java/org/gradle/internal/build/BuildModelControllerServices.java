@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scopes.BuildTree.class)
 public interface BuildModelControllerServices {
     /**
-     * Registers the services required to produce a {@link BuildModelControllerFactory} for the given build.
+     * Registers the services required to produce a {@link BuildModelController} for the given build.
      */
     void supplyBuildScopeServices(BuildScopeServices services);
 }

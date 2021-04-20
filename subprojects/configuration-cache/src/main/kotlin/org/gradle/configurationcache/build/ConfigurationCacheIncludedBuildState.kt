@@ -20,11 +20,10 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.composite.internal.DefaultIncludedBuild
-import org.gradle.internal.build.BuildModelControllerFactory
-import org.gradle.internal.build.BuildModelControllerServices
-import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildModelController
+import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.service.scopes.BuildScopeServices
@@ -45,19 +44,11 @@ open class ConfigurationCacheIncludedBuildState(
 ) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, buildLifecycleControllerFactory, buildModelControllerServices) {
     override fun createGradleLauncher(owner: BuildState, buildTree: BuildTreeController, buildLifecycleControllerFactory: BuildLifecycleControllerFactory, buildModelControllerServices: BuildModelControllerServices): BuildLifecycleController {
         val buildScopeServices = object : BuildScopeServices(buildTree.services) {
-            fun createBuildModelControllerFactory(): BuildModelControllerFactory {
-                return NoOpBuildModelControllerFactory
+            fun createBuildModelController(gradle: GradleInternal): BuildModelController {
+                return NoOpBuildModelController(gradle)
             }
         }
         return buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.mutableModel, buildScopeServices)
-    }
-}
-
-
-private
-object NoOpBuildModelControllerFactory : BuildModelControllerFactory {
-    override fun create(gradle: GradleInternal): BuildModelController {
-        return NoOpBuildModelController(gradle)
     }
 }
 
