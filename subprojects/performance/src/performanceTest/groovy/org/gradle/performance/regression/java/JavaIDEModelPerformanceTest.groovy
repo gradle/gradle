@@ -33,7 +33,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.8.2-20210218002439+0000"]
+        runner.targetVersions = ["6.9-20210420081321+0000"]
         runner.minimumBaseVersion = "2.11"
     }
 
