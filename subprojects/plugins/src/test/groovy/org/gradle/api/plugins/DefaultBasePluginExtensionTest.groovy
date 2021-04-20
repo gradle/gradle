@@ -20,7 +20,7 @@ import org.gradle.api.plugins.internal.DefaultBasePluginConvention
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class DefaultBasePluginConventionTest extends AbstractProjectBuilderSpec {
+class DefaultBasePluginExtensionTest extends AbstractProjectBuilderSpec {
 
     private BasePluginConvention convention
     private BasePluginExtension extension
@@ -32,18 +32,18 @@ class DefaultBasePluginConventionTest extends AbstractProjectBuilderSpec {
 
     def "default values"() {
         expect:
-        convention.archivesBaseName == project.name
-        convention.distsDirName == 'distributions'
-        convention.distsDirectory.getAsFile().get() == project.layout.buildDirectory.dir('distributions').get().asFile
-        convention.libsDirName == 'libs'
-        convention.libsDirectory.getAsFile().get() == project.layout.buildDirectory.dir('libs').get().asFile
+        extension.archivesBaseName == project.name
+        extension.distsDirName == 'distributions'
+        extension.distsDirectory.getAsFile().get() == project.layout.buildDirectory.dir('distributions').get().asFile
+        extension.libsDirName == 'libs'
+        extension.libsDirectory.getAsFile().get() == project.layout.buildDirectory.dir('libs').get().asFile
     }
 
     def "dirs relative to build dir"() {
         when:
         project.buildDir = project.file('mybuild')
-        convention.distsDirName = 'mydists'
-        convention.libsDirName = 'mylibs'
+        extension.distsDirName = 'mydists'
+        extension.libsDirName = 'mylibs'
 
         then:
         convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
@@ -55,28 +55,28 @@ class DefaultBasePluginConventionTest extends AbstractProjectBuilderSpec {
     def "dirs are cached properly"() {
         when:
         project.buildDir = project.file('mybuild')
-        convention.distsDirName = 'mydists'
+        extension.distsDirName = 'mydists'
 
         then:
         convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
         extension.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
 
         when:
-        convention.libsDirName = 'mylibs'
+        extension.libsDirName = 'mylibs'
 
         then:
         convention.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
         extension.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
 
         when:
-        convention.distsDirName = 'mydists2'
+        extension.distsDirName = 'mydists2'
 
         then:
         convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists2')
         extension.distsDirectory.getAsFile().get() == project.file('mybuild/mydists2')
 
         when:
-        convention.libsDirName = 'mylibs2'
+        extension.libsDirName = 'mylibs2'
 
         then:
         convention.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs2')
@@ -91,28 +91,28 @@ class DefaultBasePluginConventionTest extends AbstractProjectBuilderSpec {
 
         when:
         project.buildDir = project.file('mybuild')
-        convention.distsDirName = 'mydists'
+        extension.distsDirName = 'mydists'
 
         then:
         convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
         extension.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
 
         when:
-        convention.libsDirName = 'mylibs'
+        extension.libsDirName = 'mylibs'
 
         then:
         convention.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
         extension.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
 
         when:
-        convention.distsDirName = 'mydists2'
+        extension.distsDirName = 'mydists2'
 
         then:
         convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists2')
         extension.distsDirectory.getAsFile().get() == project.file('mybuild/mydists2')
 
         when:
-        convention.libsDirName = 'mylibs2'
+        extension.libsDirName = 'mylibs2'
 
         then:
         convention.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs2')
