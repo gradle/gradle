@@ -187,41 +187,55 @@ public interface JavaPluginExtension {
      *
      * @param closure The closure to execute.
      * @return NamedDomainObjectContainer&lt;org.gradle.api.tasks.SourceSet&gt;
+     * @since 7.1
      */
+    @Incubating
     Object sourceSets(Closure closure);
 
     /**
      * Returns a file pointing to the root directory supposed to be used for all docs.
+     * @since 7.1
      */
+    @Incubating
     File getDocsDir();
 
     /**
      * Returns a file pointing to the root directory of the test results.
+     * @since 7.1
      */
+    @Incubating
     File getTestResultsDir();
 
     /**
      * Returns a file pointing to the root directory to be used for reports.
+     * @since 7.1
      */
+    @Incubating
     File getTestReportDir();
 
     /**
      * Sets the source compatibility used for compiling Java sources.
      *
      * @param value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
+     * @since 7.1
      */
+    @Incubating
     void setSourceCompatibility(Object value);
 
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
      * @param value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
+     * @since 7.1
      */
+    @Incubating
     void setTargetCompatibility(Object value);
 
     /**
      * Creates a new instance of a {@link Manifest}.
+     * @since 7.1
      */
+    @Incubating
     Manifest manifest();
 
     /**
@@ -229,49 +243,87 @@ public interface JavaPluginExtension {
      * the new manifest instance before it is returned.
      *
      * @param closure The closure to use to configure the manifest.
+     * @since 7.1
      */
+    @Incubating
     Manifest manifest(Closure closure);
 
     /**
      * Creates and configures a new instance of a {@link Manifest}.
      *
      * @param action The action to use to configure the manifest.
-     * @since 3.5
+     *
+     * @since 7.1
      */
+    @Incubating
     Manifest manifest(Action<? super Manifest> action);
 
     /**
      * The name of the docs directory. Can be a name or a path relative to the build dir.
+     * @since 7.1
      */
+    @Incubating
     String getDocsDirName();
 
+    /**
+     * Sets the name of the docs directory.
+     *
+     * @since 7.1
+     */
+    @Incubating
     void setDocsDirName(String docsDirName);
 
     /**
      * The name of the test results directory. Can be a name or a path relative to the build dir.
+     * @since 7.1
      */
+    @Incubating
     String getTestResultsDirName();
 
+    /**
+     * Sets the name of the test results directory.
+     *
+     * @since 7.1
+     */
+    @Incubating
     void setTestResultsDirName(String testResultsDirName);
 
     /**
      * The name of the test reports directory. Can be a name or a path relative to {@link org.gradle.api.reporting.ReportingExtension#getBaseDir}.
+     * @since 7.1
      */
+    @Incubating
     String getTestReportDirName();
 
+    /**
+     * Sets the name of the test reports directory.
+     *
+     * @since 7.1
+     */
+    @Incubating
     void setTestReportDirName(String testReportDirName);
 
     /**
      * The source sets container.
+     *
+     * @since 7.1
      */
+    @Incubating
     SourceSetContainer getSourceSets();
 
-    ProjectInternal getProject();
+    /*
+     * @since 7.1
+     */
+    @Incubating
+    ProjectInternal getProject(); // TODO can it not be internal?
 
     /**
      * Tells if automatic JVM targeting is enabled. When disabled, Gradle
      * will not automatically try to get dependencies corresponding to the
      * same (or compatible) level as the target compatibility of this module.
+     *
+     * @since 7.1
      */
+    @Incubating
     boolean getAutoTargetJvmDisabled();
 }
