@@ -171,6 +171,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
+    @Deprecated
     public void includeFlat(String... projectNames) {
         for (String projectName : projectNames) {
             createProjectDescriptor(rootProjectDescriptor, projectName,
