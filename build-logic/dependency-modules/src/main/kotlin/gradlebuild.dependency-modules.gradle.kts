@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.repoRoot
-import gradlebuild.modules.extension.ExternalModulesExtension
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
-import javax.inject.Inject
+import gradlebuild.basics.repoRoot
+import gradlebuild.modules.extension.ExternalModulesExtension
 
 val libs = extensions.create<ExternalModulesExtension>("libs")
 
@@ -68,6 +67,9 @@ dependencies {
             "org.gradle.profiler:gradle-profiler",
             setOf("gradle-tooling-api")
         )
+
+        // used by :internal-android-performance-testing > api("agp")
+        withModule<UnifyTrove4jVersionRule>("com.android.tools.external.com-intellij:intellij-core")
     }
 }
 
@@ -243,6 +245,20 @@ abstract class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
                     add("${it.group}:cglib:3.2.7")
                 }
                 removeAll { it.name == "cglib-nodep" }
+            }
+        }
+    }
+}
+
+// https://youtrack.jetbrains.com/issue/IDEA-261387
+abstract class UnifyTrove4jVersionRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                if (any { it.name == "trove4j" }) {
+                    removeAll { it.name == "trove4j" }
+                    add("org.jetbrains.intellij.deps:trove4j:trove4j")
+                }
             }
         }
     }
