@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import net.rubygrapefruit.platform.NativeException;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
@@ -110,18 +111,27 @@ public class WatchableHierarchies {
     }
 
     private SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, Invalidator invalidator) {
-        SnapshotHierarchy invalidatedRoot = watchableFileSystemDetector.detectUnsupportedFileSystems()
-            .reduce(
-                root,
-                (updatedRoot, fileSystem) -> invalidator.invalidate(fileSystem.getMountPoint().getAbsolutePath(), updatedRoot),
-                nonCombining()
-            );
+        SnapshotHierarchy invalidatedRoot = invalidateUnsupportedFileSystems(root, invalidator);
         if (invalidatedRoot != root) {
             LOGGER.info("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching. " +
                 "The relevant state was discarded to ensure changes to these locations are properly detected. " +
                 "You can override this by explicitly enabling file system watching.");
         }
         return invalidatedRoot;
+    }
+
+    private SnapshotHierarchy invalidateUnsupportedFileSystems(SnapshotHierarchy root, Invalidator invalidator) {
+        try {
+            return watchableFileSystemDetector.detectUnsupportedFileSystems()
+                .reduce(
+                    root,
+                    (updatedRoot, fileSystem) -> invalidator.invalidate(fileSystem.getMountPoint().getAbsolutePath(), updatedRoot),
+                    nonCombining()
+                );
+        } catch (NativeException e) {
+            LOGGER.warn("Unable to list file systems to check whether they can be watched. The whole state of the virtual file system has been discarded.", e);
+            return root.empty();
+        }
     }
 
     public Collection<Path> getWatchableHierarchies() {
