@@ -21,6 +21,7 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
@@ -54,6 +55,7 @@ public class BuildTreeScopeServices {
         registration.add(BuildTreeController.class, buildTree);
         registration.add(GradleEnterprisePluginManager.class);
         registration.add(DefaultBuildLifecycleControllerFactory.class);
+        registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
         modelServices.applyServicesTo(registration);
     }
 

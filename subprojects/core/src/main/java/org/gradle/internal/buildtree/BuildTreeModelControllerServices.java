@@ -24,16 +24,20 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scopes.BuildSession.class)
 public interface BuildTreeModelControllerServices {
     /**
-     * Creates a {@link Supplier} that will contribute the services required for the model of a build tree with the given parameters.
+     * Creates a {@link Supplier} that will contribute services required for the model of a build tree with the given parameters.
      *
-     * <p>Contributes a {@link org.gradle.api.internal.BuildType} service.</p>
+     * <p>Contributes the following services:</p>
+     * <ul>
+     *     <li>{@link org.gradle.api.internal.BuildType}</li>.
+     *     <li>{@link BuildModelParameters}</li>.
+     * <ul>
      */
     Supplier servicesForBuildTree(boolean runsTasks, boolean createsModel, StartParameterInternal startParameter);
 
     /**
      * Creates a {@link Supplier} that will contribute the services required for the model of a nested build tree with the given parameters.
      *
-     * <p>Contributes a {@link org.gradle.api.internal.BuildType} service.</p>
+     * <p>Contributes the same services as {@link #servicesForBuildTree(boolean, boolean, StartParameterInternal)}.</p>
      */
     Supplier servicesForNestedBuildTree(StartParameterInternal startParameter);
 

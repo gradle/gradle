@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.Nullable;
@@ -129,6 +130,11 @@ public class StartParameterInternal extends StartParameter {
         this.vfsVerboseLogging = vfsVerboseLogging;
     }
 
+    /**
+     * Is the configuration cache requested? Note: depending on the build action, this may not be the final value for this option.
+     *
+     * Consider querying {@link BuildModelParameters} instead.
+     */
     public BuildOption.Value<Boolean> getConfigurationCache() {
         return configurationCache;
     }

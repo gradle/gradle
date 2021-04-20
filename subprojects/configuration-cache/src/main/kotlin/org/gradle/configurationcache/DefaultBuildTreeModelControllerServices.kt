@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.GradleException
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.internal.buildoption.BuildOption
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.util.internal.IncubationLogger
 
@@ -28,24 +28,24 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     override fun servicesForBuildTree(runsTasks: Boolean, createsModel: Boolean, startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
         // Isolated projects also implies configuration cache
         if (startParameter.isolatedProjects.get() && !startParameter.configurationCache.get()) {
-            if(startParameter.configurationCache.isExplicit) {
+            if (startParameter.configurationCache.isExplicit) {
                 throw GradleException("The configuration cache cannot be disabled when isolated projects is enabled.")
             }
-            startParameter.configurationCache = BuildOption.Value.defaultValue(true)
         }
 
-        if (createsModel) {
+        val modelParameters = if (createsModel) {
             // When creating a model, disable certain features
-            // Should not mutate the start parameter, but instead expose a new service to query the state of certain build model features
-            startParameter.isConfigureOnDemand = false
-            startParameter.configurationCache = BuildOption.Value.defaultValue(false)
-            startParameter.isolatedProjects = BuildOption.Value.defaultValue(false)
+            BuildModelParameters(false, false, startParameter.isolatedProjects.get())
+        } else {
+            val isolatedProjects = startParameter.isolatedProjects.get()
+            val configurationCache = startParameter.configurationCache.get() || isolatedProjects
+            BuildModelParameters(startParameter.isConfigureOnDemand, configurationCache, isolatedProjects)
         }
 
         if (!startParameter.isConfigurationCacheQuiet) {
-            if (startParameter.isolatedProjects.get()) {
+            if (modelParameters.isIsolatedProjects) {
                 IncubationLogger.incubatingFeatureUsed("Isolated projects")
-            } else if (startParameter.configurationCache.get()) {
+            } else if (modelParameters.isConfigurationCache) {
                 IncubationLogger.incubatingFeatureUsed("Configuration cache")
             }
         }
@@ -53,14 +53,15 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildType = if (runsTasks) BuildType.TASKS else BuildType.MODEL
             registration.add(BuildType::class.java, buildType)
+            registration.add(BuildModelParameters::class.java, modelParameters)
         }
     }
 
     override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
-        // Configuration cache is not supported for nested build trees
-        // Should not mutate the start parameter, but instead expose a new service to query the state of certain build model features
-        startParameter.configurationCache = BuildOption.Value.defaultValue(false)
-        startParameter.isolatedProjects = BuildOption.Value.defaultValue(false)
-        return BuildTreeModelControllerServices.Supplier { registration -> registration.add(BuildType::class.java, BuildType.TASKS) }
+        return BuildTreeModelControllerServices.Supplier { registration ->
+            registration.add(BuildType::class.java, BuildType.TASKS)
+            // Configuration cache is not supported for nested build trees
+            registration.add(BuildModelParameters::class.java, BuildModelParameters(startParameter.isConfigureOnDemand, false, false))
+        }
     }
 }

@@ -23,7 +23,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.initialization.BuildCompletionListener;
-import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -120,10 +119,7 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
             listenerManager.getBroadcaster(BuildCompletionListener.class),
             listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
             gradle.getServices().get(BuildWorkExecutor.class),
-            serviceRegistry,
-            new BuildOptionBuildOperationProgressEventsEmitter(
-                gradle.getServices().get(BuildOperationProgressEventEmitter.class)
-            )
+            serviceRegistry
         );
     }
 }
