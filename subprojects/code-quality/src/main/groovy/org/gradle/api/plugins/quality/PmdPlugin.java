@@ -67,7 +67,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension.setRuleSets(new ArrayList<>(Collections.singletonList("category/java/errorprone.xml")));
         extension.setRuleSetFiles(project.getLayout().files());
         conventionMappingOf(extension).map("targetJdk", () ->
-            getDefaultTargetJdk(getJavaPluginConvention().getSourceCompatibility()));
+            getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
         return extension;
     }
 
