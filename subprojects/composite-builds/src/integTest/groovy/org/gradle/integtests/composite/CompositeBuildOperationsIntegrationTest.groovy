@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -64,6 +65,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     @Unroll
+    @Ignore("https://github.com/gradle/gradle-private/issues/3368")
     def "generates build lifecycle operations for included builds with #display"() {
         given:
         dependency "org.test:${dependencyName}:1.0"
