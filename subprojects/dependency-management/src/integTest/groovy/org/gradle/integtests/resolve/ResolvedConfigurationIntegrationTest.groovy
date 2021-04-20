@@ -339,9 +339,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             configurations {
-                someConf {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                someConf
             }
 
             dependencies {

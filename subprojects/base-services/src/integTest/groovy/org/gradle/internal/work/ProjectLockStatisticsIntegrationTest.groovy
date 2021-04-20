@@ -25,24 +25,22 @@ class ProjectLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile << """
             apply plugin: "java"
-
+            
             task wait {
                 doLast {
                     sleep 2000
                 }
             }
-
+            
             project(':child') {
-                configurations {
-                    foo {
-                        attributes.attribute(Attribute.of("foo", String), "foo")
-                    }
+                configurations { 
+                    foo 
                 }
-
+                
                 dependencies {
                     foo project(':')
                 }
-
+                
                 task blocked {
                     doLast {
                         println configurations.foo.files

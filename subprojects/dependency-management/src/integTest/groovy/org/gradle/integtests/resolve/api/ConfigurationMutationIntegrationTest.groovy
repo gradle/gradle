@@ -31,37 +31,35 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
 
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            group "org.test"
-            version "1.1"
+group "org.test"
+version "1.1"
 
-            configurations {
-                conf
-                compile {
-                    extendsFrom conf
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
-            repositories {
-                maven { url '${mavenRepo.uri}' }
-            }
-        """
+configurations {
+    conf
+    compile.extendsFrom conf
+}
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+
+"""
     }
 
     def "can use withDependencies to mutate dependencies of parent configuration"() {
         when:
         buildFile << """
-            dependencies {
-                conf "org:to-remove:1.0"
-                conf "org:foo:1.0"
-            }
-            configurations.conf.withDependencies { deps ->
-                deps.remove deps.find { it.name == 'to-remove' }
-                deps.add project.dependencies.create("org:bar:1.0")
-            }
-            configurations.compile.withDependencies { deps ->
-                assert deps.empty : "Compile dependencies should be empty"
-            }
-        """
+dependencies {
+    conf "org:to-remove:1.0"
+    conf "org:foo:1.0"
+}
+configurations.conf.withDependencies { deps ->
+    deps.remove deps.find { it.name == 'to-remove' }
+    deps.add project.dependencies.create("org:bar:1.0")
+}
+configurations.compile.withDependencies { deps ->
+    assert deps.empty : "Compile dependencies should be empty"
+}
+"""
 
         then:
         resolvedGraph {
@@ -73,18 +71,18 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
     def "can use withDependencies to mutate declared dependencies"() {
         when:
         buildFile << """
-            dependencies {
-                compile "org:to-remove:1.0"
-                compile "org:foo:1.0"
-            }
-            configurations.compile.withDependencies { deps ->
-                deps.remove deps.find { it.name == 'to-remove' }
-                deps.add project.dependencies.create("org:bar:1.0")
-            }
-            configurations.conf.withDependencies { deps ->
-                assert deps.empty : "Parent dependencies should be empty"
-            }
-        """
+dependencies {
+    compile "org:to-remove:1.0"
+    compile "org:foo:1.0"
+}
+configurations.compile.withDependencies { deps ->
+    deps.remove deps.find { it.name == 'to-remove' }
+    deps.add project.dependencies.create("org:bar:1.0")
+}
+configurations.conf.withDependencies { deps ->
+    assert deps.empty : "Parent dependencies should be empty"
+}
+"""
 
         then:
         resolvedGraph {
@@ -96,19 +94,19 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
     def "withDependencies actions are executed in order added"() {
         when:
         buildFile << """
-            dependencies {
-                compile "org:foo:1.0"
-            }
-            configurations.compile.withDependencies { DependencySet deps ->
-                assert deps.collect {it.name} == ['foo']
-            }
-            configurations.compile.withDependencies { DependencySet deps ->
-                deps.add project.dependencies.create("org:bar:1.0")
-            }
-            configurations.compile.withDependencies { DependencySet deps ->
-                assert deps.collect {it.name} == ['foo', 'bar']
-            }
-        """
+dependencies {
+    compile "org:foo:1.0"
+}
+configurations.compile.withDependencies { DependencySet deps ->
+    assert deps.collect {it.name} == ['foo']
+}
+configurations.compile.withDependencies { DependencySet deps ->
+    deps.add project.dependencies.create("org:bar:1.0")
+}
+configurations.compile.withDependencies { DependencySet deps ->
+    assert deps.collect {it.name} == ['foo', 'bar']
+}
+"""
 
         then:
         resolvedGraph {
@@ -120,14 +118,14 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
     def "withDependencies action can mutate dependencies provided by defaultDependencies"() {
         when:
         buildFile << """
-            configurations.compile.withDependencies { DependencySet deps ->
-                assert deps.collect {it.name} == ['foo']
-                deps.add project.dependencies.create("org:bar:1.0")
-            }
-            configurations.compile.defaultDependencies { DependencySet deps ->
-                deps.add project.dependencies.create("org:foo:1.0")
-            }
-        """
+configurations.compile.withDependencies { DependencySet deps ->
+    assert deps.collect {it.name} == ['foo']
+    deps.add project.dependencies.create("org:bar:1.0")
+}
+configurations.compile.defaultDependencies { DependencySet deps ->
+    deps.add project.dependencies.create("org:foo:1.0")
+}
+"""
 
         then:
         resolvedGraph {
@@ -139,25 +137,25 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
     def "can use withDependencies to mutate dependency versions"() {
         when:
         buildFile << """
-            dependencies {
-                compile "org:foo"
-                compile "org:bar:2.2"
-            }
-            configurations.compile.withDependencies { deps ->
-                def foo = deps.find { it.name == 'foo' }
-                assert foo.version == null
-                foo.version { require '1.0' }
+dependencies {
+    compile "org:foo"
+    compile "org:bar:2.2"
+}
+configurations.compile.withDependencies { deps ->
+    def foo = deps.find { it.name == 'foo' }
+    assert foo.version == null
+    foo.version { require '1.0' }
 
-                def bar = deps.find { it.name == 'bar' }
-                assert bar.version == '2.2'
-                bar.version { require null }
-            }
-            configurations.compile.withDependencies { deps ->
-                def bar = deps.find { it.name == 'bar' }
-                assert bar.version == null
-                bar.version { require '1.0' }
-            }
-        """
+    def bar = deps.find { it.name == 'bar' }
+    assert bar.version == '2.2'
+    bar.version { require null }
+}
+configurations.compile.withDependencies { deps ->
+    def bar = deps.find { it.name == 'bar' }
+    assert bar.version == null
+    bar.version { require '1.0' }
+}
+"""
 
         then:
         resolvedGraph {
@@ -170,10 +168,10 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
     def "provides useful error message when withDependencies action fails to execute"() {
         when:
         buildFile << """
-            configurations.compile.withDependencies {
-                throw new RuntimeException("Bad user code")
-            }
-        """
+configurations.compile.withDependencies {
+    throw new RuntimeException("Bad user code")
+}
+"""
 
         then:
         resolve.prepare()
@@ -206,7 +204,7 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
                     }
                 }
             }
-        """
+"""
 
         then:
         fails "mutateResolved"
@@ -230,53 +228,53 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         mavenRepo.module("org", "explicit-dependency", "3.4").publish()
         mavenRepo.module("org", "added-dependency", "3.4").publish()
         buildFile.text = """
-            subprojects {
-                apply plugin: 'java'
+subprojects {
+    apply plugin: 'java'
 
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
-            }
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+}
 
-            project(":producer") {
-                configurations {
-                    implementation {
-                        withDependencies { deps ->
-                            deps.each {
-                                it.version {
-                                   require '3.4'
-                                }
-                            }
-                            deps.add(project.dependencies.create("org:added-dependency:3.4"))
-                        }
+project(":producer") {
+    configurations {
+        implementation {
+            withDependencies { deps ->
+                deps.each {
+                    it.version {
+                       require '3.4'
                     }
                 }
-                dependencies {
-                    implementation "org:explicit-dependency"
-                }
+                deps.add(project.dependencies.create("org:added-dependency:3.4"))
             }
+        }
+    }
+    dependencies {
+        implementation "org:explicit-dependency"
+    }
+}
 
-            project(":consumer") {
-                dependencies {
-                    implementation project(":producer")
-                }
-            }
+project(":consumer") {
+    dependencies {
+        implementation project(":producer")
+    }
+}
 
-            subprojects {
-                task resolve {
-                    inputs.files(configurations.runtimeClasspath)
+subprojects {
+    task resolve {
+        inputs.files(configurations.runtimeClasspath)
 
-                    doLast {
-                        def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }
-                        assert "explicit-dependency-3.4.jar" in resolvedJars
-                        assert "added-dependency-3.4.jar" in resolvedJars
-                    }
-                }
-            }
-        """
+        doLast {
+            def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }
+            assert "explicit-dependency-3.4.jar" in resolvedJars
+            assert "added-dependency-3.4.jar" in resolvedJars
+        }
+    }
+}
+"""
         settingsFile << """
-            include 'consumer', 'producer'
-        """
+include 'consumer', 'producer'
+"""
         expect:
         // relying on default dependency
         succeeds("resolve")
@@ -290,60 +288,61 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
 
         def producer = singleProjectBuild("producer") {
             buildFile << """
-                apply plugin: 'java'
+    apply plugin: 'java'
 
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
-                configurations {
-                    implementation {
-                        withDependencies { deps ->
-                            deps.each {
-                                it.version {
-                                    require '3.4'
-                                }
-                            }
-                            deps.add(project.dependencies.create("org:added-dependency:3.4"))
-                        }
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+    configurations {
+        implementation {
+            withDependencies { deps ->
+                deps.each {
+                    it.version {
+                        require '3.4'
                     }
                 }
-                dependencies {
-                    implementation "org:explicit-dependency"
-                }
-            """
+                deps.add(project.dependencies.create("org:added-dependency:3.4"))
+            }
+        }
+    }
+    dependencies {
+        implementation "org:explicit-dependency"
+    }
+"""
         }
 
         def consumer = singleProjectBuild("consumer") {
             settingsFile << """
-                includeBuild '${producer.toURI()}'
-            """
+    includeBuild '${producer.toURI()}'
+"""
             buildFile << """
-                apply plugin: 'java'
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
+    apply plugin: 'java'
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
 
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
-                dependencies {
-                    implementation 'org.test:producer:1.0'
-                }
-                task resolve {
-                    dependsOn configurations.runtimeClasspath
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+    dependencies {
+        implementation 'org.test:producer:1.0'
+    }
+    task resolve {
+        dependsOn configurations.runtimeClasspath
 
-                    doLast {
-                        def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }
-                        assert "explicit-dependency-3.4.jar" in resolvedJars
-                        assert "added-dependency-3.4.jar" in resolvedJars
-                    }
-                }
-            """
+        doLast {
+            def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }
+            assert "explicit-dependency-3.4.jar" in resolvedJars
+            assert "added-dependency-3.4.jar" in resolvedJars
+        }
+    }
+"""
         }
 
         expect:
         executer.inDirectory(consumer)
         succeeds ":resolve"
     }
+
 
 }

@@ -104,22 +104,14 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
             group "myorg"
             version = $projectDep
 
-            configurations {
-                conf {
-                    attributes.attribute(Attribute.of("conf", String), "conf")
-                }
-            }
+            configurations { conf }
             configurations.create("default").extendsFrom(configurations.conf)
 """)
 
         moduleDefinition('ProjectA', """
             repositories { maven { url "${mavenRepo.uri}" } }
 
-            configurations {
-                conf {
-                    attributes.attribute(Attribute.of("conf", String), "conf")
-                }
-            }
+            configurations { conf }
 
             configurations.conf.resolutionStrategy {
                 $preferProjectModulesOption

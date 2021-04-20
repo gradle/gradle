@@ -42,9 +42,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                 maven { url '${mavenRepo.uri}' }
             }
             configurations {
-                compile {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                compile
             }
             dependencies {
                 compile 'test:test-jar:1.2'
@@ -66,7 +64,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-        """
+"""
 
         when:
         run 'show'
@@ -111,9 +109,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                 ivy { url '${ivyRepo.uri}' }
             }
             configurations {
-                compile {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                compile
             }
             dependencies {
                 compile 'test:test-jar:1.2'
@@ -136,7 +132,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-        """
+"""
 
         when:
         run 'show'
@@ -157,9 +153,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
     def "artifacts in a file dependency have standard attributes defined based on their extension"() {
         buildFile << """
             configurations {
-                compile {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                compile
             }
             dependencies {
                 compile files('test.jar')
@@ -176,7 +170,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-        """
+"""
 
         when:
         run 'show'
@@ -212,9 +206,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
             }
 
             configurations {
-                compile {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                compile
             }
             dependencies {
                 compile project(':a')
@@ -230,7 +222,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-        """
+"""
 
         when:
         run 'show'
@@ -257,9 +249,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                 maven { url '${mavenRepo.uri}' }
             }
             configurations {
-                compile {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                compile
             }
             dependencies {
                 compile 'test:test-jar:1.2'
@@ -289,7 +279,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-        """
+"""
 
         when:
         run 'show'
@@ -314,9 +304,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                 ivy { url '${ivyRepo.uri}' }
             }
             configurations {
-                compile {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                compile
             }
             dependencies {
                 compile 'test:test-jar:1.2'
@@ -346,7 +334,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-        """
+"""
 
         when:
         run 'show'
@@ -360,9 +348,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
     def "can attach attributes to an artifact provided by a file dependency"() {
         buildFile << """
             configurations {
-                compile {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                compile
             }
             dependencies {
                 compile files('test.jar')
@@ -392,7 +378,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-        """
+"""
 
         when:
         run 'show'
@@ -427,9 +413,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
             }
 
             configurations {
-                compile {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                compile
             }
             dependencies {
                 compile project(':a')
@@ -459,7 +443,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-        """
+"""
 
         when:
         run 'show'
@@ -489,9 +473,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     maven { url '${mavenRepo.uri}' }
                 }
                 configurations {
-                    compile {
-                        attributes.attribute(Attribute.of("test", String), "test")
-                    }
+                    compile
                     create('default') { extendsFrom configurations.compile }
                 }
                 task show {
@@ -542,7 +524,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-        """
+"""
 
         when:
         run ':a:show'
@@ -556,7 +538,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         run ':b:show'
 
         then:
-        outputContains("a.jar {artifactType=jar, test=test}")
+        outputContains("a.jar {artifactType=jar}")
         outputContains("test-jar-1.2.jar {artifactType=jar, org.gradle.status=release}")
         outputContains("test-aar-1.2.aar {artifactType=android-lib, org.gradle.status=release}")
         outputContains("test-thing-1.2.thing {artifactType=a-thing, org.gradle.status=release, usage=a-thing}")

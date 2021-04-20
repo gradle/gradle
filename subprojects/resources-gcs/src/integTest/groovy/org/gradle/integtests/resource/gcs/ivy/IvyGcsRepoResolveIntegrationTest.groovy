@@ -61,11 +61,7 @@ class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInteg
                     }
                 }
             }
-            configurations {
-                compile {
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
-                }
-            }
+            configurations { compile }
             dependencies { compile 'org.group.name:projectA:1.2' }
             task retrieve(type: Sync) {
                 from configurations.compile

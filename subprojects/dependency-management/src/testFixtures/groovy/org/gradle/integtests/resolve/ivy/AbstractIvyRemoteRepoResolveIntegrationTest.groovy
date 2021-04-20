@@ -52,11 +52,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
                     layout '$layout'
                 }
             }
-            configurations {
-                compile {
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
-                }
-            }
+            configurations { compile }
             dependencies { compile 'org.group.name:projectA:1.2' }
             task retrieve(type: Sync) {
                 from configurations.compile
@@ -98,11 +94,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
                     }
                 }
             }
-            configurations {
-                compile {
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
-                }
-            }
+            configurations { compile }
             dependencies { compile 'org.group.name:projectA:1.2' }
             task retrieve(type: Sync) {
                 from configurations.compile
@@ -151,11 +143,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
                     ivyPattern "${companyIvyRepo.ivyPattern}"
                 }
             }
-            configurations {
-                compile {
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
-                }
-            }
+            configurations { compile }
             dependencies {
                 compile 'other:3rdParty:1.2', 'company:original:1.1'
             }
@@ -185,7 +173,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
     }
 
     @ToBeFixedForConfigurationCache
-    void "can resolve and cache dependencies from multiple remote Ivy repositories"() {
+    public void "can resolve and cache dependencies from multiple remote Ivy repositories"() {
         given:
         def repo1 = server.getRemoteIvyRepo("/repo1")
         def repo2 = server.getRemoteIvyRepo("/repo2")
@@ -210,7 +198,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             configurations {
                 compile {
                     resolutionStrategy.cacheChangingModulesFor(0, "seconds")
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
                 }
             }
             dependencies {
@@ -245,7 +232,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
     }
 
     @ToBeFixedForConfigurationCache
-    void "can resolve and cache dependencies from a remote Ivy repository"() {
+    public void "can resolve and cache dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
         module.publish()
@@ -261,7 +248,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             configurations {
                 compile {
                     resolutionStrategy.cacheChangingModulesFor(0, "seconds")
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
                 }
             }
             dependencies { compile 'group:projectA:1.2' }
@@ -304,7 +290,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             configurations {
                 compile {
                     resolutionStrategy.cacheChangingModulesFor(0, "seconds")
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
                 }
             }
             dependencies { compile 'group:projectA:1.2@jar' }
@@ -349,7 +334,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             configurations {
                 compile {
                     resolutionStrategy.cacheChangingModulesFor(0, "seconds")
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
                 }
             }
             dependencies { compile 'group:projectA:1.2@jar' }
@@ -386,7 +370,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             configurations {
                 compile {
                     resolutionStrategy.cacheChangingModulesFor(0, "seconds")
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
                 }
             }
             dependencies {

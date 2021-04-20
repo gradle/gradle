@@ -166,9 +166,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
             $repoBlock
 
             configurations {
-                $testConfiguration {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                $testConfiguration
             }
         """
         resolve.addDefaultVariantDerivationStrategy()

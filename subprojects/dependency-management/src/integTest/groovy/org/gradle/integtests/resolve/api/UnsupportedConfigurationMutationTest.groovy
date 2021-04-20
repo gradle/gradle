@@ -27,11 +27,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow adding dependencies to a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             dependencies { a files("some.jar") }
         """
@@ -41,11 +37,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow adding artifacts to a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             artifacts { a file("some.jar") }
         """
@@ -55,11 +47,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow changing excludes on a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             configurations.a.exclude group: 'someGroup'
         """
@@ -69,11 +57,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow changing conflict resolution on a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             configurations.a.resolutionStrategy.failOnVersionConflict()
         """
@@ -84,11 +68,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow changing forced versions on a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             configurations.a.resolutionStrategy.force "org.utils:api:1.3"
         """
@@ -99,11 +79,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow changing cache policy on a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             configurations.a.resolutionStrategy.cacheChangingModulesFor 0, "seconds"
         """
@@ -115,11 +91,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow changing resolution rules on a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             configurations.a.resolutionStrategy.eachDependency {}
         """
@@ -131,11 +103,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow changing substitution rules on a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             configurations.a.resolutionStrategy.dependencySubstitution.all {}
         """
@@ -147,11 +115,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow changing component selection rules on a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             configurations.a.resolutionStrategy.componentSelection.all {}
         """
@@ -171,16 +135,9 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 configurations {
-                    compile {
-                        attributes.attribute(Attribute.of("test", String), "test")
-                    }
-                    testCompile {
-                        extendsFrom compile
-                        attributes.attribute(Attribute.of("test", String), "testCompile")
-                    }
-                    'default' {
-                        extendsFrom compile
-                    }
+                    compile
+                    testCompile { extendsFrom compile }
+                    'default' { extendsFrom compile }
                 }
                 configurations.all {
                     resolutionStrategy.assumeFluidDependencies()
@@ -263,13 +220,8 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 configurations {
-                    compile {
-                        attributes.attribute(Attribute.of("test", String), "test")
-                    }
-                    testCompile {
-                        extendsFrom compile
-                        attributes.attribute(Attribute.of("test", String), "testCompile")
-                    }
+                    compile
+                    testCompile { extendsFrom compile }
                     'default' { extendsFrom compile }
                 }
                 configurations.all {
@@ -324,10 +276,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations {
                 a
                 b.extendsFrom a
-                c {
-                    extendsFrom b
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                c.extendsFrom b
             }
             configurations.c.resolve()
             dependencies { a files("some.jar") }
@@ -345,10 +294,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations {
                 a
                 b.extendsFrom a
-                c {
-                    extendsFrom b
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                c.extendsFrom b
             }
             configurations.c.resolve()
             artifacts { a file("some.jar") }
@@ -366,10 +312,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations {
                 a
                 b.extendsFrom a
-                c {
-                    extendsFrom b
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                c.extendsFrom b
             }
             configurations.c.resolve()
             configurations.a.exclude group: 'someGroup'
@@ -386,10 +329,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations {
                 a
                 b.extendsFrom a
-                c {
-                    extendsFrom b
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                c.extendsFrom b
             }
             configurations.c.resolve()
             configurations.a.resolutionStrategy.failOnVersionConflict()
@@ -407,10 +347,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         buildFile << """
             configurations {
                 a
-                b {
-                    extendsFrom a
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                b.extendsFrom a
             }
             configurations.b.resolve()
             configurations.a.exclude group: 'someGroup'
@@ -429,10 +366,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         buildFile << """
             configurations {
                 a
-                b {
-                    extendsFrom a
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                b.extendsFrom a
                 b.resolve()
                 a.description = 'some conf'
             }
@@ -445,9 +379,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         buildFile << """
             configurations {
                 a
-                b {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                b
                 b.resolve()
             }
             dependencies { a "a:b:c" }
@@ -459,9 +391,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         buildFile << """
             configurations {
                 a
-                b {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                b
             }
             dependencies { b files("some.jar") }
             configurations.b.resolve()
@@ -475,9 +405,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         buildFile << """
             allprojects {
                 configurations {
-                    compile {
-                        attributes.attribute(Attribute.of("test", String), "test")
-                    }
+                    compile
                     'default' { extendsFrom compile }
                 }
             }
@@ -508,29 +436,24 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         repo.module('org.test', 'moduleA', '1.0').publish()
 
         buildFile << """
-            configurations {
-                parentConfig {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-                childConfig {
-                    extendsFrom parentConfig
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
-            dependencies {
-              // Parent must have at least 1 dependency to force resolution
-              parentConfig "org.test:moduleA:1.0"
-            }
-            repositories {
-                maven { url '$repo.uri' }
-            }
+configurations {
+    parentConfig
+    childConfig.extendsFrom parentConfig
+}
+dependencies {
+  // Parent must have at least 1 dependency to force resolution
+  parentConfig "org.test:moduleA:1.0"
+}
+repositories {
+    maven { url '$repo.uri' }
+}
 
-            task resolveChildFirst {
-                doLast {
-                    configurations.childConfig.resolve()
-                    configurations.parentConfig.resolve()
-                }
-            }
+task resolveChildFirst {
+    doLast {
+        configurations.childConfig.resolve()
+        configurations.parentConfig.resolve()
+    }
+}
         """
 
         when:
@@ -542,11 +465,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
     def "does not allow adding attributes to a configuration that has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             configurations.a.attributes { attribute(Attribute.of('foo', String), 'bar') }
         """
@@ -557,11 +476,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot change the configuration role (#code) after it has been resolved"() {
         buildFile << """
-            configurations {
-                a {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
-            }
+            configurations { a }
             configurations.a.resolve()
             ${code}
         """

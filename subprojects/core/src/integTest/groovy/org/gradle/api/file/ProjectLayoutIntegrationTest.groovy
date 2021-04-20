@@ -304,9 +304,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         file('src/resource/file.txt') << "some text"
         buildFile << """
             configurations {
-                other {
-                    attributes.attribute(Attribute.of("test", String), "test")
-                }
+                other
             }
 
             dependencies {

@@ -23,20 +23,18 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
-            rootProject.name = 'test'
-        """
+rootProject.name = 'test'
+"""
         buildFile << """
-            allprojects {
-                configurations {
-                    compile {
-                        attributes.attribute(Attribute.of("test", String), "test")
-                    }
-                    "default" {
-                        extendsFrom compile
-                    }
-                }
-            }
-        """
+allprojects {
+    configurations {
+        compile
+        "default" {
+            extendsFrom compile
+        }
+    }
+}
+"""
     }
 
     def "artifacts may have no extension"() {
@@ -47,24 +45,24 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         m1.publish()
 
         buildFile << """
-            allprojects {
-                repositories { ivy { url '$ivyHttpRepo.uri' } }
-            }
-            dependencies {
-                compile 'org:test:1.0'
-            }
+allprojects {
+    repositories { ivy { url '$ivyHttpRepo.uri' } }
+}
+dependencies {
+    compile 'org:test:1.0'
+}
 
-            task show {
-                inputs.files configurations.compile
-                doLast {
-                    println "files: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }
-                    println "display-names: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.toString() }
-                    println "ids: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.id.toString() }
-                    println "names: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\$it.name:\$it.extension:\$it.type" }
-                    println "classifiers: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.classifier }
-                }
-            }
-        """
+task show {
+    inputs.files configurations.compile
+    doLast {
+        println "files: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }
+        println "display-names: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.toString() }
+        println "ids: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.id.toString() }
+        println "names: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\$it.name:\$it.extension:\$it.type" }
+        println "classifiers: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.classifier }
+    }
+}
+"""
 
         when:
         m1.ivy.expectGet()
@@ -96,7 +94,7 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
                     configurations.compile.resolvedConfiguration.resolvedArtifacts
                 }
             }
-        """
+"""
 
         when:
         def m1 = mavenHttpRepo.module("test", "test1", "1.2")
@@ -129,7 +127,7 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
                     configurations.compile.resolvedConfiguration.resolvedArtifacts.each { it.file }
                 }
             }
-        """
+"""
 
         when:
         def m1 = mavenHttpRepo.module("test", "test1", "1.2").publish()

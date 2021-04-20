@@ -39,21 +39,17 @@ class MavenGcsRepoResolveIntegrationTest extends AbstractGcsDependencyResolution
 
         buildFile << mavenGcsRepoDsl()
         buildFile << """
-            configurations {
-                compile {
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
-                }
-            }
+configurations { compile }
 
-            dependencies{
-                compile 'org.gradle:test:$artifactVersion'
-            }
+dependencies{
+    compile 'org.gradle:test:$artifactVersion'
+}
 
-            task retrieve(type: Sync) {
-                from configurations.compile
-                into 'libs'
-            }
-        """
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
         and:
         module.pom.expectDownload()
         module.artifact.expectDownload()
@@ -77,21 +73,17 @@ class MavenGcsRepoResolveIntegrationTest extends AbstractGcsDependencyResolution
 
         buildFile << mavenGcsRepoDsl()
         buildFile << """
-            configurations {
-                compile {
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
-                }
-            }
+configurations { compile }
 
-            dependencies{
-                compile 'org.gradle:test:$artifactVersion'
-            }
+dependencies{
+    compile 'org.gradle:test:$artifactVersion'
+}
 
-            task retrieve(type: Sync) {
-                from configurations.compile
-                into 'libs'
-            }
-        """
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
         and:
         module.pom.expectMetadataRetrieve()
         module.pom.sha1.expectDownload()
@@ -121,21 +113,17 @@ class MavenGcsRepoResolveIntegrationTest extends AbstractGcsDependencyResolution
 
         buildFile << mavenGcsRepoDsl()
         buildFile << """
-            configurations {
-                compile {
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "compile"))
-                }
-            }
+configurations { compile }
 
-            dependencies{
-                compile 'org.gradle:test:$artifactVersion'
-            }
+dependencies{
+    compile 'org.gradle:test:$artifactVersion'
+}
 
-            task retrieve(type: Sync) {
-                from configurations.compile
-                into 'libs'
-            }
-        """
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
         and:
         module.pom.expectMetadataRetrieve()
         module.pom.sha1.expectDownload()
