@@ -19,29 +19,17 @@ package org.gradle.api.plugins.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
-import org.gradle.api.java.archives.internal.DefaultManifest;
-import org.gradle.api.jvm.ModularitySpec;
-import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.Actions;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
-import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
-import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public class DefaultJavaPluginConvention extends JavaPluginConvention implements HasPublicType {
 
