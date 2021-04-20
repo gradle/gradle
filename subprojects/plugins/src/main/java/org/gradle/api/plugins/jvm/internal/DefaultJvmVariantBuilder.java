@@ -222,8 +222,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
 
         final AdhocComponentWithVariants component = findJavaComponent();
         JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-        JavaPluginConvention javaPluginConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-        configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension, javaPluginConvention::getDocsDir);
+        configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension, javaPluginExtension::getDocsDir);
         if (javadocJar) {
             configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), mainSourceSet ? null : name, displayName, JAVADOC, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component);
         }

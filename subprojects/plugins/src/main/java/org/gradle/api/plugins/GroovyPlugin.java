@@ -44,8 +44,7 @@ public class GroovyPlugin implements Plugin<Project> {
             groovyDoc.setDescription("Generates Groovydoc API documentation for the main source code.");
             groovyDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
 
-            JavaPluginConvention convention = project.getConvention().getPlugin(JavaPluginConvention.class);
-            SourceSet sourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            SourceSet sourceSet = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             groovyDoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
 
             GroovySourceSet groovySourceSet = new DslObject(sourceSet).getConvention().getPlugin(GroovySourceSet.class);

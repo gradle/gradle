@@ -66,13 +66,13 @@ public class WarPlugin implements Plugin<Project> {
 
         project.getTasks().withType(War.class).configureEach(task -> {
             task.from((Callable) () -> pluginConvention.getWebAppDir());
-            task.dependsOn((Callable) () -> project.getConvention()
-                .getPlugin(JavaPluginConvention.class)
+            task.dependsOn((Callable) () -> project.getExtensions()
+                .getByType(JavaPluginExtension.class)
                 .getSourceSets()
                 .getByName(SourceSet.MAIN_SOURCE_SET_NAME)
                 .getRuntimeClasspath());
             task.classpath((Callable) () -> {
-                FileCollection runtimeClasspath = project.getConvention().getPlugin(JavaPluginConvention.class)
+                FileCollection runtimeClasspath = project.getExtensions().getByType(JavaPluginExtension.class)
                     .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                 Configuration providedRuntime = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME);
                 return runtimeClasspath.minus(providedRuntime);

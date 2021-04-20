@@ -89,7 +89,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureSourceSetDefaults() {
-        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(sourceSet -> {
+        project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(sourceSet -> {
             final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
             new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
@@ -133,14 +133,10 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
                 return groovyClasspath.plus(jansi);
             });
-            groovydoc.getConventionMapping().map("destinationDir", () -> new File(java(project.getConvention()).getDocsDir(), "groovydoc"));
+            groovydoc.getConventionMapping().map("destinationDir", () -> new File(project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir(), "groovydoc"));
             groovydoc.getConventionMapping().map("docTitle", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             groovydoc.getConventionMapping().map("windowTitle", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
         });
-    }
-
-    private JavaPluginConvention java(Convention convention) {
-        return convention.getPlugin(JavaPluginConvention.class);
     }
 
     private <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
