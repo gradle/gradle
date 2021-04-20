@@ -259,7 +259,7 @@ inline fun <reified T : Task> TaskContainer.register(name: String, noinline conf
  *
  * @see [TaskContainer.register]
  */
-inline fun <reified T : Task> TaskContainer.register(name: String, vararg arguments: Any): TaskProvider<T> =
+inline fun <reified T : Task> TaskContainer.register(name: String, vararg arguments: Any?): TaskProvider<T> =
     register(name, T::class.java, *arguments)
 
 
@@ -267,5 +267,5 @@ inline fun <reified T : Task> TaskContainer.register(name: String, vararg argume
  * Creates a [Task] with the given [name] and type, passing the given arguments to the [javax.inject.Inject]-annotated constructor,
  * and adds it to this project tasks container.
  */
-inline fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any): T =
+inline fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any?): T =
     create(name, T::class.java, *arguments)

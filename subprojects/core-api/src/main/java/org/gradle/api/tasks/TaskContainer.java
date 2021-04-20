@@ -185,7 +185,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      * @since 4.7
      */
-    <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
+    <T extends Task> T create(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} with the given name and type, configures it with the given action, and adds it to this container.</p>
@@ -261,7 +261,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
      * @since 4.9
      */
-    <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
+    <T extends Task> TaskProvider<T> register(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException;
 
     /**
      * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(java.lang.String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
