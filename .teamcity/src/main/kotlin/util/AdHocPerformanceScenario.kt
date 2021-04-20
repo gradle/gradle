@@ -56,7 +56,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
             else -> {
                 profilerParam("jfr")
                 param("env.FG_HOME_DIR", "/opt/FlameGraph")
-                param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
+                param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin:/opt/swift/4.2.4-RELEASE-ubuntu18.04/usr/bin")
                 param("env.HP_HOME_DIR", "/opt/honest-profiler")
             }
         }
