@@ -28,7 +28,7 @@ import java.util.TreeSet;
  * @since 6.8
  */
 @Incubating
-public abstract class ProjectBasedReportTask extends AbstractReportTask {
+public abstract class ProjectBasedReportTask extends ConventionReportTask {
 
     protected abstract void generate(Project project) throws IOException;
 
