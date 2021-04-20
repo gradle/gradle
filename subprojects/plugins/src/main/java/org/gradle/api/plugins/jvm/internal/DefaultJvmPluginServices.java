@@ -210,8 +210,8 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     private <COMPILE extends AbstractCompile & HasCompileOptions> Action<ConfigurationInternal> configureDefaultTargetPlatform(boolean alwaysEnabled, Set<TaskProvider<COMPILE>> compileTasks) {
         return conf -> {
-            JavaPluginExtension javaConvention = project.getExtensions().getByType(JavaPluginExtension.class);
-            if (alwaysEnabled || javaConvention == null || !javaConvention.getAutoTargetJvmDisabled()) {
+            JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
+            if (alwaysEnabled || javaPluginExtension == null || !javaPluginExtension.getAutoTargetJvmDisabled()) {
                 int majorVersion = 0;
                 for (TaskProvider<COMPILE> compileTaskProvider : compileTasks) {
                     COMPILE compileTask = compileTaskProvider.get();

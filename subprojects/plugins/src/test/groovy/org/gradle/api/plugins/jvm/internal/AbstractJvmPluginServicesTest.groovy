@@ -19,9 +19,11 @@ package org.gradle.api.plugins.jvm.internal
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.plugins.Convention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -40,6 +42,9 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
         }
         getConvention() >> Stub(Convention) {
             findPlugin(_) >> null
+        }
+        getExtensions() >> Stub(ExtensionContainerInternal) {
+            findByType(_) >> null
         }
         getTasks() >> tasks
         getConfigurations() >> configurations
