@@ -34,6 +34,7 @@ import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.util.IncubationLogger
 import java.io.File
@@ -45,14 +46,17 @@ class DefaultConfigurationCache internal constructor(
     private val host: Host,
     private val startParameter: ConfigurationCacheStartParameter,
     private val buildEnablement: ConfigurationCacheBuildEnablement,
-    private val cacheRepository: ConfigurationCacheRepository,
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
     private val systemPropertyListener: SystemPropertyAccessListener,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheIO: ConfigurationCacheIO,
-    private val cacheFingerprintController: ConfigurationCacheFingerprintController,
-    private val gradlePropertiesController: GradlePropertiesController
+    private val gradlePropertiesController: GradlePropertiesController,
+    /**
+     * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
+     */
+    @Suppress("unused")
+    private val fileSystemAccess: FileSystemAccess
 ) : ConfigurationCache {
 
     interface Host {
@@ -252,6 +256,16 @@ class DefaultConfigurationCache internal constructor(
                 }
             }
         }
+
+    private
+    val cacheFingerprintController: ConfigurationCacheFingerprintController by lazy {
+        service()
+    }
+
+    private
+    val cacheRepository: ConfigurationCacheRepository by lazy {
+        service()
+    }
 
     private
     fun registerWatchableBuildDirectories(buildDirs: Set<File>) {
