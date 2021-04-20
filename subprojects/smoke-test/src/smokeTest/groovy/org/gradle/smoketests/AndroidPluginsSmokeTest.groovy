@@ -46,9 +46,6 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     @UnsupportedWithConfigurationCache
     def "can use sourceSets task with android library and application build (agp=#agpVersion, ide=#ide)"() {
         given:
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
-
-        and:
         androidLibraryAndApplicationBuild(agpVersion)
 
         and:
