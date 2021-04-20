@@ -19,14 +19,20 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.BasePluginExtension;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 
 @Deprecated
-public class DefaultBasePluginConvention extends BasePluginConvention {
+public class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
 
     private BasePluginExtension extension;
 
     public DefaultBasePluginConvention(BasePluginExtension extension) {
         this.extension = extension;
+    }
+    @Override
+    public TypeOf<?> getPublicType() {
+        return TypeOf.typeOf(BasePluginConvention.class);
     }
 
     @Override
