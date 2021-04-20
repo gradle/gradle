@@ -1,7 +1,6 @@
 plugins {
     id("gradlebuild.internal.java")
     application
-    id("gradlebuild.dependency-modules")
 }
 
 repositories {
