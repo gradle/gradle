@@ -66,10 +66,17 @@ A standard configuration for the production artifacts of a project.
 
 Note that the `assemble` task generates all artifacts that are attached to the `archives` configuration.
 
-[[sec:base_plugin_conventions]]
-== Conventions
+[[sec:base_plugin_extension]]
+== Contributed extensions
 
-The Base Plugin only adds conventions related to the creation of archives, such as ZIPs, TARs and JARs. Specifically, it provides the following project properties that you can set:
+The Base Plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[`base` extension] to the project.
+This allows to configure the following properties inside a dedicated DSL block.
+
+.Using the `base` extension
+====
+include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build.gradle[tags=base-plugin-config]"]
+include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build.gradle.kts[tags=base-plugin-config]"]
+====
 
 `archivesBaseName` — default: `$project.name`::
 Provides the default link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveBaseName[AbstractArchiveTask.getArchiveBaseName()] for archive tasks.
@@ -90,3 +97,10 @@ Defaults to `$project.version` or 'unspecified' if the project has no version.
 
 `archiveBaseName`::
 Defaults to `$archivesBaseName`.
+
+[[sec:base_plugin_conventions]]
+== Conventions (deprecated)
+
+The Base Plugin also adds conventions related to the creation of archives, such as ZIPs, TARs and JARs.
+These are *deprecated* and superseded by the extension described above.
+See the link:{groovyDslPath}/org.gradle.api.plugins.BasePluginConvention.html[BasePluginConvention] DSL documentation for information on them.

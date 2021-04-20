@@ -3,9 +3,12 @@ plugins {
 }
 
 version = "1.0"
+
+// tag::base-plugin-config[]
 base {
     archivesBaseName = "gradle"
 }
+// end::base-plugin-config[]
 
 val myZip by tasks.registering(Zip::class) {
     from("somedir")

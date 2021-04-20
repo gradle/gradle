@@ -31,7 +31,7 @@ import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
- * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
+ * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/base_plugin.html">Base plugin reference</a>
  */

@@ -1,6 +1,7 @@
 <plugins>
     <plugin id="java" description="Java Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.BasePluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.BasePluginExtension"/>
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.JavaPluginConvention"/>
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.JavaPluginExtension"/>
         <extends targetClass="org.gradle.api.Project" id="reporting" extensionClass="org.gradle.api.reporting.ReportingExtension"/>

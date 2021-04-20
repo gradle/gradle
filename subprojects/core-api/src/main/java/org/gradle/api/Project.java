@@ -1246,7 +1246,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return The <code>Convention</code>. Never returns null.
      */
-    Convention getConvention(); // TODO (donat) deprecate after all internal usages have been eliminated
+    Convention getConvention();
 
     /**
      * <p>Compares the nesting level of this project with another project of the multi-project hierarchy.</p>
