@@ -31,6 +31,8 @@ import java.io.File;
 public class BuildSessionScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
     public BuildSessionScopeFileTimeStampInspector(File workDir) {
         super(workDir);
+        // `afterStart` is called too early for this build session scope service to capture it.
+        updateOnStartBuild();
     }
 
     @Override
