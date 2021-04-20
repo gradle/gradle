@@ -132,9 +132,9 @@ public class JavaBasePlugin implements Plugin<Project> {
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
         DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
-        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, sourceSets, toolchainSpec);
+        JavaPluginExtension javaPluginExtension = project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
+        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(javaPluginExtension);
         project.getConvention().getPlugins().put("java", javaConvention);
-        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices, toolchainSpec);
         project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaConvention;
     }
@@ -275,12 +275,11 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
-        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-        DefaultJavaPluginConvention defaultJavaPluginConvention = (DefaultJavaPluginConvention) javaConvention;
+        DefaultJavaPluginExtension javaExtension = (DefaultJavaPluginExtension) project.getExtensions().getByType(JavaPluginExtension.class);
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
             ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaExtension, defaultJavaPluginConvention::getSourceCompatibility, defaultJavaPluginConvention::getRawSourceCompatibility));
-            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaExtension, defaultJavaPluginConvention::getTargetCompatibility, defaultJavaPluginConvention::getRawTargetCompatibility));
+            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaExtension, javaExtension::getSourceCompatibility, javaExtension::getRawSourceCompatibility));
+            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaExtension, javaExtension::getTargetCompatibility, javaExtension::getRawTargetCompatibility));
         });
     }
 

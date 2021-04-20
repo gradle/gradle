@@ -16,12 +16,18 @@
 
 package org.gradle.api.plugins;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.jvm.ModularitySpec;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+
+import java.io.File;
 
 /**
  * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
@@ -155,4 +161,117 @@ public interface JavaPluginExtension {
     @Incubating
     void consistentResolution(Action<? super JavaResolutionConsistency> action);
 
+
+    /**
+     * Configures the source sets of this project.
+     *
+     * <p>The given closure is executed to configure the {@link SourceSetContainer}. The {@link SourceSetContainer}
+     * is passed to the closure as its delegate.
+     * <p>
+     * See the example below how {@link org.gradle.api.tasks.SourceSet} 'main' is accessed and how the {@link org.gradle.api.file.SourceDirectorySet} 'java'
+     * is configured to exclude some package from compilation.
+     *
+     * <pre class='autoTested'>
+     * plugins {
+     *     id 'java'
+     * }
+     *
+     * sourceSets {
+     *   main {
+     *     java {
+     *       exclude 'some/unwanted/package/**'
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * @param closure The closure to execute.
+     * @return NamedDomainObjectContainer&lt;org.gradle.api.tasks.SourceSet&gt;
+     */
+    Object sourceSets(Closure closure);
+
+    /**
+     * Returns a file pointing to the root directory supposed to be used for all docs.
+     */
+    File getDocsDir();
+
+    /**
+     * Returns a file pointing to the root directory of the test results.
+     */
+    File getTestResultsDir();
+
+    /**
+     * Returns a file pointing to the root directory to be used for reports.
+     */
+    File getTestReportDir();
+
+    /**
+     * Sets the source compatibility used for compiling Java sources.
+     *
+     * @param value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
+     */
+    void setSourceCompatibility(Object value);
+
+    /**
+     * Sets the target compatibility used for compiling Java sources.
+     *
+     * @param value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
+     */
+    void setTargetCompatibility(Object value);
+
+    /**
+     * Creates a new instance of a {@link Manifest}.
+     */
+    Manifest manifest();
+
+    /**
+     * Creates and configures a new instance of a {@link Manifest}. The given closure configures
+     * the new manifest instance before it is returned.
+     *
+     * @param closure The closure to use to configure the manifest.
+     */
+    Manifest manifest(Closure closure);
+
+    /**
+     * Creates and configures a new instance of a {@link Manifest}.
+     *
+     * @param action The action to use to configure the manifest.
+     * @since 3.5
+     */
+    Manifest manifest(Action<? super Manifest> action);
+
+    /**
+     * The name of the docs directory. Can be a name or a path relative to the build dir.
+     */
+    String getDocsDirName();
+
+    void setDocsDirName(String docsDirName);
+
+    /**
+     * The name of the test results directory. Can be a name or a path relative to the build dir.
+     */
+    String getTestResultsDirName();
+
+    void setTestResultsDirName(String testResultsDirName);
+
+    /**
+     * The name of the test reports directory. Can be a name or a path relative to {@link org.gradle.api.reporting.ReportingExtension#getBaseDir}.
+     */
+    String getTestReportDirName();
+
+    void setTestReportDirName(String testReportDirName);
+
+    /**
+     * The source sets container.
+     */
+    SourceSetContainer getSourceSets();
+
+    ProjectInternal getProject();
+
+    /**
+     * Tells if automatic JVM targeting is enabled. When disabled, Gradle
+     * will not automatically try to get dependencies corresponding to the
+     * same (or compatible) level as the target compatibility of this module.
+     */
+    boolean getAutoTargetJvmDisabled();
 }
