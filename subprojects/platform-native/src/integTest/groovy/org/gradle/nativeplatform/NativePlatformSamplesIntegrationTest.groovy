@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
@@ -31,6 +32,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_3
 import static org.junit.Assume.assumeTrue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@Ignore("https://github.com/gradle/gradle-private/issues/3369")
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample cppLib = sample(testDirectoryProvider, 'cpp-lib')
     @Rule public final Sample cppExe = sample(testDirectoryProvider, 'cpp-exe')
