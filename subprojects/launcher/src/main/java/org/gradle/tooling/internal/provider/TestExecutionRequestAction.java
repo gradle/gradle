@@ -43,7 +43,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final InternalDebugOptions debugOptions;
     private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
 
-    private TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests) {
+    public TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;
@@ -117,15 +117,15 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         return false;
     }
 
-    public Collection<String> getTestClassNames() {
+    public Set<String> getTestClassNames() {
         return classNames;
     }
 
-    public Collection<InternalJvmTestRequest> getInternalJvmTestRequests() {
+    public Set<InternalJvmTestRequest> getInternalJvmTestRequests() {
         return internalJvmTestRequests;
     }
 
-    public Collection<InternalTestDescriptor> getTestExecutionDescriptors() {
+    public Set<InternalTestDescriptor> getTestExecutionDescriptors() {
         return testDescriptors;
     }
 

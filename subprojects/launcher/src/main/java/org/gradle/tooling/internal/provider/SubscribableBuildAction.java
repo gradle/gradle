@@ -19,9 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.invocation.BuildAction;
 
-import java.io.Serializable;
-
-public abstract class SubscribableBuildAction implements BuildAction, Serializable {
+public abstract class SubscribableBuildAction implements BuildAction {
     private final BuildEventSubscriptions clientSubscriptions;
 
     public SubscribableBuildAction(BuildEventSubscriptions clientSubscriptions) {

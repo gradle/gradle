@@ -479,7 +479,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCache(value);
+            settings.setConfigurationCache(BuildOption.Value.value(value));
         }
     }
 
@@ -490,7 +490,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCache(value);
+            settings.setIsolatedProjects(Value.value(value));
         }
     }
 

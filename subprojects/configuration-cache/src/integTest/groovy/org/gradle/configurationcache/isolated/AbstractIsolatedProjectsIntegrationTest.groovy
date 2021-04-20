@@ -19,9 +19,11 @@ package org.gradle.configurationcache.isolated
 import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
 
 abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractOptInFeatureIntegrationTest {
+    public static final String ENABLE_CLI = "-Dorg.gradle.unsafe.isolated-projects=true"
+
     @Override
     void configurationCacheRun(String... tasks) {
-        run("-Dorg.gradle.unsafe.isolated-projects=true", *tasks)
+        run(ENABLE_CLI, *tasks)
     }
 
     @Override
@@ -31,6 +33,6 @@ abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractOptInFeat
 
     @Override
     void configurationCacheFails(String... tasks) {
-        throw new UnsupportedOperationException()
+        fails(ENABLE_CLI, *tasks)
     }
 }

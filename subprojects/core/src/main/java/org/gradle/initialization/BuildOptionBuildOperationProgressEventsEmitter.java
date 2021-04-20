@@ -36,7 +36,7 @@ public class BuildOptionBuildOperationProgressEventsEmitter {
         eventEmitter.emitNowForCurrent(new ConfigurationCacheSettingsFinalizedProgressDetails() {
             @Override
             public boolean isEnabled() {
-                return startParameterInternal.isConfigurationCache();
+                return startParameterInternal.getConfigurationCache().get();
             }
         });
     }

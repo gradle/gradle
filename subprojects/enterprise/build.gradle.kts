@@ -9,6 +9,7 @@ dependencies {
     implementation(libs.inject)
     implementation(project(":logging"))
     implementation(project(":core-api"))
+    implementation(project(":build-option"))
     implementation(project(":core"))
     implementation(project(":launcher"))
     implementation(project(":snapshots"))

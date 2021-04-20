@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
+import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.Nullable;
@@ -37,7 +38,8 @@ public class StartParameterInternal extends StartParameter {
     private boolean watchFileSystemDebugLogging;
     private boolean vfsVerboseLogging;
 
-    private boolean configurationCache;
+    private BuildOption.Value<Boolean> configurationCache = BuildOption.Value.defaultValue(false);
+    private BuildOption.Value<Boolean> isolatedProjects = BuildOption.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private int configurationCacheMaxProblems = 512;
     private boolean configurationCacheRecreateCache;
@@ -69,6 +71,7 @@ public class StartParameterInternal extends StartParameter {
         p.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
+        p.isolatedProjects = isolatedProjects;
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
@@ -126,12 +129,20 @@ public class StartParameterInternal extends StartParameter {
         this.vfsVerboseLogging = vfsVerboseLogging;
     }
 
-    public boolean isConfigurationCache() {
+    public BuildOption.Value<Boolean> getConfigurationCache() {
         return configurationCache;
     }
 
-    public void setConfigurationCache(boolean configurationCache) {
+    public void setConfigurationCache(BuildOption.Value<Boolean> configurationCache) {
         this.configurationCache = configurationCache;
+    }
+
+    public BuildOption.Value<Boolean> getIsolatedProjects() {
+        return isolatedProjects;
+    }
+
+    public void setIsolatedProjects(BuildOption.Value<Boolean> isolatedProjects) {
+        this.isolatedProjects = isolatedProjects;
     }
 
     public ConfigurationCacheProblemsOption.Value getConfigurationCacheProblems() {

@@ -25,6 +25,7 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions
 import org.gradle.tooling.internal.provider.BuildModelAction
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
+import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Unroll
@@ -71,16 +72,55 @@ class BuildActionSerializerTest extends SerializerSpec {
             .collect { it.name }
     }
 
-    def "serializes other actions #action.class"() {
+    def "serializes BuildModelAction"() {
+        def startParameter = new StartParameterInternal()
+        startParameter.taskNames = ['a', 'b']
+        def action = new BuildModelAction(startParameter, "model", true, new BuildEventSubscriptions([OperationType.TASK] as Set))
+
         expect:
         def result = serialize(action, BuildActionSerializer.create())
-        result.class == action.class
+        result instanceof BuildModelAction
+        result.startParameter.taskNames == ['a', 'b']
+        result.modelName == "model"
+        result.runTasks
+        result.clientSubscriptions.operationTypes == [OperationType.TASK] as Set
+    }
 
-        where:
-        action << [
-            new ClientProvidedBuildAction(new StartParameterInternal(), new SerializedPayload(null, []), true, new BuildEventSubscriptions(EnumSet.allOf(OperationType))),
-            new TestExecutionRequestAction(new BuildEventSubscriptions(EnumSet.allOf(OperationType)), new StartParameterInternal(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new DefaultDebugOptions(), Collections.emptyMap()),
-            new BuildModelAction(new StartParameterInternal(), "model", false, new BuildEventSubscriptions(EnumSet.allOf(OperationType)))
-        ]
+    def "serializes ClientProvidedBuildAction"() {
+        def startParameter = new StartParameterInternal()
+        startParameter.taskNames = ['a', 'b']
+        def action = new ClientProvidedBuildAction(startParameter, new SerializedPayload("12", []), true, new BuildEventSubscriptions([OperationType.TASK] as Set))
+
+        expect:
+        def result = serialize(action, BuildActionSerializer.create())
+        result instanceof ClientProvidedBuildAction
+        result.startParameter.taskNames == ['a', 'b']
+        result.action.header == "12"
+        result.runTasks
+        result.clientSubscriptions.operationTypes == [OperationType.TASK] as Set
+    }
+
+    def "serializes ClientProvidedPhasedAction"() {
+        def startParameter = new StartParameterInternal()
+        startParameter.taskNames = ['a', 'b']
+        def action = new ClientProvidedPhasedAction(startParameter, new SerializedPayload("12", []), true, new BuildEventSubscriptions([OperationType.TASK] as Set))
+
+        expect:
+        def result = serialize(action, BuildActionSerializer.create())
+        result instanceof ClientProvidedPhasedAction
+        result.startParameter.taskNames == ['a', 'b']
+        result.phasedAction.header == "12"
+        result.runTasks
+        result.clientSubscriptions.operationTypes == [OperationType.TASK] as Set
+    }
+
+    def "serializes TestExecutionRequestAction"() {
+        def startParameter = new StartParameterInternal()
+        def action = new TestExecutionRequestAction(new BuildEventSubscriptions([OperationType.TASK] as Set), startParameter, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new DefaultDebugOptions(), Collections.emptyMap())
+
+        expect:
+        def result = serialize(action, BuildActionSerializer.create())
+        result instanceof TestExecutionRequestAction
+        result.clientSubscriptions.operationTypes == [OperationType.TASK] as Set
     }
 }

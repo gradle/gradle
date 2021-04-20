@@ -62,7 +62,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
     private String unsupportedReason(VersionNumber pluginVersion) {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             return UNSUPPORTED_TOGGLE_MESSAGE;
-        } else if (gradle.getStartParameter().isConfigurationCache()) {
+        } else if (gradle.getStartParameter().getConfigurationCache().get()) {
             return "Build scans have been disabled due to incompatibility between your Gradle Enterprise plugin version (" + pluginVersion.toString() + ") and configuration caching. " +
                 "Please use Gradle Enterprise plugin version 3.4 or later for compatibility with configuration caching.";
         } else {

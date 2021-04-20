@@ -36,7 +36,7 @@ class ConfigurationCacheStartParameter(
     val startParameter = startParameter as StartParameterInternal
 
     val isEnabled: Boolean
-        get() = startParameter.isConfigurationCache
+        get() = startParameter.configurationCache.get()
 
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet

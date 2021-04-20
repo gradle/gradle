@@ -16,10 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
-import spock.lang.Ignore
-
 class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
-    def "flag also enables the configuration cache"() {
+    def "option also enables configuration cache"() {
         settingsFile << """
             println "configuring settings"
         """
@@ -35,6 +33,8 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
 
         then:
         configurationCache.assertStateStored()
+        outputContains(ISOLATED_PROJECTS_MESSAGE)
+        outputDoesNotContain(CONFIGURATION_CACHE_MESSAGE)
         outputContains("configuring settings")
         outputContains("configuring project")
 
@@ -43,12 +43,22 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
 
         then:
         configurationCache.assertStateLoaded()
+        outputContains(ISOLATED_PROJECTS_MESSAGE)
+        outputDoesNotContain(CONFIGURATION_CACHE_MESSAGE)
         outputDoesNotContain("configuring settings")
         outputDoesNotContain("configuring project")
     }
 
-    @Ignore
-    def "cannot disable configuration cache when flag is enabled"() {
-        expect: false
+    def "cannot disable configuration cache when option is enabled"() {
+        buildFile """
+            println "configuring project"
+            task thing { }
+        """
+
+        when:
+        configurationCacheFails("thing", "--no-configuration-cache")
+
+        then:
+        failure.assertHasDescription("The configuration cache cannot be disabled when isolated projects is enabled.")
     }
 }

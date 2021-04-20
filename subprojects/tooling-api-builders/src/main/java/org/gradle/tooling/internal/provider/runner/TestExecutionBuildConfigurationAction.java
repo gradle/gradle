@@ -64,7 +64,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         final GradleInternal gradleInternal = context.getGradle();
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
-        allTestTasksToRun.addAll(configureBuildForTestTasks(gradleInternal, testExecutionRequest));
+        allTestTasksToRun.addAll(configureBuildForTestTasks(testExecutionRequest));
         configureTestTasks(allTestTasksToRun);
         gradle.getTaskGraph().addEntryTasks(allTestTasksToRun);
     }
@@ -107,7 +107,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private List<Test> configureBuildForTestTasks(GradleInternal gradle, TestExecutionRequestAction testExecutionRequest) {
+    private List<Test> configureBuildForTestTasks(TestExecutionRequestAction testExecutionRequest) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
 
         final List<String> testTaskPaths = CollectionUtils.collect(testDescriptors, new Transformer<String, InternalTestDescriptor>() {
