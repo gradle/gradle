@@ -20,7 +20,31 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ResolutionWithoutAttributesIntegrationTest extends AbstractIntegrationSpec {
 
-    def "resolution of a configuration without attributes is deprecated"() {
+    def "resolution of a configuration without attributes is deprecated in jvm ecosystem"() {
+        when:
+        buildFile << """
+            plugins {
+                id("$jvmPlugin")
+            }
+
+            configurations {
+                withoutAttributes
+            }
+
+            tasks.register("resolveWithoutAttributes") {
+                doLast { configurations.withoutAttributes.files.forEach { println(it.name) } }
+            }
+        """
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Resolving a configuration without attributes (configurationName=withoutAttributes) has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#resolving_configuration_without_attributes")
+        succeeds("resolveWithoutAttributes")
+
+        where:
+        jvmPlugin << ["java", "java-library", "java-base", "java-platform", "groovy", "scala"]
+    }
+
+    def "configuration can be resolved without attributes"() {
         when:
         buildFile << """
             configurations {
@@ -33,7 +57,6 @@ class ResolutionWithoutAttributesIntegrationTest extends AbstractIntegrationSpec
         """
 
         then:
-        executer.expectDocumentedDeprecationWarning("Resolving a configuration without attributes (configurationName=withoutAttributes) has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#resolving_configuration_without_attributes")
         succeeds("resolveWithoutAttributes")
     }
 }

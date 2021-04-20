@@ -90,6 +90,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -607,12 +608,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
                 .nagUser();
         }
-        if (configurationAttributes.isEmpty()) {
+        if (configurationAttributes.isEmpty() && isJavaEcosystem()) {
             DeprecationLogger.deprecateAction("Resolving a configuration without attributes (configurationName=" + this.name + ")")
                 .willBecomeAnErrorInGradle8()
                 .withUpgradeGuideSection(7, "resolving_configuration_without_attributes")
                 .nagUser();
         }
+    }
+
+    private boolean isJavaEcosystem() {
+        if (owner instanceof ProjectInternal) {
+            ProjectInternal project = (ProjectInternal) this.owner;
+            PluginManager pluginManager = project.getPluginManager();
+            return pluginManager.hasPlugin("jvm-ecosystem") || pluginManager.hasPlugin("java-platform");
+        }
+        return false;
     }
 
     private ResolveState resolveExclusively(InternalState requestedState) {
