@@ -43,6 +43,7 @@ import java.util.logging.Level;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.INVALIDATED;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.MODIFIED;
+import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.OVERFLOW;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.REMOVED;
 
 public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
@@ -74,6 +75,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     private Thread createAndStartEventConsumerThread(ChangeHandler handler) {
         Thread thread = new Thread(() -> {
+            LOGGER.debug("Started listening to file system change events");
             try {
                 while (consumeEvents) {
                     FileWatchEvent nextEvent = fileEvents.take();
@@ -95,13 +97,13 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             @Override
                             public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
                                 if (absolutePath == null) {
-                                    LOGGER.info("Overflow detected, invalidating all watched hierarchies");
+                                    LOGGER.info("Overflow detected (type: {}), invalidating all watched hierarchies", type);
                                     for (Path watchedHierarchy : fileWatcherUpdater.getWatchedHierarchies()) {
-                                        handler.handleChange(INVALIDATED, watchedHierarchy);
+                                        handler.handleChange(OVERFLOW, watchedHierarchy);
                                     }
                                 } else {
-                                    LOGGER.info("Overflow detected for watched hierarchy '{}', invalidating", absolutePath);
-                                    handler.handleChange(INVALIDATED, Paths.get(absolutePath));
+                                    LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
+                                    handler.handleChange(OVERFLOW, Paths.get(absolutePath));
                                 }
                             }
 
@@ -123,9 +125,14 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                 Thread.currentThread().interrupt();
                 // stop thread
             }
+            LOGGER.debug("Finished listening to file system change events");
         });
         thread.setDaemon(true);
         thread.setName("File watcher consumer");
+        thread.setUncaughtExceptionHandler((failedThread, exception) -> {
+            LOGGER.error("File system event consumer thread stopped due to exception", exception);
+            handler.stopWatchingAfterError();
+        });
         thread.start();
         return thread;
     }
