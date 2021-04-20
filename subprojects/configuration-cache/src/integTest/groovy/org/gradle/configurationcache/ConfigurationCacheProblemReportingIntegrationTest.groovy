@@ -1048,7 +1048,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
         file("inc/sub/build.gradle") << """
             tasks.register('broken') {
-                doFirst { println(project.name) }
+                doLast({ println ("project = " + project) } as Action)
             }
         """
 
@@ -1057,5 +1057,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         outputContains "Configuration cache entry discarded with 1 problem."
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Task `:inc:sub:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 1
+        }
     }
 }
