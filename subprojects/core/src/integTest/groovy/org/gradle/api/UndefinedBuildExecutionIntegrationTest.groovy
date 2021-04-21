@@ -30,6 +30,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(testDirectory)
         assertNoDefinedBuild(testDirectory)
         executer.ignoreMissingSettingsFile()
+        file("build.gradle").touch()
     }
 
     private static void assertNoDefinedBuild(TestFile testDirectory) {

@@ -45,7 +45,7 @@ public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
     }
 
     private static boolean isUndefinedBuild(GradleInternal gradle) {
-        return !isBuildSrcExecution(gradle) && !gradle.getRootProject().getBuildFile().exists() && isUndefinedResource(gradle.getSettings().getSettingsScript().getResource());
+        return !isBuildSrcExecution(gradle) && isUndefinedResource(gradle.getSettings().getSettingsScript().getResource());
     }
 
     private static boolean isUndefinedResource(TextResource settingsScript) {
