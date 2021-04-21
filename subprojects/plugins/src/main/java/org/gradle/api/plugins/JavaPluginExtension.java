@@ -161,7 +161,6 @@ public interface JavaPluginExtension {
     @Incubating
     void consistentResolution(Action<? super JavaResolutionConsistency> action);
 
-
     /**
      * Configures the source sets of this project.
      *

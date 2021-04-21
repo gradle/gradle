@@ -36,6 +36,34 @@
                 <td>toolchain</td>
                 <td/>
             </tr>
+            <tr>
+                <td>docsDirName</td>
+                <td><literal>'docs'</literal></td>
+            </tr>
+            <tr>
+                <td>docsDir</td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.docsDirName}</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>testResultsDirName</td>
+                <td><literal>'test-results'</literal></td>
+            </tr>
+            <tr>
+                <td>testResultsDir</td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.testResultsDirName}</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>testReportDirName</td>
+                <td><literal>'tests'</literal></td>
+            </tr>
+            <tr>
+                <td>testReportDir</td>
+                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/<replaceable>${project.testReportDirName}</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>sourceSets</td>
+                <td/>
+            </tr>
         </table>
     </section>
     <section>
@@ -60,6 +88,12 @@
             </tr>
             <tr>
                 <td>toolchain</td>
+            </tr>
+            <tr>
+                <td>sourceSets</td>
+            </tr>
+            <tr>
+                <td>manifest</td>
             </tr>
         </table>
     </section>
