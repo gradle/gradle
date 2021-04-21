@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.action;
 
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
-public class ClientProvidedPhasedAction extends SubscribableBuildAction {
+public class ClientProvidedBuildAction extends SubscribableBuildAction {
     private final StartParameterInternal startParameter;
-    private final SerializedPayload phasedAction;
+    private final SerializedPayload action;
     private final boolean runTasks;
 
-    public ClientProvidedPhasedAction(StartParameterInternal startParameter, SerializedPayload phasedAction, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
+    public ClientProvidedBuildAction(StartParameterInternal startParameter, SerializedPayload action, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
-        this.phasedAction = phasedAction;
+        this.action = action;
         this.runTasks = runTasks;
     }
 
@@ -37,8 +37,8 @@ public class ClientProvidedPhasedAction extends SubscribableBuildAction {
         return startParameter;
     }
 
-    public SerializedPayload getPhasedAction() {
-        return phasedAction;
+    public SerializedPayload getAction() {
+        return action;
     }
 
     @Override

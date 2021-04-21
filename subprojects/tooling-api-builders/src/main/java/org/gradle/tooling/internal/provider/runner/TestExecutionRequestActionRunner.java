@@ -24,7 +24,7 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
-import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
+import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 
 import java.util.Collections;
 

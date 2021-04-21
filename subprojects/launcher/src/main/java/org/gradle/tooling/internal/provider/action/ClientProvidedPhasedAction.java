@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider;
+
+package org.gradle.tooling.internal.provider.action;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
-public class BuildModelAction extends SubscribableBuildAction {
+public class ClientProvidedPhasedAction extends SubscribableBuildAction {
     private final StartParameterInternal startParameter;
-    private final String modelName;
+    private final SerializedPayload phasedAction;
     private final boolean runTasks;
 
-    public BuildModelAction(StartParameterInternal startParameter, String modelName, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
+    public ClientProvidedPhasedAction(StartParameterInternal startParameter, SerializedPayload phasedAction, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
-        this.modelName = modelName;
+        this.phasedAction = phasedAction;
         this.runTasks = runTasks;
     }
 
@@ -36,8 +37,8 @@ public class BuildModelAction extends SubscribableBuildAction {
         return startParameter;
     }
 
-    public String getModelName() {
-        return modelName;
+    public SerializedPayload getPhasedAction() {
+        return phasedAction;
     }
 
     @Override
@@ -47,6 +48,6 @@ public class BuildModelAction extends SubscribableBuildAction {
 
     @Override
     public boolean isCreateModel() {
-        return !ModelIdentifier.NULL_MODEL.equals(modelName);
+        return true;
     }
 }
