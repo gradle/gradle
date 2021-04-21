@@ -23,14 +23,15 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
-import org.gradle.internal.build.BuildModelControllerServices;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -96,6 +97,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
             throw new IllegalStateException("Cannot run more than one action for a build.");
         }
         try {
+            buildLifecycleController.getGradle().getServices().get(BuildSessionScopeFileTimeStampInspector.class);
             RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
             buildLifecycleListener.afterStart();
             try {
