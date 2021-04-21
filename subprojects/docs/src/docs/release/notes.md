@@ -1,6 +1,6 @@
-The Gradle team is excited to announce Gradle @version@.
+This is a backport release, Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features bugfixes and other changes that were [backported](#backports) from Gradle 7.0 to Gradle 6.x.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
@@ -8,7 +8,7 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
-## Upgrade Instructions
+## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
 
@@ -20,28 +20,26 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
-<!-- 
-Add release features here!
-## 1
+<a name="#backports"></a>
+## Backports
 
-details of 1
+### Limited support for Java 16
 
-## 2
+This release does not support _running_ Gradle with JDK 16, but you can use [Java toolchains](userguide/toolchains.html) to request Java 16 and compile your project.
 
-details of 2
+### Using dynamic versions in the plugins block
 
-## n
--->
+Until now, the `plugins { }` block only supported fixed versions for community plugins.
+All [version string notations Gradle supports](userguide/single_versions.html) are now accepted, including `+` or `latest.release`.
 
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+We recommend using the `plugins {}` block for applying plugins using Gradle 7. The old `apply plugin:` mechanism will be deprecated in the future.
 
-The following are the features that have been promoted in this Gradle release.
+Note that dynamic versions will introduce non-deterministic behavior to your build process and should be used judiciously. You can use [dependency locking](userguide/dependency_locking.html) to save the set of dependencies resolved when using dynamic versions.
 
-<!--
-### Example promoted
--->
+### Other backports
+
+These issues were backported from Gradle 7.0:
+- TBD
 
 ## Fixed issues
 
