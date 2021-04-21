@@ -44,26 +44,24 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16816")
-    @Requires(TestPrecondition.SYMLINKS)
     def "can successful start after a running daemon's JDK has been removed"() {
-        // Zulu sets their Java distribution up like this
         def installedJdk = Jvm.current().javaHome
-        def removedJdk = file("removed-jdk")
-        removedJdk.mkdir()
-        new TestFile(installedJdk).copyTo(removedJdk)
+        def jdkToRemove = file("removed-jdk")
+        jdkToRemove.mkdir()
+        new TestFile(installedJdk).copyTo(jdkToRemove)
 
-        // start one JVM with the removed-jdk
-        file("gradle.properties").writeProperties("org.gradle.java.home": removedJdk.canonicalPath)
+        // start one JVM with jdk to remove
+        file("gradle.properties").writeProperties("org.gradle.java.home": jdkToRemove.canonicalPath)
         succeeds("help")
 
         when:
-        // remove the other JDK
-        removedJdk.deleteDir()
-        // try to start with the other-jdk
-        file("gradle.properties").writeProperties("org.gradle.java.home": installedJdk.canonicalPath)
+        // remove the JDK
+        jdkToRemove.deleteDir()
+        // don't ask for the removed JDK now
+        file("gradle.properties").delete()
         then:
+        // try to start another build
         succeeds("help")
-
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test requires to start Gradle from scratch with the wrong Java version
