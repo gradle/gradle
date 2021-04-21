@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 
 /**
@@ -26,7 +25,6 @@ import org.gradle.api.file.DirectoryProperty;
  *
  * @since 7.1
  */
-@Incubating
 public interface BasePluginExtension {
     /**
      * Returns the directory to generate TAR and ZIP archives into.
