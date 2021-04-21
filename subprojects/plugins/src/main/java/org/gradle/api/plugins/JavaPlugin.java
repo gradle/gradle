@@ -443,10 +443,10 @@ public class JavaPlugin implements Plugin<Project> {
      * This is only used by buildSrc to add to the buildscript classpath.
      */
     private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
-        private final JavaPluginExtension convention;
+        private final JavaPluginExtension extension;
 
         public BuildableJavaComponentImpl(JavaPluginExtension convention) {
-            this.convention = convention;
+            this.extension = convention;
         }
 
         @Override
@@ -456,8 +456,8 @@ public class JavaPlugin implements Plugin<Project> {
 
         @Override
         public FileCollection getRuntimeClasspath() {
-            ProjectInternal project = convention.getProject();
-            SourceSet mainSourceSet = mainSourceSetOf(convention);
+            Project project = extension.getProject();
+            SourceSet mainSourceSet = mainSourceSetOf(extension);
             Configuration runtimeClasspath = project.getConfigurations().getByName(mainSourceSet.getRuntimeClasspathConfigurationName());
             ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
                 config.componentFilter(componentId -> {
@@ -474,7 +474,7 @@ public class JavaPlugin implements Plugin<Project> {
 
         @Override
         public Configuration getCompileDependencies() {
-            return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
+            return extension.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         }
     }
 
