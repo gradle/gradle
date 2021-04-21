@@ -79,7 +79,7 @@ public interface ListenerManager {
      *
      * @param listenerClass The type of listener for which to return a broadcaster.
      * @return The broadcaster that forwards method calls to all listeners of the same type that have been (or will be)
-     *         registered with this manager.
+     * registered with this manager.
      */
     <T> T getBroadcaster(Class<T> listenerClass);
 
@@ -95,7 +95,7 @@ public interface ListenerManager {
      *
      * @param listenerClass The type of listener for which to create a broadcaster.
      * @return A broadcaster that forwards method calls to all listeners assigned to it, or of the same type that have
-     *         been (or will be) registered with this manager.
+     * been (or will be) registered with this manager.
      */
     <T> AnonymousListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass);
 
@@ -106,13 +106,4 @@ public interface ListenerManager {
      * @param logger The new logger to use.
      */
     void useLogger(Object logger);
-
-    /**
-     * Creates a child {@code ListenerManager}. All events broadcast in the child will be received by the listeners
-     * registered in the parent. However, the reverse is not true: events broadcast in the parent are not received
-     * by the listeners in the children. The child inherits the loggers of its parent, though these can be replaced.
-     *
-     * @return The child
-     */
-    ListenerManager createChild(Class<? extends Scope> scope);
 }

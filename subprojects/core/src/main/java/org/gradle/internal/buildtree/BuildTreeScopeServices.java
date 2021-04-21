@@ -28,6 +28,7 @@ import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyse
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -59,7 +60,7 @@ public class BuildTreeScopeServices {
         modelServices.applyServicesTo(registration);
     }
 
-    protected ListenerManager createListenerManager(ListenerManager parent) {
+    protected DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
         return parent.createChild(Scopes.BuildTree.class);
     }
 

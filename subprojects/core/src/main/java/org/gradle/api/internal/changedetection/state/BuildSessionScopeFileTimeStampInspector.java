@@ -40,7 +40,6 @@ public class BuildSessionScopeFileTimeStampInspector extends FileTimeStampInspec
 
     @Override
     public void afterStart() {
-        System.out.println("-> AFTER START!");
         updateOnStartBuild();
     }
 

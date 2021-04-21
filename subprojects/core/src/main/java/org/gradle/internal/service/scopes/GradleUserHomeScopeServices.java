@@ -62,6 +62,7 @@ import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
@@ -111,14 +112,12 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         }
     }
 
-    ListenerManager createListenerManager(ListenerManager parent) {
+    DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
         return parent.createChild(Scopes.UserHome.class);
     }
 
-    GradleUserHomeScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
-        GradleUserHomeScopeFileTimeStampInspector timeStampInspector = new GradleUserHomeScopeFileTimeStampInspector(cacheScopeMapping);
-        listenerManager.addListener(timeStampInspector);
-        return timeStampInspector;
+    GradleUserHomeScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping) {
+        return new GradleUserHomeScopeFileTimeStampInspector(cacheScopeMapping);
     }
 
     ScriptSourceHasher createScriptSourceHasher() {

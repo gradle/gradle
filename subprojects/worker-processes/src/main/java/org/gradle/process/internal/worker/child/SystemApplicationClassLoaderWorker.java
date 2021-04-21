@@ -224,7 +224,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             });
         }
 
-        ListenerManager createListenerManager() {
+        DefaultListenerManager createListenerManager() {
             return new DefaultListenerManager(Global.class);
         }
 
