@@ -23,6 +23,7 @@ import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.gradle.internal.dispatch.ReflectionDispatch;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.StatefulListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -154,6 +155,7 @@ public class DefaultListenerManager implements ListenerManager {
         private final Class<T> type;
         private final ListenerDispatch dispatch;
         private final ListenerDispatch dispatchNoLogger;
+        private final boolean stateful;
 
         private volatile ProxyDispatchAdapter<T> source;
         private final Set<ListenerDetails> listeners = new LinkedHashSet<ListenerDetails>();
@@ -163,9 +165,11 @@ public class DefaultListenerManager implements ListenerManager {
         private Dispatch<MethodInvocation> parentDispatch;
         private List<Dispatch<MethodInvocation>> allWithLogger = Collections.emptyList();
         private List<Dispatch<MethodInvocation>> allWithNoLogger = Collections.emptyList();
+        private boolean notified;
 
         EventBroadcast(Class<T> type) {
             this.type = type;
+            stateful = type.getAnnotation(StatefulListener.class) != null;
             dispatch = new ListenerDispatch(type, true);
             dispatchNoLogger = new ListenerDispatch(type, false);
             if (parent != null) {
@@ -203,6 +207,9 @@ public class DefaultListenerManager implements ListenerManager {
             if (type.isInstance(listener.listener)) {
                 if (broadcasterLock.tryLock()) {
                     try {
+                        if (stateful && notified) {
+                            throw new IllegalStateException(String.format("Cannot add listener of type %s after events have been broadcast.", type.getSimpleName()));
+                        }
                         listeners.add(listener);
                         invalidateDispatchCache();
                     } finally {
@@ -273,6 +280,8 @@ public class DefaultListenerManager implements ListenerManager {
 
         private List<Dispatch<MethodInvocation>> startNotification(boolean includeLogger) {
             takeOwnership();
+
+            notified = true;
 
             // Take a snapshot while holding lock
             List<Dispatch<MethodInvocation>> result = includeLogger ? allWithLogger : allWithNoLogger;
