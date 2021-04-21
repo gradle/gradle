@@ -25,6 +25,7 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 
 import java.io.File;
@@ -157,5 +158,12 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     @Override
     public boolean getAutoTargetJvmDisabled() {
         return extension.getAutoTargetJvmDisabled();
+    }
+
+    private File getReportsDir() {
+        // This became public API by accident as Groovy has access to private methods and we show an example in our docs
+        // see subprojects/docs/src/snippets/java/customDirs/groovy/build.gradle
+        // and https://docs.gradle.org/current/userguide/java_testing.html#test_reporting
+        return extension.getProject().getExtensions().getByType(ReportingExtension.class).getBaseDir();
     }
 }
