@@ -44,10 +44,10 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
 
     def "jacoco file results are cached"() {
         when:
-        withBuildCache().run "test", "jacocoTestReport"
+        withBuildCache().run "test", "jacocoTestReport", "jacocoTestCoverageVerification"
         def snapshot = reportFile.snapshot()
         then:
-        executedAndNotSkipped ":test", ":jacocoTestReport"
+        executedAndNotSkipped ":test", ":jacocoTestReport", ":jacocoTestCoverageVerification"
         reportFile.assertIsFile()
 
         when:
@@ -56,9 +56,9 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         reportFile.assertDoesNotExist()
 
         when:
-        withBuildCache().run "jacocoTestReport"
+        withBuildCache().run "jacocoTestReport", "jacocoTestCoverageVerification"
         then:
-        skipped ":test", ":jacocoTestReport"
+        skipped ":test", ":jacocoTestReport", ":jacocoTestCoverageVerification"
         reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 

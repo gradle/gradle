@@ -507,6 +507,12 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoCoverageVerification",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.getDummyOutputFile()",
+            "acceptation": "This method is for internal use only",
+            "changes": []
         }
     ]
 }
