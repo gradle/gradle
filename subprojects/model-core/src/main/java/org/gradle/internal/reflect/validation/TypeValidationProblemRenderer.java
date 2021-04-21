@@ -124,13 +124,11 @@ public class TypeValidationProblemRenderer {
     }
 
     // A heuristic to determine if the type is relevant or not.
-    // Currently we will not display the type name if the package
-    // of the class is Gradle API. We can do this because Gradle
-    // own tasks are not supposed to be invalid, yet the DefaultTask
-    // type may appear in error messages (if using "adhoc" tasks)
+    // The "DefaultTask" type may appear in error messages
+    // (if using "adhoc" tasks) but isn't visible to this
+    // class so we have to rely on text matching for now.
     private static boolean shouldRenderType(Class<?> clazz) {
-        String pkg = clazz.getPackage().getName();
-        return !pkg.startsWith("org.gradle.api");
+        return !("org.gradle.api.DefaultTask".equals(clazz.getName()));
     }
 
     private static String maybeAppendDot(String txt) {
