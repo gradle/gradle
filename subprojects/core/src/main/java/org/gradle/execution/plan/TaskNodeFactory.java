@@ -96,7 +96,10 @@ public class TaskNodeFactory {
         }
 
         @Nullable
-        private static File toFile(URL url) {
+        private static File toFile(@Nullable URL url) {
+            if (url == null) {
+                return null;
+            }
             try {
                 return new File(url.toURI());
             } catch (URISyntaxException e) {
