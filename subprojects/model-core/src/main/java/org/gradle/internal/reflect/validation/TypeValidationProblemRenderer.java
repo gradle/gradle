@@ -18,6 +18,7 @@ package org.gradle.internal.reflect.validation;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.problems.Solution;
 
 import java.util.List;
@@ -84,15 +85,24 @@ public class TypeValidationProblemRenderer {
     private static String introductionFor(TypeValidationProblemLocation location) {
         StringBuilder builder = new StringBuilder();
         Class<?> rootType = location.getType().orElse(null);
+        PluginId pluginId = location.getPlugin().orElse(null);
         if (rootType != null) {
-            builder.append("Type '");
+            if (pluginId != null) {
+                builder.append("In plugin '").append(pluginId).append("' type '");
+            } else {
+                builder.append("Type '");
+            }
             builder.append(ModelType.of(rootType).getDisplayName());
             builder.append("' ");
         }
         String property = location.getPropertyName().orElse(null);
         if (property != null) {
             if (rootType == null) {
-                builder.append("Property '");
+                if (pluginId != null) {
+                    builder.append("In plugin '").append(pluginId).append("' property '");
+                } else {
+                    builder.append("Property '");
+                }
             } else {
                 builder.append("property '");
             }

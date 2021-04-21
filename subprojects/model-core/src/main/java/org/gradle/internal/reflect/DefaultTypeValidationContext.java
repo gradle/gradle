@@ -37,7 +37,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     }
 
     private DefaultTypeValidationContext(DocumentationRegistry documentationRegistry, @Nullable Class<?> rootType, boolean cacheable) {
-        super(documentationRegistry, rootType);
+        super(documentationRegistry, rootType, null);
         this.cacheable = cacheable;
     }
 

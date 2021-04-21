@@ -18,6 +18,7 @@ package org.gradle.internal.reflect.validation
 
 class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayConfiguration<T>> {
     private final ValidationMessageChecker checker
+    String pluginId
     boolean hasIntro = true
     private String description
     private String reason
@@ -31,6 +32,11 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     String property
     String section
     boolean includeLink = false
+
+    T inPlugin(String pluginId) {
+        this.pluginId = pluginId
+        this
+    }
 
     T description(String description) {
         this.description = description
@@ -73,7 +79,12 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
 
     private String getIntro() {
         if (hasIntro) {
-            typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
+            String intro = typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
+            if (pluginId) {
+                return "In plugin '${pluginId}' ${intro.uncapitalize()}"
+            } else {
+                return intro
+            }
         } else {
             ''
         }

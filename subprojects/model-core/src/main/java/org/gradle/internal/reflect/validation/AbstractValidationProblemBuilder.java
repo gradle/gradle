@@ -16,17 +16,20 @@
 package org.gradle.internal.reflect.validation;
 
 import com.google.common.collect.Lists;
-import org.gradle.problems.Solution;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.problems.Solution;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Supplier;
 
 abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuilder<T>> implements ValidationProblemBuilder<T> {
     protected final DocumentationRegistry documentationRegistry;
+    protected final PluginId pluginId;
     protected ValidationProblemId problemId = null;
     protected Severity severity = Severity.WARNING;
     protected Supplier<String> shortProblemDescription;
@@ -37,8 +40,9 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     protected boolean cacheabilityProblemOnly = false;
     protected boolean typeIrrelevantInErrorMessage = false;
 
-    public AbstractValidationProblemBuilder(DocumentationRegistry documentationRegistry) {
+    public AbstractValidationProblemBuilder(DocumentationRegistry documentationRegistry, @Nullable PluginId pluginId) {
         this.documentationRegistry = documentationRegistry;
+        this.pluginId = pluginId;
     }
 
     @Override
