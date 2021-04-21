@@ -20,8 +20,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -315,7 +315,7 @@ public interface JavaPluginExtension {
      * @since 7.1
      */
     @Incubating
-    ProjectInternal getProject(); // TODO can it not be internal?
+    Project getProject();
 
     /**
      * Tells if automatic JVM targeting is enabled. When disabled, Gradle

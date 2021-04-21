@@ -147,7 +147,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public ProjectInternal getProject() {
-        return extension.getProject();
+        return (ProjectInternal) extension.getProject();
     }
 
     @Override
