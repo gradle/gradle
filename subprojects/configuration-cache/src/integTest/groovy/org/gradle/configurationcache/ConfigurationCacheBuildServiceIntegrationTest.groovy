@@ -161,7 +161,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
 
         when:
         inDirectory 'root'
-        configurationCacheRunLenient ':included:classloader1:probe', ':included:boundary:classloader2:probe'
+        configurationCacheRun ':included:classloader1:probe', ':included:boundary:classloader2:probe'
 
         then: 'on classloader classloader1'
         outputContains 'probe(classloader1) => 1'

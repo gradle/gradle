@@ -131,6 +131,14 @@ public class StartParameterInternal extends StartParameter {
     }
 
     /**
+     * Used by the Kotlin plugin, via reflection.
+     */
+    @Deprecated
+    public boolean isConfigurationCache() {
+        return getConfigurationCache().get();
+    }
+
+    /**
      * Is the configuration cache requested? Note: depending on the build action, this may not be the final value for this option.
      *
      * Consider querying {@link BuildModelParameters} instead.
