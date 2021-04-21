@@ -196,3 +196,9 @@ Gradle used to have two ways of publishing artifacts.
 Now, the situation has been cleared and all build should use the `maven-publish` plugin.
 The last remaining artifact of the old way of publishing is the `Upload` task that has been deprecated and scheduled for removal in Gradle 8.0.
 Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,`maven-publish` plugin>>.
+
+[[application_convention_deprecation]]
+=== Deprecated `ApplicationPluginConvention`
+
+link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention] was already listed as deprecated in the <<application_plugin.adoc#application_convention_properties, documentation>.
+Now, it is officially annotated as deprecated and scheduled for removal in Gradle 8.0.
