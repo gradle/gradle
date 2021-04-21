@@ -250,6 +250,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
+    @ToBeFixedForConfigurationCache
     def 'changing Swift language level rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
