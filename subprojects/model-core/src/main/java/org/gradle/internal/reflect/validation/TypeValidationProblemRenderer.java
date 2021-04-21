@@ -84,7 +84,14 @@ public class TypeValidationProblemRenderer {
 
     private static String introductionFor(TypeValidationProblemLocation location) {
         StringBuilder builder = new StringBuilder();
-        Class<?> rootType = location.getType().orElse(null);
+        Class<?> rootType = location.getType()
+            .map(clazz -> {
+                if (shouldRenderType(clazz)) {
+                    return clazz;
+                } else {
+                    return null;
+                }
+            }).orElse(null);
         PluginId pluginId = location.getPlugin().orElse(null);
         if (rootType != null) {
             if (pluginId != null) {
@@ -92,7 +99,7 @@ public class TypeValidationProblemRenderer {
             } else {
                 builder.append("Type '");
             }
-            builder.append(ModelType.of(rootType).getDisplayName());
+            builder.append(ModelType.of(rootType).getName());
             builder.append("' ");
         }
         String property = location.getPropertyName().orElse(null);
@@ -114,6 +121,16 @@ public class TypeValidationProblemRenderer {
             builder.append("' ");
         }
         return builder.toString();
+    }
+
+    // A heuristic to determine if the type is relevant or not.
+    // Currently we will not display the type name if the package
+    // of the class is Gradle API. We can do this because Gradle
+    // own tasks are not supposed to be invalid, yet the DefaultTask
+    // type may appear in error messages (if using "adhoc" tasks)
+    private static boolean shouldRenderType(Class<?> clazz) {
+        String pkg = clazz.getPackage().getName();
+        return !pkg.startsWith("org.gradle.api");
     }
 
     private static String maybeAppendDot(String txt) {

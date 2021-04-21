@@ -433,7 +433,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 - A TextResource instance."""
 
         def expectedWarning = unresolvableInput({
-            type('DefaultTask').property('invalidInputFileCollection')
+            property('invalidInputFileCollection')
             conversionProblem(rootCause.stripIndent())
             includeLink()
         }, false)

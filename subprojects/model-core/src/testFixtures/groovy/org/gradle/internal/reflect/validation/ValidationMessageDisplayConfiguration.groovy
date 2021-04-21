@@ -126,6 +126,6 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
             sb.append(newLine)
             sb.append(outro)
         }
-        sb.toString()
+        sb.toString().trim()
     }
 }

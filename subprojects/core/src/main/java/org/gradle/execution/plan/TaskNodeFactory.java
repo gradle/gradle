@@ -107,7 +107,7 @@ public class TaskNodeFactory {
         private class ProjectScopedTypeOriginInspector implements WorkValidationContext.TypeOriginInspector {
             private final PluginContainer plugins;
             private final PluginManagerInternal pluginManager;
-            private final Map<Class<?>, Optional<PluginId>> clazzToPlugin = Maps.newConcurrentMap();
+            private final Map<Class<?>, Optional<PluginId>> classToPlugin = Maps.newConcurrentMap();
 
             private ProjectScopedTypeOriginInspector(Project project) {
                 this.plugins = project.getPlugins();
@@ -116,7 +116,7 @@ public class TaskNodeFactory {
 
             @Override
             public Optional<PluginId> findPluginDefining(Class<?> type) {
-                return clazzToPlugin.computeIfAbsent(type, clazz -> {
+                return classToPlugin.computeIfAbsent(type, clazz -> {
                     File taskJar = jarFileFor(type);
                     Optional<Plugin<?>> pluginForTask = Cast.uncheckedCast(plugins.stream()
                         .filter(plugin -> Objects.equals(jarFileFor(plugin.getClass()), taskJar))

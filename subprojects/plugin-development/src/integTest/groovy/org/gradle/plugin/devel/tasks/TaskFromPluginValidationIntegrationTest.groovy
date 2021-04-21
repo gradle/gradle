@@ -117,8 +117,8 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         then:
         failureDescriptionContains(dummyValidationProblem {
             inPlugin('org.gradle.demo.plugin')
-            type('SomeTask').property('input')
-        }.trim())
+            type('org.gradle.demo.plugin.SomeTask').property('input')
+        })
     }
 
     /**
