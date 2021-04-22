@@ -201,9 +201,12 @@ Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,
 === Deprecated `base` plugin conventions
 
 The convention properties contributed by the `base` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-The conventions are replaced by the the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension]:
+The conventions are replaced by the the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
+The `BasePlugin` convention defines `distsDirName` and `libsDirName` that are not present on `BasePluginExtension` as they are redundant and can be set on the corresponding `distsDirectory` and `libsDirectory` properties:
 ```
 base {
     archivesBaseName = 'customBase'
+    distsDirectory = layout.buildDirectory.dir('custom-dist')
+    libsDirectory = layout.buildDirectory.dir('custom-libs')
 }
 ```

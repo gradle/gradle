@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Property;
 
 /**
  * An extension used for {@link BasePlugin}.
@@ -41,23 +42,7 @@ public interface BasePluginExtension {
     DirectoryProperty getLibsDirectory();
 
     /**
-     * The name for the distributions directory. This in interpreted relative to the project' build directory.
-     */
-    String getDistsDirName();
-
-    void setDistsDirName(String distsDirName);
-
-    /**
-     * The name for the libs directory. This in interpreted relative to the project' build directory.
-     */
-    String getLibsDirName();
-
-    void setLibsDirName(String libsDirName);
-
-    /**
      * The base name to use for archive files.
      */
-    String getArchivesBaseName();
-
-    void setArchivesBaseName(String archivesBaseName);
+    Property<String> getArchivesBaseName();
 }

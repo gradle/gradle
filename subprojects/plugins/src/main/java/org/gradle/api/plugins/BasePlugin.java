@@ -24,7 +24,6 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
-import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.tasks.Jar;
@@ -44,16 +43,22 @@ public class BasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
-        BasePluginConvention convention = new DefaultBasePluginConvention(baseExtension);
+        BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", BasePluginExtension.class);
+        BasePluginConvention convention = new DefaultBasePluginConvention(project, baseExtension);
 
         project.getConvention().getPlugins().put("base", convention);
 
-
+        configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
         configureArchiveDefaults(project, baseExtension);
         configureConfigurations(project);
         configureAssemble((ProjectInternal) project);
+    }
+
+    private void configureExtension(Project project, BasePluginExtension extension) {
+        extension.getArchivesBaseName().convention(project.getName());
+        extension.getLibsDirectory().convention(project.getLayout().getBuildDirectory().dir("libs"));
+        extension.getDistsDirectory().convention(project.getLayout().getBuildDirectory().dir("distributions"));
     }
 
     private void configureArchiveDefaults(final Project project, final BasePluginExtension extension) {
@@ -69,7 +74,7 @@ public class BasePlugin implements Plugin<Project> {
             );
 
             task.getArchiveBaseName().convention(
-                project.provider(() -> extension.getArchivesBaseName())
+                project.provider(() -> extension.getArchivesBaseName().get())
             );
         });
     }

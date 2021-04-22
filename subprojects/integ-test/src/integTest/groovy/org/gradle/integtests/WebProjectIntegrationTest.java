@@ -42,7 +42,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
                 "buildDir = 'output'",
                 "base {",
                 "    archivesBaseName = 'test'",
-                "    libsDirName = 'archives'",
+                "    libsDirectory = layout.buildDirectory.dir('archives')",
                 "}",
                 "version = '0.5-RC2'"
         );

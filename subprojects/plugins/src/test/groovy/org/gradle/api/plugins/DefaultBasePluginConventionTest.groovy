@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.plugins.internal.DefaultBasePluginConvention
-import org.gradle.api.plugins.internal.DefaultBasePluginExtension
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultBasePluginConventionTest extends AbstractProjectBuilderSpec {
@@ -26,8 +24,9 @@ class DefaultBasePluginConventionTest extends AbstractProjectBuilderSpec {
     private BasePluginExtension extension
 
     def setup() {
-        extension = new DefaultBasePluginExtension(project)
-        convention = new DefaultBasePluginConvention(extension)
+        project.pluginManager.apply(BasePlugin)
+        convention = project.convention.plugins.base
+        extension =  project.extensions.base
     }
 
     def "default values"() {

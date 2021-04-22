@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.internal;
 
+import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.BasePluginExtension;
@@ -26,8 +27,10 @@ import org.gradle.api.reflect.TypeOf;
 public class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
 
     private BasePluginExtension extension;
+    private Project project;
 
-    public DefaultBasePluginConvention(BasePluginExtension extension) {
+    public DefaultBasePluginConvention(Project project, BasePluginExtension extension) {
+        this.project = project;
         this.extension = extension;
     }
     @Override
@@ -47,31 +50,31 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
 
     @Override
     public String getDistsDirName() {
-        return extension.getDistsDirName();
+        return extension.getDistsDirectory().get().getAsFile().getName();
     }
 
     @Override
     public void setDistsDirName(String distsDirName) {
-        extension.setDistsDirName(distsDirName);
+        extension.getDistsDirectory().set(project.getLayout().getBuildDirectory().dir(distsDirName));
     }
 
     @Override
     public String getLibsDirName() {
-        return extension.getLibsDirName();
+        return extension.getLibsDirectory().get().getAsFile().getName();
     }
 
     @Override
     public void setLibsDirName(String libsDirName) {
-        extension.setLibsDirName(libsDirName);
+        extension.getLibsDirectory().set(project.getLayout().getBuildDirectory().dir(libsDirName));
     }
 
     @Override
     public String getArchivesBaseName() {
-        return extension.getArchivesBaseName();
+        return extension.getArchivesBaseName().get();
     }
 
     @Override
     public void setArchivesBaseName(String archivesBaseName) {
-        extension.setArchivesBaseName(archivesBaseName);
+        extension.getArchivesBaseName().set(archivesBaseName);
     }
 }

@@ -522,19 +522,7 @@
         },
         {
             "type": "org.gradle.api.plugins.BasePluginExtension",
-            "member": "Method org.gradle.api.plugins.BasePluginExtension.getArchivesBaseName()",
-            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.plugins.BasePluginExtension",
             "member": "Method org.gradle.api.plugins.BasePluginExtension.getDistsDirectory()",
-            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.plugins.BasePluginExtension",
-            "member": "Method org.gradle.api.plugins.BasePluginExtension.getDistsDirName()",
             "acceptation": "The functionality was already available for several releases in BasePluginConvention",
             "changes": []
         },
@@ -546,25 +534,7 @@
         },
         {
             "type": "org.gradle.api.plugins.BasePluginExtension",
-            "member": "Method org.gradle.api.plugins.BasePluginExtension.getLibsDirName()",
-            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.plugins.BasePluginExtension",
-            "member": "Method org.gradle.api.plugins.BasePluginExtension.setArchivesBaseName(java.lang.String)",
-            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.plugins.BasePluginExtension",
-            "member": "Method org.gradle.api.plugins.BasePluginExtension.setDistsDirName(java.lang.String)",
-            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.plugins.BasePluginExtension",
-            "member": "Method org.gradle.api.plugins.BasePluginExtension.setLibsDirName(java.lang.String)",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getArchivesBaseName()",
             "acceptation": "The functionality was already available for several releases in BasePluginConvention",
             "changes": []
         }
