@@ -66,7 +66,7 @@ fun Requirements.requiresNoEc2Agent() {
 
 const val failedTestArtifactDestination = ".teamcity/gradle-logs"
 
-fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, versionedSettingsBranch: String? = null) {
+fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30) {
     artifactRules = """
         build/report-* => $failedTestArtifactDestination
         build/tmp/test files/** => $failedTestArtifactDestination/test-files
@@ -79,11 +79,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, version
         root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
         checkoutMode = CheckoutMode.ON_AGENT
 
-        branchFilter = when (versionedSettingsBranch) {
-            "master" -> branchesFilterExcluding("release")
-            "release" -> branchesFilterExcluding("master")
-            else -> branchesFilterExcluding()
-        }
+        branchFilter = branchesFilterExcluding()
     }
 
     requirements {
