@@ -5,6 +5,7 @@ import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2
 import common.compileAllDependency
+import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
@@ -83,31 +84,23 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
 
 fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.LINUX, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
+    val parameters = (
+        buildToolGradleParameters(daemon) +
+            listOf(extraParameters) +
+            buildScanTags.map { buildScanTag(it) } +
+            functionalTestParameters(os)
+        ).joinToString(separator = " ")
 
     steps {
         gradleWrapper {
             name = "SHOW_TOOLCHAINS"
             tasks = "javaToolchains"
-            gradleParams = (
-                buildToolGradleParameters(daemon) +
-                    listOf(extraParameters) +
-                    "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { buildScanTag(it) } +
-                    os.javaInstallationLocations() +
-                    "-Porg.gradle.java.installations.auto-download=false"
-                ).joinToString(separator = " ")
+            gradleParams = parameters
         }
         gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            gradleParams = (
-                    buildToolGradleParameters(daemon) +
-                    listOf(extraParameters) +
-                    "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { buildScanTag(it) } +
-                    os.javaInstallationLocations() +
-                    "-Porg.gradle.java.installations.auto-download=false"
-                ).joinToString(separator = " ")
+            gradleParams = parameters
         }
     }
 }

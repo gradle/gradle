@@ -17,6 +17,8 @@
 package common
 
 import configurations.branchesFilterExcluding
+import configurations.buildScanCustomValue
+import configurations.buildScanTag
 import configurations.m2CleanScriptUnixLike
 import configurations.m2CleanScriptWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -165,6 +167,28 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
         cleanDestination = true
         artifactRules = "build-receipt.properties => incoming-distributions"
     }
+}
+
+fun functionalTestExtraParameters(buildScanTag: String, os: Os, testJvmVersion: String, testJvmVendor: String): String {
+    val buildScanValues = mapOf(
+        "coverageOs" to os.name.toLowerCase(),
+        "coverageJvmVendor" to testJvmVendor,
+        "coverageJvmVersion" to "java$testJvmVersion"
+    )
+    return (listOf(
+        "-PtestJavaVersion=${testJvmVersion}",
+        "-PtestJavaVendor=${testJvmVendor}") +
+        listOf(buildScanTag(buildScanTag)) +
+        buildScanValues.map { buildScanCustomValue(it.key, it.value) }
+        ).filter { it.isNotBlank() }.joinToString(separator = " ")
+}
+
+fun functionalTestParameters(os: Os): List<String> {
+    return listOf(
+        "-PteamCityBuildId=%teamcity.build.id%",
+        os.javaInstallationLocations(),
+        "-Porg.gradle.java.installations.auto-download=false"
+    )
 }
 
 fun BuildType.killProcessStep(stepName: String, daemon: Boolean, os: Os) {

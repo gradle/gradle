@@ -1,6 +1,7 @@
 package configurations
 
 import common.Os
+import common.functionalTestExtraParameters
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.Stage
@@ -23,12 +24,6 @@ class FunctionalTest(
     this.description = description
     this.id(id)
     val testTasks = getTestTaskName(testCoverage, subprojects)
-    val buildScanTags = listOf("FunctionalTest")
-    val buildScanValues = mapOf(
-        "coverageOs" to testCoverage.os.name.toLowerCase(),
-        "coverageJvmVendor" to testCoverage.vendor.name,
-        "coverageJvmVersion" to testCoverage.testJvmVersion.name
-    )
 
     if (name.contains("(configuration-cache)")) {
         requirements {
@@ -42,11 +37,7 @@ class FunctionalTest(
 
     applyTestDefaults(model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
-            listOf(
-                "-PtestJavaVersion=${testCoverage.testJvmVersion.major}",
-                "-PtestJavaVendor=${testCoverage.vendor.name}") +
-                buildScanTags.map { buildScanTag(it) } +
-                buildScanValues.map { buildScanCustomValue(it.key, it.value) } +
+            listOf(functionalTestExtraParameters("FunctionalTest", testCoverage.os, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)) +
                 if (enableExperimentalTestDistribution(testCoverage, subprojects)) "-DenableTestDistribution=%enableTestDistribution%" else "" +
                     extraParameters
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
