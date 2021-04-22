@@ -11,4 +11,8 @@ object UtilProject : Project({
     buildType(RerunFlakyTest(Os.WINDOWS))
     buildType(RerunFlakyTest(Os.MACOS))
     buildType(WarmupEc2Agent)
+
+    params {
+        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+    }
 })

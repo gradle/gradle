@@ -39,6 +39,7 @@ class RerunFlakyTest(os: Os) : BuildType({
     val testJvmVendorParameter = "testJavaVendor"
     val testJvmVersionParameter = "testJavaVersion"
     val testTaskParameterName = "testTask"
+    val testNameParameterName = "testName"
     val testTaskOptionsParameterName = "testTaskOptions"
     val daemon = true
     applyDefaultSettings(os, BuildToolBuildJvm, 30)
@@ -61,7 +62,7 @@ class RerunFlakyTest(os: Os) : BuildType({
         steps {
             gradleWrapper {
                 name = "GRADLE_RUNNER_$idx"
-                tasks = "%$testTaskParameterName% --rerun %$testTaskOptionsParameterName%"
+                tasks = "%$testTaskParameterName% --rerun --tests %$testNameParameterName% %$testTaskOptionsParameterName%"
                 gradleParams = parameters
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
@@ -81,11 +82,11 @@ class RerunFlakyTest(os: Os) : BuildType({
             description = "The test task you want to run"
         )
         text(
-            testTaskOptionsParameterName,
-            """--tests "org.gradle.api.tasks.CachedTaskExecutionIntegrationTest.outputs are correctly loaded from cache"""",
+            testNameParameterName,
+            """org.gradle.api.tasks.CachedTaskExecutionIntegrationTest.outputs*are*correctly*loaded*from*cache""",
             display = ParameterDisplay.PROMPT,
             allowEmpty = false,
-            description = "Options for the test task to run, like e.g. the test filter"
+            description = "The name of the test to run, as should be passed to --tests. Can't contain spaces since there are problems with Teamcity's escaping, you can use * instead."
         )
         text(
             testJvmVersionParameter,
@@ -100,6 +101,13 @@ class RerunFlakyTest(os: Os) : BuildType({
             display = ParameterDisplay.PROMPT,
             allowEmpty = false,
             description = "Java vendor to run the test with"
+        )
+        text(
+            testTaskOptionsParameterName,
+            "",
+            display = ParameterDisplay.PROMPT,
+            allowEmpty = false,
+            description = "Additional options for the test task to run"
         )
     }
 
