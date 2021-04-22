@@ -106,7 +106,7 @@ class RerunFlakyTest(os: Os) : BuildType({
             testTaskOptionsParameterName,
             "",
             display = ParameterDisplay.PROMPT,
-            allowEmpty = false,
+            allowEmpty = true,
             description = "Additional options for the test task to run"
         )
     }
