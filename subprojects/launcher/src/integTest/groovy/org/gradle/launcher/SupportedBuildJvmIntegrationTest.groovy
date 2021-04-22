@@ -43,6 +43,10 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
+    // This test deletes a JDK installation while the daemon is running.
+    // This is difficult to setup on Windows since you can't delete files
+    // that are in use.
+    @Requires(TestPrecondition.NOT_WINDOWS)
     @Issue("https://github.com/gradle/gradle/issues/16816")
     def "can successful start after a running daemon's JDK has been removed"() {
         def installedJdk = Jvm.current().javaHome
