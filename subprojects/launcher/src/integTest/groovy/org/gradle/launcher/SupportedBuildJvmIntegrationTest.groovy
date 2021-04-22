@@ -51,14 +51,14 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         new TestFile(installedJdk).copyTo(jdkToRemove)
 
         // start one JVM with jdk to remove
-        file("gradle.properties").writeProperties("org.gradle.java.home": jdkToRemove.canonicalPath)
+        executer.withJavaHome(jdkToRemove)
         succeeds("help")
 
         when:
         // remove the JDK
         jdkToRemove.deleteDir()
         // don't ask for the removed JDK now
-        file("gradle.properties").delete()
+        executer.withJavaHome(installedJdk)
         then:
         // try to start another build
         succeeds("help")
