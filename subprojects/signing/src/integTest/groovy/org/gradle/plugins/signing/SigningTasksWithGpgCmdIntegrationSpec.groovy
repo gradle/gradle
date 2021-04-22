@@ -16,10 +16,8 @@
 package org.gradle.plugins.signing
 
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
 @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
-@Ignore('https://github.com/gradle/gradle-private/issues/3370')
 class SigningTasksWithGpgCmdIntegrationSpec extends SigningTasksIntegrationSpec {
     SignMethod getSignMethod() {
         return SignMethod.GPG_CMD

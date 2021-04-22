@@ -18,10 +18,8 @@ package org.gradle.plugins.signing
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
 @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
-@Ignore('https://github.com/gradle/gradle-private/issues/3370')
 class SigningConfigurationsWithGpgCmdIntegrationSpec extends SigningConfigurationsIntegrationSpec {
     SignMethod getSignMethod() {
         return SignMethod.GPG_CMD
