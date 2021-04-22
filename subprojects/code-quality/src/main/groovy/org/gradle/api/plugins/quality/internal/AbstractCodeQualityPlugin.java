@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -93,6 +94,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         Configuration configuration = project.getConfigurations().create(getConfigurationName());
         configuration.setVisible(false);
         configuration.setTransitive(true);
+        configuration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));
