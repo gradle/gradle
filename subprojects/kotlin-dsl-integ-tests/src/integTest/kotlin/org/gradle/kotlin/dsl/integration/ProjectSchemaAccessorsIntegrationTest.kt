@@ -458,7 +458,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             )
         }
 
-        build("tasks")
+        buildWithDeprecations("tasks")
     }
 
     @Test
@@ -500,9 +500,9 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             )
         }
 
-        build("tasks", "-Pmy=lib")
+        buildWithDeprecations("tasks", "-Pmy=lib")
 
-        build("tasks", "-Pmy=app")
+        buildWithDeprecations("tasks", "-Pmy=app")
     }
 
     private
@@ -619,7 +619,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         )
 
         assertThat(
-            build("books").output,
+            buildWithDeprecations("books").output,
             containsString("quickStart, userGuide")
         )
     }
@@ -641,7 +641,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         )
 
         assertThat(
-            build("mainClassName").output,
+            buildWithDeprecations("mainClassName").output,
             containsString("*App*")
         )
     }
@@ -911,7 +911,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        val result = build("help")
+        val result = buildWithDeprecations("help")
         assertThat(result.output, containsString("Type of `mine` receiver is Any"))
     }
 
@@ -1008,7 +1008,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        build("help")
+        buildWithDeprecations("help")
     }
 
     @Test
@@ -1080,7 +1080,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         )
 
         assertThat(
-            build("help").output,
+            buildWithDeprecations("help").output,
             containsString("Type of `myConvention` receiver is Any")
         )
 
@@ -1102,7 +1102,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         )
 
         assertThat(
-            build("help").output,
+            buildWithDeprecations("help").output,
             containsString("Type of `myConvention` receiver is MyConvention")
         )
     }
@@ -1257,7 +1257,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """.trimIndent()
         )
 
-        build("help").apply {
+        buildWithDeprecations("help").apply {
             assertThat(output, containsString("42"))
         }
     }

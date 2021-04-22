@@ -60,6 +60,6 @@ class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
             """.trimIndent()
         )
 
-        build("test", "jacocoTestCoverageVerification")
+        buildWithDeprecations("test", "jacocoTestCoverageVerification")
     }
 }

@@ -55,6 +55,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.TextUtil;
@@ -102,7 +103,7 @@ public class JvmPluginsHelper {
 
         @SuppressWarnings("deprecation")
         Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
-        apiConfiguration.extendsFrom(compileConfiguration);
+        DeprecationLogger.whileDisabled(() -> apiConfiguration.extendsFrom(compileConfiguration));
 
         return apiConfiguration;
     }

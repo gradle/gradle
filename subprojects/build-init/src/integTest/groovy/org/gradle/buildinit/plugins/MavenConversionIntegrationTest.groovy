@@ -85,6 +85,9 @@ java {
 java {
     withJavadocJar()
 }'''))
+        if (scriptDsl == BuildInitDsl.KOTLIN) {
+            withKotlinDeprecations()
+        }
         when:
         run 'clean', 'build'
 
@@ -95,6 +98,9 @@ java {
 
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
+        if (scriptDsl == BuildInitDsl.KOTLIN) {
+            withKotlinDeprecations()
+        }
         when:
         run 'projects'
 
@@ -121,6 +127,9 @@ Root project 'webinar-parent'
         targetDir.file(dsl.settingsFileName).exists()
         targetDir.file("webinar-war/" + dsl.buildFileName).exists()
 
+        if (scriptDsl == BuildInitDsl.KOTLIN) {
+            withKotlinDeprecations()
+        }
         when:
         run 'clean', 'build'
 
@@ -153,6 +162,9 @@ Root project 'webinar-parent'
         targetDir.file("webinar-impl/" + dsl.buildFileName).exists()
         targetDir.file("webinar-war/" + dsl.buildFileName).exists()
 
+        if (scriptDsl == BuildInitDsl.KOTLIN) {
+            withKotlinDeprecations()
+        }
         when:
         run 'clean', 'build'
 
@@ -163,6 +175,9 @@ Root project 'webinar-parent'
 
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
+        if (scriptDsl == BuildInitDsl.KOTLIN) {
+            withKotlinDeprecations()
+        }
         when:
         run 'projects'
 
@@ -503,6 +518,9 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         libRequest(repo, "junit", "junit", "3.8.1")
         libRequest(repo, "org.hamcrest", "hamcrest-core", 1.1)
 
+        if (scriptDsl == BuildInitDsl.KOTLIN) {
+            withKotlinDeprecations()
+        }
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
@@ -512,6 +530,9 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
+        if (scriptDsl == BuildInitDsl.KOTLIN) {
+            withKotlinDeprecations()
+        }
         when:
         run 'projects'
 
@@ -568,5 +589,10 @@ Root project 'webinar-parent'
     MavenHttpRepository mavenHttpServer() {
         server.start()
         new MavenHttpRepository(server, '/maven', maven(file("maven_repo")))
+    }
+
+    private void withKotlinDeprecations() {
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
     }
 }

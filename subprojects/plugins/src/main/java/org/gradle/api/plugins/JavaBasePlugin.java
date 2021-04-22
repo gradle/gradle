@@ -51,6 +51,7 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -156,7 +157,7 @@ public class JavaBasePlugin implements Plugin<Project> {
 
             ConfigurationContainer configurations = project.getConfigurations();
 
-            defineConfigurationsForSourceSet(sourceSet, configurations);
+            DeprecationLogger.whileDisabled(() -> defineConfigurationsForSourceSet(sourceSet, configurations));
             definePathsForSourceSet(sourceSet, outputConventionMapping, project);
 
             createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);

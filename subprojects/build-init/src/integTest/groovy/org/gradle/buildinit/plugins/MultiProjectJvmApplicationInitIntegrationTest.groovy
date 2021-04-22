@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -88,6 +89,7 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
             "src/test/resources"
         )
 
+        withKotlinDeprecations(jvmLanguage, scriptDsl)
         when:
         succeeds "build"
 
@@ -98,6 +100,7 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
         assertTestPassed("list", "some.thing.list.LinkedListTest", "testRemove")
         assertTestPassed("list", "some.thing.list.LinkedListTest", "testRemoveMissing")
 
+        withKotlinDeprecations(jvmLanguage, scriptDsl)
         when:
         succeeds "run"
 
@@ -119,4 +122,13 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
         result.testClass(className).assertTestPassed(name)
     }
 
-}
+    private void withKotlinDeprecations(Language language, BuildInitDsl dsl) {
+        if (language == KOTLIN) {
+            executer.expectDocumentedDeprecationWarning("Configuration 'api' extends deprecated configuration 'compile'. This will fail or cause unintended side effects in future Gradle versions. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        }
+        if (language == KOTLIN || dsl == BuildInitDsl.KOTLIN) {
+            executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        }
+    }}

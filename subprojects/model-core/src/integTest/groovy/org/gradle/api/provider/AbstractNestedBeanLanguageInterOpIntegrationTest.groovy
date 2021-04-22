@@ -22,6 +22,10 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 abstract class AbstractNestedBeanLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest {
     abstract void pluginDefinesTask()
 
+    void kotlinDeprecationWarnings() {
+        // nothing by default
+    }
+
     @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["NestedBeanKotlinInterOpIntegrationTest"]
@@ -35,6 +39,7 @@ abstract class AbstractNestedBeanLanguageInterOpIntegrationTest extends Abstract
             println "flag = " + tasks.someTask.params.flag
         """
 
+        kotlinDeprecationWarnings()
         when:
         run()
 

@@ -1080,6 +1080,8 @@ compileClasspath - Compile classpath for source set 'main'.
             }
         """
 
+        executer.expectDocumentedDeprecationWarning("Configuration 'default' extends deprecated configuration 'compile'. This will fail or cause unintended side effects in future Gradle versions. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         when:
         run ":a:dependencies"
 

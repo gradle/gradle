@@ -785,7 +785,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         val className = kotlinClassSourceFile(baseDir, classBody)
-        build(existing(baseDir), "build")
+        buildWithDeprecations(existing(baseDir), "build")
         val jarPath = "$baseDir/build/libs/buildscript.jar"
         assertTrue(existing(jarPath).exists())
         return Pair(className, jarPath)
@@ -854,14 +854,14 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     private
     fun configureProject(vararg tasks: String): BuildOperationsAssertions {
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
-        val output = executer.withTasks(*tasks).run().normalizedOutput
+        val output = executer.noDeprecationChecks().withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output)
     }
 
     private
     fun configureProjectAndExpectCompileAvoidanceWarnings(vararg tasks: String): BuildOperationsAssertions {
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
-        val output = executer.withArgument("--info").withTasks(*tasks).run().normalizedOutput
+        val output = executer.noDeprecationChecks().withArgument("--info").withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output, true)
     }
 

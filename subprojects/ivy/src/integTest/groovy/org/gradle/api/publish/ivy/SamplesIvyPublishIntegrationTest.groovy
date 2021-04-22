@@ -61,6 +61,11 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         def project1module = fileRepo.module("org.gradle.sample", "project1", "1.0").withModuleMetadata()
         def project2module = fileRepo.module("org.gradle.sample", "project2", "1.0").withModuleMetadata()
 
+        if (dsl == 'kotlin') {
+            executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        }
+
         when:
         succeeds "publish"
 

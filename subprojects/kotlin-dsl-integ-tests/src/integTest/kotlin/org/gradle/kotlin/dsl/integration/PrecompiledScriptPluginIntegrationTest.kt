@@ -51,7 +51,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """.trimIndent()
         )
 
-        build("generateScriptPluginAdapters")
+        buildWithDeprecations("generateScriptPluginAdapters")
 
         // https://github.com/JLLeitschuh/ktlint-gradle/issues/395
         fun expectKtlintDeprecationWarning(sourceSet: String) {
@@ -66,7 +66,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         expectKtlintDeprecationWarning("main")
         expectKtlintDeprecationWarning("test")
 
-        build("ktlintCheck", "-x", "ktlintKotlinScriptCheck")
+        buildWithDeprecations("ktlintCheck", "-x", "ktlintKotlinScriptCheck")
     }
 
     @Test
@@ -117,19 +117,19 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val configurationTask = ":configurePrecompiledScriptDependenciesResolver"
         val downstreamKotlinCompileTask = ":compileKotlin"
 
-        build(firstDir, "classes", "--build-cache").apply {
+        buildWithDeprecations(firstDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertTaskExecuted(it) }
             assertTaskExecuted(configurationTask)
             assertTaskExecuted(downstreamKotlinCompileTask)
         }
 
-        build(firstDir, "classes", "--build-cache").apply {
+        buildWithDeprecations(firstDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertOutputContains("$it UP-TO-DATE") }
             assertTaskExecuted(configurationTask)
             assertOutputContains("$downstreamKotlinCompileTask UP-TO-DATE")
         }
 
-        build(secondDir, "classes", "--build-cache").apply {
+        buildWithDeprecations(secondDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertOutputContains("$it FROM-CACHE") }
             assertTaskExecuted(configurationTask)
             assertOutputContains("$downstreamKotlinCompileTask FROM-CACHE")
@@ -149,12 +149,12 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         val fooScript = withFile("src/main/kotlin/foo.gradle.kts", "")
 
-        build("generateScriptPluginAdapters")
+        buildWithDeprecations("generateScriptPluginAdapters")
         assertTrue(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/FooPlugin.kt").isFile)
 
         fooScript.renameTo(fooScript.parentFile.resolve("bar.gradle.kts"))
 
-        build("generateScriptPluginAdapters")
+        buildWithDeprecations("generateScriptPluginAdapters")
         assertFalse(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/FooPlugin.kt").exists())
         assertTrue(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/BarPlugin.kt").isFile)
     }
@@ -181,7 +181,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        build("myTask")
+        buildWithDeprecations("myTask")
     }
 
     @Test
@@ -209,7 +209,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        build("help").apply {
+        buildWithDeprecations("help").apply {
             assertThat(output, containsString("base"))
         }
 
@@ -220,7 +220,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """.trimIndent()
         )
 
-        build("help").apply {
+        buildWithDeprecations("help").apply {
             assertThat(output, containsString("base"))
             assertThat(output, containsString("modified"))
         }
@@ -249,9 +249,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        build("clean")
+        buildWithDeprecations("clean")
 
-        build("clean", "--rerun-tasks")
+        buildWithDeprecations("clean", "--rerun-tasks")
     }
 
     @Test
@@ -339,7 +339,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        build("assemble").run {
+        buildWithDeprecations("assemble").run {
             assertTaskExecuted(
                 ":consumer:generateExternalPluginSpecBuilders"
             )
@@ -349,7 +349,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             renameTo(resolveSibling("changed-producer-plugin.gradle.kts"))
         }
 
-        build("assemble").run {
+        buildWithDeprecations("assemble").run {
             assertTaskExecuted(
                 ":consumer:generateExternalPluginSpecBuilders"
             )

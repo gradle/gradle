@@ -51,12 +51,14 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         and:
         commonJvmFilesGenerated(scriptDsl)
 
+        withKotlinDeprecations()
         when:
         run("build")
 
         then:
         assertTestPassed("some.thing.AppTest", "testAppHasAGreeting")
 
+        withKotlinDeprecations()
         when:
         run("run")
 
@@ -79,12 +81,14 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         and:
         commonJvmFilesGenerated(scriptDsl)
 
+        withKotlinDeprecations()
         when:
         run("build")
 
         then:
         assertTestPassed("my.app.AppTest", "testAppHasAGreeting")
 
+        withKotlinDeprecations()
         when:
         run("run")
 
@@ -118,6 +122,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         subprojectDir.file("src/test/kotlin").assertHasDescendants("org/acme/SampleMainTest.kt")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
+        withKotlinDeprecations()
         when:
         run("build")
 
@@ -126,5 +131,12 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    private void withKotlinDeprecations() {
+        executer.expectDocumentedDeprecationWarning("Configuration 'api' extends deprecated configuration 'compile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
     }
 }

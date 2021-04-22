@@ -94,7 +94,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             """
         )
 
-        build("help").apply {
+        buildWithDeprecations("help").apply {
             assertOutputContains("lambdaExtension: java.lang.Object")
             assertOutputContains("SOME")
         }
@@ -228,7 +228,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             """
         )
 
-        build("help").apply {
+        buildWithDeprecations("help").apply {
             assertOutputContains("lambdaExtension: kotlin.jvm.functions.Function1<? super java.lang.String, ? extends java.lang.String>")
             assertOutputContains("SOME")
         }

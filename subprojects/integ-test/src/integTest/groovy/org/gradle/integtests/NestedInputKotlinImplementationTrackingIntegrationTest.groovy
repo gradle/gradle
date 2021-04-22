@@ -43,11 +43,15 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
 
         buildFile.makeOlder()
 
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         when:
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
 
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         when:
         run 'myTask'
         then:
@@ -59,6 +63,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
                 action = Action { writeText("changed") }
             }
         """
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
@@ -77,11 +83,15 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
 
         buildFile.makeOlder()
 
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         when:
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
 
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         when:
         run 'myTask'
         then:
@@ -93,6 +103,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
                 action = { it.writeText("changed") }
             }
         """
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
@@ -120,6 +132,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
             projectDir.file("settings.gradle") << localCacheConfiguration()
         }
 
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         when:
         executer.inDirectory(project1)
         withBuildCache().run 'myTask'
@@ -128,6 +142,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         executedAndNotSkipped(':myTask')
         project1.file('build/tmp/myTask/output.txt').text == "hello"
 
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         when:
         executer.inDirectory(project2)
         withBuildCache().run 'myTask'

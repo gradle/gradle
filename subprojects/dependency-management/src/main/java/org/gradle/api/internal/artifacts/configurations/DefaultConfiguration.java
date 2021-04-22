@@ -396,7 +396,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 if (inheritedDependencyConstraints != null) {
                     inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
                 }
-                ((ConfigurationInternal) configuration).addMutationValidator(parentMutationValidator);
+                ConfigurationInternal internalConfiguration = (ConfigurationInternal) configuration;
+                internalConfiguration.addMutationValidator(parentMutationValidator);
+                if (internalConfiguration.isFullyDeprecated()) {
+                    DeprecationLogger.deprecateBehaviour("Configuration '" + getName() + "' extends deprecated configuration '" + configuration.getName() + "'. This will fail or cause unintended side effects in future Gradle versions.")
+                        .willBeRemovedInGradle7().withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations").nagUser();
+                }
             }
         }
         return this;

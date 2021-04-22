@@ -53,6 +53,7 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.analysis.checkers.toVisibilityOrNull
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 import org.junit.Assert.assertTrue
+import org.junit.Before
 
 import org.junit.Test
 
@@ -61,6 +62,14 @@ import java.io.File
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
+
+    @Before
+    fun setupForDeprecations() {
+        executer.expectDocumentedDeprecationWarning(
+            "Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"
+        )
+    }
 
     @Test
     @ToBeFixedForConfigurationCache
@@ -403,7 +412,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
 
         assertThat(
-            build("tasks").output,
+            buildWithDeprecations("tasks").output,
             allOf(
                 containsString("*using app from app/model in app*"),
                 containsString("*using lib from lib/model in lib*")

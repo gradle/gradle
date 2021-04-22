@@ -194,7 +194,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        val output = build("compute").output
+        val output = buildWithDeprecations("compute").output
         assert(output.contains("buildscript: 42"))
         assert(output.contains("*42*"))
     }
@@ -939,7 +939,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        build("help")
+        buildWithDeprecations("help")
     }
 
     @Test

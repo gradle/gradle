@@ -31,6 +31,11 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
 
     abstract void pluginDefinesTask()
 
+    void kotlinDeprecationWarnings() {
+        // nothing by default
+    }
+
+
     @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
@@ -41,6 +46,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         buildFile << """
             apply plugin: SomePlugin
         """
+        kotlinDeprecationWarnings()
         when:
         run("someTask")
 
@@ -63,6 +69,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         buildFile << """
             apply plugin: SomePlugin
         """
+        kotlinDeprecationWarnings()
         when:
         run("someTask")
 
@@ -85,6 +92,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         buildFile << """
             apply plugin: SomePlugin
         """
+        kotlinDeprecationWarnings()
         when:
         run("someTask")
 
@@ -110,6 +118,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
             println "flag = " + tasks.someTask.flag
         """
 
+        kotlinDeprecationWarnings()
         when:
         run()
 
@@ -138,6 +147,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
                 map = [1: true, 2: false]
             }
         """
+        kotlinDeprecationWarnings()
         when:
         run("someTask")
 
@@ -159,6 +169,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
                 map = provider { [3: true] }
             }
         """
+        kotlinDeprecationWarnings()
         run("someTask")
 
         then:
@@ -188,6 +199,8 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
             }
         """
 
+        kotlinDeprecationWarnings()
+
         when:
         run("someTask")
 
@@ -210,6 +223,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
                 map.set(provider { mapOf(3 to true) })
             }
         """
+        kotlinDeprecationWarnings()
         run("someTask")
 
         then:
@@ -276,6 +290,8 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
             apply plugin: SomePlugin
         """
 
+        kotlinDeprecationWarnings()
+
         when:
         run("someTask")
 
@@ -337,6 +353,10 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         when:
         // Due to exception logged by Kotlin plugin
         executer.withStackTraceChecksDisabled()
+        executer.expectDocumentedDeprecationWarning("Configuration 'api' extends deprecated configuration 'compile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("Configuration 'testApi' extends deprecated configuration 'testCompile'. This will fail or cause unintended side effects in future Gradle versions. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         run("someTask")
 
         then:

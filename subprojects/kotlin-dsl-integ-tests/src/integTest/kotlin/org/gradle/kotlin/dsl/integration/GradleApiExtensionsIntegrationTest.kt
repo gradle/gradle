@@ -192,7 +192,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        build("foo")
+        buildWithDeprecations("foo")
     }
 
     @Test

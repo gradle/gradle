@@ -206,6 +206,9 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun build(vararg arguments: String): ExecutionResult =
         gradleExecuterFor(arguments).run()
 
+    fun buildWithDeprecations(vararg arguments: String): ExecutionResult =
+        gradleExecuterFor(arguments).noDeprecationChecks().run()
+
     protected
     fun buildFailureOutput(vararg arguments: String): String =
         buildAndFail(*arguments).error
@@ -217,6 +220,10 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     fun build(rootDir: File, vararg arguments: String): ExecutionResult =
         gradleExecuterFor(arguments, rootDir).run()
+
+    protected
+    fun buildWithDeprecations(rootDir: File, vararg arguments: String): ExecutionResult =
+        gradleExecuterFor(arguments, rootDir).noDeprecationChecks().run()
 
     protected
     fun gradleExecuterFor(arguments: Array<out String>, rootDir: File = projectRoot) =

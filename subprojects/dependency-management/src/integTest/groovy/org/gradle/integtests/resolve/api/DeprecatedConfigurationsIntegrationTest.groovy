@@ -29,28 +29,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 maven { url "${mavenRepo.uri}" }
             }
             allprojects {
-                configurations {
-                    implementation
-                    compile.deprecateForDeclaration("implementation")
-                    compile.deprecateForConsumption("compileElements")
-                    compile.deprecateForResolution("compileClasspath")
-                    compileOnly.deprecateForConsumption("compileElements")
-                    compileOnly.deprecateForResolution("compileClasspath")
-                    apiElements {
-                        canBeConsumed = true
-                        canBeResolved = false
-                        extendsFrom compile
-                        extendsFrom compileOnly
-                        extendsFrom implementation
-                    }
-                    compileClasspath {
-                        canBeConsumed = false
-                        canBeResolved = true
-                        extendsFrom compile
-                        extendsFrom compileOnly
-                        extendsFrom implementation
-                    }
-                }
+                apply plugin: 'java-library'
             }
         """
     }
@@ -65,7 +44,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
-            "Please use the implementation configuration instead. " +
+            "Please use the implementation or api configuration instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
         then:
@@ -84,7 +63,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
-            "Please use the implementation configuration instead. " +
+            "Please use the implementation or api configuration instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
         then:
@@ -101,7 +80,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 7.0. " +
-            "Please use the implementation or compileElements configuration instead. " +
+            "Please use the implementation or api or apiElements configuration instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
         then:
@@ -146,7 +125,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. " +
-            "Please use attributes to consume the compileElements configuration instead. " +
+            "Please use attributes to consume the apiElements configuration instead. " +
             "See https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph for more details.")
 
         then:
@@ -174,7 +153,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. " +
-            "Please use attributes to consume the compileElements configuration instead. " +
+            "Please use attributes to consume the apiElements configuration instead. " +
             "See https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph for more details.")
 
         then:

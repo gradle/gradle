@@ -54,6 +54,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
 import javax.inject.Inject;
@@ -445,24 +446,26 @@ public class JavaPlugin implements Plugin<Project> {
         Configuration testRuntimeConfiguration = configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME);
         Configuration testRuntimeOnlyConfiguration = configurations.getByName(TEST_RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        compileTestsConfiguration.extendsFrom(compileConfiguration);
+        DeprecationLogger.whileDisabled(() -> {
+            compileTestsConfiguration.extendsFrom(compileConfiguration);
+            testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
+        });
         testImplementationConfiguration.extendsFrom(implementationConfiguration);
-        testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
         testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
 
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
+        final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) DeprecationLogger.whileDisabled(() -> jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
                 .providesApi()
                 .withDescription("API elements for main.")
-                .extendsFrom(runtimeConfiguration));
+                .extendsFrom(runtimeConfiguration)));
 
-        final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
+        final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) DeprecationLogger.whileDisabled(() -> jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")
-                .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration));
+                .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration)));
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
 
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
