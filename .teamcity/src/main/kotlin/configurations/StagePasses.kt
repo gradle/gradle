@@ -22,7 +22,7 @@ import model.StageNames
 import model.Trigger
 import projects.StageProject
 
-class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) : BaseGradleBuildType(model, init = {
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) : BaseGradleBuildType(init = {
     id(stageTriggerId(model, stage))
     name = stage.stageName.stageName + " (Trigger)"
 
@@ -64,7 +64,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         param("env.JAVA_HOME", LINUX.javaHomeForGradle())
     }
 
-    val baseBuildType = this
     val buildScanTags = model.buildScanTags + stage.id
 
     val defaultGradleParameters = (

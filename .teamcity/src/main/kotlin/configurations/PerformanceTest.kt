@@ -43,7 +43,6 @@ class PerformanceTest(
     performanceTestTaskSuffix: String = "PerformanceTest",
     preBuildSteps: BuildSteps.() -> Unit = {}
 ) : BaseGradleBuildType(
-    model,
     stage = stage,
     init = {
         this.id(performanceTestBuildSpec.asConfigurationId(model, "bucket${bucketIndex + 1}"))
