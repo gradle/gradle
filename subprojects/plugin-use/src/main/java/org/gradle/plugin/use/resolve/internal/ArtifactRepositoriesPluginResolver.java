@@ -71,11 +71,6 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             return;
         }
 
-        if (versionSelectorScheme.parseSelector(markerVersion).isDynamic()) {
-            result.notFound(SOURCE_NAME, "dynamic plugin versions are not supported");
-            return;
-        }
-
         if (exists(markerDependency)) {
             handleFound(result, pluginRequest, markerDependency);
         } else {

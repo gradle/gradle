@@ -3,10 +3,7 @@ This is a backport release, Gradle @version@.
 This release features bugfixes and other changes that were [backported](#backports) from Gradle 7.0 to Gradle 6.x.
 
 We would like to thank the following community contributors to this release of Gradle:
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
--->
+[Ståle Undheim](https://github.com/staale)
 
 ## Upgrade instructions
 
