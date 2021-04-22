@@ -27,7 +27,6 @@ import org.gradle.util.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegrationTest {
-
     def "skip assemble tasks when no source"() {
         given:
         makeSingleProject()
