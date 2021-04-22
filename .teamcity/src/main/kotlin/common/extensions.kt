@@ -176,8 +176,8 @@ fun functionalTestExtraParameters(buildScanTag: String, os: Os, testJvmVersion: 
         "coverageJvmVersion" to "java$testJvmVersion"
     )
     return (listOf(
-        "-PtestJavaVersion=${testJvmVersion}",
-        "-PtestJavaVendor=${testJvmVendor}") +
+        "-PtestJavaVersion=$testJvmVersion",
+        "-PtestJavaVendor=$testJvmVendor") +
         listOf(buildScanTag(buildScanTag)) +
         buildScanValues.map { buildScanCustomValue(it.key, it.value) }
         ).filter { it.isNotBlank() }.joinToString(separator = " ")

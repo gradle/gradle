@@ -31,5 +31,4 @@ object BuildToolBuildJvm : Jvm {
         get() = JvmVersion.java11
     override val vendor: JvmVendor
         get() = JvmVendor.openjdk
-
 }
