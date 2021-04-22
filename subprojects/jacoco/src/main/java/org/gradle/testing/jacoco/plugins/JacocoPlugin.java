@@ -20,6 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileOperations;
@@ -96,10 +97,12 @@ public class JacocoPlugin implements Plugin<Project> {
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
+        agentConf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
         Configuration antConf = project.getConfigurations().create(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
+        antConf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
     }
 
 
