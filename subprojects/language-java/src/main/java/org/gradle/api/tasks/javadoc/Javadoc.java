@@ -86,7 +86,9 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * }
  *
  * configurations {
- *   jaxDoclet
+ *   jaxDoclet {
+ *       attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME))
+ *   }
  * }
  *
  * dependencies {
