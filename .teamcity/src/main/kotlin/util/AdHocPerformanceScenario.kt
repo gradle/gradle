@@ -63,8 +63,6 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
 
         param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
         param("additional.gradle.parameters", "")
-        param("env.ANDROID_HOME", os.androidHome)
-        param("env.ANDROID_SDK_ROOT", os.androidHome)
     }
 
     steps {
