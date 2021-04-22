@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,20 @@
 
 package common
 
-enum class JvmCategory(
-    override val vendor: JvmVendor,
+interface Jvm {
+    val version: JvmVersion
+    val vendor: JvmVendor
+}
+
+data class DefaultJvm(
+    override val version: JvmVersion,
+    override val vendor: JvmVendor
+) : Jvm
+
+object BuildToolBuildJvm : Jvm {
     override val version: JvmVersion
-) : Jvm {
-    MIN_VERSION(JvmVendor.oracle, JvmVersion.java8),
-    MAX_VERSION(JvmVendor.oracle, JvmVersion.java16),
-    EXPERIMENTAL_VERSION(JvmVendor.oracle, JvmVersion.java17)
+        get() = JvmVersion.java11
+    override val vendor: JvmVendor
+        get() = JvmVendor.openjdk
+
 }

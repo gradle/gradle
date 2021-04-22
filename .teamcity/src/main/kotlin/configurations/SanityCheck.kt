@@ -1,6 +1,5 @@
 package configurations
 
-import common.Os.LINUX
 import model.CIBuildModel
 import model.Stage
 
@@ -8,10 +7,6 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage
     id(buildTypeId(model))
     name = "Sanity Check"
     description = "Static code analysis, checkstyle, release notes verification, etc."
-
-    params {
-        param("env.JAVA_HOME", LINUX.javaHomeForGradle())
-    }
 
     features {
         publishBuildStatusToGithub(model)

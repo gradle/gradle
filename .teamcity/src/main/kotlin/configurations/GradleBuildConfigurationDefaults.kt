@@ -161,7 +161,7 @@ fun BaseGradleBuildType.killProcessStep(stepName: String, daemon: Boolean, os: O
 }
 
 fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.LINUX, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
-    buildType.applyDefaultSettings(os, timeout)
+    buildType.applyDefaultSettings(os, timeout = timeout)
 
     buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon, os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
@@ -190,7 +190,7 @@ fun applyTestDefaults(
         buildType.params.param("env.REPO_MIRROR_URLS", "")
     }
 
-    buildType.applyDefaultSettings(os, timeout)
+    buildType.applyDefaultSettings(os, timeout = timeout)
 
     buildType.steps {
         preSteps()

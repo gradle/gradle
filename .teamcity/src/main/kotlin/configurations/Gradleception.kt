@@ -1,6 +1,5 @@
 package configurations
 
-import common.Os.LINUX
 import common.buildToolGradleParameters
 import common.customGradle
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
@@ -12,10 +11,6 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
     id("${model.projectId}_Gradleception")
     name = "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
-
-    params {
-        param("env.JAVA_HOME", LINUX.javaHomeForGradle())
-    }
 
     features {
         publishBuildStatusToGithub(model)

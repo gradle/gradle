@@ -59,14 +59,6 @@ class FunctionalTest(
             param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%e.grdev.net.access.key%")
         }
 
-        param("env.JAVA_HOME", "%${testCoverage.os.name.toLowerCase()}.${testCoverage.buildJvmVersion}.openjdk.64bit%")
-        param("env.ANDROID_HOME", testCoverage.os.androidHome)
-        param("env.ANDROID_SDK_ROOT", testCoverage.os.androidHome)
-        if (testCoverage.os == Os.MACOS) {
-            // Use fewer parallel forks on macOs, since the agents are not very powerful.
-            param("maxParallelForks", "2")
-        }
-
         if (testCoverage.testDistribution) {
             param("maxParallelForks", "16")
         }

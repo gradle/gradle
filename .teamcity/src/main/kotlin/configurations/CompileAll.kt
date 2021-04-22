@@ -1,6 +1,5 @@
 package configurations
 
-import common.Os.LINUX
 import model.CIBuildModel
 import model.Stage
 
@@ -8,10 +7,6 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage 
     id(buildTypeId(model))
     name = "Compile All"
     description = "Compiles all the source code and warms up the build cache"
-
-    params {
-        param("env.JAVA_HOME", LINUX.javaHomeForGradle())
-    }
 
     features {
         publishBuildStatusToGithub(model)

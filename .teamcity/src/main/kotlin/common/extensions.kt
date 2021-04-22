@@ -66,7 +66,7 @@ fun Requirements.requiresNoEc2Agent() {
 
 const val failedTestArtifactDestination = ".teamcity/gradle-logs"
 
-fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30) {
+fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
         build/report-* => $failedTestArtifactDestination
         build/tmp/test files/** => $failedTestArtifactDestination/test-files
@@ -75,10 +75,11 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30) {
         build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
 
+    paramsForBuildToolBuild(buildJvm, os)
+
     vcs {
         root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
         checkoutMode = CheckoutMode.ON_AGENT
-
         branchFilter = branchesFilterExcluding()
     }
 
@@ -101,10 +102,31 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30) {
             }
         }
     }
+}
 
-    if (os == Os.LINUX || os == Os.MACOS) {
-        params {
+fun javaHome(jvm: Jvm, os: Os) = "%${os.name.toLowerCase()}.${jvm.version}.${jvm.vendor}.64bit%"
+
+fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os) {
+    params {
+        param("env.BOT_TEAMCITY_GITHUB_TOKEN", "%github.bot-teamcity.token%")
+        param("env.GRADLE_CACHE_REMOTE_PASSWORD", "%gradle.cache.remote.password%")
+        param("env.GRADLE_CACHE_REMOTE_URL", "%gradle.cache.remote.url%")
+        param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
+
+        param("env.JAVA_HOME", javaHome(buildJvm, os))
+        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
+        param("env.ANDROID_HOME", os.androidHome)
+        param("env.ANDROID_SDK_ROOT", os.androidHome)
+        if (os == Os.MACOS) {
+            // Use fewer parallel forks on macOs, since the agents are not very powerful.
+            param("maxParallelForks", "2")
+        }
+        if (os == Os.LINUX || os == Os.MACOS) {
             param("env.LC_ALL", "en_US.UTF-8")
+        }
+
+        if (os == Os.MACOS) {
+            param("env.REPO_MIRROR_URLS", "")
         }
     }
 }

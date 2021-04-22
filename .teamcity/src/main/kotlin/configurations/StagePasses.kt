@@ -1,6 +1,5 @@
 package configurations
 
-import common.Os.LINUX
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.gradleWrapper
@@ -58,10 +57,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
             param("revisionRule", "lastFinished")
             branchFilter = branchFilter(model.branch)
         }
-    }
-
-    params {
-        param("env.JAVA_HOME", LINUX.javaHomeForGradle())
     }
 
     val buildScanTags = model.buildScanTags + stage.id
