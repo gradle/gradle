@@ -187,7 +187,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             plugins { base }
 
             base {
-                archivesBaseName = "my"
+                archivesBaseName.set("my")
             }
 
             println("base")
@@ -231,7 +231,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             plugins { base }
 
             base {
-                archivesBaseName = "my"
+                archivesBaseName.set("my")
             }
             """
         )
