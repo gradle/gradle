@@ -6,6 +6,7 @@ import common.buildToolGradleParameters
 import common.checkCleanM2
 import common.compileAllDependency
 import common.gradleWrapper
+import common.killProcessStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
@@ -141,21 +142,6 @@ fun BuildType.dumpOpenFiles() {
             scriptContent = """
                 "%windows.java11.openjdk.64bit%\bin\java" gradle\DumpOpenFilesOnFailure.java
             """.trimIndent()
-        }
-    }
-}
-
-private
-fun BaseGradleBuildType.killProcessStep(stepName: String, daemon: Boolean, os: Os) {
-    steps {
-        gradleWrapper {
-            name = stepName
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            tasks = "killExistingProcessesStartedByGradle"
-            gradleParams = (
-                buildToolGradleParameters(daemon) +
-                    "-DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
-                ).joinToString(separator = " ")
         }
     }
 }

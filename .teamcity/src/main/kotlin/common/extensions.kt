@@ -166,3 +166,17 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
         artifactRules = "build-receipt.properties => incoming-distributions"
     }
 }
+
+fun BuildType.killProcessStep(stepName: String, daemon: Boolean, os: Os) {
+    steps {
+        gradleWrapper {
+            name = stepName
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            tasks = "killExistingProcessesStartedByGradle"
+            gradleParams = (
+                buildToolGradleParameters(daemon) +
+                    "-DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
+                ).joinToString(separator = " ")
+        }
+    }
+}

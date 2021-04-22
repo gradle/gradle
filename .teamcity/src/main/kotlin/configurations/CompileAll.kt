@@ -24,6 +24,7 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage 
     """.trimIndent()
 }) {
     companion object {
-        fun buildTypeId(model: CIBuildModel) = "${model.projectId}_CompileAllBuild"
+        fun buildTypeId(model: CIBuildModel) = buildTypeId(model.projectId)
+        fun buildTypeId(projectId: String) = "${projectId}_CompileAllBuild"
     }
 }
