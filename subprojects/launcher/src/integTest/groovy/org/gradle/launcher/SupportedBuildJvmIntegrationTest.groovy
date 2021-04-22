@@ -20,10 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
@@ -38,6 +40,31 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         }
         file("gradle.properties").writeProperties("org.gradle.java.home": symlinkedJdk.canonicalPath)
         expect:
+        succeeds("help")
+    }
+
+    // This test deletes a JDK installation while the daemon is running.
+    // This is difficult to setup on Windows since you can't delete files
+    // that are in use.
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Issue("https://github.com/gradle/gradle/issues/16816")
+    def "can successful start after a running daemon's JDK has been removed"() {
+        def installedJdk = Jvm.current().javaHome
+        def jdkToRemove = file("removed-jdk")
+        jdkToRemove.mkdir()
+        new TestFile(installedJdk).copyTo(jdkToRemove)
+
+        // start one JVM with jdk to remove
+        executer.withJavaHome(jdkToRemove)
+        succeeds("help")
+
+        when:
+        // remove the JDK
+        jdkToRemove.deleteDir()
+        // don't ask for the removed JDK now
+        executer.withJavaHome(installedJdk)
+        then:
+        // try to start another build
         succeeds("help")
     }
 
