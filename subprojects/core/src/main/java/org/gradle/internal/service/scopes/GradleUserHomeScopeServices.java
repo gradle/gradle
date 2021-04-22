@@ -46,6 +46,9 @@ import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
+import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
@@ -135,6 +138,18 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         DefaultClassLoaderCache cache = new DefaultClassLoaderCache(classLoaderFactory, classpathHasher);
         listenerManager.addListener(cache);
         return cache;
+    }
+
+    protected ClassLoaderScopeRegistryListenerManager createClassLoaderScopeRegistryListenerManager(ListenerManager listenerManager) {
+        return new ClassLoaderScopeRegistryListenerManager(listenerManager);
+    }
+
+    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(
+        ClassLoaderRegistry classLoaderRegistry,
+        ClassLoaderCache classLoaderCache,
+        ClassLoaderScopeRegistryListenerManager listenerManager
+    ) {
+        return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, classLoaderCache, listenerManager.getBroadcaster());
     }
 
     ClasspathTransformerCacheFactory createClasspathTransformerCache(
