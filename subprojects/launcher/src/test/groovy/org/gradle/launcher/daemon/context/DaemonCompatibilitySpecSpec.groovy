@@ -15,7 +15,9 @@
  */
 package org.gradle.launcher.daemon.context
 
+
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
@@ -69,8 +71,14 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different java homes are incompatible"() {
-        client { javaHome = tmp.createDir("a") }
-        server { javaHome = tmp.createDir("b") }
+        client {
+            javaHome = tmp.createDir("client")
+            javaHome.file("bin", OperatingSystem.current().getExecutableName("java")).touch()
+        }
+        server {
+            javaHome = tmp.createDir("server")
+            javaHome.file("bin", OperatingSystem.current().getExecutableName("java")).touch()
+        }
 
         expect:
         !compatible
@@ -79,24 +87,25 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
     @Requires(TestPrecondition.SYMLINKS)
     def "contexts with symlinked javaHome are compatible"() {
-        def dir = new File(tmp.testDirectory, "a")
-        dir.mkdirs()
-        def link = new File(tmp.testDirectory, "link")
-//        new TestFile(link).createLink(dir)
-        ["ln", "-s", dir, link].execute().waitFor()
+        // Make something that looks like a Java installation
+        def jdk = tmp.testDirectory.file("jdk").createDir()
+        jdk.file("bin/java").touch()
 
-        assert dir != link
-        assert link.exists()
-        assert dir.canonicalFile == link.canonicalFile
+        def linkToJdk = tmp.testDirectory.file("link")
+        linkToJdk.createLink(jdk)
 
-        client { javaHome = dir }
-        server { javaHome = link }
+        assert jdk != linkToJdk
+        assert linkToJdk.exists()
+        assert jdk.canonicalFile == linkToJdk.canonicalFile
+
+        client { javaHome = jdk }
+        server { javaHome = linkToJdk }
 
         expect:
         compatible
 
         cleanup:
-        assert link.delete()
+        assert linkToJdk.delete()
     }
 
     def "contexts with same daemon opts are compatible"() {
