@@ -205,7 +205,9 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     def "empty custom processor configuration overrides processors in the compile classpath, and no deprecation warning is emitted"() {
         buildFile << """
             configurations {
-                apt
+                apt {
+                    attributes.attribute(Attribute.of("apt", String), "apt")
+                }
             }
 
             dependencies {

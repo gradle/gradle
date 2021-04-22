@@ -73,7 +73,11 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
     private String astTransformationDeclaration() {
         """
             project(':b') {
-                configurations { astTransformation }
+                configurations {
+                    astTransformation {
+                        attributes.attribute(Attribute.of("ast", String), "ast")
+                    }
+                }
                 dependencies {
                     astTransformation project(':a')
                 }
