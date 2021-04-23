@@ -23,13 +23,13 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
@@ -94,7 +94,8 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         Configuration configuration = project.getConfigurations().create(getConfigurationName());
         configuration.setVisible(false);
         configuration.setTransitive(true);
-        configuration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
+        JvmEcosystemUtilities jvmEcosystemUtilities = project.getServices().get(JvmEcosystemUtilities.class);
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(configuration);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));
