@@ -20,13 +20,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
@@ -62,11 +62,13 @@ public class JacocoPlugin implements Plugin<Project> {
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
     private final Instantiator instantiator;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
     private Project project;
 
     @Inject
-    public JacocoPlugin(Instantiator instantiator) {
+    public JacocoPlugin(Instantiator instantiator, JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.instantiator = instantiator;
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }
 
     @Override
@@ -97,12 +99,12 @@ public class JacocoPlugin implements Plugin<Project> {
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
-        agentConf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(agentConf);
         Configuration antConf = project.getConfigurations().create(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
-        antConf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(antConf);
     }
 
 
