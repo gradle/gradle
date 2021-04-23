@@ -1327,4 +1327,52 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             "convention"
         ]
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/16768")
+    def "the artifact notation doesn't require to set 'name'"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("myLib").to("org.gradle.test", "lib").version {
+                            require "1.0"
+                        }
+                    }
+                }
+            }
+        """
+
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0")
+        lib.artifact(classifier: 'classy')
+        lib.publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation(libs.myLib) {
+                    artifact {
+                        classifier = 'classy'
+                    }
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.getArtifact(classifier: 'classy').expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0') {
+                    artifact(classifier: 'classy')
+                }
+            }
+        }
+    }
+
 }
