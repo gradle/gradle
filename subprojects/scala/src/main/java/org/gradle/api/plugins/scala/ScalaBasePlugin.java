@@ -123,7 +123,10 @@ public class ScalaBasePlugin implements Plugin<Project> {
         Configuration zinc = project.getConfigurations().create(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false);
         zinc.setDescription("The Zinc incremental compiler to be used for this Scala project.");
-        jvmEcosystemUtilities.configureAsRuntimeClasspath(zinc);
+        jvmEcosystemUtilities.configureAttributes(zinc, a -> {
+            a.withExternalDependencies();
+            a.asJar();
+        });
 
         zinc.getResolutionStrategy().eachDependency(rule -> {
             if (rule.getRequested().getGroup().equals("com.typesafe.zinc") && rule.getRequested().getName().equals("zinc")) {
