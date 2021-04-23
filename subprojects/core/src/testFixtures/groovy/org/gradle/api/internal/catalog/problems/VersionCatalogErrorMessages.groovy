@@ -199,8 +199,8 @@ trait VersionCatalogErrorMessages {
 
     static class ReservedAlias extends InCatalog<ReservedAlias> {
         String alias
-        String shouldNotEndWith
-        List<String> reservedAliasSuffixes = []
+        String message
+        String solution
 
         ReservedAlias() {
             intro = """Invalid catalog definition:
@@ -209,16 +209,22 @@ trait VersionCatalogErrorMessages {
 
         ReservedAlias alias(String name) {
             this.alias = name
+            this.message = "Alias '$name' is a reserved name in Gradle which prevents generation of accessors"
             this
         }
 
         ReservedAlias shouldNotEndWith(String forbidden) {
-            this.shouldNotEndWith = forbidden
+            this.message = "It shouldn't end with '${forbidden}'"
             this
         }
 
         ReservedAlias reservedAliasSuffix(String... suffixes) {
-            Collections.addAll(reservedAliasSuffixes, suffixes)
+            this.solution = "Use a different alias which doesn't end with ${oxfordListOf(suffixes as List, 'or')}"
+            this
+        }
+
+        ReservedAlias reservedAliases(String... aliases) {
+            this.solution = "Use a different alias which isn't in the reserved names ${oxfordListOf(aliases as List, "or")}"
             this
         }
 
@@ -226,9 +232,9 @@ trait VersionCatalogErrorMessages {
         String build() {
             """${intro}  - Problem: In version catalog ${catalog}, alias '${alias}' is not a valid alias.
 
-    Reason: It shouldn't end with '${shouldNotEndWith}'.
+    Reason: $message.
 
-    Possible solution: Use a different alias which doesn't end with ${oxfordListOf(reservedAliasSuffixes, 'or')}.
+    Possible solution: $solution.
 
     ${documentation}"""
         }

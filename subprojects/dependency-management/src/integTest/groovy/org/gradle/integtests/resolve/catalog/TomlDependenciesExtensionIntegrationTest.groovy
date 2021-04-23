@@ -43,7 +43,7 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogInt
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in TOML file trigger the creation of an extension (notation=#notation)"() {
         tomlFile << """[libraries]
-foo = 'org.gradle.test:lib:1.0'
+foo = "org.gradle.test:lib:1.0"
 """
 
         buildFile << """
@@ -83,7 +83,7 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
         operations.hasOperation("Executing generation of dependency accessors for libs")
 
         when: "updating a version in the model"
-        tomlFile.text = tomlFile.text.replace('{group="org.gradle.test", name="bar", version="1.0"}', '="org.gradle.test:bar:1.1"')
+        tomlFile.text = tomlFile.text.replace('{group="org.gradle.test", name="bar", version="1.0"}', '"org.gradle.test:bar:1.1"')
         run 'verifyExtension'
 
         then: "extension is not regenerated"
@@ -155,7 +155,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"
-lib2.version = "1.0
+lib2.version = "1.0"
 
 [bundles]
 myBundle = ["lib", "lib2"]
@@ -192,7 +192,7 @@ myBundle = ["lib", "lib2"]
         tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"
-lib2.version = "1.0
+lib2.version = "1.0"
 
 [bundles]
 myBundle = ["lib", "lib2"]
