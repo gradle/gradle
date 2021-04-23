@@ -3,7 +3,9 @@ apply plugin: 'java'
 sourceCompatibility = 1.6
 
 configurations {
-    provided
+    provided {
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    }
     compile.extendsFrom provided
 }
 
