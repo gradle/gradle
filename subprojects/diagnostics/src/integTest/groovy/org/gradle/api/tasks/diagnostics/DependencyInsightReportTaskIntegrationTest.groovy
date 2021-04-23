@@ -104,7 +104,9 @@ No dependencies matching given input were found in configuration ':compileClassp
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                conf {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
             }
             dependencies {
                 conf 'org:top:1.0'
