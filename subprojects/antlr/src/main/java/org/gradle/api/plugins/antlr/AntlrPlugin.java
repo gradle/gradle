@@ -60,7 +60,9 @@ public class AntlrPlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setDescription("The Antlr libraries to be used for this project.");
 
-        jvmEcosystemUtilities.configureAsRuntimeClasspath(antlrConfiguration);
+        jvmEcosystemUtilities.configureAttributes(antlrConfiguration, a -> {
+            a.runtimeUsage();
+        });
         antlrConfiguration.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
 
         Configuration apiConfiguration = project.getConfigurations().getByName(JavaPlugin.API_CONFIGURATION_NAME);
