@@ -9,6 +9,9 @@ repositories {
 // tag::configuration-definition[]
 val smokeTest by configurations.creating {
     extendsFrom(configurations.testImplementation.get())
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
+    }
 }
 
 dependencies {

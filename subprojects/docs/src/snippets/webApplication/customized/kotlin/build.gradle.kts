@@ -9,6 +9,7 @@ version = "1.0"
 
 // tag::customization[]
 val moreLibs = configurations.create("moreLibs")
+moreLibs.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
 
 repositories {
     flatDir { dir("lib") }

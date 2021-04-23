@@ -8,7 +8,12 @@ repositories {
 
 // tag::configuration-definition[]
 configurations {
-    smokeTest.extendsFrom testImplementation
+    smokeTest {
+        extendsFrom testImplementation
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+        }
+    }
 }
 
 dependencies {

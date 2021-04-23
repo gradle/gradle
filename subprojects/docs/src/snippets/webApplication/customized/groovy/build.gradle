@@ -8,7 +8,9 @@ version = '1.0'
 
 // tag::customization[]
 configurations {
-   moreLibs
+   moreLibs {
+       attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+   }
 }
 
 repositories {
