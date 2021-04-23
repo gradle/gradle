@@ -281,7 +281,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildScript """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            configurations { first {}; last {} }
+            configurations {
+                first {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+                last {
+                    attributes.attribute(Attribute.of("test", String), "test")
+                }
+            }
             dependencies {
                 // guarantee ordering
                 first 'com.google.guava:guava:15.0'
