@@ -22,6 +22,7 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
@@ -30,6 +31,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
 )
+@Ignore("https://github.com/gradle/gradle/pull/16495")
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {

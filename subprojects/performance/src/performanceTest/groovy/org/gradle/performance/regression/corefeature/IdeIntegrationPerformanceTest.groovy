@@ -19,6 +19,7 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -28,6 +29,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
     @RunFor(
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject"])
     )
+    @Ignore("https://github.com/gradle/gradle/pull/16495")
     def "eclipse"() {
         given:
         runner.tasksToRun = ['eclipse']
@@ -43,6 +45,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
     @RunFor(
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject"])
     )
+    @Ignore("https://github.com/gradle/gradle/pull/16495")
     def "idea"() {
         given:
         runner.tasksToRun = ['idea']

@@ -23,6 +23,7 @@ import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
+import spock.lang.Ignore
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 import static org.gradle.performance.annotations.ScenarioType.PER_WEEK
@@ -31,6 +32,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor([
     @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
 ])
+@Ignore("https://github.com/gradle/gradle/pull/16495")
 class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
     def "assemble with local cache (build comparison)"() {
         def noPushInitScript = temporaryFolder.file("no-push.gradle")

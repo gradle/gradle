@@ -19,6 +19,7 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
@@ -31,6 +32,7 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.args << '--console=rich'
     }
 
+    @Ignore("https://github.com/gradle/gradle/pull/16495")
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject"], iterationMatcher = "^clean assemble.*"),
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "bigNative"], iterationMatcher = "^clean assemble.*"),

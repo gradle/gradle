@@ -23,6 +23,7 @@ import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -31,6 +32,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
 )
+@Ignore("https://github.com/gradle/gradle/pull/16495")
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
@@ -113,6 +115,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     @RunFor(
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
     )
+    @Ignore("https://github.com/gradle/gradle/pull/16495")
     def "clean assemble with local cache"() {
         given:
         setupTestProject(runner)

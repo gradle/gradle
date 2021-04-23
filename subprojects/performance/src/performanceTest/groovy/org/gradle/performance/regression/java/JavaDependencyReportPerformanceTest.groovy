@@ -19,6 +19,7 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -28,6 +29,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
 )
+@Ignore("https://github.com/gradle/gradle/pull/16495")
 class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll

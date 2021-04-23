@@ -20,11 +20,13 @@ import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(@Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects =  ["largeJavaMultiProject", "largeMonolithicJavaProject"]))
+@Ignore("https://github.com/gradle/gradle/pull/16495")
 class TaskAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "help with lazy and eager tasks"() {

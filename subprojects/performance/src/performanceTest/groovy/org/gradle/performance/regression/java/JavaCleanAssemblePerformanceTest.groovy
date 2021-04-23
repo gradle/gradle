@@ -19,6 +19,7 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -28,6 +29,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject", "mediumJavaCompositeBuild"]),
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["mediumJavaPredefinedCompositeBuild"])
 ])
+@Ignore("https://github.com/gradle/gradle/pull/16495")
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "clean assemble"() {
