@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 /**
  * Handles classes which can affect other classes simply by being newly added to a source set.
@@ -48,15 +47,10 @@ public class WellKnownSourceFileClassNameConverter implements SourceFileClassNam
     }
 
     @Override
-    public boolean isEmpty() {
-        return delegate.isEmpty();
-    }
-
-    @Override
-    public Optional<String> getRelativeSourcePath(String className) {
+    public Collection<String> getRelativeSourcePaths(String className) {
         if (className.equals("module-info") || className.endsWith("package-info")) {
-            return Optional.of(className.replace('.', '/') + fileExtension);
+            return Collections.singleton(className.replace('.', '/') + fileExtension);
         }
-        return delegate.getRelativeSourcePath(className);
+        return delegate.getRelativeSourcePaths(className);
     }
 }

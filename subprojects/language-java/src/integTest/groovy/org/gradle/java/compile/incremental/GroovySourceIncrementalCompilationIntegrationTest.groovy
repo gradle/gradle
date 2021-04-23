@@ -156,17 +156,24 @@ class A2{}
     def 'merge old class source mappings if no recompilation required'() {
         given:
         File a = source('class A { }')
-        source('class B { }')
+        File b = source('class B { } \n class C { }')
+        source('class Unrelated {}')
         run 'compileGroovy'
 
         when:
         a.delete()
-        run 'compileGroovy'
+        outputs.snapshot { run 'compileGroovy' }
 
         then:
         skipped(':compileGroovy')
-        !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('A.groovy')
-        file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('B.groovy')
+
+        when:
+        b.text = 'class B { }'
+        run 'compileGroovy'
+
+        then:
+        outputs.recompiledClasses('B')
+        outputs.deletedClasses( "C")
     }
 
     def "does recompile when a resource changes"() {
