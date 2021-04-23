@@ -1,4 +1,4 @@
-subprojects/docs/src/snippets/files/archivesChangedBaseName/groovy/build.gradle// tag::use-task[]
+// tag::use-task[]
 buildscript {
     repositories {
         maven {
