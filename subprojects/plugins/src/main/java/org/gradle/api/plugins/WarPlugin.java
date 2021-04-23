@@ -30,6 +30,7 @@ import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultWarPluginConvention;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
@@ -51,11 +52,13 @@ public class WarPlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
     @Inject
-    public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
+    public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }
 
     @Override
@@ -65,13 +68,13 @@ public class WarPlugin implements Plugin<Project> {
         project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.from((Callable) () -> pluginConvention.getWebAppDir());
-            task.dependsOn((Callable) () -> project.getConvention()
+            task.from((Callable<?>) pluginConvention::getWebAppDir);
+            task.dependsOn((Callable<?>) () -> project.getConvention()
                 .getPlugin(JavaPluginConvention.class)
                 .getSourceSets()
                 .getByName(SourceSet.MAIN_SOURCE_SET_NAME)
                 .getRuntimeClasspath());
-            task.classpath((Callable) () -> {
+            task.classpath((Callable<?>) () -> {
                 FileCollection runtimeClasspath = project.getConvention().getPlugin(JavaPluginConvention.class)
                     .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                 Configuration providedRuntime = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME);
@@ -96,6 +99,7 @@ public class WarPlugin implements Plugin<Project> {
         Configuration provideRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
             extendsFrom(provideCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(provideRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
         configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
