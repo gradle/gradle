@@ -28,6 +28,7 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlInvalidTypeException;
+import org.tomlj.TomlParseError;
 import org.tomlj.TomlParseResult;
 import org.tomlj.TomlTable;
 
@@ -75,6 +76,7 @@ public class TomlCatalogFileParser {
     public static void parse(InputStream in, VersionCatalogBuilder builder) throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
         TomlParseResult result = Toml.parse(in);
+        assertNoParseErrors(result, builder);
         TomlTable metadataTable = result.getTable(METADATA_KEY);
         verifyMetadata(builder, metadataTable);
         TomlTable librariesTable = result.getTable(LIBRARIES_KEY);
@@ -91,6 +93,31 @@ public class TomlCatalogFileParser {
         parseLibraries(librariesTable, builder, strictVersionParser);
         parseBundles(bundlesTable, builder);
         parseVersions(versionsTable, builder, strictVersionParser);
+    }
+
+    private static void assertNoParseErrors(TomlParseResult result, VersionCatalogBuilder builder) {
+        if (result.hasErrors()) {
+            List<TomlParseError> errors = result.errors();
+            throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
+                spec.withShortDescription(() -> "Parsing failed with " + errors.size() + " error" + (errors.size() > 1 ? "s" : ""))
+                    .happensBecause(() -> {
+                        StringBuilder reason = new StringBuilder();
+                        for (TomlParseError error : errors) {
+                            if (reason.length() > 0) {
+                                reason.append("\n");
+                            }
+                            reason.append("At line ")
+                                .append(error.position().line()).append(", column ")
+                                .append(error.position().column())
+                                .append(": ")
+                                .append(error.getMessage());
+                        }
+                        return reason.toString();
+                    })
+                    .addSolution("Fix the TOML file according to the syntax described at https://toml.io")
+                    .documented()
+            );
+        }
     }
 
     private static void verifyMetadata(VersionCatalogBuilder builder, @Nullable TomlTable metadataTable) {

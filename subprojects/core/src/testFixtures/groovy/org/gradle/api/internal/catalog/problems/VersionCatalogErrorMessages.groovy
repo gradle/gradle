@@ -73,6 +73,10 @@ trait VersionCatalogErrorMessages {
         buildMessage(MissingCatalogFile, VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST, spec)
     }
 
+    String parseError(@DelegatesTo(value=ParseError, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(ParseError, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec)
+    }
+
     private static <T extends InCatalog<T>> String buildMessage(Class<T> clazz, VersionCatalogProblemId id, Closure<?> spec) {
         def desc = clazz.newInstance()
         desc.section = id.name().toLowerCase()
@@ -105,6 +109,32 @@ trait VersionCatalogErrorMessages {
         }
 
         abstract String build()
+    }
+
+    static class ParseError extends InCatalog<ParseError> {
+
+        private List<String> errors = []
+
+        ParseError() {
+            intro = """Invalid TOML catalog definition:
+"""
+        }
+
+        ParseError addError(String error) {
+            errors << error
+            this
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog $catalog, parsing failed with ${errors.size()} error${errors.size() > 1 ? "s" : ""}.
+
+    Reason: ${errors.join('\n    ')}.
+
+    Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
+
+    ${documentation}"""
+        }
     }
 
     static class NameClash extends InCatalog<NameClash> {

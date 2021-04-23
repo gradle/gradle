@@ -702,6 +702,32 @@ other-bundle = ["my-lib", "my-lib2"]
         }
     }
 
+
+    @Issue("https://github.com/gradle/gradle/issues/16845")
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "should not swallow invalid TOML parse errors"() {
+        tomlFile << """
+[versions]
+// This is an invalid comment format
+commons-lib = "1.0"
+
+[libraries]
+lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
+
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, parseError {
+            inCatalog('libs')
+            addError('At line 3, column 1: Unexpected \'/\', expected a newline or end-of-input')
+        })
+    }
+
     private GradleExecuter withConfigurationCache() {
         executer.withArgument("--configuration-cache")
     }
