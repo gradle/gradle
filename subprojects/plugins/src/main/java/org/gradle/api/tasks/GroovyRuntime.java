@@ -21,11 +21,11 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
@@ -72,9 +72,11 @@ public class GroovyRuntime {
         "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc");
 
     private final Project project;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
-    public GroovyRuntime(Project project) {
+    public GroovyRuntime(Project project, JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.project = project;
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }
 
     /**
@@ -161,7 +163,7 @@ public class GroovyRuntime {
     }
 
     private Configuration configureGroovyClasspath(Configuration configuration) {
-        configuration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(configuration);
         return configuration;
     }
 
