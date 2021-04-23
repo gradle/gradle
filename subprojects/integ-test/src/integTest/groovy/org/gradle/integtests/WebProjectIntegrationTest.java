@@ -41,7 +41,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
                 "apply plugin: 'war'",
                 "buildDir = 'output'",
                 "base {",
-                "    archivesBaseName = 'test'",
+                "    archivesName = 'test'",
                 "    libsDirectory = layout.buildDirectory.dir('archives')",
                 "}",
                 "version = '0.5-RC2'"

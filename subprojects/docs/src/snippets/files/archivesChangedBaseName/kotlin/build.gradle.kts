@@ -6,7 +6,7 @@ version = "1.0"
 
 // tag::base-plugin-config[]
 base {
-    archivesBaseName.set("gradle")
+    archivesName.set("gradle")
     distsDirectory.set(layout.buildDirectory.dir("custom-dist"))
     libsDirectory.set(layout.buildDirectory.dir("custom-libs"))
 }

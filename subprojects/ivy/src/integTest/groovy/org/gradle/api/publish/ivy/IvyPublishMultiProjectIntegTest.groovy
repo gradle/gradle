@@ -174,7 +174,7 @@ project(":project3") {
         createBuildScripts("""
 project(":project2") {
     base {
-        archivesBaseName = "changed"
+        archivesName = "changed"
     }
 }
         """)
@@ -229,7 +229,7 @@ project(":project1") {
 project(":project2") {
     apply plugin: 'java'
     base {
-        archivesBaseName = "changed"
+        archivesName = "changed"
     }
 }
         """

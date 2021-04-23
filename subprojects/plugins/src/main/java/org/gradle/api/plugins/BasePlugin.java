@@ -24,6 +24,7 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
+import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.tasks.Jar;
@@ -43,8 +44,8 @@ public class BasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", BasePluginExtension.class);
-        BasePluginConvention convention = new DefaultBasePluginConvention(project, baseExtension);
+        BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
+        BasePluginConvention convention = new DefaultBasePluginConvention(baseExtension);
 
         project.getConvention().getPlugins().put("base", convention);
 
@@ -56,7 +57,7 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureExtension(Project project, BasePluginExtension extension) {
-        extension.getArchivesBaseName().convention(project.getName());
+        extension.getArchivesName().convention(project.getName());
         extension.getLibsDirectory().convention(project.getLayout().getBuildDirectory().dir("libs"));
         extension.getDistsDirectory().convention(project.getLayout().getBuildDirectory().dir("distributions"));
     }
@@ -73,9 +74,7 @@ public class BasePlugin implements Plugin<Project> {
                 project.provider(() -> project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString())
             );
 
-            task.getArchiveBaseName().convention(
-                project.provider(() -> extension.getArchivesBaseName().get())
-            );
+            task.getArchiveBaseName().convention(extension.getArchivesName());
         });
     }
 

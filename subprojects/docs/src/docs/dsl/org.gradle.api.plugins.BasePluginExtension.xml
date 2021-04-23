@@ -17,7 +17,7 @@
                 <td><literal><replaceable>${project.buildDir}</replaceable>/libs</literal></td>
             </tr>
             <tr>
-                <td>archivesBaseName</td>
+                <td>archivesName</td>
                 <td><literal>project.name</literal></td>
             </tr>
         </table>

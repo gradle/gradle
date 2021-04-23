@@ -5,7 +5,7 @@ plugins {
 version = 1.0
 // tag::base-plugin-config[]
 base {
-    archivesBaseName = "gradle"
+    archivesName = "gradle"
     distsDirectory = layout.buildDirectory.dir('custom-dist')
     libsDirectory = layout.buildDirectory.dir('custom-libs')
 }

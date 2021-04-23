@@ -45,7 +45,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             apply plugin: 'signing'
 
             base {
-                archivesBaseName = '$artifactId'
+                archivesName = '$artifactId'
             }
             group = 'sign'
             version = '$version'

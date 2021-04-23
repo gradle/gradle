@@ -183,7 +183,7 @@ project(":project3") {
         createBuildScripts("""
 project(":project2") {
     base {
-        archivesBaseName = "changed"
+        archivesName = "changed"
     }
 }
         """)

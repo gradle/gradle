@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,62 +16,68 @@
 
 package org.gradle.api.plugins.internal;
 
+import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.BasePluginExtension;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.provider.Property;
 
-@Deprecated
-public class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
+public class DefaultBasePluginExtension implements BasePluginExtension {
 
-    private BasePluginExtension extension;
+    private final Project project;
+    private final DirectoryProperty distsDirectory;
+    private final DirectoryProperty libsDirectory;
+    private final Property<String> archivesName;
 
-    public DefaultBasePluginConvention(BasePluginExtension extension) {
-        this.extension = extension;
-    }
-    @Override
-    public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(BasePluginConvention.class);
+    public DefaultBasePluginExtension(Project project) {
+        this.project = project;
+        this.distsDirectory = project.getObjects().directoryProperty();
+        this.libsDirectory = project.getObjects().directoryProperty();
+        this.archivesName = project.getObjects().property(String.class);
     }
 
     @Override
     public DirectoryProperty getDistsDirectory() {
-        return extension.getDistsDirectory();
+        return distsDirectory;
     }
 
     @Override
     public DirectoryProperty getLibsDirectory() {
-        return extension.getLibsDirectory();
+        return libsDirectory;
     }
 
     @Override
+    public Property<String> getArchivesName() {
+        return archivesName;
+    }
+
+
+    @Override
     public String getDistsDirName() {
-        return extension.getDistsDirectory().get().getAsFile().getName();
+        return getDistsDirectory().get().getAsFile().getName();
     }
 
     @Override
     public void setDistsDirName(String distsDirName) {
-        extension.setDistsDirName(distsDirName);
+        getDistsDirectory().set(project.getLayout().getBuildDirectory().dir(distsDirName));
     }
 
     @Override
     public String getLibsDirName() {
-        return extension.getLibsDirName();
+        return getLibsDirectory().get().getAsFile().getName();
     }
 
     @Override
     public void setLibsDirName(String libsDirName) {
-        extension.setLibsDirName(libsDirName);
+        getLibsDirectory().set(project.getLayout().getBuildDirectory().dir(libsDirName));
     }
 
     @Override
     public String getArchivesBaseName() {
-        return extension.getArchivesBaseName();
+        return getArchivesName().get();
     }
 
     @Override
     public void setArchivesBaseName(String archivesBaseName) {
-        extension.setArchivesBaseName(archivesBaseName);
+        getArchivesName().set(archivesBaseName);
     }
 }
