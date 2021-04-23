@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logger
 
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
@@ -38,7 +39,8 @@ import javax.inject.Inject
  * adds compile only and test implementation dependencies on `kotlin-stdlib` and `kotlin-reflect`.
  */
 class EmbeddedKotlinPlugin @Inject internal constructor(
-    private val embeddedKotlin: EmbeddedKotlinProvider
+    private val embeddedKotlin: EmbeddedKotlinProvider,
+    private val jvmEcosystemUtilities: JvmEcosystemUtilities
 ) : Plugin<Project> {
 
     override fun apply(project: Project) {
@@ -49,6 +51,7 @@ class EmbeddedKotlinPlugin @Inject internal constructor(
             logger.warnOnDifferentKotlinVersion(getKotlinPluginVersion())
 
             val embeddedKotlinConfiguration = configurations.create("embeddedKotlin")
+            jvmEcosystemUtilities.configureAsRuntimeClasspath(embeddedKotlinConfiguration)
             embeddedKotlin.addDependenciesTo(
                 dependencies,
                 embeddedKotlinConfiguration.name,
