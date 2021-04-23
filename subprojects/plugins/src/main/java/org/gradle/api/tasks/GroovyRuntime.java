@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.util.internal.VersionNumber;
@@ -74,9 +75,9 @@ public class GroovyRuntime {
     private final Project project;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
-    public GroovyRuntime(Project project, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public GroovyRuntime(Project project) {
         this.project = project;
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.jvmEcosystemUtilities = ((ProjectInternal) project).getServices().get(JvmEcosystemUtilities.class);
     }
 
     /**

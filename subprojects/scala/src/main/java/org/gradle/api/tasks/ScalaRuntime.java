@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
@@ -63,9 +64,9 @@ public class ScalaRuntime {
     private final Project project;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
-    public ScalaRuntime(Project project, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public ScalaRuntime(Project project) {
         this.project = project;
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.jvmEcosystemUtilities = ((ProjectInternal) project).getServices().get(JvmEcosystemUtilities.class);
     }
 
     /**
