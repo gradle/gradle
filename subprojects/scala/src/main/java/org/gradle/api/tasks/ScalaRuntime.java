@@ -20,10 +20,12 @@ import com.google.common.base.Splitter;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 
 import javax.annotation.Nullable;
@@ -59,9 +61,11 @@ public class ScalaRuntime {
     private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar");
 
     private final Project project;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
-    public ScalaRuntime(Project project) {
+    public ScalaRuntime(Project project, JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.project = project;
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }
 
     /**
@@ -107,7 +111,9 @@ public class ScalaRuntime {
                     artifact.setName(compilerBridgeJar.getName());
                 });
                 DefaultExternalModuleDependency compilerInterfaceJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-interface", zincVersion);
-                return project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion), compilerBridgeJar, compilerInterfaceJar);
+                Configuration configuration = project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion), compilerBridgeJar, compilerInterfaceJar);
+                jvmEcosystemUtilities.configureAsRuntimeClasspath(configuration);
+                return configuration;
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
