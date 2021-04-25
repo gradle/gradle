@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationStore;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
+import org.gradle.cache.Cache;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * The build scoped compile caches.
@@ -27,9 +28,6 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilat
  * and some community plugins still depend on it in their byte code.
  */
 public interface GeneralCompileCaches {
-    ClassAnalysisCache getClassAnalysisCache();
-
-    ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache();
-
-    PreviousCompilationStore createPreviousCompilationStore(String taskPath);
+    Cache<HashCode, ClassSetAnalysisData> getClassSetAnalysisCache();
+    Cache<HashCode, ClassAnalysis> getClassAnalysisCache();
 }

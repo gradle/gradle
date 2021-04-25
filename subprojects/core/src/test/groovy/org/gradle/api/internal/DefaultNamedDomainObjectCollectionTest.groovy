@@ -31,15 +31,15 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
 
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
-    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new IterationOrderRetainingSetElementSource<Bean>(), instantiator, namer, callbackActionDecorator)
-    final Bean a = new BeanSub1("a")
-    final Bean b = new BeanSub1("b")
-    final Bean c = new BeanSub1("c")
-    final Bean d = new BeanSub2("d")
-    final boolean externalProviderAllowed = true
+    DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new IterationOrderRetainingSetElementSource<Bean>(), instantiator, namer, callbackActionDecorator)
+    Bean a = new BeanSub1("a")
+    Bean b = new BeanSub1("b")
+    Bean c = new BeanSub1("c")
+    Bean d = new BeanSub2("d")
+    boolean externalProviderAllowed = true
     boolean directElementAdditionAllowed = true
     boolean elementRemovalAllowed = true
-    final boolean supportsBuildOperations = true
+    boolean supportsBuildOperations = true
 
     def setup() {
         container.clear()

@@ -38,21 +38,25 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void mergesMetadataFilesCorrectly() {
-        file("master/settings.gradle") << ""
-        def buildFile = file("master/build.gradle")
+        file("settings.gradle") << """
+            rootProject.name = "master"
+        """
+        def buildFile = file("build.gradle")
         buildFile << """
-apply plugin: 'java'
-apply plugin: 'idea'
-"""
+            plugins {
+                id("java")
+                id("idea")
+            }
+        """
 
         //given
-        executer.usingBuildScript(buildFile).withTasks('idea').run()
-        def projectContent = getFile([:], 'master/master.ipr').text
-        def moduleContent = getFile([:], 'master/master.iml').text
+        executer.withTasks('idea').run()
+        def projectContent = getFile([:], 'master.ipr').text
+        def moduleContent = getFile([:], 'master.iml').text
 
-        executer.usingBuildScript(buildFile).withTasks('idea').run()
-        def projectContentAfterMerge = getFile([:], 'master/master.ipr').text
-        def moduleContentAfterMerge = getFile([:], 'master/master.iml').text
+        executer.withTasks('idea').run()
+        def projectContentAfterMerge = getFile([:], 'master.ipr').text
+        def moduleContentAfterMerge = getFile([:], 'master.iml').text
 
         //then
         assert projectContent == projectContentAfterMerge
@@ -93,6 +97,8 @@ apply plugin: 'idea'
     @Test
     @ToBeFixedForConfigurationCache
     void worksWithNonStandardLayout() {
+        executer.expectDocumentedDeprecationWarning("Subproject ':a_child' has location '${file("a child project").absolutePath}' which is outside of the project root. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecated_flat_project_structure")
+        executer.expectDocumentedDeprecationWarning("Subproject ':top-level' has location '${file().absolutePath}' which is outside of the project root. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecated_flat_project_structure")
         executer.inDirectory(testDirectory.file('root')).withTasks('idea').run()
 
         assertHasExpectedContents('root/root.ipr')

@@ -41,6 +41,7 @@ import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -48,6 +49,12 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
@@ -55,15 +62,12 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
@@ -101,6 +105,10 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         );
     }
 
+    ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy createInputNodeAccessHierarchy(ExecutionNodeAccessHierarchies hierarchies) {
+        return hierarchies.createInputHierarchy();
+    }
+
     TaskExecuter createTaskExecuter(
         AsyncWorkTracker asyncWorkTracker,
         BuildCacheController buildCacheController,
@@ -112,7 +120,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         EmptySourceTaskSkipper emptySourceTaskSkipper,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry,
         FileOperations fileOperations,
         ListenerManager listenerManager,
         OutputChangeListener outputChangeListener,
@@ -124,7 +131,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
         TaskListenerInternal taskListenerInternal,
-        ExecutionEngine executionEngine
+        ExecutionEngine executionEngine,
+        InputFingerprinter inputFingerprinter
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheController.isEnabled()
@@ -138,9 +146,9 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             asyncWorkTracker,
             actionListener,
             taskCacheabilityResolver,
-            fingerprinterRegistry,
             classLoaderHierarchyHasher,
             executionEngine,
+            inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
             emptySourceTaskSkipper,
@@ -178,6 +186,13 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
         return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
+    }
+
+    InputFingerprinter createInputFingerprinter(
+        FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        ValueSnapshotter valueSnapshotter
+    ) {
+        return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
     }
 
     TaskExecutionModeResolver createExecutionModeResolver(

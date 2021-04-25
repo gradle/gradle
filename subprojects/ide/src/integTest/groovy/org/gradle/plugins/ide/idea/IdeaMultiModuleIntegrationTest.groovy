@@ -28,52 +28,53 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependencies() {
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << """
-include 'api'
-include 'shared:api', 'shared:model'
-include 'util'
+            rootProject.name = "master"
+            include 'api'
+            include 'shared:api', 'shared:model'
+            include 'util'
         """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-project(':api') {
-    dependencies {
-        implementation project(':shared:api')
-        testImplementation project(':shared:model')
-    }
-}
+            project(':api') {
+                dependencies {
+                    implementation project(':shared:api')
+                    testImplementation project(':shared:model')
+                }
+            }
 
-project(':shared:model') {
-    configurations {
-        utilities { extendsFrom testImplementation }
-    }
-    dependencies {
-        utilities project(':util')
-    }
-    idea {
-        module {
-            scopes.TEST.plus.add(configurations.utilities)
-        }
-    }
-}
-"""
+            project(':shared:model') {
+                configurations {
+                    utilities { extendsFrom testImplementation }
+                }
+                dependencies {
+                    utilities project(':util')
+                }
+                idea {
+                    module {
+                        scopes.TEST.plus.add(configurations.utilities)
+                    }
+                }
+            }
+        """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+        executer.withTasks("ideaModule").run()
 
         //then
-        def dependencies = parseIml("master/api/master-api.iml").dependencies
+        def dependencies = parseIml("api/master-api.iml").dependencies
         assert dependencies.modules.size() == 2
         dependencies.assertHasModule('COMPILE', "shared-api")
         dependencies.assertHasModule("TEST", "model")
 
-        dependencies = parseIml("master/shared/model/model.iml").dependencies
+        dependencies = parseIml("shared/model/model.iml").dependencies
         assert dependencies.modules.size() == 1
         dependencies.assertHasModule("TEST", "util")
     }
@@ -83,22 +84,22 @@ project(':shared:model') {
     @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependenciesForDependencyOnRoot() {
         file("settings.gradle") << """
-rootProject.name = 'root-project-1'
-include 'api'
+            rootProject.name = 'root-project-1'
+            include 'api'
+                    """
+
+                    file("build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
+
+            project(':api') {
+                dependencies {
+                    implementation project(':')
+                }
+            }
         """
-
-        file("build.gradle") << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
-
-project(':api') {
-    dependencies {
-        implementation project(':')
-    }
-}
-"""
 
         //when
         executer.withTasks("ideaModule").run()
@@ -115,46 +116,47 @@ project(':api') {
     @Test
     @ToBeFixedForConfigurationCache
     void respectsApiOfJavaLibraries() {
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << """
-include 'api'
-include 'impl'
-include 'library'
-include 'application'
+            rootProject.name = "master"
+            include 'api'
+            include 'impl'
+            include 'library'
+            include 'application'
         """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-project(":library") {
-    apply plugin: 'java-library'
-    dependencies {
-        api project(":api")
-        implementation project(":impl")
-    }
-}
+            project(":library") {
+                apply plugin: 'java-library'
+                dependencies {
+                    api project(":api")
+                    implementation project(":impl")
+                }
+            }
 
-project(":application") {
-    dependencies {
-        implementation project(":library")
-    }
-}
-"""
+            project(":application") {
+                dependencies {
+                    implementation project(":library")
+                }
+            }
+        """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+        executer.withTasks("ideaModule").run()
 
         //then
-        def dependencies = parseIml("master/library/library.iml").dependencies
+        def dependencies = parseIml("library/library.iml").dependencies
         assert dependencies.modules.size() == 2
         dependencies.assertHasModule('COMPILE', "api")
         dependencies.assertHasModule('COMPILE', "impl")
 
-        dependencies = parseIml("master/application/application.iml").dependencies
+        dependencies = parseIml("application/application.iml").dependencies
         assert dependencies.modules.size() == 4
 
         dependencies.assertHasModule('COMPILE', "library")
@@ -167,39 +169,38 @@ project(":application") {
     @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependenciesWhenRootProjectDoesNotApplyIdePlugin() {
         file("settings.gradle") << """
-rootProject.name = 'root-project-1'
+            rootProject.name = 'root-project-1'
 
-include 'api'
-include 'util'
-include 'other'
+            include 'api'
+            include 'util'
+            include 'other'
         """
 
         file("build.gradle") << """
-apply plugin: 'java'
+            apply plugin: 'java'
 
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-project(':api') {
-    dependencies {
-        implementation project(':util')
-        implementation project(':other')
-    }
-}
+            project(':api') {
+                dependencies {
+                    implementation project(':util')
+                    implementation project(':other')
+                }
+            }
 
-project(':other') {
-    idea.module.name = 'other-renamed'
-}
+            project(':other') {
+                idea.module.name = 'other-renamed'
+            }
 
-project(':util') {
-    dependencies {
-        testImplementation project(':')
-    }
-}
-
-"""
+            project(':util') {
+                dependencies {
+                    testImplementation project(':')
+                }
+            }
+        """
 
         //when
         executer.withTasks("ideaModule").run()
@@ -233,60 +234,61 @@ project(':util') {
             -util
       */
 
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << """
-include 'api'
-include 'shared:api', 'shared:model'
-include 'services:utilities'
-include 'util'
-include 'contrib:services:util'
+            rootProject.name = "master"
+            include 'api'
+            include 'shared:api', 'shared:model'
+            include 'services:utilities'
+            include 'util'
+            include 'contrib:services:util'
         """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-project(':api') {
-    dependencies {
-        implementation project(':shared:api'), project(':shared:model')
-    }
-}
+            project(':api') {
+                dependencies {
+                    implementation project(':shared:api'), project(':shared:model')
+                }
+            }
 
-project(':shared:model') {
-    idea {
-        module {
-            name = 'very-cool-model'
-        }
-    }
-}
+            project(':shared:model') {
+                idea {
+                    module {
+                        name = 'very-cool-model'
+                    }
+                }
+            }
 
-project(':services:utilities') {
-    dependencies {
-        implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
-    }
-    idea {
-        module {
-            name = 'util'
-        }
-    }
-}
-"""
+            project(':services:utilities') {
+                dependencies {
+                    implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
+                }
+                idea {
+                    module {
+                        name = 'util'
+                    }
+                }
+            }
+        """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         //then
         assertIprContainsCorrectModules()
 
-        def moduleDeps = parseIml("master/api/master-api.iml").dependencies
+        def moduleDeps = parseIml("api/master-api.iml").dependencies
         assert moduleDeps.modules.size() == 2
         moduleDeps.assertHasModule('COMPILE', "shared-api")
         moduleDeps.assertHasModule('COMPILE', "very-cool-model")
 
-        moduleDeps = parseIml("master/services/utilities/util.iml").dependencies
+        moduleDeps = parseIml("services/utilities/util.iml").dependencies
         assert moduleDeps.modules.size() == 4
         moduleDeps.assertHasModule('COMPILE', "shared-api")
         moduleDeps.assertHasModule('COMPILE', "very-cool-model")
@@ -309,7 +311,7 @@ project(':services:utilities') {
     }
 
     List parseIprModules() {
-        def ipr = parseFile(project: 'master', "master.ipr")
+        def ipr = parseFile(project: '.', "master.ipr")
         ipr.component.modules.module.@filepath.collect {
             it.text().replaceAll(/.*\//, "")
         }
@@ -319,31 +321,34 @@ project(':services:utilities') {
     @ToBeFixedForConfigurationCache
     void allowsFullyReconfiguredModuleNames() {
         //use case from the mailing list
-        def settingsFile = file("master/settings.gradle")
-        settingsFile << "include 'api', 'shared:model'"
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+            rootProject.name = "master"
+            include 'api', 'shared:model'
+        """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-subprojects {
-    ideaModule {
-        outputFile = file(project.projectDir.canonicalPath + "/" + rootProject.name + project.path.replace(':', '.') + ".iml")
-    }
-}
+            subprojects {
+                ideaModule {
+                    outputFile = file(project.projectDir.canonicalPath + "/" + rootProject.name + project.path.replace(':', '.') + ".iml")
+                }
+            }
 
-project(':api') {
-    dependencies {
-        implementation project(':shared:model')
-    }
-}
-"""
+            project(':api') {
+                dependencies {
+                    implementation project(':shared:model')
+                }
+            }
+        """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         //then
         def moduleFileNames = parseIprModules()
@@ -357,54 +362,55 @@ project(':api') {
     @Test
     @ToBeFixedForConfigurationCache
     void handlesModuleDependencyCycles() {
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << """
-include 'one'
-include 'two'
-include 'three'
+            rootProject.name = "master"
+            include 'one'
+            include 'two'
+            include 'three'
         """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java-library'
-    apply plugin: 'idea'
-}
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'idea'
+            }
 
-project(':one') {
-    dependencies {
-        api project(':two')
-    }
-}
+            project(':one') {
+                dependencies {
+                    api project(':two')
+                }
+            }
 
-project(':two') {
-    dependencies {
-        api project(':three')
-    }
-}
+            project(':two') {
+                dependencies {
+                    api project(':three')
+                }
+            }
 
-project(':three') {
-    dependencies {
-        api project(':one')
-    }
-}
-"""
+            project(':three') {
+                dependencies {
+                    api project(':one')
+                }
+            }
+        """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         //then
-        def dependencies = parseIml("master/one/one.iml").dependencies
+        def dependencies = parseIml("one/one.iml").dependencies
         assert dependencies.modules.size() == 2
         dependencies.assertHasModule('COMPILE', "two")
         dependencies.assertHasModule('COMPILE', "three")
 
-        dependencies = parseIml("master/two/two.iml").dependencies
+        dependencies = parseIml("two/two.iml").dependencies
         assert dependencies.modules.size() == 2
         dependencies.assertHasModule('COMPILE', "three")
         dependencies.assertHasModule('COMPILE', "one")
 
-        dependencies = parseIml("master/three/three.iml").dependencies
+        dependencies = parseIml("three/three.iml").dependencies
         assert dependencies.modules.size() == 2
         dependencies.assertHasModule('COMPILE', "one")
         dependencies.assertHasModule('COMPILE', "two")
@@ -416,181 +422,192 @@ project(':three') {
         def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
         def someLib2Jar= mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
 
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << """
-include 'one'
-include 'two'
+            rootProject.name = "master"
+            include 'one'
+            include 'two'
         """
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java-library'
-    apply plugin: 'idea'
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'idea'
 
-    repositories {
-        maven { url "${mavenRepo.uri}" }
-    }
-}
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
 
-project(':one') {
-    dependencies {
-        implementation ('someGroup:someLib:1.0') {
-            force = project.hasProperty("forceDeps")
-        }
-        implementation project(':two')
-    }
-}
+            project(':one') {
+                dependencies {
+                    implementation ('someGroup:someLib:1.0') {
+                        force = project.hasProperty("forceDeps")
+                    }
+                    implementation project(':two')
+                }
+            }
 
-project(':two') {
-    dependencies {
-        api 'someGroup:someLib:2.0'
-    }
-}
+            project(':two') {
+                dependencies {
+                    api 'someGroup:someLib:2.0'
+                }
+            }
+        """
 
-"""
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         //then
-        def dependencies = parseIml("master/one/one.iml").dependencies
+        def dependencies = parseIml("one/one.iml").dependencies
         dependencies.assertHasModule('COMPILE', "two")
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
 
-        dependencies = parseIml("master/two/two.iml").dependencies
+        dependencies = parseIml("two/two.iml").dependencies
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
 
         executer.expectDeprecationWarning()
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withArgument("-PforceDeps=true").withTasks("idea").run()
+        executer.withArgument("-PforceDeps=true").withTasks("idea").run()
 
         //then
-        dependencies = parseIml("master/one/one.iml").dependencies
+        dependencies = parseIml("one/one.iml").dependencies
         assert dependencies.modules.size() == 1
         dependencies.assertHasModule('COMPILE', "two")
         assert dependencies.libraries*.jarName as Set == [someLib1Jar.name] as Set
 
-        dependencies = parseIml("master/two/two.iml").dependencies
+        dependencies = parseIml("two/two.iml").dependencies
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
     }
 
     @Test
     @ToBeFixedForConfigurationCache
     void cleansCorrectlyWhenModuleNamesAreChangedOrDeduplicated() {
-        def settingsFile = file("master/settings.gradle")
-        settingsFile << "include 'api', 'shared:api', 'contrib'"
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+            rootProject.name = "master"
+            include 'api', 'shared:api', 'contrib'
+        """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-project(':contrib') {
-    idea.module {
-        name = 'cool-contrib'
-    }
-}
-"""
+            project(':contrib') {
+                idea.module {
+                    name = 'cool-contrib'
+                }
+            }
+        """
 
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
-        assert getFile(project: 'master/shared/api', "shared-api.iml").exists()
-        assert getFile(project: 'master/contrib', "cool-contrib.iml").exists()
+        executer.withTasks("idea").run()
+        assert getFile(project: 'shared/api', "shared-api.iml").exists()
+        assert getFile(project: 'contrib', "cool-contrib.iml").exists()
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("cleanIdea").run()
+        executer.withTasks("cleanIdea").run()
 
         //then
-        assert !getFile(project: 'master/shared/api', "shared-api.iml").exists()
-        assert !getFile(project: 'master/contrib', "cool-contrib.iml").exists()
+        assert !getFile(project: 'shared/api', "shared-api.iml").exists()
+        assert !getFile(project: 'contrib', "cool-contrib.iml").exists()
     }
 
     @Test
     @ToBeFixedForConfigurationCache
     void handlesInternalDependenciesToNonIdeaProjects() {
-        def settingsFile = file("master/settings.gradle")
-        settingsFile << "include 'api', 'nonIdeaProject'"
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+            rootProject.name = "master"
+            include 'api', 'nonIdeaProject'
+        """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-subprojects {
-  apply plugin: 'java'
-}
+            subprojects {
+              apply plugin: 'java'
+            }
 
-project(':api') {
-    apply plugin: 'idea'
+            project(':api') {
+                apply plugin: 'idea'
 
-    dependencies {
-        implementation project(':nonIdeaProject')
-    }
-}
-"""
+                dependencies {
+                    implementation project(':nonIdeaProject')
+                }
+            }
+        """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        executer.withTasks("idea").run()
 
         //then
-        assert getFile(project: 'master/api', 'api.iml').exists()
+        assert getFile(project: 'api', 'api.iml').exists()
     }
 
     @Test
     @ToBeFixedForConfigurationCache
     void doesNotCreateDuplicateEntriesInIpr() {
-        def settingsFile = file("master/settings.gradle")
-        settingsFile << "include 'api', 'iml'"
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+            rootProject.name = "master"
+            include 'api', 'iml'
+        """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
-"""
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
+        """
 
         //when
-        2.times { executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaProject").run() }
+        2.times { executer.withTasks("ideaProject").run() }
 
         //then
-        String content = getFile(project: 'master', 'master.ipr').text
+        String content = getFile(project: '.', 'master.ipr').text
         assert content.count('filepath="$PROJECT_DIR$/api/api.iml"') == 1
     }
 
     @Test
     @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependenciesWithScopes() {
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << """
-include 'api'
-include 'impl'
-include 'app'
-"""
+            rootProject.name = "master"
+            include 'api'
+            include 'impl'
+            include 'app'
+        """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-project(':impl') {
-    dependencies {
-        implementation project(':api')
-    }
-}
+            project(':impl') {
+                dependencies {
+                    implementation project(':api')
+                }
+            }
 
-project(':app') {
-    dependencies {
-        implementation project(':api')
-        testImplementation project(':impl')
-        runtimeOnly project(':impl')
-    }
-}
-"""
+            project(':app') {
+                dependencies {
+                    implementation project(':api')
+                    testImplementation project(':impl')
+                    runtimeOnly project(':impl')
+                }
+            }
+        """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+        executer.withTasks("ideaModule").run()
 
         //then
-        def dependencies = parseIml("master/app/app.iml").dependencies
+        def dependencies = parseIml("app/app.iml").dependencies
         assert dependencies.modules.size() == 3
         dependencies.assertHasInheritedJdk()
         dependencies.assertHasSource('false')

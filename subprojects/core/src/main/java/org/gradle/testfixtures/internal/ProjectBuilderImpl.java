@@ -16,12 +16,9 @@
 
 package org.gradle.testfixtures.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
@@ -39,7 +36,6 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.LegacyTypesSupport;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Factory;
@@ -49,12 +45,11 @@ import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeBuildPath;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -62,19 +57,18 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.session.BuildSessionState;
+import org.gradle.internal.session.BuildSessionController;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
+import java.util.function.Function;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
@@ -105,7 +99,7 @@ public class ProjectBuilderImpl {
         final File projectDir = prepareProjectDir(inputProjectDir);
         final File homeDir = new File(projectDir, "gradleHome");
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
-        StartParameter startParameter = new StartParameterInternal();
+        StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
         NativeServices.initialize(userHomeDir);
 
@@ -114,15 +108,16 @@ public class ProjectBuilderImpl {
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
-        BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-        BuildTreeState buildTreeState = new BuildTreeState(buildSessionState.getServices(), BuildType.TASKS, BuildTreeBuildPath.ROOT);
-        TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeState.getServices(), homeDir);
+        BuildSessionController buildSessionController = new BuildSessionController(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+        BuildTreeModelControllerServices.Supplier modelServices = buildSessionController.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(true, false, startParameter);
+        BuildTreeController buildTreeController = new BuildTreeController(buildSessionController.getServices(), modelServices);
+        TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeController.getServices(), homeDir, startParameter);
         TestRootBuild build = new TestRootBuild(projectDir);
         buildServices.add(BuildState.class, build);
 
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
-        GradleInternal gradle = buildServices.get(InstantiatorFactory.class).decorateLenient().newInstance(DefaultGradle.class, null, startParameter, buildServices.get(ServiceRegistryFactory.class));
+        GradleInternal gradle = buildServices.get(GradleInternal.class);
         gradle.setIncludedBuilds(Collections.emptyList());
         build.setGradle(gradle); // the TestRootBuild instance cannot be created after GradleInternal
 
@@ -146,23 +141,22 @@ public class ProjectBuilderImpl {
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease, project.getMutationState().getAccessLock()));
 
         project.getExtensions().getExtraProperties().set(
-                "ProjectBuilder.stoppable",
-                stoppable(
-                        (Stoppable) workerLeaseService::releaseCurrentProjectLocks,
-                        (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
-                        buildServices,
-                        buildTreeState,
-                        buildSessionState,
-                        crossBuildSessionState
-                )
+            "ProjectBuilder.stoppable",
+            stoppable(
+                (Stoppable) workerLeaseService::releaseCurrentProjectLocks,
+                (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
+                buildServices,
+                buildTreeController,
+                buildSessionController,
+                crossBuildSessionState
+            )
         );
 
         return project;
     }
 
     public static void stop(Project rootProject) {
-        ((Stoppable) rootProject.getExtensions().getExtraProperties().get("ProjectBuilder.stoppable"))
-                .stop();
+        ((Stoppable) rootProject.getExtensions().getExtraProperties().get("ProjectBuilder.stoppable")).stop();
     }
 
     private GradleUserHomeScopeServiceRegistry userHomeServicesOf(ServiceRegistry globalServices) {
@@ -245,11 +239,6 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public NestedBuildFactory getNestedBuildFactory() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public Path getCurrentPrefixForProjectsInChildBuilds() {
             return Path.ROOT;
         }
@@ -260,12 +249,12 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public StartParameter getStartParameter() {
+        public StartParameterInternal getStartParameter() {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public <T> T run(Transformer<T, ? super BuildController> buildAction) {
+        public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
             throw new UnsupportedOperationException();
         }
 
@@ -281,6 +270,11 @@ public class ProjectBuilderImpl {
         @Override
         public File getBuildRootDir() {
             return rootProjectDir;
+        }
+
+        @Override
+        public GradleInternal getMutableModel() {
+            return gradle;
         }
 
         @Override

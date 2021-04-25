@@ -19,6 +19,8 @@ package org.gradle.api.internal;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
+import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.Nullable;
@@ -37,7 +39,8 @@ public class StartParameterInternal extends StartParameter {
     private boolean watchFileSystemDebugLogging;
     private boolean vfsVerboseLogging;
 
-    private boolean configurationCache;
+    private BuildOption.Value<Boolean> configurationCache = BuildOption.Value.defaultValue(false);
+    private BuildOption.Value<Boolean> isolatedProjects = BuildOption.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private int configurationCacheMaxProblems = 512;
     private boolean configurationCacheRecreateCache;
@@ -53,22 +56,23 @@ public class StartParameterInternal extends StartParameter {
     }
 
     @Override
-    public StartParameter newInstance() {
-        return prepareNewInstance(new StartParameterInternal());
+    public StartParameterInternal newInstance() {
+        return (StartParameterInternal) prepareNewInstance(new StartParameterInternal());
     }
 
     @Override
-    public StartParameter newBuild() {
+    public StartParameterInternal newBuild() {
         return prepareNewBuild(new StartParameterInternal());
     }
 
     @Override
-    protected StartParameter prepareNewBuild(StartParameter startParameter) {
+    protected StartParameterInternal prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
         p.watchFileSystemMode = watchFileSystemMode;
         p.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
+        p.isolatedProjects = isolatedProjects;
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
@@ -126,12 +130,33 @@ public class StartParameterInternal extends StartParameter {
         this.vfsVerboseLogging = vfsVerboseLogging;
     }
 
+    /**
+     * Used by the Kotlin plugin, via reflection.
+     */
+    @Deprecated
     public boolean isConfigurationCache() {
+        return getConfigurationCache().get();
+    }
+
+    /**
+     * Is the configuration cache requested? Note: depending on the build action, this may not be the final value for this option.
+     *
+     * Consider querying {@link BuildModelParameters} instead.
+     */
+    public BuildOption.Value<Boolean> getConfigurationCache() {
         return configurationCache;
     }
 
-    public void setConfigurationCache(boolean configurationCache) {
+    public void setConfigurationCache(BuildOption.Value<Boolean> configurationCache) {
         this.configurationCache = configurationCache;
+    }
+
+    public BuildOption.Value<Boolean> getIsolatedProjects() {
+        return isolatedProjects;
+    }
+
+    public void setIsolatedProjects(BuildOption.Value<Boolean> isolatedProjects) {
+        this.isolatedProjects = isolatedProjects;
     }
 
     public ConfigurationCacheProblemsOption.Value getConfigurationCacheProblems() {

@@ -21,9 +21,16 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
 
+
 /**
- * NOTE: You should use {@link ConfigureUtil} instead of this class when adding a closure backed method to the DSL, whether statically or dynamically added. {@link ConfigureUtil} is much more efficient and takes care of applying consistent DSL behaviour when closures are nested.
+ * This class is only here to maintain binary compatibility with existing plugins.
+ * <p>
+ * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ * @param <T> The action type.
  */
+@Deprecated
 public class ClosureBackedAction<T> implements Action<T> {
 
     private final Closure closure;

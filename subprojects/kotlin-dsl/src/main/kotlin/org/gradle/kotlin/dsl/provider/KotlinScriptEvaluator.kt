@@ -32,8 +32,8 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
-import org.gradle.internal.execution.workspace.WorkspaceProvider
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -96,7 +96,8 @@ class StandardKotlinScriptEvaluator(
     private val scriptExecutionListener: ScriptExecutionListener,
     private val executionEngine: ExecutionEngine,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val fileCollectionFactory: FileCollectionFactory
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val inputFingerprinter: InputFingerprinter
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -243,7 +244,8 @@ class StandardKotlinScriptEvaluator(
                     initializer,
                     classpathHasher,
                     workspaceProvider,
-                    fileCollectionFactory
+                    fileCollectionFactory,
+                    inputFingerprinter
                 )
             ).execute().executionResult.get().output as File
         } catch (e: CacheOpenException) {
@@ -321,14 +323,15 @@ class CompileKotlinScript(
     private val compileTo: (File) -> Unit,
     private val classpathHasher: ClasspathHasher,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val fileCollectionFactory: FileCollectionFactory
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val inputFingerprinter: InputFingerprinter
 ) : UnitOfWork {
 
-    override fun visitInputs(
-        visitor: UnitOfWork.InputVisitor
+    override fun visitIdentityInputs(
+        visitor: InputVisitor
     ) {
-        visitor.visitInputProperty("templateId", IDENTITY) { templateId }
-        visitor.visitInputProperty("sourceHash", IDENTITY) { sourceHash }
+        visitor.visitInputProperty("templateId") { templateId }
+        visitor.visitInputProperty("sourceHash") { sourceHash }
         visitor.visitClassPathProperty("compilationClassPath", compilationClassPath)
         visitor.visitClassPathProperty("accessorsClassPath", accessorsClassPath)
     }
@@ -378,16 +381,17 @@ class CompileKotlinScript(
     override fun loadRestoredOutput(workspace: File): Any =
         classesDir(workspace)
 
-    override fun getWorkspaceProvider(): WorkspaceProvider =
-        workspaceProvider.scripts
+    override fun getWorkspaceProvider() = workspaceProvider.scripts
+
+    override fun getInputFingerprinter() = inputFingerprinter
 
     private
     fun classesDir(workspace: File) =
         workspace.resolve("classes")
 
     private
-    fun UnitOfWork.InputVisitor.visitClassPathProperty(propertyName: String, classPath: ClassPath) {
-        visitInputProperty(propertyName, IDENTITY) {
+    fun InputVisitor.visitClassPathProperty(propertyName: String, classPath: ClassPath) {
+        visitInputProperty(propertyName) {
             classpathHasher.hash(classPath)
         }
     }

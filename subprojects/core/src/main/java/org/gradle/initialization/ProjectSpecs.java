@@ -25,6 +25,7 @@ class ProjectSpecs {
 
     static ProjectSpec forStartParameter(StartParameter startParameter, SettingsInternal settings) {
         File explicitProjectDir = startParameter.getProjectDir();
+        @SuppressWarnings("deprecation")
         File explicitBuildFile = startParameter.getBuildFile();
         if (explicitBuildFile != null) {
             return new BuildFileProjectSpec(explicitBuildFile);

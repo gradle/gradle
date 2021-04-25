@@ -84,4 +84,4 @@ classycle {
 }
 
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)

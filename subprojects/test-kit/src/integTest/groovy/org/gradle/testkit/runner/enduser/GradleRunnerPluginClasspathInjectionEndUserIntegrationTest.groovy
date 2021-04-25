@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.runner.enduser
 
+
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import spock.lang.IgnoreIf
@@ -42,12 +44,16 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
 
             dependencies {
                 implementation localGroovy()
-                testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
-                    exclude group: 'org.codehaus.groovy'
-                }
+                testImplementation(platform("org.spockframework:spock-bom:2.0-M5-groovy-3.0"))
+                testImplementation("org.spockframework:spock-core")
+                testImplementation("org.spockframework:spock-junit4")
                 testImplementation 'junit:junit:4.13.1'
                 testImplementation gradleTestKit()
                 testImplementation files(createClasspathManifest)
+            }
+
+            test {
+                useJUnitPlatform()
             }
 
             ${mavenCentralRepository()}
@@ -105,6 +111,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
         then:
         succeeds 'build'
         executedAndNotSkipped ':test'
+        new JUnitXmlTestExecutionResult(projectDir).totalNumberOfTestClassesExecuted > 0
     }
 
     def "can test plugin and custom task as external files by providing them as classpath through GradleRunner API"() {
@@ -150,6 +157,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
         then:
         succeeds 'build'
         executedAndNotSkipped ':test'
+        new JUnitXmlTestExecutionResult(projectDir).totalNumberOfTestClassesExecuted > 0
     }
 
 }

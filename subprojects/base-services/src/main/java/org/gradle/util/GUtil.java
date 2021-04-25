@@ -57,6 +57,15 @@ import java.util.regex.Pattern;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
+/**
+ * This class is only here to maintain binary compatibility with existing plugins.
+ * <p>
+ * Plugins should prefer external collection frameworks over this class.
+ * Internally, all code should use {@link org.gradle.util.internal.GUtil}.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ */
+@Deprecated
 public class GUtil {
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");
@@ -309,7 +318,7 @@ public class GUtil {
     }
 
     /**
-     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -> withUnderscores
+     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
      */
     public static String toCamelCase(CharSequence string) {
         return toCamelCase(string, false);
@@ -352,7 +361,7 @@ public class GUtil {
     }
 
     /**
-     * Converts an arbitrary string to upper case identifier with words separated by _. Eg, camelCase -> CAMEL_CASE
+     * Converts an arbitrary string to upper case identifier with words separated by _. Eg, camelCase -&gt; CAMEL_CASE
      */
     public static String toConstant(CharSequence string) {
         if (string == null) {
@@ -362,7 +371,7 @@ public class GUtil {
     }
 
     /**
-     * Converts an arbitrary string to space-separated words. Eg, camelCase -> camel case, with_underscores -> with underscores
+     * Converts an arbitrary string to space-separated words. Eg, camelCase -&gt; camel case, with_underscores -&gt; with underscores
      */
     public static String toWords(CharSequence string) {
         return toWords(string, ' ');

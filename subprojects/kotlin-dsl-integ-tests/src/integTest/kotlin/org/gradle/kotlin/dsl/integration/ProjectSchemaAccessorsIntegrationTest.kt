@@ -691,7 +691,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             configurations.compileClasspath.files.forEach {
-                println(org.gradle.util.TextUtil.normaliseFileSeparators(it.path))
+                println(org.gradle.util.internal.TextUtil.normaliseFileSeparators(it.path))
             }
             """
         )

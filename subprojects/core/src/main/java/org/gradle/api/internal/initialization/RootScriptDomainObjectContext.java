@@ -30,6 +30,13 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     private static final Object MODEL = new Object();
     public static final DomainObjectContext INSTANCE = new RootScriptDomainObjectContext();
 
+    public static final DomainObjectContext PLUGINS = new RootScriptDomainObjectContext() {
+        @Override
+        public boolean isPluginContext() {
+            return true;
+        }
+    };
+
     private RootScriptDomainObjectContext() {
     }
 
@@ -92,6 +99,11 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     @Override
     public boolean isRootScript() {
         return true;
+    }
+
+    @Override
+    public boolean isPluginContext() {
+        return false;
     }
 
     @Override

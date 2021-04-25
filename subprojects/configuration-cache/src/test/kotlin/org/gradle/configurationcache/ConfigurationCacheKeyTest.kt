@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.internal.buildtree.BuildTreeBuildPath
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
@@ -54,6 +54,7 @@ class ConfigurationCacheKeyTest {
         )
     }
 
+    @Suppress("DEPRECATION") // StartParameter.setSettingsFile
     @Test
     fun `cache key honours --settings-file`() {
         assertThat(
@@ -92,12 +93,12 @@ class ConfigurationCacheKeyTest {
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String =
         ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
-                BuildTreeBuildPath.ROOT,
                 BuildLayout(
                     file("root"),
                     file("settings"),
                     null
                 ),
+                BuildModelParameters(false, true, false),
                 StartParameterInternal().apply(configure)
             )
         ).string

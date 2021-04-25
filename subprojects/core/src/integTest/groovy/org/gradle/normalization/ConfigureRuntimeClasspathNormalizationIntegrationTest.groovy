@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -246,7 +246,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'ignore property'           | "properties { ignoreProperty 'timestamp' }"               | Api.RUNTIME
         'ignore property'           | "properties { ignoreProperty 'timestamp' }"               | Api.ANNOTATION
     }
-    
+
     @ToBeFixedForConfigurationCache(because = "classpath normalization - see https://github.com/gradle/gradle/issues/13706")
     def "can ignore properties on runtime classpath in #tree (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(api).withPropertiesIgnored()

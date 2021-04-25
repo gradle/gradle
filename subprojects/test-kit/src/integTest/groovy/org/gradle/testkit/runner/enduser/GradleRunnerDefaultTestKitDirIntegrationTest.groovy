@@ -20,7 +20,7 @@ package org.gradle.testkit.runner.enduser
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.IgnoreIf
 
@@ -47,7 +47,7 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
 
             dependencies {
                 implementation localGroovy()
-                testImplementation(platform("org.spockframework:spock-bom:2.0-M4-groovy-3.0"))
+                testImplementation(platform("org.spockframework:spock-bom:2.0-M5-groovy-3.0"))
                 testImplementation("org.spockframework:spock-core")
                 testImplementation("org.spockframework:spock-junit4")
                 testImplementation("junit:junit:4.13.1")
@@ -69,7 +69,7 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
         when:
         buildFile << gradleTestKitDependency()
 
-        def workerTmpDir = file("build/tmp/test/test files")
+        def workerTmpDir = file("build/tmp/test/work")
         groovyTestSourceFile("""
             import org.gradle.testkit.runner.GradleRunner
             import org.gradle.testkit.runner.internal.DefaultGradleRunner

@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.Actions;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.List;
@@ -53,23 +52,7 @@ public interface VersionCatalogBuilder extends Named {
      *
      * @param dependencyNotation any notation supported by {@link org.gradle.api.artifacts.dsl.DependencyHandler}
      */
-    default void from(Object dependencyNotation) {
-        from(dependencyNotation, Actions.doNothing());
-    }
-
-    /**
-     * Configures the model by reading it from a version catalog.
-     * A version catalog is a component published using the `version-catalog` plugin or
-     * a local TOML file.
-     *
-     * All imports configured by this method will be accumulated in order and executed
-     * before any other modification provided by this builder, such that "local" modifications
-     * have higher priority than any imported component.
-     *
-     * @param dependencyNotation any notation supported by {@link org.gradle.api.artifacts.dsl.DependencyHandler}
-     * @param importSpec Configures how the version catalog will be imported
-     */
-    void from(Object dependencyNotation, Action<? super ImportSpec> importSpec);
+    void from(Object dependencyNotation);
 
     /**
      * Configures a dependency version which can then be referenced using
@@ -167,54 +150,4 @@ public interface VersionCatalogBuilder extends Named {
         void withoutVersion();
     }
 
-    /**
-     * Configures how another model is imported into the current model.
-     *
-     * @since 7.0
-     */
-    @Incubating
-    interface ImportSpec {
-        /**
-         * Only aliases from the supplied list will be imported.
-         * Multiple calls to this method adds to the list of allowed aliases.
-         * @param aliases aliases
-         */
-        void includeDependency(String... aliases);
-
-        /**
-         * Aliases which are in the supplied list will not be imported.
-         * Multiple calls to this method adds to the list of disallowed aliases.
-         * @param aliases aliases to exclude
-         */
-        void excludeDependency(String... aliases);
-
-        /**
-         * Only bundles from the supplied list will be imported.
-         * Multiple calls to this method adds to the list of allowed bundles.
-         * @param bundles names of the bundles to include
-         */
-        void includeBundle(String... bundles);
-
-        /**
-         * Bundles which are in the supplied list will not be imported.
-         * Multiple calls to this method adds to the list of disallowed bundles.
-         * @param bundles bundles to exclude
-         */
-        void excludeBundle(String... bundles);
-
-        /**
-         * Only versions from the supplied list will be imported.
-         * Multiple calls to this method adds to the list of allowed aliases.
-         * @param aliases aliases
-         */
-        void includeVersion(String... aliases);
-
-        /**
-         * Versions which are in the supplied list will not be imported.
-         * Multiple calls to this method adds to the list of disallowed aliases.
-         * @param aliases aliases to exclude
-         */
-        void excludeVersion(String... aliases);
-
-    }
 }

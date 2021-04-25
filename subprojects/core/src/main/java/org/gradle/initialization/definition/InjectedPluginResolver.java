@@ -22,7 +22,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.util.List;
 
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 public class InjectedPluginResolver {
     public PluginRequests resolveAll(List<DefaultInjectedPluginDependency> requests) {

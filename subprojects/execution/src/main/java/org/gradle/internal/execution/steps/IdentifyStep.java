@@ -20,27 +20,22 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionHandler;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
-
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
-    private final InputFingerprinter inputFingerprinter;
 
     public IdentifyStep(
-        InputFingerprinter inputFingerprinter,
         DeferredExecutionAwareStep<? super IdentityContext, R> delegate
     ) {
-        this.inputFingerprinter = inputFingerprinter;
         this.delegate = delegate;
     }
 
@@ -56,12 +51,12 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
 
     @Nonnull
     private IdentityContext createIdentityContext(UnitOfWork work, C context) {
-        InputFingerprinter.Result inputs = inputFingerprinter.fingerprintInputProperties(
-            work,
+        InputFingerprinter.Result inputs = work.getInputFingerprinter().fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            (propertyName, type, identity) -> identity == IDENTITY);
+            work::visitIdentityInputs
+        );
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = inputs.getFileFingerprints();
 

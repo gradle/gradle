@@ -127,7 +127,7 @@ NOTE: If you use https://spockframework.org/[Spock] to test your plugins, you wi
 ```
 dependencies {
     // Ensure you use the Groovy 3.x variant
-    testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+    testImplementation('org.spockframework:spock-core:2.0-M5-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'
     }
     testImplementation('org.junit.jupiter:junit-jupiter-api')
@@ -199,6 +199,25 @@ If you are still using the `java` plugin for a Java library, you will need to ap
 |===
 
 You can find more details about the benefits of the new configurations and which one to use in place of `compile` and `runtime` by reading the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> documentation.
+
+==== Location of temporary project files for `ProjectBuilder`
+
+The `ProjectBuilder` API is used for inspecting Gradle builds in unit tests. This API used to create temporary project files under the system temporary directory as defined by `java.io.tmpdir`.
+
+The API now creates temporary project files under the `Test` task's temporary directory. This path is usually under the project build directory.
+This may cause test failures when the test expects particular file paths.
+
+If the test uses `ProjectBuilder.withProjectDir(...)`, it is unaffected.
+
+==== Location of temporary files for TestKit tests
+
+Tests that use the <<test_kit#test_kit, TestKit>> API used to create temporary files under the system temporary directory as defined by `java.io.tmpdir`.
+These files were used to store copies of Gradle distributions or another test-only Gradle User Home.
+
+TestKit tests will now create temporary files under the `Test` task's temporary directory. This path is usually under the project build directory.
+This may cause test failures when the test expects particular file paths.
+
+If the test uses `GradleRunner.withTestKitDir(...)`, it is unaffected.
 
 ==== Removal of the legacy `maven` plugin
 
@@ -380,6 +399,17 @@ Plugins and build scripts should be adjusted to query the mapped value of a prov
 
 Gradle 6.0 started warning about problems with task definitions (such as incorrectly defined inputs or outputs).
 For Gradle 7.0, those warnings are now errors and will fail the build.
+
+==== Change in behavior when there's a strict version conflict with a local project
+
+Previous Gradle releases had an inconsistent behavior in regard to conflict resolution in a particular configuration:
+- your project declares a strict dependency on a published module (for example, `com.mycompany:some-module:1.2!!`, where `1.2!!` is the short hand notation for a strict dependency on 1.2)
+- your build actually provides `com.mycompany:some-module` in a higher version
+
+Previous Gradle releases would succeed, selecting the project dependency despite the strict constraint.
+Starting from Gradle 7, this will trigger a dependency resolution failure.
+
+See https://github.com/gradle/gradle/issues/16706[this issue] for more context.
 
 === Deprecations
 

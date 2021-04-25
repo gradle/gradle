@@ -1,0 +1,198 @@
+// Copyright 2021 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[upgrading_version_7]]
+= Upgrading your build from Gradle 7.x to the latest
+
+This chapter provides the information you need to migrate your Gradle 7.x builds to the latest Gradle release. For migrating from Gradle 4.x, 5.x, or 6.x, see the <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
+
+We recommend the following steps for all users:
+
+. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
++
+image::deprecations.png[Deprecations View of a Gradle Build Scan]
++
+This is so that you can see any deprecation warnings that apply to your build.
++
+Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
++
+Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
++
+. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[changes_7.1]]
+== Upgrading from 7.0 and earlier
+
+=== Deprecations
+
+[[jacoco_merge]]
+==== JacocoMerge task type is deprecated
+
+The `JacocoMerge` task was used for merging coverage reports from different subprojects into a single report.
+The same functionality is also available on the `JacocoReport` task.
+Because of the duplication, `JacocoMerge` is now deprecated and scheduled for removal in Gradle 8.0.
+
+[[configuring_custom_build_layout]]
+==== Setting custom build layout
+
+Command line options:
+
+* `-c`, `--settings-file` for specifying a custom settings file location
+* `-b`, `--build-file` for specifying a custom build file location
+
+have been deprecated.
+
+Setting custom build file using
+link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:buildFile[buildFile]
+property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task has been deprecated.
+
+Please use the link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:dir[dir]
+property instead to specify the root of the nested build.
+Alternatively, consider using one of the recommended alternatives for
+link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as suggested in
+<<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
+
+Setting custom build layout using
+link:{groovyDslPath}/org.gradle.StartParameter.html[StartParameter] methods
+link:{groovyDslPath}/org.gradle.StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)]
+and
+link:{groovyDslPath}/org.gradle.StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)]
+as well as the counterpart getters
+link:{groovyDslPath}/org.gradle.StartParameter.html#getBuildFile--[getBuildFile()]
+and
+link:{groovyDslPath}/org.gradle.StartParameter.html#getSettingsFile--[getSettingsFile()]
+have been deprecated.
+
+Please use standard locations for settings and build files:
+
+* settings file in the root of the build
+* build file in the root of each subproject
+
+For the use case where custom settings or build files are used to model different behavior (similar to Maven profiles),
+consider using <<build_environment#sec:gradle_system_properties, system properties>> with conditional logic.
+For example, given a piece of code in either settings or build file:
+```
+if (System.getProperty("profile") == "custom") {
+    println("custom profile")
+} else {
+    println("default profile")
+}
+```
+You can pass the `profile` system property to Gradle using `gradle -Dprofile=custom` to execute the code in the `custom` profile branch.
+
+[[dependency_substitutions_with]]
+=== Substitution.with replaced with Substitution.using
+
+<<resolution_rules#sec:dependency_substitution_rules, Dependency substitutions>> using `with` method have been deprecated
+and are replaced with `using` method that also allows chaining.
+For example, a dependency substitution rule `substitute(project(':a')).with(project(':b'))` should be replaced with
+`substitute(project(':a')).using(project(':b'))`.
+With chaining you can, for example, add a reason for a substitution like this:
+`substitute(project(':a')).using(project(':b')).because("a reason")`.
+
+=== Potential breaking changes
+
+==== The `org.gradle.util` package is now a public API
+
+Officially, the `org.gradle.util` package is not part of the public API.
+But, because this package name doesn't contain the word `internal`, many Gradle plugins already consider as one.
+Gradle 7.1 addresses the situation and marks the package as public.
+The classes that were unintentionally exposed are either deprecated or removed, depending on their external usage.
+
+The following classes are now officially recognized as public API:
+- `GradleVersion`
+- `Path`
+- `Configurable`
+
+The following classes have known usages in external plugins and are now deprecated and set for removal in Gradle 8.0:
+
+- `VersionNumber`
+- `TextUtil`
+- `WrapUtil`
+- `RelativePathUtil`
+- `DistributionLocator`
+- `SingleMessageLogger`
+
+The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
+
+- `Resources`
+- `RedirectStdOutAndErr`
+- `Swapper`
+- `StdInSwapper`
+- `IncubationLogger`
+- `RedirectStdIn`
+- `MultithreadedTestRule`
+- `DisconnectableInputStream`
+- `BulkReadInputStream`
+- `MockExecutor`
+- `FailsWithMessage`
+- `FailsWithMessageExtension`
+- `TreeVisitor`
+- `AntUtil`
+- `JarUtil`
+
+The last set of classes have no external or internal usages and therefore were deleted:
+
+- `DiffUtil`
+- `NoopChangeListener`
+- `EnumWithClassBody`
+- `AlwaysTrue`
+- `ReflectionEqualsMatcher`
+- `DynamicDelegate`
+- `IncubationLogger`
+- `NoOpChangeListener`
+- `DeferredUtil`
+- `ChangeListener`
+
+[[java_exec_properties]]
+==== Properties deprecated in JavaExec task
+
+* The link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:main[main] getters and setters
+in link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec] task have been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:mainClass[mainClass] property instead.
+
+[[compile_task_wiring]]
+=== Deprecated properties in `compile` task
+
+* The link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html#org.gradle.api.tasks.compile.JavaCompile:destinationDir[JavaCompile.destinationDir]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html#org.gradle.api.tasks.compile.JavaCompile:destinationDirectory[JavaCompile.destinationDirectory]
+property instead.
+* The link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html#org.gradle.api.tasks.compile.GroovyCompile:destinationDir[GroovyCompile.destinationDir]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html#org.gradle.api.tasks.compile.GroovyCompile:destinationDirectory[GroovyCompile.destinationDirectory]
+property instead.
+* The link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:destinationDir[ScalaCompile.destinationDir]
+property has been deprecated.
+Use the link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:destinationDirectory[ScalaCompile.destinationDirectory]
+property instead.
+
+[[deprecated_flat_project_structure]]
+=== Deprecated flat project structure
+
+There are several disadvantages of using a flat project structure. One example being that Gradle link:https://github.com/gradle/gradle/issues/13891[file-system watching cannot be efficiently used].
+Because of this, Gradle 7.1 deprecates all layouts that define subprojects outside of a root project directory.
+
+To make this change more visible for plugin author, Gradle 7.1 also deprecates the
+link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeFlat(java.lang.String&#91;&#93;)[Settings.includeFlat()] method.
+
+[[upload_task_deprecation]]
+=== Deprecated `Upload` task
+
+Gradle used to have two ways of publishing artifacts.
+Now, the situation has been cleared and all build should use the `maven-publish` plugin.
+The last remaining artifact of the old way of publishing is the `Upload` task that has been deprecated and scheduled for removal in Gradle 8.0.
+Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,`maven-publish` plugin>>.

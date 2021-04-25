@@ -68,4 +68,4 @@ classycle {
     excludePatterns.add("org/gradle/language/nativeplatform/internal/**")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)

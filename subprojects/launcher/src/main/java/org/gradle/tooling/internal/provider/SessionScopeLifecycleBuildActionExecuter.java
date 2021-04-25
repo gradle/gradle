@@ -16,22 +16,24 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.session.BuildSessionState;
+import org.gradle.internal.session.BuildSessionController;
+import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 /**
- * A {@link BuildExecuter} responsible for establishing the session to execute a {@link BuildAction} within.
+ * A {@link BuildExecuter} responsible for establishing the {@link BuildSessionController} to execute a {@link BuildAction} within.
  */
 public class SessionScopeLifecycleBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
     private final ServiceRegistry globalServices;
@@ -44,14 +46,26 @@ public class SessionScopeLifecycleBuildActionExecuter implements BuildActionExec
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
-        StartParameter startParameter = action.getStartParameter();
+        StartParameterInternal startParameter = action.getStartParameter();
+        if (action.isCreateModel()) {
+            // When creating a model, do not use continuous mode
+            startParameter.setContinuous(false);
+        }
         try (CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter)) {
-            try (BuildSessionState buildSessionState = new BuildSessionState(userHomeServiceRegistry, crossBuildSessionState, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
-                return buildSessionState.run(context -> {
+            try (BuildSessionController buildSessionController = new BuildSessionController(userHomeServiceRegistry, crossBuildSessionState, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
+                return buildSessionController.run(context -> {
                     SessionLifecycleListener sessionLifecycleListener = context.getServices().get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
                     try {
                         sessionLifecycleListener.afterStart();
-                        return context.getServices().get(SessionScopeBuildActionExecutor.class).execute(action, actionParameters, context);
+                        BuildActionRunner.Result result = context.execute(action);
+                        PayloadSerializer payloadSerializer = context.getServices().get(PayloadSerializer.class);
+                        if (result.getBuildFailure() == null) {
+                            return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
+                        }
+                        if (requestContext.getCancellationToken().isCancellationRequested()) {
+                            return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));
+                        }
+                        return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));
                     } finally {
                         sessionLifecycleListener.beforeComplete();
                     }

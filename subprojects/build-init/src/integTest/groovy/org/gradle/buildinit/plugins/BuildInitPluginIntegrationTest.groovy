@@ -121,10 +121,9 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         def targetDslFixture = dslFixtureFor(targetScriptDsl as BuildInitDsl)
 
         and:
-        def customBuildScript = existingDslFixture.scriptFile("customBuild").createFile()
+        def customBuildScript = existingDslFixture.scriptFile("build").createFile()
 
         when:
-        executer.usingBuildScript(customBuildScript)
         runInitWith targetScriptDsl as BuildInitDsl
 
         then:
@@ -149,11 +148,12 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         and:
         def customSettings = existingDslFixture.scriptFile("customSettings")
         customSettings << """
-include("child")
-"""
+            include("child")
+        """
 
         when:
         executer.usingSettingsFile(customSettings)
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
         runInitWith targetScriptDsl as BuildInitDsl
 
         then:

@@ -19,16 +19,19 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
@@ -58,10 +61,10 @@ import javax.inject.Inject
 
 
 class ProjectAccessorsClassPathGenerator @Inject constructor(
-    private val classpathFingerprinter: ClasspathFingerprinter,
     private val fileCollectionFactory: FileCollectionFactory,
     private val projectSchemaProvider: ProjectSchemaProvider,
     private val executionEngine: ExecutionEngine,
+    private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
 
@@ -79,8 +82,8 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                 project,
                 projectSchema,
                 classPath,
-                classpathFingerprinter,
                 fileCollectionFactory,
+                inputFingerprinter,
                 workspaceProvider
             )
             val result = executionEngine.createRequest(work).execute()
@@ -104,8 +107,8 @@ class GenerateProjectAccessors(
     private val project: Project,
     private val projectSchema: TypedProjectSchema,
     private val classPath: ClassPath,
-    private val classpathFingerprinter: ClasspathFingerprinter,
     private val fileCollectionFactory: FileCollectionFactory,
+    private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) : UnitOfWork {
 
@@ -148,13 +151,21 @@ class GenerateProjectAccessors(
 
     override fun getWorkspaceProvider() = workspaceProvider.accessors
 
+    override fun getInputFingerprinter() = inputFingerprinter
+
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 
-    override fun visitInputs(visitor: UnitOfWork.InputVisitor) {
-        visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, IDENTITY) { hashCodeFor(projectSchema) }
-        visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, NON_INCREMENTAL, IDENTITY, classPath) {
-            classpathFingerprinter.fingerprint(fileCollectionFactory.fixed(classPath.asFiles))
-        }
+    override fun visitIdentityInputs(visitor: InputVisitor) {
+        visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY) { hashCodeFor(projectSchema) }
+        visitor.visitInputFileProperty(
+            CLASSPATH_INPUT_PROPERTY,
+            NON_INCREMENTAL,
+            FileValueSupplier(
+                classPath,
+                ClasspathNormalizer::class.java,
+                DirectorySensitivity.IGNORE_DIRECTORIES
+            ) { fileCollectionFactory.fixed(classPath.asFiles) }
+        )
     }
 
     override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {

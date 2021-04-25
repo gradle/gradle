@@ -22,6 +22,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -33,10 +36,8 @@ import org.gradle.internal.execution.history.changes.RebuildExecutionStateChange
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
     private static final String NO_HISTORY = "No history is available.";
@@ -159,17 +160,20 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 return IncrementalInputProperties.ALL;
             case INCREMENTAL_PARAMETERS:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-                work.visitInputs(new UnitOfWork.InputVisitor() {
+                InputVisitor visitor = new InputVisitor() {
                     @Override
-                    public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity, @Nullable Object value, Supplier<CurrentFileCollectionFingerprint> fingerprinter) {
+                    public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier valueSupplier) {
                         if (type.isIncremental()) {
+                            Object value = valueSupplier.getValue();
                             if (value == null) {
                                 throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
                             }
                             builder.put(propertyName, value);
                         }
                     }
-                });
+                };
+                work.visitIdentityInputs(visitor);
+                work.visitRegularInputs(visitor);
                 return new DefaultIncrementalInputProperties(builder.build());
             default:
                 throw new AssertionError("Unknown InputChangeTrackingStrategy: " + inputChangeTrackingStrategy);

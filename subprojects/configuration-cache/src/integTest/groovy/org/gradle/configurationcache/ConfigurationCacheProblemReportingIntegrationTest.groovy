@@ -865,7 +865,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 28 problems.")
+        outputContains("Configuration cache entry discarded with 32 problems.")
         // TODO - use fixture. Need to be able to accept a range of expected problem counts
         failure.assertThatDescription(containsNormalizedString("Script 'script.gradle': read system property 'PROP'"))
         failure.assertThatDescription(containsNormalizedString("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"))
@@ -1038,4 +1038,28 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
     }
 
+    def "report task problems from included build with complete task path"() {
+        given:
+        settingsFile << """
+            includeBuild 'inc'
+        """
+        file("inc/settings.gradle") << """
+            include 'sub'
+        """
+        file("inc/sub/build.gradle") << """
+            tasks.register('broken') {
+                doLast({ println ("project = " + project) } as Action)
+            }
+        """
+
+        when:
+        configurationCacheFails ":inc:sub:broken"
+
+        then:
+        outputContains "Configuration cache entry discarded with 1 problem."
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Task `:inc:sub:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 1
+        }
+    }
 }

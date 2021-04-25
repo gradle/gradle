@@ -40,7 +40,7 @@ import org.junit.Rule
 
 import java.util.regex.Pattern
 
-import static org.gradle.util.TextUtil.getPlatformLineSeparator
+import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator
 
 class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 

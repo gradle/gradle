@@ -29,22 +29,29 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
     final ImmutableList<String> measuredBuildOperations
     final boolean measureGarbageCollection
+    final boolean crossVersion
 
     GradleBuildExperimentSpec(
         String displayName,
         String projectName,
         File workingDirectory,
         GradleInvocationSpec invocation,
+        boolean crossVersion,
         Integer warmUpCount,
         Integer invocationCount,
         ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators,
-        ImmutableList<String> measuredBuildOperations,
-        boolean measureGarbageCollection
+        ImmutableList<String> measuredBuildOperations, boolean measureGarbageCollection
     ) {
         super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, buildMutators)
+        this.crossVersion = crossVersion
         this.measuredBuildOperations = measuredBuildOperations
         this.measureGarbageCollection = measureGarbageCollection
         this.invocation = invocation
+    }
+
+    @Override
+    GradleInvocationSpec getInvocation() {
+        invocation
     }
 
     static GradleBuilder builder() {
@@ -66,6 +73,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
         final List<String> measuredBuildOperations = []
         boolean measureGarbageCollection
+        boolean crossVersion
 
         GradleBuilder displayName(String displayName) {
             this.displayName = displayName
@@ -114,6 +122,11 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             this
         }
 
+        GradleBuilder crossVersion(boolean crossVersion) {
+            this.crossVersion = crossVersion
+            this
+        }
+
         BuildExperimentSpec build() {
             assert projectName != null
             assert displayName != null
@@ -124,6 +137,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
                 projectName,
                 workingDirectory,
                 invocation.build(),
+                crossVersion,
                 warmUpCount,
                 invocationCount,
                 ImmutableList.copyOf(buildMutators),

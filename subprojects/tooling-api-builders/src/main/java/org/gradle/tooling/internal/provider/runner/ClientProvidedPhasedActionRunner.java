@@ -19,25 +19,23 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
-import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction;
+import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     @Override
-    public Result run(BuildAction action, BuildController buildController) {
+    public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         if (!(action instanceof ClientProvidedPhasedAction)) {
             return Result.nothing();
         }
 
         GradleInternal gradle = buildController.getGradle();
-
-        gradle.getStartParameter().setConfigureOnDemand(false);
 
         ClientProvidedPhasedAction clientProvidedPhasedAction = (ClientProvidedPhasedAction) action;
         PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);

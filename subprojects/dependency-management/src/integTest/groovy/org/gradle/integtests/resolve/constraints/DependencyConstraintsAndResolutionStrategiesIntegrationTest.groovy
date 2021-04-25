@@ -107,7 +107,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
             }
             configurations.conf.resolutionStrategy {
                 dependencySubstitution {
-                    substitute module("org:foo:1.1") with module("org:foo:1.0")
+                    substitute module("org:foo:1.1") using module("org:foo:1.0")
                 }
             }
         """

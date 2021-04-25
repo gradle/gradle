@@ -27,6 +27,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 import java.util.List;
@@ -66,6 +67,8 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
     ClassLoaderScope getClassLoaderScope();
 
     File getBuildSrcDir();
+
+    ServiceRegistry getServices();
 
     @Override
     BuildCacheConfigurationInternal getBuildCache();

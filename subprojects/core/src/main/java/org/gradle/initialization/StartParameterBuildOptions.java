@@ -75,6 +75,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ExportKeysOption());
         options.add(new ConfigurationCacheProblemsOption());
         options.add(new ConfigurationCacheOption());
+        options.add(new IsolatedProjectsOption());
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
@@ -191,9 +192,10 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    @Deprecated
     public static class BuildFileOption extends StringBuildOption<StartParameterInternal> {
         public BuildFileOption() {
-            super(null, CommandLineOptionConfiguration.create("build-file", "b", "Specify the build file."));
+            super(null, CommandLineOptionConfiguration.create("build-file", "b", "Specify the build file. (deprecated)"));
         }
 
         @Override
@@ -203,9 +205,10 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    @Deprecated
     public static class SettingsFileOption extends StringBuildOption<StartParameterInternal> {
         public SettingsFileOption() {
-            super(null, CommandLineOptionConfiguration.create("settings-file", "c", "Specify the settings file."));
+            super(null, CommandLineOptionConfiguration.create("settings-file", "c", "Specify the settings file. (deprecated)"));
         }
 
         @Override
@@ -476,7 +479,18 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCache(value);
+            settings.setConfigurationCache(BuildOption.Value.value(value));
+        }
+    }
+
+    public static class IsolatedProjectsOption extends BooleanBuildOption<StartParameterInternal> {
+        public IsolatedProjectsOption() {
+            super("org.gradle.unsafe.isolated-projects");
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjects(Value.value(value));
         }
     }
 

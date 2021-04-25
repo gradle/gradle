@@ -112,7 +112,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         final NamedDomainObjectSet<IvyPublicationInternal> publications = publishingExtension.getPublications().withType(IvyPublicationInternal.class);
         final NamedDomainObjectList<IvyArtifactRepository> repositories = publishingExtension.getRepositories().withType(IvyArtifactRepository.class);
         repositories.all(repository -> tasks.register(publishAllToSingleRepoTaskName(repository), publish -> {
-            publish.setDescription("Publishes all Maven publications produced by this project to the " + repository.getName() + " repository.");
+            publish.setDescription("Publishes all Ivy publications produced by this project to the " + repository.getName() + " repository.");
             publish.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
         }));
 

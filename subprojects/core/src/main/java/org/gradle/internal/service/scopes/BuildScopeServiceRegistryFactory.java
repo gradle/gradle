@@ -35,7 +35,7 @@ public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory,
     @Override
     public ServiceRegistry createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
-            GradleScopeServices gradleServices = new GradleScopeServices(services, (GradleInternal) domainObject);
+            GradleScopeServices gradleServices = new GradleScopeServices(services);
             registries.add(gradleServices);
             return gradleServices;
         }
@@ -44,8 +44,7 @@ public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory,
             registries.add(settingsServices);
             return settingsServices;
         }
-        throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
-                domainObject.getClass().getSimpleName()));
+        throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.", domainObject.getClass().getSimpleName()));
     }
 
     @Override

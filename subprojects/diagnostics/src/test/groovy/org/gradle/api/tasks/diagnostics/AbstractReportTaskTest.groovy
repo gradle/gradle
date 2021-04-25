@@ -22,7 +22,7 @@ import org.gradle.api.tasks.diagnostics.internal.ReportRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -94,7 +94,8 @@ class AbstractReportTaskTest extends Specification {
         1 * renderer.complete()
     }
 
-    static class TestReportTask extends ProjectBasedReportTask {
+    @SuppressWarnings('GrDeprecatedAPIUsage')
+    static class TestReportTask extends AbstractReportTask {
         private Runnable generator
         private ReportRenderer renderer
 

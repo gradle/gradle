@@ -96,7 +96,7 @@ class FixedUpstreamDependencies(private val dependencies: ArtifactTransformDepen
     }
 
     override fun selectedArtifacts(): FileCollection {
-        return dependencies.files
+        return dependencies.files.orElseThrow { IllegalStateException("Transform does not use artifact dependencies.") }
     }
 
     override fun finalizeIfNotAlready() {

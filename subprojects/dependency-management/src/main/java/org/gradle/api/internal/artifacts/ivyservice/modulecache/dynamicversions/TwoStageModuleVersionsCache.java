@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
 import com.google.common.collect.Sets;
-import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class TwoStageModuleVersionsCache extends AbstractModuleVersionsCache {
     private final AbstractModuleVersionsCache readOnlyCache;

@@ -20,7 +20,7 @@ import org.gradle.api.Namer
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.specs.Spec
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.TestUtil
 
 class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectionSpec<Bean> {
@@ -30,15 +30,15 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
             return bean.name
         }
     };
-    final DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer, callbackActionDecorator)
-    final Bean a = new BeanSub1("a")
-    final Bean b = new BeanSub1("b")
-    final Bean c = new BeanSub1("c")
-    final Bean d = new BeanSub2("d")
-    final boolean externalProviderAllowed = true
+    DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer, callbackActionDecorator)
+    Bean a = new BeanSub1("a")
+    Bean b = new BeanSub1("b")
+    Bean c = new BeanSub1("c")
+    Bean d = new BeanSub2("d")
+    boolean externalProviderAllowed = true
     boolean directElementAdditionAllowed = true
     boolean elementRemovalAllowed = true
-    final boolean supportsBuildOperations = true
+    boolean supportsBuildOperations = true
 
     @Override
     List<Bean> iterationOrder(Bean... elements) {

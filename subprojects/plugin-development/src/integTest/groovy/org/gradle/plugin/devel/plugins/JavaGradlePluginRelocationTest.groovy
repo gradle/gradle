@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
 class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegrationTest {
-    final String taskName = ":test"
+    String taskName = ":test"
 
     @Override
     protected void setupProjectIn(TestFile projectDir) {
@@ -78,7 +78,7 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
                 ${mavenCentralRepository()}
 
                 dependencies {
-                    testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+                    testImplementation('org.spockframework:spock-core:2.0-M5-groovy-3.0') {
                         exclude group: 'org.codehaus.groovy'
                     }
                 }

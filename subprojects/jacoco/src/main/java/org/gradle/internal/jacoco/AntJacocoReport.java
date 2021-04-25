@@ -42,19 +42,19 @@ public class AntJacocoReport extends AbstractAntJacocoReport<JacocoReportsContai
 
     @Override
     protected void configureReport(GroovyObjectSupport antBuilder, JacocoReportsContainer reports) {
-        if (reports.getHtml().isEnabled()) {
+        if (reports.getHtml().getRequired().get()) {
             antBuilder.invokeMethod("html", new Object[]{
-                ImmutableMap.<String, Object>of("destdir", reports.getHtml().getDestination())
+                ImmutableMap.<String, Object>of("destdir", reports.getHtml().getOutputLocation().getAsFile().get())
             });
         }
-        if (reports.getXml().isEnabled()) {
+        if (reports.getXml().getRequired().get()) {
             antBuilder.invokeMethod("xml", new Object[]{
-                ImmutableMap.<String, Object>of("destfile", reports.getXml().getDestination())
+                ImmutableMap.<String, Object>of("destfile", reports.getXml().getOutputLocation().getAsFile().get())
             });
         }
-        if (reports.getCsv().isEnabled()) {
+        if (reports.getCsv().getRequired().get()) {
             antBuilder.invokeMethod("csv", new Object[]{
-                ImmutableMap.<String, Object>of("destfile", reports.getCsv().getDestination())
+                ImmutableMap.<String, Object>of("destfile", reports.getCsv().getOutputLocation().getAsFile().get())
             });
         }
     }

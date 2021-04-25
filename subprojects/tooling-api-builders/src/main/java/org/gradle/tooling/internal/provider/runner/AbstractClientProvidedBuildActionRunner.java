@@ -24,8 +24,8 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
@@ -37,11 +37,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
-    protected Result runClientAction(ClientAction action, BuildController buildController) {
+    protected Result runClientAction(ClientAction action, BuildTreeLifecycleController buildController) {
 
         GradleInternal gradle = buildController.getGradle();
-
-        gradle.getStartParameter().setConfigureOnDemand(false);
 
         ActionRunningListener listener = new ActionRunningListener(gradle, action);
 

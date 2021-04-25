@@ -32,7 +32,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -46,11 +46,9 @@ import java.util.Set;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
-    private final ExecutionNodeAccessHierarchy inputHierarchy;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
 
-    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy inputHierarchy, ExecutionNodeAccessHierarchy outputHierarchy) {
-        this.inputHierarchy = inputHierarchy;
+    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy outputHierarchy) {
         this.outputHierarchy = outputHierarchy;
     }
 
@@ -65,11 +63,12 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 // This should move earlier in task scheduling, so that a worker thread does not even bother trying to run this task
                 return true;
             }
+            ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy = context.getService(ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy.class);
             TaskExecutionContext ctx = new DefaultTaskExecutionContext(
                 localTaskNode,
                 localTaskNode.getTaskProperties(),
                 localTaskNode.getValidationContext(),
-                (historyMaintained, typeValidationContext) -> detectMissingDependencies(localTaskNode, historyMaintained, typeValidationContext)
+                (historyMaintained, typeValidationContext) -> detectMissingDependencies(localTaskNode, historyMaintained, inputHierarchy, typeValidationContext)
             );
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
@@ -80,7 +79,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         }
     }
 
-    private void detectMissingDependencies(LocalTaskNode node, boolean historyMaintained, TypeValidationContext validationContext) {
+    private void detectMissingDependencies(LocalTaskNode node, boolean historyMaintained, ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy, TypeValidationContext validationContext) {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))

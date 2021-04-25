@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.resolve.catalog
 
+import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -26,7 +29,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-class TomlDependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIntegrationTest implements PluginDslSupport {
+class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
@@ -630,9 +633,12 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
         }
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST
+    )
     @Issue("https://github.com/gradle/gradle/issues/15029")
     def "reasonable error message if an imported catalog doesn't exist"() {
-        def path = file("missing.toml").absolutePath
+        def path = file("missing.toml")
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -647,7 +653,53 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
         fails ':help'
 
         then:
-        failure.assertHasCause "Catalog file $path doesn't exist"
+        verifyContains(failure.error, missingCatalogFile {
+            inCatalog('libs')
+            missing(path)
+        })
+    }
+
+    def "can use nested versions, libraries and bundles"() {
+        tomlFile << """
+[versions]
+commons-lib = "1.0"
+
+[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
+my-lib2 = {group = "org.gradle.test", name="lib2", version.ref="commons-lib"}
+
+[bundles]
+my-bundle = ["my-lib"]
+other-bundle = ["my-lib", "my-lib2"]
+
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.bundles.my.bundle
+                implementation libs.bundles.other.bundle
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
     }
 
     private GradleExecuter withConfigurationCache() {

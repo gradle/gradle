@@ -29,18 +29,22 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.Transformers;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Uploads the artifacts of a {@link Configuration} to a set of repositories.
+ *
+ * @deprecated This class is scheduled for removal in Gradle 8.0. To upload artifacts, use the maven-publish plugin instead.
  */
+@Deprecated
 public class Upload extends ConventionTask {
 
     private Configuration configuration;
@@ -56,6 +60,8 @@ public class Upload extends ConventionTask {
     @TaskAction
     protected void upload() {
         getLogger().info("Publishing configuration: {}", configuration);
+        DeprecationLogger.deprecateTaskType(Upload.class, getPath()).willBeRemovedInGradle8().withUpgradeGuideSection(7, "upload_task_deprecation").nagUser();
+
         Module module = ((ConfigurationInternal) configuration).getModule();
 
         ArtifactPublisher artifactPublisher = getPublicationServices().createArtifactPublisher();

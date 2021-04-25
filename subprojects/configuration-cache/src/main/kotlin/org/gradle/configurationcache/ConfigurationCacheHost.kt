@@ -30,12 +30,13 @@ import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.initialization.BuildOperationFiringSettingsPreparer
+import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.layout.BuildLayout
@@ -44,6 +45,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.BuildOperationContext
@@ -94,14 +96,7 @@ class ConfigurationCacheHost internal constructor(
 
         init {
             gradle.run {
-                // Fire build operation required by build scan to determine startup duration and settings evaluated duration
-                val settingsPreparer = BuildOperationFiringSettingsPreparer(
-                    { settings = processSettings() },
-                    service<BuildOperationExecutor>(),
-                    service<BuildDefinition>().fromBuild
-                )
-                settingsPreparer.prepareSettings(this)
-
+                settings = processSettings()
                 setBaseProjectClassLoaderScope(coreScope)
                 rootProjectDescriptor().name = rootProjectName
             }
@@ -143,8 +138,8 @@ class ConfigurationCacheHost internal constructor(
         fun fireBuildOperationsRequiredByBuildScans() {
             // Fire build operation required by build scans to determine the build's project structure (and build load time)
             val buildOperationExecutor = service<BuildOperationExecutor>()
-            val buildLoader = NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor)
-            buildLoader.load(gradle.settings, gradle)
+            NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor)
+                .load(gradle.settings, gradle)
 
             // Fire build operation required by build scans to determine the root path
             buildOperationExecutor.run(object : RunnableBuildOperation {
@@ -222,7 +217,10 @@ class ConfigurationCacheHost internal constructor(
             buildDefinition,
             isImplicit,
             owner,
-            service<WorkerLeaseService>().currentWorkerLease
+            service<BuildTreeController>(),
+            service<WorkerLeaseService>().currentWorkerLease,
+            service<BuildLifecycleControllerFactory>(),
+            service<BuildModelControllerServices>()
         )
 
         override fun prepareBuild(includedBuild: IncludedBuildState) {

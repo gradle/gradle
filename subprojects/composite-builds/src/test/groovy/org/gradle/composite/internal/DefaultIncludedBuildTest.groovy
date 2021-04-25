@@ -23,28 +23,33 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
-import org.gradle.initialization.GradleLauncher
-import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.buildtree.BuildTreeController
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultIncludedBuildTest extends Specification {
     def owningBuild = Mock(BuildState)
-    def buildFactory = Mock(NestedBuildFactory)
+    def buildFactory = Mock(BuildLifecycleControllerFactory)
     def buildDefinition = Stub(BuildDefinition)
-    def gradleLauncher = Mock(GradleLauncher)
+    def gradleLauncher = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
+    def buildTree = Mock(BuildTreeController)
     DefaultIncludedBuild build
 
     def setup() {
         _ * owningBuild.nestedBuildFactory >> buildFactory
-        _ * buildFactory.nestedInstance(buildDefinition, _) >> gradleLauncher
+        _ * buildFactory.newInstance(_, _, _, _) >> gradleLauncher
         _ * gradleLauncher.gradle >> gradle
         _ * gradle.settings >> Stub(SettingsInternal)
+        _ * buildTree.services >> new DefaultServiceRegistry()
 
-        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, Stub(WorkerLeaseRegistry.WorkerLease))
+        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, Stub(WorkerLeaseRegistry.WorkerLease), buildFactory, Stub(BuildModelControllerServices))
     }
 
     def "creates a foreign id for projects"() {
@@ -59,7 +64,6 @@ class DefaultIncludedBuildTest extends Specification {
     }
 
     def "can run action against build state"() {
-        def build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, Stub(WorkerLeaseRegistry.WorkerLease))
         def action = Mock(Transformer)
 
         when:

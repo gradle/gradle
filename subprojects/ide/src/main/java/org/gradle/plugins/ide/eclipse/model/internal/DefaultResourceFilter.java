@@ -24,7 +24,7 @@ import org.gradle.plugins.ide.eclipse.model.ResourceFilter;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterType;
-import org.gradle.util.ClosureBackedAction;
+import org.gradle.util.internal.ClosureBackedAction;
 
 public final class DefaultResourceFilter implements ResourceFilter {
     private ResourceFilterAppliesTo appliesTo = ResourceFilterAppliesTo.FILES_AND_FOLDERS;

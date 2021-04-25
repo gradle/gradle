@@ -291,7 +291,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
 
     class TestMessagingServices extends MessagingServices {
         protected ExecutorFactory createExecutorFactory() {
-            return getExecutorFactory()
+            return executorFactory
         }
     }
 }

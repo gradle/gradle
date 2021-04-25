@@ -16,43 +16,50 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.initialization.GradleLauncher
-import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.buildtree.BuildTreeController
+import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.Path
 import spock.lang.Specification
 
+import java.util.function.Function
+
 class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
-    def factory = Mock(NestedBuildFactory)
-    def launcher = Mock(GradleLauncher)
+    def tree = Mock(BuildTreeController)
+    def factory = Mock(BuildLifecycleControllerFactory)
+    def launcher = Mock(BuildLifecycleController)
+    def parentGradle = Mock(GradleInternal)
     def gradle = Mock(GradleInternal)
-    def action = Mock(Transformer)
+    def action = Mock(Function)
     def sessionServices = Mock(ServiceRegistry)
     def buildDefinition = Mock(BuildDefinition)
     def buildIdentifier = Mock(BuildIdentifier)
     DefaultNestedBuild build
 
     def setup() {
-        _ * owner.nestedBuildFactory >> factory
         _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
-        _ * factory.nestedInstance(buildDefinition, _) >> launcher
+        _ * owner.mutableModel >> parentGradle
+        _ * factory.newInstance(buildDefinition, _, parentGradle, _) >> launcher
         _ * buildDefinition.name >> "nested"
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
+        _ * tree.services >> new DefaultServiceRegistry()
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
 
-        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner)
+        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree, factory, Stub(BuildModelControllerServices))
     }
 
     def "stops launcher on stop"() {
@@ -71,7 +78,7 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         then:
-        1 * action.transform(!null) >> { BuildController controller ->
+        1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             '<result>'
         }
     }
@@ -84,7 +91,7 @@ class DefaultNestedBuildTest extends Specification {
         result == null
 
         and:
-        1 * action.transform(!null) >> { BuildController controller ->
+        1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             return null
         }
     }

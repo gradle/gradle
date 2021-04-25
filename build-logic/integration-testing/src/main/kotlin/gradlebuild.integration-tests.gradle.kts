@@ -28,7 +28,7 @@ plugins {
 }
 
 extensions.create<IntegrationTestExtension>("integTest").apply {
-    usesSamples.convention(false)
+    usesJavadocCodeSnippets.convention(false)
 }
 
 val sourceSet = addSourceSet(TestType.INTEGRATION)

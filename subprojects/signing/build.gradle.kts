@@ -39,4 +39,4 @@ classycle {
     excludePatterns.add("org/gradle/plugins/signing/**")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)

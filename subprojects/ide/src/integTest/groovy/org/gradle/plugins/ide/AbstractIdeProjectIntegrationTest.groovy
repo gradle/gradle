@@ -18,7 +18,7 @@ package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 
 abstract class AbstractIdeProjectIntegrationTest extends AbstractIntegrationSpec {
     protected abstract String projectName(String path)

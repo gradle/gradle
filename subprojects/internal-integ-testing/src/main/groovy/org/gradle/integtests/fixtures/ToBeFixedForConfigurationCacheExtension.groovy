@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.ClassInspector
 import org.gradle.test.fixtures.ResettableExpectations
-import org.junit.AssumptionViolatedException
+import org.opentest4j.TestAbortedException
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
@@ -90,7 +90,7 @@ class ToBeFixedForConfigurationCacheExtension implements IAnnotationDrivenExtens
             }
 
             if (pass.get()) {
-                throw new AssumptionViolatedException("Failed as expected.")
+                throw new TestAbortedException("Failed as expected.")
             } else {
                 throw new UnexpectedSuccessException()
             }
@@ -107,7 +107,7 @@ class ToBeFixedForConfigurationCacheExtension implements IAnnotationDrivenExtens
 
             @Override
             void intercept(IMethodInvocation invocation) throws Throwable {
-                if (iterationMatches(iterationMatchers, invocation.iteration.name)) {
+                if (iterationMatches(iterationMatchers, invocation.iteration.displayName)) {
                     if (failsAsExpected(invocation)) {
                         pass.set(true)
                     }

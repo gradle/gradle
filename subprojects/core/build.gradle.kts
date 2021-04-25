@@ -17,6 +17,7 @@ tasks.classpathManifest {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
+    implementation(project(":data-structures"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":resources"))
@@ -182,5 +183,5 @@ tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)
 testFilesCleanup.reportOnly.set(true)

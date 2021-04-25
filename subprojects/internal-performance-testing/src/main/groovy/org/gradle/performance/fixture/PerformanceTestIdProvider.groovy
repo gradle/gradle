@@ -28,10 +28,6 @@ class PerformanceTestIdProvider implements TestRule {
 
     PerformanceTestIdProvider() {}
 
-    PerformanceTestIdProvider(testSpec) {
-        this.testSpec = testSpec
-    }
-
     @Override
     Statement apply(Statement base, Description description) {
         methodName = description.methodName

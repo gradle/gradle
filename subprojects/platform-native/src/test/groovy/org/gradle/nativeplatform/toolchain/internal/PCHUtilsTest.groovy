@@ -21,7 +21,7 @@ import org.gradle.api.Transformer
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 

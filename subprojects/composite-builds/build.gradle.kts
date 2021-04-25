@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.guava)
 
     testImplementation(project(":file-watching"))
+    testImplementation(project(":build-option"))
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":build-option"))

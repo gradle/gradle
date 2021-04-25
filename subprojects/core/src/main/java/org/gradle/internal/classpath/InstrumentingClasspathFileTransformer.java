@@ -30,7 +30,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 
+import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
@@ -96,7 +97,10 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
-                LOGGER.debug("Failed to create receipt for instrumented classpath file '{}/{}'.", destDirName, destFileName, e);
+                throw new UncheckedIOException(
+                    format("Failed to create receipt for instrumented classpath file '%s/%s'.", destDirName, destFileName),
+                    e
+                );
             }
             return transformed;
         } finally {
@@ -107,7 +111,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
             file,
-            mode(FileLockManager.LockMode.Exclusive),
+            mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation(),
             "instrumented jar cache"
         );
     }

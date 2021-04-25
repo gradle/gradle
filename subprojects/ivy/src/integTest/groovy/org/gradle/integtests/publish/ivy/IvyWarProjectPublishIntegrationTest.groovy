@@ -55,6 +55,7 @@ uploadArchives {
 """
 
         when:
+        expectUploadTaskDeprecationWarning("uploadArchives")
         run "uploadArchives"
 
         then:

@@ -355,7 +355,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
     }
 
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin", iterationMatchers = [".*Kotlin.*"])
-    def "Including a build as both plugin build and regular build does not lead to an error in the presence of include cycles - #dsl DSL"() {
+    def "Including a build as both plugin build and regular build does not lead to an error in the presence of include cycles"() {
         given:
         def commonsPluginBuild = pluginBuild("commons-plugin-build", dsl == 'Kotlin')
         def mainPluginBuild = pluginBuild("main-plugin-build")
@@ -522,7 +522,6 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         settingsPluginBuild.assertSettingsPluginApplied()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "a build can depend on included library build that applies a project plugin that comes from an included settings plugin and depends on another included build"() {
         given:
         def pluginLibraryBuild = pluginAndLibraryBuild("plugin-lib")
@@ -535,8 +534,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
                 implementation("${pluginLibraryBuild.group}:${pluginLibraryBuild.buildName}")
             }
         """
-        // use Kotlin precompiled script plugin because Groovy version does not support pluginManagement {} in settings plugins (https://github.com/gradle/gradle/issues/15416)
-        def settingsPluginBuild = pluginBuild("settings-plugin", true)
+        def settingsPluginBuild = pluginBuild("settings-plugin")
         settingsPluginBuild.settingsPluginFile.text = """
             pluginManagement {
                 includeBuild("../${projectPluginBuild.buildName}")
@@ -580,13 +578,11 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         projectPluginBuild.assertProjectPluginApplied()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
-    def "plugin builds can include each other without consequences - Kotlin DSL"() {
-        // This won't work in Groovy DSL due to https://github.com/gradle/gradle/issues/15416
-
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin", iterationMatchers = [".*Kotlin.*"])
+    def "plugin builds can include each other without consequences"() {
         given:
-        def settingsPluginBuild = pluginBuild("settings-plugin", true)
-        def buildLogicBuild = pluginBuild("build-logic", true)
+        def settingsPluginBuild = pluginBuild("settings-plugin", dsl == 'Kotlin')
+        def buildLogicBuild = pluginBuild("build-logic", dsl == 'Kotlin')
         def mainBuild = createDir('main')
 
         executer.inDirectory(mainBuild)
@@ -630,5 +626,8 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         outputContains("settings plugin applied in build-logic")
         outputContains("settings plugin applied in main")
         buildLogicBuild.assertProjectPluginApplied()
+
+        where:
+        dsl << ['Groovy', 'Kotlin']
     }
 }

@@ -39,6 +39,12 @@ public final class TempFiles {
         if (directory == null) {
             throw new NullPointerException("The `directory` argument must not be null as this will default to the system temporary directory");
         }
+        if(prefix == null) {
+            prefix = "gradle-";
+        }
+        if(prefix.length() <= 3) {
+            prefix = "tmp-" + prefix;
+        }
         return File.createTempFile(prefix, suffix, directory);
     }
 }

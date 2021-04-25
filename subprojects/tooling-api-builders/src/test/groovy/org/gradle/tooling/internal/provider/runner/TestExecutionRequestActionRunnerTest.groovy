@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.operations.BuildOperationAncestryTracker
 import org.gradle.internal.operations.BuildOperationListenerManager
 import spock.lang.Specification
@@ -27,7 +27,7 @@ class TestExecutionRequestActionRunnerTest extends Specification {
         given:
         def runner = new TestExecutionRequestActionRunner(Mock(BuildOperationAncestryTracker), Mock(BuildOperationListenerManager))
         BuildAction buildAction = Mock(BuildAction)
-        BuildController buildController= Mock(BuildController)
+        BuildTreeLifecycleController buildController= Mock(BuildTreeLifecycleController)
         when:
         runner.run(buildAction, buildController)
         then:

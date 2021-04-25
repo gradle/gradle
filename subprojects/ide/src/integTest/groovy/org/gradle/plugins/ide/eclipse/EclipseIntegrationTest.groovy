@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.ComparisonFailure
 import org.junit.Rule
 import org.junit.Test
@@ -42,8 +42,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     @ToBeFixedForConfigurationCache
     void canCreateAndDeleteMetaData() {
         when:
-        File buildFile = testFile("master/build.gradle")
-        usingBuildFile(buildFile).withTasks("eclipse").run()
+        executer.withTasks("eclipse").run()
 
         assertHasExpectedContents(getClasspathFile(project:"api"), "apiClasspath.xml")
         assertHasExpectedContents(getProjectFile(project:"api"), "apiProject.xml")
@@ -65,8 +64,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
         assertHasExpectedContents(getProjectFile(project:"javabaseproject"), "javabaseprojectProject.xml")
         assertHasExpectedProperties(getJdtPropertiesFile(project:"javabaseproject"), "javabaseprojectJdt.properties")
 
-
-        assertHasExpectedContents(getProjectFile(project:"master"), "masterProject.xml")
+        assertHasExpectedContents(getProjectFile(), "masterProject.xml")
 
         assertHasExpectedContents(getClasspathFile(project:"webAppJava6"), "webAppJava6Classpath.xml")
         assertHasExpectedContents(getProjectFile(project:"webAppJava6"), "webAppJava6Project.xml")
@@ -86,7 +84,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
         assertHasExpectedContents(getFacetFile(project:"webservice"), "webserviceWtpFacet.xml")
         assertHasExpectedProperties(getJdtPropertiesFile(project:"webservice"), "webserviceJdt.properties")
 
-        usingBuildFile(buildFile).withTasks("cleanEclipse").run()
+        executer.withTasks("cleanEclipse").run()
     }
 
     @Test

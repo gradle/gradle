@@ -46,6 +46,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
@@ -63,7 +64,8 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
     public GeneratePluginAdaptersTask(ScriptCompilationHandler scriptCompilationHandler,
                                       ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                       CompileOperationFactory compileOperationFactory,
-                                      ServiceRegistry serviceRegistry, FileSystemOperations fileSystemOperations) {
+                                      ServiceRegistry serviceRegistry,
+                                      FileSystemOperations fileSystemOperations) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.compileOperationFactory = compileOperationFactory;
         this.serviceRegistry = serviceRegistry;
@@ -89,17 +91,32 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
 
         // TODO: Use worker API?
         for (PrecompiledGroovyScript scriptPlugin : getScriptPlugins().get()) {
-            PluginRequests pluginRequests = getValidPluginRequests(scriptPlugin);
-            generateScriptPluginAdapter(scriptPlugin, pluginRequests);
+            String firstPassCode = generateFirstPassAdapterCode(scriptPlugin);
+            generateScriptPluginAdapter(scriptPlugin, firstPassCode);
         }
     }
 
-    private PluginRequests getValidPluginRequests(PrecompiledGroovyScript scriptPlugin) {
+    private String generateFirstPassAdapterCode(PrecompiledGroovyScript scriptPlugin) {
         CompiledScript<PluginsAwareScript, ?> pluginsBlock = loadCompiledPluginsBlocks(scriptPlugin);
         if (!pluginsBlock.getRunDoesSomething()) {
-            return PluginRequests.EMPTY;
+            return "";
         }
         PluginRequests pluginRequests = extractPluginRequests(pluginsBlock, scriptPlugin);
+        validatePluginRequests(scriptPlugin, pluginRequests);
+
+        StringBuilder applyPlugins = new StringBuilder();
+        applyPlugins.append("            Class<? extends BasicScript> pluginsBlockClass = Class.forName(\"").append(scriptPlugin.getFirstPassClassName()).append("\").asSubclass(BasicScript.class);\n");
+        applyPlugins.append("            BasicScript pluginsBlockScript = pluginsBlockClass.getDeclaredConstructor().newInstance();\n");
+        applyPlugins.append("            pluginsBlockScript.setScriptSource(scriptSource(pluginsBlockClass));\n");
+        applyPlugins.append("            pluginsBlockScript.init(target, target.getServices());\n");
+        applyPlugins.append("            pluginsBlockScript.run();\n");
+        for (PluginRequest pluginRequest : pluginRequests) {
+            applyPlugins.append("            target.getPluginManager().apply(\"").append(pluginRequest.getId().getId()).append("\");\n");
+        }
+        return applyPlugins.toString();
+    }
+
+    private void validatePluginRequests(PrecompiledGroovyScript scriptPlugin, PluginRequests pluginRequests) {
         Set<String> validationErrors = new HashSet<>();
         for (PluginRequest pluginRequest : pluginRequests) {
             if (pluginRequest.getVersion() != null) {
@@ -112,20 +129,19 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
         }
         if (!validationErrors.isEmpty()) {
             throw new LocationAwareException(new IllegalArgumentException(String.join("\n", validationErrors)),
-                scriptPlugin.getSource().getResource().getLocation().getDisplayName(),
+                scriptPlugin.getBodySource().getResource().getLocation().getDisplayName(),
                 pluginRequests.iterator().next().getLineNumber());
         }
-        return pluginRequests;
     }
 
     private PluginRequests extractPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin) {
         try {
             PluginsAwareScript pluginsAwareScript = pluginsBlock.loadClass().getDeclaredConstructor().newInstance();
-            pluginsAwareScript.setScriptSource(scriptPlugin.getSource());
-            pluginsAwareScript.init("dummy", serviceRegistry);
+            pluginsAwareScript.setScriptSource(scriptPlugin.getBodySource());
+            pluginsAwareScript.init(new FirstPassPrecompiledScriptRunner(), serviceRegistry);
             pluginsAwareScript.run();
             return pluginsAwareScript.getPluginRequests();
-        } catch (Exception e) {
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new IllegalStateException("Could not execute plugins block", e);
         }
     }
@@ -133,20 +149,13 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
     private CompiledScript<PluginsAwareScript, ?> loadCompiledPluginsBlocks(PrecompiledGroovyScript scriptPlugin) {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
         File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
-        return scriptCompilationHandler.loadFromDir(scriptPlugin.getSource(), scriptPlugin.getContentHash(),
+        return scriptCompilationHandler.loadFromDir(scriptPlugin.getFirstPassSource(), scriptPlugin.getContentHash(),
             classLoaderScope, DefaultClassPath.of(compiledPluginRequestsDir), compiledPluginRequestsDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 
-    private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin, PluginRequests pluginRequests) {
+    private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin, String firstPassCode) {
         String targetClass = scriptPlugin.getTargetClassName();
         File outputFile = getPluginAdapterSourcesOutputDirectory().file(scriptPlugin.getPluginAdapterClassName() + ".java").get().getAsFile();
-
-        StringBuilder applyPlugins = new StringBuilder();
-        if (!pluginRequests.isEmpty()) {
-            for (PluginRequest pluginRequest : pluginRequests) {
-                applyPlugins.append("        target.getPluginManager().apply(\"").append(pluginRequest.getId().getId()).append("\");\n");
-            }
-        }
 
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(outputFile.toURI())))) {
             writer.println("//CHECKSTYLE:OFF");
@@ -162,12 +171,13 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("    private static final String MIN_SUPPORTED_GRADLE_VERSION = \"5.0\";");
             writer.println("    public void apply(" + targetClass + " target) {");
             writer.println("        assertSupportedByCurrentGradleVersion();");
-            writer.println("        " + applyPlugins + "");
             writer.println("        try {");
-            writer.println("            Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getClassName() + "\").asSubclass(BasicScript.class);");
+            writer.println(firstPassCode);
+            writer.println();
+            writer.println("            Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getBodyClassName() + "\").asSubclass(BasicScript.class);");
             writer.println("            BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance();");
             writer.println("            script.setScriptSource(scriptSource(precompiledScriptClass));");
-            writer.println("            script.init(target, " + scriptPlugin.serviceRegistryAccessCode() + ");");
+            writer.println("            script.init(target, target.getServices());");
             writer.println("            script.run();");
             writer.println("        } catch (Exception e) {");
             writer.println("            throw new RuntimeException(e);");

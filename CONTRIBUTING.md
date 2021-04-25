@@ -113,14 +113,14 @@ specific JDK installations.
 
 All code contributions should contain the following:
 
-* Unit Tests (using [Spock](https://spockframework.org/spock/docs/2.0-M4/index.html)) for any logic introduced
+* Unit Tests (using [Spock](https://spockframework.org/spock/docs/2.0-M5/index.html)) for any logic introduced
 * Integration Test coverage of the bug/feature at the level of build execution. Please annotate tests guarding against a specific GitHub issue `@Issue("gradle/gradle#123")`.
 * Documentation in the User Manual and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
 
 Your code needs to run on all supported Java versions and operating systems. The [Gradle CI](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
 * Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
-* Normalise file paths in tests. The `org.gradle.util.TextUtil` class has some useful functions for this purpose.
+* Normalise file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
 
 ### Development Workflow
 

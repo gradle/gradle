@@ -33,7 +33,7 @@ import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
-import org.gradle.tooling.internal.provider.TestExecutionRequestAction
+import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
 import spock.lang.Specification
 import spock.lang.Unroll
 

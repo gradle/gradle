@@ -22,17 +22,11 @@ import com.google.common.collect.Ordering;
 import javax.annotation.Nullable;
 
 /**
- * Represents, parses, and compares version numbers. Supports a couple of different schemes: <ul> <li>MAJOR.MINOR.MICRO-QUALIFIER (the default).</li> <li>MAJOR.MINOR.MICRO.PATCH-QUALIFIER.</li> </ul>
+ * This class is only here to maintain binary compatibility with existing plugins.
  *
- * <p>The {@link #parse} method handles missing parts and allows "." to be used instead of "-", and "_" to be used instead of "." for the patch number.
- *
- * <p>This class considers missing parts to be 0, so that "1.0" == "1.0.0" == "1.0.0_0".</p>
- *
- * <p>Note that this class considers "1.2.3-something" less than "1.2.3". Qualifiers are compared lexicographically ("1.2.3-alpha" < "1.2.3-beta") and case-insensitive ("1.2.3-alpha" <
- * "1.2.3.RELEASE").
- *
- * <p>To check if a version number is at least "1.2.3", disregarding a potential qualifier like "beta", use {@code version.getBaseVersion().compareTo(VersionNumber.parse("1.2.3")) >= 0}.
+ * @deprecated Will be removed in Gradle 8.0.
  */
+@Deprecated
 public class VersionNumber implements Comparable<VersionNumber> {
     private static final DefaultScheme DEFAULT_SCHEME = new DefaultScheme();
     private static final SchemeWithPatchVersion PATCH_SCHEME = new SchemeWithPatchVersion();
@@ -155,6 +149,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return string == null ? null : string.toLowerCase();
     }
 
+    /**
+     * Returns the version number scheme.
+     */
+    @Deprecated
     public interface Scheme {
         VersionNumber parse(String value);
 

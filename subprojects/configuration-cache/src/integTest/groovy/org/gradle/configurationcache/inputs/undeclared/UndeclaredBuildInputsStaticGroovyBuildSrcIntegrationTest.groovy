@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
-import spock.lang.Ignore
+
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle-private/issues/3252")
@@ -32,15 +32,5 @@ class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractU
         buildFile << """
             apply plugin: SneakyPlugin
         """
-    }
-
-    @Ignore
-    def "can reference static methods via instance variables"() {
-        expect: false
-    }
-
-    @Ignore
-    def "can reference methods from groovy closure"() {
-        expect: false
     }
 }

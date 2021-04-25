@@ -39,8 +39,8 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
-import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

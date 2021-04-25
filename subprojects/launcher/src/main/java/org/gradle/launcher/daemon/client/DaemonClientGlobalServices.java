@@ -21,7 +21,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.cli.action.BuildActionSerializer;
+import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 
 /**
  * Global services shared by all Gradle daemon clients in a given process.

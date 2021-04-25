@@ -17,15 +17,13 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+
+import java.util.Optional;
 
 public interface ArtifactTransformDependencies {
     /**
      * Returns the dependency artifacts of the artifact being transformed.
      * The order of the files match that of the dependencies in the source artifact view.
      */
-    FileCollection getFiles();
-
-    CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter);
+    Optional<FileCollection> getFiles();
 }

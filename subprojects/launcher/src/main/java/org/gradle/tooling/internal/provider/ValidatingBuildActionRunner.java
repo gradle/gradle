@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 
 public class ValidatingBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
@@ -28,7 +28,7 @@ public class ValidatingBuildActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public Result run(BuildAction action, BuildController buildController) {
+    public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         Result result = delegate.run(action, buildController);
         if (!result.hasResult()) {
             throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));

@@ -26,7 +26,7 @@ import org.gradle.api.tasks.GroovySourceSet;
 import javax.annotation.Nullable;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
-import static org.gradle.util.ConfigureUtil.configure;
+import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
     private final SourceDirectorySet groovy;

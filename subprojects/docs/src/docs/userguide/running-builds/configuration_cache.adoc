@@ -591,9 +591,10 @@ You should instead declare these as a `FileCollection` input and reference just 
 
 The same requirement applies to dependency management types with some nuances.
 
-Some types, such as `Configuration`, don't make good task input parameters, as they hold a lot of irrelevant state, and it is better to model these inputs as something more precise.
+Some types, such as `Configuration` or `SourceDirectorySet`, don't make good task input parameters, as they hold a lot of irrelevant state, and it is better to model these inputs as something more precise.
 We don't intend to make these types serializable at all.
 For example, if you reference a `Configuration` to later get the resolved files, you should instead declare a `FileCollection` as an input to your task.
+In the same vein, if you reference a `SourceDirectorySet` you should instead declare a `FileTree` as an input to your task.
 
 Referencing dependency resolution results is also disallowed (e.g. `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult` etc...).
 For example, if you reference some `ResolvedArtifactResult` instances, you should instead declare some `ArtifactCollection` as an input to your task.

@@ -27,7 +27,9 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -38,6 +40,7 @@ import java.util.Collection;
  * consumption.
  */
 @UsedByScanPlugin
+@ServiceScope(Scopes.Build.class)
 public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}

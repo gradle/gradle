@@ -27,7 +27,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
-import groovy.transform.Generated;
 import org.gradle.api.Action;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -374,7 +373,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      * @return true if we suspect this method to be a safely ignorable generated method
      */
     private boolean isIgnoredGeneratedGroovyMethod(Method method) {
-        return method.getAnnotation(Generated.class) != null && method.getName().contains("$");
+        return generatedMethodDetector.test(method) && method.getName().contains("$");
     }
 
     private void processMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {

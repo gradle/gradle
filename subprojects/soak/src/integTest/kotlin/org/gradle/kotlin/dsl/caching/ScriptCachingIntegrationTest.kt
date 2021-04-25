@@ -221,10 +221,11 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
     }
 
     @Test
-    @Ignore("https://github.com/gradle/gradle-private/issues/3308")
+    @Ignore
     fun `in-memory script class loading cache releases memory of unused entries`() {
 
         // given: buildSrc memory hog
+        val memoryHogMb = 128
         val myTask = withFile(
             "buildSrc/src/main/groovy/MyTask.groovy",
             """
@@ -232,7 +233,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             import org.gradle.api.tasks.*
 
             class MyTask extends DefaultTask {
-                static final byte[][] MEMORY_HOG = new byte[1024][1024 * 128]
+                static final byte[][] MEMORY_HOG = new byte[1024][1024 * $memoryHogMb]
                 @TaskAction void runAction0() {}
             }
             """
@@ -253,9 +254,11 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
 
         // expect: memory hog released
-        for (run in 1..4) {
+        val runs = 4
+        val daemonHeapMb = memoryHogMb * runs + 96
+        for (run in 1..runs) {
             myTask.writeText(myTask.readText().replace("runAction${run - 1}", "runAction$run"))
-            buildWithDaemonHeapSize(512, "myTask").apply {
+            buildWithDaemonHeapSize(daemonHeapMb, "myTask").apply {
                 compilationCache {
                     assertCacheHits(run)
                 }

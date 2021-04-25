@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 
@@ -39,6 +39,31 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
     def setup() {
         AndroidHome.assertIsSet()
+    }
+
+    @UnsupportedWithConfigurationCache
+    def "can use sourceSets task with android library and application build (agp=#agpVersion, ide=#ide)"() {
+        given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
+        androidLibraryAndApplicationBuild(agpVersion)
+
+        and:
+        def runner = useAgpVersion(agpVersion, runner('sourceSets'))
+
+        when:
+        def result = runner.build()
+
+        then:
+        result.task(':app:sourceSets').outcome == TaskOutcome.SUCCESS
+        result.task(':library:sourceSets').outcome == TaskOutcome.SUCCESS
+
+        where:
+        [agpVersion, ide] << [
+            TestedVersions.androidGradle.toList(),
+            [false, true]
+        ].combinations()
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
@@ -412,7 +437,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             }
         """
         validatePlugins {
-            boolean failsValidation = version.startsWith('4.2.0') || version.startsWith('7.0')
+            boolean failsValidation = version.startsWith('4.2.0')
             if (failsValidation) {
                 def pluginSuffix = testedPluginId.substring('com.android.'.length())
                 def failingPlugins = ['com.android.internal.version-check', testedPluginId, 'com.android.internal.' + pluginSuffix]

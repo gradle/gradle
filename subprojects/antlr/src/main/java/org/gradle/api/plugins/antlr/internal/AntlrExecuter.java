@@ -27,7 +27,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.process.internal.worker.RequestHandler;
-import org.gradle.util.RelativePathUtil;
+import org.gradle.util.internal.RelativePathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

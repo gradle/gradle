@@ -19,7 +19,9 @@ package org.gradle.configurationcache.serialization.beans
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.TaskInternal
 
 import org.gradle.configurationcache.problems.DisableConfigurationCacheFieldTypeCheck
@@ -27,20 +29,33 @@ import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.serialization.IsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
+import org.gradle.internal.reflect.ClassInspector
 
+import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
-import java.lang.reflect.Modifier
+import java.lang.reflect.Modifier.isStatic
+import java.lang.reflect.Modifier.isTransient
 import kotlin.reflect.KClass
 
 
 internal
 val unsupportedFieldDeclaredTypes = listOf(
-    Configuration::class
+    Configuration::class,
+    SourceDirectorySet::class
 )
 
 
 internal
 fun relevantStateOf(beanType: Class<*>): List<RelevantField> =
+    when (IConventionAware::class.java.isAssignableFrom(beanType)) {
+        true -> applyConventionMappingTo(beanType, relevantFieldsOf(beanType))
+        else -> relevantFieldsOf(beanType)
+    }
+
+
+private
+fun relevantFieldsOf(beanType: Class<*>) =
     relevantTypeHierarchyOf(beanType)
         .flatMap(Class<*>::relevantFields)
         .onEach(Field::makeAccessible)
@@ -48,10 +63,54 @@ fun relevantStateOf(beanType: Class<*>): List<RelevantField> =
         .toList()
 
 
+private
+fun applyConventionMappingTo(taskType: Class<*>, relevantFields: List<RelevantField>): List<RelevantField> =
+    conventionAwareFieldsOf(taskType).toMap().let { flags ->
+        relevantFields.map { relevantField ->
+            relevantField.run {
+                flags[field]?.let { flagField ->
+                    copy(isExplicitValueField = flagField.apply(Field::makeAccessible))
+                }
+            } ?: relevantField
+        }
+    }
+
+
+/**
+ * Returns every property backing field for which a corresponding convention mapping flag field also exists.
+ *
+ * The convention mapping flag field is a Boolean field injected by [AsmBackedClassGenerator] in order to capture
+ * whether a convention mapped property has been explicitly set or not.
+ */
+private
+fun conventionAwareFieldsOf(beanType: Class<*>): Sequence<Pair<Field, Field>> =
+    ClassInspector.inspect(beanType).let { details ->
+        details.properties.asSequence().mapNotNull { property ->
+            property.backingField?.let { backingField ->
+                val flagFieldName = AsmBackedClassGenerator.propFieldName(backingField.name)
+                details
+                    .instanceFields
+                    .firstOrNull { field ->
+                        field.declaringClass == beanType
+                            && field.name == flagFieldName
+                            && field.type == java.lang.Boolean.TYPE
+                    }?.let { flagField ->
+                        backingField to flagField
+                    }
+            }
+        }
+    }
+
+
 internal
-class RelevantField(
+data class RelevantField(
     val field: Field,
-    val unsupportedFieldType: KClass<*>?
+    val unsupportedFieldType: KClass<*>?,
+    /**
+     * Boolean flag field injected by [AsmBackedClassGenerator] to capture
+     * whether a convention mapped property has been explicitly set or not.
+     */
+    val isExplicitValueField: Field? = null
 )
 
 
@@ -110,23 +169,43 @@ private
 val Class<*>.relevantFields: Sequence<Field>
     get() = declaredFields.asSequence()
         .filterNot { field ->
-            Modifier.isStatic(field.modifiers)
-                || Modifier.isTransient(field.modifiers)
+            field.isStatic
+                || field.isTransient
                 || Workarounds.isIgnoredBeanField(field)
-        }
-        .filter { field ->
-            @Suppress("deprecation")
-            field.declaringClass != org.gradle.api.internal.AbstractTask::class.java || field.name in abstractTaskRelevantFields
+        }.filter { field ->
+            isNotAbstractTaskField(field)
+                || field.name in abstractTaskRelevantFields
         }
         .sortedBy { it.name }
 
 
+@Suppress("deprecation")
 private
-val abstractTaskRelevantFields = listOf("actions", "enabled", "timeout", "onlyIfSpec")
+fun isNotAbstractTaskField(field: Field) =
+    field.declaringClass != org.gradle.api.internal.AbstractTask::class.java
+
+
+private
+val Field.isTransient
+    get() = isTransient(modifiers)
+
+
+private
+val Field.isStatic
+    get() = isStatic(modifiers)
+
+
+private
+val abstractTaskRelevantFields = listOf(
+    "actions",
+    "enabled",
+    "timeout",
+    "onlyIfSpec"
+)
 
 
 internal
-fun Field.makeAccessible() {
+fun AccessibleObject.makeAccessible() {
     @Suppress("deprecation")
     if (!isAccessible) isAccessible = true
 }

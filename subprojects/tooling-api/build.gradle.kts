@@ -79,7 +79,7 @@ classycle {
     excludePatterns.add("org/gradle/tooling/**")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)
 testFilesCleanup.reportOnly.set(true)
 
 apply(from = "buildship.gradle")

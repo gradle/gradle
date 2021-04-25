@@ -272,7 +272,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
             src {
                 main {
                     java {
-                        'ToolImpl.java'('public class ToolImpl implements Tool { public void execute() {} }')
+                        'ToolImpl.java'('public class ToolImpl extends Tool { public void execute() {} }')
                     }
                 }
             }
@@ -293,7 +293,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
             src {
                 main {
                     java {
-                        'Tool.java'('public interface Tool { void execute(); }')
+                        'Tool.java'('public class Tool { public Foo foo() { return new Foo(); } public void execute() {} }')
                     }
                 }
             }
@@ -342,7 +342,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
             src {
                 main {
                     java {
-                        'ToolImpl.java'('public class ToolImpl implements Tool { public void execute() {} }')
+                        'ToolImpl.java'('public class ToolImpl extends Tool { public void execute() {} }')
                     }
                 }
             }
@@ -363,7 +363,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
             src {
                 main {
                     java {
-                        'Tool.java'('public interface Tool { void execute(); }')
+                        'Tool.java'('public class Tool { private Foo foo; public void execute() {}; }')
                     }
                 }
             }
@@ -411,7 +411,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
-                    assert org.gradle.util.CollectionUtils.single(lazyInputs.files).toPath().endsWith('${expectedDirName}')
+                    assert org.gradle.util.internal.CollectionUtils.single(lazyInputs.files).toPath().endsWith('${expectedDirName}')
                 }
             }
         """

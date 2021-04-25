@@ -19,11 +19,15 @@ package org.gradle.util;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 
+/**
+ * Represents a path in Gradle.
+ */
 public class Path implements Comparable<Path> {
     public static final Path ROOT = new Path(new String[0], true);
 

@@ -48,7 +48,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.invocation.GradleBuildController
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
@@ -322,10 +321,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         val projectDir = uniqueTempDirectory()
         val startParameter = projectSchemaBuildStartParameterFor(projectDir)
         return createNestedRootBuild("$path:${projectDir.name}", startParameter, services).run { controller ->
-            require(controller is GradleBuildController)
-            controller.doBuild {
+            controller.withEmptyBuild { settings ->
                 Try.ofFailable {
-                    val settings = controller.launcher.loadedSettings
                     val gradle = settings.gradle
                     val baseScope = coreAndPluginsScopeOf(gradle).createChild("accessors-classpath").apply {
                         // we export the build logic classpath to the base scope here so that all referenced plugins
@@ -354,8 +351,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun projectSchemaBuildStartParameterFor(projectDir: File): ProjectSchemaBuildStartParameter =
-        services.get<StartParameter>().let { startParameter ->
-            require(startParameter is StartParameterInternal)
+        services.get<StartParameterInternal>().let { startParameter ->
             ProjectSchemaBuildStartParameter(
                 BuildLayoutParameters(
                     startParameter.gradleHomeDir,
@@ -380,8 +376,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         }
 
         override fun getAllInitScripts(): List<File> = emptyList()
-        override fun newInstance(): StartParameter = throw UnsupportedOperationException()
-        override fun newBuild(): StartParameter = throw UnsupportedOperationException()
+        override fun newInstance(): StartParameterInternal = throw UnsupportedOperationException()
+        override fun newBuild(): StartParameterInternal = throw UnsupportedOperationException()
     }
 
     private

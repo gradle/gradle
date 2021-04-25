@@ -112,9 +112,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants) {
-        final SelectedArtifactResults artifactResults;
         VariantSelector selector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariants, configuration.getDependenciesResolver());
-        artifactResults = this.artifactResults.select(componentSpec, selector);
+        SelectedArtifactResults artifactResults = this.artifactResults.select(componentSpec, selector);
 
         return new SelectedArtifactSet() {
             @Override

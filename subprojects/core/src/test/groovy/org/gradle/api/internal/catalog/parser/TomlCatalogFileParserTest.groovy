@@ -26,16 +26,16 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.DependencyModel
+import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.function.Supplier
 
-import static org.gradle.api.internal.catalog.parser.IncludeExcludePredicate.acceptAll
-
-class TomlCatalogFileParserTest extends Specification {
-    final ImportConfiguration importConf = new ImportConfiguration(acceptAll(), acceptAll(), acceptAll())
+class TomlCatalogFileParserTest extends Specification implements VersionCatalogErrorMessages {
     final VersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs",
         Interners.newStrongInterner(),
         Interners.newStrongInterner(),
@@ -59,13 +59,20 @@ class TomlCatalogFileParserTest extends Specification {
         }
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE
+    )
     def "parses a file with a single bundle and nothing else"() {
         when:
         parse('one-bundle')
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "A bundle with name 'guava' declares a dependency on 'hello' which doesn't exist"
+        verify(ex.message, undefinedAliasRef {
+            inCatalog('libs')
+            bundle('guava')
+            aliasRef('hello')
+        })
     }
 
     def "parses a file with a single version and nothing else"() {
@@ -205,6 +212,11 @@ class TomlCatalogFileParserTest extends Specification {
         hasBundle('groovy', ['groovy-json', 'groovy', 'groovy-templates'])
     }
 
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE,
+        VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION,
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
     @Unroll
     def "fails parsing TOML file #name with reasonable error message"() {
         when:
@@ -212,12 +224,12 @@ class TomlCatalogFileParserTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == message
+        ex.message.contains(message)
 
         where:
         name        | message
-        'invalid1'  | "Invalid GAV notation 'foo' for alias 'module': it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2"
-        'invalid2'  | "Invalid module notation 'foo' for alias 'module': it must consist of 2 parts separated by colons, eg: my.group:artifact"
+        'invalid1'  | "In version catalog libs, on alias 'module' notation 'foo' is not a valid dependency notation"
+        'invalid2'  | "In version catalog libs, on alias 'module' module 'foo' is not a valid module notation."
         'invalid3'  | "Name for 'module' must not be empty"
         'invalid4'  | "Group for 'module' must not be empty"
         'invalid5'  | "Version for 'module' must not be empty"
@@ -225,11 +237,11 @@ class TomlCatalogFileParserTest extends Specification {
         'invalid7'  | "Group for 'test' must not be empty"
         'invalid8'  | "Group for alias 'test' wasn't set"
         'invalid9'  | "Name for alias 'test' wasn't set"
-        'invalid10' | "On alias 'test' expected a boolean but value of 'rejectAll' is a string"
-        'invalid11' | "On alias 'test' expected an array but value of 'reject' is a table"
-        'invalid12' | "Unknown top level elements [toto, tata]"
-        'invalid13' | "On bundle 'groovy' expected an array but value of 'groovy' is a string"
-        'invalid14' | "Referenced version 'nope' doesn't exist on dependency com:foo"
+        'invalid10' | "Expected a boolean but value of 'rejectAll' is a string."
+        'invalid11' | "Expected an array but value of 'reject' is a table."
+        'invalid12' | "In version catalog libs, unknown top level elements [toto, tata]"
+        'invalid13' | "Expected an array but value of 'groovy' is a string."
+        'invalid14' | "In version catalog libs, version reference 'nope' doesn't exist"
     }
 
     def "supports dependencies without version"() {
@@ -248,13 +260,50 @@ class TomlCatalogFileParserTest extends Specification {
         }
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION
+    )
     def "reasonable error message if a file format isn't supported"() {
         when:
         parse 'unsupported-format'
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "This catalog file format has version 999.999 which isn't supported by this Gradle version."
+        verify(ex.message, unexpectedFormatVersion {
+            inCatalog('libs')
+            unsupportedVersion('999.999')
+            expectedVersion('1.0')
+        })
+    }
+
+    def "reasonable error message when an alias table contains unexpected key"() {
+        when:
+        parse "unexpected-alias-key-$i"
+
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == "On library declaration 'guava' expected to find any of 'group', 'module', 'name' or 'version' but found unexpected ${error}."
+
+        where:
+        i | error
+        1 | "key 'invalid'"
+        2 | "key 'invalid'"
+        3 | "keys 'extra' and 'invalid'"
+    }
+
+    def "reasonable error message when a version table contains unexpected key"() {
+        when:
+        parse "unexpected-version-key-$i"
+
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == "On version declaration of alias 'guava' expected to find any of 'prefer', 'ref', 'reject', 'rejectAll', 'require' or 'strictly' but found unexpected ${error}."
+
+        where:
+        i | error
+        1 | "key 'rejette'"
+        2 | "key 'invalid'"
+        3 | "keys 'invalid' and 'rejette'"
     }
 
     void hasDependency(String name, @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependencySpec) Closure<Void> spec) {
@@ -274,13 +323,13 @@ class TomlCatalogFileParserTest extends Specification {
 
     void hasVersion(String id, String version) {
         def versionConstraint = model.getVersion(id)?.version
-        assert versionConstraint != null : "Expected a version constraint with name $id but didn't find one"
+        assert versionConstraint != null: "Expected a version constraint with name $id but didn't find one"
         def actual = versionConstraint.toString()
         assert actual == version
     }
 
     private void parse(String name) {
-        TomlCatalogFileParser.parse(toml(name), builder, importConf)
+        TomlCatalogFileParser.parse(toml(name), builder)
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
     }
@@ -311,7 +360,7 @@ class TomlCatalogFileParserTest extends Specification {
 
         void withGAV(String gav) {
             def coord = gav.split(':')
-            def v = coord.length>2 ? coord[2] : ''
+            def v = coord.length > 2 ? coord[2] : ''
             withGAV(coord[0], coord[1], v)
         }
 

@@ -260,45 +260,6 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
         expectPlatformContents 'expected8'
     }
 
-    def "can publish a Java platform as a Gradle platform"() {
-        buildFile << """apply plugin:'java-platform'
-"""
-        withPublishing 'javaPlatform'
-
-        buildFile << """
-            dependencies {
-                constraints {
-                    api 'org:api-dep:1.0'
-                    runtime 'org:runtime-dep:1.4'
-                }
-            }
-        """
-
-        when:
-        succeeds ':publish'
-
-        then:
-        executedAndNotSkipped ':generateCatalogAsToml',
-            ':generateMetadataFileForMavenPublication',
-            ':generatePomFileForMavenPublication',
-            ':publishMavenPublicationToMavenRepository'
-        def module = mavenRepo.module("org.gradle", "test", "1.0")
-            .withModuleMetadata()
-        module.assertPublished()
-        def metadata = module.parsedModuleMetadata
-        metadata.variant("versionCatalogElements") {
-            noMoreDependencies()
-            assert attributes == [
-                'org.gradle.category': 'platform',
-                'org.gradle.usage': 'version-catalog'
-            ]
-            assert files.name == ['test-1.0.toml']
-        }
-
-        and:
-        expectPlatformContents 'expected9'
-    }
-
     private void withSampleCatalog() {
         buildFile << """
             catalog {

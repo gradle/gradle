@@ -20,7 +20,7 @@ import groovy.io.FileType
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.util.GFileUtils
+import org.gradle.util.internal.GFileUtils
 import org.intellij.lang.annotations.Language
 import spock.lang.IgnoreIf
 
@@ -37,7 +37,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
 
             dependencies {
                 implementation localGroovy()
-                testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+                testImplementation('org.spockframework:spock-core:2.0-M5-groovy-3.0') {
                     exclude group: 'org.codehaus.groovy'
                 }
                 testImplementation('org.junit.jupiter:junit-jupiter-api')
@@ -45,7 +45,10 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
 
             ${mavenCentralRepository()}
 
-            test.testLogging.exceptionFormat = 'full'
+            test {
+                testLogging.exceptionFormat = 'full'
+                useJUnitPlatform()
+            }
         """
     }
 
@@ -72,10 +75,6 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
         buildFile << """
             dependencies {
                 testImplementation fileTree(dir: 'jars', include: '*.jar')
-            }
-
-            test {
-                useJUnitPlatform()
             }
         """
 
@@ -114,8 +113,6 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                 testLogging {
                     events 'started'
                 }
-
-                useJUnitPlatform()
             }
         """
 

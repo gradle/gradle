@@ -21,7 +21,7 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.util.ClosureBackedAction
+import org.gradle.util.internal.ClosureBackedAction
 import org.junit.Rule
 
 class ContinuousScopeIdsIntegrationTest extends AbstractContinuousIntegrationTest {

@@ -24,7 +24,7 @@ import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 @TestReproducibleArchives
 class EarPluginIntegrationTest extends AbstractIntegrationSpec {

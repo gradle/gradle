@@ -20,6 +20,7 @@ import com.google.common.reflect.ClassPath
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.StatefulListener
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -946,6 +947,35 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         executor.failure == null
     }
 
+    def "cannot add a stateful listener after an event has been broadcast"() {
+        given:
+        manager.addListener(Stub(StatefulTestListener))
+        def broadcaster = manager.getBroadcaster(StatefulTestListener)
+        manager.addListener(Stub(StatefulTestListener))
+        broadcaster.something("12")
+
+        when:
+        manager.addListener(Stub(StatefulTestListener))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot add listener of type StatefulTestListener after events have been broadcast.'
+    }
+
+    def "cannot add a stateful listener after events have been broadcast by a child"() {
+        given:
+        manager.addListener(Stub(StatefulTestListener))
+        def broadcaster = manager.createChild(Scopes.BuildTree).getBroadcaster(StatefulTestListener)
+        broadcaster.something("12")
+
+        when:
+        manager.addListener(Stub(StatefulTestListener))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot add listener of type StatefulTestListener after events have been broadcast.'
+    }
+
     def "can query for registered listeners"() {
         expect:
         !manager.hasListeners(TestFooListener)
@@ -1003,6 +1033,12 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
     @EventScope(Scope.Global)
     interface TestListenerWithWrongScope {
-        void foo(String param);
+        void foo(String param)
+    }
+
+    @EventScope(Scopes.BuildTree.class)
+    @StatefulListener
+    interface StatefulTestListener {
+        void something(String value)
     }
 }

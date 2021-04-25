@@ -17,7 +17,7 @@ package org.gradle.reporting
 
 import org.gradle.internal.html.SimpleHtmlWriter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 

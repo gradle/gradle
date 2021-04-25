@@ -28,5 +28,7 @@ dependencies {
 
     implementation(libs.inject)
 
+    testImplementation(testFixtures(project(":core-api")))
+
     testFixturesImplementation(libs.jetbrainsAnnotations)
 }

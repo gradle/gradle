@@ -66,6 +66,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -76,8 +77,8 @@ import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.util.ClosureBackedAction;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -86,7 +87,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Abstract class for all test task.
+ * Abstract class for all test tasks.
  *
  * <ul>
  *     <li>Support for test listeners</li>
@@ -120,8 +121,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
         reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
-        reports.getJunitXml().setEnabled(true);
-        reports.getHtml().setEnabled(true);
+        reports.getJunitXml().getRequired().set(true);
+        reports.getHtml().getRequired().set(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
     }
@@ -206,10 +207,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Returns the root folder for the test results in internal binary format.
      *
      * @return the test result directory, containing the test results in binary format.
+     *
+     * @deprecated Use {@link #getBinaryResultsDirectory()} instead. This method will be removed in Gradle 8.0.
      */
     @ReplacedBy("binaryResultsDirectory")
     @Deprecated
     public File getBinResultsDir() {
+        DeprecationLogger.deprecateProperty(AbstractTestTask.class, "binResultsDir").replaceWith("binaryResultsDirectory")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
         return binaryResultsDirectory.getAsFile().getOrNull();
     }
 
@@ -217,9 +225,16 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Sets the root folder for the test results in internal binary format.
      *
      * @param binResultsDir The root folder
+     *
+     * @deprecated Use {@link #getBinaryResultsDirectory()}.set() instead. This method will be removed in Gradle 8.0.
      */
     @Deprecated
     public void setBinResultsDir(File binResultsDir) {
+        DeprecationLogger.deprecateProperty(AbstractTestTask.class, "binResultsDir").replaceWith("binaryResultsDirectory")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
         this.binaryResultsDirectory.set(binResultsDir);
     }
 
@@ -435,7 +450,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestExecutionSpec executionSpec = createTestExecutionSpec();
 
-        final File binaryResultsDir = getBinResultsDir();
+        final File binaryResultsDir = getBinaryResultsDirectory().getAsFile().get();
         FileSystemOperations fs = getFileSystemOperations();
         fs.delete(new Action<DeleteSpec>() {
             @Override
@@ -536,20 +551,20 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
-            if (junitXml.isEnabled()) {
+            if (junitXml.getRequired().get()) {
                 JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
                     junitXml.isOutputPerTestCase(),
                     junitXml.getMergeReruns().get()
                 );
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, xmlResultOptions, getBuildOperationExecutor(), getHostnameLookup().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getOutputLocation().getAsFile().get(), testResultsProvider, xmlResultOptions, getBuildOperationExecutor(), getHostnameLookup().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 
             DirectoryReport html = reports.getHtml();
-            if (!html.isEnabled()) {
+            if (!html.getRequired().get()) {
                 getLogger().info("Test report disabled, omitting generation of the HTML test report.");
             } else {
-                testReporter.generateReport(testResultsProvider, html.getDestination());
+                testReporter.generateReport(testResultsProvider, html.getOutputLocation().getAsFile().getOrNull());
             }
         } finally {
             CompositeStoppable.stoppable(testResultsProvider).stop();
@@ -617,12 +632,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         String message = "There were failing tests";
 
         DirectoryReport htmlReport = getReports().getHtml();
-        if (htmlReport.isEnabled()) {
+        if (htmlReport.getRequired().get()) {
             String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
             message = message.concat(". See the report at: " + reportUrl);
         } else {
             DirectoryReport junitXmlReport = getReports().getJunitXml();
-            if (junitXmlReport.isEnabled()) {
+            if (junitXmlReport.getRequired().get()) {
                 String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
                 message = message.concat(". See the results at: " + resultsUrl);
             }

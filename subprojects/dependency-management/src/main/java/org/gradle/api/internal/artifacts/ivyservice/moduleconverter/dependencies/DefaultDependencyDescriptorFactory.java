@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintIntern
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.internal.WrapUtil;
 
 import javax.annotation.Nullable;
 import java.util.Collections;

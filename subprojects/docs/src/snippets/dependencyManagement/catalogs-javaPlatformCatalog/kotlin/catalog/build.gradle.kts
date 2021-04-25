@@ -16,26 +16,16 @@
 
 // tag::catalog_definition[]
 plugins {
-    `java-platform`
     `version-catalog`
     `maven-publish`
 }
 
-dependencies {
-    constraints {
-        // the following constraints will be automatically exported to the catalog
-        api("com.google.guava:guava:28.0-jre")
-        api("org.codehaus.groovy:groovy:3.0.5")
-        // ...
+catalog {
+    versionCatalog {
+        alias("guava").to("com.google.guava:guava:28.0-jre")
+        alias("myGroovy").to("org.codehaus.groovy:groovy:3.0.5")
     }
 }
-// end::catalog_definition[]
-
-// tag::explicit_alias[]
-catalog {
-    configureExplicitAlias("myGroovy", "org.codehaus.groovy", "groovy")
-}
-// end::explicit_alias[]
 
 group = "com.mycompany"
 version = "1.0"
@@ -43,7 +33,7 @@ version = "1.0"
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            from(components["javaPlatform"])
+            from(components["versionCatalog"])
         }
     }
 }

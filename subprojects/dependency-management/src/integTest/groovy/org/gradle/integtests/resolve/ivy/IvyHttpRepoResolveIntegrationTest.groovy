@@ -26,7 +26,7 @@ import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHt
 class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
-    final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+    RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
     @Override
     RepositoryServer getServer() {

@@ -20,7 +20,7 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VswhereVersionLocator;
 import org.gradle.test.fixtures.file.ExecOutput;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 

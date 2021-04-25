@@ -320,8 +320,6 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.debugArtifactsDirectory", getDebugArtifactsDirectory())
 
             if (profiler.isPresent() && profiler.get() != "none") {
-                File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames")
-                addSystemPropertyIfExist(result, "org.gradle.performance.flameGraphTargetDir", artifactsDirectory.getAbsolutePath())
                 addSystemPropertyIfExist(result, "org.gradle.performance.profiler", profiler.get())
             }
         }

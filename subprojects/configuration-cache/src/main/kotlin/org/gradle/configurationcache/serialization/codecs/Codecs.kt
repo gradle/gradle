@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -38,14 +39,12 @@ import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializ
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
-import org.gradle.configurationcache.serialization.codecs.transform.DelegatingTransformStepSpecCodec
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformerParametersNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.LegacyTransformerCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformStepSpecCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationChainCodec
-import org.gradle.configurationcache.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedArtifactCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
@@ -56,7 +55,7 @@ import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -77,7 +76,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
-import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
 import java.io.Externalizable
 
@@ -93,11 +91,10 @@ class Codecs(
     instantiator: Instantiator,
     listenerManager: ListenerManager,
     taskNodeFactory: TaskNodeFactory,
-    fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    inputFingerprinter: InputFingerprinter,
     buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
-    valueSnapshotter: ValueSnapshotter,
     managedFactoryRegistry: ManagedFactoryRegistry,
     parameterScheme: ArtifactTransformParameterScheme,
     actionScheme: ArtifactTransformActionScheme,
@@ -142,8 +139,9 @@ class Codecs(
         bind(ArtifactCollectionCodec(fileCollectionFactory, artifactSetConverter))
         bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
         bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
-        bind(TransformationNodeReferenceCodec)
-        bind(TransformationStepCodec(fingerprinterRegistry))
+        bind(InitialTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
+        bind(ChainedTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
+        bind(TransformationStepCodec(inputFingerprinter))
         bind(TransformationChainCodec())
         bind(DefaultTransformerCodec(fileLookup, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
@@ -156,7 +154,7 @@ class Codecs(
         bind(TransformedArtifactCodec(calculatedValueContainerFactory))
         bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory, calculatedValueContainerFactory))
         bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
-        bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, fileCollectionFactory, documentationRegistry))
+        bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
         bind(FinalizeTransformDependenciesNodeCodec())
         bind(WorkNodeActionCodec)
 
@@ -203,9 +201,7 @@ class Codecs(
         bind(BuildIdentifierSerializer())
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
-        bind(InitialTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
-        bind(ChainedTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
-        bind(DelegatingTransformStepSpecCodec(userTypesCodec))
+        bind(DelegatingCodec<TransformationNode>(userTypesCodec))
         bind(ActionNodeCodec(userTypesCodec))
 
         bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
@@ -298,6 +294,7 @@ class Codecs(
 
         bind(EnumCodec)
         bind(RegexpPatternCodec)
+        bind(UrlCodec)
 
         javaTimeTypes()
     }

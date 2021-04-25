@@ -31,7 +31,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
 
     def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), callbackActionDecorator)
 
-    final boolean supportsBuildOperations = true
+    boolean supportsBuildOperations = true
 
     @Override
     final PolymorphicDomainObjectContainer<Person> getContainer() {

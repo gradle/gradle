@@ -73,7 +73,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
                     """)
             }
         }
-        file("setup.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
             repositories { maven { url "${mavenHttpRepo.uri}" } }
             dependencies {
@@ -86,9 +86,10 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
                 }
             }
         """
-        run ":populateCache", "-b", "setup.gradle"
+        run ":populateCache"
         executer.stop()
         copyToReadOnlyCache()
+        buildFile.setText("")
 
         buildFile << """
             apply plugin: 'java-library'

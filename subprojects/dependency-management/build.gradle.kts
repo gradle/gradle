@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":data-structures"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))

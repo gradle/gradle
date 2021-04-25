@@ -15,15 +15,15 @@
  */
 
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.currentGitBranch
+import gradlebuild.basics.currentGitCommit
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.identity.provider.BuildTimestampFromBuildReceiptValueSource
 import gradlebuild.identity.provider.BuildTimestampValueSource
 import gradlebuild.identity.tasks.BuildReceipt
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
-import java.io.ByteArrayOutputStream
 
 plugins {
     `java-base`
@@ -117,34 +117,6 @@ fun Project.environmentVariable(variableName: String): Provider<String> =
 
 fun Project.gradleProperty(propertyName: String): Provider<String> =
     providers.gradleProperty(propertyName).forUseAtConfigurationTime()
-
-/**
- * We use command line Git instead of JGit, because JGit's [Repository.resolve] does not work with worktrees.
- */
-fun currentGitBranch() = git(layout.projectDirectory, "rev-parse", "--abbrev-ref", "HEAD")
-fun currentGitCommit() = git(layout.projectDirectory, "rev-parse", "HEAD")
-fun git(checkoutDir: Directory, vararg args: String): Provider<String> = provider {
-    val execOutput = ByteArrayOutputStream()
-    val execResult = exec {
-        workingDir = checkoutDir.asFile
-        isIgnoreExitValue = true
-        commandLine = listOf("git", *args)
-        if (OperatingSystem.current().isWindows) {
-            commandLine = listOf("cmd", "/c") + commandLine
-        }
-        standardOutput = execOutput
-    }
-    when {
-        execResult.exitValue == 0 -> String(execOutput.toByteArray()).trim()
-        checkoutDir.asFile.resolve(".git/HEAD").exists() -> {
-            // Read commit id directly from filesystem
-            val headRef = checkoutDir.asFile.resolve(".git/HEAD").readText()
-                .replace("ref: ", "").trim()
-            checkoutDir.asFile.resolve(".git/$headRef").readText().trim()
-        }
-        else -> "<unknown>" // It's a source distribution, we don't know.
-    }
-}
 
 // TODO Simplify the buildTimestamp() calculation if possible
 fun Project.buildTimestamp(): Provider<String> =

@@ -243,8 +243,8 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     protected
-    fun ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16InNoDaemonMode() {
-        if (GradleContextualExecuter.isNoDaemon() && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+    fun ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16() {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             executer.noDeprecationChecks()
         }
     }

@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.resource.local.FileResourceListener;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -199,6 +199,12 @@ public class LockFileReaderWriter {
     public void writeUniqueLockfile(Map<String, List<String>> lockState) {
         checkValidRoot();
         Path lockfilePath = getUniqueLockfilePath();
+
+        if (lockState.isEmpty()) {
+            // Remove the file when no lock state
+            GFileUtils.deleteQuietly(lockfilePath.toFile());
+            return;
+        }
 
         // Revert mapping
         Map<String, List<String>> dependencyToConfigurations = new TreeMap<>();

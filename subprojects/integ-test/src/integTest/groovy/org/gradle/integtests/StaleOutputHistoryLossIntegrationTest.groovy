@@ -31,7 +31,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.StaleOutputJavaProject.JAR_TASK_NAME
-import static org.gradle.util.GFileUtils.forceDelete
+import static org.gradle.util.internal.GFileUtils.forceDelete
 
 @IntegrationTestTimeout(240)
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
@@ -103,7 +103,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
             sourceSets {
                 main {
-                    java.outputDir = file('out/classes/java/main')
+                    java.destinationDirectory.set(file('out/classes/java/main'))
                 }
             }
         """.stripIndent()
@@ -141,8 +141,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
             task configureCompileJava {
                 doLast {
-                    compileJava.destinationDir = file('build/out')
-                    jar.from compileJava
+                    compileJava.destinationDirectory.set(file('build/out'))
+                    jar.from compileJava.destinationDirectory
                 }
             }
 

@@ -16,13 +16,20 @@
 
 package org.gradle.smoketests
 
-import spock.lang.Ignore
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@Ignore("Ignored until https://github.com/gretty-gradle-plugin/gretty/issues/80 is resolved.")
+@UnsupportedWithConfigurationCache(
+    because = "The Gretty plugin does not support configuration caching"
+)
 class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
+    // Jetty 9 only works with Java 8
+    @Requires(TestPrecondition.JDK8)
     def 'run with jetty'() {
         given:
         useSample('gretty-example')
@@ -32,7 +39,7 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
                 id "org.gretty" version "${TestedVersions.gretty}"
             }
 
-            ${mavenCentralRepository()}
+            ${jcenterRepository()}
 
             dependencies {
                 implementation group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
@@ -64,6 +71,9 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
+        expectDeprecationWarnings(result, "The JavaExecHandleBuilder.setMain(String) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#java_exec_properties")
     }
 
     @Override

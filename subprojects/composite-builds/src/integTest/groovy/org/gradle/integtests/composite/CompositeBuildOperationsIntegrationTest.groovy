@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -64,6 +65,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     @Unroll
+    @Ignore("https://github.com/gradle/gradle-private/issues/3368")
     def "generates build lifecycle operations for included builds with #display"() {
         given:
         dependency "org.test:${dependencyName}:1.0"
@@ -184,9 +186,9 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         runTasksOps.size() == 3
         runTasksOps[0].displayName == "Run tasks (:buildB)"
         runTasksOps[0].parentId == root.id
-        runTasksOps[1].displayName == "Run tasks"
+        // Build operations are run in parallel, so can appear in either order
+        [runTasksOps[1].displayName, runTasksOps[2].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[1].parentId == root.id
-        runTasksOps[2].displayName == "Run tasks (:buildB)"
         runTasksOps[2].parentId == root.id
 
         // Task graph ready event sent only once

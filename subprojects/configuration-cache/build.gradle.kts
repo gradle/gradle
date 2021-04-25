@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":composite-builds"))
     implementation(project(":core"))
     implementation(project(":core-api"))
+    implementation(project(":data-structures"))
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
@@ -84,8 +85,8 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
-        because("Includes tests for builds with TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
+    integTestDistributionRuntimeOnly(project(":distributions-full")) {
+        because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }

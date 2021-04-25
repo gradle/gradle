@@ -32,6 +32,7 @@ import static org.junit.Assume.assumeTrue
 abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest implements XCTestExecutionResult {
     // TODO: This test can be generalized so it's not opinionated on Swift 4.x but could also work on Swift 5.x
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
+    @ToBeFixedForConfigurationCache
     def "take swift source compatibility from tested component"() {
         given:
         makeSingleProject()

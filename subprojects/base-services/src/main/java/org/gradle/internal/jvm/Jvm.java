@@ -192,7 +192,7 @@ public class Jvm implements JavaInfo {
         }
 
         LOGGER.warn("Unable to find the '{}' executable. Tried the java home: {} and the PATH."
-                + " We will assume the executable can be ran in the current working folder.",
+                + " We will assume the executable can be run in the current working folder.",
             command, getJavaHome());
         return new File(os.getExecutableName(command));
     }

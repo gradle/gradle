@@ -78,5 +78,5 @@ classycle {
     excludePatterns.add("org/gradle/**")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)
 testFilesCleanup.reportOnly.set(true)

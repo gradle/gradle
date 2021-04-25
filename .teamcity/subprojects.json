@@ -175,6 +175,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "data-structures",
+    "name": "data-structures",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "dependency-management",
     "name": "dependency-management",
     "unitTests": true,
@@ -282,7 +289,7 @@
   {
     "dirName": "file-temp",
     "name": "file-temp",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

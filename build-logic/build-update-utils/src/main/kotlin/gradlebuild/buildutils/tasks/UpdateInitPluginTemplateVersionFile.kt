@@ -58,7 +58,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
 
         // The latest released version is 2.0.0-M1, which is excluded by "don't use snapshot" strategy
         findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:1.2.0", versionProperties)
-        findLatest("groovy", "org.codehaus.groovy:groovy:[2.5,3.0)", versionProperties)
+        findLatest("groovy", "org.codehaus.groovy:groovy:[3.0,4.0)", versionProperties)
         findLatest("junit", "junit:junit:(4.0,)", versionProperties)
         findLatest("junit-jupiter", "org.junit.jupiter:junit-jupiter-api:(5,)", versionProperties)
         findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
@@ -69,12 +69,12 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
         findLatest("scalatestplus-junit", "org.scalatestplus:junit-4-12_${versionProperties["scala"]}:(3.1,)", versionProperties)
 
         val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-        versionProperties["spock"] = "1.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+        versionProperties["spock"] = "2.0-M5-groovy-${groovyVersion.major}.${groovyVersion.minor}"
 
         findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
         findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)
         findLatest("commons-text", "org.apache.commons:commons-text:latest.release", versionProperties)
-        findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.3,)", versionProperties)
+        findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.4,)", versionProperties)
 
         store(versionProperties)
     }

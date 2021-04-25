@@ -29,9 +29,9 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = new HashMap<>();
@@ -88,22 +88,18 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
+    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.awaitTaskCompletion(taskFailures);
         }
     }
 
     @Override
-    public void finishBuild(Collection<? super Throwable> failures) {
+    public void finishBuild(Consumer<? super Throwable> collector) {
         CompositeStoppable.stoppable(buildControllers.values()).stop();
         buildControllers.clear();
         for (IncludedBuildState includedBuild : buildRegistry.getIncludedBuilds()) {
-            try {
-                includedBuild.finishBuild();
-            } catch (Exception e) {
-                failures.add(e);
-            }
+            includedBuild.finishBuild(collector);
         }
     }
 

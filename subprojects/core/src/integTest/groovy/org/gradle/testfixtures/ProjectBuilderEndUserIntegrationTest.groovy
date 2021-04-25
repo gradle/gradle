@@ -20,7 +20,7 @@ package org.gradle.testfixtures
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.isEmbedded()}) // this requires a full distribution
@@ -33,7 +33,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         dependencies {
             implementation localGroovy()
             implementation gradleApi()
-            testImplementation(platform("org.spockframework:spock-bom:2.0-M4-groovy-3.0"))
+            testImplementation(platform("org.spockframework:spock-bom:2.0-M5-groovy-3.0"))
             testImplementation("org.spockframework:spock-core")
             testImplementation("org.spockframework:spock-junit4")
             testImplementation("junit:junit:4.13.1")
@@ -51,7 +51,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def "project builder has correctly set working directory"() {
         when:
-        def workerTmpDir = file("build/tmp/test/test files")
+        def workerTmpDir = file("build/tmp/test/work")
         groovyTestSourceFile """
         import org.gradle.testfixtures.ProjectBuilder
         import spock.lang.Specification

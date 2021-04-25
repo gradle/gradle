@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -83,7 +83,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            compileJava.options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
+            compileJava.options.generatedSourceOutputDirectory = file("build/generated-sources")
         """
 
         expect:
@@ -98,7 +98,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            compileJava.options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
+            compileJava.options.generatedSourceOutputDirectory = file("build/generated-sources")
         """
         succeeds "compileJava"
 

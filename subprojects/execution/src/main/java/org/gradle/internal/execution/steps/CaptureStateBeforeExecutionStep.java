@@ -18,10 +18,10 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -43,14 +43,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.InputFingerprinter.union;
-import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
-
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<ValidationContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final InputFingerprinter inputFingerprinter;
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
     private final Step<? super BeforeExecutionContext, ? extends CachingResult> delegate;
@@ -58,14 +54,12 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
     public CaptureStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        InputFingerprinter inputFingerprinter,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         Step<? super BeforeExecutionContext, ? extends CachingResult> delegate
     ) {
         super(buildOperationExecutor);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.inputFingerprinter = inputFingerprinter;
         this.outputSnapshotter = outputSnapshotter;
         this.overlappingOutputDetector = overlappingOutputDetector;
         this.delegate = delegate;
@@ -178,12 +172,12 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
                 throw new AssertionError();
         }
 
-        InputFingerprinter.Result newInputs = inputFingerprinter.fingerprintInputProperties(
-            work,
+        InputFingerprinter.Result newInputs = work.getInputFingerprinter().fingerprintInputProperties(
             previousInputProperties,
             context.getInputProperties(),
             context.getInputFileProperties(),
-            (propertyName, type, identity) -> identity == NON_IDENTITY);
+            work::visitRegularInputs
+        );
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = union(context.getInputProperties(), newInputs.getValueSnapshots());
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = union(context.getInputFileProperties(), newInputs.getFileFingerprints());
 
@@ -244,6 +238,22 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
         interface Result {
             Result INSTANCE = new Result() {
             };
+        }
+    }
+
+    private static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(
+        ImmutableSortedMap<K, V> a,
+        ImmutableSortedMap<K, V> b
+    ) {
+        if (a.isEmpty()) {
+            return b;
+        } else if (b.isEmpty()) {
+            return a;
+        } else {
+            return ImmutableSortedMap.<K, V>naturalOrder()
+                .putAll(a)
+                .putAll(b)
+                .build();
         }
     }
 }

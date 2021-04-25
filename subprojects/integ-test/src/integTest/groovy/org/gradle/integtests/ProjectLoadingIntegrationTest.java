@@ -31,10 +31,13 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile1 = testFile("similarly-named build.gradle").write("task build");
         TestFile buildFile2 = testFile("similarly_named_build_gradle").write("task 'other-build'");
 
+        executer.expectDeprecationWarnings(1);
         usingBuildFile(buildFile1).withTasks("build").run();
 
+        executer.expectDeprecationWarnings(1);
         usingBuildFile(buildFile2).withTasks("other-build").run();
 
+        executer.expectDeprecationWarnings(1);
         usingBuildFile(buildFile1).withTasks("build").run();
     }
 
@@ -87,11 +90,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile childBuildFile = testFile("child/build.gradle");
         childBuildFile.write("task('do-stuff')");
 
-        usingBuildFile(rootBuildFile).withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        usingBuildFile(rootBuildFile).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        executer.withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        executer.withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
 
-        usingBuildFile(childBuildFile).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
-        usingBuildFile(childBuildFile).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        executer.inDirectory(testFile("child")).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
+        executer.inDirectory(testFile("child")).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
     }
 
     @Test
@@ -107,6 +110,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         result = usingProjectDir(getTestDirectory()).withTasks("test").runWithFailure();
         result.assertThatDescription(startsWith("Multiple projects in this build have project directory"));
 
+        executer.expectDeprecationWarnings(1);
         result = usingBuildFile(testFile("build.gradle")).withTasks("test").runWithFailure();
         result.assertThatDescription(startsWith("Multiple projects in this build have build file"));
     }
@@ -182,9 +186,10 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile projectDir = testFile("project dir");
         TestFile buildFile = projectDir.file("build.gradle").createFile();
 
-        ExecutionFailure result = usingProjectDir(projectDir).usingSettingsFile(settingsFile).runWithFailure();
+        ExecutionFailure result = usingProjectDir(projectDir).runWithFailure();
         result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", projectDir, settingsFile));
 
+        executer.expectDeprecationWarnings(2);
         result = usingBuildFile(buildFile).usingSettingsFile(settingsFile).runWithFailure();
         result.assertHasDescription(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", buildFile, settingsFile));
     }
@@ -217,13 +222,14 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void explicitBuildFileTakesPrecedenceOverSettingsFileInSameDirectory() {
+    public void explicitBuildFileTakesPrecedenceOverBuildFileDefinedInSettingsInSameDirectory() {
         testFile("settings.gradle").write("rootProject.buildFileName = 'root.gradle'");
         testFile("root.gradle").write("throw new RuntimeException()");
 
         TestFile buildFile = testFile("build.gradle");
         buildFile.write("task('do-stuff')");
 
+        executer.expectDeprecationWarnings(1);
         usingBuildFile(buildFile).withTasks("do-stuff").run();
     }
 
@@ -232,12 +238,13 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile settingsFile = testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
-        TestFile subBuildFile = subDirectory.file("sub.gradle").write("");
+        TestFile subBuildFile = subDirectory.file("build.gradle").write("");
         subDirectory.file("build.gradle").write("");
 
         ExecutionFailure result = inDirectory(subDirectory).withTasks("help").runWithFailure();
         result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
 
+        executer.expectDeprecationWarnings(1);
         result = usingBuildFile(subBuildFile).inDirectory(subDirectory).withTasks("help").runWithFailure();
         result.assertHasDescription(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", subBuildFile, settingsFile));
 
@@ -256,22 +263,24 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void noDeprecationWarningAppearsWhenSettingsFileIsSpecified() {
+    public void specifyingCustomSettingsFileIsDeprecated() {
         testFile("settings.gradle").write("include 'another'");
 
-        TestFile subDirectory = getTestDirectory().file("sub");
+        TestFile subDirectory = file("sub");
         TestFile subSettingsFile = subDirectory.file("renamed_settings.gradle").write("");
         subDirectory.file("build.gradle").write("");
 
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
         inDirectory(subDirectory).usingSettingsFile(subSettingsFile).withTasks("help").run();
     }
 
     @Test
-    public void noDeprecationWarningAppearsWhenEnclosingBuildUsesAnotherBuildFile() {
+    public void specifyingCustomBuildFileIsDeprecated() {
         testFile("settings.gradle").write("include 'another'");
-        TestFile renamedBuildGradle = getTestDirectory().file("renamed_build.gradle").createFile();
+        TestFile renamedBuildGradle = file("renamed_build.gradle").createFile();
 
-        usingBuildFile(renamedBuildGradle).inDirectory(getTestDirectory()).withTasks("help").run();
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.usingBuildScript(renamedBuildGradle).withTasks("help").run();
     }
 
     @Test
@@ -318,8 +327,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile childBuildFile = testFile("child/build.gradle");
         childBuildFile.writelns("task('do-stuff')", "task('task')");
 
+        executer.expectDeprecationWarnings(1);
         usingProjectDir(getTestDirectory()).usingSettingsFile(relocatedSettingsFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff").assertTaskOrder(":child:task", ":do-stuff");
+        executer.expectDeprecationWarnings(1);
         usingBuildFile(rootBuildFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff").assertTaskOrder(":child:task", ":do-stuff");
+        executer.expectDeprecationWarnings(2);
         usingBuildFile(childBuildFile).usingSettingsFile(relocatedSettingsFile).withTasks("do-stuff").run().assertTasksExecutedInOrder(":child:do-stuff");
     }
 
@@ -363,6 +375,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         );
         getTestDirectory().createDir("sub").file("build.gradle").writelns("task thing");
 
+        executer.expectDocumentedDeprecationWarning("Subproject ':sub' has location '" + file("sub").getAbsolutePath() + "' which is outside of the project root. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecated_flat_project_structure");
         inDirectory(settingsDir).withTasks("thing").run().assertTasksExecuted(":sub:thing");
     }
 

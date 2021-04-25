@@ -29,7 +29,6 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.snapshot.ValueSnapshotter
 
 
 class IsolateTransformerParametersNodeCodec(
@@ -37,7 +36,6 @@ class IsolateTransformerParametersNodeCodec(
     val isolatableFactory: IsolatableFactory,
     val buildOperationExecutor: BuildOperationExecutor,
     val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
-    val valueSnapshotter: ValueSnapshotter,
     val fileCollectionFactory: FileCollectionFactory,
     val documentationRegistry: DocumentationRegistry
 ) : Codec<DefaultTransformer.IsolateTransformerParameters> {
@@ -61,7 +59,6 @@ class IsolateTransformerParametersNodeCodec(
             isolatableFactory,
             buildOperationExecutor,
             classLoaderHierarchyHasher,
-            valueSnapshotter,
             fileCollectionFactory,
             documentationRegistry
         )

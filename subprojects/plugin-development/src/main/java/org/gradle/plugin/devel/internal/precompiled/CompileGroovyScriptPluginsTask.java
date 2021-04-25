@@ -110,11 +110,11 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
 
     private void compileBuildScript(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
         ScriptTarget target = scriptPlugin.getScriptTarget();
-        CompileOperation<BuildScriptData> scriptCompileOperation = compileOperationFactory.getScriptCompileOperation(scriptPlugin.getSource(), target);
+        CompileOperation<BuildScriptData> scriptCompileOperation = compileOperationFactory.getScriptCompileOperation(scriptPlugin.getBodySource(), target);
         File scriptMetadataDir = subdirectory(intermediatePluginMetadataDirectory, scriptPlugin.getId());
         File scriptClassesDir = subdirectory(intermediatePluginClassesDirectory, scriptPlugin.getId());
         scriptCompilationHandler.compileToDir(
-            scriptPlugin.getSource(), compileClassLoader, scriptClassesDir,
+            scriptPlugin.getBodySource(), compileClassLoader, scriptClassesDir,
             scriptMetadataDir, scriptCompileOperation, target.getScriptClass(),
             ClosureCreationInterceptingVerifier.INSTANCE);
     }

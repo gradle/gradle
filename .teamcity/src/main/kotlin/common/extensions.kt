@@ -16,7 +16,9 @@
 
 package common
 
-import configurations.allBranchesFilter
+import configurations.branchesFilterExcluding
+import configurations.buildScanCustomValue
+import configurations.buildScanTag
 import configurations.m2CleanScriptUnixLike
 import configurations.m2CleanScriptWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -29,7 +31,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.Requirements
-import jetbrains.buildServer.configs.kotlin.v2019_2.VcsSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
@@ -65,13 +66,9 @@ fun Requirements.requiresNoEc2Agent() {
     doesNotContain("teamcity.agent.name", "EC2")
 }
 
-fun VcsSettings.filterDefaultBranch() {
-    branchFilter = allBranchesFilter
-}
-
 const val failedTestArtifactDestination = ".teamcity/gradle-logs"
 
-fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
+fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
         build/report-* => $failedTestArtifactDestination
         build/tmp/test files/** => $failedTestArtifactDestination/test-files
@@ -80,12 +77,12 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, vcsRoot
         build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
 
+    paramsForBuildToolBuild(buildJvm, os)
+
     vcs {
-        root(AbsoluteId(vcsRoot))
+        root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
         checkoutMode = CheckoutMode.ON_AGENT
-        if (vcsRoot.contains("Branches")) {
-            filterDefaultBranch()
-        }
+        branchFilter = branchesFilterExcluding()
     }
 
     requirements {
@@ -107,10 +104,31 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, vcsRoot
             }
         }
     }
+}
 
-    if (os == Os.LINUX || os == Os.MACOS) {
-        params {
+fun javaHome(jvm: Jvm, os: Os) = "%${os.name.toLowerCase()}.${jvm.version}.${jvm.vendor}.64bit%"
+
+fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os) {
+    params {
+        param("env.BOT_TEAMCITY_GITHUB_TOKEN", "%github.bot-teamcity.token%")
+        param("env.GRADLE_CACHE_REMOTE_PASSWORD", "%gradle.cache.remote.password%")
+        param("env.GRADLE_CACHE_REMOTE_URL", "%gradle.cache.remote.url%")
+        param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
+
+        param("env.JAVA_HOME", javaHome(buildJvm, os))
+        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
+        param("env.ANDROID_HOME", os.androidHome)
+        param("env.ANDROID_SDK_ROOT", os.androidHome)
+        if (os == Os.MACOS) {
+            // Use fewer parallel forks on macOs, since the agents are not very powerful.
+            param("maxParallelForks", "2")
+        }
+        if (os == Os.LINUX || os == Os.MACOS) {
             param("env.LC_ALL", "en_US.UTF-8")
+        }
+
+        if (os == Os.MACOS) {
+            param("env.REPO_MIRROR_URLS", "")
         }
     }
 }
@@ -148,5 +166,41 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
         id = "ARTIFACT_DEPENDENCY_$compileAllId"
         cleanDestination = true
         artifactRules = "build-receipt.properties => incoming-distributions"
+    }
+}
+
+fun functionalTestExtraParameters(buildScanTag: String, os: Os, testJvmVersion: String, testJvmVendor: String): String {
+    val buildScanValues = mapOf(
+        "coverageOs" to os.name.toLowerCase(),
+        "coverageJvmVendor" to testJvmVendor,
+        "coverageJvmVersion" to "java$testJvmVersion"
+    )
+    return (listOf(
+        "-PtestJavaVersion=$testJvmVersion",
+        "-PtestJavaVendor=$testJvmVendor") +
+        listOf(buildScanTag(buildScanTag)) +
+        buildScanValues.map { buildScanCustomValue(it.key, it.value) }
+        ).filter { it.isNotBlank() }.joinToString(separator = " ")
+}
+
+fun functionalTestParameters(os: Os): List<String> {
+    return listOf(
+        "-PteamCityBuildId=%teamcity.build.id%",
+        os.javaInstallationLocations(),
+        "-Porg.gradle.java.installations.auto-download=false"
+    )
+}
+
+fun BuildType.killProcessStep(stepName: String, daemon: Boolean, os: Os) {
+    steps {
+        gradleWrapper {
+            name = stepName
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            tasks = "killExistingProcessesStartedByGradle"
+            gradleParams = (
+                buildToolGradleParameters(daemon) +
+                    "-DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
+                ).joinToString(separator = " ")
+        }
     }
 }

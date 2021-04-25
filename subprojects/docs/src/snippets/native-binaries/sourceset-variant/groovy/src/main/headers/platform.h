@@ -1,7 +1,7 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-const char* platform_name;
+extern const char* platform_name;
 
 int max_path_length();
 

@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
-import spock.lang.Ignore
-
 class UndeclaredBuildInputsKotlinBuildScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     String getLocation() {
@@ -30,10 +28,5 @@ class UndeclaredBuildInputsKotlinBuildScriptPluginIntegrationTest extends Abstra
         buildKotlinFile << """
             plugins.apply(SneakyPlugin::class.java)
         """
-    }
-
-    @Ignore
-    def "can reference methods from kotlin function"() {
-        expect: false
     }
 }

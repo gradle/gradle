@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
 abstract class AbstractModuleDependencySpec extends Specification {

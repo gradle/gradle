@@ -24,7 +24,7 @@ import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 // TODO: This needs a better home - Possibly in the test kit package in the future
 @Issue("https://github.com/gradle/gradle-private/issues/3247")
@@ -178,7 +178,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             ${basicBuildScript()}
 
             dependencies {
-                testImplementation ('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+                testImplementation ('org.spockframework:spock-core:2.0-M5-groovy-3.0') {
                     exclude group: 'org.codehaus.groovy'
                 }
             }

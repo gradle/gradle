@@ -44,16 +44,16 @@ class ProgressOperationsTest extends Specification {
         op2.parent == op1
     }
 
-    def "operation can be started multiple times"() {
-        when:
-        ops.start("compile",  null, new OperationIdentifier(1), null).message == "compile"
+    def "operation cannot be started when it is already running"() {
+        given:
+        ops.start("compile", null, new OperationIdentifier(1), null).message == "compile"
         ops.progress("compiling...", new OperationIdentifier(1)).message == "compiling..."
-        ops.start("resolve",  null, new OperationIdentifier(1), null).message == "resolve"
-        ops.progress("resolving...", new OperationIdentifier(1)).message == "resolving..."
-        ops.complete(new OperationIdentifier(1)).message == "resolving..."
+
+        when:
+        ops.start("resolve", null, new OperationIdentifier(1), null).message == "resolve"
 
         then:
-        noExceptionThrown()
+        thrown(IllegalStateException)
     }
 
     def "starts operations from different hierarchies"() {
@@ -83,6 +83,14 @@ class ProgressOperationsTest extends Specification {
     def "progress cannot be reported for unknown operation"() {
         when:
         ops.progress("Download", new OperationIdentifier(1))
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "cannot complete an event that has not been started"() {
+        when:
+        ops.complete(new OperationIdentifier(2))
 
         then:
         thrown(IllegalStateException)

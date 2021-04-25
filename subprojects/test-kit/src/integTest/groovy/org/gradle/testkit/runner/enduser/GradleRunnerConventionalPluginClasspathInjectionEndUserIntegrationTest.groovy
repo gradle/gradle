@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner.enduser
 
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import spock.lang.IgnoreIf
@@ -33,11 +34,12 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             }
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
-                    exclude group: 'org.codehaus.groovy'
-                }
+                testImplementation(platform("org.spockframework:spock-bom:2.0-M5-groovy-3.0"))
+                testImplementation("org.spockframework:spock-core")
+                testImplementation("org.spockframework:spock-junit4")
                 testImplementation 'junit:junit:4.13.1'
             }
+            test.useJUnitPlatform()
         """
 
         plugin.writeSourceFiles()
@@ -77,6 +79,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         expect:
         succeeds 'test'
         executedAndNotSkipped ':test'
+        new JUnitXmlTestExecutionResult(projectDir).totalNumberOfTestClassesExecuted > 0
     }
 
     def "can override plugin metadata location"() {
@@ -90,6 +93,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         then:
         succeeds 'test'
         executedAndNotSkipped ':test'
+        new JUnitXmlTestExecutionResult(projectDir).totalNumberOfTestClassesExecuted > 0
     }
 
     def "can use custom source set"() {
@@ -106,6 +110,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             }
 
             task functionalTest(type: Test) {
+                useJUnitPlatform()
                 testClassesDirs = sourceSets.functionalTest.output.classesDirs
                 classpath = sourceSets.functionalTest.runtimeClasspath
             }
@@ -137,6 +142,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         then:
         succeeds 'functionalTest'
         executedAndNotSkipped ":functionalTest"
+        new JUnitXmlTestExecutionResult(projectDir, 'build/test-results/functionalTest').totalNumberOfTestClassesExecuted > 0
     }
 
 }

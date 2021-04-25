@@ -30,7 +30,8 @@ fun branchFilter(branch: VersionedSettingsBranch) = """
     +:${branch.branchName}
 """.trimIndent()
 
-val allBranchesFilter = """
-    +:*
-    -:<default>
-""".trimIndent()
+fun branchesFilterExcluding(vararg excludedBranch: String) = """
++:*
+-:<default>
+${excludedBranch.joinToString("\n") { "-:$it" }}
+"""

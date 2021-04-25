@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.IoActions;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
-import static org.gradle.util.CollectionUtils.single;
+import static org.gradle.util.internal.CollectionUtils.single;
 
 public class WrapperDistributionCleanupAction implements DirectoryCleanupAction {
 
@@ -59,7 +60,7 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
     private static final Logger LOGGER = LoggerFactory.getLogger(WrapperDistributionCleanupAction.class);
 
     private static final ImmutableMap<String, Pattern> JAR_FILE_PATTERNS_BY_PREFIX;
-    private static final String BUILD_RECEIPT_ZIP_ENTRY_PATH = StringUtils.removeStart(GradleVersion.RESOURCE_NAME, "/");
+    private static final String BUILD_RECEIPT_ZIP_ENTRY_PATH = StringUtils.removeStart(DefaultGradleVersion.RESOURCE_NAME, "/");
 
     static {
         Set<String> prefixes = ImmutableSet.of(
@@ -210,7 +211,7 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
         try {
             Properties properties = new Properties();
             properties.load(in);
-            String versionString = properties.getProperty(GradleVersion.VERSION_NUMBER_PROPERTY);
+            String versionString = properties.getProperty(DefaultGradleVersion.VERSION_NUMBER_PROPERTY);
             return GradleVersion.version(versionString);
         } finally {
             in.close();

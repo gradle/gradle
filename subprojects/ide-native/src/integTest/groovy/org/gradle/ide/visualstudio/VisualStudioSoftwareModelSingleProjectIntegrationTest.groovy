@@ -36,7 +36,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GC
 import static org.junit.Assume.assumeFalse
 
 class VisualStudioSoftwareModelSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
-    private final Set<String> projectConfigurations = ['win32Debug', 'win32Release', 'x64Debug', 'x64Release'] as Set
+    Set<String> projectConfigurations = ['win32Debug', 'win32Release', 'x64Debug', 'x64Release'] as Set
 
     def app = new CppHelloWorldApp()
 

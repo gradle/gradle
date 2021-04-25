@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.quality.pmd
 
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 import static org.junit.Assume.assumeTrue
 

@@ -30,8 +30,8 @@ public class RootProjectAccessorSourceGenerator extends AbstractProjectAccessors
     }
 
     public static void generateSource(Writer writer,
-                                        ProjectDescriptor root,
-                                        String packageName) {
+                                      ProjectDescriptor root,
+                                      String packageName) {
         RootProjectAccessorSourceGenerator generator = new RootProjectAccessorSourceGenerator(writer);
         try {
             generator.generate(packageName, ROOT_PROJECT_ACCESSOR_CLASSNAME, root);
@@ -50,10 +50,8 @@ public class RootProjectAccessorSourceGenerator extends AbstractProjectAccessors
         writeLn("        super(factory, finder);");
         writeLn("    }");
         writeLn();
-        writeProjectAccessor("Root", current);
-        for (ProjectDescriptor child : current.getChildren()) {
-            writeProjectAccessor(toJavaName(child.getName()), child);
-        }
+        writeProjectAccessor(toJavaName(rootProjectName(current)), current);
+        processChildren(current);
 
         writeLn("}");
     }

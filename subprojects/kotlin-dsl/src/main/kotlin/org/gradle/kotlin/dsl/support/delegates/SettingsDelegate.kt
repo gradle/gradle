@@ -119,6 +119,7 @@ abstract class SettingsDelegate : Settings {
         delegate.include(*projectPaths)
 
     override fun includeFlat(vararg projectNames: String?) =
+        @Suppress("deprecation")
         delegate.includeFlat(*projectNames)
 
     override fun getStartParameter(): StartParameter =

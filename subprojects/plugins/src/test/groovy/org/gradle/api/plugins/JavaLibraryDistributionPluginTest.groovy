@@ -15,15 +15,16 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
+
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.distribution.plugins.DistributionPlugin
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class JavaLibraryDistributionPluginTest extends AbstractProjectBuilderSpec {
-    private final Project project = TestUtil.builder(temporaryFolder).withName("test-project").build()
+    ProjectInternal project = TestUtil.builder(temporaryFolder).withName("test-project").build()
 
     def "applies JavaLibraryPlugin and adds convention object with default values"() {
         when:

@@ -21,7 +21,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.ToBeImplemented
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
@@ -840,20 +840,19 @@ task b(dependsOn: a)
         writeTransformerTask()
 
         buildFile << '''
-task otherBuild(type: GradleBuild) {
-    buildFile = 'build.gradle'
-    tasks = ['generate']
-}
-task transform(type: TransformerTask) {
-    dependsOn otherBuild
-    inputFile = file('generated.txt')
-    outputFile = file('out.txt')
-}
-task generate(type: TransformerTask) {
-    inputFile = file('src.txt')
-    outputFile = file('generated.txt')
-}
-'''
+            task otherBuild(type: GradleBuild) {
+                tasks = ['generate']
+            }
+            task transform(type: TransformerTask) {
+                dependsOn otherBuild
+                inputFile = file('generated.txt')
+                outputFile = file('out.txt')
+            }
+            task generate(type: TransformerTask) {
+                inputFile = file('src.txt')
+                outputFile = file('generated.txt')
+            }
+        '''
         file('settings.gradle') << 'rootProject.name = "build"'
         file('src.txt').text = 'content'
 

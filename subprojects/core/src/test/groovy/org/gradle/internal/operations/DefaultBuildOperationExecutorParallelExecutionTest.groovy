@@ -36,7 +36,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     WorkerLeaseRegistry.WorkerLeaseCompletion outerOperationCompletion
     WorkerLeaseRegistry.WorkerLease outerOperation
     BuildOperationListener operationListener = Mock(BuildOperationListener)
-    ExecutorFactory executorFactory = new DefaultExecutorFactory()
+    private ExecutorFactory executorFactory = new DefaultExecutorFactory()
 
     def setupBuildOperationExecutor(int maxThreads) {
         def parallelismConfiguration = new DefaultParallelismConfiguration(true, maxThreads)
@@ -302,7 +302,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         async {
             buildOperationExecutor.run(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                 void run(BuildOperationContext context) {
-                    operationState = buildOperationExecutor.getCurrentOperation()
+                    operationState = DefaultBuildOperationExecutorParallelExecutionTest.this.buildOperationExecutor.getCurrentOperation()
                     assert operationState.running
                     assert unmanaged.running
                     assert operationState.description.parentId.id < 0
@@ -368,7 +368,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
                 5.times {
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         void run(BuildOperationContext context) {
-                            def myOperationState = buildOperationExecutor.getCurrentOperation()
+                            def myOperationState = DefaultBuildOperationExecutorParallelExecutionTest.this.buildOperationExecutor.getCurrentOperation()
                             assert parentOperationId == null || parentOperationId == myOperationState.description.parentId
                             parentOperationId = myOperationState.description.parentId
                             assert parentOperationId.id < 0

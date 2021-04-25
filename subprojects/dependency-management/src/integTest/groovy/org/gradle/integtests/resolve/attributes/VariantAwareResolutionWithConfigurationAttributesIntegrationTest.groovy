@@ -96,15 +96,17 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                 }
                                 def aarTask = p.tasks.create("${f}${bt.capitalize()}Aar", Jar) { task ->
                                     // it's called AAR to reflect something that bundles everything
+                                    task.dependsOn compileTask
                                     task.dependsOn mergeResourcesTask
                                     task.archiveBaseName = "${p.name}-${f}${bt}"
                                     task.archiveExtension = 'aar'
-                                    task.from compileTask.outputs.files
+                                    task.from compileTask.destinationDirectory
                                     task.from p.zipTree(mergeResourcesTask.outputs.files.singleFile)
                                 }
                                 def jarTask = p.tasks.create("${f}${bt.capitalize()}Jar", Jar) { task ->
+                                    task.dependsOn compileTask
                                     task.archiveBaseName = "${p.name}-${f}${bt}"
-                                    task.from compileTask.outputs.files
+                                    task.from compileTask.destinationDirectory
                                 }
                                 p.artifacts.add("compile$baseName", jarTask)
                                 p.artifacts.add("_compile$baseName", aarTask)

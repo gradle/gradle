@@ -26,18 +26,15 @@ import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
-import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
 public class CompositeBuildServices extends AbstractPluginServiceRegistry {
@@ -54,21 +51,21 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     private static class CompositeBuildTreeScopeServices {
         public void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(DefaultIncludedBuildControllers.class);
+            serviceRegistration.add(BuildStateFactory.class);
+            serviceRegistration.add(DefaultIncludedBuildFactory.class);
         }
 
         public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context,
                                                               Instantiator instantiator,
-                                                              WorkerLeaseService workerLeaseService,
-                                                              GradleLauncherFactory gradleLauncherFactory,
                                                               ListenerManager listenerManager,
-                                                              BuildTreeState owner,
                                                               ObjectFactory objectFactory,
                                                               NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-                                                              ImmutableAttributesFactory attributesFactory) {
-            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
+                                                              ImmutableAttributesFactory attributesFactory,
+                                                              BuildStateFactory buildStateFactory,
+                                                              IncludedBuildFactory includedBuildFactory) {
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
             IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
-            return new DefaultIncludedBuildRegistry(owner, includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager);
+            return new DefaultIncludedBuildRegistry(includedBuildFactory, dependencySubstitutionsBuilder, listenerManager, buildStateFactory);
         }
 
         public CompositeBuildContext createCompositeBuildContext() {

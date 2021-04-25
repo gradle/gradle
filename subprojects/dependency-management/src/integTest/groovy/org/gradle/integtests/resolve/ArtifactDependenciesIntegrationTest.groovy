@@ -41,28 +41,24 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void canHaveConfigurationHierarchy() {
         expect:
-        File buildFile = file("projectWithConfigurationHierarchy.gradle")
-        usingBuildFile(buildFile).run()
+        executer.run()
     }
 
     @ToBeFixedForConfigurationCache
     void dependencyReportWithConflicts() {
         expect:
-        File buildFile = file("projectWithConflicts.gradle")
-        usingBuildFile(buildFile).run()
-        usingBuildFile(buildFile).withDependencyList().run()
+        executer.run()
+        executer.withDependencyList().run()
     }
 
     void canHaveCycleInDependencyGraph() throws IOException {
         expect:
-        File buildFile = file("projectWithCyclesInDependencyGraph.gradle")
-        usingBuildFile(buildFile).run()
+        executer.run()
     }
 
     void canUseDynamicVersions() throws IOException {
         expect:
-        File buildFile = file("projectWithDynamicVersions.gradle")
-        usingBuildFile(buildFile).run()
+        executer.run()
     }
 
     void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
@@ -571,10 +567,6 @@ task test {
 
     def getRepo() {
         return maven(file('repo'))
-    }
-
-    private GradleExecuter usingBuildFile(File file) {
-        return executer.usingBuildScript(file)
     }
 
     private GradleExecuter inTestDirectory() {

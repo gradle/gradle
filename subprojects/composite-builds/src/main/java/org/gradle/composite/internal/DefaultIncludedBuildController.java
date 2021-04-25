@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
+import org.gradle.internal.InternalListener;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
@@ -46,6 +47,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import static org.gradle.composite.internal.IncludedBuildTaskResource.State.FAILED;
 import static org.gradle.composite.internal.IncludedBuildTaskResource.State.SUCCESS;
@@ -133,7 +135,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     }
 
     @Override
-    public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
+    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
         // Ensure that this thread does not hold locks while waiting and so prevent this work from completing
         projectStateRegistry.blocking(() -> {
             lock.lock();
@@ -141,7 +143,9 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
                 while (state == State.RunningTasks) {
                     awaitStateChange();
                 }
-                taskFailures.addAll(this.taskFailures);
+                for (Throwable taskFailure : this.taskFailures) {
+                    taskFailures.accept(taskFailure);
+                }
                 this.taskFailures.clear();
             } finally {
                 lock.unlock();
@@ -166,7 +170,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     @Override
     public void stop() {
         ArrayList<Throwable> failures = new ArrayList<>();
-        awaitTaskCompletion(failures);
+        awaitTaskCompletion(failures::add);
         if (!failures.isEmpty()) {
             throw new MultipleBuildFailures(failures);
         }
@@ -318,7 +322,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         public TaskStatus status = TaskStatus.QUEUED;
     }
 
-    private class IncludedBuildExecutionListener implements TaskExecutionGraphListener, TaskListenerInternal {
+    private class IncludedBuildExecutionListener implements TaskExecutionGraphListener, TaskListenerInternal, InternalListener {
         private final Collection<String> tasksToExecute;
 
         IncludedBuildExecutionListener(Collection<String> tasksToExecute) {

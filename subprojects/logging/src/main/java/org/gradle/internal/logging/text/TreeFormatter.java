@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.text;
 
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;

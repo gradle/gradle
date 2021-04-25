@@ -62,14 +62,16 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -95,7 +97,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
@@ -121,9 +122,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
-    private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionEngine executionEngine;
+    private final InputFingerprinter inputFingerprinter;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final EmptySourceTaskSkipper emptySourceTaskSkipper;
@@ -139,9 +140,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionEngine executionEngine,
+        InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         EmptySourceTaskSkipper emptySourceTaskSkipper,
@@ -156,9 +157,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
-        this.fingerprinterRegistry = fingerprinterRegistry;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.executionEngine = executionEngine;
+        this.inputFingerprinter = inputFingerprinter;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.emptySourceTaskSkipper = emptySourceTaskSkipper;
@@ -168,7 +169,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        TaskExecution work = new TaskExecution(task, context, executionHistoryStore, fingerprinterRegistry, classLoaderHierarchyHasher);
+        TaskExecution work = new TaskExecution(task, context, executionHistoryStore, classLoaderHierarchyHasher, inputFingerprinter);
         try {
             return executeIfValid(task, state, context, work);
         } catch (WorkValidationException ex) {
@@ -215,21 +216,21 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         private final TaskInternal task;
         private final TaskExecutionContext context;
         private final ExecutionHistoryStore executionHistoryStore;
-        private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+        private final InputFingerprinter inputFingerprinter;
 
         public TaskExecution(
             TaskInternal task,
             TaskExecutionContext context,
             ExecutionHistoryStore executionHistoryStore,
-            FileCollectionFingerprinterRegistry fingerprinterRegistry,
-            ClassLoaderHierarchyHasher classLoaderHierarchyHasher
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            InputFingerprinter inputFingerprinter
         ) {
             this.task = task;
             this.context = context;
             this.executionHistoryStore = executionHistoryStore;
-            this.fingerprinterRegistry = fingerprinterRegistry;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+            this.inputFingerprinter = inputFingerprinter;
         }
 
         @Override
@@ -288,6 +289,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public InputFingerprinter getInputFingerprinter() {
+            return inputFingerprinter;
+        }
+
+        @Override
         public void visitImplementations(ImplementationVisitor visitor) {
             visitor.visitImplementation(task.getClass());
 
@@ -298,11 +304,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitInputs(InputVisitor visitor) {
+        public void visitRegularInputs(InputVisitor visitor) {
             ImmutableSortedSet<InputPropertySpec> inputProperties = context.getTaskProperties().getInputProperties();
             ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
             for (InputPropertySpec inputProperty : inputProperties) {
-                visitor.visitInputProperty(inputProperty.getPropertyName(), NON_IDENTITY, () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
+                visitor.visitInputProperty(inputProperty.getPropertyName(), () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
             }
             for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
                 Object value = inputFileProperty.getValue();
@@ -315,10 +321,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         ? InputPropertyType.INCREMENTAL
                         : InputPropertyType.NON_INCREMENTAL;
                 String propertyName = inputFileProperty.getPropertyName();
-                visitor.visitInputFileProperty(propertyName, type, NON_IDENTITY, value, () -> {
-                    FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(inputFileProperty);
-                    return fingerprinter.fingerprint(inputFileProperty.getPropertyFiles());
-                });
+                visitor.visitInputFileProperty(propertyName, type,
+                    new FileValueSupplier(
+                        value,
+                        inputFileProperty.getNormalizer(),
+                        inputFileProperty.getDirectorySensitivity(),
+                        inputFileProperty::getPropertyFiles));
             }
         }
 

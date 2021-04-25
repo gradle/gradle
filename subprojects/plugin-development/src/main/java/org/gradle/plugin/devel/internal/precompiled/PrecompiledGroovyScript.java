@@ -18,13 +18,13 @@ package org.gradle.plugin.devel.internal.precompiled;
 
 import com.google.common.base.CaseFormat;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.DelegatingScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
-import org.gradle.initialization.DefaultSettings;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.plugin.devel.PluginDeclaration;
@@ -36,6 +36,7 @@ import java.io.File;
 class PrecompiledGroovyScript {
     private static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
 
+    private final ScriptSource firstPassSource;
     private final ScriptSource scriptSource;
     private final Type type;
     private final PluginId pluginId;
@@ -43,18 +44,16 @@ class PrecompiledGroovyScript {
     private final String precompiledScriptClassName;
 
     private enum Type {
-        PROJECT(ProjectInternal.class, SCRIPT_PLUGIN_EXTENSION, "target.getServices()"),
-        SETTINGS(DefaultSettings.class, ".settings.gradle", "target.getGradle().getServices()"),
-        INIT(GradleInternal.class, ".init.gradle", "target.getServices()");
+        PROJECT(ProjectInternal.class, SCRIPT_PLUGIN_EXTENSION),
+        SETTINGS(SettingsInternal.class, ".settings" + SCRIPT_PLUGIN_EXTENSION),
+        INIT(GradleInternal.class, ".init" + SCRIPT_PLUGIN_EXTENSION);
 
         private final Class<?> targetClass;
         private final String fileExtension;
-        private final String serviceRegistryAccessCode;
 
-        Type(Class<?> targetClass, String fileExtension, String serviceRegistryAccessCode) {
+        Type(Class<?> targetClass, String fileExtension) {
             this.targetClass = targetClass;
             this.fileExtension = fileExtension;
-            this.serviceRegistryAccessCode = serviceRegistryAccessCode;
         }
 
         static Type getType(String fileName) {
@@ -77,8 +76,9 @@ class PrecompiledGroovyScript {
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
         this.precompiledScriptClassName = toJavaIdentifier(kebabCaseToPascalCase(pluginId.getId().replace('.', '-')));
+        this.firstPassSource = new PrecompiledScriptPluginFirstPassSource(scriptFile, precompiledScriptClassName, resourceLoader);
         this.scriptSource = new PrecompiledScriptPluginSource(scriptFile, precompiledScriptClassName, resourceLoader);
-        this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT);
+        this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT, type == Type.SETTINGS);
     }
 
     static void filterPluginFiles(PatternFilterable patternFilterable) {
@@ -98,7 +98,11 @@ class PrecompiledGroovyScript {
         return precompiledScriptClassName + "Plugin";
     }
 
-    String getClassName() {
+    String getFirstPassClassName() {
+        return firstPassSource.getClassName();
+    }
+
+    String getBodyClassName() {
         return scriptSource.getClassName();
     }
 
@@ -106,7 +110,11 @@ class PrecompiledGroovyScript {
         return scriptSource.getResource().getContentHash();
     }
 
-    ScriptSource getSource() {
+    ScriptSource getFirstPassSource() {
+        return firstPassSource;
+    }
+
+    ScriptSource getBodySource() {
         return scriptSource;
     }
 
@@ -116,10 +124,6 @@ class PrecompiledGroovyScript {
 
     String getTargetClassName() {
         return type.targetClass.getName();
-    }
-
-    public String serviceRegistryAccessCode() {
-        return type.serviceRegistryAccessCode;
     }
 
     private static String kebabCaseToPascalCase(String s) {
@@ -159,6 +163,18 @@ class PrecompiledGroovyScript {
         @Override
         public String getFileName() {
             return scriptFile.getPath();
+        }
+    }
+
+    private static class PrecompiledScriptPluginFirstPassSource extends PrecompiledScriptPluginSource {
+
+        public PrecompiledScriptPluginFirstPassSource(File scriptFile, String className, TextFileResourceLoader resourceLoader) {
+            super(scriptFile, className, resourceLoader);
+        }
+
+        @Override
+        public String getClassName() {
+            return "cp_" + super.getClassName();
         }
     }
 }

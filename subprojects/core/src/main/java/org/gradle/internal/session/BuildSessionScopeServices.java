@@ -18,6 +18,7 @@ package org.gradle.internal.session;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
@@ -52,6 +53,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.filewatch.PendingChangesManager;
@@ -88,14 +90,14 @@ import java.util.List;
  */
 public class BuildSessionScopeServices {
 
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
     private final BuildRequestMetaData buildRequestMetaData;
     private final ClassPath injectedPluginClassPath;
     private final BuildCancellationToken buildCancellationToken;
     private final BuildClientMetaData buildClientMetaData;
     private final BuildEventConsumer buildEventConsumer;
 
-    public BuildSessionScopeServices(StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken, BuildClientMetaData buildClientMetaData, BuildEventConsumer buildEventConsumer) {
+    public BuildSessionScopeServices(StartParameterInternal startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken, BuildClientMetaData buildClientMetaData, BuildEventConsumer buildEventConsumer) {
         this.startParameter = startParameter;
         this.buildRequestMetaData = buildRequestMetaData;
         this.injectedPluginClassPath = injectedPluginClassPath;
@@ -105,7 +107,7 @@ public class BuildSessionScopeServices {
     }
 
     void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
-        registration.add(StartParameter.class, startParameter);
+        registration.add(StartParameterInternal.class, startParameter);
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
             pluginServiceRegistry.registerBuildSessionServices(registration);
         }
@@ -129,7 +131,7 @@ public class BuildSessionScopeServices {
         return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory);
     }
 
-    ListenerManager createListenerManager(ListenerManager parent) {
+    DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
         return parent.createChild(Scopes.BuildSession.class);
     }
 
@@ -151,11 +153,9 @@ public class BuildSessionScopeServices {
         return new ProjectCacheDir(cacheDir, progressLoggerFactory, deleter);
     }
 
-    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
+    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping) {
         File workDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileChanges", VersionStrategy.CachePerVersion);
-        BuildSessionScopeFileTimeStampInspector timeStampInspector = new BuildSessionScopeFileTimeStampInspector(workDir);
-        listenerManager.addListener(timeStampInspector);
-        return timeStampInspector;
+        return new BuildSessionScopeFileTimeStampInspector(workDir);
     }
 
     ScriptSourceHasher createScriptSourceHasher() {

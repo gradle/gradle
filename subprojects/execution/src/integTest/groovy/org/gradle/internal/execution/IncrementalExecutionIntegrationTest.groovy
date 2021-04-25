@@ -27,12 +27,16 @@ import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
+import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
-import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
@@ -52,6 +56,7 @@ import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
@@ -79,8 +84,7 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY
-import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
+import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 
@@ -113,8 +117,9 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         isGeneratedByGradle() >> true
     }
     def outputSnapshotter = new DefaultOutputSnapshotter(snapshotter)
+    def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([fingerprinter])
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
-    def inputFingerprinter = new DefaultInputFingerprinter(valueSnapshotter)
+    def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def validationWarningReporter = Mock(ValidateStep.ValidationWarningRecorder)
@@ -144,12 +149,12 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     ExecutionEngine getExecutor() {
         // @formatter:off
         new DefaultExecutionEngine(documentationRegistry,
-            new IdentifyStep<>(inputFingerprinter,
+            new IdentifyStep<>(
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
             new ValidateStep<>(virtualFileSystem, validationWarningReporter,
-            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
@@ -834,13 +839,17 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
                 @Override
                 WorkspaceProvider getWorkspaceProvider() {
-                    return new WorkspaceProvider() {
+                    new WorkspaceProvider() {
                         @Override
-                        def <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
+                        <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
                             return action.executeInWorkspace(null, IncrementalExecutionIntegrationTest.this.executionHistoryStore)
                         }
-
                     }
+                }
+
+                @Override
+                InputFingerprinter getInputFingerprinter() {
+                    IncrementalExecutionIntegrationTest.this.inputFingerprinter
                 }
 
                 @Override
@@ -876,17 +885,20 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 }
 
                 @Override
-                void visitInputs(UnitOfWork.InputVisitor visitor) {
+                void visitRegularInputs(InputVisitor visitor) {
                     inputProperties.each { propertyName, value ->
-                        visitor.visitInputProperty(propertyName, NON_IDENTITY, { -> value } as UnitOfWork.ValueSupplier)
+                        visitor.visitInputProperty(propertyName) { -> value }
                     }
                     for (entry in inputs.entrySet()) {
                         visitor.visitInputFileProperty(
                             entry.key,
                             NON_INCREMENTAL,
-                            NON_IDENTITY,
-                            entry.value,
-                            { -> fingerprinter.fingerprint(TestFiles.fixed(entry.value)) }
+                            new FileValueSupplier(
+                                entry.value,
+                                AbsolutePathInputNormalizer,
+                                DirectorySensitivity.DEFAULT,
+                                { -> TestFiles.fixed(entry.value) }
+                            )
                         )
                     }
                 }

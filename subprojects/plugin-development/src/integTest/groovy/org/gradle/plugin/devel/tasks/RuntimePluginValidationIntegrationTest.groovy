@@ -33,7 +33,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         """
     }
 
-    final String iterableSymbol = '.$0'
+    String iterableSymbol = '.$0'
 
     @Override
     String getNameSymbolFor(String name) {

@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.metadata;
 
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 public interface VisualCppMetadata extends CompilerMetadata {
     /**

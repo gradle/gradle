@@ -22,7 +22,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Unroll
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {

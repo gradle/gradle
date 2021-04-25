@@ -71,6 +71,16 @@ class SnapshotSerializerTest extends Specification {
         new ShortValueSnapshot(Short.MIN_VALUE) | _
     }
 
+    def "serializes hash properties"() {
+        def value = new HashValueSnapshot(HashCode.fromInt(123))
+
+        when:
+        write(value)
+
+        then:
+        value == written
+    }
+
     enum Thing {
         THING_1, THING_2
     }

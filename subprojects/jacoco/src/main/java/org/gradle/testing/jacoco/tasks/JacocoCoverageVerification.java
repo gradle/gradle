@@ -18,7 +18,9 @@ package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoCheck;
 import org.gradle.internal.jacoco.JacocoCheckResult;
@@ -27,6 +29,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Task for verifying code coverage metrics. Fails the task if violations are detected based on specified rules.
@@ -35,6 +38,7 @@ import java.io.File;
  *
  * @since 3.4
  */
+@CacheableTask
 public class JacocoCoverageVerification extends JacocoReportBase {
 
     private final JacocoViolationRulesContainer violationRules;
@@ -55,6 +59,14 @@ public class JacocoCoverageVerification extends JacocoReportBase {
         return violationRules;
     }
 
+    /**
+     * For internal use only. This property exists, because only tasks with outputs can be up-to-date and cached.
+     */
+    @OutputFile
+    protected File getDummyOutputFile() {
+        return new File(getTemporaryDir(), "success.txt");
+    }
+
     private final String projectName = getProject().getName();
 
     /**
@@ -66,7 +78,7 @@ public class JacocoCoverageVerification extends JacocoReportBase {
     }
 
     @TaskAction
-    public void check() {
+    public void check() throws IOException {
         JacocoCheckResult checkResult = new AntJacocoCheck(getAntBuilder()).execute(
             getJacocoClasspath(),
             projectName,
@@ -78,6 +90,8 @@ public class JacocoCoverageVerification extends JacocoReportBase {
 
         if (!checkResult.isSuccess()) {
             throw new GradleException(checkResult.getFailureMessage());
+        } else {
+            getDummyOutputFile().createNewFile();
         }
     }
 }

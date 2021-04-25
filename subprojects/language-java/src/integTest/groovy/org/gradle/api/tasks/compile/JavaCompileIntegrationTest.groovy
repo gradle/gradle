@@ -16,14 +16,14 @@
 
 package org.gradle.api.tasks.compile
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
-import org.gradle.util.Resources
+import org.gradle.util.internal.Resources
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -80,9 +80,9 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
     def "detects change in classpath order"() {
-        jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
-        jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        jarWithClasses(file("lib1.jar"), Thing: "class Thing {public void foo() {} }")
+        jarWithClasses(file("lib2.jar"), Thing: "class Thing { public void bar() {} }")
+        file("src/main/java/Foo.java") << "public class Foo extends Thing {}"
 
         buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
 
@@ -141,15 +141,17 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         """
     }
 
-    @Ignore
+    @Requires(TestPrecondition.LINUX)
     def "can compile after package case-rename"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java")
+            }
 
             ${mavenCentralRepository()}
 
             dependencies {
-                testCompile "junit:junit:4.13"
+                testImplementation "junit:junit:4.13"
             }
         """
 
@@ -201,7 +203,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         succeeds "test"
         then:
         executedAndNotSkipped ":test"
-        javaClassFile("com/example/Foo.class").assertIsFile()
+        javaClassFile("com/Example/Foo.class").assertIsFile()
+        javaClassFile("com/example/Foo.class").assertDoesNotExist()
     }
 
     def "implementation dependencies should not leak into compile classpath of consumer"() {
@@ -411,7 +414,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
-                    assert org.gradle.util.CollectionUtils.single(lazyInputs.files).toPath().endsWith("${expectedDirName}")
+                    assert org.gradle.util.internal.CollectionUtils.single(lazyInputs.files).toPath().endsWith("${expectedDirName}")
                 }
             }
         """
@@ -988,6 +991,50 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         """
 
         expect:
+        succeeds("compileJava")
+    }
+
+    def "CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory is deprecated"() {
+        when:
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            tasks.withType(JavaCompile) {
+                doLast {
+                    println(options.annotationProcessorGeneratedSourcesDirectory)
+                }
+            }
+        """
+        file("src/main/java/com/example/Main.java") << """
+            package com.example;
+            public class Main {}
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
+
+        then:
+        succeeds("compileJava")
+    }
+
+    // Enable deprecation nagging: https://github.com/gradle/gradle/issues/16782
+    @NotYetImplemented
+    def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory is deprecated"() {
+        when:
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            tasks.withType(JavaCompile) {
+                options.annotationProcessorGeneratedSourcesDirectory = file("build/annotation-processor-out")
+            }
+        """
+        file("src/main/java/com/example/Main.java") << """
+            package com.example;
+            public class Main {}
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
+
+        then:
         succeeds("compileJava")
     }
 }

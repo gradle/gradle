@@ -257,7 +257,7 @@ Similarly, we define convention plugins for "Java Libraries", "Kotlin Libraries"
 With that, we have four different project types defined that we assign to the projects of our production code components.
 
 You can find more information about writing convention plugins in section on <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,sharing build logic>> and the link:../samples/sample_convention_plugins.html[associated sample].
-For using classes to implement plugins, and for writing more advanced custom build logic, consult the chapter on <<custom_plugins.adoc#custom_plugins,Gradle plugin developmet>>.
+For using classes to implement plugins, and for writing more advanced custom build logic, consult the chapter on <<custom_plugins.adoc#custom_plugins,Gradle plugin development>>.
 
 == Connecting components
 

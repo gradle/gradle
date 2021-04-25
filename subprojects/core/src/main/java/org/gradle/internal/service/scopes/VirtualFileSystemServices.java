@@ -24,7 +24,6 @@ import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
@@ -56,18 +55,20 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultOutputSnapshotter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
@@ -83,6 +84,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -194,12 +196,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild = new LocationsWrittenByCurrentBuild();
             listenerManager.addListener(new RootBuildLifecycleListener() {
                 @Override
-                public void afterStart(GradleInternal gradle) {
+                public void afterStart() {
                     locationsWrittenByCurrentBuild.buildStarted();
                 }
 
                 @Override
-                public void beforeComplete(GradleInternal gradle) {
+                public void beforeComplete() {
                     locationsWrittenByCurrentBuild.buildFinished();
                 }
             });
@@ -270,7 +272,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             });
             listenerManager.addListener(new RootBuildLifecycleListener() {
                 @Override
-                public void afterStart(GradleInternal gradle) {
+                public void afterStart() {
                     // Reset default excludes for each build
                     DirectoryScanner.resetDefaultExcludes();
                     String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
@@ -279,7 +281,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 }
 
                 @Override
-                public void beforeComplete(GradleInternal gradle) {
+                public void beforeComplete() {
                 }
             });
             return fileSystemAccess;
@@ -368,7 +370,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             );
 
             listenerManager.addListener(new DefaultExcludesBuildListener(buildSessionsScopedVirtualFileSystem));
-            listenerManager.addListener((OutputChangeListener) affectedOutputPaths -> buildSessionsScopedVirtualFileSystem.write(affectedOutputPaths, () -> {}));
+            listenerManager.addListener((OutputChangeListener) affectedOutputPaths -> buildSessionsScopedVirtualFileSystem.write(affectedOutputPaths, () -> {
+            }));
 
             return buildSessionsScopedVirtualFileSystem;
         }
@@ -417,6 +420,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
         }
 
+        InputFingerprinter createInputFingerprinter(
+            FileCollectionFingerprinterRegistry fingerprinterRegistry,
+            ValueSnapshotter valueSnapshotter
+        ) {
+            return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
+        }
+
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(
             GlobalCacheLocations globalCacheLocations,
             CrossBuildFileHashCache store,
@@ -445,5 +455,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
     }
 
-    interface WatchFilter extends Predicate<String> {}
+    interface WatchFilter extends Predicate<String> {
+    }
 }

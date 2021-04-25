@@ -34,7 +34,7 @@ import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.TestIsolatableFactory
@@ -61,7 +61,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def transformerInvocationFactory = Mock(TransformerInvocationFactory)
     def valueSnapshotter = Mock(ValueSnapshotter)
-    def fileCollectionFingerprinterRegistry = Mock(FileCollectionFingerprinterRegistry)
+    def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionFactory = Mock(FileCollectionFactory)
     def propertyWalker = Mock(PropertyWalker)
     def inspectionScheme = Stub(InspectionScheme) {
@@ -80,10 +80,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         isolatableFactory,
         classLoaderHierarchyHasher,
         transformerInvocationFactory,
-        valueSnapshotter,
         fileCollectionFactory,
         Mock(FileLookup),
-        fileCollectionFingerprinterRegistry,
+        inputFingerprinter,
         calculatedValueContainerFactory,
         domainObjectContext,
         new ArtifactTransformParameterScheme(

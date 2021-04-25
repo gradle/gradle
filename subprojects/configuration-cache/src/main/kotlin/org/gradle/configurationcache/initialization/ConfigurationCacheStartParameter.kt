@@ -21,17 +21,16 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.internal.buildtree.BuildTreeBuildPath
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.util.Path
 import java.io.File
 
 
 @ServiceScope(Scopes.BuildTree::class)
 class ConfigurationCacheStartParameter(
-    private val buildTreeBuildPath: BuildTreeBuildPath,
     private val buildLayout: BuildLayout,
+    private val buildModelParameters: BuildModelParameters,
     startParameter: StartParameter
 ) {
 
@@ -39,8 +38,7 @@ class ConfigurationCacheStartParameter(
     val startParameter = startParameter as StartParameterInternal
 
     val isEnabled: Boolean
-        get() = buildTreeBuildPath.path == Path.ROOT // Do not attempt to use configuration caching for GradleBuild task
-            && startParameter.isConfigurationCache
+        get() = buildModelParameters.isConfigurationCache
 
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
@@ -66,6 +64,10 @@ class ConfigurationCacheStartParameter(
     val settingsDirectory: File
         get() = buildLayout.settingsDir
 
+    val cacheDir: File
+        get() = startParameter.projectCacheDir ?: rootDirectory.resolve(".gradle")
+
+    @Suppress("DEPRECATION")
     val settingsFile: File?
         get() = startParameter.settingsFile
 

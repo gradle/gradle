@@ -72,4 +72,4 @@ tasks.test {
     exclude("org/gradle/api/internal/tasks/testing/testng/ATestNGFactoryClass*.*")
 }
 
-integTest.usesSamples.set(true)
+integTest.usesJavadocCodeSnippets.set(true)

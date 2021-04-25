@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
-import static org.gradle.util.TextUtil.getPlatformLineSeparator;
+import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator;
 
 class ForkingGradleHandle extends OutputScrapingGradleHandle {
 

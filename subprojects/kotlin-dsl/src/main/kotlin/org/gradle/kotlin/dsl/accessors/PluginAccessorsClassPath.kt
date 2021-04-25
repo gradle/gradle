@@ -28,7 +28,8 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -88,6 +89,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val fileCollectionFactory: FileCollectionFactory,
     private val executionEngine: ExecutionEngine,
+    private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
     fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.rootProject.let { rootProject ->
@@ -100,6 +102,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
                 buildSrcClassLoaderScope,
                 classLoaderHash,
                 fileCollectionFactory,
+                inputFingerprinter,
                 workspaceProvider
             )
             val result = executionEngine.createRequest(work).execute()
@@ -114,6 +117,7 @@ class GeneratePluginAccessors(
     private val buildSrcClassLoaderScope: ClassLoaderScope,
     private val classLoaderHash: HashCode,
     private val fileCollectionFactory: FileCollectionFactory,
+    private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) : UnitOfWork {
 
@@ -150,10 +154,12 @@ class GeneratePluginAccessors(
 
     override fun getWorkspaceProvider() = workspaceProvider.accessors
 
+    override fun getInputFingerprinter() = inputFingerprinter
+
     override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
 
-    override fun visitInputs(visitor: UnitOfWork.InputVisitor) {
-        visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, IDENTITY) { classLoaderHash }
+    override fun visitIdentityInputs(visitor: InputVisitor) {
+        visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY) { classLoaderHash }
     }
 
     override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {

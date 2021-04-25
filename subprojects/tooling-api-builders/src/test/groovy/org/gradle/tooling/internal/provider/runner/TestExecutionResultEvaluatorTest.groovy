@@ -30,10 +30,10 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
-import org.gradle.tooling.internal.provider.TestExecutionRequestAction
+import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
 import spock.lang.Specification
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class TestExecutionResultEvaluatorTest extends Specification {
 

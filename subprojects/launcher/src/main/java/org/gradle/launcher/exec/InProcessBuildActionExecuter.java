@@ -17,62 +17,35 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.ConfigurationCacheSupport;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeContext;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
-public class InProcessBuildActionExecuter implements BuildTreeBuildActionExecutor {
+public class InProcessBuildActionExecuter implements BuildTreeActionExecutor {
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
-    private final PayloadSerializer payloadSerializer;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
-    private final BuildCancellationToken buildCancellationToken;
-    private final ConfigurationCacheSupport configurationCacheSupport;
 
     public InProcessBuildActionExecuter(BuildStateRegistry buildStateRegistry,
-                                        PayloadSerializer payloadSerializer,
                                         BuildOperationNotificationValve buildOperationNotificationValve,
-                                        BuildCancellationToken buildCancellationToken,
-                                        ConfigurationCacheSupport configurationCacheSupport,
                                         BuildActionRunner buildActionRunner) {
         this.buildActionRunner = buildActionRunner;
         this.buildStateRegistry = buildStateRegistry;
-        this.payloadSerializer = payloadSerializer;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
-        this.configurationCacheSupport = configurationCacheSupport;
-        this.buildCancellationToken = buildCancellationToken;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildTreeContext buildTree) {
-        applySupportedFeatures(action);
+    public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
         buildOperationNotificationValve.start();
         try {
             RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
-            return rootBuild.run(buildController -> {
-                BuildActionRunner.Result result = buildActionRunner.run(action, buildController);
-                if (result.getBuildFailure() == null) {
-                    return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
-                }
-                if (buildCancellationToken.isCancellationRequested()) {
-                    return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));
-                }
-                return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));
-            });
+            return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
         } finally {
             buildOperationNotificationValve.stop();
-        }
-    }
-
-    private void applySupportedFeatures(BuildAction action) {
-        if (!configurationCacheSupport.canBuild(action)) {
-            action.getStartParameter().setConfigurationCache(false);
         }
     }
 }

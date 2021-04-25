@@ -16,9 +16,10 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.StartParameter;
-import org.gradle.api.Transformer;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+
+import java.util.function.Function;
 
 /**
  * Represents the root build of a build tree.
@@ -27,10 +28,10 @@ public interface RootBuildState extends BuildState {
     /**
      * Returns the start parameter used to define this build.
      */
-    StartParameter getStartParameter();
+    StartParameterInternal getStartParameter();
 
     /**
      * Runs a single invocation of this build, executing the given action and returning the result. Should be called once only for a given build instance.
      */
-    <T> T run(Transformer<T, ? super BuildController> buildAction);
+    <T> T run(Function<? super BuildTreeLifecycleController, T> action);
 }

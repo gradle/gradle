@@ -19,11 +19,10 @@ package org.gradle.initialization.buildsrc;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -31,20 +30,19 @@ import java.util.Collection;
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
-public class BuildSrcUpdateFactory implements Factory<ClassPath> {
+public class BuildSrcUpdateFactory {
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
 
-    private final BuildController buildController;
+    private final BuildTreeLifecycleController buildController;
     private final BuildSrcBuildListenerFactory listenerFactory;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public BuildSrcUpdateFactory(BuildController buildController, BuildSrcBuildListenerFactory listenerFactory, CachedClasspathTransformer cachedClasspathTransformer) {
+    public BuildSrcUpdateFactory(BuildTreeLifecycleController buildController, BuildSrcBuildListenerFactory listenerFactory, CachedClasspathTransformer cachedClasspathTransformer) {
         this.buildController = buildController;
         this.listenerFactory = listenerFactory;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
-    @Override
     @Nonnull
     public ClassPath create() {
         Collection<File> classpath = build();

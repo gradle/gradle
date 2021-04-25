@@ -43,7 +43,7 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
             -util
       */
 
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << """
 rootProject.name = 'root'
 include 'api'
@@ -54,7 +54,7 @@ include 'contrib:services:util'
 
         """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
     apply plugin: 'java'
@@ -84,7 +84,7 @@ project(':services:utilities') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.withTasks("eclipse").run()
 
         //then
         assertApiProjectContainsCorrectDependencies()
@@ -92,7 +92,7 @@ project(':services:utilities') {
     }
 
     def assertServicesUtilProjectContainsCorrectDependencies() {
-        List deps = parseEclipseProjectDependencies(project: 'master/services/utilities')
+        List deps = parseEclipseProjectDependencies(project: 'services/utilities')
 
         assert deps.contains("/very-cool-model")
         assert deps.contains("/root-util")
@@ -101,7 +101,7 @@ project(':services:utilities') {
     }
 
     def assertApiProjectContainsCorrectDependencies() {
-        def deps = parseEclipseProjectDependencies(project: 'master/api')
+        def deps = parseEclipseProjectDependencies(project: 'api')
 
         assert deps.contains("/very-cool-model")
         assert deps.contains("/shared-api")
@@ -111,39 +111,42 @@ project(':services:utilities') {
     @ToBeFixedForConfigurationCache
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectName() {
         //use case from the mailing list
-        def settingsFile = file("master/settings.gradle")
-        settingsFile << "include 'api', 'shared:model', 'nonEclipse'"
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+            rootProject.name = "master"
+            include 'api', 'shared:model', 'nonEclipse'
+        """
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    if (project.name != 'nonEclipse') {
-        apply plugin: 'eclipse'
-    }
-}
+            allprojects {
+                apply plugin: 'java'
+                if (project.name != 'nonEclipse') {
+                    apply plugin: 'eclipse'
+                }
+            }
 
-subprojects {
-    eclipse {
-        project {
-            name = rootProject.name + path.replace(':', '-')
-        }
-    }
-}
+            subprojects {
+                eclipse {
+                    project {
+                        name = rootProject.name + path.replace(':', '-')
+                    }
+                }
+            }
 
-project(':api') {
-    dependencies {
-        //let's add a nonEclipse project to stress the test
-        implementation project(':shared:model'), project(':nonEclipse')
-    }
-}
-"""
+            project(':api') {
+                dependencies {
+                    //let's add a nonEclipse project to stress the test
+                    implementation project(':shared:model'), project(':nonEclipse')
+                }
+            }
+        """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.withTasks("eclipse").run()
 
         //then
-        def deps = parseEclipseProjectDependencies(project: 'master/api')
+        def deps = parseEclipseProjectDependencies(project: 'api')
 
         assert deps.contains("/master-shared-model")
         assert deps.contains("/nonEclipse")
@@ -152,32 +155,35 @@ project(':api') {
     @Test
     @ToBeFixedForConfigurationCache
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectNameAndRootProjectDoesNotApplyEclipsePlugin() {
-        def settingsFile = file("master/settings.gradle") << "include 'api', 'shared:model'"
+        file("settings.gradle") << """
+            rootProject.name = "master"
+            include 'api', 'shared:model'
+        """
 
-        def buildFile = file("master/build.gradle") << """
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
+        file("build.gradle") << """
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
 
-    eclipse {
-        project {
-            name = rootProject.name + path.replace(':', '-')
-        }
-    }
-}
+                eclipse {
+                    project {
+                        name = rootProject.name + path.replace(':', '-')
+                    }
+                }
+            }
 
-project(':api') {
-    dependencies {
-        implementation project(':shared:model')
-    }
-}
-"""
+            project(':api') {
+                dependencies {
+                    implementation project(':shared:model')
+                }
+            }
+        """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.withTasks("eclipse").run()
 
         //then
-        def deps = parseEclipseProjectDependencies(project: 'master/api')
+        def deps = parseEclipseProjectDependencies(project: 'api')
 
         assert deps.contains("/master-shared-model")
     }

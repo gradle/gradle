@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
-import org.assertj.core.util.Files.newFolder
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath

@@ -24,7 +24,7 @@ import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.nativeintegration.console.ConsoleDetector
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.launcher.cli.action.ExecuteBuildAction
+import org.gradle.tooling.internal.provider.action.ExecuteBuildAction
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.launcher.exec.BuildActionResult

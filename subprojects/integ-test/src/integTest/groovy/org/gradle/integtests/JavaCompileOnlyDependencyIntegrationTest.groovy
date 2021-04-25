@@ -18,7 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class JavaCompileOnlyDependencyIntegrationTest extends AbstractIntegrationSpec {
     def "can compile against compile only dependency"() {
@@ -194,9 +194,9 @@ project(':projectB') {
 
     task checkClasspath {
         def compileClasspathFiles = configurations.compileClasspath.files
-        def projectAJavaDestDir = project(':projectA').compileJava.destinationDir
+        def projectAJavaDestDir = project(':projectA').compileJava.destinationDirectory
         doLast {
-            assert compileClasspathFiles == [projectAJavaDestDir] as Set
+            assert compileClasspathFiles == [projectAJavaDestDir.get().asFile] as Set
         }
     }
 }
@@ -240,10 +240,10 @@ project(':projectB') {
                     def runtimeClasspathFiles = configurations.runtimeClasspath.files
                     def compileOnlyClasspathFiles = configurations.compileOnlyClasspath.files
                     def implementationClasspathFiles = configurations.implementationClasspath.files
-                    def projectAJavaDir = project(':projectA').compileJava.destinationDir
+                    def projectAJavaDir = project(':projectA').compileJava.destinationDirectory
                     def projectAJarArchiveFile = project(':projectA').jar.archiveFile
                     doLast {
-                        assert compileClasspathFiles == [projectAJavaDir] as Set
+                        assert compileClasspathFiles == [projectAJavaDir.get().asFile] as Set
                         assert runtimeClasspathFiles == [] as Set
                         assert compileOnlyClasspathFiles == [projectAJarArchiveFile.get().asFile] as Set
                         assert implementationClasspathFiles == [] as Set
