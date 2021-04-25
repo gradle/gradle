@@ -31,7 +31,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
 )
-@Ignore("https://github.com/gradle/gradle/pull/16495")
 @Ignore("https://github.com/gradle/gradle-private/issues/3284")
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
