@@ -132,6 +132,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
                 api 'org.gradle.cpp:log:latest.integration'
             }
         """
+        libraryPath.file("settings.gradle").touch()
     }
 
     private writeLogLibrary(TestFile dir = testDirectory) {
@@ -142,5 +143,6 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
             group = 'org.gradle.cpp'
             version = '1.0'
         """
+        logPath.file("settings.gradle").touch()
     }
 }

@@ -849,6 +849,7 @@ settingsEvaluated {
             }
         }
         """
+        file("my-plugin/settings.gradle").touch()
     }
 
 

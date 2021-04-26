@@ -118,6 +118,7 @@ notified
             }
             task t
         """
+        file("child/settings.gradle").touch()
 
         runAndFail("t")
 

@@ -40,6 +40,8 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         withLegacyWorkerPluginInPluginBuild()
         withTypedWorkerPluginInPluginBuild()
 
+        plugin.file("settings.gradle").touch()
+
         lib.file("build.gradle") << """
             buildscript {
                 dependencies {
@@ -59,6 +61,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
                 from runWork
             }
         """
+        lib.file("settings.gradle").touch()
 
         buildFile << """
             plugins {

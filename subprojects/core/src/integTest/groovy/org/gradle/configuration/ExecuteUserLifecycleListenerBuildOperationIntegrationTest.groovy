@@ -639,6 +639,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         file('included/build.gradle') << """
             tasks.create('foo')
         """
+        file("included/settings.gradle") << 'rootProject.name = "included"'
+
         buildFile << "tasks.help.dependsOn(gradle.includedBuild('included').task(':foo'))"
 
         when:
@@ -799,8 +801,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         { s -> s.details.targetType == 'gradle' } as Spec<? super BuildOperationRecord>
     }
 
-    private static Spec<? super BuildOperationRecord> targetsSettings() {
-        { s -> s.details.targetType == 'settings' } as Spec<? super BuildOperationRecord>
+    private static Spec<? super BuildOperationRecord> targetsSettings(String buildPath=":") {
+        { s -> s.details.targetType == 'settings' && s.details.buildPath == buildPath} as Spec<? super BuildOperationRecord>
     }
 
     private static Spec<? super BuildOperationRecord> targetsProject(String projectPath) {

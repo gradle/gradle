@@ -149,10 +149,12 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         file("a/build.gradle") << """
             task thing
         """
+        file("a/settings.gradle").touch()
+
         file("b/build.gradle") << """
             task thing
         """
-
+        file("b/settings.gradle").touch()
         when:
         run("thing")
 

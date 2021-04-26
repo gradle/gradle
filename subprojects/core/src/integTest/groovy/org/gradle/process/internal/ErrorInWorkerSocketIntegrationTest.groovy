@@ -110,6 +110,7 @@ plugins {
 group = "buildlogic"
 
 """
+        file("included/settings.gradle").touch()
         buildFile << '''
 plugins {
     id('buildlogic.foo')

@@ -651,6 +651,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
             package org.included;
             public class Included {}
         """
+        file("included/settings.gradle").touch()
 
         when:
         fails "compileJava", "--include-build", "included"

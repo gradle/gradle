@@ -83,6 +83,9 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
         settingsFile << """
             includeBuild 'build-logic'
         """
+
+        file("build-logic/settings.gradle").touch()
+
         buildFile << """
             plugins { id('$fixture.pluginId') }
         """
@@ -158,9 +161,12 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
                 }
             }
         """
+
         settingsFile << """
             includeBuild 'build-logic'
         """
+        file("build-logic/settings.gradle").touch()
+
         buildFile << """
             plugins { id('$fixture.pluginId') }
         """

@@ -76,11 +76,13 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
             group = 'org.test'
             version = '2.0'
         """
+        repo.file("foo/settings.gradle").touch()
         repo.file("bar/build.gradle") << """
             apply plugin: 'java'
             group = 'org.test'
             version = '3.0'
         """
+        repo.file("bar/settings.gradle").touch()
         repo.commit('updated')
 
         settingsFile << """

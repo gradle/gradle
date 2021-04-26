@@ -163,6 +163,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         settingsFile << """
             includeBuild 'included-build'
         """
+        file("included-build/settings.gradle").touch()
 
         buildFile << """
             apply plugin:'java-library'
