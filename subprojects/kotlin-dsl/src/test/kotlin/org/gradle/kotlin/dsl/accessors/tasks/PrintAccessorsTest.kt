@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.accessors.tasks
 
 import org.gradle.api.Project
-import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
@@ -48,7 +47,7 @@ class PrintAccessorsTest {
                             entry<Project, ExtraPropertiesExtension>("extra")
                         ),
                         conventions = listOf(
-                            entry<Project, ApplicationPluginConvention>("application")
+                            entry<Project, @Suppress("deprecation") org.gradle.api.plugins.ApplicationPluginConvention>("application")
                         ),
                         tasks = listOf(
                             entry<TaskContainer, Delete>("delete")
