@@ -47,7 +47,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
 
     @Override
     public String getDistsDirName() {
-        return extension.getDistsDirectory().get().getAsFile().getName();
+        return extension.getDistsDirName();
     }
 
     @Override

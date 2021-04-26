@@ -20,6 +20,9 @@ import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.BasePluginExtension;
 import org.gradle.api.provider.Property;
+import org.gradle.util.internal.RelativePathUtil;
+
+import java.io.File;
 
 public class DefaultBasePluginExtension implements BasePluginExtension {
 
@@ -53,7 +56,9 @@ public class DefaultBasePluginExtension implements BasePluginExtension {
 
     @Override
     public String getDistsDirName() {
-        return getDistsDirectory().get().getAsFile().getName();
+        File buildDir = project.getLayout().getBuildDirectory().get().getAsFile();
+        File distsDir = getDistsDirectory().get().getAsFile();
+        return RelativePathUtil.relativePath(buildDir, distsDir);
     }
 
     @Override
@@ -63,7 +68,9 @@ public class DefaultBasePluginExtension implements BasePluginExtension {
 
     @Override
     public String getLibsDirName() {
-        return getLibsDirectory().get().getAsFile().getName();
+        File buildDir = project.getLayout().getBuildDirectory().get().getAsFile();
+        File libsDir = getLibsDirectory().get().getAsFile();
+        return RelativePathUtil.relativePath(buildDir, libsDir);
     }
 
     @Override
