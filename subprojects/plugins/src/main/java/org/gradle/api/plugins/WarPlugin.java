@@ -61,11 +61,15 @@ public class WarPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
-        final WarPluginConvention pluginConvention = new DefaultWarPluginConvention(project);
+
+        WarPluginExtension extension = project.getExtensions().create(WarPluginExtension.class, "war", WarPluginExtension.class);
+        extension.getWebAppDir().convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
+
+        final WarPluginConvention pluginConvention = new DefaultWarPluginConvention(project, extension);
         project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.from((Callable) () -> pluginConvention.getWebAppDir());
+            task.from((Callable) () -> extension.getWebAppDir());
             task.dependsOn((Callable) () -> project.getConvention()
                 .getPlugin(JavaPluginConvention.class)
                 .getSourceSets()

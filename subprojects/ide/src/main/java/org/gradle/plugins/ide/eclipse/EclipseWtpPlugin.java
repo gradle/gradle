@@ -25,7 +25,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
-import org.gradle.api.plugins.WarPluginConvention;
+import org.gradle.api.plugins.WarPluginExtension;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.reflect.Instantiator;
@@ -200,7 +200,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                 convention.map("resources", new Callable<List<WbResource>>() {
                     @Override
                     public List<WbResource> call() throws Exception {
-                        return Lists.newArrayList(new WbResource("/", project.getConvention().getPlugin(WarPluginConvention.class).getWebAppDirName()));
+                        return Lists.newArrayList(new WbResource("/", project.getExtensions().getByType(WarPluginExtension.class).getWebAppDir().get().getAsFile().getName()));
                     }
                 });
                 convention.map("sourceDirs", new Callable<Set<File>>() {
