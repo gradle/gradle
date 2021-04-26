@@ -585,6 +585,26 @@
             "member": "Method org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.getDummyOutputFile()",
             "acceptation": "Documented as internal",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginExtension",
+            "member": "Class org.gradle.api.plugins.WarPluginExtension",
+            "acceptation": "The functionality was already available for several releases in WarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginExtension",
+            "member": "Method org.gradle.api.plugins.WarPluginExtension.getWebAppDir()",
+            "acceptation": "The functionality was already available for several releases in WarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.War",
+            "member": "Method org.gradle.api.tasks.bundling.War.getWebAppDir()",
+            "acceptation": "Workaround method to support overlapping 'war' name for task and extension",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
         }
     ]
 }

@@ -20,6 +20,8 @@ import org.gradle.api.file.DirectoryProperty;
 
 /**
  * <p>An extension used for the WarPlugin.</p>
+ *
+ * @since 7.1
  */
 public interface WarPluginExtension {
     /**

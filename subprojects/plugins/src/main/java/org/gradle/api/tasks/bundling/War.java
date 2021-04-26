@@ -23,7 +23,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.RenamingCopyAction;
-import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.WarPluginExtension;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
@@ -169,6 +168,11 @@ public class War extends Jar {
         this.webXml = webXml;
     }
 
+    /**
+     * Returns the web application directory.
+     *
+     * @since 7.1
+     */
     @Internal
     public DirectoryProperty getWebAppDir() {
         return getProject().getExtensions().getByType(WarPluginExtension.class).getWebAppDir();
