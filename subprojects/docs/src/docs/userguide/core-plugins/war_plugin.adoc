@@ -73,20 +73,22 @@ It is important to note that these `provided` configurations work transitively. 
 `components.web`::
 A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_setup.adoc#publishing_overview,publishing>> the production WAR created by the `war` task.
 
-[[sec:war_convention_properties]]
-== Convention properties
+[[sec:war_extensions]]
+== Extensions
 
-`webAppDirName` — `String`::
-_Default value_: `src/main/webapp`
-+
-The name of the web application source directory, relative to the project directory.
+The War Plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.WarPluginExtension.html[`war` extension] to the project.
+This allows to configure the following properties inside a dedicated DSL block.
 
-`webAppDir` — (read-only) `File`::
-_Default value_: `$webAppDirName`, e.g. _src/main/webapp_
-+
+`webAppDir` — `File`::
+_Default value_: `$projectDir/src/main/webapp`
+
 The path to the web application source directory.
 
-These properties are provided by a link:{groovyDslPath}/org.gradle.api.plugins.WarPluginConvention.html[WarPluginConvention] object.
+[[sec:war_convention_properties]]
+== Convention properties (deprecated)
+
+The conventions contributed by the War plugin have been deprecated and superseded by the extension described above.
+See the link:{groovyDslPath}/org.gradle.api.plugins.WarPluginConvention.html[WarPluginConvention] DSL documentation for information on them.
 
 [[sec:war_default_settings]]
 == War
