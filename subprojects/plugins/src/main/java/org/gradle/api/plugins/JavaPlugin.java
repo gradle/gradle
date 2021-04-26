@@ -273,7 +273,7 @@ public class JavaPlugin implements Plugin<Project> {
         projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(project, javaExtension));
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
 
-        configureSourceSets(project,javaExtension, buildOutputCleanupRegistry);
+        configureSourceSets(project, javaExtension, buildOutputCleanupRegistry);
         configureConfigurations(project, javaExtension);
 
         configureTest(project, javaPluginExtension);

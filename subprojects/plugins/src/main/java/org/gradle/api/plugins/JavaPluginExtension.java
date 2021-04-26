@@ -187,28 +187,24 @@ public interface JavaPluginExtension {
      * @return NamedDomainObjectContainer&lt;org.gradle.api.tasks.SourceSet&gt;
      * @since 7.1
      */
-    @Incubating
     Object sourceSets(Closure closure);
 
     /**
      * Returns a file pointing to the root directory supposed to be used for all docs.
      * @since 7.1
      */
-    @Incubating
     File getDocsDir();
 
     /**
      * Returns a file pointing to the root directory of the test results.
      * @since 7.1
      */
-    @Incubating
     File getTestResultsDir();
 
     /**
      * Returns a file pointing to the root directory to be used for reports.
      * @since 7.1
      */
-    @Incubating
     File getTestReportDir();
 
     /**
@@ -217,7 +213,6 @@ public interface JavaPluginExtension {
      * @param value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
      * @since 7.1
      */
-    @Incubating
     void setSourceCompatibility(Object value);
 
     /**
@@ -226,14 +221,12 @@ public interface JavaPluginExtension {
      * @param value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
      * @since 7.1
      */
-    @Incubating
     void setTargetCompatibility(Object value);
 
     /**
      * Creates a new instance of a {@link Manifest}.
      * @since 7.1
      */
-    @Incubating
     Manifest manifest();
 
     /**
@@ -243,7 +236,6 @@ public interface JavaPluginExtension {
      * @param closure The closure to use to configure the manifest.
      * @since 7.1
      */
-    @Incubating
     Manifest manifest(Closure closure);
 
     /**
@@ -253,14 +245,12 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
-    @Incubating
     Manifest manifest(Action<? super Manifest> action);
 
     /**
      * The name of the docs directory. Can be a name or a path relative to the build dir.
      * @since 7.1
      */
-    @Incubating
     String getDocsDirName();
 
     /**
@@ -268,14 +258,12 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
-    @Incubating
     void setDocsDirName(String docsDirName);
 
     /**
      * The name of the test results directory. Can be a name or a path relative to the build dir.
      * @since 7.1
      */
-    @Incubating
     String getTestResultsDirName();
 
     /**
@@ -283,14 +271,12 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
-    @Incubating
     void setTestResultsDirName(String testResultsDirName);
 
     /**
      * The name of the test reports directory. Can be a name or a path relative to {@link org.gradle.api.reporting.ReportingExtension#getBaseDir}.
      * @since 7.1
      */
-    @Incubating
     String getTestReportDirName();
 
     /**
@@ -298,7 +284,6 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
-    @Incubating
     void setTestReportDirName(String testReportDirName);
 
     /**
@@ -306,7 +291,6 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
-    @Incubating
     SourceSetContainer getSourceSets();
 
     /**
@@ -316,6 +300,5 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
-    @Incubating
     boolean getAutoTargetJvmDisabled();
 }
