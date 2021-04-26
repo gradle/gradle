@@ -102,14 +102,17 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         taskGraphOps[2].details.buildPath == ":buildB"
         taskGraphOps[2].parentId == taskGraphOps[1].id
 
+        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        runMainTasks.parentId == root.id
+
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 3
         runTasksOps[0].displayName == "Run tasks (:buildB:buildSrc)"
         runTasksOps[0].parentId == buildSrcOps[0].id
         runTasksOps[1].displayName == "Run tasks"
-        runTasksOps[1].parentId == root.id
+        runTasksOps[1].parentId == runMainTasks.id
         runTasksOps[2].displayName == "Run tasks (:buildB)"
-        runTasksOps[2].parentId == root.id
+        runTasksOps[2].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 3
@@ -173,7 +176,6 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[3].details.buildPath == ":buildSrc"
         loadOps[3].parentId == buildSrcOps[1].id
 
-
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 4
         configureOps[0].displayName == "Configure build"
@@ -204,6 +206,9 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         taskGraphOps[3].details.buildPath == ":buildB"
         taskGraphOps[3].parentId == taskGraphOps[2].id
 
+        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        runMainTasks.parentId == root.id
+
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 4
         runTasksOps[0].displayName == "Run tasks (:buildB:buildSrc)"
@@ -211,9 +216,9 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[1].displayName == "Run tasks (:buildSrc)"
         runTasksOps[1].parentId == buildSrcOps[1].id
         runTasksOps[2].displayName == "Run tasks"
-        runTasksOps[2].parentId == root.id
+        runTasksOps[2].parentId == runMainTasks.id
         runTasksOps[3].displayName == "Run tasks (:buildB)"
-        runTasksOps[3].parentId == root.id
+        runTasksOps[3].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 4

@@ -27,6 +27,7 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.AbstractBuildState;
@@ -39,7 +40,9 @@ import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
+import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
+import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -51,6 +54,7 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionController;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -137,9 +141,13 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
         try {
-            final DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController);
             final GradleInternal gradle = buildLifecycleController.getGradle();
             BuildOperationExecutor executor = gradle.getServices().get(BuildOperationExecutor.class);
+            IncludedBuildControllers controllers = gradle.getServices().get(IncludedBuildControllers.class);
+            WorkerLeaseService workerLeaseService = gradle.getServices().get(WorkerLeaseService.class);
+            ExceptionAnalyser exceptionAnalyser = gradle.getServices().get(ExceptionAnalyser.class);
+            BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
+            final DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workerLeaseService, buildTreeWorkExecutor, controllers, exceptionAnalyser);
             return executor.call(new CallableBuildOperation<T>() {
                 @Override
                 public T call(BuildOperationContext context) {

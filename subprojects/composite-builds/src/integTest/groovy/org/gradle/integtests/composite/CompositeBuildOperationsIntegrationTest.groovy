@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -65,7 +64,6 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     @Unroll
-    @Ignore("https://github.com/gradle/gradle-private/issues/3368")
     def "generates build lifecycle operations for included builds with #display"() {
         given:
         dependency "org.test:${dependencyName}:1.0"
@@ -108,12 +106,15 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[1].details.buildPath == ":${buildName}"
         taskGraphOps[1].parentId == taskGraphOps[0].id
 
+        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        runMainTasks.parentId == root.id
+
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 2
-        runTasksOps[0].displayName == "Run tasks"
-        runTasksOps[0].parentId == root.id
-        runTasksOps[1].displayName == "Run tasks (:${buildName})"
-        runTasksOps[1].parentId == root.id
+        // Build operations are run in parallel, so can appear in either order
+        [runTasksOps[0].displayName, runTasksOps[1].displayName].sort() == ["Run tasks", "Run tasks (:${buildName})"]
+        runTasksOps[0].parentId == runMainTasks.id
+        runTasksOps[1].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 2
@@ -183,6 +184,9 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[2].details.buildPath == ":buildB"
         taskGraphOps[2].parentId == taskGraphOps[1].id
 
+        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        runMainTasks.parentId == root.id
+
         // Tasks are run for buildB multiple times, once for buildscript dependency and again for production dependency
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 3
@@ -190,8 +194,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         runTasksOps[0].parentId == applyRootProjectBuildScript.id
         // Build operations are run in parallel, so can appear in either order
         [runTasksOps[1].displayName, runTasksOps[2].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
-        runTasksOps[1].parentId == root.id
-        runTasksOps[2].parentId == root.id
+        runTasksOps[1].parentId == runMainTasks.id
+        runTasksOps[2].parentId == runMainTasks.id
 
         // Task graph ready event sent only once
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)

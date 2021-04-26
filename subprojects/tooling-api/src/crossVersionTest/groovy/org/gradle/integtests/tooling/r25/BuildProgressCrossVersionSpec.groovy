@@ -117,9 +117,11 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         configureBuild.descriptor.name == "Configure build"
         configureBuild.descriptor.parent == runBuild.descriptor
 
+        def runTasksParent = parentOfRunTasksOperation(events, runBuild)
+
         def runTasks = events.operation("Run tasks")
         runTasks.descriptor.name == "Run tasks"
-        runTasks.descriptor.parent == runBuild.descriptor
+        runTasks.descriptor.parent == runTasksParent.descriptor
 
         events.operations[0] == runBuild
 
@@ -169,8 +171,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         configureBuild.descriptor.parent == runBuild.descriptor
         configureBuild.successful
 
+        def runTasksParent = parentOfRunTasksOperation(events, runBuild)
+
         def runTasks = events.operation("Run tasks")
-        assert runTasks.descriptor.parent == runBuild.descriptor
+        assert runTasks.descriptor.parent == runTasksParent.descriptor
         runTasks.failed
         runTasks.failures.size() == 1
 
@@ -179,6 +183,16 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
 
         events.failed == [runBuild, runTasks]
         events.successful == events.operations - [runBuild, runTasks]
+    }
+
+    private ProgressEvents.Operation parentOfRunTasksOperation(ProgressEvents events, ProgressEvents.Operation runBuild) {
+        if (targetDist.toolingApiHasExecutionPhaseBuildOperation) {
+            def runTasksParent = events.operation("Run main tasks")
+            assert runTasksParent.parent.descriptor == runBuild.descriptor
+            return runTasksParent
+        } else {
+            return runBuild
+        }
     }
 
     def goodCode() {

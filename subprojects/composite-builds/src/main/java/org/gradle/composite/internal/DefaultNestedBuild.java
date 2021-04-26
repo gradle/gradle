@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -29,9 +30,12 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
+import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -83,10 +87,13 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
-        // Create a wrapper for the controllers, to prevent the build controller from finishing any other builds
         IncludedBuildControllers controllers = buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class);
+        WorkerLeaseService workerLeaseService = buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class);
+        ExceptionAnalyser exceptionAnalyser = buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class);
+        // Create a wrapper for the controllers, to prevent the build controller from finishing any other builds
         IncludedBuildControllers noFinishController = new DoNoFinishIncludedBuildControllers(controllers);
-        DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, noFinishController);
+        BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
+        DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workerLeaseService, workExecutor, noFinishController, exceptionAnalyser);
         return buildAction.apply(buildController);
     }
 
