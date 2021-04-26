@@ -78,26 +78,20 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private static TestKitDirProvider calculateTestKitDirProvider(SystemProperties systemProperties) {
-        return systemProperties.withSystemProperties(new Factory<TestKitDirProvider>() {
-            @Override
-            public TestKitDirProvider create() {
-                if (System.getProperties().containsKey(TEST_KIT_DIR_SYS_PROP)) {
-                    return new ConstantTestKitDirProvider(new File(System.getProperty(TEST_KIT_DIR_SYS_PROP)));
-                } else {
-                    TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(new Factory<File>() {
-                        @Override
-                        public File create() {
-                            String rootTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
-                            if (rootTmpDir == null) {
-                                @SuppressWarnings("deprecation")
-                                String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
-                                rootTmpDir = javaIoTmpDir;
-                            }
-                            return FileUtils.canonicalize(new File(rootTmpDir));
-                        }
-                    });
-                    return new ConstantTestKitDirProvider(temporaryFileProvider.newTemporaryFile(".gradle-test-kit"));
-                }
+        return systemProperties.withSystemProperties((Factory<TestKitDirProvider>) () -> {
+            if (System.getProperties().containsKey(TEST_KIT_DIR_SYS_PROP)) {
+                return new ConstantTestKitDirProvider(new File(System.getProperty(TEST_KIT_DIR_SYS_PROP)));
+            } else {
+                TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> {
+                    String rootTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
+                    if (rootTmpDir == null) {
+                        @SuppressWarnings("deprecation")
+                        String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+                        rootTmpDir = javaIoTmpDir;
+                    }
+                    return FileUtils.canonicalize(new File(rootTmpDir));
+                });
+                return new ConstantTestKitDirProvider(temporaryFileProvider.newTemporaryFile(".gradle-test-kit"));
             }
         });
     }
@@ -132,7 +126,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public DefaultGradleRunner withJvmArguments(List<String> jvmArguments) {
-        this.jvmArguments = Collections.unmodifiableList(new ArrayList<String>(jvmArguments));
+        this.jvmArguments = Collections.unmodifiableList(new ArrayList<>(jvmArguments));
         return this;
     }
 
@@ -158,7 +152,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public DefaultGradleRunner withArguments(List<String> arguments) {
-        this.arguments = Collections.unmodifiableList(new ArrayList<String>(arguments));
+        this.arguments = Collections.unmodifiableList(new ArrayList<>(arguments));
         return this;
     }
 
@@ -180,7 +174,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public GradleRunner withPluginClasspath(Iterable<? extends File> classpath) {
-        List<File> f = new ArrayList<File>();
+        List<File> f = new ArrayList<>();
         for (File file : classpath) {
             // These objects are going across the wire.
             // 1. Convert any subclasses back to File in case the subclass isn't available in Gradle.
@@ -263,29 +257,22 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public BuildResult build() {
-        return run(new Action<GradleExecutionResult>() {
-            @Override
-            public void execute(GradleExecutionResult gradleExecutionResult) {
-                if (!gradleExecutionResult.isSuccessful()) {
-                    throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult), createBuildResult(gradleExecutionResult));
-                }
+        return run(gradleExecutionResult -> {
+            if (!gradleExecutionResult.isSuccessful()) {
+                throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult), createBuildResult(gradleExecutionResult));
             }
         });
     }
 
     @Override
     public BuildResult buildAndFail() {
-        return run(new Action<GradleExecutionResult>() {
-            @Override
-            public void execute(GradleExecutionResult gradleExecutionResult) {
-                if (gradleExecutionResult.isSuccessful()) {
-                    throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult), createBuildResult(gradleExecutionResult));
-                }
+        return run(gradleExecutionResult -> {
+            if (gradleExecutionResult.isSuccessful()) {
+                throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult), createBuildResult(gradleExecutionResult));
             }
         });
     }
 
-    @SuppressWarnings("StringBufferReplaceableByString")
     String createDiagnosticsMessage(String trailingMessage, GradleExecutionResult gradleExecutionResult) {
         String lineBreak = SystemProperties.getInstance().getLineSeparator();
         StringBuilder message = new StringBuilder();
