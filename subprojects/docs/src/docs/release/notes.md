@@ -15,9 +15,6 @@ See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@b
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
-
-<a name="#backports"></a>
 ## Backports
 
 ### Limited support for Java 16
@@ -26,17 +23,25 @@ This release does not support _running_ Gradle with JDK 16, but you can use [Jav
 
 ### Using dynamic versions in the plugins block
 
-Until now, the `plugins { }` block only supported fixed versions for community plugins.
-All [version string notations Gradle supports](userguide/single_versions.html) are now accepted, including `+` or `latest.release`.
+Until now, the `plugins { }` block only supported fixed versions for community plugins. All [version string notations Gradle supports](userguide/single_versions.html) are now accepted, including `+` or `latest.release`.
 
 We recommend using the `plugins {}` block for applying plugins using Gradle 7. The old `apply plugin:` mechanism will be deprecated in the future.
 
 Note that dynamic versions will introduce non-deterministic behavior to your build process and should be used judiciously. You can use [dependency locking](userguide/dependency_locking.html) to save the set of dependencies resolved when using dynamic versions.
 
+### Native support for Apple Silicon
+
+Previous Gradle versions were able to run on new Macs with Apple Silicon processors with some disadvantages:
+
+* With a native ARM JDK, Gradle features like the [rich console](userguide/command_line_interface.html#sec:command_line_customizing_log_format) and [file system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs) would be disabled.
+* With an Intel JDK, Gradle would run at about half speed through the Rosetta2 compatibility layer.
+
+With this release, every feature is now supported using a native ARM JDK.
+If you're using a new Mac with Apple Silicon, you should use Gradle with a native ARM JDK for optimal performance.
+
 ### Other backports
 
-These issues were backported from Gradle 7.0:
-- TBD
+Please refer to the list below for all issues backported from Gradle 7.0.
 
 ## Fixed issues
 
