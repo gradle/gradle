@@ -266,11 +266,12 @@ If you used these plugins despite their experimental nature, you may find suitab
 
 The `layout` method taking a configuration block has been removed and is replaced by link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:patternLayout(org.gradle.api.Action)[patternLayout].
 
-==== Executing undefined builds is now an error
+==== Executing a Gradle build without a settings file is now an error
 
-A Gradle build is defined by a `settings.gradle(.kts)` file in the current or parent directory.
-Without a settings file, a Gradle build is undefined.
-Executing Gradle in such a directory is now an error.
+A Gradle build is defined by its `settings.gradle(.kts)` file found in the current or parent directory.
+Without a settings file, a Gradle build is undefined and Gradle produces an error when attempting to execute tasks.
+
+To fix this error, <<build_lifecycle.adoc#sec:settings_file,create a `settings.gradle(.kts)` file>> for the build.
 
 ==== Calling Project.afterEvaluate() after project evaluation is now an error
 

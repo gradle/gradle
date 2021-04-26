@@ -52,9 +52,9 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file(".gradle").assertDoesNotExist()
-        failure.assertHasDescription "Executing Gradle tasks as part of an undefined build is not supported. " +
-            "Make sure that you are executing Gradle from a folder within your Gradle project. " +
-            "Your project should have a 'settings.gradle(.kts)' file in the root folder."
+        failure.assertHasDescription "Executing Gradle tasks as part of a build without a settings file is not supported. " +
+            "Make sure that you are executing Gradle from a directory within your Gradle project. " +
+            "Your project should have a 'settings.gradle(.kts)' file in the root directory."
 
         where:
         task << [ProjectInternal.HELP_TASK, ProjectInternal.TASKS_TASK]
