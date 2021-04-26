@@ -20,7 +20,6 @@ import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_WEEK
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -28,7 +27,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
 )
-@Ignore("https://github.com/gradle/gradle/pull/16495")
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "clean assemble with 4 parallel workers"() {

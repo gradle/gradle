@@ -19,7 +19,6 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -27,7 +26,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject", "largeJavaMultiProjectKotlinDsl"])
 )
-@Ignore("https://github.com/gradle/gradle/pull/16495")
 class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "configure"() {
