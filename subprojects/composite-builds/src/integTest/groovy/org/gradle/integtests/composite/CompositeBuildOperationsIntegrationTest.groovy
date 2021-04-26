@@ -168,12 +168,14 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         configureOps[1].details.buildPath == ":buildB"
         configureOps[1].parentId == configureOps[0].id
 
+        def applyRootProjectBuildScript = operations.first(Pattern.compile("Apply build file 'build.gradle' to root project 'buildA'"))
+
         // The task graph for buildB is calculated multiple times, once for buildscript dependency and again for production dependency
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 3
         taskGraphOps[0].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[0].details.buildPath == ":buildB"
-        // parent is 'apply build script to project'
+        taskGraphOps[0].parentId == applyRootProjectBuildScript.id
         taskGraphOps[1].displayName == "Calculate task graph"
         taskGraphOps[1].details.buildPath == ":"
         taskGraphOps[1].parentId == root.id
@@ -185,7 +187,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 3
         runTasksOps[0].displayName == "Run tasks (:buildB)"
-        runTasksOps[0].parentId == root.id
+        runTasksOps[0].parentId == applyRootProjectBuildScript.id
         // Build operations are run in parallel, so can appear in either order
         [runTasksOps[1].displayName, runTasksOps[2].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[1].parentId == root.id

@@ -20,11 +20,11 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.internal.build.BuildModelControllerServices;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeController;
@@ -125,11 +125,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
         public DoNoFinishIncludedBuildControllers(IncludedBuildControllers controllers) {
             this.controllers = controllers;
-        }
-
-        @Override
-        public void rootBuildOperationStarted() {
-            controllers.rootBuildOperationStarted();
         }
 
         @Override
