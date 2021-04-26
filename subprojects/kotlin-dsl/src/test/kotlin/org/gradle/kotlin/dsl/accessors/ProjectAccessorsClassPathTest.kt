@@ -37,7 +37,6 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.reflect.TypeOf.parameterizedTypeOf
@@ -70,7 +69,6 @@ import java.io.File
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier.PUBLIC
 import java.lang.reflect.Modifier.STATIC
-
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
@@ -284,7 +282,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     entry<SourceSetContainer, SourceSet>("main")
                 ),
                 conventions = listOf(
-                    entry<Project, ApplicationPluginConvention>("application")
+                    entry<Project, @kotlin.Suppress("deprecation") org.gradle.api.plugins.ApplicationPluginConvention>("application")
                 ),
                 tasks = listOf(
                     entry<TaskContainer, Delete>("clean")
@@ -319,7 +317,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val tasks = mock<TaskContainer> {
             on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
         }
-        val applicationPluginConvention = mock<ApplicationPluginConvention>()
+        val applicationPluginConvention = mock<@Suppress("deprecation") org.gradle.api.plugins.ApplicationPluginConvention>()
         val convention = mock<Convention> {
             on { plugins } doReturn mapOf("application" to applicationPluginConvention)
         }
