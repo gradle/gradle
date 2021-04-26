@@ -1,0 +1,27 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>war</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>webAppDir</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/src/main/webapp</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

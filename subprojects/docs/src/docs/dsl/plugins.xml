@@ -20,6 +20,7 @@
     </plugin>
     <plugin id="war" description="War Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.WarPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.WarPluginExtension"/>
     </plugin>
     <plugin id="ear" description="Ear Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.plugins.ear.EarPluginConvention"/>

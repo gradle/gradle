@@ -21,6 +21,7 @@ import org.gradle.api.plugins.WarPluginConvention;
 import org.gradle.api.plugins.WarPluginExtension;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;
 
@@ -48,12 +49,14 @@ public class DefaultWarPluginConvention extends WarPluginConvention implements H
 
     @Override
     public String getWebAppDirName() {
-        return extension.getWebAppDir().get().getAsFile().getName();
+        File projectDir = project.getProjectDir();
+        File webAppDir = extension.getWebAppDir().get().getAsFile();
+        return RelativePathUtil.relativePath(projectDir, webAppDir);
     }
 
     @Override
     public void setWebAppDirName(String webAppDirName) {
-        project.getLayout().getProjectDirectory().dir(webAppDirName);
+        extension.getWebAppDir().set(project.getLayout().getProjectDirectory().dir(webAppDirName));
     }
 
     @Override

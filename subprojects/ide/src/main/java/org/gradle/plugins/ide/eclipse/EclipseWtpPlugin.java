@@ -42,6 +42,7 @@ import org.gradle.plugins.ide.eclipse.model.Facet;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.util.internal.RelativePathUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -200,7 +201,12 @@ public class EclipseWtpPlugin extends IdePlugin {
                 convention.map("resources", new Callable<List<WbResource>>() {
                     @Override
                     public List<WbResource> call() throws Exception {
-                        return Lists.newArrayList(new WbResource("/", project.getExtensions().getByType(WarPluginExtension.class).getWebAppDir().get().getAsFile().getName()));
+                        File projectDir = project.getProjectDir();
+                        File webAppDir = project.getExtensions().getByType(WarPluginExtension.class).getWebAppDir().get().getAsFile();
+                        String webAppDirName = RelativePathUtil.relativePath(projectDir, webAppDir);
+
+                        System.out.println("donat=" + webAppDirName);
+                        return Lists.newArrayList(new WbResource("/", webAppDirName));
                     }
                 });
                 convention.map("sourceDirs", new Callable<Set<File>>() {
