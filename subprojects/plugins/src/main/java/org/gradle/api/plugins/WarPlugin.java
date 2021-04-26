@@ -47,7 +47,6 @@ public class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
-    public static final String WAR_EXTENSION_NAME = "warPlugin"; // TODO (donat) rename warPlugin to war in Gradle 8.0.
     public static final String WEB_APP_GROUP = "web application";
 
     private final ObjectFactory objectFactory;
@@ -63,7 +62,7 @@ public class WarPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
-        WarPluginExtension extension = project.getExtensions().create(WarPluginExtension.class, WAR_EXTENSION_NAME, WarPluginExtension.class);
+        WarPluginExtension extension = project.getExtensions().create(WarPluginExtension.class, "warPlugin", WarPluginExtension.class); // TODO (donat) rename warPlugin to war in Gradle 8.0.
         extension.getWebAppDir().convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
 
         final WarPluginConvention pluginConvention = new DefaultWarPluginConvention(project, extension);
