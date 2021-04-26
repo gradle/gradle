@@ -443,7 +443,7 @@ The directory to generate documentation into. Default value: `__buildDir__/__doc
 `String dependencyCacheDirName`::
 The name of the directory to use to cache source dependency information, relative to the build directory. Default value: `dependency-cache`
 
-=== Other convention properties
+=== Other properties
 
 `(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
 Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
