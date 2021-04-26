@@ -170,7 +170,7 @@ public class War extends Jar {
     }
 
     @Internal
-    DirectoryProperty getWebAppDir() {
+    public DirectoryProperty getWebAppDir() {
         return getProject().getExtensions().getByType(WarPluginExtension.class).getWebAppDir();
     }
 
