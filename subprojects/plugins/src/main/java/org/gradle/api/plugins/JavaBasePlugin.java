@@ -120,7 +120,7 @@ public class JavaBasePlugin implements Plugin<Project> {
 
         DefaultJavaPluginExtension javaPluginExtension = addExtensions(projectInternal);
 
-        configureSourceSetDefaults(javaPluginExtension);
+        configureSourceSetDefaults(project, javaPluginExtension);
         configureCompileDefaults(project, javaPluginExtension);
 
         configureJavaDoc(project, javaPluginExtension);
@@ -133,13 +133,12 @@ public class JavaBasePlugin implements Plugin<Project> {
         DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", new DefaultJavaPluginConvention(javaPluginExtension));
+        project.getConvention().getPlugins().put("java", new DefaultJavaPluginConvention(project, javaPluginExtension));
         project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaPluginExtension;
     }
 
-    private void configureSourceSetDefaults(final JavaPluginExtension javaPluginExtension) {
-        final Project project = javaPluginExtension.getProject();
+    private void configureSourceSetDefaults(Project project, final JavaPluginExtension javaPluginExtension) {
         javaPluginExtension.getSourceSets().all(sourceSet -> {
             ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
 

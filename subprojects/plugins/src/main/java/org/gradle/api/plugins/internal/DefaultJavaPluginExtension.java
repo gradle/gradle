@@ -199,10 +199,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return sourceSets;
     }
 
-    public ProjectInternal getProject() {
-        return project;
-    }
-
     public void disableAutoTargetJvm() {
         this.autoTargetJvm = false;
     }

@@ -34,9 +34,11 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public class DefaultJavaPluginConvention extends JavaPluginConvention implements HasPublicType {
 
+    private final ProjectInternal project;
     private final JavaPluginExtension extension;
 
-    public DefaultJavaPluginConvention(JavaPluginExtension extension) {
+    public DefaultJavaPluginConvention(ProjectInternal project, JavaPluginExtension extension) {
+        this.project = project;
         this.extension = extension;
     }
 
@@ -147,7 +149,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public ProjectInternal getProject() {
-        return (ProjectInternal) extension.getProject();
+        return project;
     }
 
     @Override
@@ -164,6 +166,6 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
         // This became public API by accident as Groovy has access to private methods and we show an example in our docs
         // see subprojects/docs/src/snippets/java/customDirs/groovy/build.gradle
         // and https://docs.gradle.org/current/userguide/java_testing.html#test_reporting
-        return extension.getProject().getExtensions().getByType(ReportingExtension.class).getBaseDir();
+        return project.getExtensions().getByType(ReportingExtension.class).getBaseDir();
     }
 }

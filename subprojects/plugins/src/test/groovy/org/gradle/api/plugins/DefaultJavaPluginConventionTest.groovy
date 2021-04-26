@@ -44,7 +44,7 @@ class DefaultJavaPluginConventionTest extends Specification {
     def setup() {
         project.pluginManager.apply(ReportingBasePlugin)
         extension = new DefaultJavaPluginExtension(project, sourceSets, toolchainSpec, Stub(JvmPluginServices))
-        convention = new DefaultJavaPluginConvention(extension)
+        convention = new DefaultJavaPluginConvention(project, extension)
     }
 
     def "default values"() {

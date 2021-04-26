@@ -270,10 +270,10 @@ public class JavaPlugin implements Plugin<Project> {
 
         JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-        projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaExtension));
+        projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(project, javaExtension));
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
 
-        configureSourceSets(javaExtension, buildOutputCleanupRegistry);
+        configureSourceSets(project,javaExtension, buildOutputCleanupRegistry);
         configureConfigurations(project, javaExtension);
 
         configureTest(project, javaPluginExtension);
@@ -282,8 +282,7 @@ public class JavaPlugin implements Plugin<Project> {
         configureBuild(project);
     }
 
-    private void configureSourceSets(JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
-        Project project = pluginExtension.getProject();
+    private void configureSourceSets(Project project, JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         SourceSetContainer sourceSets = pluginExtension.getSourceSets();
 
         SourceSet main = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -443,9 +442,11 @@ public class JavaPlugin implements Plugin<Project> {
      * This is only used by buildSrc to add to the buildscript classpath.
      */
     private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
+        private final Project project;
         private final JavaPluginExtension extension;
 
-        public BuildableJavaComponentImpl(JavaPluginExtension convention) {
+        public BuildableJavaComponentImpl(Project project, JavaPluginExtension convention) {
+            this.project = project;
             this.extension = convention;
         }
 
@@ -456,7 +457,6 @@ public class JavaPlugin implements Plugin<Project> {
 
         @Override
         public FileCollection getRuntimeClasspath() {
-            Project project = extension.getProject();
             SourceSet mainSourceSet = mainSourceSetOf(extension);
             Configuration runtimeClasspath = project.getConfigurations().getByName(mainSourceSet.getRuntimeClasspathConfigurationName());
             ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
@@ -474,7 +474,7 @@ public class JavaPlugin implements Plugin<Project> {
 
         @Override
         public Configuration getCompileDependencies() {
-            return extension.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
+            return project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         }
     }
 
