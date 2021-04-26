@@ -92,18 +92,22 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.toolchain = toolchainSpec;
     }
 
+    @Override
     public Object sourceSets(Closure closure) {
         return sourceSets.configure(closure);
     }
 
+    @Override
     public File getDocsDir() {
         return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(docsDirName);
     }
 
+    @Override
     public File getTestResultsDir() {
         return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(testResultsDirName);
     }
 
+    @Override
     public File getTestReportDir() {
         return project.getServices().get(FileLookup.class).getFileResolver(getReportsDir()).resolve(testReportDirName);
     }
@@ -126,6 +130,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return srcCompat;
     }
 
+    @Override
     public void setSourceCompatibility(Object value) {
         setSourceCompatibility(JavaVersion.toVersion(value));
     }
@@ -144,6 +149,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return targetCompat;
     }
 
+    @Override
     public void setTargetCompatibility(Object value) {
         setTargetCompatibility(JavaVersion.toVersion(value));
     }
@@ -153,14 +159,17 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         targetCompat = value;
     }
 
+    @Override
     public Manifest manifest() {
         return manifest(Actions.doNothing());
     }
 
+    @Override
     public Manifest manifest(Closure closure) {
         return configure(closure, createManifest());
     }
 
+    @Override
     public Manifest manifest(Action<? super Manifest> action) {
         Manifest manifest = createManifest();
         action.execute(manifest);
@@ -171,38 +180,47 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return new DefaultManifest(project.getFileResolver());
     }
 
+    @Override
     public String getDocsDirName() {
         return docsDirName;
     }
 
+    @Override
     public void setDocsDirName(String docsDirName) {
         this.docsDirName = docsDirName;
     }
 
+    @Override
     public String getTestResultsDirName() {
         return testResultsDirName;
     }
 
+    @Override
     public void setTestResultsDirName(String testResultsDirName) {
         this.testResultsDirName = testResultsDirName;
     }
 
+    @Override
     public String getTestReportDirName() {
         return testReportDirName;
     }
 
+    @Override
     public void setTestReportDirName(String testReportDirName) {
         this.testReportDirName = testReportDirName;
     }
 
+    @Override
     public SourceSetContainer getSourceSets() {
         return sourceSets;
     }
 
+    @Override
     public void disableAutoTargetJvm() {
         this.autoTargetJvm = false;
     }
 
+    @Override
     public boolean getAutoTargetJvmDisabled() {
         return !autoTargetJvm;
     }
