@@ -16,7 +16,6 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
 
@@ -25,8 +24,8 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
     private String parentProperty;
     private String property;
 
-    public DefaultPropertyValidationProblemBuilder(DocumentationRegistry documentationRegistry, @Nullable PluginId pluginId) {
-        super(documentationRegistry, pluginId);
+    public DefaultPropertyValidationProblemBuilder(DocumentationRegistry documentationRegistry) {
+        super(documentationRegistry);
     }
 
     @Override
@@ -68,7 +67,7 @@ public class DefaultPropertyValidationProblemBuilder extends AbstractValidationP
         return new TypeValidationProblem(
             problemId,
             severity,
-            TypeValidationProblemLocation.forProperty(typeIrrelevantInErrorMessage ? null : rootType, typeIrrelevantInErrorMessage ? null : pluginId, parentProperty, property),
+            TypeValidationProblemLocation.forProperty(typeIrrelevantInErrorMessage ? null : rootType, parentProperty, property),
             shortProblemDescription,
             longDescription,
             reason,

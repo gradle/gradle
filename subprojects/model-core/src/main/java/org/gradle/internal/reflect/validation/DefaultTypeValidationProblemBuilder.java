@@ -16,13 +16,12 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.plugin.use.PluginId;
 
 public class DefaultTypeValidationProblemBuilder extends AbstractValidationProblemBuilder<TypeProblemBuilder> implements TypeProblemBuilder {
     private Class<?> type;
 
-    public DefaultTypeValidationProblemBuilder(DocumentationRegistry documentationRegistry, PluginId pluginId) {
-        super(documentationRegistry, pluginId);
+    public DefaultTypeValidationProblemBuilder(DocumentationRegistry documentationRegistry) {
+        super(documentationRegistry);
     }
 
     @Override
@@ -44,7 +43,7 @@ public class DefaultTypeValidationProblemBuilder extends AbstractValidationProbl
         return new TypeValidationProblem(
             problemId,
             severity,
-            typeIrrelevantInErrorMessage ? TypeValidationProblemLocation.irrelevant() :  TypeValidationProblemLocation.inType(type, pluginId),
+            typeIrrelevantInErrorMessage ? TypeValidationProblemLocation.irrelevant() :  TypeValidationProblemLocation.inType(type),
             shortProblemDescription,
             longDescription,
             reason,

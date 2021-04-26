@@ -433,6 +433,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 - A TextResource instance."""
 
         def expectedWarning = unresolvableInput({
+            type('org.gradle.api.DefaultTask')
             property('invalidInputFileCollection')
             conversionProblem(rootCause.stripIndent())
             includeLink()

@@ -67,7 +67,7 @@ class ValidationProblemPropertyAnnotationHandler implements PropertyAnnotationHa
 
     private Severity annotationValue(PropertyMetadata propertyMetadata) {
         return Optional.ofNullable((ValidationProblem) propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE))
-            .map(ValidationProblem::value)
+            .map(ValidationProblem::getValue)
             .orElse(Severity.WARNING);
     }
 }

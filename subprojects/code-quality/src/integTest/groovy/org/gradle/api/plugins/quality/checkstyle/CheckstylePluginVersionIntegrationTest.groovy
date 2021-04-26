@@ -90,7 +90,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         expect:
         fails('check')
         failureDescriptionContains(inputDoesNotExist {
-            inPlugin('org.gradle.checkstyle').type('org.gradle.api.plugins.quality.Checkstyle').property('configDirectory').dir(missing)
+            type('org.gradle.api.plugins.quality.Checkstyle').property('configDirectory').dir(missing)
         })
     }
 

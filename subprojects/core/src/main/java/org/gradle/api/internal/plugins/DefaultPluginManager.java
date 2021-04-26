@@ -46,7 +46,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @NotThreadSafe
 public class DefaultPluginManager implements PluginManagerInternal {
@@ -121,15 +120,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
     @Override
     public PluginContainer getPluginContainer() {
         return pluginContainer;
-    }
-
-    @Override
-    public <P extends Plugin<?>> Optional<PluginId> findPluginIdForClass(Class<P> plugin) {
-        PluginImplementation<?> pluginImplementation = plugins.get(plugin);
-        if (pluginImplementation != null) {
-            return Optional.ofNullable(pluginImplementation.getPluginId());
-        }
-        return Optional.empty();
     }
 
     @Override
