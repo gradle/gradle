@@ -329,7 +329,7 @@ public class JavaPlugin implements Plugin<Project> {
 
     private void configureJavadocTask(Project project, JavaPluginExtension javaPluginExtension) {
         SourceSet main = mainSourceSetOf(javaPluginExtension);
-        configureJavaDocTask(null, main, project.getTasks(), javaPluginExtension, javaPluginExtension::getDocsDir);
+        configureJavaDocTask(null, main, project.getTasks(), javaPluginExtension);
     }
 
     private void registerSoftwareComponents(Project project) {

@@ -628,14 +628,6 @@
         },
         {
             "type": "org.gradle.api.plugins.JavaPluginExtension",
-            "member": "Method org.gradle.api.plugins.JavaPluginExtension.getDocsDirName()",
-            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.JavaPluginExtension",
             "member": "Method org.gradle.api.plugins.JavaPluginExtension.getTestReportDirName()",
             "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
             "changes": [
@@ -677,14 +669,6 @@
         {
             "type": "org.gradle.api.plugins.JavaPluginExtension",
             "member": "Method org.gradle.api.plugins.JavaPluginExtension.manifest(org.gradle.api.Action)",
-            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.JavaPluginExtension",
-            "member": "Method org.gradle.api.plugins.JavaPluginExtension.setDocsDirName(java.lang.String)",
             "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
             "changes": [
                 "Method added to interface"

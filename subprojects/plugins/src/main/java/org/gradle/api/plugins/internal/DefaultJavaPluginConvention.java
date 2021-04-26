@@ -27,6 +27,7 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;
 
@@ -54,7 +55,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public File getDocsDir() {
-        return extension.getDocsDir();
+        return extension.getDocsDir().get().getAsFile();
     }
 
     @Override
@@ -114,12 +115,14 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public String getDocsDirName() {
-        return extension.getDocsDirName();
+        File buildDir = project.getLayout().getBuildDirectory().get().getAsFile();
+        File docsDir = extension.getDocsDir().get().getAsFile();
+        return RelativePathUtil.relativePath(buildDir, docsDir);
     }
 
     @Override
     public void setDocsDirName(String docsDirName) {
-        extension.setDocsDirName(docsDirName);
+        extension.getDocsDir().set(project.getLayout().getBuildDirectory().dir(docsDirName));
     }
 
     @Override

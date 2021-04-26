@@ -312,7 +312,7 @@ public class JavaBasePlugin implements Plugin<Project> {
 
     private void configureJavaDoc(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
-            javadoc.getConventionMapping().map("destinationDir", () -> new File(javaPluginExtension.getDocsDir(), "javadoc"));
+            javadoc.getConventionMapping().map("destinationDir", () -> new File(javaPluginExtension.getDocsDir().get().getAsFile(), "javadoc"));
             javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             javadoc.getJavadocTool().convention(getToolchainTool(project, JavaToolchainService::javadocToolFor));
         });

@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -193,7 +194,7 @@ public interface JavaPluginExtension {
      * Returns a file pointing to the root directory supposed to be used for all docs.
      * @since 7.1
      */
-    File getDocsDir();
+    DirectoryProperty getDocsDir();
 
     /**
      * Returns a file pointing to the root directory of the test results.
@@ -246,19 +247,6 @@ public interface JavaPluginExtension {
      * @since 7.1
      */
     Manifest manifest(Action<? super Manifest> action);
-
-    /**
-     * The name of the docs directory. Can be a name or a path relative to the build dir.
-     * @since 7.1
-     */
-    String getDocsDirName();
-
-    /**
-     * Sets the name of the docs directory.
-     *
-     * @since 7.1
-     */
-    void setDocsDirName(String docsDirName);
 
     /**
      * The name of the test results directory. Can be a name or a path relative to the build dir.

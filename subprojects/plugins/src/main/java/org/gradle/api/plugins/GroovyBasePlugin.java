@@ -40,7 +40,6 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.function.BiFunction;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
@@ -133,7 +132,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
                 return groovyClasspath.plus(jansi);
             });
-            groovydoc.getConventionMapping().map("destinationDir", () -> new File(project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir(), "groovydoc"));
+            groovydoc.getConventionMapping().map("destinationDir", () -> project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir().dir("groovydoc").get().getAsFile());
             groovydoc.getConventionMapping().map("docTitle", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             groovydoc.getConventionMapping().map("windowTitle", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
         });

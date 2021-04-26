@@ -37,12 +37,8 @@
                 <td/>
             </tr>
             <tr>
-                <td>docsDirName</td>
-                <td><literal>'docs'</literal></td>
-            </tr>
-            <tr>
                 <td>docsDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.docsDirName}</replaceable></literal></td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/docs</literal></td>
             </tr>
             <tr>
                 <td>testResultsDirName</td>

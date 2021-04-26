@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -71,7 +72,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final JavaToolchainSpec toolchain;
     private final ProjectInternal project;
 
-    private String docsDirName;
+    private final DirectoryProperty docsDir;
     private String testResultsDirName;
     private String testReportDirName;
     private JavaVersion srcCompat;
@@ -79,10 +80,10 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private boolean autoTargetJvm = true;
 
     public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec, JvmPluginServices jvmPluginServices) {
+        this.docsDir = project.getObjects().directoryProperty();
         this.project = project;
         this.sourceSets = sourceSets;
         this.toolchainSpec = toolchainSpec;
-        this.docsDirName = "docs";
         this.testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
         this.testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
         this.objectFactory = project.getObjects();
@@ -90,6 +91,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.jvmPluginServices = jvmPluginServices;
         this.toolchain = toolchainSpec;
+        configureDefaults();
+    }
+
+    private void configureDefaults() {
+        docsDir.convention(project.getLayout().getBuildDirectory().dir("docs"));
     }
 
     @Override
@@ -98,8 +104,8 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public File getDocsDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(docsDirName);
+    public DirectoryProperty getDocsDir() {
+        return docsDir;
     }
 
     @Override
@@ -178,16 +184,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     private Manifest createManifest() {
         return new DefaultManifest(project.getFileResolver());
-    }
-
-    @Override
-    public String getDocsDirName() {
-        return docsDirName;
-    }
-
-    @Override
-    public void setDocsDirName(String docsDirName) {
-        this.docsDirName = docsDirName;
     }
 
     @Override

@@ -285,8 +285,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 scalaDoc.getConventionMapping().map("destinationDir", new Callable<File>() {
                     @Override
                     public File call() throws Exception {
-                        File docsDir = project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir();
-                        return project.file(docsDir.getPath() + "/scaladoc");
+                        return project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir().dir("scaladoc").get().getAsFile();
                     }
                 });
                 scalaDoc.getConventionMapping().map("title", new Callable<String>() {
