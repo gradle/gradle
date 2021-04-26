@@ -17,14 +17,26 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.integtests.fixtures.ForkCapableRelocationIntegrationTest
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.fixtures.file.TestFile
 
-class ScalaCompileRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
+class ScalaCompileRelocationIntegrationTest extends ForkCapableRelocationIntegrationTest {
 
     @Override
     protected String getTaskName() {
         return ":compileScala"
+    }
+
+    @Override
+    String getDaemonConfiguration() {
+        // Scala compiler always runs in a daemon
+        return ""
+    }
+
+    @Override
+    String getForkOptionsObject() {
+        return "compileScala.scalaCompileOptions.forkOptions"
     }
 
     @Override

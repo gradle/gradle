@@ -17,15 +17,26 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.integtests.fixtures.ForkCapableRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.JarUtils.jarWithContents
 
-class JavaCompileRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
+class JavaCompileRelocationIntegrationTest extends ForkCapableRelocationIntegrationTest {
 
     @Override
     protected String getTaskName() {
         return ":compile"
+    }
+
+    @Override
+    String getDaemonConfiguration() {
+        return "compile.options.fork = true"
+    }
+
+    @Override
+    String getForkOptionsObject() {
+        return "compile.options.forkOptions"
     }
 
     @Override
