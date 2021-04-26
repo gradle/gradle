@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
@@ -94,6 +95,8 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
+        JvmEcosystemUtilities jvmEcosystemUtilities = project.getServices().get(JvmEcosystemUtilities.class);
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(configuration);
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));
         configuration.exclude(excludeProperties("org.apache.ant", "ant"));
