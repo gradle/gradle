@@ -19,6 +19,7 @@ package org.gradle.api.plugins.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -60,12 +61,12 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public File getTestResultsDir() {
-        return extension.getTestResultsDir();
+        return extension.getTestResultsDir().get().getAsFile();
     }
 
     @Override
     public File getTestReportDir() {
-        return extension.getTestReportDir();
+        return extension.getTestReportDir().get().getAsFile();
     }
 
     @Override
@@ -115,9 +116,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public String getDocsDirName() {
-        File buildDir = project.getLayout().getBuildDirectory().get().getAsFile();
-        File docsDir = extension.getDocsDir().get().getAsFile();
-        return RelativePathUtil.relativePath(buildDir, docsDir);
+        return relativePath(project.getLayout().getBuildDirectory(), extension.getDocsDir());
     }
 
     @Override
@@ -127,22 +126,22 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public String getTestResultsDirName() {
-        return extension.getTestResultsDirName();
+        return relativePath(project.getLayout().getBuildDirectory(), extension.getTestResultsDir());
     }
 
     @Override
     public void setTestResultsDirName(String testResultsDirName) {
-        extension.setTestResultsDirName(testResultsDirName);
+        extension.getTestResultsDir().set(project.getLayout().getBuildDirectory().dir(testResultsDirName));
     }
 
     @Override
     public String getTestReportDirName() {
-        return extension.getTestReportDirName();
+        return relativePath(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory(), extension.getTestReportDir());
     }
 
     @Override
     public void setTestReportDirName(String testReportDirName) {
-        extension.setTestReportDirName(testReportDirName);
+        extension.getTestReportDir().set(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(testReportDirName));
     }
 
     @Override
@@ -170,5 +169,9 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
         // see subprojects/docs/src/snippets/java/customDirs/groovy/build.gradle
         // and https://docs.gradle.org/current/userguide/java_testing.html#test_reporting
         return project.getExtensions().getByType(ReportingExtension.class).getBaseDir();
+    }
+
+    private static String relativePath(DirectoryProperty from, DirectoryProperty to) {
+        return RelativePathUtil.relativePath(from.get().getAsFile(), to.get().getAsFile());
     }
 }

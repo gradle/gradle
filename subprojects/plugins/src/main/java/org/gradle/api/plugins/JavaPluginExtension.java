@@ -27,8 +27,6 @@ import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
-import java.io.File;
-
 /**
  * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
  *
@@ -200,13 +198,13 @@ public interface JavaPluginExtension {
      * Returns a file pointing to the root directory of the test results.
      * @since 7.1
      */
-    File getTestResultsDir();
+    DirectoryProperty getTestResultsDir();
 
     /**
      * Returns a file pointing to the root directory to be used for reports.
      * @since 7.1
      */
-    File getTestReportDir();
+    DirectoryProperty getTestReportDir();
 
     /**
      * Sets the source compatibility used for compiling Java sources.
@@ -247,32 +245,6 @@ public interface JavaPluginExtension {
      * @since 7.1
      */
     Manifest manifest(Action<? super Manifest> action);
-
-    /**
-     * The name of the test results directory. Can be a name or a path relative to the build dir.
-     * @since 7.1
-     */
-    String getTestResultsDirName();
-
-    /**
-     * Sets the name of the test results directory.
-     *
-     * @since 7.1
-     */
-    void setTestResultsDirName(String testResultsDirName);
-
-    /**
-     * The name of the test reports directory. Can be a name or a path relative to {@link org.gradle.api.reporting.ReportingExtension#getBaseDir}.
-     * @since 7.1
-     */
-    String getTestReportDirName();
-
-    /**
-     * Sets the name of the test reports directory.
-     *
-     * @since 7.1
-     */
-    void setTestReportDirName(String testReportDirName);
 
     /**
      * The source sets container.

@@ -628,23 +628,7 @@
         },
         {
             "type": "org.gradle.api.plugins.JavaPluginExtension",
-            "member": "Method org.gradle.api.plugins.JavaPluginExtension.getTestReportDirName()",
-            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.JavaPluginExtension",
             "member": "Method org.gradle.api.plugins.JavaPluginExtension.getTestResultsDir()",
-            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.JavaPluginExtension",
-            "member": "Method org.gradle.api.plugins.JavaPluginExtension.getTestResultsDirName()",
             "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
             "changes": [
                 "Method added to interface"
@@ -677,22 +661,6 @@
         {
             "type": "org.gradle.api.plugins.JavaPluginExtension",
             "member": "Method org.gradle.api.plugins.JavaPluginExtension.setTargetCompatibility(java.lang.Object)",
-            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.JavaPluginExtension",
-            "member": "Method org.gradle.api.plugins.JavaPluginExtension.setTestReportDirName(java.lang.String)",
-            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.JavaPluginExtension",
-            "member": "Method org.gradle.api.plugins.JavaPluginExtension.setTestResultsDirName(java.lang.String)",
             "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
             "changes": [
                 "Method added to interface"

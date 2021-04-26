@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
@@ -49,7 +48,6 @@ import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.regex.Pattern;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
@@ -73,19 +71,19 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final ProjectInternal project;
 
     private final DirectoryProperty docsDir;
-    private String testResultsDirName;
-    private String testReportDirName;
+    private final DirectoryProperty testResultsDir;
+    private final DirectoryProperty testReportDir;
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
     private boolean autoTargetJvm = true;
 
     public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec, JvmPluginServices jvmPluginServices) {
         this.docsDir = project.getObjects().directoryProperty();
+        this.testResultsDir = project.getObjects().directoryProperty();
+        this.testReportDir = project.getObjects().directoryProperty(); //TestingBasePlugin.TESTS_DIR_NAME;
         this.project = project;
         this.sourceSets = sourceSets;
         this.toolchainSpec = toolchainSpec;
-        this.testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
-        this.testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
         this.objectFactory = project.getObjects();
         this.components = project.getComponents();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
@@ -96,6 +94,8 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     private void configureDefaults() {
         docsDir.convention(project.getLayout().getBuildDirectory().dir("docs"));
+        testResultsDir.convention(project.getLayout().getBuildDirectory().dir(TestingBasePlugin.TEST_RESULTS_DIR_NAME));
+        testReportDir.convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
     }
 
     @Override
@@ -109,17 +109,13 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public File getTestResultsDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(testResultsDirName);
+    public DirectoryProperty getTestResultsDir() {
+        return testResultsDir;
     }
 
     @Override
-    public File getTestReportDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(getReportsDir()).resolve(testReportDirName);
-    }
-
-    private File getReportsDir() {
-        return project.getExtensions().getByType(ReportingExtension.class).getBaseDir();
+    public DirectoryProperty getTestReportDir() {
+        return testReportDir;
     }
 
     public JavaVersion getSourceCompatibility() {
@@ -184,26 +180,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     private Manifest createManifest() {
         return new DefaultManifest(project.getFileResolver());
-    }
-
-    @Override
-    public String getTestResultsDirName() {
-        return testResultsDirName;
-    }
-
-    @Override
-    public void setTestResultsDirName(String testResultsDirName) {
-        this.testResultsDirName = testResultsDirName;
-    }
-
-    @Override
-    public String getTestReportDirName() {
-        return testReportDirName;
-    }
-
-    @Override
-    public void setTestReportDirName(String testReportDirName) {
-        this.testReportDirName = testReportDirName;
     }
 
     @Override

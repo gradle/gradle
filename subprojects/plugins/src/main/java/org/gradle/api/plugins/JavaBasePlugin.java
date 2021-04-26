@@ -342,10 +342,9 @@ public class JavaBasePlugin implements Plugin<Project> {
         DirectoryReport htmlReport = test.getReports().getHtml();
         JUnitXmlReport xmlReport = test.getReports().getJunitXml();
 
-        // TODO - should replace `testResultsDir` and `testReportDir` with `Property` types and map their values
-        xmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(javaPluginExtension.getTestResultsDir(), test.getName()).getAbsolutePath())));
-        htmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(javaPluginExtension.getTestReportDir(), test.getName()).getAbsolutePath())));
-        test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(javaPluginExtension.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath())));
+        xmlReport.getOutputLocation().convention(javaPluginExtension.getTestResultsDir().dir(test.getName()));
+        htmlReport.getOutputLocation().convention(javaPluginExtension.getTestReportDir().dir(test.getName()));
+        test.getBinaryResultsDirectory().convention(javaPluginExtension.getTestResultsDir().dir(test.getName() + "/binary"));
         test.workingDir(project.getProjectDir());
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
     }
