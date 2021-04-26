@@ -311,22 +311,22 @@ public class DefaultGradleRunner extends GradleRunner {
 
         GradleProvider effectiveDistribution = gradleProvider == null ? findGradleInstallFromGradleRunner() : gradleProvider;
 
-        List<String> effectiveJvmArguments = new ArrayList<>();
+        List<String> effectiveArguments = new ArrayList<>();
         if (OperatingSystem.current().isWindows()) {
             // When using file system watching in Windows tests it becomes harder to delete the project directory,
             // since file system watching on Windows adds a lock on the watched directory, which is currently the project directory.
             // After deleting the contents of the watched directory, Gradle will stop watching the directory and release the file lock.
             // That may require a retry to delete the watched directory.
             // To avoid those problems for TestKit tests on Windows, we disable file system watching there.
-            effectiveJvmArguments.add("-D" + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + "=false");
+            effectiveArguments.add("-D" + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + "=false");
         }
-        effectiveJvmArguments.addAll(jvmArguments);
+        effectiveArguments.addAll(arguments);
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
             effectiveDistribution,
             testKitDir,
             projectDirectory,
-            arguments,
-            effectiveJvmArguments,
+            effectiveArguments,
+            jvmArguments,
             classpath,
             debug,
             standardOutput,
