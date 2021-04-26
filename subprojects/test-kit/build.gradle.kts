@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))
     implementation(project(":core"))
+    implementation(project(":build-option"))
     implementation(project(":wrapper"))
     implementation(project(":tooling-api"))
     implementation(project(":file-temp"))

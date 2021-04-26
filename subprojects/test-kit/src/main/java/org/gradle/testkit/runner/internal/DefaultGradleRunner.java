@@ -20,6 +20,7 @@ import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
@@ -28,6 +29,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
@@ -309,12 +311,22 @@ public class DefaultGradleRunner extends GradleRunner {
 
         GradleProvider effectiveDistribution = gradleProvider == null ? findGradleInstallFromGradleRunner() : gradleProvider;
 
+        List<String> effectiveJvmArguments = new ArrayList<>();
+        if (OperatingSystem.current().isWindows()) {
+            // When using file system watching in Windows tests it becomes harder to delete the project directory,
+            // since file system watching on Windows adds a lock on the watched directory, which is currently the project directory.
+            // After deleting the contents of the watched directory, Gradle will stop watching the directory and release the file lock.
+            // That may require a retry to delete the watched directory.
+            // To avoid those problems for TestKit tests on Windows, we disable file system watching there.
+            effectiveJvmArguments.add("-D" + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + "=false");
+        }
+        effectiveJvmArguments.addAll(jvmArguments);
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
             effectiveDistribution,
             testKitDir,
             projectDirectory,
             arguments,
-            jvmArguments,
+            effectiveJvmArguments,
             classpath,
             debug,
             standardOutput,
