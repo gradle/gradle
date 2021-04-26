@@ -70,6 +70,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier.PUBLIC
 import java.lang.reflect.Modifier.STATIC
 
+
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
     @Test
