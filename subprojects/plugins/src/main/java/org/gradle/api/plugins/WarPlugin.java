@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -62,7 +63,7 @@ public class WarPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
-        WarPluginExtension extension = project.getExtensions().create(WarPluginExtension.class, "war", WarPluginExtension.class);
+        WarPluginExtension extension = project.getExtensions().create(WarPluginExtension.class, "warPlugin", WarPluginExtension.class); // TODO (donat) rename warPlugin to war in Gradle 8.0.
         extension.getWebAppDir().convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
 
         final WarPluginConvention pluginConvention = new DefaultWarPluginConvention(project, extension);

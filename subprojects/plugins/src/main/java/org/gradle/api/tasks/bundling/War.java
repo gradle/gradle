@@ -18,10 +18,13 @@ package org.gradle.api.tasks.bundling;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.RenamingCopyAction;
+import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.WarPluginExtension;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -164,6 +167,11 @@ public class War extends Jar {
      */
     public void setWebXml(@Nullable File webXml) {
         this.webXml = webXml;
+    }
+
+    @Internal
+    DirectoryProperty getWebAppDir() {
+        return getProject().getExtensions().getByType(WarPluginExtension.class).getWebAppDir();
     }
 
 }
