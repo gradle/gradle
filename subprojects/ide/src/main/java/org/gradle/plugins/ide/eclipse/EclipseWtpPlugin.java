@@ -204,8 +204,6 @@ public class EclipseWtpPlugin extends IdePlugin {
                         File projectDir = project.getProjectDir();
                         File webAppDir = project.getExtensions().getByType(WarPluginExtension.class).getWebAppDir().get().getAsFile();
                         String webAppDirName = RelativePathUtil.relativePath(projectDir, webAppDir);
-
-                        System.out.println("donat=" + webAppDirName);
                         return Lists.newArrayList(new WbResource("/", webAppDirName));
                     }
                 });
