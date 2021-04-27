@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 
 import java.util.List;
 import java.util.Set;
@@ -89,8 +90,8 @@ public class DefaultSelectedByVariantMatchingConfigurationMetadata implements Se
     }
 
     @Override
-    public List<String> getConsumptionAlternatives() {
-        return delegate.getConsumptionAlternatives();
+    public DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation() {
+        return delegate.getConsumptionDeprecation();
     }
 
     @Override
