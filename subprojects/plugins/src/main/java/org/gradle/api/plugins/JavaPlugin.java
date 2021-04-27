@@ -269,22 +269,21 @@ public class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-        projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
+        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+        projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(project, javaExtension));
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
 
-        configureSourceSets(javaConvention, buildOutputCleanupRegistry);
-        configureConfigurations(project, javaConvention);
+        configureSourceSets(project, javaExtension, buildOutputCleanupRegistry);
+        configureConfigurations(project, javaExtension);
 
-        configureTest(project, javaPluginExtension, javaConvention);
-        configureJavadocTask(project, javaPluginExtension, javaConvention);
-        configureArchivesAndComponent(project, javaConvention);
+        configureTest(project, javaPluginExtension);
+        configureJavadocTask(project, javaPluginExtension);
+        configureArchivesAndComponent(project, javaExtension);
         configureBuild(project);
     }
 
-    private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
-        Project project = pluginConvention.getProject();
-        SourceSetContainer sourceSets = pluginConvention.getSourceSets();
+    private void configureSourceSets(Project project, JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+        SourceSetContainer sourceSets = pluginExtension.getSourceSets();
 
         SourceSet main = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
 
@@ -298,8 +297,8 @@ public class JavaPlugin implements Plugin<Project> {
         );
     }
 
-    private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
-        PublishArtifact jarArtifact = new LazyPublishArtifact(registerJarTaskFor(project, pluginConvention));
+    private void configureArchivesAndComponent(Project project, final JavaPluginExtension pluginExtension) {
+        PublishArtifact jarArtifact = new LazyPublishArtifact(registerJarTaskFor(project, pluginExtension));
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
@@ -307,30 +306,30 @@ public class JavaPlugin implements Plugin<Project> {
 
         Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
         addJar(apiElementConfiguration, jarArtifact);
-        addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, mainSourceSetOf(pluginConvention), processResources);
+        addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, mainSourceSetOf(pluginExtension), processResources);
 
         registerSoftwareComponents(project);
     }
 
-    private TaskProvider<Jar> registerJarTaskFor(Project project, JavaPluginConvention pluginConvention) {
+    private TaskProvider<Jar> registerJarTaskFor(Project project, JavaPluginExtension pluginExtension) {
         return project.getTasks().register(JAR_TASK_NAME, Jar.class, jar -> {
             jar.setDescription("Assembles a jar archive containing the main classes.");
             jar.setGroup(BasePlugin.BUILD_GROUP);
-            jar.from(mainSourceSetOf(pluginConvention).getOutput());
+            jar.from(mainSourceSetOf(pluginExtension).getOutput());
         });
     }
 
-    private static SourceSet mainSourceSetOf(JavaPluginConvention pluginConvention) {
-        return sourceSetOf(pluginConvention, SourceSet.MAIN_SOURCE_SET_NAME);
+    private static SourceSet mainSourceSetOf(JavaPluginExtension pluginExtension) {
+        return sourceSetOf(pluginExtension, SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
-    private static SourceSet sourceSetOf(JavaPluginConvention pluginConvention, String mainSourceSetName) {
-        return pluginConvention.getSourceSets().getByName(mainSourceSetName);
+    private static SourceSet sourceSetOf(JavaPluginExtension pluginExtension, String mainSourceSetName) {
+        return pluginExtension.getSourceSets().getByName(mainSourceSetName);
     }
 
-    private void configureJavadocTask(Project project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
-        SourceSet main = mainSourceSetOf(pluginConvention);
-        configureJavaDocTask(null, main, project.getTasks(), javaPluginExtension, pluginConvention::getDocsDir);
+    private void configureJavadocTask(Project project, JavaPluginExtension javaPluginExtension) {
+        SourceSet main = mainSourceSetOf(javaPluginExtension);
+        configureJavaDocTask(null, main, project.getTasks(), javaPluginExtension);
     }
 
     private void registerSoftwareComponents(Project project) {
@@ -378,10 +377,10 @@ public class JavaPlugin implements Plugin<Project> {
             JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }
 
-    private void configureTest(Project project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
+    private void configureTest(Project project, JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Test.class).configureEach(test -> {
-            test.getConventionMapping().map("testClassesDirs", () -> sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
+            test.getConventionMapping().map("testClassesDirs", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
+            test.getConventionMapping().map("classpath", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
             test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
         });
 
@@ -392,7 +391,7 @@ public class JavaPlugin implements Plugin<Project> {
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(test));
     }
 
-    private void configureConfigurations(Project project, JavaPluginConvention convention) {
+    private void configureConfigurations(Project project, JavaPluginExtension extension) {
         ConfigurationContainer configurations = project.getConfigurations();
 
         Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
@@ -404,7 +403,7 @@ public class JavaPlugin implements Plugin<Project> {
         testImplementationConfiguration.extendsFrom(implementationConfiguration);
         testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
 
-        SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet main = extension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
         final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
@@ -443,10 +442,12 @@ public class JavaPlugin implements Plugin<Project> {
      * This is only used by buildSrc to add to the buildscript classpath.
      */
     private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
-        private final JavaPluginConvention convention;
+        private final Project project;
+        private final JavaPluginExtension extension;
 
-        public BuildableJavaComponentImpl(JavaPluginConvention convention) {
-            this.convention = convention;
+        public BuildableJavaComponentImpl(Project project, JavaPluginExtension convention) {
+            this.project = project;
+            this.extension = convention;
         }
 
         @Override
@@ -456,8 +457,7 @@ public class JavaPlugin implements Plugin<Project> {
 
         @Override
         public FileCollection getRuntimeClasspath() {
-            ProjectInternal project = convention.getProject();
-            SourceSet mainSourceSet = mainSourceSetOf(convention);
+            SourceSet mainSourceSet = mainSourceSetOf(extension);
             Configuration runtimeClasspath = project.getConfigurations().getByName(mainSourceSet.getRuntimeClasspathConfigurationName());
             ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
                 config.componentFilter(componentId -> {
@@ -474,7 +474,7 @@ public class JavaPlugin implements Plugin<Project> {
 
         @Override
         public Configuration getCompileDependencies() {
-            return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
+            return project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         }
     }
 

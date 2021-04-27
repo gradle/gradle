@@ -224,3 +224,9 @@ Now, it is officially annotated as deprecated and scheduled for removal in Gradl
 === Deprecated `WarPluginConvention`
 
 link:{javadocPath}/org/gradle/api/plugins/WarPluginConvention.html[WarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0. Clients should should use link:{groovyDslPath}/org.gradle.api.plugins.WarPluginExtension.html[WarPluginExtension] instead.
+
+[[java_convention_deprecation]]
+=== Deprecated `java` plugin conventions
+
+The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
+They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can we configured in the `java {}` block.

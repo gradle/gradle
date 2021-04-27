@@ -17,27 +17,35 @@
 package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.ImmutableList;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.java.archives.Manifest;
+import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
+import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
+import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import javax.inject.Inject;
 import java.util.regex.Pattern;
@@ -48,52 +56,148 @@ import static org.gradle.api.plugins.JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_N
 import static org.gradle.api.plugins.JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureDocumentationVariantWithArtifact;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.findJavaComponent;
+import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
-    private final static Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
+    private static final Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
+    private final SourceSetContainer sourceSets;
 
-    private final JavaPluginConvention convention;
+    private final ToolchainSpecInternal toolchainSpec;
     private final ObjectFactory objectFactory;
     private final SoftwareComponentContainer components;
-    private final Project project;
     private final ModularitySpec modularity;
     private final JvmPluginServices jvmPluginServices;
     private final JavaToolchainSpec toolchain;
+    private final ProjectInternal project;
 
-    public DefaultJavaPluginExtension(JavaPluginConvention convention,
-                                      Project project,
-                                      JvmPluginServices jvmPluginServices,
-                                      JavaToolchainSpec toolchainSpec) {
-        this.convention = convention;
+    private final DirectoryProperty docsDir;
+    private final DirectoryProperty testResultsDir;
+    private final DirectoryProperty testReportDir;
+    private JavaVersion srcCompat;
+    private JavaVersion targetCompat;
+    private boolean autoTargetJvm = true;
+
+    public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec, JvmPluginServices jvmPluginServices) {
+        this.docsDir = project.getObjects().directoryProperty();
+        this.testResultsDir = project.getObjects().directoryProperty();
+        this.testReportDir = project.getObjects().directoryProperty(); //TestingBasePlugin.TESTS_DIR_NAME;
+        this.project = project;
+        this.sourceSets = sourceSets;
+        this.toolchainSpec = toolchainSpec;
         this.objectFactory = project.getObjects();
         this.components = project.getComponents();
-        this.project = project;
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.jvmPluginServices = jvmPluginServices;
         this.toolchain = toolchainSpec;
+        configureDefaults();
+    }
+
+    private void configureDefaults() {
+        docsDir.convention(project.getLayout().getBuildDirectory().dir("docs"));
+        testResultsDir.convention(project.getLayout().getBuildDirectory().dir(TestingBasePlugin.TEST_RESULTS_DIR_NAME));
+        testReportDir.convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
+    }
+
+    @Override
+    public Object sourceSets(Closure closure) {
+        return sourceSets.configure(closure);
+    }
+
+    @Override
+    public DirectoryProperty getDocsDir() {
+        return docsDir;
+    }
+
+    @Override
+    public DirectoryProperty getTestResultsDir() {
+        return testResultsDir;
+    }
+
+    @Override
+    public DirectoryProperty getTestReportDir() {
+        return testReportDir;
     }
 
     @Override
     public JavaVersion getSourceCompatibility() {
-        return convention.getSourceCompatibility();
+        if (srcCompat != null) {
+            return srcCompat;
+        } else if (toolchainSpec != null && toolchainSpec.isConfigured()) {
+            return JavaVersion.toVersion(toolchainSpec.getLanguageVersion().get().toString());
+        } else {
+            return JavaVersion.current();
+        }
+    }
+
+    public JavaVersion getRawSourceCompatibility() {
+        return srcCompat;
+    }
+
+    @Override
+    public void setSourceCompatibility(Object value) {
+        setSourceCompatibility(JavaVersion.toVersion(value));
     }
 
     @Override
     public void setSourceCompatibility(JavaVersion value) {
-        convention.setSourceCompatibility(value);
+        srcCompat = value;
     }
 
     @Override
     public JavaVersion getTargetCompatibility() {
-        return convention.getTargetCompatibility();
+        return targetCompat != null ? targetCompat : getSourceCompatibility();
+    }
+
+    public JavaVersion getRawTargetCompatibility() {
+        return targetCompat;
+    }
+
+    @Override
+    public void setTargetCompatibility(Object value) {
+        setTargetCompatibility(JavaVersion.toVersion(value));
     }
 
     @Override
     public void setTargetCompatibility(JavaVersion value) {
-        convention.setTargetCompatibility(value);
+        targetCompat = value;
     }
 
     @Override
+    public Manifest manifest() {
+        return manifest(Actions.doNothing());
+    }
+
+    @Override
+    public Manifest manifest(Closure closure) {
+        return configure(closure, createManifest());
+    }
+
+    @Override
+    public Manifest manifest(Action<? super Manifest> action) {
+        Manifest manifest = createManifest();
+        action.execute(manifest);
+        return manifest;
+    }
+
+    private Manifest createManifest() {
+        return new DefaultManifest(project.getFileResolver());
+    }
+
+    @Override
+    public SourceSetContainer getSourceSets() {
+        return sourceSets;
+    }
+
+    @Override
+    public void disableAutoTargetJvm() {
+        this.autoTargetJvm = false;
+    }
+
+    @Override
+    public boolean getAutoTargetJvmDisabled() {
+        return !autoTargetJvm;
+    }
+
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
         Capability defaultCapability = new ProjectDerivedCapability(project, name);
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
@@ -104,49 +208,38 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         spec.create();
     }
 
-    @Override
-    public void disableAutoTargetJvm() {
-        convention.disableAutoTargetJvm();
-    }
-
-    @Override
     public void withJavadocJar() {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
-        SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         configureDocumentationVariantWithArtifact(JAVADOC_ELEMENTS_CONFIGURATION_NAME, null, JAVADOC, ImmutableList.of(), main.getJavadocJarTaskName(), tasks.named(main.getJavadocTaskName()), findJavaComponent(components), configurations, tasks, objectFactory);
     }
 
-    @Override
     public void withSourcesJar() {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
-        SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllSource(), findJavaComponent(components), configurations, tasks, objectFactory);
     }
 
-    @Override
     public ModularitySpec getModularity() {
         return modularity;
     }
 
-    @Override
     public JavaToolchainSpec getToolchain() {
         return toolchain;
     }
 
-    @Override
     public JavaToolchainSpec toolchain(Action<? super JavaToolchainSpec> action) {
         action.execute(toolchain);
         return toolchain;
     }
 
-    @Override
     public void consistentResolution(Action<? super JavaResolutionConsistency> action) {
         final ConfigurationContainer configurations = project.getConfigurations();
-        final SourceSetContainer sourceSets = convention.getSourceSets();
+        final SourceSetContainer sourceSets = getSourceSets();
 
-        action.execute(project.getObjects().newInstance(DefaultJavaResolutionConsistency.class, sourceSets, configurations));
+        action.execute(project.getObjects().newInstance(DefaultJavaPluginExtension.DefaultJavaResolutionConsistency.class, sourceSets, configurations));
     }
 
     private static String validateFeatureName(String name) {

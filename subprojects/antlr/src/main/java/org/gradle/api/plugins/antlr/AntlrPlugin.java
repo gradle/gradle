@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl;
 import org.gradle.api.tasks.SourceSet;
 
@@ -65,7 +65,7 @@ public class AntlrPlugin implements Plugin<Project> {
         // Wire the antlr configuration into all antlr tasks
         project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getConventionMapping().map("antlrClasspath", () -> project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME)));
 
-        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(
+        project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(
                 new Action<SourceSet>() {
                     @Override
                     public void execute(final SourceSet sourceSet) {

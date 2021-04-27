@@ -38,12 +38,21 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.AttributeTestUtil
 
-import static org.gradle.api.attributes.Bundling.*
-import static org.gradle.api.attributes.Category.*
+import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
+import static org.gradle.api.attributes.Bundling.EMBEDDED
+import static org.gradle.api.attributes.Bundling.EXTERNAL
+import static org.gradle.api.attributes.Bundling.SHADOWED
+import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
+import static org.gradle.api.attributes.Category.DOCUMENTATION
+import static org.gradle.api.attributes.Category.LIBRARY
+import static org.gradle.api.attributes.Category.REGULAR_PLATFORM
 import static org.gradle.api.attributes.DocsType.DOCS_TYPE_ATTRIBUTE
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
-import static org.gradle.api.attributes.Usage.*
-import static org.gradle.api.attributes.java.TargetJvmEnvironment.*
+import static org.gradle.api.attributes.Usage.JAVA_API
+import static org.gradle.api.attributes.Usage.JAVA_RUNTIME
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
+import static org.gradle.api.attributes.java.TargetJvmEnvironment.STANDARD_JVM
+import static org.gradle.api.attributes.java.TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
 import static org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
 import static org.gradle.util.AttributeTestUtil.named
 
