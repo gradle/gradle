@@ -48,6 +48,7 @@ import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.regex.Pattern;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;

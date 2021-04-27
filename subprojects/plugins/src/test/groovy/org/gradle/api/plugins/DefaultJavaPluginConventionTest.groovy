@@ -89,7 +89,7 @@ class DefaultJavaPluginConventionTest extends Specification {
     private void checkDirs() {
         assert convention.docsDir == new File(project.buildDir, convention.docsDirName)
         assert convention.testResultsDir == new File(project.buildDir, convention.testResultsDirName)
-        assert convention.testReportDir == new File(extension.reportsDir, convention.testReportDirName)
+        assert convention.testReportDir == new File(convention.reportsDir, convention.testReportDirName)
     }
 
     def "testReportDir is calculated relative to reporting.baseDir"() {
