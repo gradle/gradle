@@ -58,6 +58,7 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
         assert buildStampJsonFile.exists()
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert buildStampJsonData.commitId
+        def pluginCommitId = buildStampJsonData.commitId as String
         runner = new BuildScanPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector), resultStore.reportAlso(dataReporter), pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
