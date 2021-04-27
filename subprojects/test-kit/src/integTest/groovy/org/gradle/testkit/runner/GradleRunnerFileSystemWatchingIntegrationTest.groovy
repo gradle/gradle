@@ -34,7 +34,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
     @Requires(TestPrecondition.WINDOWS)
     def "disables file system watching on Windows"() {
         when:
-        def result = runner("assemble", "-Dorg.gradle.vfs.verbose=true").build()
+        def result = runAssemble()
         then:
         !fileSystemWatchingEnabled(result)
     }
@@ -42,19 +42,23 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "file system watching is enabled on non-Windows OSes"() {
         when:
-        def result = runner("assemble", "-Dorg.gradle.vfs.verbose=true").build()
+        def result = runAssemble()
         then:
         fileSystemWatchingEnabled(result)
     }
 
-    def "can enable file system watching on Windows via '#enableFlag'"() {
+    def "can enable file system watching via '#enableFlag'"() {
         when:
-        def result = runner("assemble", "-Dorg.gradle.vfs.verbose=true", enableFlag).build()
+        def result = runAssemble()
         then:
         fileSystemWatchingEnabled(result)
 
         where:
         enableFlag << ["--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}", "-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=true"]
+    }
+
+    private BuildResult runAssemble() {
+        runner("assemble", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=true").build()
     }
 
     private static boolean fileSystemWatchingEnabled(BuildResult result) {
