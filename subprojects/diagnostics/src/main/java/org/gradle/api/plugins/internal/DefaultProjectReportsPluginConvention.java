@@ -18,10 +18,11 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.ProjectReportsPluginConvention;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.plugins.ProjectReportsPluginExtension;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.util.internal.RelativePathUtil;
 import org.gradle.util.internal.WrapUtil;
 
 import java.io.File;
@@ -30,32 +31,36 @@ import java.util.Set;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
 @NonNullApi
-public class DefaultProjectReportsPluginConvention extends ProjectReportsPluginConvention implements HasPublicType {
-    private String projectReportDirName = "project";
+@SuppressWarnings("deprecation")
+public class DefaultProjectReportsPluginConvention extends org.gradle.api.plugins.ProjectReportsPluginConvention implements HasPublicType {
+    private final ProjectReportsPluginExtension extension;
     private final Project project;
+    private final DirectoryProperty reportBaseDir;
 
-    public DefaultProjectReportsPluginConvention(Project project) {
+    public DefaultProjectReportsPluginConvention(ProjectReportsPluginExtension extension, Project project, DirectoryProperty reportBaseDir) {
+        this.extension = extension;
         this.project = project;
+        this.reportBaseDir = reportBaseDir;
     }
 
     @Override
     public TypeOf<?> getPublicType() {
-        return typeOf(ProjectReportsPluginConvention.class);
+        return typeOf(org.gradle.api.plugins.ProjectReportsPluginConvention.class);
     }
 
     @Override
     public String getProjectReportDirName() {
-        return projectReportDirName;
+        return RelativePathUtil.relativePath(reportBaseDir.get().getAsFile(), extension.getProjectReportDir().get().getAsFile());
     }
 
     @Override
     public void setProjectReportDirName(String projectReportDirName) {
-        this.projectReportDirName = projectReportDirName;
+        extension.getProjectReportDir().set(reportBaseDir.dir(projectReportDirName));
     }
 
     @Override
     public File getProjectReportDir() {
-        return project.getExtensions().getByType(ReportingExtension.class).file(projectReportDirName);
+        return extension.getProjectReportDir().get().getAsFile();
     }
 
     @Override

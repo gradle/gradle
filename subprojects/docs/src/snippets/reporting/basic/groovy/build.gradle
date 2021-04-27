@@ -1,0 +1,11 @@
+// tag::apply-reporting-plugin[]
+plugins {
+    id 'project-report'
+}
+// end::apply-reporting-plugin[]
+
+// tag::configure-reporting-plugin[]
+projectReports {
+    projectReportDir = layout.buildDirectory.dir('my-reports')
+}
+// end::configure-reporting-plugin[]

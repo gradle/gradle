@@ -26,6 +26,7 @@
     </plugin>
     <plugin id="project-report" description="Project Report Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ProjectReportsPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ProjectReportsPluginExtension"/>
     </plugin>
     <plugin id="application" description="Application Plugin">
         <extends targetClass="org.gradle.api.Project" id="application" extensionClass="org.gradle.api.plugins.JavaApplication"/>

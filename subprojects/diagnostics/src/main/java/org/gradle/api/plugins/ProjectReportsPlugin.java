@@ -17,13 +17,14 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention;
+import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
-
-import java.io.File;
+import org.gradle.util.internal.WrapUtil;
 
 /**
  * <p>A {@link Plugin} which adds some project visualization report tasks to a project.</p>
@@ -40,31 +41,35 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
-        final ProjectReportsPluginConvention convention = new DefaultProjectReportsPluginConvention(project);
+        ProjectReportsPluginExtension extension = project.getExtensions().create(ProjectReportsPluginExtension.class, "projectReports", ProjectReportsPluginExtension.class);
+        DirectoryProperty reportBaseDir = project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory();
+        extension.getProjectReportDir().convention(reportBaseDir.dir("project"));
+
+        DefaultProjectReportsPluginConvention convention = new DefaultProjectReportsPluginConvention(extension, project, reportBaseDir);
         project.getConvention().getPlugins().put("projectReports", convention);
 
         project.getTasks().register(TASK_REPORT, TaskReportTask.class, taskReportTask -> {
             taskReportTask.setDescription("Generates a report about your tasks.");
-            taskReportTask.conventionMapping("outputFile", () -> new File(convention.getProjectReportDir(), "tasks.txt"));
-            taskReportTask.conventionMapping("projects", convention::getProjects);
+            taskReportTask.conventionMapping("outputFile", () -> extension.getProjectReportDir().file("tasks.txt").get().getAsFile());
+            taskReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
         });
 
         project.getTasks().register(PROPERTY_REPORT, PropertyReportTask.class, propertyReportTask -> {
             propertyReportTask.setDescription("Generates a report about your properties.");
-            propertyReportTask.conventionMapping("outputFile", () -> new File(convention.getProjectReportDir(), "properties.txt"));
-            propertyReportTask.conventionMapping("projects", convention::getProjects);
+            propertyReportTask.conventionMapping("outputFile", () -> extension.getProjectReportDir().file("properties.txt").get().getAsFile());
+            propertyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
         });
 
         project.getTasks().register(DEPENDENCY_REPORT, DependencyReportTask.class, dependencyReportTask -> {
             dependencyReportTask.setDescription("Generates a report about your library dependencies.");
-            dependencyReportTask.conventionMapping("outputFile", () -> new File(convention.getProjectReportDir(), "dependencies.txt"));
-            dependencyReportTask.conventionMapping("projects", convention::getProjects);
+            dependencyReportTask.conventionMapping("outputFile", () -> extension.getProjectReportDir().file("dependencies.txt").get().getAsFile());
+            dependencyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
         });
 
         project.getTasks().register(HTML_DEPENDENCY_REPORT, HtmlDependencyReportTask.class, htmlDependencyReportTask -> {
             htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
-            htmlDependencyReportTask.getReports().getHtml().getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getProjectReportDir(), "dependencies").getAbsolutePath())));
-            htmlDependencyReportTask.conventionMapping("projects", convention::getProjects);
+            htmlDependencyReportTask.getReports().getHtml().getOutputLocation().convention(extension.getProjectReportDir().dir("dependencies"));
+            htmlDependencyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
         });
 
         project.getTasks().register(PROJECT_REPORT, projectReportTask -> {

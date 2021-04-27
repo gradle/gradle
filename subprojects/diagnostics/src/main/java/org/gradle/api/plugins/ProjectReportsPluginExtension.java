@@ -16,29 +16,16 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Project;
-
-import java.io.File;
-import java.util.Set;
+import org.gradle.api.file.DirectoryProperty;
 
 /**
- * The conventional configuration for {@link ProjectReportsPlugin}.
+ * The extension configuration for {@link ProjectReportsPlugin}.
  *
- * @deprecated Use {@link ProjectReportsPluginExtension} instead. This class is scheduled for removal in Gradle 8.0.
+ * @since 7.1
  */
-@Deprecated
-public abstract class ProjectReportsPluginConvention {
-    /**
-     * The name of the directory to generate the project reports into, relative to the project's reports dir.
-     */
-    public abstract String getProjectReportDirName();
-
-    public abstract void setProjectReportDirName(String projectReportDirName);
-
+public interface ProjectReportsPluginExtension {
     /**
      * Returns the directory to generate the project reports into.
      */
-    public abstract File getProjectReportDir();
-
-    public abstract Set<Project> getProjects();
+    DirectoryProperty getProjectReportDir();
 }
