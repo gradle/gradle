@@ -46,7 +46,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             throw new IllegalArgumentException("Expected exactly one baseline version but got ${baselineVersions.size()}: $baselineVersions")
         }
 
-        def distribution = buildContext.distribution(resolveVersion(baselineVersions.first(), new ReleasedVersionDistributions(buildContext)))
+        def dist = buildContext.distribution(resolveVersion(baselineVersions.first(), new ReleasedVersionDistributions(buildContext)))
         def jobArgs = ['--continue', '-Dscan.capture-task-input-files'] + scenarioArgs
 
         runner.baseline {
@@ -54,7 +54,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocationCount INVOCATIONS
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
-                distribution(distribution)
+                distribution(dist)
                 args(*jobArgs)
                 tasksToRun(*tasks)
                 if (withFailure) {
@@ -73,7 +73,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocationCount INVOCATIONS
             displayName(WITH_PLUGIN_LABEL)
             invocation {
-                distribution(distribution)
+                distribution(dist)
                 args(*jobArgs)
                 args("-DenableScan=true")
                 tasksToRun(*tasks)
