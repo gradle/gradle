@@ -158,6 +158,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -276,7 +277,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectDescriptorRegistry();
     }
 
-    protected ListenerManager createListenerManager(ListenerManager listenerManager) {
+    protected DefaultListenerManager createListenerManager(DefaultListenerManager listenerManager) {
         return listenerManager.createChild(Scopes.Build.class);
     }
 

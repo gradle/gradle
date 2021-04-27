@@ -23,19 +23,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to a listener interface to indicate which scope its events are generated in.
+ * Attached to a listener interface to indicate that its events are stateful.
  *
- * <p>Events generated in a particular scope are visible to listeners in the same scope and ancestor scopes.
- * Events are not visible to listeners in descendent scopes.
+ * <p>The listener infrastructure will ensure that a listener of this type will either receive all events, or no events.
+ * Currently, this is done by disallowing the registration of a listener of this type once any events have been fired.
  *
- * <p>This annotation is used primarily to indicate to developers the scopes where this listener are available. There is also
- * some validation when a broadcaster or listener of this type is used in an incorrect scope.
- *
- * @see org.gradle.internal.service.scopes.Scopes
+ * @see Scopes
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-public @interface EventScope {
-    Class<? extends Scope> value();
+public @interface StatefulListener {
 }
