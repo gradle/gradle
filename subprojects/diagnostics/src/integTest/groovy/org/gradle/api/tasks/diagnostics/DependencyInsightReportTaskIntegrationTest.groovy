@@ -1741,7 +1741,9 @@ org:leaf2:1.0
                 group = 'org.foo'
                 version = '1.0'
             }
-            archivesBaseName = 'root'
+            base {
+                archivesBaseName = 'root'
+            }
             dependencies {
                 implementation project(":impl")
             }

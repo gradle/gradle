@@ -182,7 +182,9 @@ project(":project3") {
     def "maven-publish plugin does not take archivesBaseName into account when publishing"() {
         createBuildScripts("""
 project(":project2") {
-    archivesBaseName = "changed"
+    base {
+        archivesName = "changed"
+    }
 }
         """)
 

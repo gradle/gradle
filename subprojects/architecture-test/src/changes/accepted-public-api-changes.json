@@ -509,9 +509,81 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Class org.gradle.api.plugins.BasePluginExtension",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getArchivesBaseName()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getArchivesName()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getDistsDirectory()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getDistsDirName()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getLibsDirectory()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getLibsDirName()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.setArchivesBaseName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.setDistsDirName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.setLibsDirName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
             "type": "org.gradle.testing.jacoco.tasks.JacocoCoverageVerification",
             "member": "Method org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.getDummyOutputFile()",
-            "acceptation": "This method is for internal use only",
+            "acceptation": "Documented as internal",
             "changes": []
         }
     ]

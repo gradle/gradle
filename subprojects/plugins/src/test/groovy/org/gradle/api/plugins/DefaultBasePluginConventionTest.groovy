@@ -16,54 +16,112 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.plugins.internal.DefaultBasePluginConvention
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-import static org.junit.Assert.assertEquals
+class DefaultBasePluginConventionTest extends AbstractProjectBuilderSpec {
 
-class DefaultBasePluginConventionTest {
-    @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-
-    private ProjectInternal project = TestUtil.create(temporaryFolder).rootProject()
     private BasePluginConvention convention
+    private BasePluginExtension extension
 
-    @Before void setUp() {
-        convention = new DefaultBasePluginConvention(project)
+    def setup() {
+        project.pluginManager.apply(BasePlugin)
+        convention = project.convention.plugins.base
+        extension =  project.extensions.base
     }
 
-    @Test void defaultValues() {
-        assertEquals(project.name, convention.archivesBaseName)
-        assertEquals('distributions', convention.distsDirName)
-        assertEquals(new File(project.buildDir, 'distributions'), convention.distsDirectory.getAsFile().get())
-        assertEquals('libs', convention.libsDirName)
-        assertEquals(new File(project.buildDir, 'libs'), convention.libsDirectory.getAsFile().get())
+    def "default values"() {
+        expect:
+        convention.archivesBaseName == project.name
+        convention.distsDirName == 'distributions'
+        convention.distsDirectory.getAsFile().get() == project.layout.buildDirectory.dir('distributions').get().asFile
+        convention.libsDirName == 'libs'
+        convention.libsDirectory.getAsFile().get() == project.layout.buildDirectory.dir('libs').get().asFile
     }
 
-    @Test void dirsRelativeToBuildDir() {
+    def "dirs relative to build dir"() {
+        when:
         project.buildDir = project.file('mybuild')
         convention.distsDirName = 'mydists'
-        assertEquals(project.file('mybuild/mydists'), convention.distsDirectory.getAsFile().get())
         convention.libsDirName = 'mylibs'
-        assertEquals(project.file('mybuild/mylibs'), convention.libsDirectory.getAsFile().get())
+
+        then:
+        convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
+        convention.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
+        extension.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
+        extension.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
     }
 
-    @Test void dirsAreCachedProperly() {
+    def "dirs are cached properly"() {
+        when:
         project.buildDir = project.file('mybuild')
         convention.distsDirName = 'mydists'
-        assertEquals(project.file('mybuild/mydists'), convention.distsDirectory.getAsFile().get())
+
+        then:
+        convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
+        extension.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
+
+        when:
         convention.libsDirName = 'mylibs'
-        assertEquals(project.file('mybuild/mylibs'), convention.libsDirectory.getAsFile().get())
+
+        then:
+        convention.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
+        extension.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
+
+        when:
         convention.distsDirName = 'mydists2'
-        assertEquals(project.file('mybuild/mydists2'), convention.distsDirectory.getAsFile().get())
+
+        then:
+        convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists2')
+        extension.distsDirectory.getAsFile().get() == project.file('mybuild/mydists2')
+
+        when:
         convention.libsDirName = 'mylibs2'
-        assertEquals(project.file('mybuild/mylibs2'), convention.libsDirectory.getAsFile().get())
+
+        then:
+        convention.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs2')
+        extension.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs2')
+
+        when:
         project.buildDir = project.file('mybuild2')
-        assertEquals(project.file('mybuild2/mylibs2'), convention.libsDirectory.getAsFile().get())
+
+        then:
+        convention.libsDirectory.getAsFile().get() == project.file('mybuild2/mylibs2')
+        extension.libsDirectory.getAsFile().get() == project.file('mybuild2/mylibs2')
+
+        when:
+        project.buildDir = project.file('mybuild')
+        convention.distsDirName = 'mydists'
+
+        then:
+        convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
+        extension.distsDirectory.getAsFile().get() == project.file('mybuild/mydists')
+
+        when:
+        convention.libsDirName = 'mylibs'
+
+        then:
+        convention.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
+        extension.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs')
+
+        when:
+        convention.distsDirName = 'mydists2'
+
+        then:
+        convention.distsDirectory.getAsFile().get() == project.file('mybuild/mydists2')
+        extension.distsDirectory.getAsFile().get() == project.file('mybuild/mydists2')
+
+        when:
+        convention.libsDirName = 'mylibs2'
+
+        then:
+        convention.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs2')
+        extension.libsDirectory.getAsFile().get() == project.file('mybuild/mylibs2')
+
+        when:
+        project.buildDir = project.file('mybuild2')
+
+        then:
+        convention.libsDirectory.getAsFile().get() == project.file('mybuild2/mylibs2')
+        extension.libsDirectory.getAsFile().get() == project.file('mybuild2/mylibs2')
     }
 }
