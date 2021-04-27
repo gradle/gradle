@@ -69,7 +69,7 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> implement
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            def validationProblem = dummyValidationProblem('Object', null, 'Validation error', 'Test').trim()
+            def validationProblem = dummyValidationProblem('java.lang.Object', null, 'Validation error', 'Test').trim()
             hasMessage """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
   - ${validationProblem}"""
         }
@@ -93,8 +93,8 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> implement
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            def validationProblem1 = dummyValidationProblem('Object', null, 'Validation error #1', 'Test')
-            def validationProblem2 = dummyValidationProblem('Object', null, 'Validation error #2', 'Test')
+            def validationProblem1 = dummyValidationProblem('java.lang.Object', null, 'Validation error #1', 'Test')
+            def validationProblem2 = dummyValidationProblem('java.lang.Object', null, 'Validation error #2', 'Test')
             hasMessage """Some problems were found with the configuration of job ':test' (types 'ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType').
   - ${validationProblem1.trim()}
   - ${validationProblem2.trim()}"""
@@ -120,7 +120,7 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> implement
     }
 
     def "reports deprecation warning and invalidates VFS for validation warning"() {
-        String expectedWarning = convertToSingleLine(dummyValidationProblem('Object', null, 'Validation warning', 'Test').trim())
+        String expectedWarning = convertToSingleLine(dummyValidationProblem('java.lang.Object', null, 'Validation warning', 'Test').trim())
         when:
         step.execute(work, context)
 
@@ -145,10 +145,10 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> implement
     }
 
     def "reports deprecation warning even when there's also an error"() {
-        String expectedWarning = convertToSingleLine(dummyValidationProblem('Object', null, 'Validation warning', 'Test').trim())
+        String expectedWarning = convertToSingleLine(dummyValidationProblem('java.lang.Object', null, 'Validation warning', 'Test').trim())
         // errors are reindented but not warnings
         expectReindentedValidationMessage()
-        String expectedError = dummyValidationProblem('Object', null, 'Validation error', 'Test')
+        String expectedError = dummyValidationProblem('java.lang.Object', null, 'Validation error', 'Test')
 
         when:
         step.execute(work, context)

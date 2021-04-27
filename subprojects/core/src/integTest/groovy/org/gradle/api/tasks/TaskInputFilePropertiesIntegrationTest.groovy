@@ -88,7 +88,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failureDescriptionContains(unsupportedNotation {
-            type('DefaultTask').property('input')
+            type('org.gradle.api.DefaultTask').property('input')
                 .value("task ':dependencyTask'")
                 .cannotBeConvertedTo(targetType)
                 .candidates(

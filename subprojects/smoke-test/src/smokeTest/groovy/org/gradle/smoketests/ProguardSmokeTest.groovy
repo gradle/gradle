@@ -114,7 +114,7 @@ class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements Val
             }
             onPlugin("proguard") {
                 failsWith(propertiesWithoutAnnotations.collectEntries { propertyName ->
-                    [(missingAnnotationMessage { type('ProGuardTask').property(propertyName).missingInputOrOutput().includeLink() }): ERROR]
+                    [(missingAnnotationMessage { type('proguard.gradle.ProGuardTask').property(propertyName).missingInputOrOutput().includeLink() }): ERROR]
                 })
             }
         }
