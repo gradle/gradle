@@ -44,6 +44,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocationCount INVOCATIONS
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
+                distribution(distribution)
                 args(*jobArgs)
                 tasksToRun(*tasks)
                 if (withFailure) {
@@ -62,6 +63,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocationCount INVOCATIONS
             displayName(WITH_PLUGIN_LABEL)
             invocation {
+                distribution(distribution)
                 args(*jobArgs)
                 args("-DenableScan=true")
                 tasksToRun(*tasks)
@@ -97,7 +99,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         "help"                                                  | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                                                            | false
         "help - no console output"                              | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | ['-DreducedOutput=true']                                      | false
     }
-
 
     static class ManageLocalCacheState implements BuildMutator {
         final File projectDir
