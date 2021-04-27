@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
+
 import javax.tools.JavaCompiler;
 import java.io.File;
 
 public interface IncrementalCompilationAwareJavaCompiler extends JavaCompiler {
-    JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, File mappingFile, CompilationSourceDirs compilationSourceDirs);
+    JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, File mappingFile, ConstantsAnalysisResult constantsAnalysisResult, CompilationSourceDirs compilationSourceDirs);
 }

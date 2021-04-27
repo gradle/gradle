@@ -17,9 +17,17 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.tasks.WorkResult;
 
 public class RecompilationNotNecessary implements WorkResult, IncrementalCompilationResult {
+
+    private final PreviousCompilationData previousCompilationData;
+
+    public RecompilationNotNecessary(PreviousCompilationData previousCompilationData) {
+        this.previousCompilationData = previousCompilationData;
+    }
+
     @Override
     public boolean getDidWork() {
         return false;
@@ -28,5 +36,10 @@ public class RecompilationNotNecessary implements WorkResult, IncrementalCompila
     @Override
     public WorkResult getCompilerResult() {
         return this;
+    }
+
+    @Override
+    public PreviousCompilationData getPreviousCompilationData() {
+        return previousCompilationData;
     }
 }

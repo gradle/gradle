@@ -71,8 +71,6 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
             LOG.info("Full recompilation is required because no previous compilation result is available.");
             return rebuildAllCompiler.execute(spec);
         }
-        PreviousCompilationData previousCompilationData = previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile);
-        PreviousCompilation previousCompilation = new PreviousCompilation(previousCompilationData);
         if (spec.getSourceRoots().isEmpty()) {
             LOG.info("Full recompilation is required because the source roots could not be inferred.");
             return rebuildAllCompiler.execute(spec);
@@ -80,7 +78,9 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
 
         Timer clock = Time.startTimer();
         CurrentCompilation currentCompilation = new CurrentCompilation(spec, classpathSnapshotter);
-
+        
+        PreviousCompilationData previousCompilationData = previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile);
+        PreviousCompilation previousCompilation = new PreviousCompilation(previousCompilationData);
         RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(currentCompilation, previousCompilation);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
@@ -92,11 +92,11 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
 
         if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
             LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
-            return new RecompilationNotNecessary();
+            return new RecompilationNotNecessary(previousCompilationData);
         }
 
         try {
-            WorkResult result = recompilationSpecProvider.decorateResult(recompilationSpec, cleaningCompiler.getCompiler().execute(spec));
+            WorkResult result = recompilationSpecProvider.decorateResult(recompilationSpec, previousCompilationData, cleaningCompiler.getCompiler().execute(spec));
             return result.or(WorkResults.didWork(cleanedOutput));
         } finally {
             Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();

@@ -19,7 +19,7 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 
-class CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
+class CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest extends AbstractCrossTaskIncrementalGroovyCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.GROOVY
     boolean useJar = false
 }

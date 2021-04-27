@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.asm;
 
-import java.util.function.Predicate;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.cache.StringInterner;
@@ -33,6 +32,7 @@ import org.objectweb.asm.TypePath;
 import java.lang.annotation.RetentionPolicy;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class ClassDependenciesVisitor extends ClassVisitor {
 

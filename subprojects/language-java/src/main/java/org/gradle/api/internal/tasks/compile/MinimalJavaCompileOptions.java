@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
@@ -46,8 +47,11 @@ public class MinimalJavaCompileOptions implements Serializable {
     private File headerOutputDirectory;
     private String javaModuleVersion;
     private String javaModuleMainClass;
+    private boolean supportsCompilerApi;
+    private boolean supportsConstantsAnalysis;
     private File incrementalCompilationMappingFile;
     private File previousCompilationDataFile;
+    private Multimap<String, String> previousCompilationMappings;
 
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
         FileCollection sourcepath = compileOptions.getSourcepath();
@@ -224,6 +228,15 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.incrementalCompilationMappingFile = incrementalCompilationMappingFile;
     }
 
+    public void setPreviousIncrementalCompilationMapping(@Nullable Multimap<String, String> previousCompilationMappings) {
+        this.previousCompilationMappings = previousCompilationMappings;
+    }
+
+    @Nullable
+    public Multimap<String, String> getPreviousIncrementalCompilationMapping() {
+        return previousCompilationMappings;
+    }
+
     @Nullable
     public File getPreviousCompilationDataFile() {
         return previousCompilationDataFile;
@@ -232,4 +245,21 @@ public class MinimalJavaCompileOptions implements Serializable {
     public void setPreviousCompilationDataFile(@Nullable File previousCompilationDataFile) {
         this.previousCompilationDataFile = previousCompilationDataFile;
     }
+
+    public boolean supportsCompilerApi() {
+        return supportsCompilerApi;
+    }
+
+    public void setSupportsCompilerApi(boolean supportsCompilerApi) {
+        this.supportsCompilerApi = supportsCompilerApi;
+    }
+
+    public boolean supportsConstantAnalysis() {
+        return supportsConstantsAnalysis;
+    }
+
+    public void setSupportsConstantAnalysis(boolean supportsConstantsAnalysis) {
+        this.supportsConstantsAnalysis = supportsConstantsAnalysis;
+    }
+
 }

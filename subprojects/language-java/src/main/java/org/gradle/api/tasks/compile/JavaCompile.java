@@ -37,7 +37,6 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.DefaultSourceFileClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.FileNameDerivingClassNameConverter;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceFileClassNameConverter;
 import org.gradle.api.jvm.ModularitySpec;
@@ -82,7 +81,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.mergeIncrementalMappingsIntoOldMappings;
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.readSourceClassesMappingFile;
 
 /**
@@ -163,33 +161,37 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private void performIncrementalCompilation(InputChanges inputs, DefaultJavaCompileSpec spec) {
         boolean isUsingCliCompiler = isUsingCliCompiler(spec);
+        spec.getCompileOptions().setSupportsCompilerApi(!isUsingCliCompiler);
+        spec.getCompileOptions().setSupportsConstantAnalysis(!isUsingCliCompiler);
+
+        // Read sources mapping
         File sourceClassesMappingFile = getSourceClassesMappingFile();
         Multimap<String, String> oldMappings;
         SourceFileClassNameConverter sourceFileClassNameConverter;
-        if (isUsingCliCompiler) {
-            oldMappings = null;
-            sourceFileClassNameConverter = new FileNameDerivingClassNameConverter();
-        } else {
+        if (spec.getCompileOptions().supportsCompilerApi()) {
             oldMappings = readSourceClassesMappingFile(sourceClassesMappingFile);
             sourceFileClassNameConverter = new DefaultSourceFileClassNameConverter(oldMappings);
+        } else {
+            oldMappings = null;
+            sourceFileClassNameConverter = new FileNameDerivingClassNameConverter();
         }
         sourceClassesMappingFile.delete();
         spec.getCompileOptions().setIncrementalCompilationMappingFile(sourceClassesMappingFile);
+        spec.getCompileOptions().setPreviousIncrementalCompilationMapping(oldMappings);
         spec.getCompileOptions().setPreviousCompilationDataFile(previousCompilationDataFile);
+
         Compiler<JavaCompileSpec> compiler = createCompiler();
-        compiler = makeIncremental(inputs, sourceFileClassNameConverter, (CleaningJavaCompiler<JavaCompileSpec>) compiler, getStableSources().getAsFileTree());
-        WorkResult workResult = performCompilation(spec, compiler);
-        if (workResult instanceof IncrementalCompilationResult && !isUsingCliCompiler) {
-            // The compilation will generate the new mapping file
-            // Only merge old mappings into new mapping on incremental recompilation
-            mergeIncrementalMappingsIntoOldMappings(sourceClassesMappingFile, getStableSources(), inputs, oldMappings);
-        }
+        compiler = makeIncremental(inputs, sourceFileClassNameConverter, (CleaningJavaCompiler<JavaCompileSpec>) compiler, getStableSources());
+        performCompilation(spec, compiler);
     }
 
-    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, SourceFileClassNameConverter sourceFileClassNameConverter, CleaningJavaCompiler<JavaCompileSpec> compiler, FileTree sources) {
+    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, SourceFileClassNameConverter sourceFileClassNameConverter, CleaningJavaCompiler<JavaCompileSpec> compiler, FileCollection stableSources) {
+        FileTree sources = stableSources.getAsFileTree();
         return getIncrementalCompilerFactory().makeIncremental(
             compiler,
             sources,
+            stableSources,
+            inputs,
             createRecompilationSpec(inputs, sourceFileClassNameConverter, sources)
         );
     }
