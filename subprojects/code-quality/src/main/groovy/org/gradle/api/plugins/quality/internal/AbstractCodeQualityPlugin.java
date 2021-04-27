@@ -27,6 +27,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
@@ -213,6 +214,17 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     protected void withBasePlugin(Action<Plugin> action) {
         project.getPlugins().withType(getBasePlugin(), action);
+    }
+
+    /**
+     * Returns the java convention object.
+     *
+     * @return the convention object.
+     * @deprecated use {@link #getJavaPluginExtension()} instead.
+     */
+    @Deprecated
+    protected JavaPluginConvention getJavaPluginConvention() {
+        return project.getConvention().getPlugin(JavaPluginConvention.class);
     }
 
     protected JavaPluginExtension getJavaPluginExtension() {

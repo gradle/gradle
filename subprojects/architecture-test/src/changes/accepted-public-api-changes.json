@@ -587,30 +587,6 @@
             "changes": []
         },
         {
-            "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
-            "member": "Class org.gradle.api.plugins.quality.CheckstylePlugin",
-            "acceptation": "Just to pass CI; DO NOT MERGE IT TO MASTER",
-            "changes": [
-                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.quality.CodeNarcPlugin",
-            "member": "Class org.gradle.api.plugins.quality.CodeNarcPlugin",
-            "acceptation": "Just to pass CI; DO NOT MERGE IT TO MASTER",
-            "changes": [
-                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.quality.PmdPlugin",
-            "member": "Class org.gradle.api.plugins.quality.PmdPlugin",
-            "acceptation": "Just to pass CI; DO NOT MERGE IT TO MASTER",
-            "changes": [
-                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
-            ]
-        },
-        {
             "type": "org.gradle.api.plugins.JavaPluginExtension",
             "member": "Method org.gradle.api.plugins.JavaPluginExtension.getAutoTargetJvmDisabled()",
             "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
