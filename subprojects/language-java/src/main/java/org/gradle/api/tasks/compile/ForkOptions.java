@@ -103,9 +103,4 @@ public class ForkOptions extends ProviderAwareForkOptions {
     public void setTempDir(@Nullable String tempDir) {
         this.tempDir = tempDir;
     }
-
-    @Override
-    protected boolean excludeFromAntProperties(String fieldName) {
-        return fieldName.equals("jvmArgs");
-    }
 }
