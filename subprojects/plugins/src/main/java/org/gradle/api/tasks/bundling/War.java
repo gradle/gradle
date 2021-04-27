@@ -167,15 +167,4 @@ public class War extends Jar {
     public void setWebXml(@Nullable File webXml) {
         this.webXml = webXml;
     }
-
-    /**
-     * Returns the web application directory.
-     *
-     * @since 7.1
-     */
-    @Internal
-    public DirectoryProperty getWebAppDir() {
-        return getProject().getExtensions().getByType(WarPluginExtension.class).getWebAppDir();
-    }
-
 }

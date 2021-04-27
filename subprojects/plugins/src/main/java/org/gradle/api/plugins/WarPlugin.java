@@ -62,7 +62,7 @@ public class WarPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
-        WarPluginExtension extension = project.getExtensions().create(WarPluginExtension.class, "warPlugin", WarPluginExtension.class); // TODO (donat) rename warPlugin to war in Gradle 8.0.
+        WarPluginExtension extension = project.getExtensions().create(WarPluginExtension.class, "warPlugin", WarPluginExtension.class);
         extension.getWebAppDir().convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
 
         final WarPluginConvention pluginConvention = new DefaultWarPluginConvention(project, extension);
