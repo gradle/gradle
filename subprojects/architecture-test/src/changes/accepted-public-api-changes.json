@@ -673,6 +673,72 @@
             "changes": [
                 "Method added to interface"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Class org.gradle.plugins.ear.EarPluginExtension",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.appDirName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.deploymentDescriptor(org.gradle.api.Action)",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.getAppDirName()",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.getDeploymentDescriptor()",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.getGenerateDeploymentDescriptor()",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.getLibDirName()",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.libDirName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.setAppDirName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.setDeploymentDescriptor(org.gradle.plugins.ear.descriptor.DeploymentDescriptor)",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginExtension",
+            "member": "Method org.gradle.plugins.ear.EarPluginExtension.setLibDirName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in EarPluginConvention",
+            "changes": []
         }
     ]
 }

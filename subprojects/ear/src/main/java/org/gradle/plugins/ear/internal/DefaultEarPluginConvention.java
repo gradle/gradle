@@ -17,54 +17,35 @@ package org.gradle.plugins.ear.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.plugins.ear.EarPluginConvention;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
-import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
-import org.gradle.util.internal.ConfigureUtil;
-
-import javax.inject.Inject;
-import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultEarPluginConvention extends EarPluginConvention implements HasPublicType {
-    private ObjectFactory objectFactory;
+@SuppressWarnings("deprecation")
+public class DefaultEarPluginConvention extends org.gradle.plugins.ear.EarPluginConvention implements HasPublicType {
 
-    private DeploymentDescriptor deploymentDescriptor;
-    private String appDirName;
-    private String libDirName;
-    private final Property<Boolean> generateDeploymentDescriptor;
+    private final DefaultEarPluginExtension extension;
 
-    @Inject
-    public DefaultEarPluginConvention(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
-        deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
-        deploymentDescriptor.readFrom("META-INF/application.xml");
-        deploymentDescriptor.readFrom(appDirName + "/META-INF/" + deploymentDescriptor.getFileName());
-        generateDeploymentDescriptor = objectFactory.property(Boolean.class);
-        generateDeploymentDescriptor.convention(true);
+    public DefaultEarPluginConvention(DefaultEarPluginExtension extension) {
+        this.extension = extension;
     }
 
     @Override
     public TypeOf<?> getPublicType() {
-        return typeOf(EarPluginConvention.class);
+        return typeOf(org.gradle.plugins.ear.EarPluginConvention.class);
     }
 
     @Override
     public String getAppDirName() {
-        return appDirName;
+        return extension.getAppDirName();
     }
 
     @Override
     public void setAppDirName(String appDirName) {
-        this.appDirName = appDirName;
-        if (deploymentDescriptor != null) {
-            deploymentDescriptor.readFrom(new File(appDirName, "META-INF/" + deploymentDescriptor.getFileName()));
-        }
+        extension.setAppDirName(appDirName);
     }
 
     @Override
@@ -74,50 +55,43 @@ public class DefaultEarPluginConvention extends EarPluginConvention implements H
 
     @Override
     public String getLibDirName() {
-        return libDirName;
+        return extension.getLibDirName();
     }
 
     @Override
     public void setLibDirName(String libDirName) {
-        this.libDirName = libDirName;
+        extension.setLibDirName(libDirName);
     }
 
     @Override
     public void libDirName(String libDirName) {
-        this.libDirName = libDirName;
+        extension.libDirName(libDirName);
     }
 
     @Override
     public Property<Boolean> getGenerateDeploymentDescriptor() {
-        return generateDeploymentDescriptor;
+        return extension.getGenerateDeploymentDescriptor();
     }
 
     @Override
     public DeploymentDescriptor getDeploymentDescriptor() {
-        return deploymentDescriptor;
+        return extension.getDeploymentDescriptor();
     }
 
     @Override
     public void setDeploymentDescriptor(DeploymentDescriptor deploymentDescriptor) {
-        this.deploymentDescriptor = deploymentDescriptor;
+        extension.setDeploymentDescriptor(deploymentDescriptor);
     }
 
     @Override
     public DefaultEarPluginConvention deploymentDescriptor(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
+        extension.deploymentDescriptor(configureClosure);
         return this;
     }
 
     @Override
     public DefaultEarPluginConvention deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
-        configureAction.execute(forceDeploymentDescriptor());
+        extension.deploymentDescriptor(configureAction);
         return this;
-    }
-
-    private DeploymentDescriptor forceDeploymentDescriptor() {
-        if (deploymentDescriptor == null) {
-            deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
-        }
-        return deploymentDescriptor;
     }
 }

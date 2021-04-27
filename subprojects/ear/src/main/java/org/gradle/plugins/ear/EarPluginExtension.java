@@ -15,71 +15,57 @@
  */
 package org.gradle.plugins.ear;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 /**
- * Ear Plugin Convention.
+ * Ear Plugin Extension.
  *
- * @deprecated use {@link EarPluginExtension} instead. This class is scheduled for removal in Gradle 8.0.
+ * @since 7.1
  */
-@Deprecated
-public abstract class EarPluginConvention {
+public interface EarPluginExtension {
     /**
      * The name of the application directory, relative to the project directory.
      * Default is "src/main/application".
      */
-    public abstract String getAppDirName();
+    String getAppDirName();
 
-    public abstract void setAppDirName(String appDirName);
+    void setAppDirName(String appDirName);
 
     /**
      * Allows changing the application directory.
      * Default is "src/main/application".
      */
-    public abstract void appDirName(String appDirName);
+    void appDirName(String appDirName);
 
     /**
      * The name of the library directory in the EAR file.
      * Default is "lib".
      */
-    public abstract String getLibDirName();
+    String getLibDirName();
 
-    public abstract void setLibDirName(String libDirName);
+    void setLibDirName(String libDirName);
 
     /**
      * Allows changing the library directory in the EAR file. Default is "lib".
      */
-    public abstract void libDirName(String libDirName);
+    void libDirName(String libDirName);
 
     /**
      * Specifies if the deploymentDescriptor should be generated if it does not exist.
      * Default is true.
      *
-     * @since 6.0
      */
-    public abstract Property<Boolean> getGenerateDeploymentDescriptor();
+    Property<Boolean> getGenerateDeploymentDescriptor();
 
     /**
      * A custom deployment descriptor configuration.
      * Default is an "application.xml" with sensible defaults.
      */
-    public abstract DeploymentDescriptor getDeploymentDescriptor();
+    DeploymentDescriptor getDeploymentDescriptor();
 
-    public abstract void setDeploymentDescriptor(DeploymentDescriptor deploymentDescriptor);
-
-    /**
-     * Configures the deployment descriptor for this EAR archive.
-     *
-     * <p>The given closure is executed to configure the deployment descriptor.
-     * The {@link DeploymentDescriptor} is passed to the closure as its delegate.</p>
-     *
-     * @param configureClosure The closure.
-     * @return This.
-     */
-    public abstract EarPluginConvention deploymentDescriptor(Closure configureClosure);
+    void setDeploymentDescriptor(DeploymentDescriptor deploymentDescriptor);
 
     /**
      * Configures the deployment descriptor for this EAR archive.
@@ -88,7 +74,6 @@ public abstract class EarPluginConvention {
      *
      * @param configureAction The action.
      * @return This.
-     * @since 3.5
      */
-    public abstract EarPluginConvention deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction);
+    EarPluginExtension deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction);
 }

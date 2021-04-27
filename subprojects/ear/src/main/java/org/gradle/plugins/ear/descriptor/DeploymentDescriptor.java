@@ -74,7 +74,7 @@ public interface DeploymentDescriptor {
 
     /**
      * The name of the directory to look for libraries in. Optional. If not specified, {@link org.gradle.plugins.ear.Ear#getLibDirName()} is used.
-     * Typically, this should be set via {@link org.gradle.plugins.ear.EarPluginConvention#setLibDirName(String)} instead of this property
+     * Typically, this should be set via {@link org.gradle.plugins.ear.EarPluginExtension#setLibDirName(String)} instead of this property
      * when using the <code>ear</code> plugin.
      */
     String getLibraryDirectory();
