@@ -52,7 +52,7 @@ class PerformanceTestScenarioDefinition {
         }
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
-        @EqualsAndHashCode
+        @EqualsAndHashCode(includes = ["testProject", "comment", "coverage"])
         static class GroupsBean {
             /**
              * testProject : largeJavaMultiProject
@@ -63,6 +63,13 @@ class PerformanceTestScenarioDefinition {
             String comment
 
             TreeMap<String, List<String>> coverage
+
+            private boolean ignored
+
+            // when false, we deliberately make it `null` so that it will be ignored by JSON serializer
+            Boolean isIgnored() {
+                return !ignored ? null : true
+            }
         }
     }
 

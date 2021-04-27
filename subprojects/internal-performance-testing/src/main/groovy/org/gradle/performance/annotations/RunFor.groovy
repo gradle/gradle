@@ -86,10 +86,14 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread({
-            if (SCENARIO_DEFINITION_FILE != null) {
+            if (isWritingPerformanceJson()) {
                 scenarioDefinition.writeTo(SCENARIO_DEFINITION_FILE)
             }
         } as Runnable))
+    }
+
+    static boolean isWritingPerformanceJson() {
+        return SCENARIO_DEFINITION_FILE != null
     }
 
     @Override
@@ -104,33 +108,40 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
 
     @Override
     void visitFeatureAnnotation(RunFor runFor, FeatureInfo feature) {
-        feature.getFeatureMethod().addInterceptor(new AddScenarioDefinitionInterceptor(feature.getFeatureMethod().getReflection(), runFor))
+        boolean isIgnored = feature.getSpec().getReflection().isAnnotationPresent(IgnorePerformanceTest)
+            || feature.getFeatureMethod().getReflection().isAnnotationPresent(IgnorePerformanceTest)
+        feature.getFeatureMethod().addInterceptor(
+            new AddScenarioDefinitionInterceptor(feature.getFeatureMethod().getReflection(), runFor, isIgnored)
+        )
     }
 
     private static void verify(Scenario scenario) {
         assert scenario.testProjects().length != 0 && scenario.operatingSystems().length != 0: "Invalid scenario: $scenario"
     }
 
-    private static GroupsBean createGroup(Scenario scenario, String testProject) {
+    private static GroupsBean createGroup(Scenario scenario, String testProject, boolean ignored) {
         return new GroupsBean(
             testProject: testProject,
             coverage: [(scenario.type().toString().toLowerCase()): scenario.operatingSystems().collect { it.coverageName }] as TreeMap,
-            comment: scenario.comment() ?: null
+            comment: scenario.comment() ?: null,
+            ignored: ignored
         )
     }
 
     static class AddScenarioDefinitionInterceptor implements IMethodInterceptor {
         private final Method method
         private final RunFor runFor
+        private final boolean isIgnored
 
-        AddScenarioDefinitionInterceptor(Method method, RunFor runFor) {
+        AddScenarioDefinitionInterceptor(Method method, RunFor runFor, boolean isIgnored) {
             this.method = method
             this.runFor = runFor
+            this.isIgnored = isIgnored
         }
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            if (SCENARIO_DEFINITION_FILE != null) {
+            if (isWritingPerformanceJson()) {
                 String testId = invocation.getIteration().getDisplayName()
 
                 List<Scenario> scenarios = runFor.value().toList()
@@ -140,7 +151,7 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
                     String matcher = scenario.iterationMatcher()
                     if (matcher.isEmpty() || testId.matches(matcher)) {
                         scenario.testProjects().each {
-                            groups.add(createGroup(scenario, it))
+                            groups.add(createGroup(scenario, it, isIgnored))
                         }
                     }
                 }
