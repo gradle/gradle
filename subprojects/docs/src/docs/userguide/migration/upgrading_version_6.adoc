@@ -219,6 +219,14 @@ This may cause test failures when the test expects particular file paths.
 
 If the test uses `GradleRunner.withTestKitDir(...)`, it is unaffected.
 
+==== File system watching with TestKit on Windows
+
+The file system watching implementation on Windows adds a lock to the root project directory in order to watch for changes.
+This may cause errors when you try to delete the root project directory after running a build with TestKit.
+For example, tests that use TestKit together with JUnit's `@TempDir` extension, or the `TemporaryFolder` rule can run into this problem.
+To avoid problems with these file locks, `<<test_kit#test_kit,TestKit>> disables file system watching for builds executed on Windows via `GradleRunner`.
+If you'd like to override the default behavior, you can enable file system watching by passing `--watch-fs` to `GradleRunner.withArguments()`.
+
 ==== Removal of the legacy `maven` plugin
 
 The `maven` plugin has been removed.
