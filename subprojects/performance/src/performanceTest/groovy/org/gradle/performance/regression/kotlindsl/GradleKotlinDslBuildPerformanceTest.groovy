@@ -28,7 +28,7 @@ class GradleKotlinDslBuildPerformanceTest extends AbstractCrossVersionPerformanc
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = ["7.1-branch-pull_16495_head-20210426155459+0000"]
+        runner.targetVersions = ["7.1-20210427170827+0000"]
 
         when:
         def result = runner.run()
@@ -47,7 +47,7 @@ class GradleKotlinDslBuildPerformanceTest extends AbstractCrossVersionPerformanc
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = ["7.1-branch-pull_16495_head-20210426155459+0000"]
+        runner.targetVersions = ["7.1-20210427170827+0000"]
 
         when:
         def result = runner.run()

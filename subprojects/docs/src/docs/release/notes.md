@@ -6,7 +6,8 @@ We would like to thank the following community members for their contributions t
 
 [Victor Merkulov](https://github.com/urdak),
 [Kyle Moore](https://github.com/DPUkyle),
-[Stefan Oehme](https://github.com/oehme).
+[Stefan Oehme](https://github.com/oehme),
+[Anže Sodja](https://github.com/asodja).
 
 ## Upgrade Instructions
 
