@@ -32,8 +32,6 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
         requiresNoEc2Agent()
     }
     params {
-        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
-        param("env.JAVA_HOME", os.javaHomeForGradle())
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("env.JPROFILER_HOME", os.jprofilerHome)
         param("performance.db.username", "tcagent")

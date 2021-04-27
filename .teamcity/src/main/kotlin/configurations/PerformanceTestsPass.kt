@@ -24,7 +24,7 @@ import model.PerformanceTestProjectSpec
 import model.PerformanceTestType
 import projects.PerformanceTestProject
 
-class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(model, init = {
+class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(init = {
     id("${performanceTestProject.spec.asConfigurationId(model)}_Trigger")
     val performanceTestSpec = performanceTestProject.spec
     name = performanceTestProject.name + " (Trigger)"
@@ -34,8 +34,6 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
 
     applyDefaultSettings(os)
     params {
-        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
-        param("env.JAVA_HOME", os.javaHomeForGradle())
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
         param("performance.db.username", "tcagent")

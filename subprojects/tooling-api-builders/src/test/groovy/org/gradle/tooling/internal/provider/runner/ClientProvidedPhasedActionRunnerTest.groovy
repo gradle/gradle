@@ -32,7 +32,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalPhasedAction
 import org.gradle.tooling.internal.protocol.PhasedActionResult
-import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction
+import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload

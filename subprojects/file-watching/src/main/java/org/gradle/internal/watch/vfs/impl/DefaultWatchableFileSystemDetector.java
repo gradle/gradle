@@ -63,14 +63,12 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
     public Stream<FileSystemInfo> detectUnsupportedFileSystems() {
         return fileSystems.getFileSystems().stream()
             .filter(fileSystem -> {
-                LOGGER.debug("Detected {}: {} from {} (remote: {}, case-sensitive: {}, case-preserving: {})",
+                LOGGER.debug("Detected {}: {} from {} (remote: {})",
                     fileSystem.getFileSystemType(),
                     fileSystem.getMountPoint(),
                     fileSystem.getDeviceName(),
-                    fileSystem.isRemote(),
-                    fileSystem.isCaseSensitive(),
-                    fileSystem.isCasePreserving());
-
+                    fileSystem.isRemote()
+                );
                 // We don't support network file systems
                 if (fileSystem.isRemote()) {
                     return true;

@@ -19,7 +19,6 @@ package org.gradle.testfixtures.internal;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
@@ -48,9 +47,9 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -58,14 +57,12 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.session.BuildSessionController;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -112,14 +109,15 @@ public class ProjectBuilderImpl {
         CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionController buildSessionController = new BuildSessionController(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-        BuildTreeController buildTreeController = new BuildTreeController(buildSessionController.getServices(), BuildType.TASKS);
-        TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeController.getServices(), homeDir);
+        BuildTreeModelControllerServices.Supplier modelServices = buildSessionController.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(true, false, startParameter);
+        BuildTreeController buildTreeController = new BuildTreeController(buildSessionController.getServices(), modelServices);
+        TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeController.getServices(), homeDir, startParameter);
         TestRootBuild build = new TestRootBuild(projectDir);
         buildServices.add(BuildState.class, build);
 
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
-        GradleInternal gradle = buildServices.get(InstantiatorFactory.class).decorateLenient().newInstance(DefaultGradle.class, null, startParameter, buildServices.get(ServiceRegistryFactory.class));
+        GradleInternal gradle = buildServices.get(GradleInternal.class);
         gradle.setIncludedBuilds(Collections.emptyList());
         build.setGradle(gradle); // the TestRootBuild instance cannot be created after GradleInternal
 

@@ -25,13 +25,15 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildTreeActionExecutor;
+import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
-import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
@@ -47,7 +49,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
-import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.launcher.exec.BuildTreeScopeLifecycleBuildActionExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
@@ -143,16 +144,17 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                         DeploymentRegistryInternal deploymentRegistry,
                                                         BuildEventConsumer eventConsumer,
                                                         BuildStartedTime buildStartedTime,
-                                                        Clock clock
+                                                        Clock clock,
+                                                        BuildTreeModelControllerServices buildModelServices
         ) {
             return new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, listenerFactory, eventConsumer,
                 new ContinuousBuildActionExecuter(fileSystemChangeWaiterFactory, inputsListeners, styledTextOutputFactory, executorFactory, requestMetaData, cancellationToken, deploymentRegistry, listenerManager, buildStartedTime, clock,
-                    new BuildTreeScopeLifecycleBuildActionExecuter()));
+                    new BuildTreeScopeLifecycleBuildActionExecuter(buildModelServices)));
         }
     }
 
     static class ToolingBuildTreeScopeServices {
-        BuildTreeActionExecutor createActionExecuter(List<BuildActionRunner> buildActionRunners,
+        BuildTreeActionExecutor createActionExecutor(List<BuildActionRunner> buildActionRunners,
                                                      StyledTextOutputFactory styledTextOutputFactory,
                                                      BuildStateRegistry buildStateRegistry,
                                                      BuildOperationNotificationValve buildOperationNotificationValve,

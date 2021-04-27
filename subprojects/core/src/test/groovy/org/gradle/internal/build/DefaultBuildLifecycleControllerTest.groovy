@@ -22,7 +22,6 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildCompletionListener
-import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.internal.service.scopes.BuildScopeServices
@@ -57,7 +56,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     DefaultBuildLifecycleController launcher() {
         return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
-            buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, Mock(BuildOptionBuildOperationProgressEventsEmitter))
+            buildCompletionListener, buildFinishedListener, buildExecuter, buildServices)
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {

@@ -25,6 +25,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.session.BuildSessionContext
 import org.gradle.internal.session.BuildSessionActionExecutor
 import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.internal.provider.action.SubscribableBuildAction
 import spock.lang.Specification
 
 class SubscribableBuildActionExecuterSpec extends Specification {

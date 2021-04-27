@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
 abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     @Rule
@@ -123,6 +124,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener", skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
+    @Ignore('https://github.com/gradle/gradle-private/issues/3366')
     def "shows progress bar and percent phase completion with included build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}

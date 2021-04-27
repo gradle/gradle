@@ -43,11 +43,13 @@ import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.integtests.fixtures.FileSystemWatchingHelper;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
@@ -62,7 +64,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
-import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -71,6 +72,7 @@ import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
 import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -138,6 +140,18 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
+        waitForChangesToBePickedUpBeforeExecution();
+    }
+
+    private void waitForChangesToBePickedUpBeforeExecution() {
+        // File system watching is now on by default, so we need to wait for changes to be picked up before each execution.
+        beforeExecute(executer -> {
+            try {
+                FileSystemWatchingHelper.waitForChangesToBePickedUp();
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        });
     }
 
     @Override

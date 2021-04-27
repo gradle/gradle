@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.action;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -43,7 +43,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final InternalDebugOptions debugOptions;
     private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
 
-    private TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests) {
+    public TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;
@@ -117,15 +117,15 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         return false;
     }
 
-    public Collection<String> getTestClassNames() {
+    public Set<String> getTestClassNames() {
         return classNames;
     }
 
-    public Collection<InternalJvmTestRequest> getInternalJvmTestRequests() {
+    public Set<InternalJvmTestRequest> getInternalJvmTestRequests() {
         return internalJvmTestRequests;
     }
 
-    public Collection<InternalTestDescriptor> getTestExecutionDescriptors() {
+    public Set<InternalTestDescriptor> getTestExecutionDescriptors() {
         return testDescriptors;
     }
 

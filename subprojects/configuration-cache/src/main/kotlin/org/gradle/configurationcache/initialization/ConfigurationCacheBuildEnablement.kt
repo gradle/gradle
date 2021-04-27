@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.initialization
 
+import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.util.Path
 
@@ -27,4 +28,14 @@ class ConfigurationCacheBuildEnablement(
     val isEnabledForCurrentBuild by lazy {
         startParameter.isEnabled && buildPath.buildPath == Path.ROOT
     }
+
+    val isProblemListenerEnabledForCurrentBuild by lazy {
+        startParameter.isEnabled && BUILD_SRC != buildPath.buildPath.lastSegment()
+    }
+
+    private
+    fun Path.lastSegment(): String? =
+        segmentCount()
+            .takeIf { it > 1 }
+            ?.let { segment(it - 1) }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.buildtree
 
-import org.gradle.api.internal.BuildType
+
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.service.DefaultServiceRegistry
 import spock.lang.Specification
@@ -27,7 +27,7 @@ class BuildTreeControllerTest extends Specification {
     def setup() {
         def services = new DefaultServiceRegistry()
         services.add(BuildTreeActionExecutor, Stub(BuildTreeActionExecutor))
-        state = new BuildTreeController(services, BuildType.TASKS)
+        state = new BuildTreeController(services, Stub(BuildTreeModelControllerServices.Supplier))
     }
 
     def "cannot run multiple actions against a tree"() {

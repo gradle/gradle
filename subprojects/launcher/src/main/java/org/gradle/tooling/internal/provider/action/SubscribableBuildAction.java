@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.action;
 
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.invocation.BuildAction;
 
-import java.io.Serializable;
-
-public abstract class SubscribableBuildAction implements BuildAction, Serializable {
+public abstract class SubscribableBuildAction implements BuildAction {
     private final BuildEventSubscriptions clientSubscriptions;
 
     public SubscribableBuildAction(BuildEventSubscriptions clientSubscriptions) {

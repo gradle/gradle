@@ -17,9 +17,10 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.composite.internal.IncludedBuildControllers;
-import org.gradle.internal.invocation.BuildAction;
+import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -46,6 +47,7 @@ public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
             public Result call(BuildOperationContext context) {
                 buildController.getGradle().getServices().get(IncludedBuildControllers.class).rootBuildOperationStarted();
                 buildController.getGradle().getServices().get(LoggingBuildOperationProgressBroadcaster.class).rootBuildOperationStarted();
+                buildController.getGradle().getServices().get(BuildOptionBuildOperationProgressEventsEmitter.class).emit();
                 Result result = delegate.run(action, buildController);
                 context.setResult(RESULT);
                 if (result.getBuildFailure() != null) {

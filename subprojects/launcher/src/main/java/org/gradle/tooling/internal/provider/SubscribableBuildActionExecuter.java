@@ -19,13 +19,14 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.internal.session.BuildSessionActionExecutor;
+import org.gradle.internal.session.BuildSessionContext;
+import org.gradle.tooling.internal.provider.action.SubscribableBuildAction;
 
 import java.util.ArrayList;
 import java.util.List;

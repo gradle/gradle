@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.configurationcache.fixtures
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-@ServiceScope(Scopes.Build.class)
-public interface BuildModelControllerFactory {
-    /**
-     * Creates the {@link BuildModelController} for the given build model instance.
-     */
-    BuildModelController create(GradleInternal gradle);
+abstract class AbstractOptInFeatureIntegrationTest extends AbstractIntegrationSpec {
+    static final String CONFIGURATION_CACHE_MESSAGE = "Configuration cache is an incubating feature."
+    static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
+
+    abstract void configurationCacheRun(String... tasks)
+
+    abstract void configurationCacheRunLenient(String... tasks)
+
+    abstract void configurationCacheFails(String... tasks)
 }

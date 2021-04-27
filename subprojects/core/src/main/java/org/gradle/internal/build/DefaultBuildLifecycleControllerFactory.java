@@ -23,7 +23,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.initialization.BuildCompletionListener;
-import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -43,27 +42,20 @@ import java.io.File;
 public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleControllerFactory {
     @Override
     public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel, BuildScopeServices buildScopeServices) {
-        return doNewInstance(buildDefinition, owner, parentModel, buildScopeServices);
-    }
+        StartParameter startParameter = buildDefinition.getStartParameter();
 
-    private BuildLifecycleController doNewInstance(
-        BuildDefinition buildDefinition,
-        BuildState owner,
-        @Nullable GradleInternal parent,
-        BuildScopeServices serviceRegistry
-    ) {
-        serviceRegistry.add(BuildDefinition.class, buildDefinition);
-        serviceRegistry.add(BuildState.class, owner);
+        buildScopeServices.add(BuildDefinition.class, buildDefinition);
+        buildScopeServices.add(BuildState.class, owner);
+        buildScopeServices.addProvider(new GradleModelProvider(parentModel, startParameter));
 
-        final ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
-        for (Action<ListenerManager> action : serviceRegistry.getAll(BuildScopeListenerManagerAction.class)) {
+        final ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
+        for (Action<ListenerManager> action : buildScopeServices.getAll(BuildScopeListenerManagerAction.class)) {
             action.execute(listenerManager);
         }
 
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
 
-        StartParameter startParameter = buildDefinition.getStartParameter();
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         switch (showStacktrace) {
             case ALWAYS:
@@ -74,7 +66,7 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
                 LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
         }
 
-        DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), serviceRegistry.get(BuildOperationProgressEventEmitter.class));
+        DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), buildScopeServices.get(BuildOperationProgressEventEmitter.class));
         @SuppressWarnings("deprecation")
         File customSettingsFile = startParameter.getSettingsFile();
         if (customSettingsFile != null) {
@@ -92,38 +84,39 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
                 .nagUser();
         }
 
-        GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(
-            DefaultGradle.class,
-            parent,
-            startParameter,
-            serviceRegistry.get(ServiceRegistryFactory.class)
-        );
+        GradleInternal gradle = buildScopeServices.get(GradleInternal.class);
 
-        BuildModelControllerFactory buildModelControllerFactory = serviceRegistry.get(BuildModelControllerFactory.class);
-        BuildModelController buildModelController = buildModelControllerFactory.create(gradle);
-
-        return createDefaultGradleLauncher(gradle, buildModelController, serviceRegistry);
-    }
-
-    private BuildLifecycleController createDefaultGradleLauncher(
-        GradleInternal gradle,
-        BuildModelController buildModelController,
-        BuildScopeServices serviceRegistry
-    ) {
-        final ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
+        BuildModelController buildModelController = buildScopeServices.get(BuildModelController.class);
 
         return new DefaultBuildLifecycleController(
             gradle,
             buildModelController,
-            serviceRegistry.get(ExceptionAnalyser.class),
+            buildScopeServices.get(ExceptionAnalyser.class),
             gradle.getBuildListenerBroadcaster(),
             listenerManager.getBroadcaster(BuildCompletionListener.class),
             listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
             gradle.getServices().get(BuildWorkExecutor.class),
-            serviceRegistry,
-            new BuildOptionBuildOperationProgressEventsEmitter(
-                gradle.getServices().get(BuildOperationProgressEventEmitter.class)
-            )
+            buildScopeServices
         );
+    }
+
+    private static class GradleModelProvider {
+        @Nullable
+        private final GradleInternal parentModel;
+        private final StartParameter startParameter;
+
+        private GradleModelProvider(@Nullable GradleInternal parentModel, StartParameter startParameter) {
+            this.parentModel = parentModel;
+            this.startParameter = startParameter;
+        }
+
+        GradleInternal createGradleModel(Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory) {
+            return instantiator.newInstance(
+                DefaultGradle.class,
+                parentModel,
+                startParameter,
+                serviceRegistryFactory
+            );
+        }
     }
 }

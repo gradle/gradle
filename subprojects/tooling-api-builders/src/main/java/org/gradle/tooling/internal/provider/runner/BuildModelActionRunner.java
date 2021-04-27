@@ -27,7 +27,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
-import org.gradle.tooling.internal.provider.BuildModelAction;
+import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 

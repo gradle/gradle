@@ -22,7 +22,6 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildCompletionListener;
-import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -55,7 +54,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildScopeServices buildServices;
     private final GradleInternal gradle;
     private final BuildModelController modelController;
-    private final BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter;
 
     private Stage stage = Stage.Created;
     @Nullable
@@ -69,8 +67,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         BuildCompletionListener buildCompletionListener,
         InternalBuildFinishedListener buildFinishedListener,
         BuildWorkExecutor buildExecuter,
-        BuildScopeServices buildServices,
-        BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
+        BuildScopeServices buildServices
     ) {
         this.gradle = gradle;
         this.modelController = buildModelController;
@@ -80,7 +77,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
-        this.buildOptionBuildOperationProgressEventsEmitter = buildOptionBuildOperationProgressEventsEmitter;
     }
 
     @Override
@@ -129,9 +125,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             throw new IllegalStateException("Cannot do further work as this build has failed.", stageFailure);
         }
         try {
-            if (stage == Stage.Created && gradle.isRootBuild()) {
-                buildOptionBuildOperationProgressEventsEmitter.emit(gradle.getStartParameter());
-            }
             try {
                 return action.apply(modelController);
             } finally {

@@ -123,12 +123,7 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
     }
 
     private void outputContainsIncubatingFeatureUsage() {
-        outputContains("Configuration cache is an incubating feature.")
-    }
-
-    private void expectDeprecatedProperty(String name, String value) {
-        executer.beforeExecute {
-            expectDeprecationWarning("Property '$name' with value '$value' has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-        }
+        outputContains(CONFIGURATION_CACHE_MESSAGE)
+        outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
     }
 }

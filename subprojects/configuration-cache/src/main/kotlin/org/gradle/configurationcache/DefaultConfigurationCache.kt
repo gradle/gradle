@@ -17,6 +17,8 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
+import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerprint
@@ -34,8 +36,8 @@ import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.util.internal.IncubationLogger
 import java.io.File
 import java.io.FileInputStream
 import java.io.OutputStream
@@ -50,7 +52,13 @@ class DefaultConfigurationCache internal constructor(
     private val systemPropertyListener: SystemPropertyAccessListener,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheIO: ConfigurationCacheIO,
-    private val gradlePropertiesController: GradlePropertiesController
+    private val gradlePropertiesController: GradlePropertiesController,
+    private val configurationTimeBarrier: ConfigurationTimeBarrier,
+    /**
+     * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
+     */
+    @Suppress("unused")
+    private val fileSystemAccess: FileSystemAccess
 ) : ConfigurationCache {
 
     interface Host {
@@ -129,6 +137,7 @@ class DefaultConfigurationCache internal constructor(
 
         if (!isConfigurationCacheEnabled) return
 
+        prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
         Instrumented.setListener(systemPropertyListener)
     }
@@ -136,6 +145,8 @@ class DefaultConfigurationCache internal constructor(
     override fun save() {
 
         if (!isConfigurationCacheEnabled) return
+
+        crossConfigurationTimeBarrier()
 
         // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
         // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
@@ -167,6 +178,7 @@ class DefaultConfigurationCache internal constructor(
 
         require(isConfigurationCacheEnabled)
 
+        prepareConfigurationTimeBarrier()
         problems.loading()
 
         // No need to record the `ClassLoaderScope` tree
@@ -178,6 +190,19 @@ class DefaultConfigurationCache internal constructor(
                 cacheIO.readRootBuildStateFrom(stateFile)
             }
         }
+        crossConfigurationTimeBarrier()
+    }
+
+    private
+    fun prepareConfigurationTimeBarrier() {
+        require(configurationTimeBarrier is DefaultConfigurationTimeBarrier)
+        configurationTimeBarrier.prepare()
+    }
+
+    private
+    fun crossConfigurationTimeBarrier() {
+        require(configurationTimeBarrier is DefaultConfigurationTimeBarrier)
+        configurationTimeBarrier.cross()
     }
 
     private
@@ -284,9 +309,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun logBootstrapSummary(message: String, vararg args: Any?) {
-        if (!startParameter.isQuiet) {
-            IncubationLogger.incubatingFeatureUsed("Configuration cache")
-        }
         log(message, *args)
     }
 

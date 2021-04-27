@@ -39,4 +39,44 @@ public interface BuildOption<T> {
 
     void applyFromCommandLine(ParsedCommandLine options, T settings);
 
+    abstract class Value<T> {
+        public abstract boolean isExplicit();
+
+        public abstract T get();
+
+        /**
+         * Creates the default value for an option.
+         */
+        public static <T> Value<T> defaultValue(final T value) {
+            return new Value<T>() {
+                @Override
+                public boolean isExplicit() {
+                    return false;
+                }
+
+                @Override
+                public T get() {
+                    return value;
+                }
+            };
+        }
+
+        /**
+         * Creates an explicit value for an option.
+         */
+        public static <T> Value<T> value(final T value) {
+            return new Value<T>() {
+                @Override
+                public boolean isExplicit() {
+                    return true;
+                }
+
+                @Override
+                public T get() {
+                    return value;
+                }
+            };
+        }
+    }
+
 }

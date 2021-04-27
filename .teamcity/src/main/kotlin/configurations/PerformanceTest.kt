@@ -43,7 +43,6 @@ class PerformanceTest(
     performanceTestTaskSuffix: String = "PerformanceTest",
     preBuildSteps: BuildSteps.() -> Unit = {}
 ) : BaseGradleBuildType(
-    model,
     stage = stage,
     init = {
         this.id(performanceTestBuildSpec.asConfigurationId(model, "bucket${bucketIndex + 1}"))
@@ -57,12 +56,10 @@ class PerformanceTest(
         params {
             param("performance.baselines", type.defaultBaselines)
             param("performance.channel", performanceTestBuildSpec.channel())
-            param("env.ANDROID_HOME", os.androidHome)
-            param("env.ANDROID_SDK_ROOT", os.androidHome)
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
             when (os) {
                 Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
-                else -> param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
+                else -> param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin:/opt/swift/4.2.4-RELEASE-ubuntu18.04/usr/bin")
             }
         }
         if (testProjects.isNotEmpty()) {

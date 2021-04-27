@@ -18,8 +18,8 @@ package org.gradle.internal.buildtree;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
-import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.ArrayList;
@@ -37,7 +37,10 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private final IncludedBuildControllers includedBuildControllers;
     private final ExceptionAnalyser exceptionAnalyser;
 
-    public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController, WorkerLeaseService workerLeaseService, IncludedBuildControllers includedBuildControllers, ExceptionAnalyser exceptionAnalyser) {
+    public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
+                                               WorkerLeaseService workerLeaseService,
+                                               IncludedBuildControllers includedBuildControllers,
+                                               ExceptionAnalyser exceptionAnalyser) {
         this.buildLifecycleController = buildLifecycleController;
         this.workerLeaseService = workerLeaseService;
         this.includedBuildControllers = includedBuildControllers;
