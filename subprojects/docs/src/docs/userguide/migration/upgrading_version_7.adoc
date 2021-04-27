@@ -204,7 +204,7 @@ The convention properties contributed by the `base` plugin have been deprecated 
 The conventions are replaced by the the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
 
 The old convention object defines the `distsDirName`, `libsDirName` and `archivesBaseName` properties with simple getter and setter methods.
-For compatibility reasons, those are still available in the extension but only for compatibility purposes.
+Those methods are available in the extension only to maintain backwards compatibility.
 Build scripts should solely use the properties of type `Property`:
 ```
 base {
