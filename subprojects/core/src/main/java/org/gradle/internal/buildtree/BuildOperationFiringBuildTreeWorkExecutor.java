@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -42,7 +43,9 @@ public class BuildOperationFiringBuildTreeWorkExecutor implements BuildTreeWorkE
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Run main tasks");
+                BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName("Run main tasks");
+                builder.metadata(BuildOperationCategory.RUN_MAIN_TASKS);
+                return builder;
             }
         });
     }

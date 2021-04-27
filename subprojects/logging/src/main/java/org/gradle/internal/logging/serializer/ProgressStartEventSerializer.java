@@ -45,6 +45,14 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
     private static final short BUILD_OP_CATEGORY_OFFSET = 12;
     private static final short BUILD_OP_CATEGORY_MASK = 0x7;
 
+    public ProgressStartEventSerializer() {
+        BuildOperationCategory maxCategory = BuildOperationCategory.values()[BuildOperationCategory.values().length - 1];
+        if ((BUILD_OP_CATEGORY_MASK & maxCategory.ordinal()) != maxCategory.ordinal()) {
+            // Too many build operation categories to fit into the flags assigned to encode the category - so you will need to adjust the mask above
+            throw new IllegalArgumentException("Too many categories to fit into flags.");
+        }
+    }
+
     @Override
     public void write(Encoder encoder, ProgressStartEvent event) throws Exception {
         int flags = 0;

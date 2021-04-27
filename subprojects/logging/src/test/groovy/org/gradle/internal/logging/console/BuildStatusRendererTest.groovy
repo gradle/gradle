@@ -326,7 +326,7 @@ class BuildStatusRendererTest extends OutputSpecification {
     }
 
     def startExecuteRootBuild(Long id, Long parentId, int totalProgress) {
-        return start(id, parentId, BuildOperationCategory.RUN_WORK_ROOT_BUILD, totalProgress)
+        return start(id, parentId, BuildOperationCategory.RUN_MAIN_TASKS, totalProgress)
     }
 
     def startExecuteBuild(Long id, Long parentId, int totalProgress) {
