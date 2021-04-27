@@ -49,7 +49,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
 
     def "can enable file system watching via '#enableFlag'"() {
         when:
-        def result = runAssemble()
+        def result = runAssemble(enableFlag)
         then:
         fileSystemWatchingEnabled(result)
 
@@ -57,8 +57,8 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
         enableFlag << ["--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}", "-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=true"]
     }
 
-    private BuildResult runAssemble() {
-        runner("assemble", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=true").build()
+    private BuildResult runAssemble(String... extraArguments) {
+        runner("assemble", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=true", *extraArguments).build()
     }
 
     private static boolean fileSystemWatchingEnabled(BuildResult result) {
