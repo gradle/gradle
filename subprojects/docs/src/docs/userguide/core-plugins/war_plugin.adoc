@@ -79,8 +79,14 @@ A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareCom
 The War Plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.WarPluginExtension.html[`war` extension] to the project.
 This allows to configure the following properties inside a dedicated DSL block.
 
-`webAppDir` — `File`::
+`webAppDir` — `DirectoryProperty`::
 _Default value_: `$projectDir/src/main/webapp`
+
+.Setting web app directory in `warPlugin` extension
+====
+include::sample[dir="snippets/webApplication/extension/groovy",files="build.gradle[tags=war-extension]"]
+include::sample[dir="snippets/webApplication/extension/kotlin",files="build.gradle.kts[tags=war-extension]"]
+====
 
 The path to the web application source directory.
 

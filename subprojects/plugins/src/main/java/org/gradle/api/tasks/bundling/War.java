@@ -165,4 +165,5 @@ public class War extends Jar {
     public void setWebXml(@Nullable File webXml) {
         this.webXml = webXml;
     }
+
 }

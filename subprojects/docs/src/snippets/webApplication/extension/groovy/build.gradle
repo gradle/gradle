@@ -1,0 +1,9 @@
+plugins {
+    id 'war'
+}
+
+// tag::war-extension[]
+warPlugin {
+    webAppDir = file('src/main/my-webapp')
+}
+// end::war-extension[]
