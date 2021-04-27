@@ -17,9 +17,7 @@
 package org.gradle.performance
 
 import groovy.json.JsonSlurper
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
@@ -34,9 +32,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Shared
-
-import static org.gradle.performance.fixture.VersionResolver.resolveBaselineVersions
-import static org.gradle.performance.fixture.VersionResolver.resolveVersion
 
 class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
 
@@ -58,20 +53,11 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
     @Shared
     String pluginVersionNumber = resolvePluginVersion()
 
-    GradleDistribution distribution
-
     def setup() {
-        def baselineVersions = resolveBaselineVersions()
-        if (baselineVersions.empty || baselineVersions.size() > 1) {
-            throw new IllegalArgumentException("Expected exactly one baseline version but got ${baselineVersions.size()}: $baselineVersions")
-        }
-
-        distribution = buildContext.distribution(resolveVersion(baselineVersions.first(), new ReleasedVersionDistributions(buildContext)))
         def buildStampJsonFile = new File(incomingDir, "buildStamp.json")
         assert buildStampJsonFile.exists()
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert buildStampJsonData.commitId
-        def pluginCommitId = buildStampJsonData.commitId as String
         runner = new BuildScanPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector), resultStore.reportAlso(dataReporter), pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {

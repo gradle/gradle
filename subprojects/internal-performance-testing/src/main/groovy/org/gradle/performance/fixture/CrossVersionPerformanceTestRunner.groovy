@@ -16,7 +16,6 @@
 
 package org.gradle.performance.fixture
 
-import com.google.common.annotations.VisibleForTesting
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -46,9 +45,7 @@ import java.util.function.Consumer
 import java.util.function.Function
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
-import static VersionResolver.isRcVersionOrSnapshot
-import static VersionResolver.resolveBaselineVersions
-import static VersionResolver.resolveVersion
+import static org.gradle.performance.fixture.BaselineVersionResolver.toBaselineVersions
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
 /**
@@ -96,10 +93,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
         buildMutators.add(buildMutator)
-    }
-
-    List<String> getMeasuredBuildOperations() {
-        return measuredBuildOperations
     }
 
     CrossVersionPerformanceResults run() {
@@ -170,40 +163,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             FileUtils.cleanDirectory(perVersion)
         }
         perVersion
-    }
-
-    @VisibleForTesting
-    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumBaseVersion) {
-        def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
-        def versions = resolveBaselineVersions(overrideBaselinesProperty, targetVersions)
-
-        LinkedHashSet<String> resolvedVersions = versions.collect { resolveVersion(it, releases) } as LinkedHashSet<String>
-
-        if (resolvedVersions.isEmpty() || addMostRecentRelease(overrideBaselinesProperty, versions)) {
-            // Always include the most recent final release if we're not testing against a nightly or a snapshot
-            resolvedVersions.add(releases.mostRecentRelease.version.version)
-        }
-
-        resolvedVersions.removeAll { !versionMeetsLowerBaseVersionRequirement(it, minimumBaseVersion) }
-
-        if (resolvedVersions.isEmpty()) {
-            Assume.assumeFalse("Ignore the test if all baseline versions are filtered out in Historical Performance Test", ResultsStoreHelper.isHistoricalChannel())
-        }
-
-        assert !resolvedVersions.isEmpty(): "No versions selected: ${versions}"
-
-        resolvedVersions
-    }
-
-    private static boolean addMostRecentRelease(String overrideBaselinesProperty, List<String> versions) {
-        if (overrideBaselinesProperty) {
-            return false
-        }
-        return !versions.any { it == 'last' || it == 'nightly' || isRcVersionOrSnapshot(it) }
-    }
-
-    private static boolean versionMeetsLowerBaseVersionRequirement(String targetVersion, String minimumBaseVersion) {
-        return minimumBaseVersion == null || GradleVersion.version(targetVersion).baseVersion >= GradleVersion.version(minimumBaseVersion)
     }
 
     private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {

@@ -21,15 +21,39 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.util.GradleVersion
+import org.junit.Assume
 
 import java.util.regex.Pattern
 
-class VersionResolver {
+class BaselineVersionResolver {
 
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
 
-    static List<String> resolveBaselineVersions(String overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines'), List<String> targetVersions = []) {
+    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumBaseVersion) {
+        def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
+        def versions = resolveBaselineVersions(overrideBaselinesProperty, targetVersions)
+
+        LinkedHashSet<String> resolvedVersions = versions.collect { resolveVersion(it, releases) } as LinkedHashSet<String>
+
+        if (resolvedVersions.isEmpty() || addMostRecentRelease(overrideBaselinesProperty, versions)) {
+            // Always include the most recent final release if we're not testing against a nightly or a snapshot
+            resolvedVersions.add(releases.mostRecentRelease.version.version)
+        }
+
+        resolvedVersions.removeAll { !versionMeetsLowerBaseVersionRequirement(it, minimumBaseVersion) }
+
+        if (resolvedVersions.isEmpty()) {
+            Assume.assumeFalse("Ignore the test if all baseline versions are filtered out in Historical Performance Test", ResultsStoreHelper.isHistoricalChannel())
+        }
+
+        assert !resolvedVersions.isEmpty(): "No versions selected: ${versions}"
+
+        resolvedVersions
+    }
+
+    static List<String> resolveBaselineVersions(String overrideBaselinesProperty, List<String> targetVersions) {
         List<String> versions
         if (overrideBaselinesProperty) {
             versions = resolveOverriddenVersions(overrideBaselinesProperty, targetVersions)
@@ -65,6 +89,17 @@ class VersionResolver {
                     throw new RuntimeException("Cannot find Gradle release that matches version '$version'")
                 }
         }
+    }
+
+    private static boolean addMostRecentRelease(String overrideBaselinesProperty, List<String> versions) {
+        if (overrideBaselinesProperty) {
+            return false
+        }
+        return !versions.any { it == 'last' || it == 'nightly' || isRcVersionOrSnapshot(it) }
+    }
+
+    private static boolean versionMeetsLowerBaseVersionRequirement(String targetVersion, String minimumBaseVersion) {
+        return minimumBaseVersion == null || GradleVersion.version(targetVersion).baseVersion >= GradleVersion.version(minimumBaseVersion)
     }
 
     private static List<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {

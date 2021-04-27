@@ -25,9 +25,9 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-import static CrossVersionPerformanceTestRunner.toBaselineVersions
+import static BaselineVersionResolver.toBaselineVersions
 
-class CrossVersionPerformanceTestRunnerTest extends Specification {
+class BaselineVersionResolverTest extends Specification {
     @Rule
     SetSystemProperties properties = new SetSystemProperties([(ResultsStoreHelper.SYSPROP_PERFORMANCE_TEST_CHANNEL): 'historical-master'])
     private ReleasedVersionDistributions distributions = Mock()
@@ -58,7 +58,7 @@ class CrossVersionPerformanceTestRunnerTest extends Specification {
         e.message.contains('No versions selected: [6.0-20190823180744+0000]')
     }
 
-    def 'lastest release is added if no versions specified'() {
+    def 'latest release is added if no versions specified'() {
         expect:
         toBaselineVersions(distributions, [], null) == ['6.1'] as LinkedHashSet
     }
