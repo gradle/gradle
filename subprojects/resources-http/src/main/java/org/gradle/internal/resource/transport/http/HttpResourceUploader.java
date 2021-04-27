@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import org.apache.http.HttpStatus;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.gradle.internal.resource.ReadableContent;
@@ -42,6 +44,8 @@ public class HttpResourceUploader implements ExternalResourceUploader {
                 URI effectiveUri = response.getEffectiveUri();
                 throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
             }
+        } catch (NoHttpResponseException e) {
+            throw new HttpErrorStatusCodeException("PUT", destination.toString(), HttpStatus.SC_REQUEST_TIMEOUT, e.getMessage());
         }
     }
 }
