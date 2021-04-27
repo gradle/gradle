@@ -118,6 +118,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return testReportDir;
     }
 
+    @Override
     public JavaVersion getSourceCompatibility() {
         if (srcCompat != null) {
             return srcCompat;
