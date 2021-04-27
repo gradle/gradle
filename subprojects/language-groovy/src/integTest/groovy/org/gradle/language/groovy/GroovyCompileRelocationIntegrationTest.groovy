@@ -16,7 +16,6 @@
 
 package org.gradle.language.groovy
 
-import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.integtests.fixtures.ForkCapableRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 

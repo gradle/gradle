@@ -26,7 +26,7 @@ import java.io.File;
 /**
  * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
  */
-public class ForkOptions extends BaseForkOptions {
+public class ForkOptions extends ProviderAwareForkOptions {
     private static final long serialVersionUID = 0;
 
     private String executable;

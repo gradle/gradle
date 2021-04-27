@@ -32,12 +32,12 @@ package org.gradle.api.tasks.scala;
  * limitations under the License.
  */
 
-import org.gradle.api.tasks.compile.BaseForkOptions;
+import org.gradle.api.tasks.compile.ProviderAwareForkOptions;
 
 /**
  * Fork options for Scala compilation. Only take effect if {@code BaseScalaCompileOptions.fork}
  * is {@code true}.
  */
-public class ScalaForkOptions extends BaseForkOptions {
+public class ScalaForkOptions extends ProviderAwareForkOptions {
     private static final long serialVersionUID = 0;
 }

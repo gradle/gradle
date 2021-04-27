@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.api.internal.tasks.scala;
 
-import java.io.File;
-import java.util.List;
+import org.gradle.api.internal.tasks.compile.MinimalBaseForkOptions;
+import org.gradle.api.tasks.scala.ScalaForkOptions;
 
-public interface GroovyCompileSpec extends JvmLanguageCompileSpec {
-    MinimalGroovyCompileOptions getGroovyCompileOptions();
+import java.io.Serializable;
 
-    List<File> getGroovyClasspath();
-
-    void setGroovyClasspath(List<File> classpath);
-
-    boolean incrementalCompilationEnabled();
+public class MinimalScalaForkOptions extends MinimalBaseForkOptions implements Serializable {
+    public MinimalScalaForkOptions(ScalaForkOptions forkOptions) {
+        super(forkOptions);
+        setJvmArgs(forkOptions.getAllJvmArgs());
+    }
 }

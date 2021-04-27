@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
+import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
@@ -128,7 +129,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(getOptions());
-        spec.setScalaCompileOptions(scalaCompileOptions);
+        spec.setScalaCompileOptions(new MinimalScalaCompileOptions(scalaCompileOptions));
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null
             ? ImmutableList.of()
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));

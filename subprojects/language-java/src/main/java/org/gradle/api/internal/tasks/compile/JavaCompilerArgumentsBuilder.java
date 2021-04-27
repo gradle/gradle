@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.base.Joiner;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -123,7 +122,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        MinimalForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         if (forkOptions.getMemoryInitialSize() != null) {
             args.add("-J-Xms" + forkOptions.getMemoryInitialSize().trim());
         }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.integtests.fixtures.ForkCapableRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 

@@ -23,8 +23,8 @@ import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
-import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.api.tasks.compile.GroovyForkOptions;
+import org.gradle.api.internal.tasks.compile.MinimalForkOptions;
+import org.gradle.api.internal.tasks.compile.MinimalGroovyForkOptions;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -66,13 +66,14 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
     @Override
     protected CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
+
         return new GroovyCompilerParameters(compilerClass.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
     }
 
     @Override
     protected DaemonForkOptions toDaemonForkOptions(GroovyJavaJointCompileSpec spec) {
-        ForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
-        GroovyForkOptions groovyOptions = spec.getGroovyCompileOptions().getForkOptions();
+        MinimalForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
+        MinimalGroovyForkOptions groovyOptions = spec.getGroovyCompileOptions().getForkOptions();
         // Ant is optional dependency of groovy(-all) module but mandatory dependency of Groovy compiler;
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
         // is compatible with Gradle's current Ant version.

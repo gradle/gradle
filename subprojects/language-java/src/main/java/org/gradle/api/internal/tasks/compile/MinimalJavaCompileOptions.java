@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
-import org.gradle.api.tasks.compile.ForkOptions;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -34,7 +33,7 @@ public class MinimalJavaCompileOptions implements Serializable {
     private String encoding;
     private String bootClasspath;
     private String extensionDirs;
-    private ForkOptions forkOptions;
+    private MinimalForkOptions forkOptions;
     private DebugOptions debugOptions;
     private boolean debug;
     private boolean deprecation;
@@ -57,7 +56,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.encoding = compileOptions.getEncoding();
         this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
         this.extensionDirs = compileOptions.getExtensionDirs();
-        this.forkOptions = compileOptions.getForkOptions();
+        this.forkOptions = new MinimalForkOptions(compileOptions.getForkOptions());
         this.debugOptions = compileOptions.getDebugOptions();
         this.debug = compileOptions.isDebug();
         this.deprecation = compileOptions.isDeprecation();
@@ -117,11 +116,11 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.extensionDirs = extensionDirs;
     }
 
-    public ForkOptions getForkOptions() {
+    public MinimalForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(ForkOptions forkOptions) {
+    public void setForkOptions(MinimalForkOptions forkOptions) {
         this.forkOptions = forkOptions;
     }
 

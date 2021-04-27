@@ -45,6 +45,9 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
         then:
         executedAndNotSkipped taskName
 
+        and:
+        outputContains('JavaAgent configured!')
+
         when:
         inDirectory(originalDir)
         withBuildCache().run taskName
@@ -79,7 +82,31 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
 
             ${daemonConfiguration}
             ${daemonTask}.dependsOn configurations.javaagent
-            ${forkOptionsObject}.jvmArgs.add("-javaagent:\${configurations.javaagent.singleFile.absolutePath}".toString())
+            ${forkOptionsObject}.jvmArgumentProviders.add(new JavaAgentCommandLineArgumentProvider(configurations.javaagent.singleFile))
+            ${commandLineArgumentProviderClassContent}
+        """
+    }
+
+    static String getCommandLineArgumentProviderClassContent() {
+        return """
+            class JavaAgentCommandLineArgumentProvider implements CommandLineArgumentProvider {
+                @Internal
+                final File javaAgentJarFile
+
+                JavaAgentCommandLineArgumentProvider(File javaAgentJarFile) {
+                    this.javaAgentJarFile = javaAgentJarFile
+                }
+
+                @Classpath
+                Iterable<File> getClasspath() {
+                    return [javaAgentJarFile]
+                }
+
+                @Override
+                List<String> asArguments() {
+                    ["-javaagent:\${javaAgentJarFile.absolutePath}".toString()]
+                }
+            }
         """
     }
 }

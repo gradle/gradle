@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
-import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
@@ -56,7 +55,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
 
     @Override
     protected DaemonForkOptions toDaemonForkOptions(JavaCompileSpec spec) {
-        ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        MinimalForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(findSuitableExecutable(spec));
@@ -72,7 +71,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
     }
 
     private File findSuitableExecutable(JavaCompileSpec spec) {
-        final ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        final MinimalForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         if (forkOptions.getExecutable() != null) {
             return new File(forkOptions.getExecutable());
         } else if (forkOptions.getJavaHome() != null) {
