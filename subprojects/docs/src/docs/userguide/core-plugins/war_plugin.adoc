@@ -93,7 +93,7 @@ The path to the web application source directory.
 [[sec:war_convention_properties]]
 == Convention properties (deprecated)
 
-The conventions contributed by the War plugin have been deprecated and superseded by the extension described above.
+The convention contributed by the War plugin has been deprecated and superseded by the extension described above.
 See the link:{groovyDslPath}/org.gradle.api.plugins.WarPluginConvention.html[WarPluginConvention] DSL documentation for information on them.
 
 [[sec:war_default_settings]]
