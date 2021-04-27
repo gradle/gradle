@@ -219,6 +219,13 @@ This may cause test failures when the test expects particular file paths.
 
 If the test uses `GradleRunner.withTestKitDir(...)`, it is unaffected.
 
+==== File system watching with TestKit on Windows
+
+The file system watching implementation on Windows adds a lock to the root project directory in order to watch for changes in there.
+This may cause problems in functional tests when the root project directory is within a temporary directory which is deleted after the test.
+To avoid problems with these file locks for functional tests, <<test_kit#test_kit,TestKit>> disables file system watching for builds executed on Windows via `GradleRunner`.
+Your tests can enable file system watching by passing `--watch-fs` to `GradleRunner.withArguments()`.
+
 ==== Removal of the legacy `maven` plugin
 
 The `maven` plugin has been removed.
