@@ -209,6 +209,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                         // Eventually, this should become the default and only behaviour for all worker threads and changes to locks made only when starting or
                         // finishing an execution node. Adding this constraint here means that we can make all build operation queue workers compliant with this
                         // constraint and then gradually roll this out to other worker threads, such as task action workers.
+                        //
+                        // See {@link ProjectLeaseRegistry#whileDisallowingProjectLockChanges} for more details
                         return workerLeases.whileDisallowingProjectLockChanges(() -> doRunBatch(firstOperation));
                     }
                 })
