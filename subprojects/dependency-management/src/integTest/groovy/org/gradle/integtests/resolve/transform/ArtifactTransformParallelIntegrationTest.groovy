@@ -253,7 +253,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         server.expectConcurrent("a.jar", "b.jar", "c.jar", "test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
 
         when:
-        executer.withArguments("--max-workers=6")
+        executer.withArguments("--max-workers=10")
         succeeds ":resolve"
 
         then:
