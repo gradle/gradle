@@ -32,6 +32,9 @@ import org.gradle.internal.time.Time
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.gradle.util.internal.TextUtil.escapeString
@@ -57,9 +60,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     def "the lock holder is not hammered with ping requests for the shared fileHashes lock"() {
         given:
         setupLockOwner()
-        def pingRequestCount = 0
+        AtomicInteger pingRequestCount = new AtomicInteger()
         //do not handle requests: this simulates the situation were pings do not arrive
-        replaceSocketReceiver { pingRequestCount++ }
+        replaceSocketReceiver { pingRequestCount.incrementAndGet() }
 
         when:
         def build = executer.withTasks("help").start()
@@ -71,22 +74,22 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
         then:
         build.waitForFinish()
-        pingRequestCount == 3 || pingRequestCount == 4
+        pingRequestCount.get() == 3 || pingRequestCount.get() == 4
         timer.elapsedMillis > 3000 // See: DefaultFileLockContentionHandler.PING_DELAY
     }
 
     def "the lock holder starts the release request only once and discards additional requests in the meantime"() {
         given:
-        def requestReceived = false
-        def terminate = false
+        AtomicBoolean requestReceived = new AtomicBoolean()
+        AtomicBoolean terminate = new AtomicBoolean()
         setupLockOwner {
-            requestReceived = true
-            while(!terminate) { Thread.sleep(100) } //block the release action thread
+            requestReceived.set(true)
+            while(!terminate.get()) { Thread.sleep(100) } //block the release action thread
         }
 
         when:
         def build = executer.withTasks("help").start()
-        poll(120) { assert requestReceived }
+        poll(120) { assert requestReceived.get() }
 
         // simulate additional requests
         def socket = new DatagramSocket(0, addressFactory.wildcardBindingAddress)
@@ -103,47 +106,47 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         assertReceivingSocketEmpty()
 
         cleanup:
-        terminate = true
+        terminate.set(true)
     }
 
     def "if the lock holder confirmed the request, it is not pinged again"() {
         given:
-        def requestReceived = false
-        def additionalRequests = 0
-        setupLockOwner() { requestReceived = true }
+        AtomicBoolean requestReceived = new AtomicBoolean()
+        AtomicInteger additionalRequests = new AtomicInteger()
+        setupLockOwner() { requestReceived.set(true) }
 
         when:
         def build = executer.withTasks("help").start()
         poll(120) {
-            assert requestReceived
+            assert requestReceived.get()
         }
         replaceSocketReceiver {
-            additionalRequests++
+            additionalRequests.incrementAndGet()
         }
 
         then:
         waitCloseAndFinish(build)
         countPingsSent(build) == 1
-        additionalRequests == 0
+        additionalRequests.get() == 0
     }
 
     def "the lock holder confirms that a request is in process to multiple requesters"() {
         given:
-        def requestReceived = false
-        def additionalRequests = 0
-        setupLockOwner() { requestReceived = true }
+        AtomicBoolean requestReceived = new AtomicBoolean()
+        AtomicInteger additionalRequests = new AtomicInteger()
+        setupLockOwner() { requestReceived.set(true) }
 
         when:
         def build1 = executer.withArguments("-d").withTasks("help").start()
         def build2 = executer.withArguments("-d").withTasks("help").start()
         def build3 = executer.withArguments("-d").withTasks("help").start()
         poll(120) {
-            assert requestReceived
+            assert requestReceived.get()
             assertConfirmationCount(build1)
             assertConfirmationCount(build2)
             assertConfirmationCount(build3)
         }
-        replaceSocketReceiver { additionalRequests++ }
+        replaceSocketReceiver { additionalRequests.incrementAndGet() }
 
         then:
         waitCloseAndFinish(build1)
@@ -152,14 +155,14 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         assertConfirmationCount(build1)
         assertConfirmationCount(build2)
         assertConfirmationCount(build3)
-        additionalRequests == 0
+        additionalRequests.get() == 0
     }
 
     def "the lock holder confirms lock releases to multiple requesters"() {
         given:
-        def signal
+        AtomicReference<FileLockReleasedSignal> signal = new AtomicReference<>()
         setupLockOwner() { s ->
-            signal = s
+            signal.set(s)
         }
 
         when:
@@ -169,14 +172,14 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
         then:
         poll(120) {
-            assert signal != null
+            assert signal.get() != null
             assertConfirmationCount(build1)
             assertConfirmationCount(build2)
             assertConfirmationCount(build3)
         }
 
         when:
-        signal.trigger()
+        signal.get().trigger()
 
         then:
         poll(120) {
@@ -194,25 +197,25 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
     def "if the lock was released by one lock holder, but taken away again, the new lock holder is pinged once"() {
         given:
-        def requestReceived = false
-        def lock1 = setupLockOwner() { requestReceived = true }
+        AtomicBoolean requestReceived = new AtomicBoolean()
+        def lock1 = setupLockOwner() { requestReceived.set(true) }
 
         when:
         def build = executer.withTasks("help").start()
         poll(120) {
-            assert requestReceived
+            assert requestReceived.get()
             assert countPingsSent(build) == 1
         }
 
-        requestReceived = false
+        requestReceived.set(false)
         def prevReceivingSocket = receivingSocket
         def prevReceivingLock = receivingLock
         lock1.close()
         def lock2 = setupLockOwner() {
-            requestReceived = true
+            requestReceived.set(true)
         }
         poll(120) {
-            assert requestReceived
+            assert requestReceived.get()
             assert countPingsSent(build, prevReceivingSocket) == 1
             assert countPingsSent(build, receivingSocket) == 1
         }
