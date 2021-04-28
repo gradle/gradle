@@ -26,36 +26,44 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
+import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.buildtree.BuildActionRunner;
-import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 
 import java.util.List;
 
 public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner {
+    private final ListenerManager listenerManager;
     private final BuildActionRunner delegate;
+    private final BuildStartedTime buildStartedTime;
+    private final BuildRequestMetaData buildRequestMetaData;
+    private final Clock clock;
     private final StyledTextOutputFactory styledTextOutputFactory;
     private final WorkValidationWarningReporter workValidationWarningReporter;
 
-    public BuildOutcomeReportingBuildActionRunner(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, BuildActionRunner delegate) {
+    public BuildOutcomeReportingBuildActionRunner(StyledTextOutputFactory styledTextOutputFactory,
+                                                  WorkValidationWarningReporter workValidationWarningReporter,
+                                                  ListenerManager listenerManager,
+                                                  BuildActionRunner delegate,
+                                                  BuildStartedTime buildStartedTime,
+                                                  BuildRequestMetaData buildRequestMetaData,
+                                                  Clock clock) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.workValidationWarningReporter = workValidationWarningReporter;
+        this.listenerManager = listenerManager;
         this.delegate = delegate;
+        this.buildStartedTime = buildStartedTime;
+        this.buildRequestMetaData = buildRequestMetaData;
+        this.clock = clock;
     }
 
     @Override
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         StartParameter startParameter = buildController.getGradle().getStartParameter();
-        ServiceRegistry services = buildController.getGradle().getServices();
-        BuildStartedTime buildStartedTime = services.get(BuildStartedTime.class);
-        BuildRequestMetaData buildRequestMetaData = services.get(BuildRequestMetaData.class);
-        Clock clock = services.get(Clock.class);
-        ListenerManager listenerManager = services.get(ListenerManager.class);
         TaskExecutionStatisticsEventAdapter taskStatisticsCollector = new TaskExecutionStatisticsEventAdapter();
         listenerManager.addListener(taskStatisticsCollector);
 

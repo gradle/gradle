@@ -159,8 +159,11 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                      BuildStateRegistry buildStateRegistry,
                                                      BuildOperationNotificationValve buildOperationNotificationValve,
                                                      BuildOperationProgressEventEmitter eventEmitter,
-                                                     WorkValidationWarningReporter workValidationWarningReporter
-        ) {
+                                                     WorkValidationWarningReporter workValidationWarningReporter,
+                                                     ListenerManager listenerManager,
+                                                     BuildStartedTime buildStartedTime,
+                                                     BuildRequestMetaData buildRequestMetaData,
+                                                     Clock clock) {
             return new InProcessBuildActionExecuter(
                 buildStateRegistry,
                 buildOperationNotificationValve,
@@ -168,8 +171,14 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     new BuildCompletionNotifyingBuildActionRunner(
                         new FileSystemWatchingBuildActionRunner(eventEmitter,
                             new ValidatingBuildActionRunner(
-                                new BuildOutcomeReportingBuildActionRunner(styledTextOutputFactory, workValidationWarningReporter,
-                                    new ChainingBuildActionRunner(buildActionRunners)))))));
+                                new BuildOutcomeReportingBuildActionRunner(
+                                    styledTextOutputFactory,
+                                    workValidationWarningReporter,
+                                    listenerManager,
+                                    new ChainingBuildActionRunner(buildActionRunners),
+                                    buildStartedTime,
+                                    buildRequestMetaData,
+                                    clock))))));
         }
     }
 }
