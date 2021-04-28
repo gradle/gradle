@@ -98,7 +98,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         "help - no console output"                              | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | ['-DreducedOutput=true']                                      | false
     }
 
-
     static class ManageLocalCacheState implements BuildMutator {
         final File projectDir
 

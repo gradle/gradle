@@ -18,6 +18,7 @@ package org.gradle.performance
 
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
@@ -33,9 +34,12 @@ import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
+import static org.gradle.performance.fixture.BaselineVersionResolver.toBaselineVersions
+
 class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
 
     static String incomingDir = "../../incoming"
+
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
@@ -53,6 +57,12 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
     String pluginVersionNumber = resolvePluginVersion()
 
     def setup() {
+        def baselineVersions = toBaselineVersions(new ReleasedVersionDistributions(buildContext), ['last'], null) as List<String>
+        if (baselineVersions.empty || baselineVersions.size() > 1) {
+            throw new IllegalArgumentException("Expected exactly one baseline version but got ${baselineVersions.size()}: $baselineVersions")
+        }
+
+        def distribution = buildContext.distribution(baselineVersions.first())
         def buildStampJsonFile = new File(incomingDir, "buildStamp.json")
         assert buildStampJsonFile.exists()
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
@@ -63,7 +73,9 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = temporaryFolder.testDirectory
-                (builder.invocation as GradleInvocationSpec.InvocationBuilder).buildLog(new File(builder.workingDirectory, "build.log"))
+                def invocation = (builder.invocation as GradleInvocationSpec.InvocationBuilder)
+                invocation.buildLog(new File(builder.workingDirectory, "build.log"))
+                invocation.distribution(distribution)
             }
         }
         performanceTestIdProvider.setTestSpec(runner)
