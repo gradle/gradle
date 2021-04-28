@@ -53,7 +53,7 @@ class BaselineVersionResolver {
         resolvedVersions
     }
 
-    static List<String> resolveBaselineVersions(String overrideBaselinesProperty, List<String> targetVersions) {
+    private static List<String> resolveBaselineVersions(String overrideBaselinesProperty, List<String> targetVersions) {
         List<String> versions
         if (overrideBaselinesProperty) {
             versions = resolveOverriddenVersions(overrideBaselinesProperty, targetVersions)
@@ -68,7 +68,7 @@ class BaselineVersionResolver {
         versions
     }
 
-    static String resolveVersion(String version, ReleasedVersionDistributions releases) {
+    private static String resolveVersion(String version, ReleasedVersionDistributions releases) {
         switch (version) {
             case 'last':
                 return releases.mostRecentRelease.version.version
@@ -111,7 +111,7 @@ class BaselineVersionResolver {
     }
 
     @CompileStatic(TypeCheckingMode.SKIP)
-    static boolean isRcVersionOrSnapshot(String version) {
+    private static boolean isRcVersionOrSnapshot(String version) {
         GradleVersion versionObject = GradleVersion.version(version)
         // there is no public API for checking for RC version, this is an internal way
         return versionObject.snapshot || versionObject.stage?.stage == 3

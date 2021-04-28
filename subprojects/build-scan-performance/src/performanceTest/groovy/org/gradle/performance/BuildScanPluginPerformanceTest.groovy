@@ -17,7 +17,6 @@
 package org.gradle.performance
 
 import org.apache.commons.io.FileUtils
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
@@ -25,9 +24,6 @@ import org.gradle.profiler.Phase
 import org.gradle.profiler.ScenarioContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
-
-import static org.gradle.performance.fixture.BaselineVersionResolver.resolveBaselineVersions
-import static org.gradle.performance.fixture.BaselineVersionResolver.resolveVersion
 
 class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceTest {
 
@@ -41,12 +37,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     @Unroll
     def "with and without plugin application (#scenario)"() {
         given:
-        def baselineVersions = resolveBaselineVersions(System.getProperty('org.gradle.performance.baselines'), ['last'])
-        if (baselineVersions.empty || baselineVersions.size() > 1) {
-            throw new IllegalArgumentException("Expected exactly one baseline version but got ${baselineVersions.size()}: $baselineVersions")
-        }
-
-        def dist = buildContext.distribution(resolveVersion(baselineVersions.first(), new ReleasedVersionDistributions(buildContext)))
         def jobArgs = ['--continue', '-Dscan.capture-task-input-files'] + scenarioArgs
 
         runner.baseline {
