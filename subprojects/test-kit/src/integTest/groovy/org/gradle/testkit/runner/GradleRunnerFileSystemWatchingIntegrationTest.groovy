@@ -17,9 +17,15 @@
 package org.gradle.testkit.runner
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.junit.Assume.assumeTrue
+
+// There are problems loading the native libraries for FS-watching when using TestKit with debug
+@NoDebug
 @SuppressWarnings('IntegrationTestFixtures')
 class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
@@ -29,6 +35,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
                 id('java')
             }
         """
+        assumeTrue("File system watching is enabled by default", gradleVersion >= GradleVersion.version("7.0"))
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -36,7 +43,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
         when:
         def result = runAssemble()
         then:
-        !fileSystemWatchingEnabled(result)
+        assertFileSystemWatchingDisabled(result)
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -44,14 +51,14 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
         when:
         def result = runAssemble()
         then:
-        fileSystemWatchingEnabled(result)
+        assertFileSystemWatchingEnabled(result)
     }
 
     def "can enable file system watching via '#enableFlag'"() {
         when:
         def result = runAssemble(enableFlag)
         then:
-        fileSystemWatchingEnabled(result)
+        assertFileSystemWatchingEnabled(result)
 
         where:
         enableFlag << ["--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}", "-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=true"]
@@ -61,7 +68,15 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
         runner("assemble", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=true", *extraArguments).build()
     }
 
-    private static boolean fileSystemWatchingEnabled(BuildResult result) {
-        result.output.contains("Virtual file system retains information")
+    private static boolean fileSystemWatchingEnabled(String output) {
+        output.contains("Virtual file system retains information")
+    }
+
+    private static void assertFileSystemWatchingEnabled(BuildResult result) {
+        assert fileSystemWatchingEnabled(result.output)
+    }
+
+    private static void assertFileSystemWatchingDisabled(BuildResult result) {
+        assert !fileSystemWatchingEnabled(result.output)
     }
 }
