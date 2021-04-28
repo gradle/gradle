@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 
 import javax.annotation.Nullable;
@@ -50,7 +50,7 @@ public class MinimalGroovyCompileOptions implements Serializable {
         this.keepStubs = compileOptions.isKeepStubs();
         this.fileExtensions = ImmutableList.copyOf(compileOptions.getFileExtensions());
         this.forkOptions = new MinimalGroovyForkOptions(compileOptions.getForkOptions());
-        this.optimizationOptions = ImmutableMap.copyOf(compileOptions.getOptimizationOptions());
+        this.optimizationOptions = Maps.newHashMap(compileOptions.getOptimizationOptions());
         this.stubDir = compileOptions.getStubDir();
         this.configurationScript = compileOptions.getConfigurationScript();
         this.javaAnnotationProcessing = compileOptions.isJavaAnnotationProcessing();
