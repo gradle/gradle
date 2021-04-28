@@ -44,7 +44,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocationCount INVOCATIONS
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
-                distribution(dist)
                 args(*jobArgs)
                 tasksToRun(*tasks)
                 if (withFailure) {
@@ -63,7 +62,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocationCount INVOCATIONS
             displayName(WITH_PLUGIN_LABEL)
             invocation {
-                distribution(dist)
                 args(*jobArgs)
                 args("-DenableScan=true")
                 tasksToRun(*tasks)
