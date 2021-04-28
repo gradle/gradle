@@ -591,7 +591,8 @@
             "member": "Class org.gradle.api.plugins.WarPluginExtension",
             "acceptation": "The functionality was already available for several releases in WarPluginConvention",
             "changes": []
-
+        },
+        {
             "type": "org.gradle.api.plugins.WarPluginExtension",
             "member": "Method org.gradle.api.plugins.WarPluginExtension.getWebAppDir()",
             "acceptation": "The functionality was already available for several releases in WarPluginConvention",
