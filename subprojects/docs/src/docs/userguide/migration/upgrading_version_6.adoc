@@ -202,9 +202,19 @@ You can find more details about the benefits of the new configurations and which
 
 [WARNING]
 ====
-If you were extending one of the removed configurations in the Groovy DSL, like `myConf extendsFrom runtime`, it will silently create a configuration with the given name.
-It will however not wire it the way it was in Gradle < 7 and will most likely result in missing dependencies or artifacts in configuration resolution.
-Watch out for this particular combination and its resulting behavior.
+When using the Groovy DSL, you need to watch out for a particular upgrade problem when dealing with the removed configurations.
+
+If you were creating custom configurations that extend one of the removed configurations, Gradle may silently create configurations that do not exist.
+
+This looks something like:
+```
+configurations {
+  // This silently creates a configuration called "runtime"
+  myConf extendsFrom runtime
+}
+```
+
+The result of dependency resolution for your custom configuration may not be the same as Gradle 6.x or before. You may notice missing dependencies or artifacts.
 ====
 
 ==== Location of temporary project files for `ProjectBuilder`
