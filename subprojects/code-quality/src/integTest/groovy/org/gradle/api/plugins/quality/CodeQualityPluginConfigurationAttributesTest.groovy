@@ -20,21 +20,20 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CodeQualityPluginConfigurationAttributesTest extends AbstractIntegrationSpec {
 
-    def "code quality plugin runtime configuration is deprecated for consumption"() {
-        given:
+    def setup() {
         settingsFile << """
             include("producer", "consumer")
             dependencyResolutionManagement {
                 ${mavenCentralRepository()}
             }
         """
+    }
+
+    def "code quality plugin runtime configuration is deprecated for consumption"() {
+        given:
         file("producer/build.gradle") << """
             plugins {
-                id("java-library")
                 id("$plugin")
-            }
-            dependencies {
-                implementation(localGroovy())
             }
         """
 
@@ -50,6 +49,49 @@ class CodeQualityPluginConfigurationAttributesTest extends AbstractIntegrationSp
 
         then:
         executer.expectDocumentedDeprecationWarning("The $plugin configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#code_quality_plugin_configuration_consumption")
+        succeeds("test")
+
+        where:
+        plugin << ['codenarc', 'pmd', 'checkstyle']
+    }
+
+    def "code quality plugin runtime configuration can be extended and consumed without deprecation"() {
+        given:
+        file("producer/build.gradle") << """
+            plugins {
+                id("$plugin")
+            }
+            configurations {
+                $plugin {
+                    // because currently this is consumable until Gradle 8.0 and adding attributes to it will make it clash with the configuration below
+                    canBeConsumed = false
+                }
+                ${plugin}Consumable {
+                    extendsFrom($plugin)
+                    canBeConsumed = true
+                    canBeResolved = false
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+                        attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM));
+                    }
+                }
+            }
+        """
+
+        when:
+        file("consumer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(project(":producer"))
+            }
+        """
+
+        then:
         succeeds("test")
 
         where:
