@@ -211,42 +211,6 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         build3.waitForFinish()
     }
 
-    def "if the lock was released by one lock holder, but taken away again, the new lock holder is pinged once"() {
-        given:
-        def requestReceived = false
-        def lock1 = setupLockOwner() { requestReceived = true }
-
-        when:
-        def build = executer.withTasks("lock").start()
-
-        poll(120) {
-            assert requestReceived
-            assert countPingsSent(build) == 1
-        }
-
-        requestReceived = false
-        def prevReceivingSocket = receivingSocket
-        def prevReceivingLock = receivingLock
-        lock1.close()
-        def lock2 = setupLockOwner() {
-            requestReceived = true
-        }
-        poll(120) {
-            assert requestReceived
-            assert countPingsSent(build, prevReceivingSocket) == 1
-            assert countPingsSent(build, receivingSocket) == 1
-        }
-        lock2.close()
-
-        then:
-        build.waitForFinish()
-        countPingsSent(build, prevReceivingSocket) == 1
-        countPingsSent(build, receivingSocket) == 1
-        assertConfirmationCount(build, prevReceivingSocket, prevReceivingLock)
-        assertConfirmationCount(build, receivingSocket, receivingLock)
-        assertConfirmationCount(build, prevReceivingSocket, prevReceivingLock)
-    }
-
     // This test simulates a long running Zinc compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
     // if many workers wait for the same exclusive lock, a worker does not time out because several others get the lock before
     def "worker not timeout"() {
