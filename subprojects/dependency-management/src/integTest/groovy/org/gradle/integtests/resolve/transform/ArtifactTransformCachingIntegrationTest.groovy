@@ -207,7 +207,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             def reserved = file("${it}/build/${forbiddenPath}")
             failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask' (type 'DefaultTask').")
             failure.assertThatDescription(containsString(cannotWriteToReservedLocation {
-                type('org.gradle.api.DefaultTask').property('output')
+                property('output')
                     .forbiddenAt(reserved)
                     .includeLink()
             }))
