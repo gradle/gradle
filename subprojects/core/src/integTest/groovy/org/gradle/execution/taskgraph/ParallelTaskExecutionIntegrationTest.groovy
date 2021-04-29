@@ -264,9 +264,13 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         withParallelThreads(3)
 
         expect:
-        2.times {
-            blockingServer.expectConcurrent(":a:aSerialPing")
-            blockingServer.expectConcurrent(":b:aPing", ":b:bPing")
+        blockingServer.expectConcurrent(":a:aSerialPing")
+        blockingServer.expectConcurrent(":b:aPing", ":b:bPing")
+        run ":a:aSerialPing", ":b:aPing", ":b:bPing"
+
+        // when configuration is loaded from configuration cache, all tasks are executed in parallel
+        if (GradleContextualExecuter.configCache) {
+            blockingServer.expectConcurrent(":a:aSerialPing", ":b:aPing", ":b:bPing")
             run ":a:aSerialPing", ":b:aPing", ":b:bPing"
         }
     }
