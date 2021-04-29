@@ -111,7 +111,6 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
 
 private
 fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToScenarioDurations: Map<String, List<PerformanceTestDuration>>, testProjectScenarioDurationsFallback: Map<String, List<PerformanceTestDuration>>, scenarioRepetitions: Int, numberOfBuckets: Int): List<PerformanceTestBucket> {
-
     val testProjectDurations = scenarios
         .groupBy({ it.testProject }, { scenario ->
             listOf(testProjectToScenarioDurations, testProjectScenarioDurationsFallback)
@@ -126,12 +125,22 @@ fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToS
         LinkedList(testProjectDurations),
         TestProjectDuration::totalTime,
         { largeElement: TestProjectDuration, size: Int -> largeElement.split(size) },
-        { list: List<TestProjectDuration> -> MultipleTestProjectBucket(list) },
+        ::mergeSmallTestProjectsIntoOneBucket,
         numberOfBuckets,
         MAX_TEST_PROJECTS_PER_BUCKET,
         { numEmptyBuckets -> (0 until numEmptyBuckets).map { EmptyTestProjectBucket(it) }.toList() },
         { tests1, tests2 -> tests1 != tests2 }
     )
+}
+
+fun mergeSmallTestProjectsIntoOneBucket(smallProjectDuration: List<TestProjectDuration>): PerformanceTestBucket {
+    // Because of flakiness detection, these "smallProjectDuration" actually can contain same testProject
+    val testProjects = smallProjectDuration.associateBy { it.testProject }.keys
+    return if (testProjects.size == 1) {
+        SingleTestProjectBucket(testProjects.first(), smallProjectDuration.flatMap { it.scenarioDurations }.map { it.scenario })
+    } else {
+        MultipleTestProjectBucket(smallProjectDuration)
+    }
 }
 
 fun determineScenarioTestDurations(os: Os, performanceTestDurations: OperatingSystemToTestProjectPerformanceTestDurations): Map<String, List<PerformanceTestDuration>> = performanceTestDurations.getOrDefault(os, emptyMap())
@@ -186,7 +195,7 @@ data class TestProjectDuration(val testProject: String, val scenarioDurations: L
 
     override
     fun toString(): String {
-        return "TestProjectTime(testProject=$testProject, totalTime=$totalTime, scenarios = ${scenarioDurations.map { it.scenario } }"
+        return "TestProjectTime(testProject=$testProject, totalTime=$totalTime, scenarios = ${scenarioDurations.map { it.scenario }}"
     }
 }
 
@@ -218,19 +227,19 @@ class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scena
 class MultipleTestProjectBucket(private val projectDurations: List<TestProjectDuration>) : PerformanceTestBucket {
     override
     fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest = createPerformanceTest(
-            model,
-            performanceTestCoverage,
-            stage,
-            bucketIndex,
-            "Performance tests for ${projectDurations.joinToString(", ") { it.testProject }}",
-            projectDurationsToScenariosPerTestProject(projectDurations)
-        )
+        model,
+        performanceTestCoverage,
+        stage,
+        bucketIndex,
+        "Performance tests for ${projectDurations.joinToString(", ") { it.testProject }}",
+        projectDurationsToScenariosPerTestProject(projectDurations)
+    )
 }
 
 private
 fun projectDurationsToScenariosPerTestProject(projectDurations: List<TestProjectDuration>): Map<String, List<Scenario>> {
     val durationsPerTestProject = projectDurations.groupBy({ it.testProject }, { it.scenarioDurations })
-    durationsPerTestProject.forEach { (key, value) -> if (value.size != 1) throw IllegalArgumentException("More than on scenario split for test project $key: $projectDurations") }
+    durationsPerTestProject.forEach { (key, value) -> if (value.size != 1) throw IllegalArgumentException("More than one scenario split for test project $key: $projectDurations") }
     return durationsPerTestProject
         .mapValues { (_, durations) -> durations.flatten().map { it.scenario } }
 }
