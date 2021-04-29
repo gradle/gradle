@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,22 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Action;
-import org.gradle.api.Project;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface CrossProjectConfigurator {
+import java.util.Set;
 
-    void project(ProjectInternal project, Action<? super Project> configureAction);
+/**
+ * Mediates access across project boundaries.
+ */
+@ServiceScope(Scopes.Build.class)
+public interface CrossProjectModelAccess {
+    /**
+     * @param path absolute path
+     */
+    ProjectInternal getProject(ProjectInternal referrer, String path);
 
-    void subprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction);
+    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer);
 
-    void allprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction);
-
-    void rootProject(ProjectInternal project, Action<? super Project> buildOperationExecutor);
-
+    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer);
 }

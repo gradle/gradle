@@ -32,7 +32,6 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.Task;
-import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -124,10 +123,10 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
-import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.Configurable;
-import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.Path;
+import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -148,8 +147,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 import static org.gradle.util.internal.GUtil.addMaps;
 
 @NoConventionMapping
-public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
-
+public abstract class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
     private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
@@ -167,7 +165,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private ProjectEvaluator projectEvaluator;
 
-    private ScriptSource buildScriptSource;
+    private final ScriptSource buildScriptSource;
 
     private final File projectDir;
 
@@ -188,7 +186,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private List<String> defaultTasks = new ArrayList<String>();
 
-    private ProjectStateInternal state;
+    private final ProjectStateInternal state;
 
     private FileResolver fileResolver;
 
@@ -198,7 +196,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final int depth;
 
-    private TaskContainerInternal taskContainer;
+    private final TaskContainerInternal taskContainer;
 
     private DependencyHandler dependencyHandler;
 
@@ -210,7 +208,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<RuleBasedPluginListener>(RuleBasedPluginListener.class);
 
-    private ExtensibleDynamicObject extensibleDynamicObject;
+    private final ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
@@ -396,10 +394,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Inject
     @Override
-    public ScriptHandlerInternal getBuildscript() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract ScriptHandlerInternal getBuildscript();
 
     @Override
     public File getBuildFile() {
@@ -543,10 +538,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Inject
     @Override
-    public RepositoryHandler getRepositories() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract RepositoryHandler getRepositories();
 
     @Override
     public ConfigurationContainer getConfigurations() {
@@ -582,11 +574,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Inject
-    @Override
-    public ProjectRegistry<ProjectInternal> getProjectRegistry() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectRegistry<ProjectInternal> getProjectRegistry();
+
+    @Inject
+    protected abstract CrossProjectModelAccess getCrossProjectModelAccess();
 
     @Override
     public int depthCompare(Project otherProject) {
@@ -655,11 +646,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ProjectInternal project(String path) {
-        ProjectInternal project = findProject(path);
-        if (project == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
-        }
-        return project;
+        return getCrossProjectModelAccess().getProject(this, path);
     }
 
     @Override
@@ -672,22 +659,32 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Set<Project> getAllprojects() {
-        return new TreeSet<Project>(getProjectRegistry().getAllProjects(getPath()));
+        return Cast.uncheckedCast(getCrossProjectModelAccess().getAllprojects(this));
     }
 
     @Override
-    public Set<Project> getSubprojects() {
-        return new TreeSet<Project>(getProjectRegistry().getSubProjects(getPath()));
-    }
-
-    @Override
-    public void subprojects(Action<? super Project> action) {
-        getProjectConfigurator().subprojects(getSubprojects(), action);
+    public void allprojects(Closure configureClosure) {
+        allprojects(ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public void allprojects(Action<? super Project> action) {
-        getProjectConfigurator().allprojects(getAllprojects(), action);
+        getProjectConfigurator().allprojects(getCrossProjectModelAccess().getAllprojects(this), action);
+    }
+
+    @Override
+    public Set<Project> getSubprojects() {
+        return Cast.uncheckedCast(getCrossProjectModelAccess().getSubprojects(this));
+    }
+
+    @Override
+    public void subprojects(Closure configureClosure) {
+        subprojects(ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    @Override
+    public void subprojects(Action<? super Project> action) {
+        getProjectConfigurator().subprojects(getCrossProjectModelAccess().getSubprojects(this), action);
     }
 
     @Override
@@ -869,31 +866,19 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     @Inject
-    public FileOperations getFileOperations() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract FileOperations getFileOperations();
 
     @Override
     @Inject
-    public ProviderFactory getProviders() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract ProviderFactory getProviders();
 
     @Override
     @Inject
-    public ObjectFactory getObjects() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract ObjectFactory getObjects();
 
     @Override
     @Inject
-    public DefaultProjectLayout getLayout() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract DefaultProjectLayout getLayout();
 
     @Override
     public File file(Object path) {
@@ -1057,17 +1042,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Inject
     @Override
-    public LoggingManagerInternal getLogging() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract LoggingManagerInternal getLogging();
 
     @Inject
     @Override
-    public SoftwareComponentContainer getComponents() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract SoftwareComponentContainer getComponents();
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
@@ -1131,10 +1110,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     @Inject
-    public ProcessOperations getProcessOperations() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract ProcessOperations getProcessOperations();
 
     @Override
     public ExecResult javaexec(Closure closure) {
@@ -1184,23 +1160,15 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public void subprojects(Closure configureClosure) {
-        getProjectConfigurator().subprojects(getSubprojects(), ConfigureUtil.configureUsing(configureClosure));
-    }
-
-    @Override
-    public void allprojects(Closure configureClosure) {
-        getProjectConfigurator().allprojects(getAllprojects(), ConfigureUtil.configureUsing(configureClosure));
-    }
-
-    @Override
     public Project project(String path, Closure configureClosure) {
-        return getProjectConfigurator().project(project(path), ConfigureUtil.configureUsing(configureClosure));
+        return project(path, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public Project project(String path, Action<? super Project> configureAction) {
-        return getProjectConfigurator().project(project(path), configureAction);
+        ProjectInternal project = project(path);
+        getProjectConfigurator().project(project, configureAction);
+        return project;
     }
 
     @Override
@@ -1289,23 +1257,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Inject
     @Override
-    public ProjectConfigurationActionContainer getConfigurationActions() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract ProjectConfigurationActionContainer getConfigurationActions();
 
     @Inject
     @Override
-    public ModelRegistry getModelRegistry() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ModelSchemaStore getModelSchemaStore() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract ModelRegistry getModelRegistry();
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
@@ -1315,22 +1271,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Inject
     @Override
-    public PluginManagerInternal getPluginManager() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract PluginManagerInternal getPluginManager();
 
     @Inject
-    protected ScriptPluginFactory getScriptPluginFactory() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ScriptPluginFactory getScriptPluginFactory();
 
     @Inject
-    protected ScriptHandlerFactory getScriptHandlerFactory() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ScriptHandlerFactory getScriptHandlerFactory();
 
     @Override
     public ClassLoaderScope getClassLoaderScope() {
@@ -1381,20 +1328,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Inject
-    protected DeferredProjectConfiguration getDeferredProjectConfiguration() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DeferredProjectConfiguration getDeferredProjectConfiguration();
 
     @Inject
-    protected CrossProjectConfigurator getProjectConfigurator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract CrossProjectConfigurator getProjectConfigurator();
 
     @Inject
-    protected ListenerBuildOperationDecorator getListenerBuildOperationDecorator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ListenerBuildOperationDecorator getListenerBuildOperationDecorator();
 
     @Override
     public void addDeferredConfiguration(Runnable configuration) {
@@ -1426,9 +1366,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Inject
     @Override
-    public InputNormalizationHandler getNormalization() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract InputNormalizationHandler getNormalization();
 
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {
@@ -1437,9 +1375,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Inject
     @Override
-    public DependencyLockingHandler getDependencyLocking() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract DependencyLockingHandler getDependencyLocking();
 
     @Override
     public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {

@@ -83,8 +83,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     ProjectInternal findProject(String path);
 
-    ProjectRegistry<ProjectInternal> getProjectRegistry();
-
     DynamicObject getInheritedScope();
 
     @Override
