@@ -41,9 +41,9 @@ public class UndefinedBuildWorkExecutor implements BuildWorkExecutor {
         if (!useLocationAsProjectRoot(gradle.getRootProject().getRootDir(), gradle.getStartParameter().getTaskNames()) && isUndefinedBuild(gradle)) {
             projectCacheDir.delete();
             throw new InvalidUserCodeException(
-                "Executing Gradle tasks as part of an undefined build is not supported. " +
-                "Make sure that you are executing Gradle from a folder within your Gradle project. " +
-                "Your project should have a 'settings.gradle(.kts)' file in the root folder.");
+                "Executing Gradle tasks as part of a build without a settings file is not supported. " +
+                "Make sure that you are executing Gradle from a directory within your Gradle project. " +
+                "Your project should have a 'settings.gradle(.kts)' file in the root directory.");
         }
         delegate.execute(gradle, failures);
     }

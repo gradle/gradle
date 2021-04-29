@@ -141,8 +141,8 @@ task work {
         fails("work")
         failure.assertHasDescription("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
         failureDescriptionContains(inputDoesNotExist {
-            type('DefaultTask')
-                .property('$1')
+            type('org.gradle.api.DefaultTask')
+            property('$1')
                 .file(link)
                 .includeLink()
         })

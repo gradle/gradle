@@ -86,7 +86,7 @@ public class TypeValidationProblemRenderer {
         Class<?> rootType = location.getType().orElse(null);
         if (rootType != null) {
             builder.append("Type '");
-            builder.append(ModelType.of(rootType).getDisplayName());
+            builder.append(ModelType.of(rootType).getName());
             builder.append("' ");
         }
         String property = location.getPropertyName().orElse(null);
@@ -104,6 +104,14 @@ public class TypeValidationProblemRenderer {
             builder.append("' ");
         }
         return builder.toString();
+    }
+
+    // A heuristic to determine if the type is relevant or not.
+    // The "DefaultTask" type may appear in error messages
+    // (if using "adhoc" tasks) but isn't visible to this
+    // class so we have to rely on text matching for now.
+    private static boolean shouldRenderType(Class<?> clazz) {
+        return !("org.gradle.api.DefaultTask".equals(clazz.getName()));
     }
 
     private static String maybeAppendDot(String txt) {
