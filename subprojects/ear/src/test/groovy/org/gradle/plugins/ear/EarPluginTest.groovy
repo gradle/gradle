@@ -300,6 +300,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
     def "supports skipping deployment descriptor creation"() {
         when:
         project.pluginManager.apply(EarPlugin)
+        println  project.convention.plugins.ear
         project.convention.plugins.ear.generateDeploymentDescriptor = false
         executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
 

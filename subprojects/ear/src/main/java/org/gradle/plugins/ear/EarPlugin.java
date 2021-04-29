@@ -75,7 +75,8 @@ public class EarPlugin implements Plugin<Project> {
         project.getPluginManager().apply(BasePlugin.class);
 
         DefaultEarPluginExtension extension = (DefaultEarPluginExtension) project.getExtensions().create(EarPluginExtension.class, "earPlugin", DefaultEarPluginExtension.class, objectFactory);
-        project.getConvention().getPlugins().put("ear", new DefaultEarPluginConvention(extension));
+        DefaultEarPluginConvention convention = objectFactory.newInstance(DefaultEarPluginConvention.class, extension);
+        project.getConvention().getPlugins().put("ear", convention);
         extension.setLibDirName(DEFAULT_LIB_DIR_NAME);
         extension.setAppDirName("src/main/application");
 

@@ -22,6 +22,8 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
+import javax.inject.Inject;
+
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
 @SuppressWarnings("deprecation")
@@ -29,6 +31,7 @@ public class DefaultEarPluginConvention extends org.gradle.plugins.ear.EarPlugin
 
     private final DefaultEarPluginExtension extension;
 
+    @Inject
     public DefaultEarPluginConvention(DefaultEarPluginExtension extension) {
         this.extension = extension;
     }
