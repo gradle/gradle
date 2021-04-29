@@ -16,6 +16,7 @@
 
 package gradlebuild.performance.generator
 
+import java.nio.file.attribute.FileTime
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
@@ -55,8 +56,7 @@ class MavenJarCreator {
 
     private void addJarEntry(JarOutputStream out, String name, String content) {
         // Add archive entry
-        JarEntry entry = new JarEntry(name)
-        entry.setTime(System.currentTimeMillis())
+        JarEntry entry = new NormalizedJarEntry(name)
         out.putNextEntry(entry)
 
         // Write file to archive
@@ -65,12 +65,22 @@ class MavenJarCreator {
     }
 
     private void addGeneratedUncompressedJarEntry(JarOutputStream out, String name, int sizeInBytes) {
-        JarEntry entry = new JarEntry(name)
-        entry.setTime(System.currentTimeMillis())
+        JarEntry entry = new NormalizedJarEntry(name)
         out.putNextEntry(entry)
 
         for (int i = 0; i < sizeInBytes; i++) {
             out.write(charsToUse, i % charsToUse.length, 1)
         }
     }
+
+
+    class NormalizedJarEntry extends JarEntry {
+        NormalizedJarEntry(String name) {
+            super(name)
+            creationTime = FileTime.fromMillis(0)
+            lastAccessTime = FileTime.fromMillis(0)
+            lastModifiedTime = FileTime.fromMillis(0)
+        }
+    }
 }
+
