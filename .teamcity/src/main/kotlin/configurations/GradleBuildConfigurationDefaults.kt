@@ -42,6 +42,10 @@ val m2CleanScriptWindows = """
     )
 """.trimIndent()
 
+val cleanAndroidUserHomeScriptUnixLike = """
+    rm -rf ~/.android
+""".trimIndent()
+
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     if (model.publishStatusToGitHub) {
         publishBuildStatusToGithub()
