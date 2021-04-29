@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicateFileCopyingException;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.RelativePath;
