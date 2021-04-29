@@ -17,10 +17,10 @@
 package gradlebuild.performance.generator
 
 import java.nio.file.attribute.FileTime
-import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
-import java.util.jar.Manifest
 import java.util.zip.Deflater
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 class MavenJarCreator {
     int minimumSizeKB = 0
@@ -31,10 +31,10 @@ class MavenJarCreator {
     void createJar(MavenModule mavenModule, File artifactFile) {
         try {
             artifactFile.withOutputStream { stream ->
-                JarOutputStream out = new JarOutputStream(stream, new Manifest());
+                ZipOutputStream out = new ZipOutputStream(stream)
                 out.setLevel(Deflater.NO_COMPRESSION)
                 try {
-                    addJarEntry(out, artifactFile.name + ".properties", "testcontent")
+                    addZipEntry(out, artifactFile.name + ".properties", "testcontent")
                     if (minimumSizeKB > 0) {
                         int sizeInBytes
                         if(maximumSizeKB > minimumSizeKB) {
@@ -42,7 +42,7 @@ class MavenJarCreator {
                         } else {
                             sizeInBytes = minimumSizeKB * 1024
                         }
-                        addGeneratedUncompressedJarEntry(out, "generated.txt", sizeInBytes)
+                        addGeneratedUncompressedZipEntry(out, "generated.txt", sizeInBytes)
                     }
                 } finally {
                     out.close()
@@ -54,9 +54,9 @@ class MavenJarCreator {
         }
     }
 
-    private void addJarEntry(JarOutputStream out, String name, String content) {
+    private void addZipEntry(ZipOutputStream out, String name, String content) {
         // Add archive entry
-        JarEntry entry = new NormalizedJarEntry(name)
+        ZipEntry entry = new NormalizedZipEntry(name)
         out.putNextEntry(entry)
 
         // Write file to archive
@@ -64,8 +64,8 @@ class MavenJarCreator {
         out.write(contentBytes, 0, contentBytes.length)
     }
 
-    private void addGeneratedUncompressedJarEntry(JarOutputStream out, String name, int sizeInBytes) {
-        JarEntry entry = new NormalizedJarEntry(name)
+    private void addGeneratedUncompressedZipEntry(ZipOutputStream out, String name, int sizeInBytes) {
+        ZipEntry entry = new NormalizedZipEntry(name)
         out.putNextEntry(entry)
 
         for (int i = 0; i < sizeInBytes; i++) {
@@ -74,8 +74,8 @@ class MavenJarCreator {
     }
 
 
-    class NormalizedJarEntry extends JarEntry {
-        NormalizedJarEntry(String name) {
+    class NormalizedZipEntry extends ZipEntry {
+        NormalizedZipEntry(String name) {
             super(name)
             creationTime = FileTime.fromMillis(0)
             lastAccessTime = FileTime.fromMillis(0)
