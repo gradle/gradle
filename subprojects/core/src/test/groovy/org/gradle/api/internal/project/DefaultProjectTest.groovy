@@ -96,10 +96,9 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.awt.*
+import java.awt.Point
 import java.lang.reflect.Type
 import java.text.FieldPosition
-import java.util.List
 import java.util.function.Consumer
 
 class DefaultProjectTest extends Specification {
@@ -962,9 +961,9 @@ def scriptMethod(Closure closure) {
     def getModule() {
         when:
         Module moduleDummyResolve = new ProjectBackedModule(project)
-        dependencyMetaDataProviderMock.getModule() >> moduleDummyResolve
+        dependencyMetaDataProviderMock.module >> moduleDummyResolve
         then:
-        project.getModule() == moduleDummyResolve
+        project.dependencyMetaDataProvider.module == moduleDummyResolve
     }
 
     def convertsAbsolutePathToAbsolutePath() {

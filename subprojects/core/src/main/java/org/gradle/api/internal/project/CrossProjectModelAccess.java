@@ -29,9 +29,9 @@ public interface CrossProjectModelAccess {
     /**
      * @param path absolute path
      */
-    ProjectInternal getProject(ProjectInternal referrer, String path);
+    ProjectInternal getProject(ProjectInternal referrer, ProjectInternal relativeTo, String path);
 
-    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer);
+    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo);
 
-    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer);
+    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo);
 }

@@ -32,6 +32,7 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.Task;
+import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -52,7 +53,6 @@ import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -646,7 +646,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal project(String path) {
-        return getCrossProjectModelAccess().getProject(this, path);
+        return project(this, path);
+    }
+
+    @Override
+    public ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException {
+        return getCrossProjectModelAccess().getProject(referrer, this, path);
     }
 
     @Override
@@ -659,32 +664,52 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Set<Project> getAllprojects() {
-        return Cast.uncheckedCast(getCrossProjectModelAccess().getAllprojects(this));
+        return Cast.uncheckedCast(getAllprojects(this));
+    }
+
+    @Override
+    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().getAllprojects(referrer, this);
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        allprojects(ConfigureUtil.configureUsing(configureClosure));
+        allprojects(this, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public void allprojects(Action<? super Project> action) {
-        getProjectConfigurator().allprojects(getCrossProjectModelAccess().getAllprojects(this), action);
+        allprojects(this, action);
+    }
+
+    @Override
+    public void allprojects(ProjectInternal referrer, Action<? super Project> action) {
+        getProjectConfigurator().allprojects(getCrossProjectModelAccess().getAllprojects(referrer, this), action);
     }
 
     @Override
     public Set<Project> getSubprojects() {
-        return Cast.uncheckedCast(getCrossProjectModelAccess().getSubprojects(this));
+        return Cast.uncheckedCast(getSubprojects(this));
+    }
+
+    @Override
+    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().getSubprojects(referrer, this);
     }
 
     @Override
     public void subprojects(Closure configureClosure) {
-        subprojects(ConfigureUtil.configureUsing(configureClosure));
+        subprojects(this, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public void subprojects(Action<? super Project> action) {
-        getProjectConfigurator().subprojects(getCrossProjectModelAccess().getSubprojects(this), action);
+        subprojects(this, action);
+    }
+
+    @Override
+    public void subprojects(ProjectInternal referrer, Action<? super Project> configureAction) {
+        getProjectConfigurator().subprojects(getCrossProjectModelAccess().getSubprojects(referrer, this), configureAction);
     }
 
     @Override
@@ -789,11 +814,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         if (isNullOrEmpty(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
-        DefaultProject projectToEvaluate = (DefaultProject) project(path);
+        ProjectInternal projectToEvaluate = project(path);
         return evaluationDependsOn(projectToEvaluate);
     }
 
-    private Project evaluationDependsOn(DefaultProject projectToEvaluate) {
+    private Project evaluationDependsOn(ProjectInternal projectToEvaluate) {
         if (projectToEvaluate.getState().isConfiguring()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                 projectToEvaluate));
@@ -1143,9 +1168,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Module getModule() {
-        return services.get(DependencyMetaDataProvider.class).getModule();
-    }
+    @Inject
+    public abstract DependencyMetaDataProvider getDependencyMetaDataProvider();
 
     @Override
     public AntBuilder ant(Closure configureClosure) {
@@ -1161,12 +1185,17 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return project(path, ConfigureUtil.configureUsing(configureClosure));
+        return project(this, path, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public Project project(String path, Action<? super Project> configureAction) {
-        ProjectInternal project = project(path);
+        return project(this, path, configureAction);
+    }
+
+    @Override
+    public ProjectInternal project(ProjectInternal referrer, String path, Action<? super Project> configureAction) {
+        ProjectInternal project = project(referrer, path);
         getProjectConfigurator().project(project, configureAction);
         return project;
     }

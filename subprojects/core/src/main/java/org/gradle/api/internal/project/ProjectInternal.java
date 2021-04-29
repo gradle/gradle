@@ -47,9 +47,10 @@ import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 @UsedByScanPlugin("scan, test-retry")
-public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope, PluginAwareInternal {
+public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, DomainObjectContext, ModelRegistryScope, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
     // in the ‘core’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.
@@ -80,8 +81,21 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     ProjectInternal project(String path) throws UnknownProjectException;
 
+    ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException;
+
+    ProjectInternal project(ProjectInternal referrer, String path, Action<? super Project> configureAction);
+
     @Override
+    @Nullable
     ProjectInternal findProject(String path);
+
+    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer);
+
+    void subprojects(ProjectInternal referrer, Action<? super Project> configureAction);
+
+    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer);
+
+    void allprojects(ProjectInternal referrer, Action<? super Project> configureAction);
 
     DynamicObject getInheritedScope();
 
@@ -157,13 +171,18 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * dependencies in isolation from the project itself. This is
      * particularly useful if the repositories or configurations
      * needed for resolution shouldn't leak to the project state.
+     *
      * @return a detached resolver
      */
     DetachedResolver newDetachedResolver();
 
+    DependencyMetaDataProvider getDependencyMetaDataProvider();
+
     interface DetachedResolver {
         RepositoryHandler getRepositories();
+
         DependencyHandler getDependencies();
+
         ConfigurationContainer getConfigurations();
     }
 }

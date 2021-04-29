@@ -113,7 +113,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
         register(registration -> {
-            registration.add(DomainObjectContext.class, project);
+            registration.add(ProjectInternal.class, project);
             parent.get(DependencyManagementServices.class).addDslServices(registration, project);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerProjectServices(registration);

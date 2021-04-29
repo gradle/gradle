@@ -29,21 +29,21 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
-    public ProjectInternal getProject(ProjectInternal referrer, String path) {
-        ProjectInternal project = projectRegistry.getProject(referrer.absoluteProjectPath(path));
+    public ProjectInternal getProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
+        ProjectInternal project = projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
         if (project == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, referrer));
+            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, relativeTo));
         }
         return project;
     }
 
     @Override
-    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer) {
-        return new TreeSet<>(projectRegistry.getSubProjects(referrer.getPath()));
+    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
+        return new TreeSet<>(projectRegistry.getSubProjects(relativeTo.getPath()));
     }
 
     @Override
-    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer) {
-        return new TreeSet<>(projectRegistry.getAllProjects(referrer.getPath()));
+    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
+        return new TreeSet<>(projectRegistry.getAllProjects(relativeTo.getPath()));
     }
 }
