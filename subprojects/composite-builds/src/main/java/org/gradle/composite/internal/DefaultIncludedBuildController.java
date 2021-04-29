@@ -31,6 +31,8 @@ import org.gradle.internal.InternalListener;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -53,7 +56,7 @@ import static org.gradle.composite.internal.IncludedBuildTaskResource.State.FAIL
 import static org.gradle.composite.internal.IncludedBuildTaskResource.State.SUCCESS;
 import static org.gradle.composite.internal.IncludedBuildTaskResource.State.WAITING;
 
-class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBuildController {
+class DefaultIncludedBuildController implements Stoppable, IncludedBuildController {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildController.class);
     private final IncludedBuildState includedBuild;
     private final ResourceLockCoordinationService coordinationService;
@@ -104,18 +107,15 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         return true;
     }
 
-    @Override
-    public void run() {
-        while (true) {
+    private void run() {
+        try {
             Set<String> tasksToExecute = getQueuedTasks();
             if (tasksToExecute == null) {
                 return;
             }
-            try {
-                doBuild(tasksToExecute);
-            } finally {
-                setState(State.CollectingTasks);
-            }
+            doBuild(tasksToExecute);
+        } finally {
+            setState(State.CollectingTasks);
         }
     }
 
@@ -130,8 +130,18 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     }
 
     @Override
-    public void startTaskExecution() {
-        setState(State.RunningTasks);
+    public void startTaskExecution(ExecutorService executorService) {
+        lock.lock();
+        try {
+            if (state != State.CollectingTasks) {
+                throw new IllegalStateException();
+            }
+            state = State.RunningTasks;
+            stateChange.signalAll();
+        } finally {
+            lock.unlock();
+        }
+        executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get()));
     }
 
     @Override
@@ -320,6 +330,24 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private static class TaskState {
         public BuildResult result;
         public TaskStatus status = TaskStatus.QUEUED;
+    }
+
+    private class BuildOpRunnable implements Runnable {
+        private final BuildOperationRef parentBuildOperation;
+
+        BuildOpRunnable(BuildOperationRef parentBuildOperation) {
+            this.parentBuildOperation = parentBuildOperation;
+        }
+
+        @Override
+        public void run() {
+            CurrentBuildOperationRef.instance().set(parentBuildOperation);
+            try {
+                DefaultIncludedBuildController.this.run();
+            } finally {
+                CurrentBuildOperationRef.instance().set(null);
+            }
+        }
     }
 
     private class IncludedBuildExecutionListener implements TaskExecutionGraphListener, TaskListenerInternal, InternalListener {

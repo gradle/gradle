@@ -24,12 +24,6 @@ import java.util.function.Consumer;
 @ServiceScope(Scopes.BuildTree.class)
 public interface IncludedBuildControllers {
     /**
-     * Notify the controllers that the root build operation has started.
-     * Should be using something like {@link org.gradle.initialization.RootBuildLifecycleListener} however, this is currently called outside the root build operation.
-     */
-    void rootBuildOperationStarted();
-
-    /**
      * Finish populating task graphs, once all entry point tasks have been scheduled.
      */
     void populateTaskGraphs();

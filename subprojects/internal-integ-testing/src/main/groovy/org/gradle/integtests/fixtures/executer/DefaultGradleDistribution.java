@@ -98,7 +98,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
         }
 
         // 3.x - 4.6 works on Java 7 - 8
-        if(isSameOrOlder("4.6")) {
+        if (isSameOrOlder("4.6")) {
             return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
         }
 
@@ -281,6 +281,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
     @Override
     public boolean isToolingApiLogsConfigureSummary() {
         return isSameOrNewer("2.14");
+    }
+
+    @Override
+    public boolean isToolingApiHasExecutionPhaseBuildOperation() {
+        return isSameOrNewer("7.1");
     }
 
     @Override

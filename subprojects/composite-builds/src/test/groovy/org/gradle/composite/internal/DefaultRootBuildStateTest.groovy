@@ -20,15 +20,16 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.internal.build.BuildModelControllerServices
-import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.work.WorkerLeaseService
@@ -57,7 +58,7 @@ class DefaultRootBuildStateTest extends Specification {
         _ * factory.newInstance(buildDefinition, _, null, _) >> launcher
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         _ * sessionServices.get(ProjectStateRegistry) >> projectStateRegistry
-        _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
+        _ * sessionServices.get(BuildOperationExecutor) >> new TestBuildOperationExecutor()
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
         _ * sessionServices.get(IncludedBuildControllers) >> includedBuildControllers
         _ * sessionServices.get(ExceptionAnalyser) >> exceptionAnalyzer

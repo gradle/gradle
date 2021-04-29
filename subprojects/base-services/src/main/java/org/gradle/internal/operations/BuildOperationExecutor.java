@@ -17,6 +17,7 @@
 package org.gradle.internal.operations;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -78,6 +79,12 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
      */
     <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction);
 
+    /**
+     * Same as {@link #runAll(Action)}. However, the actions are allowed to access mutable project state. In general, this is more likely to
+     * result in deadlocks and other flaky behaviours.
+     *
+     * <p>See {@link org.gradle.internal.resources.ProjectLeaseRegistry#whileDisallowingProjectLockChanges(Factory)} for more details.
+     */
     <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction);
 
     /**

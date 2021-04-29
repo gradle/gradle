@@ -160,4 +160,9 @@ public interface GradleDistribution {
      * Returns true if this version logs different build outcome messages for tooling API requests that run tasks and to requests that do not run tasks (eg fetch a model).
      */
     boolean isToolingApiLogsConfigureSummary();
+
+    /**
+     * Returns true if this version generates a build operation that wraps the execution phase
+     */
+    boolean isToolingApiHasExecutionPhaseBuildOperation();
 }

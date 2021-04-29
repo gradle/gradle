@@ -123,8 +123,6 @@ import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
@@ -634,8 +632,12 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    LocalComponentProvider createProjectComponentProvider(ProjectStateRegistry projectStateRegistry, ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildState currentBuild) {
-        return new DefaultProjectLocalComponentProvider(projectStateRegistry, projectRegistry, metaDataBuilder, moduleIdentifierFactory, currentBuild.getBuildIdentifier());
+    LocalComponentProvider createProjectComponentProvider(ProjectStateRegistry projectStateRegistry,
+                                                          LocalComponentMetadataBuilder metaDataBuilder,
+                                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                          BuildState currentBuild,
+                                                          CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        return new DefaultProjectLocalComponentProvider(projectStateRegistry, metaDataBuilder, moduleIdentifierFactory, currentBuild.getBuildIdentifier(), calculatedValueContainerFactory);
     }
 
     LocalComponentRegistry createLocalComponentRegistry(List<LocalComponentProvider> providers) {
@@ -743,19 +745,19 @@ class DependencyManagementBuildScopeServices {
      * Currently used for running artifact transformations in buildscript blocks.
      */
     ExecutionEngine createExecutionEngine(
-            BuildOperationExecutor buildOperationExecutor,
-            CurrentBuildOperationRef currentBuildOperationRef,
-            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            Deleter deleter,
-            ExecutionStateChangeDetector changeDetector,
-            InputFingerprinter inputFingerprinter,
-            ListenerManager listenerManager,
-            OutputSnapshotter outputSnapshotter,
-            OverlappingOutputDetector overlappingOutputDetector,
-            TimeoutHandler timeoutHandler,
-            ValidateStep.ValidationWarningRecorder validationWarningRecorder,
-            VirtualFileSystem virtualFileSystem,
-            DocumentationRegistry documentationRegistry
+        BuildOperationExecutor buildOperationExecutor,
+        CurrentBuildOperationRef currentBuildOperationRef,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        Deleter deleter,
+        ExecutionStateChangeDetector changeDetector,
+        InputFingerprinter inputFingerprinter,
+        ListenerManager listenerManager,
+        OutputSnapshotter outputSnapshotter,
+        OverlappingOutputDetector overlappingOutputDetector,
+        TimeoutHandler timeoutHandler,
+        ValidateStep.ValidationWarningRecorder validationWarningRecorder,
+        VirtualFileSystem virtualFileSystem,
+        DocumentationRegistry documentationRegistry
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
         // TODO: Figure out how to get rid of origin scope id in snapshot outputs step

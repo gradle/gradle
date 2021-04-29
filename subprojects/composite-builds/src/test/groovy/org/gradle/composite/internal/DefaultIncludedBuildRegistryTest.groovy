@@ -24,18 +24,19 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.build.BuildModelControllerServices
-import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
@@ -87,6 +88,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         _ * services.get(WorkerLeaseService) >> Stub(WorkerLeaseService)
         _ * services.get(IncludedBuildControllers) >> Stub(IncludedBuildControllers)
         _ * services.get(ExceptionAnalyser) >> Stub(ExceptionAnalyser)
+        _ * services.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         1 * gradleLauncherFactory.newInstance(buildDefinition, _, null, _) >> gradleLauncher
         1 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
             notifiedBuild = addedBuild

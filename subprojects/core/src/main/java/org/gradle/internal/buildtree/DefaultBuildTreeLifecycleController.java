@@ -34,31 +34,20 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private State state = State.Created;
     private final BuildLifecycleController buildLifecycleController;
     private final WorkerLeaseService workerLeaseService;
+    private final BuildTreeWorkExecutor workExecutor;
     private final IncludedBuildControllers includedBuildControllers;
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
                                                WorkerLeaseService workerLeaseService,
+                                               BuildTreeWorkExecutor workExecutor,
                                                IncludedBuildControllers includedBuildControllers,
                                                ExceptionAnalyser exceptionAnalyser) {
         this.buildLifecycleController = buildLifecycleController;
         this.workerLeaseService = workerLeaseService;
+        this.workExecutor = workExecutor;
         this.includedBuildControllers = includedBuildControllers;
         this.exceptionAnalyser = exceptionAnalyser;
-    }
-
-    public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController, IncludedBuildControllers includedBuildControllers) {
-        this(buildLifecycleController,
-            buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class),
-            includedBuildControllers,
-            buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class));
-    }
-
-    public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController) {
-        this(buildLifecycleController,
-            buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class),
-            buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class),
-            buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class));
     }
 
     @Override
@@ -71,27 +60,21 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void run() {
-        doBuild((gradleLauncher, failures) -> {
-            gradleLauncher.scheduleRequestedTasks();
-            includedBuildControllers.startTaskExecution();
-            try {
-                gradleLauncher.executeTasks();
-            } catch (Exception e) {
-                failures.accept(e);
-            }
-            includedBuildControllers.awaitTaskCompletion(failures);
+        doBuild((buildController, failures) -> {
+            buildController.scheduleRequestedTasks();
+            workExecutor.execute(failures);
             return null;
         });
     }
 
     @Override
     public void configure() {
-        doBuild((gradleLauncher, failures) -> gradleLauncher.getConfiguredBuild());
+        doBuild((buildController, failures) -> buildController.getConfiguredBuild());
     }
 
     @Override
     public <T> T withEmptyBuild(Function<SettingsInternal, T> action) {
-        return doBuild((gradleLauncher, failures) -> action.apply(gradleLauncher.getLoadedSettings()));
+        return doBuild((buildController, failures) -> action.apply(buildController.getLoadedSettings()));
     }
 
     private <T> T doBuild(final BuildAction<T> build) {

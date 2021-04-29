@@ -18,6 +18,7 @@ dependencies {
     testImplementation(project(":file-watching"))
     testImplementation(project(":build-option"))
     testImplementation(testFixtures(project(":dependency-management")))
+    testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":build-option"))
     integTestImplementation(project(":launcher"))
