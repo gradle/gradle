@@ -43,7 +43,7 @@ val m2CleanScriptWindows = """
 """.trimIndent()
 
 val cleanAndroidUserHomeScriptUnixLike = """
-    rm -rf ~/.android
+    rm -rf %teamcity.agent.jvm.user.home%/.android
 """.trimIndent()
 
 val cleanAndroidUserHomeScriptWindows = """
