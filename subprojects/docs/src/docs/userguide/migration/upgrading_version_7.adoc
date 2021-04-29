@@ -225,3 +225,9 @@ Now, it is officially annotated as deprecated and scheduled for removal in Gradl
 
 The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
 They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can we configured in the `java {}` block.
+
+[[ear_convention_deprecation]]
+=== Deprecated `ear` plugin conventions
+
+The convention properties contributed by the `ear` plugin have been deprecated and scheduled for removal in Gradle 8.0.
+They are replaced by the the properties of link:{groovyDslPath}/org.gradle.plugins.ear.EarPluginExtension.html[EarPluginExtension] which can we configured in the `earPlugin {}` block.

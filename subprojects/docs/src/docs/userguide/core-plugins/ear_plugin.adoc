@@ -66,8 +66,11 @@ _Depends on_: `ear`.
 
 The Ear plugin adds two dependency configurations: `deploy` and `earlib`. All dependencies in the `deploy` configuration are placed in the root of the EAR archive, and are _not_ transitive. All dependencies in the `earlib` configuration are placed in the 'lib' directory in the EAR archive and _are_ transitive.
 
-[[sec:ear_convention_properties]]
-== Convention properties
+[[sec:ear_extension]]
+== Contributed extension
+
+The Ear plugin adds the link:{groovyDslPath}/org.gradle.plugins.ear.EarPluginExtension.html[`earPlugin` extension] to the project.
+This allows to configure a number of properties inside a dedicated `earPlugin{ }` DSL block.
 
 `appDirName` — `String`::
 The name of the application source directory, relative to the project directory. _Default value: `src/main/application`_.
@@ -81,7 +84,12 @@ Metadata to generate a deployment descriptor file, e.g. `application.xml`. _Defa
 `generateDeploymentDescriptor` — `Boolean`::
 Specifies if deploymentDescriptor should be generated. _Default value: `true`_.
 
-These properties are provided by a link:{groovyDslPath}/org.gradle.plugins.ear.EarPluginConvention.html[EarPluginConvention] convention object.
+[[sec:ear_convention_properties]]
+== Convention properties (deprecated)
+
+The Ear plugin adds a number of convention properties to the project. You can use these properties in your build script as though they were properties of the project object.
+These are *deprecated* and superseded by the extension described above.
+See the link:{groovyDslPath}/org.gradle.plugins.ear.EarPluginConvention.html[EarPluginConvention] DSL documentation for information on them.
 
 [[sec:ear_default_settings]]
 == Ear

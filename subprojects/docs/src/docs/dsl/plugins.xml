@@ -23,6 +23,7 @@
     </plugin>
     <plugin id="ear" description="Ear Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.plugins.ear.EarPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.plugins.ear.EarPluginExtension"/>
     </plugin>
     <plugin id="project-report" description="Project Report Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ProjectReportsPluginConvention"/>
