@@ -8,7 +8,8 @@ We would like to thank the following community members for their contributions t
 [Kyle Moore](https://github.com/DPUkyle),
 [Stefan Oehme](https://github.com/oehme),
 [Anže Sodja](https://github.com/asodja),
-[Alexander Likhachev](https://github.com/ALikhachev).
+[Alexander Likhachev](https://github.com/ALikhachev),
+[Björn Kautler](https://github.com/Vampire).
 
 ## Upgrade Instructions
 
