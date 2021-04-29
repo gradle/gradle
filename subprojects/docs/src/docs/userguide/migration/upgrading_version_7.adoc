@@ -226,14 +226,15 @@ Now, it is officially annotated as deprecated and scheduled for removal in Gradl
 The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
 They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can we configured in the `java {}` block.
 
-[[code_quality_plugin_configuration_consumption]]
-=== Deprecated consumption of code quality plugin configurations
+[[plugin_configuration_consumption]]
+=== Deprecated consumption of internal plugin configurations
 
 The following code quality plugins each declare a configuration with the same name as the plugin:
 
 - `codenarc`
 - `pmd`
 - `checkstyle`
+- `antlr`
 
 Those configurations are used to declare dependencies for the respective tool's runtime classpath.
 They are not meant for consumption outside of the project applying the plugin, but Gradle did not explicitly

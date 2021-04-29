@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality
+package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class CodeQualityPluginConfigurationAttributesTest extends AbstractIntegrationSpec {
+class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         settingsFile << """
@@ -29,7 +29,7 @@ class CodeQualityPluginConfigurationAttributesTest extends AbstractIntegrationSp
         """
     }
 
-    def "code quality plugin runtime configuration is deprecated for consumption"() {
+    def "plugin runtime configuration is deprecated for consumption"() {
         given:
         file("producer/build.gradle") << """
             plugins {
@@ -48,34 +48,26 @@ class CodeQualityPluginConfigurationAttributesTest extends AbstractIntegrationSp
         """
 
         then:
-        executer.expectDocumentedDeprecationWarning("The $plugin configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#code_quality_plugin_configuration_consumption")
+        executer.expectDocumentedDeprecationWarning("The $plugin configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#plugin_configuration_consumption")
         succeeds("test")
 
         where:
-        plugin << ['codenarc', 'pmd', 'checkstyle']
+        plugin << ['codenarc', 'pmd', 'checkstyle', 'antlr']
     }
 
-    def "code quality plugin runtime configuration can be extended and consumed without deprecation"() {
+    def "plugin runtime configuration can be extended and consumed without deprecation"() {
         given:
         file("producer/build.gradle") << """
             plugins {
                 id("$plugin")
             }
             configurations {
-                $plugin {
-                    // because currently this is consumable until Gradle 8.0 and adding attributes to it will make it clash with the configuration below
-                    canBeConsumed = false
-                }
                 ${plugin}Consumable {
                     extendsFrom($plugin)
                     canBeConsumed = true
                     canBeResolved = false
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
-                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
-                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
-                        attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM));
+                        attribute(Attribute.of("test", String), "test")
                     }
                 }
             }
@@ -83,19 +75,32 @@ class CodeQualityPluginConfigurationAttributesTest extends AbstractIntegrationSp
 
         when:
         file("consumer/build.gradle") << """
-            plugins {
-                id("java-library")
+            configurations {
+                consumer {
+                    canBeConsumed = false
+                    canBeResolved = true
+                    attributes {
+                        attribute(Attribute.of("test", String), "test")
+                    }
+                }
             }
             dependencies {
-                implementation(project(":producer"))
+                consumer(project(":producer"))
+            }
+            tasks.register("resolve") {
+                doLast {
+                    configurations.consumer.files.forEach {
+                        println(it.name)
+                    }
+                }
             }
         """
 
         then:
-        succeeds("test")
+        succeeds("resolve")
 
         where:
-        plugin << ['codenarc', 'pmd', 'checkstyle']
+        plugin << ['codenarc', 'pmd', 'checkstyle', 'antlr']
     }
 
 }
