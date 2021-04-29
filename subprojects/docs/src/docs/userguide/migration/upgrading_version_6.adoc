@@ -200,6 +200,13 @@ If you are still using the `java` plugin for a Java library, you will need to ap
 
 You can find more details about the benefits of the new configurations and which one to use in place of `compile` and `runtime` by reading the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> documentation.
 
+[WARNING]
+====
+If you were extending one of the removed configurations in the Groovy DSL, like `myConf extendsFrom runtime`, it will silently create a configuration with the given name.
+It will however not wire it the way it was in Gradle < 7 and will most likely result in missing dependencies or artifacts in configuration resolution.
+Watch out for this particular combination and its resulting behavior.
+====
+
 ==== Location of temporary project files for `ProjectBuilder`
 
 The `ProjectBuilder` API is used for inspecting Gradle builds in unit tests. This API used to create temporary project files under the system temporary directory as defined by `java.io.tmpdir`.
