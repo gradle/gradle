@@ -30,17 +30,16 @@ import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
-import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildFactory
@@ -219,8 +218,7 @@ class ConfigurationCacheHost internal constructor(
             owner,
             service<BuildTreeController>(),
             service<WorkerLeaseService>().currentWorkerLease,
-            service<BuildLifecycleControllerFactory>(),
-            service<BuildModelControllerServices>()
+            service<BuildLifecycleControllerFactory>()
         )
 
         override fun prepareBuild(includedBuild: IncludedBuildState) {

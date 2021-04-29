@@ -24,7 +24,6 @@ import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
-import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeController
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.event.ListenerManager
@@ -67,7 +66,7 @@ class DefaultRootBuildStateTest extends Specification {
         _ * buildTree.services >> new DefaultServiceRegistry()
         _ * projectStateRegistry.withLenientState(_) >> { args -> return args[0].create() }
 
-        build = new DefaultRootBuildState(buildDefinition, buildTree, factory, Stub(BuildModelControllerServices), listenerManager)
+        build = new DefaultRootBuildState(buildDefinition, buildTree, factory, listenerManager)
     }
 
     def "has identifier"() {
