@@ -17,11 +17,11 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicateFileCopyingException;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.WorkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +69,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
     private void failWithIncorrectDuplicatesStrategySetup(RelativePath relativePath) {
         throw new InvalidUserCodeException(
             "Entry " + relativePath.getPathString() + " is a duplicate but no duplicate handling strategy has been set. " +
-            "Please refer to " + documentationRegistry.getDslRefForProperty(CopySpec.class, "duplicatesStrategy") + " for details."
+            "Please refer to " + documentationRegistry.getDslRefForProperty(Copy.class, "duplicatesStrategy") + " for details."
         );
     }
 }
