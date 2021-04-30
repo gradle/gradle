@@ -32,7 +32,6 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
         requiresNoEc2Agent()
     }
     params {
-        param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("env.JPROFILER_HOME", os.jprofilerHome)
         param("performance.db.username", "tcagent")
     }

@@ -34,7 +34,6 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
 
     applyDefaultSettings(os)
     params {
-        param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
         param("performance.db.username", "tcagent")
         param("performance.channel", performanceTestSpec.channel())
