@@ -55,11 +55,14 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                 @Inject
                 abstract FileLockManager getFileLockManager()
                 
+                @Inject
+                abstract ProjectLayout getProjectLayout()
+                
                 @TaskAction
                 void lockIt() {
                     def lock
                     try {
-                        lock = fileLockManager.lock(project.file("locks/testlock"), LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "task file lock")
+                        lock = fileLockManager.lock(projectLayout.projectDirectory.file("locks/testlock").asFile, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "task file lock")
                     } finally {
                         lock?.close()
                     }
