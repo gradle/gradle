@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -32,9 +31,10 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 configurations {
                     implementation
                     compile.deprecateForDeclaration("implementation")
-                    compile.deprecateForConsumption("compileElements")
+                    compile.deprecateForConsumption { builder ->
+                        builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                    }
                     compile.deprecateForResolution("compileClasspath")
-                    compileOnly.deprecateForConsumption("compileElements")
                     compileOnly.deprecateForResolution("compileClasspath")
                     apiElements {
                         canBeConsumed = true
@@ -101,7 +101,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 8.0. " +
-            "Please use the implementation or compileElements configuration instead. " +
+            "Please use the implementation configuration instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
         then:
@@ -127,57 +127,4 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'resolve'
     }
 
-    def "warn if a deprecated project configuration is consumed"() {
-        given:
-        settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(path: ':a', configuration: 'compileOnly')
-                }
-
-                task resolve {
-                    doLast {
-                        configurations.compileClasspath.files
-                    }
-                }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. " +
-            "Please use attributes to consume the compileElements configuration instead. " +
-            "See https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph for more details.")
-
-        then:
-        succeeds ':b:resolve'
-    }
-
-    @ToBeFixedForConfigurationCache
-    def "warn if a deprecated project configuration is consumed directly"() {
-        // this is testing legacy code that we can/should probably get rid of
-        given:
-        settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':b') {
-                dependencies {
-                    implementation project(path: ':a', configuration: 'compileOnly')
-                }
-
-                task resolve {
-                    doLast {
-                        configurations.implementation.dependencies[0].resolve()
-                    }
-                }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. " +
-            "Please use attributes to consume the compileElements configuration instead. " +
-            "See https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph for more details.")
-
-        then:
-        succeeds ':b:resolve', ':b:dependencies'
-    }
 }

@@ -34,6 +34,7 @@ import org.gradle.api.plugins.quality.CodeQualityExtension;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -95,6 +96,8 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
+        ((DeprecatableConfiguration) configuration).deprecateForConsumption(deprecation -> deprecation.willBecomeAnErrorInGradle8()
+            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));
         configuration.exclude(excludeProperties("org.apache.ant", "ant"));
@@ -173,7 +176,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
                 project.getTasks().register(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType(), new Action<Task>() {
                     @Override
                     public void execute(Task task) {
-                        configureForSourceSet(sourceSet, (T)task);
+                        configureForSourceSet(sourceSet, (T) task);
                     }
                 });
             }
