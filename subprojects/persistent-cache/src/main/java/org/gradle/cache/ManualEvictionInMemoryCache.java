@@ -22,8 +22,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 public class ManualEvictionInMemoryCache<K, V> implements Cache<K, V> {
-    // Use 64 as initial size to start out with enough concurrency.
-    private final ConcurrentMap<K, V> map = new ConcurrentHashMap<>(64);
+    // Use 256 as initial size to start out with enough concurrency.
+    private final ConcurrentMap<K, V> map = new ConcurrentHashMap<>(256);
 
     @Override
     public V get(K key, Function<? super K, ? extends V> factory) {
