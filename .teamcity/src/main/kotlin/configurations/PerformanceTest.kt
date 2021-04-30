@@ -66,7 +66,7 @@ class PerformanceTest(
         if (testProjects.isNotEmpty()) {
             steps {
                 preBuildSteps()
-                cleanAndroidUserHome()
+                cleanAndroidUserHome(os)
                 killGradleProcessesStep(os)
                 substDirOnWindows(os)
 
