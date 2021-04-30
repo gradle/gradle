@@ -45,7 +45,9 @@ val cleanAndroidUserHomeScriptUnixLike = """
 """.trimIndent()
 
 val cleanAndroidUserHomeScriptWindows = """
-    RMDIR /S /Q %teamcity.agent.jvm.user.home%\.android
+    IF exist %teamcity.agent.jvm.user.home%\.android (
+        RMDIR /S /Q %teamcity.agent.jvm.user.home%\.android
+    )
 """.trimIndent()
 
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
