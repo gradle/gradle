@@ -2,6 +2,7 @@ package configurations
 
 import common.JvmCategory
 import common.Os.LINUX
+import common.cleanAndroidUserHome
 import model.CIBuildModel
 import model.Stage
 
@@ -25,6 +26,9 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
         ":smoke-test:$task",
         timeout = 120,
         notQuick = true,
-        extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=%linux.${testJava.version.name}.${testJava.vendor.name}.64bit%"
+        extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=%linux.${testJava.version.name}.${testJava.vendor.name}.64bit%",
+        preSteps = {
+            cleanAndroidUserHome()
+        }
     )
 })

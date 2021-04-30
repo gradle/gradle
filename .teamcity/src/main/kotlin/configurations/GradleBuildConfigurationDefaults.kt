@@ -40,6 +40,14 @@ val m2CleanScriptWindows = """
     )
 """.trimIndent()
 
+val cleanAndroidUserHomeScriptUnixLike = """
+    rm -rf %teamcity.agent.jvm.user.home%/.android
+""".trimIndent()
+
+val cleanAndroidUserHomeScriptWindows = """
+    RMDIR /S /Q %teamcity.agent.jvm.user.home%\.android
+""".trimIndent()
+
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     if (model.publishStatusToGitHub) {
         publishBuildStatusToGithub()
