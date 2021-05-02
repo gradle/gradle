@@ -25,7 +25,8 @@ import javax.annotation.Nullable
 
 class SmokeTestGradleRunner extends GradleRunner {
     private final DefaultGradleRunner delegate
-    private final List<String> expectedWarnings = []
+    private final List<String> expectedDeprecationWarnings = []
+    private boolean ignoreDeprecationWarnings
 
     SmokeTestGradleRunner(DefaultGradleRunner delegate) {
         this.delegate = delegate
@@ -34,19 +35,19 @@ class SmokeTestGradleRunner extends GradleRunner {
     @Override
     BuildResult build() {
         def result = delegate.build()
-        verifyDeprecationWarnings(result, expectedWarnings)
+        verifyDeprecationWarnings(result)
         return result
     }
 
     @Override
     BuildResult buildAndFail() {
         def result = delegate.buildAndFail()
-        verifyDeprecationWarnings(result, expectedWarnings)
+        verifyDeprecationWarnings(result)
         return result
     }
 
     SmokeTestGradleRunner expectDeprecationWarning(String warning) {
-        expectedWarnings.add(warning)
+        expectedDeprecationWarnings.add(warning)
         return this
     }
 
@@ -57,8 +58,17 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
-    private static void verifyDeprecationWarnings(BuildResult result, List<String> remainingWarnings) {
+    SmokeTestGradleRunner ignoreDeprecationWarnings() {
+        ignoreDeprecationWarnings = true
+        return this
+    }
+
+    private void verifyDeprecationWarnings(BuildResult result) {
+        if (ignoreDeprecationWarnings) {
+            return
+        }
         def lines = result.output.readLines()
+        def remainingWarnings = new ArrayList<>(expectedDeprecationWarnings)
         def totalExpectedDeprecations = remainingWarnings.size()
         int foundDeprecations = 0
         lines.eachWithIndex { String line, int lineIndex ->
@@ -183,6 +193,16 @@ class SmokeTestGradleRunner extends GradleRunner {
     @Override
     SmokeTestGradleRunner forwardOutput() {
         delegate.forwardOutput()
+        return this
+    }
+
+    SmokeTestGradleRunner withJvmArguments(List<String> jvmArguments) {
+        delegate.withJvmArguments(jvmArguments)
+        return this
+    }
+
+    SmokeTestGradleRunner withJvmArguments(String... jvmArguments) {
+        delegate.withJvmArguments(Arrays.asList(jvmArguments))
         return this
     }
 }
