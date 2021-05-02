@@ -49,8 +49,6 @@ class DockerPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':assemble').outcome == SUCCESS
-
-        expectNoDeprecationWarnings(result)
     }
 
 }

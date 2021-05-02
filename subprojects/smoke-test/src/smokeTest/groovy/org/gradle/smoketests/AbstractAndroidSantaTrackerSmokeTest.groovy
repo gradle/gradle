@@ -22,12 +22,9 @@ import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixtu
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.junit.Rule
-
 
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
@@ -59,11 +56,11 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(projectDir, agpVersion, "clean").build()
     }
 
-    protected GradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
+    protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
         def runner = runner(*[["-DagpVersion=$agpVersion", "-DkotlinVersion=${TestedVersions.kotlin.latest()}", "--stacktrace"], tasks].flatten())
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
-            .forwardOutput() as DefaultGradleRunner
+            .forwardOutput()
         if (JavaVersion.current().isJava9Compatible()) {
             runner.withJvmArguments(
                 "-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError",

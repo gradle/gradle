@@ -82,7 +82,16 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ))
 
         when: 'first build'
-        def result = runner.build()
+        def result = runner
+            .expectDeprecationWarningIf(agpVersion.startsWith('4.0.2'),
+                "The WorkerExecutor.submit() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
+            .expectDeprecationWarningIf(agpVersion.startsWith('4.1'),
+                "The WorkerExecutor.submit() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
+            .build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -91,20 +100,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         and:
         assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
-        if (agpVersion.startsWith('4.0.2')) {
-            expectDeprecationWarnings(
-                result,
-                "The WorkerExecutor.submit() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-            )
-        } else if (agpVersion.startsWith('4.1')) {
-            expectDeprecationWarnings(result, "The WorkerExecutor.submit() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
-        } else {
-            expectNoDeprecationWarnings(result)
-        }
 
         and:
         assertConfigurationCacheStateStored()
