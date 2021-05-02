@@ -71,7 +71,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
 
         when:
-        def result = buildLocation(checkoutDir, agpVersion)
+        def result = buildLocationExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
         then:
@@ -80,7 +80,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
-        buildLocation(checkoutDir, agpVersion)
+        buildLocationExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
 
         then:
