@@ -139,6 +139,10 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the binaryResultsDirectory property instead. " +
                 "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.AbstractTestTask.html#org.gradle.api.tasks.testing.AbstractTestTask:binResultsDir for more details.")
+            .expectDeprecationWarning("The WorkerExecutor.submit() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. " +
+                "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
             .build()
     }
 
