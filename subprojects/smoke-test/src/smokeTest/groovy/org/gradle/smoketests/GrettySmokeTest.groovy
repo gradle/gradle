@@ -70,7 +70,8 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
         def result = runner('checkContainerUp')
             .expectDeprecationWarning("The JavaExecHandleBuilder.setMain(String) method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#java_exec_properties")
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#java_exec_properties",
+                "TODO Add followup issue")
             .build()
 
         then:

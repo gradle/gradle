@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.util.GradleVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -40,13 +39,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        runnerForLocation(checkoutDir, agpVersion, "assembleDebug")
-            .expectDeprecationWarning("The WorkerExecutor.submit() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-            )
-            .build()
+        buildLocationExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
 
         then:
         assertConfigurationCacheStateStored()
@@ -110,7 +103,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         result.output.contains("Lint found errors in the project; aborting build.")
 
         when:
-        runnerForLocation(checkoutDir, agpVersion, "clean").build()
+        runnerForLocationExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion, "clean").build()
         result = runnerForLocation(checkoutDir, agpVersion, "lintDebug").buildAndFail()
 
         then:

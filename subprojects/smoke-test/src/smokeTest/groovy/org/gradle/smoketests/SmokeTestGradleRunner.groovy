@@ -46,14 +46,34 @@ class SmokeTestGradleRunner extends GradleRunner {
         return result
     }
 
-    SmokeTestGradleRunner expectDeprecationWarning(String warning) {
+    /**
+     * Expect a deprecation warning to appear when {@link #build()} or {@link #buildAndFail()} is called.
+     *
+     * @param warning the text of the warning to match.
+     * @param followup how are we planning to resolve the deprecation before it turns into a breakage;
+     *      typically a URL pointing to an issue with the relevant third-party plugin. The actual value
+     *      is ignored, the parameter is only present to remind us that a followup is necessary, and
+     *      to record how it will happen.
+     */
+    @SuppressWarnings('unused')
+    SmokeTestGradleRunner expectDeprecationWarning(String warning, String followup) {
         expectedDeprecationWarnings.add(warning)
         return this
     }
 
-    SmokeTestGradleRunner expectDeprecationWarningIf(boolean condition, String warning) {
+    /**
+     * Expect a deprecation warning to appear when {@link #build()} or {@link #buildAndFail()} is called if the given condition is true.
+     *
+     * @param condition only expect the warning to be produced when this condition is {@code true}.
+     * @param warning the text of the warning to match.
+     * @param followup how are we planning to resolve the deprecation before it turns into a breakage;
+     *      typically a URL pointing to an issue with the relevant third-party plugin. The actual value
+     *      is ignored, the parameter is only present to remind us that a followup is necessary, and
+     *      to record how it will happen.
+     */
+    SmokeTestGradleRunner expectDeprecationWarningIf(boolean condition, String warning, String followup) {
         if (condition) {
-            expectDeprecationWarning(warning)
+            expectDeprecationWarning(warning, followup)
         }
         return this
     }

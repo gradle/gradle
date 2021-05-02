@@ -78,7 +78,9 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('groovydoc')
             .expectDeprecationWarning("The Report.enabled property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +
-                "Please use the required property instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:enabled for more details.")
+                "Please use the required property instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:enabled for more details.",
+                "TODO Add followup issue"
+            )
             .build()
     }
 

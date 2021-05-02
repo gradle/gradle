@@ -54,13 +54,17 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocationExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
-        runnerForLocation(location, agpVersion, "assembleDebug")
+        runnerForLocationExpectingWorkerExecutorDeprecation(location, agpVersion, "assembleDebug")
+            .build()
+    }
+
+    protected SmokeTestGradleRunner runnerForLocationExpectingWorkerExecutorDeprecation(File location, String agpVersion, String... tasks) {
+        runnerForLocation(location, agpVersion, tasks)
             .expectDeprecationWarning("The WorkerExecutor.submit() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-            )
-            .build()
+                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",
+                "TODO Add followup issue")
     }
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {
