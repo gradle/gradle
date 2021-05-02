@@ -67,9 +67,11 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     private SmokeTestGradleRunner runnerFor(List<String> tasks, File testKitDir) {
         List<String> gradleArgs = tasks + GRADLE_BUILD_TEST_ARGS
-        return testKitDir != null
+        def runner = testKitDir != null
             ? runnerWithTestKitDir(testKitDir, gradleArgs)
             : runner(*gradleArgs)
+        runner.ignoreDeprecationWarnings()
+        return runner
     }
 
     private SmokeTestGradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
