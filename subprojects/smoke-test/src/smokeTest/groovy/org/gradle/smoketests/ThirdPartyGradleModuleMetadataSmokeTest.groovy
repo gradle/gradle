@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.GradleVersion
 
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
@@ -114,13 +115,19 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         ]
     }
 
-    private List<String> trimmedOutput(BuildResult result) {
+    private static List<String> trimmedOutput(BuildResult result) {
         result.output.split('\n').findAll { !it.empty && !it.contains('warning') }
     }
 
     private BuildResult publish() {
-        runner('publish').withProjectDir(
-            new File(testProjectDir.root, 'producer')).forwardOutput().build()
+        runner('publish')
+            .withProjectDir(new File(testProjectDir.root, 'producer'))
+            .forwardOutput()
+            .expectDeprecationWarning("The RepositoryHandler.jcenter() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. " +
+                "JFrog announced JCenter's shutdown in February 2021. Use mavenCentral() instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#jcenter_deprecation")
+            .build()
     }
 
     private BuildResult consumer(String runTask) {
