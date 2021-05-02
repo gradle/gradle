@@ -21,7 +21,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.GradleVersion
 
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
@@ -160,13 +159,12 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     private BuildResult consumerWithJdk16WorkaroundForAndroidManifest(String runTask) {
         def runner = runner(runTask, '-q')
             .withProjectDir(new File(testProjectDir.root, 'consumer'))
-            .forwardOutput() as DefaultGradleRunner
+            .forwardOutput()
         if (JavaVersion.current().isJava9Compatible()) {
             runner.withJvmArguments("--add-opens", "java.base/java.io=ALL-UNNAMED")
         }
         return runner.build()
     }
-
 
     private static compareJson(File expected, File actual) {
         def actualJson = removeChangingDetails(new JsonSlurper().parseText(actual.text), actual.name)
