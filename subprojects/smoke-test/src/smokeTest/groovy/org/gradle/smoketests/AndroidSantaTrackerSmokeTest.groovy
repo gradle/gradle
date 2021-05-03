@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -98,7 +99,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         when:
         def result = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
-            agpVersion.startsWith("4.1"),
+            agpVersion.startsWith("4.1") || (agpVersion.startsWith("7.0") && GradleContextualExecuter.configCache),
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
                 "kotlin-android-extensions-runtime-1.4.31.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31)"
@@ -111,7 +112,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         when:
         result = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
-            agpVersion.startsWith("4.1") || agpVersion.startsWith("7.0"),
+            agpVersion.startsWith("4.1") || (agpVersion.startsWith("7.0") && !GradleContextualExecuter.configCache),
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
                 "kotlin-android-extensions-runtime-1.4.31.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31)",
