@@ -19,6 +19,7 @@ package org.gradle.plugins.ear;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -83,13 +84,13 @@ public class EarPlugin implements Plugin<Project> {
 
         PluginContainer plugins = project.getPlugins();
 
-        setupEarTask(project, earPluginConvention);
+        TaskProvider<Ear> earTask = setupEarTask(project, earPluginConvention);
 
-        configureWithJavaPluginApplied(project, earPluginConvention, plugins);
-        configureWithNoJavaPluginApplied(project, earPluginConvention);
+        configureWithJavaPluginApplied(project, earTask, plugins);
+        configureWithNoJavaPluginApplied(project);
     }
 
-    private void configureWithNoJavaPluginApplied(final Project project, final EarPluginConvention earPluginConvention) {
+    private void configureWithNoJavaPluginApplied(final Project project) {
         project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
             @Override
             public void execute(final Ear task) {
@@ -99,7 +100,7 @@ public class EarPlugin implements Plugin<Project> {
                         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
                             return null;
                         } else {
-                            return project.fileTree(earPluginConvention.getAppDirName());
+                            return project.fileTree(task.getAppDirName());
                         }
                     }
                 });
@@ -107,12 +108,17 @@ public class EarPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureWithJavaPluginApplied(final Project project, final EarPluginConvention earPluginConvention, PluginContainer plugins) {
+    private void configureWithJavaPluginApplied(final Project project, final TaskProvider earTask, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, javaPlugin -> {
             final JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
 
             SourceSet sourceSet = mainSourceSetOf(javaPluginExtension);
-            sourceSet.getResources().srcDir((Callable) () -> earPluginConvention.getAppDirName());
+            project.getTasks().named(EarPlugin.EAR_TASK_NAME).configure(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    sourceSet.getResources().srcDir((Callable) () -> ((Ear) task).getAppDirName());
+                }
+            });
             project.getTasks().withType(Ear.class).configureEach(task -> {
                 task.dependsOn((Callable<FileCollection>) () ->
                     mainSourceSetOf(javaPluginExtension).getRuntimeClasspath()
@@ -128,7 +134,7 @@ public class EarPlugin implements Plugin<Project> {
         return javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
-    private void setupEarTask(final Project project, EarPluginConvention convention) {
+    private TaskProvider<Ear> setupEarTask(final Project project, EarPluginConvention convention) {
         TaskProvider<Ear> ear = project.getTasks().register(EAR_TASK_NAME, Ear.class, new Action<Ear>() {
             @Override
             public void execute(Ear ear) {
@@ -170,12 +176,15 @@ public class EarPlugin implements Plugin<Project> {
                 });
             }
         });
+
+        return ear;
     }
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
         project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
             @Override
             public void execute(Ear task) {
+                task.getAppDirName().convention(project.provider(() -> earConvention.getAppDirName()));
                 task.getConventionMapping().map("libDirName", new Callable<String>() {
                     @Override
                     public String call() throws Exception {

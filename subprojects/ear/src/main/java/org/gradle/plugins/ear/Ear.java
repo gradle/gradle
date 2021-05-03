@@ -18,6 +18,7 @@ package org.gradle.plugins.ear;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -63,6 +64,7 @@ public class Ear extends Jar {
     private final Property<Boolean> generateDeploymentDescriptor;
     private DeploymentDescriptor deploymentDescriptor;
     private CopySpec lib;
+    private final Property<String> appDirName;
 
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
@@ -118,6 +120,8 @@ public class Ear extends Jar {
 
             return null;
         });
+
+        appDirName = getObjectFactory().property(String.class);
     }
 
     private Cached<byte[]> cachedContentsOf(DeploymentDescriptor descriptor) {
@@ -271,4 +275,15 @@ public class Ear extends Jar {
         this.deploymentDescriptor = deploymentDescriptor;
     }
 
+    /**
+     * The name of the application directory, relative to the project directory.
+     * Default is "src/main/application".
+     *
+     * @since 7.1
+     */
+    @Input
+    @Incubating
+    public Property<String> getAppDirName() {
+        return appDirName;
+    }
 }
