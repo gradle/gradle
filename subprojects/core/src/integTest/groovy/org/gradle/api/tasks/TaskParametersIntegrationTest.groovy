@@ -719,7 +719,7 @@ task someTask(type: SomeTask) {
     }
 
     @ValidationTestFor(
-
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
     )
     @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
