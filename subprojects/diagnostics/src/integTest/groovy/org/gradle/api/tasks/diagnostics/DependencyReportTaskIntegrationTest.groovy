@@ -1068,7 +1068,9 @@ compileClasspath - Compile classpath for source set 'main'.
             subprojects {
                 configurations {
                     compile.deprecateForDeclaration('implementation')
-                    compile.deprecateForConsumption('apiElements')
+                    compile.deprecateForConsumption { builder ->
+                        builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                    }
                     compile.deprecateForResolution('compileClasspath')
                     'default' { extendsFrom compile }
                 }
@@ -1098,7 +1100,9 @@ compileClasspath - Compile classpath for source set 'main'.
             }
             configurations {
                 compileOnly.deprecateForResolution("compileClasspath")
-                compileOnly.deprecateForConsumption('apiElements')
+                compileOnly.deprecateForConsumption { builder ->
+                    builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                }
                 implementation.extendsFrom compileOnly
             }
             dependencies {

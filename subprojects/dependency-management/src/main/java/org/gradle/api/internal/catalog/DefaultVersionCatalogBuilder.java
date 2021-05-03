@@ -17,6 +17,7 @@ package org.gradle.api.internal.catalog;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -55,6 +56,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -66,6 +68,7 @@ import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
     private final static List<String> FORBIDDEN_ALIAS_SUFFIX = ImmutableList.of("bundles", "versions", "version", "bundle");
+    private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "class", "convention");
 
     private final Interner<String> strings;
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
@@ -288,6 +291,14 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                         .documented()
                 );
             }
+        }
+        if (RESERVED_ALIAS_NAMES.contains(alias)) {
+            throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                    .happensBecause(() -> "Alias '" + alias +"' is a reserved name in Gradle which prevents generation of accessors")
+                    .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
+                    .documented()
+            );
         }
     }
 

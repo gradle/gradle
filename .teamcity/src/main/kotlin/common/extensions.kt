@@ -19,6 +19,8 @@ package common
 import configurations.branchesFilterExcluding
 import configurations.buildScanCustomValue
 import configurations.buildScanTag
+import configurations.cleanAndroidUserHomeScriptUnixLike
+import configurations.cleanAndroidUserHomeScriptWindows
 import configurations.m2CleanScriptUnixLike
 import configurations.m2CleanScriptWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -115,6 +117,8 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os)
         param("env.GRADLE_CACHE_REMOTE_URL", "%gradle.cache.remote.url%")
         param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
 
+        param("env.BUILD_BRANCH", "%teamcity.build.branch%")
+
         param("env.JAVA_HOME", javaHome(buildJvm, os))
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.ANDROID_HOME", os.androidHome)
@@ -138,6 +142,15 @@ fun BuildSteps.checkCleanM2(os: Os = Os.LINUX) {
         name = "CHECK_CLEAN_M2"
         executionMode = BuildStep.ExecutionMode.ALWAYS
         scriptContent = if (os == Os.WINDOWS) m2CleanScriptWindows else m2CleanScriptUnixLike
+    }
+}
+
+// https://github.com/gradle/gradle-private/issues/3379
+fun BuildSteps.cleanAndroidUserHome(os: Os = Os.LINUX) {
+    script {
+        name = "CLEAN_ANDROID_USER_HOME"
+        executionMode = BuildStep.ExecutionMode.ALWAYS
+        scriptContent = if (os == Os.WINDOWS) cleanAndroidUserHomeScriptWindows else cleanAndroidUserHomeScriptUnixLike
     }
 }
 

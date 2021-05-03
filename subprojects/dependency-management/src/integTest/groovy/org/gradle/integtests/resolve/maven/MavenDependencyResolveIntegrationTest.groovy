@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 class MavenDependencyResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -174,9 +173,11 @@ dependencies {
         }
     }
 
-    def "throws readable error if an artifact name is missing"() {
+    def "uses the name of the current dependency by default"() {
         given:
         buildFile << """
+group = 'org.gradle'
+version = '1.0'
 dependencies {
     conf ("org.gradle:test:1.45") {
         artifact {
@@ -185,10 +186,35 @@ dependencies {
     }
 }
 """
+        repository {
+            'org.gradle' {
+                'test' {
+                    '1.45' {
+                        withModule {
+                            artifact(classifier: 'classifier')
+                        }
+                    }
+                }
+            }
+        }
 
-        expect:
-        fails "checkDep"
-        failure.assertHasCause("Artifact name must not be null!")
+        when:
+        repositoryInteractions {
+            'org.gradle:test:1.45' {
+                expectGetMetadata()
+                expectGetArtifact(classifier: 'classifier')
+            }
+        }
+        succeeds "checkDep"
+
+        then:
+        resolve.expectGraph {
+            root(':', 'org.gradle:testproject:1.0') {
+                module("org.gradle:test:1.45") {
+                    artifact(classifier: 'classifier')
+                }
+            }
+        }
     }
 
     // only available with Maven metadata: Gradle metadata does not support "optional"

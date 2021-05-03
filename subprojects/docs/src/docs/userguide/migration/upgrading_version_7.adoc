@@ -225,3 +225,45 @@ Now, it is officially annotated as deprecated and scheduled for removal in Gradl
 
 The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
 They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can we configured in the `java {}` block.
+
+[[plugin_configuration_consumption]]
+=== Deprecated consumption of internal plugin configurations
+
+The following code quality plugins each declare a configuration with the same name as the plugin:
+
+- `codenarc`
+- `pmd`
+- `checkstyle`
+- `antlr`
+
+Those configurations are used to declare dependencies for the respective tool's runtime classpath.
+They are not meant for consumption outside of the project applying the plugin, but Gradle did not explicitly
+prohibit this. Gradle 7.1 deprecates such consumption and it will become an error in Gradle 8.0.
+
+If your use case needs to consume the configurations of the above tools in another project, please create a separate consumable
+configuration that extends from the internal ones. For example:
+```
+plugins {
+    id("codenarc")
+}
+configurations {
+    codenarc {
+        // because currently this is consumable until Gradle 8.0 and can clash with the configuration below depending on the attributes set
+        canBeConsumed = false
+    }
+    codenarcConsumable {
+        extendsFrom(codenarc)
+        canBeConsumed = true
+        canBeResolved = false
+        // the attributes below make this configuration consumable by a `java-library` project using `implementation` configuration
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM));
+        }
+    }
+}
+```
+
