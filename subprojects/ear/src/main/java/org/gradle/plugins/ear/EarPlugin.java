@@ -34,7 +34,6 @@ import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
-import org.gradle.plugins.ear.internal.DefaultEarPluginConvention;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -46,6 +45,7 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/ear_plugin.html">EAR plugin reference</a>
  */
+@SuppressWarnings("deprecation")
 public class EarPlugin implements Plugin<Project> {
 
     public static final String EAR_TASK_NAME = "ear";
@@ -73,7 +73,7 @@ public class EarPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(BasePlugin.class);
 
-        EarPluginConvention earPluginConvention = objectFactory.newInstance(DefaultEarPluginConvention.class);
+        EarPluginConvention earPluginConvention = objectFactory.newInstance(org.gradle.plugins.ear.internal.DefaultEarPluginConvention.class);
         project.getConvention().getPlugins().put("ear", earPluginConvention);
         earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
         earPluginConvention.setAppDirName("src/main/application");
