@@ -61,6 +61,44 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+## New features and usability improvements
+
+### Better modeling of command line arguments for compiler daemons
+
+When declaring arguments for a compiler daemon using [jvmArgs](javadoc/org/gradle/api/tasks/compile/BaseForkOptions.html#getJvmArgs--), these arguments are always treated as `String` inputs to the compile task.
+However, sometimes these arguments represent additions to the classpath or input files whose contents should be included during incremental builds or when calculating a build cache key.
+Better modeling of these arguments can improve the incrementality of the compile task and avoid unnecessary cache misses.
+
+Previously, arguments for the Java compiler invocation could be declared in a rich fashion using [compiler argument providers](javadoc/org/gradle/api/tasks/compile/CompileOptions.html#getCompilerArgumentProviders--), but there was no way to do this for the command line arguments of the compiler daemon process itself.
+You can now provide these rich command line arguments to the compiler daemon for [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html), [GroovyCompile](javadoc/org/gradle/api/tasks/compile/GroovyCompile.html), and [ScalaCompile](javadoc/org/gradle/api/tasks/scala/ScalaCompile.html) tasks using [jvmArgumentProviders](javadoc/org/gradle/api/tasks/compile/ProviderAwareForkOptions.html#getJvmArgumentProviders--).
+[CommandLineArgumentProvider](javadoc/org/gradle/process/CommandLineArgumentProvider.html) objects configured via `jvmArgumentProviders` will be interrogated for input and/or output annotations and will add these inputs/outputs to the enclosing compile task.
+
+```
+def javaAgentProvider = new JavaAgentCommandLineArgumentProvider(file('/some/path/to/agent.jar'))
+tasks.withType(GroovyCompile).configureEach {
+    groovyOptions.forkOptions.jvmArgumentProviders.add(javaAgentProvider)
+}
+
+class JavaAgentCommandLineArgumentProvider implements CommandLineArgumentProvider {
+    @Internal
+    final File javaAgentJarFile
+
+    JavaAgentCommandLineArgumentProvider(File javaAgentJarFile) {
+        this.javaAgentJarFile = javaAgentJarFile
+    }
+
+    @Classpath
+    Iterable<File> getClasspath() {
+        return [javaAgentJarFile]
+    }
+
+    @Override
+    List<String> asArguments() {
+        ["-javaagent:${javaAgentJarFile.absolutePath}".toString()]
+    }
+}
+```
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
