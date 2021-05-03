@@ -125,7 +125,6 @@ public class BuildDefinition {
         StartParameterInternal includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
         includedBuildStartParam.doNotSearchUpwards();
-        includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
         includedBuildStartParam.setExcludedTaskNames(startParameter.getExcludedTaskNames());
         return includedBuildStartParam;

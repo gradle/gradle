@@ -160,10 +160,14 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     // compiling Objective-C and Objective-Cpp with clang generates
     // random different object files (related to ASLR settings)
     // We saw this behaviour only on linux so far.
+    // 2021-4-15: recent GCC also enable ASLR by default:
+    // https://wiki.ubuntu.com/Security/Features
     boolean isObjectiveCWithAslr() {
         return (sourceType == "Objc" || sourceType == "Objcpp") &&
             OperatingSystem.current().isLinux() &&
-            toolChain.displayName.startsWith("clang")
+            (toolChain.displayName.startsWith("clang") ||
+                // GCC 9 or later
+                toolChain.displayName ==~ /gcc (9|\d\d+).*/)
     }
 
     protected void maybeWait() {

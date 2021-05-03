@@ -32,6 +32,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -121,7 +122,7 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public List<String> getConsumptionAlternatives() {
+    public DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation() {
         return null;
     }
 

@@ -5,7 +5,11 @@ This release features [1](), [2](), ... [n](), and more.
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 [Victor Merkulov](https://github.com/urdak),
-[Stefan Oehme](https://github.com/oehme).
+[Kyle Moore](https://github.com/DPUkyle),
+[Stefan Oehme](https://github.com/oehme),
+[Anže Sodja](https://github.com/asodja),
+[Alexander Likhachev](https://github.com/ALikhachev),
+[Björn Kautler](https://github.com/Vampire).
 
 ## Upgrade Instructions
 
@@ -14,6 +18,9 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 `./gradlew wrapper --gradle-version=@version@`
 
 See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+
+NOTE: Gradle 7.0 has had **one** patch release, which fix several issues from the original release.
+We recommend always using the latest patch release.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 

@@ -34,7 +34,7 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
-import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
+import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 
 import java.util.Collection;
 import java.util.Map;

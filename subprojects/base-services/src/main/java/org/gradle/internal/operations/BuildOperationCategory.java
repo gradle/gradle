@@ -38,12 +38,12 @@ public enum BuildOperationCategory implements BuildOperationMetadata {
     CONFIGURE_PROJECT(true, false, false),
 
     /**
-     * Execute all work in the root build. Might include work from nested builds.
+     * Execute the main tasks of a build tree. Also known as the "execution phase".
      */
-    RUN_WORK_ROOT_BUILD(false, false, false),
+    RUN_MAIN_TASKS(false, false, false),
 
     /**
-     * Execute all work in a nested build or a buildSrc build. Includes {@link #TASK} and Includes {@link #TRANSFORM} operations.
+     * Execute all work in a particular build in the tree. Includes {@link #TASK} and Includes {@link #TRANSFORM} operations.
      */
     RUN_WORK(false, false, false),
 

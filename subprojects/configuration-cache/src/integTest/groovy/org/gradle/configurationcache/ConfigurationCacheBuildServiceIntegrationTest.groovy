@@ -159,6 +159,10 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             """
         }
 
+        and:
+        // classloader reuse requires daemon reuse without memory pressure
+        executer.requireIsolatedDaemons()
+
         when:
         inDirectory 'root'
         configurationCacheRun ':included:classloader1:probe', ':included:boundary:classloader2:probe'

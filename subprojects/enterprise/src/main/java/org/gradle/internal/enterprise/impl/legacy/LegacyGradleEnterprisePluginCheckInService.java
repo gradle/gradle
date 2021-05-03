@@ -19,6 +19,7 @@ package org.gradle.internal.enterprise.impl.legacy;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.scan.config.BuildScanConfig;
@@ -42,6 +43,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
     private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
     private final GradleInternal gradle;
+    private final BuildModelParameters buildModelParameters;
     private final GradleEnterprisePluginManager manager;
     private final BuildType buildType;
 
@@ -50,10 +52,12 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
     @Inject
     public LegacyGradleEnterprisePluginCheckInService(
         GradleInternal gradle,
+        BuildModelParameters buildModelParameters,
         GradleEnterprisePluginManager manager,
         BuildType buildType
     ) {
         this.gradle = gradle;
+        this.buildModelParameters = buildModelParameters;
         this.manager = manager;
         this.buildType = buildType;
     }
@@ -62,7 +66,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
     private String unsupportedReason(VersionNumber pluginVersion) {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             return UNSUPPORTED_TOGGLE_MESSAGE;
-        } else if (gradle.getStartParameter().isConfigurationCache()) {
+        } else if (buildModelParameters.isConfigurationCache()) {
             return "Build scans have been disabled due to incompatibility between your Gradle Enterprise plugin version (" + pluginVersion.toString() + ") and configuration caching. " +
                 "Please use Gradle Enterprise plugin version 3.4 or later for compatibility with configuration caching.";
         } else {

@@ -577,7 +577,9 @@ rootProject.name = 'root'
             }
             configurations {
                 compileOnly.deprecateForResolution('compileClasspath')
-                compileOnly.deprecateForConsumption('apiElements')
+                compileOnly.deprecateForConsumption { builder ->
+                    builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                }
             }
             dependencies {
                 compileOnly 'foo:foo:1.0'
@@ -612,7 +614,9 @@ rootProject.name = 'root'
             }
             configurations {
                 compile.deprecateForDeclaration('implementation')
-                compile.deprecateForConsumption('apiElements')
+                compile.deprecateForConsumption { builder ->
+                    builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                }
                 compile.deprecateForResolution('compileClasspath')
             }
             dependencies {

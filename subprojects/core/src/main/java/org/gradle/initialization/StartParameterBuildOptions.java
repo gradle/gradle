@@ -75,6 +75,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ExportKeysOption());
         options.add(new ConfigurationCacheProblemsOption());
         options.add(new ConfigurationCacheOption());
+        options.add(new IsolatedProjectsOption());
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
@@ -478,7 +479,18 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCache(value);
+            settings.setConfigurationCache(BuildOption.Value.value(value));
+        }
+    }
+
+    public static class IsolatedProjectsOption extends BooleanBuildOption<StartParameterInternal> {
+        public IsolatedProjectsOption() {
+            super("org.gradle.unsafe.isolated-projects");
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjects(Value.value(value));
         }
     }
 

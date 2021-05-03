@@ -154,7 +154,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
     }
 
     private static boolean detectOverflow(DaemonFixture daemon, long fromLine) {
-        boolean overflowDetected = daemon.logContains(fromLine, FileWatcherRegistry.Type.INVALIDATED.toString())
+        boolean overflowDetected = daemon.logContains(fromLine, FileWatcherRegistry.Type.OVERFLOW.toString())
         if (overflowDetected) {
             println "Detected overflow in watcher, no files will be retained for the next build"
         }

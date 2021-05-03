@@ -24,10 +24,10 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
-import org.gradle.tooling.internal.provider.BuildModelAction;
+import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
@@ -36,7 +36,7 @@ import java.util.Set;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     @Override
-    public Result run(BuildAction action, final BuildController buildController) {
+    public Result run(BuildAction action, final BuildTreeLifecycleController buildController) {
         if (!(action instanceof BuildModelAction)) {
             return Result.nothing();
         }

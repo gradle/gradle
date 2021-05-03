@@ -3,7 +3,13 @@ plugins {
 }
 
 version = 1.0
-archivesBaseName = "gradle"
+// tag::base-plugin-config[]
+base {
+    archivesName = "gradle"
+    distsDirectory = layout.buildDirectory.dir('custom-dist')
+    libsDirectory = layout.buildDirectory.dir('custom-libs')
+}
+// end::base-plugin-config[]
 
 tasks.register('myZip', Zip) {
     from 'somedir'

@@ -39,8 +39,8 @@ import java.io.OutputStream
 
 internal
 class ConfigurationCacheRepository(
-    private val cacheRepository: CacheRepository,
-    private val cacheCleanupFactory: CleanupActionFactory,
+    cacheRepository: CacheRepository,
+    cacheCleanupFactory: CleanupActionFactory,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val startParameter: ConfigurationCacheStartParameter,
     private val fileSystem: FileSystem
@@ -150,35 +150,31 @@ class ConfigurationCacheRepository(
         }
 
     private
-    val cacheRootDir
-        get() = startParameter.rootDirectory.resolve(".gradle/configuration-cache")
-
-    private
     val cleanupDepth = 1
 
     private
     val cleanupMaxAgeDays = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
     private
-    val cache by unsafeLazy {
-        cacheRepository.configurationCache()
-            .withOnDemandLockMode() // Don't need to lock anything until we use the caches
-            .withLruCacheCleanup()
-            .open()
-    }
+    val cache = cacheRepository
+        .cache(cacheBaseDir)
+        .withDisplayName("Configuration Cache")
+        .withOnDemandLockMode() // Don't need to lock anything until we use the caches
+        .withLruCacheCleanup(cacheCleanupFactory)
+        .open()
 
     private
-    fun CacheRepository.configurationCache() =
-        cache(cacheRootDir).withDisplayName("Configuration Cache")
+    val cacheBaseDir
+        get() = startParameter.cacheDir.resolve("configuration-cache")
 
     private
     fun CacheBuilder.withOnDemandLockMode() =
         withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
 
     private
-    fun CacheBuilder.withLruCacheCleanup(): CacheBuilder =
+    fun CacheBuilder.withLruCacheCleanup(cleanupActionFactory: CleanupActionFactory): CacheBuilder =
         withCleanup(
-            cacheCleanupFactory.create(
+            cleanupActionFactory.create(
                 LeastRecentlyUsedCacheCleanup(
                     SingleDepthFilesFinder(cleanupDepth),
                     fileAccessTimeJournal,
@@ -189,7 +185,7 @@ class ConfigurationCacheRepository(
 
     private
     val fileAccessTracker by unsafeLazy {
-        SingleDepthFileAccessTracker(fileAccessTimeJournal, cacheRootDir, cleanupDepth)
+        SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.baseDir, cleanupDepth)
     }
 
     private

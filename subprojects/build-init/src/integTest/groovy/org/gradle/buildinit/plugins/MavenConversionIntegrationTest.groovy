@@ -16,11 +16,12 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -139,7 +140,7 @@ Root project 'webinar-parent'
     def "flatmultimodule"() {
         def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
         executer.beforeExecute {
-            executer.inDirectory(targetDir.file("webinar-parent"))
+            executer.inDirectory(targetDir.file("webinar-parent")).withWarningMode(WarningMode.None) // FIXME we cannot assert warnings in this test as withWarningMode is ignored for the Kotlin DSL
         }
 
         when:

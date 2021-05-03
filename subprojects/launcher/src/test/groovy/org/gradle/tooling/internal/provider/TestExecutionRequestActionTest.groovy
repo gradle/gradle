@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.build.event.BuildEventSubscriptions
+import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest
 import spock.lang.Specification
 

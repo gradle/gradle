@@ -42,7 +42,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
@@ -210,8 +210,8 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     private <COMPILE extends AbstractCompile & HasCompileOptions> Action<ConfigurationInternal> configureDefaultTargetPlatform(boolean alwaysEnabled, Set<TaskProvider<COMPILE>> compileTasks) {
         return conf -> {
-            JavaPluginConvention javaConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
-            if (alwaysEnabled || javaConvention == null || !javaConvention.getAutoTargetJvmDisabled()) {
+            JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
+            if (alwaysEnabled || javaPluginExtension == null || !javaPluginExtension.getAutoTargetJvmDisabled()) {
                 int majorVersion = 0;
                 for (TaskProvider<COMPILE> compileTaskProvider : compileTasks) {
                     COMPILE compileTask = compileTaskProvider.get();

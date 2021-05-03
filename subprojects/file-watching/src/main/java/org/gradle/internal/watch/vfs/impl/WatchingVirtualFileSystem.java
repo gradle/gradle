@@ -108,7 +108,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     } else {
                         FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
-                            newRoot = stopWatchingAndInvalidateHierarchy(currentRoot);
+                            newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
                             newRoot = currentRoot;
                         }
@@ -194,7 +194,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     } else {
                         FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
-                            newRoot = stopWatchingAndInvalidateHierarchy(currentRoot);
+                            newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
                             newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.buildFinished(currentRoot, watchMode, maximumNumberOfWatchedHierarchies));
                         }
@@ -259,13 +259,13 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         }
                     } catch (Exception e) {
                         LOGGER.error("Error while processing file events", e);
-                        stopWatchingAndInvalidateHierarchy();
+                        stopWatchingAndInvalidateHierarchyAfterError();
                     }
                 }
 
                 @Override
                 public void stopWatchingAfterError() {
-                    stopWatchingAndInvalidateHierarchy();
+                    stopWatchingAndInvalidateHierarchyAfterError();
                 }
             });
             watchableHierarchies.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot));
@@ -320,7 +320,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             return supplier.get();
         } catch (Exception ex) {
             logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
-            return stopWatchingAndInvalidateHierarchy(currentRoot);
+            return stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
         }
     }
 
@@ -345,8 +345,13 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
      * Stop watching the known areas of the file system, and invalidate
      * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy)}}.
      */
-    private void stopWatchingAndInvalidateHierarchy() {
-        rootReference.update(this::stopWatchingAndInvalidateHierarchy);
+    private void stopWatchingAndInvalidateHierarchyAfterError() {
+        rootReference.update(this::stopWatchingAndInvalidateHierarchyAfterError);
+    }
+
+    private SnapshotHierarchy stopWatchingAndInvalidateHierarchyAfterError(SnapshotHierarchy currentRoot) {
+        LOGGER.error("Stopping file watching and invalidating VFS after an error happened");
+        return stopWatchingAndInvalidateHierarchy(currentRoot);
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchy(SnapshotHierarchy currentRoot) {

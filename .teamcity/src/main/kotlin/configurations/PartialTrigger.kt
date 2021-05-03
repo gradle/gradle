@@ -20,7 +20,7 @@ import common.applyDefaultSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import model.CIBuildModel
 
-class PartialTrigger<T : BuildType>(triggerName: String, triggerId: String, model: CIBuildModel, dependencies: Iterable<T>) : BaseGradleBuildType(model, init = {
+class PartialTrigger<T : BuildType>(triggerName: String, triggerId: String, model: CIBuildModel, dependencies: Iterable<T>) : BaseGradleBuildType(init = {
     id("${model.projectId}_${triggerId}_Trigger")
     name = "$triggerName (Trigger)"
     type = Type.COMPOSITE

@@ -107,6 +107,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.lazy.Lazy;
@@ -121,9 +122,9 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
-import org.gradle.util.Path;
 import org.gradle.util.internal.WrapUtil;
 
 import javax.annotation.Nullable;
@@ -137,6 +138,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -228,7 +230,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Action<? super ConfigurationInternal> beforeLocking;
 
     private List<String> declarationAlternatives;
-    private List<String> consumptionAlternatives;
+    private DeprecationMessageBuilder.WithDocumentation consumptionDeprecation;
     private List<String> resolutionAlternatives;
 
     private final CalculatedModelValue<ResolveState> currentResolveState;
@@ -1478,8 +1480,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Nullable
     @Override
-    public List<String> getConsumptionAlternatives() {
-        return consumptionAlternatives;
+    public DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation() {
+        return consumptionDeprecation;
     }
 
     @Nullable
@@ -1491,7 +1493,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public boolean isFullyDeprecated() {
         return declarationAlternatives != null &&
-            (!canBeConsumed || consumptionAlternatives != null) &&
+            (!canBeConsumed || consumptionDeprecation != null) &&
             (!canBeResolved || resolutionAlternatives != null);
     }
 
@@ -1502,8 +1504,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public DeprecatableConfiguration deprecateForConsumption(String... alternativesForConsumption) {
-        this.consumptionAlternatives = ImmutableList.copyOf(alternativesForConsumption);
+    public DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation) {
+        this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
         return this;
     }
 

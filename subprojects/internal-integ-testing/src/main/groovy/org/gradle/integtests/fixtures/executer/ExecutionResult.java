@@ -130,6 +130,13 @@ public interface ExecutionResult {
     ExecutionResult assertHasPostBuildOutput(String expectedOutput);
 
     /**
+     * Assert that the given message does not appear after the build result message.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertNotPostBuildOutput(String expectedOutput);
+
+    /**
      * Asserts that exactly the given set of tasks have been executed in the given order.
      * Each task path can be either a String or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions
      * and an explanation of their usage.  Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.

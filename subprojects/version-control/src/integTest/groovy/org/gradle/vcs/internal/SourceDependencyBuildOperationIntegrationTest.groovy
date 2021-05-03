@@ -104,12 +104,15 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         taskGraphOps[1].details.buildPath == ":${buildName}"
         taskGraphOps[1].parentId == taskGraphOps[0].id
 
+        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        runMainTasks.parentId == root.id
+
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 2
         // Build operations are run in parallel, so can appear in either order
         [runTasksOps[0].displayName, runTasksOps[1].displayName].sort() == ["Run tasks", "Run tasks (:${buildName})"]
-        runTasksOps[0].parentId == root.id
-        runTasksOps[1].parentId == root.id
+        runTasksOps[0].parentId == runMainTasks.id
+        runTasksOps[1].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 2

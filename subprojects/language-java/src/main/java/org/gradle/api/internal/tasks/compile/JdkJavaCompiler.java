@@ -16,6 +16,9 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.DefaultConstantsAnalysisResult;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.NoOpConstantsAnalysisResult;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
 import org.gradle.api.tasks.WorkResult;
@@ -50,7 +53,10 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling with JDK Java compiler API.");
 
-        JdkJavaCompilerResult result = new JdkJavaCompilerResult();
+        ConstantsAnalysisResult constantsAnalysisResult = spec.getCompileOptions().supportsConstantAnalysis()
+            ? new DefaultConstantsAnalysisResult()
+            : new NoOpConstantsAnalysisResult();
+        JdkJavaCompilerResult result = new JdkJavaCompilerResult(constantsAnalysisResult);
         JavaCompiler.CompilationTask task = createCompileTask(spec, result);
         boolean success = task.call();
         if (!success) {
@@ -69,9 +75,9 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
-        File mappingFile = compileOptions.getIncrementalCompilationMappingFile();
-        if (mappingFile != null && compiler instanceof IncrementalCompilationAwareJavaCompiler) {
-            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(task, mappingFile, new CompilationSourceDirs(spec.getSourceRoots()));
+        File classToFileMappingFile = compileOptions.getIncrementalCompilationMappingFile();
+        if (classToFileMappingFile != null && compiler instanceof IncrementalCompilationAwareJavaCompiler) {
+            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(task, classToFileMappingFile, result.getConstantsAnalysisResult(), new CompilationSourceDirs(spec.getSourceRoots()));
         }
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());

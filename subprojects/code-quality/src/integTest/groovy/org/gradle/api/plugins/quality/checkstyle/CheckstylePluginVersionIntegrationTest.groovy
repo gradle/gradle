@@ -19,9 +19,6 @@ package org.gradle.api.plugins.quality.checkstyle
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.reflect.problems.ValidationProblemId
-import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.util.Matchers
 import org.gradle.util.internal.Resources
@@ -37,14 +34,13 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
-class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
+class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     @Rule
     public final Resources resources = new Resources()
 
     def setup() {
         writeBuildFile()
         writeConfigFile()
-        expectReindentedValidationMessage()
     }
 
     def "analyze good code"() {
@@ -63,12 +59,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
-    )
-    def "does not support fallback when configDirectory does not exist"() {
+    def "supports fallback when configDirectory does not exist"() {
         goodCode()
-        def missing = file("config/does-not-exist")
         buildFile << """
             checkstyle {
                 config = project.resources.text.fromString('''<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
@@ -88,10 +80,26 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         """
 
         expect:
-        fails('check')
-        failureDescriptionContains(inputDoesNotExist {
-            type('Checkstyle').property('configDirectory').dir(missing)
-        })
+        succeeds('check')
+    }
+
+    def "changes to files in config dir causes task to be out-of-date"() {
+        goodCode()
+        when:
+        succeeds('check')
+        then:
+        result.assertTaskExecuted(":checkstyleMain")
+
+        when:
+        succeeds('check')
+        then:
+        result.assertTaskSkipped(":checkstyleMain")
+
+        when:
+        file("config/checkstyle/new-file.xml").touch()
+        succeeds('check')
+        then:
+        result.assertTaskNotSkipped(":checkstyleMain")
     }
 
     @ToBeImplemented

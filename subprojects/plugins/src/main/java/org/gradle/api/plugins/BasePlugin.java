@@ -24,13 +24,14 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
+import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
- * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
+ * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/base_plugin.html">Base plugin reference</a>
  */
@@ -43,30 +44,37 @@ public class BasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        BasePluginConvention convention = new DefaultBasePluginConvention(project);
+        BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
+        BasePluginConvention convention = new DefaultBasePluginConvention(baseExtension);
+
         project.getConvention().getPlugins().put("base", convention);
 
+        configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
-        configureArchiveDefaults(project, convention);
+        configureArchiveDefaults(project, baseExtension);
         configureConfigurations(project);
         configureAssemble((ProjectInternal) project);
     }
 
-    private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
+    private void configureExtension(Project project, BasePluginExtension extension) {
+        extension.getArchivesName().convention(project.getName());
+        extension.getLibsDirectory().convention(project.getLayout().getBuildDirectory().dir("libs"));
+        extension.getDistsDirectory().convention(project.getLayout().getBuildDirectory().dir("distributions"));
+    }
+
+    private void configureArchiveDefaults(final Project project, final BasePluginExtension extension) {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(task -> {
             if (task instanceof Jar) {
-                task.getDestinationDirectory().convention(pluginConvention.getLibsDirectory());
+                task.getDestinationDirectory().convention(extension.getLibsDirectory());
             } else {
-                task.getDestinationDirectory().convention(pluginConvention.getDistsDirectory());
+                task.getDestinationDirectory().convention(extension.getDistsDirectory());
             }
 
             task.getArchiveVersion().convention(
                 project.provider(() -> project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString())
             );
 
-            task.getArchiveBaseName().convention(
-                project.provider(() -> pluginConvention.getArchivesBaseName())
-            );
+            task.getArchiveBaseName().convention(extension.getArchivesName());
         });
     }
 

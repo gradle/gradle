@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps
 import com.google.common.collect.Maps
 import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
@@ -30,12 +31,14 @@ class ClassSetAnalysisTest extends Specification {
 
     static def hash = HashCode.fromInt(0)
 
-    static ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
+    CompilerApiData compilerApiData = Stub(CompilerApiData)
+    ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
                                      Map<String, IntSet> classToConstants = [:],
                                      DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
         new ClassSetAnalysis(
             new ClassSetAnalysisData(Maps.transformValues(dependents) { hash }, dependents, classToConstants, fullRebuildCause),
-            new AnnotationProcessingData([:], aggregatedTypes.getAllDependentClasses(), dependentsOnAll.getAllDependentClasses(), [:], dependentsOnAll.dependentResources, null)
+            new AnnotationProcessingData([:], aggregatedTypes.getAllDependentClasses(), dependentsOnAll.getAllDependentClasses(), [:], dependentsOnAll.dependentResources, null),
+            compilerApiData
         )
     }
 
@@ -284,6 +287,62 @@ class ClassSetAnalysisTest extends Specification {
 
         expect:
         a.isDependencyToAll("DoesNotMatter")
+    }
+
+    def "marks as dependency to all if constants has change and compilerApi is not available"() {
+        given:
+        def a = analysis([:], [:], empty(), empty(), null)
+        compilerApiData.isAvailable() >> false
+
+        when:
+        def deps = a.findTransitiveDependents("Foo", IntSet.of(1))
+
+        then:
+        deps.isDependencyToAll()
+    }
+
+    def "find class constant dependents"() {
+        given:
+        def a = analysis([:], [:], empty(), empty(), null)
+        compilerApiData.isAvailable() >> true
+        compilerApiData.accessibleConstantDependentsForClass("Foo") >> ["Bar"]
+        compilerApiData.privateConstantDependentsForClass("Foo") >> ["BarBar"]
+
+        when:
+        def deps = a.findTransitiveDependents("Foo", IntSet.of(1))
+
+        then:
+        deps.getAccessibleDependentClasses() == ["Bar"] as Set
+        deps.getPrivateDependentClasses() == ["BarBar"] as Set
+    }
+
+    def "find class constant dependents when constants hash analysis returns empty set"() {
+        given:
+        def a = analysis([:], [:], empty(), empty(), null)
+        compilerApiData.isAvailable() >> true
+        compilerApiData.accessibleConstantDependentsForClass("Foo") >> ["Bar"]
+
+        when:
+        def deps = a.findTransitiveDependents("Foo", IntSets.EMPTY_SET)
+
+        then:
+        deps.getAccessibleDependentClasses() == ["Bar"] as Set
+    }
+
+    def "find class constant dependents recursively"() {
+        given:
+        def a = analysis([:], [:], empty(), empty(), null)
+        compilerApiData.isAvailable() >> true
+        compilerApiData.accessibleConstantDependentsForClass("Foo") >> ["Bar"]
+        compilerApiData.accessibleConstantDependentsForClass("Bar") >> ["FooBar"]
+        compilerApiData.accessibleConstantDependentsForClass("FooBar") >> ["BarFoo"]
+        compilerApiData.accessibleConstantDependentsForClass("X") >> ["Y"]
+
+        when:
+        def deps = a.findTransitiveDependents("Foo", IntSets.EMPTY_SET)
+
+        then:
+        deps.getAccessibleDependentClasses() == ["Bar", "FooBar", "BarFoo"] as Set
     }
 
     private static DependentsSet dependentSet(boolean dependencyToAll, Collection<String> privateClasses, Collection<String> accessibleClasses) {

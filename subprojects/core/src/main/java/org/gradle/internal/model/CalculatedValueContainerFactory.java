@@ -37,6 +37,9 @@ public class CalculatedValueContainerFactory {
         globalContext = buildScopeServices::get;
     }
 
+    /**
+     * Create a calculated value that may have dependencies or which may need to access mutable model state.
+     */
     public <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> create(DisplayName displayName, S supplier) {
         return new CalculatedValueContainer<>(displayName, supplier, projectLeaseRegistry, globalContext);
     }

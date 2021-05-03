@@ -16,15 +16,15 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 import org.intellij.lang.annotations.Language
 
-class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractConfigurationCacheIntegrationTest extends AbstractOptInFeatureIntegrationTest {
 
     static final String ENABLE_CLI_OPT = "--${ConfigurationCacheOption.LONG_OPTION}"
     static final String ENABLE_GRADLE_PROP = "${ConfigurationCacheOption.PROPERTY_NAME}=true"
@@ -57,14 +57,17 @@ class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec 
         buildKotlinFile << script
     }
 
+    @Override
     void configurationCacheRun(String... tasks) {
         run(ENABLE_CLI_OPT, *tasks)
     }
 
+    @Override
     void configurationCacheRunLenient(String... tasks) {
         run(ENABLE_CLI_OPT, WARN_PROBLEMS_CLI_OPT, *tasks)
     }
 
+    @Override
     void configurationCacheFails(String... tasks) {
         fails(ENABLE_CLI_OPT, *tasks)
     }

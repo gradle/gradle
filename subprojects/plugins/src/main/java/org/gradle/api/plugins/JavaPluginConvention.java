@@ -28,7 +28,10 @@ import java.io.File;
 /**
  * Is mixed into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
  * {@link org.gradle.api.plugins.JavaPlugin}.
+ *
+ * @deprecated Replaced by {@link JavaPluginExtension}. This class is scheduled for removal in Gradle 8.0.
  */
+@Deprecated
 public abstract class JavaPluginConvention {
     /**
      * Configures the source sets of this project.

@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.internal.build.BuildModelController;
 
 public class ConfigurationCacheAwareBuildModelController implements BuildModelController {
     private enum State {

@@ -1,17 +1,12 @@
 package configurations
 
-import common.Os.LINUX
 import model.CIBuildModel
 import model.Stage
 
-class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, usesParentBuildCache = true, init = {
+class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
     id(buildTypeId(model))
     name = "Compile All"
     description = "Compiles all the source code and warms up the build cache"
-
-    params {
-        param("env.JAVA_HOME", LINUX.javaHomeForGradle())
-    }
 
     features {
         publishBuildStatusToGithub(model)
@@ -29,6 +24,7 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
     """.trimIndent()
 }) {
     companion object {
-        fun buildTypeId(model: CIBuildModel) = "${model.projectId}_CompileAllBuild"
+        fun buildTypeId(model: CIBuildModel) = buildTypeId(model.projectId)
+        fun buildTypeId(projectId: String) = "${projectId}_CompileAllBuild"
     }
 }

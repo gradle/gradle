@@ -60,14 +60,14 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
                     .exposesApi()
                     .published()
             );
-            createImplicitTestFixturesDependencies(project, findJavaConvention(project));
+            createImplicitTestFixturesDependencies(project, findJavaExtension(project));
         });
     }
 
-    private void createImplicitTestFixturesDependencies(Project project, JavaPluginConvention convention) {
+    private void createImplicitTestFixturesDependencies(Project project, JavaPluginExtension extension) {
         DependencyHandler dependencies = project.getDependencies();
         dependencies.add(TEST_FIXTURES_API, dependencies.create(project));
-        SourceSet testSourceSet = findTestSourceSet(convention);
+        SourceSet testSourceSet = findTestSourceSet(extension);
         ProjectDependency testDependency = (ProjectDependency) dependencies.add(testSourceSet.getImplementationConfigurationName(), dependencies.create(project));
         testDependency.capabilities(new ProjectTestFixtures(project));
 
@@ -79,12 +79,12 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
 
     }
 
-    private SourceSet findTestSourceSet(JavaPluginConvention convention) {
-        return convention.getSourceSets().getByName("test");
+    private SourceSet findTestSourceSet(JavaPluginExtension extension) {
+        return extension.getSourceSets().getByName("test");
     }
 
-    private JavaPluginConvention findJavaConvention(Project project) {
-        return (JavaPluginConvention) project.getConvention().getPlugins().get("java");
+    private JavaPluginExtension findJavaExtension(Project project) {
+        return project.getExtensions().getByType(JavaPluginExtension.class);
     }
 
 }

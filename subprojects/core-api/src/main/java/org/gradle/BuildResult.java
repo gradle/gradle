@@ -21,7 +21,7 @@ import org.gradle.api.invocation.Gradle;
 import javax.annotation.Nullable;
 
 /**
- * <p>A {@code BuildResult} packages up the results of a build executed by a {@link org.gradle.initialization.GradleLauncher} instance.</p>
+ * <p>A {@code BuildResult} packages up the result of a build.</p>
  */
 public class BuildResult {
     private final String action;

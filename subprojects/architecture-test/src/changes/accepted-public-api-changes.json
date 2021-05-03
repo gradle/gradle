@@ -507,6 +507,172 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Class org.gradle.api.plugins.BasePluginExtension",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getArchivesBaseName()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getArchivesName()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getDistsDirectory()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getDistsDirName()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getLibsDirectory()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.getLibsDirName()",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.setArchivesBaseName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.setDistsDirName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginExtension",
+            "member": "Method org.gradle.api.plugins.BasePluginExtension.setLibsDirName(java.lang.String)",
+            "acceptation": "The functionality was already available for several releases in BasePluginConvention",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoCoverageVerification",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.getDummyOutputFile()",
+            "acceptation": "Documented as internal",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.getAutoTargetJvmDisabled()",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.getDocsDir()",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.getTestResultsDir()",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.manifest()",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.manifest(groovy.lang.Closure)",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.manifest(org.gradle.api.Action)",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.setTargetCompatibility(java.lang.Object)",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.sourceSets(groovy.lang.Closure)",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.getSourceSets()",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.getTestReportDir()",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.setSourceCompatibility(java.lang.Object)",
+            "acceptation": "The functionality was already available for several releases in JavaPluginConvention",
+            "changes": [
+                "Method added to interface"
+            ]
         }
     ]
 }

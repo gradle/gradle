@@ -38,12 +38,12 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.INVALIDATED;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.MODIFIED;
+import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.OVERFLOW;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.REMOVED;
 
 public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
@@ -53,9 +53,9 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private final FileWatcher watcher;
     private final BlockingQueue<FileWatchEvent> fileEvents;
     private final Thread eventConsumerThread;
-    private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
     private final FileWatcherUpdater fileWatcherUpdater;
 
+    private volatile MutableFileWatchingStatistics fileWatchingStatistics = new MutableFileWatchingStatistics();
     private volatile boolean consumeEvents = true;
     private volatile boolean stopping = false;
 
@@ -75,6 +75,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     private Thread createAndStartEventConsumerThread(ChangeHandler handler) {
         Thread thread = new Thread(() -> {
+            LOGGER.debug("Started listening to file system change events");
             try {
                 while (consumeEvents) {
                     FileWatchEvent nextEvent = fileEvents.take();
@@ -82,34 +83,34 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                         nextEvent.handleEvent(new FileWatchEvent.Handler() {
                             @Override
                             public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
-                                fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::eventReceived);
+                                fileWatchingStatistics.eventReceived();
                                 handler.handleChange(convertType(type), Paths.get(absolutePath));
                             }
 
                             @Override
                             public void handleUnknownEvent(String absolutePath) {
                                 LOGGER.error("Received unknown event for {}", absolutePath);
-                                fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
+                                fileWatchingStatistics.unknownEventEncountered();
                                 handler.stopWatchingAfterError();
                             }
 
                             @Override
                             public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
                                 if (absolutePath == null) {
-                                    LOGGER.info("Overflow detected, invalidating all watched hierarchies");
+                                    LOGGER.info("Overflow detected (type: {}), invalidating all watched hierarchies", type);
                                     for (Path watchedHierarchy : fileWatcherUpdater.getWatchedHierarchies()) {
-                                        handler.handleChange(INVALIDATED, watchedHierarchy);
+                                        handler.handleChange(OVERFLOW, watchedHierarchy);
                                     }
                                 } else {
-                                    LOGGER.info("Overflow detected for watched hierarchy '{}', invalidating", absolutePath);
-                                    handler.handleChange(INVALIDATED, Paths.get(absolutePath));
+                                    LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
+                                    handler.handleChange(OVERFLOW, Paths.get(absolutePath));
                                 }
                             }
 
                             @Override
                             public void handleFailure(Throwable failure) {
                                 LOGGER.error("Error while receiving file changes", failure);
-                                fileWatchingStatistics.updateAndGet(statistics -> statistics.errorWhileReceivingFileChanges(failure));
+                                fileWatchingStatistics.errorWhileReceivingFileChanges(failure);
                                 handler.stopWatchingAfterError();
                             }
 
@@ -124,9 +125,14 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                 Thread.currentThread().interrupt();
                 // stop thread
             }
+            LOGGER.debug("Finished listening to file system change events");
         });
         thread.setDaemon(true);
         thread.setName("File watcher consumer");
+        thread.setUncaughtExceptionHandler((failedThread, exception) -> {
+            LOGGER.error("File system event consumer thread stopped due to exception", exception);
+            handler.stopWatchingAfterError();
+        });
         thread.start();
         return thread;
     }
@@ -163,7 +169,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public FileWatchingStatistics getAndResetStatistics() {
-        MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics.getAndSet(new MutableFileWatchingStatistics());
+        MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
+        fileWatchingStatistics = new MutableFileWatchingStatistics();
         int numberOfWatchedHierarchies = fileWatcherUpdater.getWatchedHierarchies().size();
         return new FileWatchingStatistics() {
             @Override
@@ -231,21 +238,18 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
             return numberOfReceivedEvents;
         }
 
-        public MutableFileWatchingStatistics eventReceived() {
+        public void eventReceived() {
             numberOfReceivedEvents++;
-            return this;
         }
 
-        public MutableFileWatchingStatistics errorWhileReceivingFileChanges(Throwable error) {
+        public void errorWhileReceivingFileChanges(Throwable error) {
             if (errorWhileReceivingFileChanges != null) {
                 errorWhileReceivingFileChanges = error;
             }
-            return this;
         }
 
-        public MutableFileWatchingStatistics unknownEventEncountered() {
+        public void unknownEventEncountered() {
             unknownEventEncountered = true;
-            return this;
         }
     }
 }

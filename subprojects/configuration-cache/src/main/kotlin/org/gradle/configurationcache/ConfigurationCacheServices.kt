@@ -16,16 +16,12 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
-import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.configurationcache.initialization.DefaultInjectedClasspathInstrumentationStrategy
-import org.gradle.configurationcache.initialization.NoOpConfigurationCacheProblemsListener
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
-import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
@@ -41,6 +37,12 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         }
     }
 
+    override fun registerBuildSessionServices(registration: ServiceRegistration) {
+        registration.run {
+            add(DefaultBuildTreeModelControllerServices::class.java)
+        }
+    }
+
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
             add(BuildTreeListenerManager::class.java)
@@ -50,6 +52,8 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheReport::class.java)
             add(ConfigurationCacheProblems::class.java)
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
+            add(DefaultBuildModelControllerServices::class.java)
+            add(DefaultConfigurationCacheProblemsListener::class.java)
         }
     }
 
@@ -60,7 +64,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(SystemPropertyAccessListener::class.java)
             add(RelevantProjectsRegistry::class.java)
             add(ConfigurationCacheFingerprintController::class.java)
-            addProvider(BuildServicesProvider())
         }
     }
 
@@ -70,22 +73,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
             add(DefaultConfigurationCache::class.java)
-            add(DefaultBuildModelControllerFactory::class.java)
-        }
-    }
-}
-
-
-class BuildServicesProvider {
-    fun createConfigurationCacheProblemsListener(
-        buildEnablement: ConfigurationCacheBuildEnablement,
-        problemsListener: ProblemsListener,
-        userCodeApplicationContext: UserCodeApplicationContext
-    ): ConfigurationCacheProblemsListener {
-        return if (buildEnablement.isEnabledForCurrentBuild) {
-            DefaultConfigurationCacheProblemsListener(problemsListener, userCodeApplicationContext)
-        } else {
-            NoOpConfigurationCacheProblemsListener()
         }
     }
 }

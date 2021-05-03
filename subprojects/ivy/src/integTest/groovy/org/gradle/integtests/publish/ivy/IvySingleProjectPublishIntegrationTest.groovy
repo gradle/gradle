@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.publish.ivy
 
-
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class IvySingleProjectPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
@@ -62,6 +61,7 @@ uploadPublish {
         """
 
         when:
+        expectUploadTaskDeprecationWarning('uploadPublish')
         run "uploadPublish"
 
         then:
@@ -109,6 +109,7 @@ uploadPublish {
         """
 
         when:
+        expectUploadTaskDeprecationWarning('uploadPublish')
         run "uploadPublish"
 
         then:
@@ -161,6 +162,7 @@ tasks.withType(Upload) {
         """
 
         when:
+        expectUploadTaskDeprecationWarning("uploadPublish$n")
         run "uploadPublish$n"
 
         then:

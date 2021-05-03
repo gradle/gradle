@@ -679,7 +679,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         fails('jar')
 
         then:
-        failureDescriptionContains(missingValueMessage { type('Jar').property('archiveFile') })
+        failureDescriptionContains(missingValueMessage { type('org.gradle.api.tasks.bundling.Jar').property('archiveFile') })
     }
 
     def "can use Provider values in manifest attribute"() {

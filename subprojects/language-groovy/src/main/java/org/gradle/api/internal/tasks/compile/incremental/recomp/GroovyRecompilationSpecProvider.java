@@ -57,7 +57,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
 
     @Override
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
-        RecompilationSpec spec = new RecompilationSpec();
+        RecompilationSpec spec = new RecompilationSpec(previous);
         if (sourceFileClassNameConverter.isEmpty()) {
             spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation");
             return spec;

@@ -64,7 +64,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
-import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -73,13 +72,14 @@ import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
 import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializeMap;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.IncubationLogger;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
@@ -390,7 +390,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             SystemProperties.getInstance().getCurrentDir(),
             startParameter.getLogLevel(),
             false,
-            startParameter.isContinuous(),
             ClassPath.EMPTY
         );
     }
@@ -543,6 +542,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
             outputResult.assertHasPostBuildOutput(expectedOutput);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertNotPostBuildOutput(String expectedOutput) {
+            outputResult.assertNotPostBuildOutput(expectedOutput);
             return this;
         }
 

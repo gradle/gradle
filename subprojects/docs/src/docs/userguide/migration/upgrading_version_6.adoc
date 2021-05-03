@@ -200,6 +200,23 @@ If you are still using the `java` plugin for a Java library, you will need to ap
 
 You can find more details about the benefits of the new configurations and which one to use in place of `compile` and `runtime` by reading the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> documentation.
 
+[WARNING]
+====
+When using the Groovy DSL, you need to watch out for a particular upgrade problem when dealing with the removed configurations.
+
+If you were creating custom configurations that extend one of the removed configurations, Gradle may silently create configurations that do not exist.
+
+This looks something like:
+```
+configurations {
+  // This silently creates a configuration called "runtime"
+  myConf extendsFrom runtime
+}
+```
+
+The result of dependency resolution for your custom configuration may not be the same as Gradle 6.x or before. You may notice missing dependencies or artifacts.
+====
+
 ==== Location of temporary project files for `ProjectBuilder`
 
 The `ProjectBuilder` API is used for inspecting Gradle builds in unit tests. This API used to create temporary project files under the system temporary directory as defined by `java.io.tmpdir`.
@@ -218,6 +235,14 @@ TestKit tests will now create temporary files under the `Test` task's temporary 
 This may cause test failures when the test expects particular file paths.
 
 If the test uses `GradleRunner.withTestKitDir(...)`, it is unaffected.
+
+==== File system watching with TestKit on Windows
+
+The file system watching implementation on Windows adds a lock to the root project directory in order to watch for changes.
+This may cause errors when you try to delete the root project directory after running a build with TestKit.
+For example, tests that use TestKit together with JUnit's `@TempDir` extension, or the `TemporaryFolder` rule can run into this problem.
+To avoid problems with these file locks, `<<test_kit#test_kit,TestKit>> disables file system watching for builds executed on Windows via `GradleRunner`.
+If you'd like to override the default behavior, you can enable file system watching by passing `--watch-fs` to `GradleRunner.withArguments()`.
 
 ==== Removal of the legacy `maven` plugin
 
@@ -266,11 +291,12 @@ If you used these plugins despite their experimental nature, you may find suitab
 
 The `layout` method taking a configuration block has been removed and is replaced by link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:patternLayout(org.gradle.api.Action)[patternLayout].
 
-==== Executing undefined builds is now an error
+==== Executing a Gradle build without a settings file is now an error
 
-A Gradle build is defined by a `settings.gradle(.kts)` file in the current or parent directory.
-Without a settings file, a Gradle build is undefined.
-Executing Gradle in such a directory is now an error.
+A Gradle build is defined by its `settings.gradle(.kts)` file found in the current or parent directory.
+Without a settings file, a Gradle build is undefined and Gradle produces an error when attempting to execute tasks.
+
+To fix this error, <<build_lifecycle.adoc#sec:settings_file,create a `settings.gradle(.kts)` file>> for the build.
 
 ==== Calling Project.afterEvaluate() after project evaluation is now an error
 

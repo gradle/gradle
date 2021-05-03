@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Function;
 
 public interface DeprecatableConfiguration extends Configuration {
 
@@ -31,11 +32,11 @@ public interface DeprecatableConfiguration extends Configuration {
     List<String> getDeclarationAlternatives();
 
     /**
-     * @return configurations that should be used to consume a component instead of consuming this configuration.
+     * @return deprecation message builder to be used for nagging when this configuration is consumed.
      *         Returns 'null' if this configuration is not deprecated for consumption.
      */
     @Nullable
-    List<String> getConsumptionAlternatives();
+    DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation();
 
     /**
      * @return configurations that should be used to consume a component instead of consuming this configuration.
@@ -60,10 +61,10 @@ public interface DeprecatableConfiguration extends Configuration {
     /**
      * Allows plugins to deprecate the consumability property (canBeConsumed() == true) of a configuration that will be changed in the next major Gradle version.
      *
-     * @param alternativesForConsumption alternative configurations that can be used for consumption
+     * @param deprecationMessageBuilder documented deprecation message builder to use for nagging upon consumption of this configuration
      * @return this configuration
      */
-    DeprecatableConfiguration deprecateForConsumption(String... alternativesForConsumption);
+    DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation);
 
     /**
      * Allows plugins to deprecate the resolvability property (canBeResolved() == true) of a configuration that will be changed in the next major Gradle version.

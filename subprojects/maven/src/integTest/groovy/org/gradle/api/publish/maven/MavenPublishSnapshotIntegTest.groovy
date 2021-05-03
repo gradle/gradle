@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 /**
@@ -112,7 +111,6 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can install snapshot versions"() {
         using m2
 

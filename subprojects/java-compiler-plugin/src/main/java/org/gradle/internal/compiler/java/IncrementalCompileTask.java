@@ -16,6 +16,9 @@
 package org.gradle.internal.compiler.java;
 
 import com.sun.source.util.JavacTask;
+import org.gradle.internal.compiler.java.listeners.classnames.ClassNameCollector;
+import org.gradle.internal.compiler.java.listeners.constants.ConstantDependentsConsumer;
+import org.gradle.internal.compiler.java.listeners.constants.ConstantsCollector;
 
 import javax.annotation.processing.Processor;
 import javax.tools.JavaCompiler;
@@ -24,6 +27,7 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -33,20 +37,26 @@ import java.util.function.Function;
  * in its own subproject and uses as little dependencies as possible (in particular
  * it only depends on JDK types).
  *
+ * It's accessed with reflection so move it with care to other packages.
+ *
  * This class is therefore loaded (and tested) via reflection in org.gradle.api.internal.tasks.compile.JdkTools.
  */
 @SuppressWarnings("unused")
 public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
     private final Function<File, Optional<String>> relativize;
-    private final Consumer<Map<String, Collection<String>>> onComplete;
+    private final Consumer<Map<String, Collection<String>>> classNameConsumer;
+    private final ConstantDependentsConsumer constantDependentsConsumer;
     private final JavacTask delegate;
 
     public IncrementalCompileTask(JavaCompiler.CompilationTask delegate,
                                   Function<File, Optional<String>> relativize,
-                                  Consumer<Map<String, Collection<String>>> onComplete) {
+                                  Consumer<Map<String, Collection<String>>> classNamesConsumer,
+                                  BiConsumer<String, String> publicDependentDelegate,
+                                  BiConsumer<String, String> privateDependentDelegate) {
         this.relativize = relativize;
-        this.onComplete = onComplete;
+        this.classNameConsumer = classNamesConsumer;
+        this.constantDependentsConsumer = new ConstantDependentsConsumer(publicDependentDelegate, privateDependentDelegate);
         if (delegate instanceof JavacTask) {
             this.delegate = (JavacTask) delegate;
         } else {
@@ -71,12 +81,14 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
     @Override
     public Boolean call() {
-        ClassNameCollector collector = new ClassNameCollector(relativize, delegate.getElements());
-        delegate.addTaskListener(collector);
+        ClassNameCollector classNameCollector = new ClassNameCollector(relativize, delegate.getElements());
+        ConstantsCollector constantsCollector = new ConstantsCollector(delegate, constantDependentsConsumer);
+        delegate.addTaskListener(classNameCollector);
+        delegate.addTaskListener(constantsCollector);
         try {
             return delegate.call();
         } finally {
-            onComplete.accept(collector.getMapping());
+            classNameConsumer.accept(classNameCollector.getMapping());
         }
     }
 

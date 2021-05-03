@@ -472,10 +472,11 @@ class DefaultSnapshotHierarchyTest extends Specification {
         def set = fileHierarchySet(file)
 
         when:
-        set = invalidate(set, invalidatedLocation)
+        def invalidatedSet = invalidate(set, invalidatedLocation)
         then:
-        snapshotPresent(set, file)
-        !snapshotPresent(set, invalidatedLocation)
+        snapshotPresent(invalidatedSet, file)
+        !snapshotPresent(invalidatedSet, invalidatedLocation)
+        invalidatedSet.is(set)
     }
 
     def "root is handled correctly"() {

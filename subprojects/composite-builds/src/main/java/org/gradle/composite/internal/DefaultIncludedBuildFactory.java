@@ -19,9 +19,12 @@ package org.gradle.composite.internal;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -29,12 +32,22 @@ import org.gradle.util.Path;
 import java.io.File;
 
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
+    private final BuildTreeController buildTree;
     private final Instantiator instantiator;
     private final WorkerLeaseService workerLeaseService;
+    private final BuildLifecycleControllerFactory buildLifecycleControllerFactory;
+    private final BuildModelControllerServices buildModelControllerServices;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+    public DefaultIncludedBuildFactory(BuildTreeController buildTree,
+                                       Instantiator instantiator,
+                                       WorkerLeaseService workerLeaseService,
+                                       BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+                                       BuildModelControllerServices buildModelControllerServices) {
+        this.buildTree = buildTree;
         this.instantiator = instantiator;
         this.workerLeaseService = workerLeaseService;
+        this.buildLifecycleControllerFactory = buildLifecycleControllerFactory;
+        this.buildModelControllerServices = buildModelControllerServices;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -56,7 +69,10 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             buildDefinition,
             isImplicit,
             owner,
-            workerLeaseService.getCurrentWorkerLease()
+            buildTree,
+            workerLeaseService.getCurrentWorkerLease(),
+            buildLifecycleControllerFactory,
+            buildModelControllerServices
         );
     }
 }

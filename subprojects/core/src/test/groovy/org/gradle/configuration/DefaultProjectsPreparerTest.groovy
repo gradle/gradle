@@ -23,6 +23,7 @@ import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildLoader
 import org.gradle.initialization.ModelConfigurationListener
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.operations.BuildOperationExecutor
 import spock.lang.Specification
 
@@ -33,9 +34,10 @@ class DefaultProjectsPreparerTest extends Specification {
     def projectConfigurer = Mock(ProjectConfigurer)
     def buildRegistry = Mock(BuildStateRegistry)
     def buildLoader = Mock(BuildLoader)
+    def modelParameters = Mock(BuildModelParameters)
     def modelListener = Mock(ModelConfigurationListener)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
-    private configurer = new DefaultProjectsPreparer(projectConfigurer, modelListener, buildOperationExecutor)
+    def configurer = new DefaultProjectsPreparer(projectConfigurer, modelParameters, modelListener, buildOperationExecutor)
 
     def setup() {
         gradle.startParameter >> startParameter
@@ -55,7 +57,8 @@ class DefaultProjectsPreparerTest extends Specification {
         configurer.prepareProjects(gradle)
 
         then:
-        startParameter.isConfigureOnDemand() >> true
+        gradle.rootBuild >> true
+        modelParameters.configureOnDemand >> true
         1 * projectConfigurer.configure(rootProject)
     }
 }

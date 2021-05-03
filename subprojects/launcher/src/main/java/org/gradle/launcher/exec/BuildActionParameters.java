@@ -32,7 +32,5 @@ public interface BuildActionParameters {
 
     boolean isUseDaemon();
 
-    boolean isContinuous();
-
     ClassPath getInjectedPluginClasspath();
 }

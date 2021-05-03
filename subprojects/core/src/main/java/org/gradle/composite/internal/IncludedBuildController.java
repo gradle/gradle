@@ -17,6 +17,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.internal.TaskInternal;
 
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 public interface IncludedBuildController {
@@ -28,7 +29,7 @@ public interface IncludedBuildController {
 
     boolean populateTaskGraph();
 
-    void startTaskExecution();
+    void startTaskExecution(ExecutorService executorService);
 
     /**
      * Awaits completion of task execution, collecting any task failures into the given collection.

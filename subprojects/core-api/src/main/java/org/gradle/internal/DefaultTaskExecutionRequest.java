@@ -91,6 +91,7 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
         return "DefaultTaskExecutionRequest{"
                 + "args=" + args
                 + ",projectPath='" + projectPath + '\''
+                + ",rootDir='" + rootDir + '\''
                 + '}';
     }
 }

@@ -25,14 +25,14 @@ import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.build.event.BuildEventSubscriptions
-import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
-import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
+import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Specification
@@ -60,7 +60,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
             get(ProjectLeaseRegistry) >> Stub(ProjectLeaseRegistry)
         }
     }
-    def buildController = Mock(BuildController) {
+    def buildController = Mock(BuildTreeLifecycleController) {
         configure() >> {
             listener.buildFinished(Stub(BuildResult) {
                 getFailure() >> null
@@ -111,7 +111,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
     def "can run action and propagate build exception"() {
         given:
         def failure = new RuntimeException()
-        def buildController = Mock(BuildController)
+        def buildController = Mock(BuildTreeLifecycleController)
         def internalAction = Mock(InternalBuildAction)
 
         when:

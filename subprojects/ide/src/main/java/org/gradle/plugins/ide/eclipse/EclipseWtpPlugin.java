@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.WarPluginConvention;
 import org.gradle.api.tasks.TaskProvider;
@@ -283,7 +283,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                         return Lists.newArrayList(
                             new Facet(Facet.FacetType.fixed, "jst.java", null),
                             new Facet(Facet.FacetType.installed, "jst.utility", "1.0"),
-                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility()))
+                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility()))
                         );
                     }
                 });
@@ -300,7 +300,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                             new Facet(Facet.FacetType.fixed, "jst.java", null),
                             new Facet(Facet.FacetType.fixed, "jst.web", null),
                             new Facet(Facet.FacetType.installed, "jst.web", "2.4"),
-                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility()))
+                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility()))
                         );
                     }
                 });
@@ -345,7 +345,7 @@ public class EclipseWtpPlugin extends IdePlugin {
     }
 
     private Set<File> getMainSourceDirs(Project project) {
-        return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main").getAllSource().getSrcDirs();
+        return project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName("main").getAllSource().getSrcDirs();
     }
 
     private String toJavaFacetVersion(JavaVersion version) {
