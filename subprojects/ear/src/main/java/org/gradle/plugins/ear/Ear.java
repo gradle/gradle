@@ -282,6 +282,7 @@ public class Ear extends Jar {
      * @since 7.1
      */
     @Input
+    @Optional
     @Incubating
     public Property<String> getAppDirName() {
         return appDirName;
