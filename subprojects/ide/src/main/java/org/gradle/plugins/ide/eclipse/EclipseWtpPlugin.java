@@ -41,6 +41,7 @@ import org.gradle.plugins.ide.eclipse.model.Facet;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.util.internal.RelativePathUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -199,8 +200,9 @@ public class EclipseWtpPlugin extends IdePlugin {
                 convention.map("resources", new Callable<List<WbResource>>() {
                     @Override
                     public List<WbResource> call() throws Exception {
-                        @SuppressWarnings("deprecation")
-                        String webAppDirName = project.getConvention().getPlugin(org.gradle.api.plugins.WarPluginConvention.class).getWebAppDirName();
+                        File projectDir = project.getProjectDir();
+                        File webAppDir = ((War) project.getTasks().getByName("war")).getWebAppDir().get().getAsFile();
+                        String webAppDirName = RelativePathUtil.relativePath(projectDir, webAppDir);
                         return Lists.newArrayList(new WbResource("/", webAppDirName));
                     }
                 });

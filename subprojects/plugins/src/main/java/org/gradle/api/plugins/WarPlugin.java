@@ -26,6 +26,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
@@ -51,11 +52,13 @@ public class WarPlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final FileFactory fileFactory;
 
     @Inject
-    public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
+    public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, FileFactory fileFactory) {
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
+        this.fileFactory = fileFactory;
     }
 
     @Override
@@ -65,7 +68,8 @@ public class WarPlugin implements Plugin<Project> {
         project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.from((Callable) () -> pluginConvention.getWebAppDir());
+            task.getWebAppDir().convention(project.provider(() -> fileFactory.dir(pluginConvention.getWebAppDir())));
+            task.from((Callable) () -> task.getWebAppDir());
             task.dependsOn((Callable) () -> project.getExtensions()
                 .getByType(JavaPluginExtension.class)
                 .getSourceSets()
