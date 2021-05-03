@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.RenamingCopyAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -179,10 +178,9 @@ public class War extends Jar {
      *
      * @return The app directory.
      * @since 7.1
-     *
      */
     @Incubating
-    @InputDirectory
+    @Internal
     public DirectoryProperty getWebAppDir() {
         return webAppDir;
     }
