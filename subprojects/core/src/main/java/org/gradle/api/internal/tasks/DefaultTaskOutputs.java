@@ -141,7 +141,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
         OutputFilesCollector collector = new OutputFilesCollector();
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new OutputUnpacker(task.toString(), fileCollectionFactory, false, collector));
+        TaskPropertyUtils.visitProperties(propertyWalker, task, new OutputUnpacker(task.toString(), fileCollectionFactory, false, false, collector));
         return collector.getFileProperties();
     }
 

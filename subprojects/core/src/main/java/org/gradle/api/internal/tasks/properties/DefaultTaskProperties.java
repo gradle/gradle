@@ -60,19 +60,13 @@ public class DefaultTaskProperties implements TaskProperties {
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
         ValidationVisitor validationVisitor = new ValidationVisitor();
         OutputFilesCollector outputFilesCollector = new OutputFilesCollector();
-        OutputUnpacker outputUnpacker = new OutputUnpacker(beanName, fileCollectionFactory, true, new OutputUnpacker.UnpackedOutputConsumer() {
-            @Override
-            public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
-                outputFilesCollector.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
-                validationVisitor.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
-            }
-
-            @Override
-            public void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value) {
-                outputFilesCollector.visitEmptyOutputFileProperty(propertyName, optional, value);
-                validationVisitor.visitEmptyOutputFileProperty(propertyName, optional, value);
-            }
-        });
+        OutputUnpacker outputUnpacker = new OutputUnpacker(
+            beanName,
+            fileCollectionFactory,
+            true,
+            true,
+            OutputUnpacker.UnpackedOutputConsumer.of(outputFilesCollector, validationVisitor)
+        );
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);
         ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
