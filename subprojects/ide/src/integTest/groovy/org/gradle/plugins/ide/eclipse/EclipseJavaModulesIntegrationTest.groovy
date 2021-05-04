@@ -27,21 +27,7 @@ import static org.gradle.test.fixtures.jpms.ModuleJarFixture.traditionalJar
 @Requires(TestPrecondition.JDK9_OR_LATER)
 class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
 
-    private MavenModule publishJavaModule(String name) {
-        mavenRepo.module('org', name, '1.0').mainArtifact(content: moduleJar(name)).publish()
-    }
-
-    private MavenModule publishJavaLibrary(String name) {
-        mavenRepo.module('org', name, '1.0').mainArtifact(content: traditionalJar(name)).publish()
-    }
-
-    private MavenModule publishAutoModule(String name) {
-        mavenRepo.module('org', name, '1.0').mainArtifact(content: autoModuleJar(name)).publish()
-    }
-
-    @ToBeFixedForConfigurationCache
-    def "Marks modules on classpath as such"() {
-        given:
+    def setup() {
         publishJavaModule('jmodule')
         publishAutoModule('jautomodule')
         publishJavaLibrary('jlib')
@@ -61,7 +47,27 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
                 implementation 'org:jlib:1.0'
             }
         """
+    }
 
+    @ToBeFixedForConfigurationCache
+    def "dependencies are not marked as modules if the project itself is not modular"() {
+        when:
+        succeeds "eclipse"
+
+        then:
+        def libraries = classpath.libs
+        libraries.size() == 3
+        libraries[0].jarName == 'jmodule-1.0.jar'
+        libraries[0].assertHasNoAttribute('module', 'true')
+        libraries[1].jarName == 'jautomodule-1.0.jar'
+        libraries[1].assertHasNoAttribute('module', 'true')
+        libraries[2].jarName == 'jlib-1.0.jar'
+        libraries[2].assertHasNoAttribute('module', 'true')
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "Marks modules on classpath as such"() {
+        setup:
         file("src/main/java/module-info.java") << """
             module my.module {
                 requires jmodule
@@ -81,5 +87,17 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
         libraries[1].assertHasAttribute('module', 'true')
         libraries[2].jarName == 'jlib-1.0.jar'
         libraries[2].assertHasNoAttribute('module', 'true')
+    }
+
+    private MavenModule publishJavaModule(String name) {
+        mavenRepo.module('org', name, '1.0').mainArtifact(content: moduleJar(name)).publish()
+    }
+
+    private MavenModule publishJavaLibrary(String name) {
+        mavenRepo.module('org', name, '1.0').mainArtifact(content: traditionalJar(name)).publish()
+    }
+
+    private MavenModule publishAutoModule(String name) {
+        mavenRepo.module('org', name, '1.0').mainArtifact(content: autoModuleJar(name)).publish()
     }
 }

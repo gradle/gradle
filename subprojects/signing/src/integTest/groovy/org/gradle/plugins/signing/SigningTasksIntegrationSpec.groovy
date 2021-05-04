@@ -20,10 +20,12 @@ import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvide
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
+import spock.lang.Ignore
 
 import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.GPG_CMD
 import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.OPEN_GPG
 
+@Ignore('https://github.com/gradle/gradle-private/issues/3370')
 class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
     @ToBeFixedForConfigurationCache

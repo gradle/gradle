@@ -59,8 +59,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         validatePlugins {
             onPlugins(failingAndroidPlugins) {
                 failsWith([
-                    (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('consumable').missingInputOrOutput().includeLink() }): ERROR,
-                    (missingAnnotationMessage { type('TaskManager.ConfigAttrTask').property('resolvable').missingInputOrOutput().includeLink() }): ERROR,
+                    (missingAnnotationMessage { type('com.android.build.gradle.internal.TaskManager.ConfigAttrTask').property('consumable').missingInputOrOutput().includeLink() }): ERROR,
+                    (missingAnnotationMessage { type('com.android.build.gradle.internal.TaskManager.ConfigAttrTask').property('resolvable').missingInputOrOutput().includeLink() }): ERROR,
                 ])
             }
             switch (testedPluginId) {
@@ -70,7 +70,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                     }
                     onPlugins([SENTRY_PLUGIN_ID]) {
                         failsWith([
-                            (missingAnnotationMessage { type('SentryProguardConfigTask').property('applicationVariant').missingInputOrOutput().includeLink() }): ERROR,
+                            (missingAnnotationMessage { type('io.sentry.android.gradle.SentryProguardConfigTask').property('applicationVariant').missingInputOrOutput().includeLink() }): ERROR,
                         ])
                     }
                     break

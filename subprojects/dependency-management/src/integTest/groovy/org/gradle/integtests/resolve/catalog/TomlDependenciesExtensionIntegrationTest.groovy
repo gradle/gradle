@@ -43,7 +43,7 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogInt
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in TOML file trigger the creation of an extension (notation=#notation)"() {
         tomlFile << """[libraries]
-foo = 'org.gradle.test:lib:1.0'
+foo = "org.gradle.test:lib:1.0"
 """
 
         buildFile << """
@@ -83,7 +83,7 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
         operations.hasOperation("Executing generation of dependency accessors for libs")
 
         when: "updating a version in the model"
-        tomlFile.text = tomlFile.text.replace('{group="org.gradle.test", name="bar", version="1.0"}', '="org.gradle.test:bar:1.1"')
+        tomlFile.text = tomlFile.text.replace('{group="org.gradle.test", name="bar", version="1.0"}', '"org.gradle.test:bar:1.1"')
         run 'verifyExtension'
 
         then: "extension is not regenerated"
@@ -155,7 +155,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"
-lib2.version = "1.0
+lib2.version = "1.0"
 
 [bundles]
 myBundle = ["lib", "lib2"]
@@ -192,7 +192,7 @@ myBundle = ["lib", "lib2"]
         tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"
-lib2.version = "1.0
+lib2.version = "1.0"
 
 [bundles]
 myBundle = ["lib", "lib2"]
@@ -700,6 +700,32 @@ other-bundle = ["my-lib", "my-lib2"]
                 module('org.gradle.test:lib2:1.0')
             }
         }
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/16845")
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "should not swallow invalid TOML parse errors"() {
+        tomlFile << """
+[versions]
+// This is an invalid comment format
+commons-lib = "1.0"
+
+[libraries]
+lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
+
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, parseError {
+            inCatalog('libs')
+            addError('At line 3, column 1: Unexpected \'/\', expected a newline or end-of-input')
+        })
     }
 
     private GradleExecuter withConfigurationCache() {

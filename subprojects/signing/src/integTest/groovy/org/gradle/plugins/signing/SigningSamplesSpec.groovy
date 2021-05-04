@@ -23,8 +23,10 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore('https://github.com/gradle/gradle-private/issues/3370')
 class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider)

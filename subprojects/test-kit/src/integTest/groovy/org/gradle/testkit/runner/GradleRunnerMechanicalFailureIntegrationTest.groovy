@@ -17,7 +17,9 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.GradleException
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
@@ -120,7 +122,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         result.tasks.empty
     }
 
-    private String missingProjectDirError(File nonExistentWorkingDir) {
+    private static String missingProjectDirError(File nonExistentWorkingDir) {
         if (gradleVersion < GradleVersion.version("4.0")) {
             return "Project directory '$nonExistentWorkingDir.absolutePath' does not exist."
         }
@@ -169,7 +171,12 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         and:
         def output = OutputScrapingExecutionResult.from(t.message, "")
         def taskHeader = gradleVersion >= GradleVersion.version("4.0") ? "\n> Task :helloWorld" : ":helloWorld"
-        output.normalizedOutput == """An error occurred executing build with args '${runner.arguments.join(' ')}' in directory '$testDirectory.canonicalPath'. Output before error:
+        // GradleRunner disables FS watching on Windows by passing a command line argument, so the arguments are different for Windows and other operating systems
+        // See GradleRunner's Javadoc.
+        def actualArguments = OperatingSystem.current().windows
+            ? ["-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=false"] + runner.arguments
+            : runner.arguments
+        output.normalizedOutput == """An error occurred executing build with args '${actualArguments.join(' ')}' in directory '$testDirectory.canonicalPath'. Output before error:
 $taskHeader
 Hello world!
 """

@@ -66,6 +66,6 @@ class DefaultWatchableFileSystemDetectorTest extends Specification {
     }
 
     private static FileSystemInfo fs(String deviceName, String mountPoint, String type, boolean remote = false) {
-        return new DefaultFileSystemInfo(Paths.get(mountPoint).toFile(), type, deviceName, remote, false, true)
+        return new DefaultFileSystemInfo(Paths.get(mountPoint).toFile(), type, deviceName, remote, null)
     }
 }

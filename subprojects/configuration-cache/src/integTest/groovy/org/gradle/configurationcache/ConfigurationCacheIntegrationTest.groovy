@@ -36,6 +36,43 @@ import javax.inject.Inject
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "configuration cache dir is not created unless needed"() {
+        when:
+        run 'help'
+
+        then:
+        !file('.gradle/configuration-cache').exists()
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        file('.gradle/configuration-cache').isDirectory()
+    }
+
+    def "configuration cache honours --project-cache-dir"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'help', '--project-cache-dir', 'custom-cache-dir'
+
+        then:
+        !file('.gradle/configuration-cache').exists()
+
+        and:
+        file('custom-cache-dir/configuration-cache').isDirectory()
+
+        and:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'help', '--project-cache-dir', 'custom-cache-dir'
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
     def "configuration cache for help on empty project"() {
         given:
         configurationCacheRun "help"

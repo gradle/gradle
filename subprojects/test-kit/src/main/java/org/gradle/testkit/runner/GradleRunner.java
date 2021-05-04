@@ -47,6 +47,10 @@ import java.util.Map;
  * GradleRunner instances are not thread safe and cannot be used concurrently.
  * However, multiple instances are able to be used concurrently.
  * <p>
+ * On Windows, Gradle runner disables file system watching for the executed build, since the Windows watchers add a file lock
+ * on the root project directory, causing problems when trying to delete it. You can still enable file system watching manually
+ * for your test by adding the `--watch-fs` command line argument via {@link #withArguments(String...)}.
+ * <p>
  * Please see the Gradle <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">TestKit</a> User Manual chapter for more information.
  *
  * @since 2.6

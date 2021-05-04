@@ -204,7 +204,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == [dummyValidationProblem('DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation', null, 'type is broken', 'Test').trim()]
+        collectProblems(typeMetadata) == [dummyValidationProblem(TypeWithCustomAnnotation.canonicalName, null, 'type is broken', 'Test').trim()]
     }
 
     @Unroll
