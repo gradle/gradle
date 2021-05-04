@@ -83,7 +83,7 @@ Specifies if deploymentDescriptor should be generated. _Default value: `true`_.
 
 These properties are provided by a link:{groovyDslPath}/org.gradle.plugins.ear.EarPluginConvention.html[EarPluginConvention] convention object.
 
-Configuring ear tasks via convention properties is **deprecated**. If you need to set default values the `ear` task then configure the task directly. If you want to configure all tasks of type `Ear` in the project then use link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)].
+Configuring ear tasks via convention properties is **deprecated**. If you need to set default values for the `ear` task then configure the task directly. If you want to configure all tasks of type `Ear` in the project then use link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)].
 
 
 [[sec:ear_default_settings]]
