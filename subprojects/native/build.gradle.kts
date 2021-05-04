@@ -28,8 +28,8 @@ dependencies {
 }
 
 jmh {
-    fork = 1
-    threads = 2
-    warmupIterations = 10
-    synchronizeIterations = false
+    fork.set(1)
+    threads.set(2)
+    warmupIterations.set(10)
+    synchronizeIterations.set(false)
 }

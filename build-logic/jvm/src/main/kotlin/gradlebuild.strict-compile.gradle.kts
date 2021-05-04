@@ -21,5 +21,7 @@ extensions.create<StrictCompileExtension>("strictCompile")
 val strictCompilerArgs = listOf("-Werror", "-Xlint:all", "-Xlint:-options", "-Xlint:-serial", "-Xlint:-classfile")
 
 tasks.withType<JavaCompile>().configureEach {
-    options.compilerArgs.addAll(strictCompilerArgs)
+    if (!name.contains("CompileGeneratedClasses")) {
+        options.compilerArgs.addAll(strictCompilerArgs)
+    }
 }
