@@ -34,8 +34,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         given:
         BuildResult result
         useSample("gmm-example")
-        // TODO Test Kotlin 1.4
-        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.3")
+        def kotlinVersion = TestedVersions.kotlin.latest()
         def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("4.1")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 

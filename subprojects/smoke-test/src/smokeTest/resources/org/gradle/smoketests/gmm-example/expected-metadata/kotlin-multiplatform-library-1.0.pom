@@ -10,5 +10,4 @@
   <groupId>example</groupId>
   <artifactId>kotlin-multiplatform-library</artifactId>
   <version>1.0</version>
-  <packaging>pom</packaging>
 </project>
