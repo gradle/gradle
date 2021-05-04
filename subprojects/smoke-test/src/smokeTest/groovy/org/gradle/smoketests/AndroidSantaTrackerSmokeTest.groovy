@@ -17,6 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -26,6 +28,18 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     @Override
     protected int maxConfigurationCacheProblems() {
         return 150
+    }
+
+    def "plop (agp=#agpVersion)"() {
+        expect:
+        if (VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)) {
+            println("OLD WITH DEPWARN")
+        } else {
+            println("RECENT NO DEPWARN")
+        }
+
+        where:
+        agpVersion << TESTED_AGP_VERSIONS
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
@@ -42,7 +56,16 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         def result = buildLocation(checkoutDir, agpVersion)
 
         then:
-        expectNoDeprecationWarnings(result)
+        if (VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)) {
+            expectDeprecationWarnings(result,
+                "The WorkerExecutor.submit() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. " +
+                    "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
+            )
+        } else {
+            expectNoDeprecationWarnings(result)
+        }
         assertConfigurationCacheStateStored()
 
         where:
