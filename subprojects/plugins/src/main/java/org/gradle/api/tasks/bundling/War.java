@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.copy.RenamingCopyAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -180,7 +181,9 @@ public class War extends Jar {
      * @since 7.1
      */
     @Incubating
-    @Internal
+    @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
     public DirectoryProperty getWebAppDir() {
         return webAppDir;
     }
