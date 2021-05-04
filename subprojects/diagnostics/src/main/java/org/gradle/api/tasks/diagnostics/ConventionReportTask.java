@@ -22,6 +22,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
@@ -59,7 +60,7 @@ public abstract class ConventionReportTask extends ConventionTask {
      * @return the directory to store project reports
      * @since 7.1
      */
-    @Internal
+    @OutputDirectory
     @Incubating
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
