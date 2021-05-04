@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-rootProject.name = "build-logic-settings"
-
-dependencyResolutionManagement {
-    repositories {
-        gradlePluginPortal()
+val testFilteringProperty = "gradle.internal.testselection.enabled"
+val gitBranchName: String? = System.getenv("BUILD_BRANCH")
+if (!System.getProperties().containsKey(testFilteringProperty) && gitBranchName != null) {
+    val protectedBranches = listOf("master", "release")
+    if (!protectedBranches.contains(gitBranchName) && !gitBranchName.startsWith("pre-test/")) {
+        System.setProperty(testFilteringProperty, "true")
     }
 }
-
-include("allprojects-plugin")
-include("testfiltering-plugin")
-
