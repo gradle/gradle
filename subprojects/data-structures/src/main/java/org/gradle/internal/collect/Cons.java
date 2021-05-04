@@ -16,6 +16,7 @@
 
 package org.gradle.internal.collect;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 class Cons<T> implements PersistentList<T> {
@@ -36,5 +37,27 @@ class Cons<T> implements PersistentList<T> {
     @Override
     public PersistentList<T> plus(T element) {
         return new Cons<>(element, this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Cons<?> cons = (Cons<?>) o;
+        return head.equals(cons.head) && tail.equals(cons.tail);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(head, tail);
+    }
+
+    @Override
+    public String toString() {
+        return head + " : " + tail;
     }
 }

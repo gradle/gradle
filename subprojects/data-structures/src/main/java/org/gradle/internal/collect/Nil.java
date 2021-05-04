@@ -21,6 +21,9 @@ import java.util.function.Consumer;
 class Nil<T> implements PersistentList<T> {
     public static final Nil<Object> NIL = new Nil<>();
 
+    private Nil() {
+    }
+
     @Override
     public void forEach(Consumer<? super T> consumer) {
     }
@@ -28,5 +31,10 @@ class Nil<T> implements PersistentList<T> {
     @Override
     public PersistentList<T> plus(T element) {
         return new Cons<>(element, this);
+    }
+
+    @Override
+    public String toString() {
+        return "Nil";
     }
 }
