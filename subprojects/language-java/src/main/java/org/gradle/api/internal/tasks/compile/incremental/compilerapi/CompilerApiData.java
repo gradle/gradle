@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.compilerapi;
 
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToDependentsMapping;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerialzer;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -80,11 +80,11 @@ public class CompilerApiData {
     public static final class Serializer extends AbstractSerializer<CompilerApiData> {
 
         private final Supplier<HierarchicalNameSerializer> classNameSerializerSupplier;
-        private final DependentSetSerialzer dependentSetSerialzer;
+        private final DependentSetSerializer dependentSetSerializer;
 
         public Serializer(Supplier<HierarchicalNameSerializer> classNameSerializerSupplier) {
             this.classNameSerializerSupplier = classNameSerializerSupplier;
-            this.dependentSetSerialzer = new DependentSetSerialzer(classNameSerializerSupplier);
+            this.dependentSetSerializer = new DependentSetSerializer(classNameSerializerSupplier);
         }
 
         @Override
@@ -101,7 +101,7 @@ public class CompilerApiData {
                 return CompilerApiData.withoutConstantsMapping(sourceToClassMapping);
             }
 
-            MapSerializer<String, DependentsSet> constantDependentsSerializer = new MapSerializer<>(nameSerializer, dependentSetSerialzer);
+            MapSerializer<String, DependentsSet> constantDependentsSerializer = new MapSerializer<>(nameSerializer, dependentSetSerializer);
             Map<String, DependentsSet> constantDependents = constantDependentsSerializer.read(decoder);
             return CompilerApiData.withConstantsMapping(sourceToClassMapping, new ConstantToDependentsMapping(constantDependents));
         }
@@ -117,7 +117,7 @@ public class CompilerApiData {
                 boolean supportsConstantsMapping = value.isSupportsConstantsMapping();
                 encoder.writeBoolean(supportsConstantsMapping);
                 if (supportsConstantsMapping) {
-                    MapSerializer<String, DependentsSet> constantDependentsSerializer = new MapSerializer<>(nameSerializer, dependentSetSerialzer);
+                    MapSerializer<String, DependentsSet> constantDependentsSerializer = new MapSerializer<>(nameSerializer, dependentSetSerializer);
                     constantDependentsSerializer.write(encoder, value.getConstantToClassMapping().getConstantDependents());
                 }
             }

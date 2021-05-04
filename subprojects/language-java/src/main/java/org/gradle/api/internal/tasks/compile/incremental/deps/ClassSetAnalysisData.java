@@ -26,7 +26,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerialzer;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
 import org.gradle.internal.hash.HashCode;
@@ -150,7 +150,7 @@ public class ClassSetAnalysisData {
         Set<String> usedConstantSources = compilerApiData.isSupportsConstantsMapping()
             ? compilerApiData.getConstantToClassMapping().getConstantDependents().keySet()
             : classesToConstants.keySet();
-        
+
         usedClasses.addAll(usedConstantSources);
 
         Map<String, HashCode> classHashes = new HashMap<>(usedClasses.size());
@@ -286,7 +286,7 @@ public class ClassSetAnalysisData {
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
             HierarchicalNameSerializer hierarchicalNameSerializer = classNameSerializerSupplier.get();
-            DependentSetSerialzer dependentSetSerialzer = new DependentSetSerialzer(() -> hierarchicalNameSerializer);
+            DependentSetSerializer dependentSetSerializer = new DependentSetSerializer(() -> hierarchicalNameSerializer);
             int count = decoder.readSmallInt();
             ImmutableMap.Builder<String, HashCode> classHashes = ImmutableMap.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
@@ -299,7 +299,7 @@ public class ClassSetAnalysisData {
             ImmutableMap.Builder<String, DependentsSet> dependentsBuilder = ImmutableMap.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
                 String className = hierarchicalNameSerializer.read(decoder);
-                DependentsSet dependents = dependentSetSerialzer.read(decoder);
+                DependentsSet dependents = dependentSetSerializer.read(decoder);
                 dependentsBuilder.put(className, dependents);
             }
 
@@ -319,7 +319,7 @@ public class ClassSetAnalysisData {
         @Override
         public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
             HierarchicalNameSerializer hierarchicalNameSerializer = classNameSerializerSupplier.get();
-            DependentSetSerialzer dependentSetSerialzer = new DependentSetSerialzer(() -> hierarchicalNameSerializer);
+            DependentSetSerializer dependentSetSerializer = new DependentSetSerializer(() -> hierarchicalNameSerializer);
             encoder.writeSmallInt(value.classHashes.size());
             for (Map.Entry<String, HashCode> entry : value.classHashes.entrySet()) {
                 hierarchicalNameSerializer.write(encoder, entry.getKey());
@@ -329,7 +329,7 @@ public class ClassSetAnalysisData {
             encoder.writeSmallInt(value.dependents.size());
             for (Map.Entry<String, DependentsSet> entry : value.dependents.entrySet()) {
                 hierarchicalNameSerializer.write(encoder, entry.getKey());
-                dependentSetSerialzer.write(encoder, entry.getValue());
+                dependentSetSerializer.write(encoder, entry.getValue());
             }
 
             encoder.writeSmallInt(value.classesToConstants.size());

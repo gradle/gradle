@@ -24,10 +24,10 @@ import org.gradle.internal.serialize.Encoder;
 
 import java.util.function.Supplier;
 
-public class DependentSetSerialzer extends AbstractSerializer<DependentsSet> {
+public class DependentSetSerializer extends AbstractSerializer<DependentsSet> {
     private final Supplier<HierarchicalNameSerializer> hierarchicalNameSerializerSupplier;
 
-    public DependentSetSerialzer(Supplier<HierarchicalNameSerializer> hierarchicalNameSerializerSupplier) {
+    public DependentSetSerializer(Supplier<HierarchicalNameSerializer> hierarchicalNameSerializerSupplier) {
         this.hierarchicalNameSerializerSupplier = hierarchicalNameSerializerSupplier;
     }
 
