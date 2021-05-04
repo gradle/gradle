@@ -64,7 +64,7 @@ public class DefaultTaskProperties implements TaskProperties {
             fileCollectionFactory,
             true,
             true,
-            OutputUnpacker.UnpackedOutputConsumer.of(outputFilesCollector, validationVisitor)
+            OutputUnpacker.UnpackedOutputConsumer.composite(outputFilesCollector, validationVisitor)
         );
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);

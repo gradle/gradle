@@ -40,7 +40,7 @@ public class OutputUnpacker extends PropertyVisitor.Adapter {
         void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec);
         void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value);
 
-        static UnpackedOutputConsumer of(UnpackedOutputConsumer consumer1, UnpackedOutputConsumer consumer2) {
+        static UnpackedOutputConsumer composite(UnpackedOutputConsumer consumer1, UnpackedOutputConsumer consumer2) {
             return new UnpackedOutputConsumer() {
                 @Override
                 public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
