@@ -80,6 +80,10 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
     """.trimIndent()
 
     paramsForBuildToolBuild(buildJvm, os)
+    params {
+        // The promotion job doesn't have a branch, so %teamcity.build.branch% doesn't work.
+        param("env.BUILD_BRANCH", "%teamcity.build.branch%")
+    }
 
     vcs {
         root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
@@ -116,8 +120,6 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os)
         param("env.GRADLE_CACHE_REMOTE_PASSWORD", "%gradle.cache.remote.password%")
         param("env.GRADLE_CACHE_REMOTE_URL", "%gradle.cache.remote.url%")
         param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
-
-        param("env.BUILD_BRANCH", "%teamcity.build.branch%")
 
         param("env.JAVA_HOME", javaHome(buildJvm, os))
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
