@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
@@ -97,6 +98,17 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     };
+
+    public static ValidationAction outputValidationActionFor(TreeType treeType) {
+        switch (treeType) {
+            case FILE:
+                return OUTPUT_FILE_VALIDATOR;
+            case DIRECTORY:
+                return OUTPUT_DIRECTORY_VALIDATOR;
+            default:
+                throw new AssertionError("Unknown tree type " + treeType);
+        }
+    }
 
     private static void reportMissingInput(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {

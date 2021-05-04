@@ -295,7 +295,7 @@ public class DefaultTaskProperties implements TaskProperties {
                 propertyName,
                 new StaticValue(spec.getOutputFile()),
                 optional,
-                OutputFilePropertyType.validationActionFor(spec.getOutputType()))
+                ValidationActions.outputValidationActionFor(spec.getOutputType()))
             );
         }
 

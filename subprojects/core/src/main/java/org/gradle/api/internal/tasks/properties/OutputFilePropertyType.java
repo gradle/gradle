@@ -36,15 +36,4 @@ public enum  OutputFilePropertyType {
     public TreeType getOutputType() {
         return outputType;
     }
-
-    public static ValidationAction validationActionFor(TreeType treeType) {
-        switch (treeType) {
-            case FILE:
-                return ValidationActions.OUTPUT_FILE_VALIDATOR;
-            case DIRECTORY:
-                return ValidationActions.OUTPUT_DIRECTORY_VALIDATOR;
-            default:
-                throw new AssertionError("Unknown tree type " + treeType);
-        }
-    }
 }
