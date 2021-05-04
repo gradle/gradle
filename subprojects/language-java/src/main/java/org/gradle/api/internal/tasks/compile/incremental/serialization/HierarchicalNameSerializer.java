@@ -34,14 +34,13 @@ import java.io.IOException;
  * This class is stateful. Use a new one for each serialization/deserialization attempt.
  */
 public class HierarchicalNameSerializer extends AbstractSerializer<String> {
+    private static final CharMatcher SEPARATOR_MATCHER = CharMatcher.anyOf(".$/").or(CharMatcher.inRange('A', 'Z'));
 
     private final Interner<String> interner;
     private final BiMap<Integer, String> namesById = HashBiMap.create();
-    private final CharMatcher separatorMatcher;
 
     public HierarchicalNameSerializer(Interner<String> interner) {
         this.interner = interner;
-        this.separatorMatcher = CharMatcher.anyOf(".$/").or(CharMatcher.inRange('A', 'Z'));
     }
 
     @Override
@@ -89,7 +88,7 @@ public class HierarchicalNameSerializer extends AbstractSerializer<String> {
     }
 
     private void writeFirstOccurrenceOfName(String name, Encoder encoder) throws IOException {
-        int separator = separatorMatcher.lastIndexIn(name);
+        int separator = SEPARATOR_MATCHER.lastIndexIn(name);
         if (separator > 0) {
             String parent = name.substring(0, separator);
             String child = name.substring(separator + 1);
