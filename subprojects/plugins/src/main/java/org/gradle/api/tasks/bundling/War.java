@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.copy.RenamingCopyAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -36,6 +35,7 @@ import org.gradle.internal.Transformers;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,9 +52,10 @@ public class War extends Jar {
     private File webXml;
     private FileCollection classpath;
     private final DefaultCopySpec webInf;
-    private final DirectoryProperty webAppDir;
+    private final DirectoryProperty webAppDirectory;
 
-    public War() {
+    @Inject
+    public War(ObjectFactory objectFactory) {
         getArchiveExtension().set(WAR_EXTENSION);
         setMetadataCharset("UTF-8");
         // Add these as separate specs, so they are not affected by the changes to the main spec
@@ -74,8 +75,7 @@ public class War extends Jar {
         renameSpec.from((Callable<File>) War.this::getWebXml);
         renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
 
-        ObjectFactory objectFactory = getProject().getObjects();
-        webAppDir = objectFactory.directoryProperty();
+        webAppDirectory = objectFactory.directoryProperty();
     }
 
     @Internal
@@ -175,16 +175,18 @@ public class War extends Jar {
     }
 
     /**
-     * Returns the app directory of the task. Defaults to {@code src/main/webapp}.
+     * Returns the app directory of the task. Added to the output web archive by default.
+     * <p>
+     * The {@code war} plugin sets the default value for all {@code War} tasks to {@code src/main/webapp} and adds it as a task input.
+     * <p>
+     * Note, that if the {@code war} plugin is not applied then this property is ignored. In that case, clients can manually set an app directory as a task input.
      *
      * @return The app directory.
      * @since 7.1
      */
     @Incubating
-    @Optional
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    public DirectoryProperty getWebAppDir() {
-        return webAppDir;
+    @Internal
+    public DirectoryProperty getWebAppDirectory() {
+        return webAppDirectory;
     }
 }
