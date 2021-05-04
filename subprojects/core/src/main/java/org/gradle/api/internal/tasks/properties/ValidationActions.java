@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.internal.file.TreeType;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
@@ -97,16 +96,38 @@ public enum ValidationActions implements ValidationAction {
                 }
             }
         }
+    },
+    OUTPUT_FILE_TREE_VALIDATOR("directory") {
+        @Override
+        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
+            File directory = toFile(context, value);
+            validateNotInReservedFileSystemLocation(propertyName, context, directory);
+            if (directory.exists()) {
+                if (!directory.isDirectory()) {
+                    reportFileTreeWithFileRoot(propertyName, context, directory);
+                }
+            } else {
+                for (File candidate = directory.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+                    if (candidate.exists() && !candidate.isDirectory()) {
+                        reportCannotWriteToDirectory(propertyName, context, candidate, "'" + directory + "' ancestor '" + candidate + "' is not a directory");
+                        return;
+                    }
+                }
+            }
+        }
     };
 
-    public static ValidationAction outputValidationActionFor(TreeType treeType) {
-        switch (treeType) {
+    public static ValidationAction outputValidationActionFor(OutputFilePropertySpec spec) {
+        if (spec instanceof DirectoryTreeOutputFilePropertySpec) {
+            return OUTPUT_FILE_TREE_VALIDATOR;
+        }
+        switch (spec.getOutputType()) {
             case FILE:
                 return OUTPUT_FILE_VALIDATOR;
             case DIRECTORY:
                 return OUTPUT_DIRECTORY_VALIDATOR;
             default:
-                throw new AssertionError("Unknown tree type " + treeType);
+                throw new AssertionError("Unknown tree type " + spec);
         }
     }
 
@@ -150,6 +171,17 @@ public enum ValidationActions implements ValidationAction {
         );
     }
 
+    private static void reportFileTreeWithFileRoot(String propertyName, TaskValidationContext context, File directory) {
+        context.visitPropertyProblem(problem ->
+            problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+                .reportAs(ERROR)
+                .forProperty(propertyName)
+                .withDescription(() -> "is not writable because '" + directory + "' is not a directory")
+                .happensBecause(() -> "Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
+                .addPossibleSolution("Make sure that the root of the file tree '" + propertyName + "' is configured to a directory")
+                .documentedAt("validation_problems", "cannot_write_output")
+        );
+    }
 
     private static void reportCannotWriteToFile(String propertyName, TaskValidationContext context, String cause) {
         context.visitPropertyProblem(problem ->

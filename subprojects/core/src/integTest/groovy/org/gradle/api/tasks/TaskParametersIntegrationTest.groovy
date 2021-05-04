@@ -801,10 +801,9 @@ task someTask(type: SomeTask) {
 
         expect:
         fails('myTask')
-        failureDescriptionContains(cannotWriteToDir {
+        failureDescriptionContains(cannotCreateRootOfFileTree {
             type('org.gradle.api.DefaultTask').property('output')
                 .dir(outputFile)
-                .isNotDirectory()
                 .includeLink()
         })
     }
