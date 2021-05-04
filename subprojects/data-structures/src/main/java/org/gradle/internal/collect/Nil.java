@@ -16,22 +16,17 @@
 
 package org.gradle.internal.collect;
 
-import org.gradle.internal.Cast;
-
-import javax.annotation.CheckReturnValue;
 import java.util.function.Consumer;
 
-public interface PersistentList<T> {
-    static <T> PersistentList<T> of() {
-        return Cast.uncheckedCast(Nil.NIL);
+class Nil<T> implements PersistentList<T> {
+    public static final Nil<Object> NIL = new Nil<>();
+
+    @Override
+    public void forEach(Consumer<? super T> consumer) {
     }
 
-    static <T> PersistentList<T> of(T first) {
-        return PersistentList.<T>of().add(first);
+    @Override
+    public PersistentList<T> add(T element) {
+        return new Cons<>(element, this);
     }
-
-    void forEach(Consumer<? super T> consumer);
-
-    @CheckReturnValue
-    PersistentList<T> add(T element);
 }
