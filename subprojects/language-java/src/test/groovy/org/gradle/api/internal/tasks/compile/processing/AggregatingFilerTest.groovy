@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
-import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource
 
 import javax.tools.StandardLocation
 

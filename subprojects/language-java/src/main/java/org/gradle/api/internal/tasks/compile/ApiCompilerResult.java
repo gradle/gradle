@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,18 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.C
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.workers.internal.DefaultWorkResult;
 
-public class JdkJavaCompilerResult extends DefaultWorkResult {
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+public class ApiCompilerResult extends DefaultWorkResult {
 
     private final AnnotationProcessingResult annotationProcessingResult = new AnnotationProcessingResult();
-    private final ConstantsAnalysisResult constantsAnalysisResult;
+    private final ConstantsAnalysisResult constantsAnalysisResult = new ConstantsAnalysisResult();
+    private final Map<String, Set<String>> sourceToClassMapping = new HashMap<>();
 
-    JdkJavaCompilerResult(ConstantsAnalysisResult constantsAnalysisResult) {
+    public ApiCompilerResult() {
         super(true, null);
-        this.constantsAnalysisResult = constantsAnalysisResult;
     }
 
     public AnnotationProcessingResult getAnnotationProcessingResult() {
@@ -38,4 +42,7 @@ public class JdkJavaCompilerResult extends DefaultWorkResult {
         return constantsAnalysisResult;
     }
 
+    public Map<String, Set<String>> getSourceClassesMapping() {
+        return sourceToClassMapping;
+    }
 }

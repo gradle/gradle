@@ -16,66 +16,44 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * Class used to merge new constants mapping from compiler api results with old results
  */
 public class ConstantToDependentsMappingMerger {
 
-    public ConstantToDependentsMapping merge(ConstantToDependentsMapping newMapping, @Nullable ConstantToDependentsMapping oldMapping, Set<String> removedClasses) {
+    public ConstantToDependentsMapping merge(ConstantToDependentsMapping newMapping, @Nullable ConstantToDependentsMapping oldMapping, Set<String> changedClasses) {
         if (oldMapping == null) {
             oldMapping = ConstantToDependentsMapping.empty();
         }
-        return updateClassToConstantsMapping(newMapping, oldMapping, removedClasses);
+        return updateClassToConstantsMapping(newMapping, oldMapping, changedClasses);
     }
 
-    private ConstantToDependentsMapping updateClassToConstantsMapping(ConstantToDependentsMapping newMapping, ConstantToDependentsMapping oldMapping, Set<String> removedClasses) {
+    private ConstantToDependentsMapping updateClassToConstantsMapping(ConstantToDependentsMapping newMapping, ConstantToDependentsMapping oldMapping, Set<String> changedClasses) {
         ConstantToDependentsMappingBuilder builder = ConstantToDependentsMapping.builder();
-        Set<String> visitedClasses = newMapping.getVisitedClasses();
-        oldMapping.getAccessibleConstantDependents().keySet().stream()
-            .filter(constantOrigin -> !removedClasses.contains(constantOrigin))
+        oldMapping.getConstantDependents().keySet().stream()
+            .filter(constantOrigin -> !changedClasses.contains(constantOrigin))
             .forEach(constantOrigin -> {
-                Set<String> constantDependents = oldMapping.findAccessibleConstantDependentsFor(constantOrigin);
-                constantDependents.removeIf(wasDependentVisitedOrRemoved(removedClasses, visitedClasses));
-                builder.addAccessibleDependents(constantOrigin, constantDependents);
+                DependentsSet dependents = oldMapping.getConstantDependentsForClass(constantOrigin);
+                Set<String> accessibleDependents = new HashSet<>(dependents.getAccessibleDependentClasses());
+                accessibleDependents.removeIf(changedClasses::contains);
+                builder.addAccessibleDependents(constantOrigin, accessibleDependents);
+                Set<String> privateDependents = new HashSet<>(dependents.getPrivateDependentClasses());
+                privateDependents.removeIf(changedClasses::contains);
+                builder.addPrivateDependents(constantOrigin, privateDependents);
             });
-
-        oldMapping.getPrivateConstantDependents().keySet().stream()
-            .filter(constantOrigin -> !removedClasses.contains(constantOrigin))
-            .forEach(constantOriginHash -> {
-                Set<String> constantDependents = oldMapping.findPrivateConstantDependentsFor(constantOriginHash);
-                constantDependents.removeIf(wasDependentVisitedOrRemoved(removedClasses, visitedClasses));
-                builder.addPrivateDependents(constantOriginHash, constantDependents);
-            });
-
-        newMapping.getAccessibleConstantDependents().keySet().stream()
-            .filter(constantOrigin -> !removedClasses.contains(constantOrigin))
-            .forEach(constantOriginHash -> {
-                Set<String> constantDependents = newMapping.findAccessibleConstantDependentsFor(constantOriginHash);
-                constantDependents.removeIf(wasDependentRemoved(removedClasses));
-                builder.addAccessibleDependents(constantOriginHash, constantDependents);
-            });
-
-        newMapping.getPrivateConstantDependents().keySet().stream()
-            .filter(constantOrigin -> !removedClasses.contains(constantOrigin))
+        newMapping.getConstantDependents().keySet()
             .forEach(constantOrigin -> {
-                Set<String> constantDependents = newMapping.findPrivateConstantDependentsFor(constantOrigin);
-                constantDependents.removeIf(wasDependentRemoved(removedClasses));
-                builder.addPrivateDependents(constantOrigin, constantDependents);
+                DependentsSet dependents = newMapping.getConstantDependentsForClass(constantOrigin);
+                builder.addAccessibleDependents(constantOrigin, dependents.getAccessibleDependentClasses());
+                builder.addPrivateDependents(constantOrigin, dependents.getPrivateDependentClasses());
             });
-
         return builder.build();
-    }
-
-    private Predicate<String> wasDependentVisitedOrRemoved(Set<String> removedClasses, Set<String> visitedClasses) {
-        return dependent -> visitedClasses.contains(dependent) || removedClasses.contains(dependent);
-    }
-
-    private Predicate<String> wasDependentRemoved(Set<String> removedClasses) {
-        return removedClasses::contains;
     }
 
 }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
@@ -49,9 +48,7 @@ public class MinimalJavaCompileOptions implements Serializable {
     private String javaModuleMainClass;
     private boolean supportsCompilerApi;
     private boolean supportsConstantsAnalysis;
-    private File incrementalCompilationMappingFile;
     private File previousCompilationDataFile;
-    private Multimap<String, String> previousCompilationMappings;
 
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
         FileCollection sourcepath = compileOptions.getSourcepath();
@@ -184,11 +181,12 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.warnings = warnings;
     }
 
+    @Nullable
     public File getAnnotationProcessorGeneratedSourcesDirectory() {
         return annotationProcessorGeneratedSourcesDirectory;
     }
 
-    public void setAnnotationProcessorGeneratedSourcesDirectory(File annotationProcessorGeneratedSourcesDirectory) {
+    public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File annotationProcessorGeneratedSourcesDirectory) {
         this.annotationProcessorGeneratedSourcesDirectory = annotationProcessorGeneratedSourcesDirectory;
     }
 
@@ -220,24 +218,6 @@ public class MinimalJavaCompileOptions implements Serializable {
     }
 
     @Nullable
-    public File getIncrementalCompilationMappingFile() {
-        return incrementalCompilationMappingFile;
-    }
-
-    public void setIncrementalCompilationMappingFile(@Nullable File incrementalCompilationMappingFile) {
-        this.incrementalCompilationMappingFile = incrementalCompilationMappingFile;
-    }
-
-    public void setPreviousIncrementalCompilationMapping(@Nullable Multimap<String, String> previousCompilationMappings) {
-        this.previousCompilationMappings = previousCompilationMappings;
-    }
-
-    @Nullable
-    public Multimap<String, String> getPreviousIncrementalCompilationMapping() {
-        return previousCompilationMappings;
-    }
-
-    @Nullable
     public File getPreviousCompilationDataFile() {
         return previousCompilationDataFile;
     }
@@ -261,5 +241,4 @@ public class MinimalJavaCompileOptions implements Serializable {
     public void setSupportsConstantAnalysis(boolean supportsConstantsAnalysis) {
         this.supportsConstantsAnalysis = supportsConstantsAnalysis;
     }
-
 }

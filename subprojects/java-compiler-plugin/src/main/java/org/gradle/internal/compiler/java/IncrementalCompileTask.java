@@ -23,10 +23,10 @@ import org.gradle.internal.compiler.java.listeners.constants.ConstantsCollector;
 import javax.annotation.processing.Processor;
 import javax.tools.JavaCompiler;
 import java.io.File;
-import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -45,13 +45,13 @@ import java.util.function.Function;
 public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
     private final Function<File, Optional<String>> relativize;
-    private final Consumer<Map<String, Collection<String>>> classNameConsumer;
+    private final Consumer<Map<String, Set<String>>> classNameConsumer;
     private final ConstantDependentsConsumer constantDependentsConsumer;
     private final JavacTask delegate;
 
     public IncrementalCompileTask(JavaCompiler.CompilationTask delegate,
                                   Function<File, Optional<String>> relativize,
-                                  Consumer<Map<String, Collection<String>>> classNamesConsumer,
+                                  Consumer<Map<String, Set<String>>> classNamesConsumer,
                                   BiConsumer<String, String> publicDependentDelegate,
                                   BiConsumer<String, String> privateDependentDelegate) {
         this.relativize = relativize;

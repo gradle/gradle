@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Collections;

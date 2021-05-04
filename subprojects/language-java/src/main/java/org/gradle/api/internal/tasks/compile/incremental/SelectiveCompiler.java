@@ -78,7 +78,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
 
         Timer clock = Time.startTimer();
         CurrentCompilation currentCompilation = new CurrentCompilation(spec, classpathSnapshotter);
-        
+
         PreviousCompilationData previousCompilationData = previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile);
         PreviousCompilation previousCompilation = new PreviousCompilation(previousCompilationData);
         RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(currentCompilation, previousCompilation);
@@ -92,7 +92,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
 
         if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
             LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
-            return new RecompilationNotNecessary(previousCompilationData);
+            return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
         }
 
         try {

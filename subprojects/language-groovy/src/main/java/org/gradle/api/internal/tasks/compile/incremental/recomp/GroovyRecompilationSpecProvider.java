@@ -28,26 +28,27 @@ import org.gradle.work.FileChange;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final boolean incremental;
     private final Iterable<FileChange> sourceChanges;
-    private final SourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(
         Deleter deleter,
         FileOperations fileOperations,
         FileTree sources,
         boolean incremental,
-        Iterable<FileChange> sourceChanges,
-        DefaultSourceFileClassNameConverter sourceFileClassNameConverter
+        Iterable<FileChange> sourceChanges
     ) {
         super(deleter, fileOperations, sources);
         this.incremental = incremental;
         this.sourceChanges = sourceChanges;
-        this.sourceFileClassNameConverter = new WellKnownSourceFileClassNameConverter(sourceFileClassNameConverter, ".groovy");
+    }
+
+    @Override
+    protected String getFileExtension() {
+        return ".groovy";
     }
 
     @Override
@@ -58,13 +59,10 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     @Override
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec(previous);
-        if (sourceFileClassNameConverter.isEmpty()) {
-            spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation");
-            return spec;
-        }
+        SourceFileClassNameConverter sourceFileClassNameConverter = getSourceFileClassNameConverter(previous);
 
         processClasspathChanges(current, previous, spec);
-        processOtherChanges(previous, spec);
+        processOtherChanges(previous, spec, sourceFileClassNameConverter);
 
         spec.addClassesToProcess(previous.getTypesToReprocess());
         return spec;
@@ -77,11 +75,12 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             spec.setClasses(Collections.emptySet());
             return false;
         }
+        SourceFileClassNameConverter sourceFileClassNameConverter = getSourceFileClassNameConverter(recompilationSpec.getPreviousCompilation());
 
         PatternSet classesToDelete = fileOperations.patternSet();
         PatternSet filesToRecompile = fileOperations.patternSet();
 
-        prepareFilePatterns(recompilationSpec.getRelativeSourcePathsToCompile(), classesToDelete, filesToRecompile);
+        prepareFilePatterns(recompilationSpec.getRelativeSourcePathsToCompile(), classesToDelete, filesToRecompile, sourceFileClassNameConverter);
 
         spec.setSourceFiles(sourceTree.matching(filesToRecompile));
         includePreviousCompilationOutputOnClasspath(spec);
@@ -90,7 +89,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         return deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
     }
 
-    private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
+    private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns, SourceFileClassNameConverter sourceFileClassNameConverter) {
         for (String relativeSourcePath : relativeSourcePathsToCompile) {
             filesToRecompilePatterns.include(relativeSourcePath);
 
@@ -101,7 +100,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         }
     }
 
-    private void processOtherChanges(PreviousCompilation previous, RecompilationSpec spec) {
+    private void processOtherChanges(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         if (spec.isFullRebuildNeeded()) {
             return;
         }
@@ -124,7 +123,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             String relativeFilePath = fileChange.getNormalizedPath();
 
             Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
-            spec.addRelativeSourcePathsToCompile(relativeFilePath);
+            spec.addRelativeSourcePathToCompile(relativeFilePath);
             sourceFileChangeProcessor.processChange(changedFile, changedClasses, spec);
         }
 
@@ -133,11 +132,11 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
                 return;
             }
 
-            Optional<String> relativeSourceFile = sourceFileClassNameConverter.getRelativeSourcePath(className);
-            if (relativeSourceFile.isPresent()) {
-                spec.addRelativeSourcePathsToCompile(relativeSourceFile.get());
-            } else {
+            Collection<String> relativeSourceFiles = sourceFileClassNameConverter.getRelativeSourcePaths(className);
+            if (relativeSourceFiles.isEmpty()) {
                 spec.setFullRebuildCause("unable to find source file of class " + className);
+            } else {
+                spec.addRelativeSourcePathsToCompile(relativeSourceFiles);
             }
         }
     }
