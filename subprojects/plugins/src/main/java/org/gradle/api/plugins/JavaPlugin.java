@@ -268,7 +268,6 @@ public class JavaPlugin implements Plugin<Project> {
 
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(project, javaExtension));
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
@@ -276,8 +275,8 @@ public class JavaPlugin implements Plugin<Project> {
         configureSourceSets(project, javaExtension, buildOutputCleanupRegistry);
         configureConfigurations(project, javaExtension);
 
-        configureTest(project, javaPluginExtension);
-        configureJavadocTask(project, javaPluginExtension);
+        configureTest(project, javaExtension);
+        configureJavadocTask(project, javaExtension);
         configureArchivesAndComponent(project, javaExtension);
         configureBuild(project);
     }
@@ -445,9 +444,9 @@ public class JavaPlugin implements Plugin<Project> {
         private final Project project;
         private final JavaPluginExtension extension;
 
-        public BuildableJavaComponentImpl(Project project, JavaPluginExtension convention) {
+        public BuildableJavaComponentImpl(Project project, JavaPluginExtension extension) {
             this.project = project;
-            this.extension = convention;
+            this.extension = extension;
         }
 
         @Override
