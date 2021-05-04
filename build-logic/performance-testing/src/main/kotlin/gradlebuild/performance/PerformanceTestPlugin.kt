@@ -449,7 +449,7 @@ class PerformanceTestExtension(
     private
     fun Project.testResultsZipTaskFor(performanceTest: TaskProvider<out PerformanceTest>): TaskProvider<Zip> =
         tasks.register("${performanceTest.name}ResultsZip", Zip::class) {
-            val junitXmlDir = performanceTest.get().reports.junitXml.destination
+            val junitXmlDir = performanceTest.get().reports.junitXml.outputLocation
             from(junitXmlDir) {
                 include("**/TEST-*.xml")
                 includeEmptyDirs = false
@@ -469,7 +469,7 @@ class PerformanceTestExtension(
                 rename(Config.performanceTestResultsJsonName, "perf-results-${performanceTest.name}.json")
             }
             destinationDirectory.set(project.layout.buildDirectory)
-            archiveFileName.set("test-results-${junitXmlDir.name}.zip")
+            archiveFileName.set("test-results-${junitXmlDir.get().asFile.name}.zip")
         }
 }
 
