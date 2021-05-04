@@ -107,10 +107,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveFileName")
     public String getArchiveName() {
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "archiveName").replaceWith("archiveFileName")
+        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first. https://github.com/gradle/gradle/issues/16783
+        /*DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "archiveName").replaceWith("archiveFileName")
             .willBeRemovedInGradle8()
             .withDslReference()
-            .nagUser();
+            .nagUser();*/
 
         return archiveName.get();
     }
@@ -153,10 +154,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveFile")
     public File getArchivePath() {
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "archivePath").replaceWith("archiveFile")
+        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first. https://github.com/gradle/gradle/issues/16783
+        /*DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "archivePath").replaceWith("archiveFile")
             .willBeRemovedInGradle8()
             .withDslReference()
-            .nagUser();
+            .nagUser();*/
 
         return getArchiveFile().get().getAsFile();
     }
