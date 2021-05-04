@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -292,7 +291,12 @@ public class DefaultTaskProperties implements TaskProperties {
 
         @Override
         public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
-            taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, new StaticValue(spec.getOutputFile()), optional, spec.getOutputType() == TreeType.DIRECTORY ? ValidationActions.OUTPUT_DIRECTORY_VALIDATOR : ValidationActions.OUTPUT_FILE_VALIDATOR));
+            taskPropertySpecs.add(new DefaultValidatingProperty(
+                propertyName,
+                new StaticValue(spec.getOutputFile()),
+                optional,
+                OutputFilePropertyType.validationActionFor(spec.getOutputType()))
+            );
         }
 
         @Override
