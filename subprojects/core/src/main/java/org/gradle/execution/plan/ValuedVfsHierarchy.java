@@ -17,6 +17,7 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.ChildMap;
 import org.gradle.internal.snapshot.ChildMapFactory;
