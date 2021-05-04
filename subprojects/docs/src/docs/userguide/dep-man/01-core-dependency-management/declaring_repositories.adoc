@@ -510,7 +510,7 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=enforce_settings]"]
 ====
 
-Eventually, the default is equivalent to calling `preferProjectRepositories`:
+Eventually, the default is equivalent to setting `PREFER_PROJECT`:
 
 .Preferring project repositories
 ====
