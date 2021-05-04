@@ -72,11 +72,11 @@ import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
-import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -217,6 +217,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) CrossProjectConfigurator) >> crossProjectConfigurator
         serviceRegistryMock.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
+        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry)
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)
@@ -960,9 +961,9 @@ def scriptMethod(Closure closure) {
     def getModule() {
         when:
         Module moduleDummyResolve = new ProjectBackedModule(project)
-        dependencyMetaDataProviderMock.getModule() >> moduleDummyResolve
+        dependencyMetaDataProviderMock.module >> moduleDummyResolve
         then:
-        project.getModule() == moduleDummyResolve
+        project.dependencyMetaDataProvider.module == moduleDummyResolve
     }
 
     def convertsAbsolutePathToAbsolutePath() {

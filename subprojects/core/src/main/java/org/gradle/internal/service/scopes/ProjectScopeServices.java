@@ -31,13 +31,13 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
-import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.ManagedFactories;
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -113,7 +113,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
         register(registration -> {
-            registration.add(DomainObjectContext.class, project);
+            registration.add(ProjectInternal.class, project);
             parent.get(DependencyManagementServices.class).addDslServices(registration, project);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerProjectServices(registration);

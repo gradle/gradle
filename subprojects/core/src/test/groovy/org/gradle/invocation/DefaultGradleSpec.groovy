@@ -16,27 +16,19 @@
 
 package org.gradle.invocation
 
-
 import org.gradle.api.Action
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectConfigurator
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.build.DefaultPublicBuildPath
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
@@ -45,6 +37,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
@@ -56,8 +49,6 @@ import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import java.util.function.Consumer
-
 class DefaultGradleSpec extends Specification {
     ServiceRegistryFactory serviceRegistryFactory = Stub(ServiceRegistryFactory)
     ListenerManager listenerManager = Spy(TestListenerManager)
@@ -66,8 +57,7 @@ class DefaultGradleSpec extends Specification {
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
-    CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
-    ProjectState projectState = Mock(ProjectState)
+    CrossProjectConfigurator crossProjectConfigurator = Mock(CrossProjectConfigurator)
 
     GradleInternal gradle
 
@@ -360,6 +350,9 @@ class DefaultGradleSpec extends Specification {
         gradle.buildListenerBroadcaster.projectsLoaded(gradle)
 
         then:
+        1 * crossProjectConfigurator.rootProject(project(), _) >> { p, a ->
+            a.execute(p)
+        }
         1 * action.execute(rootProject)
     }
 
@@ -379,8 +372,10 @@ class DefaultGradleSpec extends Specification {
         gradle.buildListenerBroadcaster.projectsLoaded(gradle)
 
         then:
+        1 * crossProjectConfigurator.rootProject(project(), _) >> { p, a ->
+            a.execute(p)
+        }
         1 * rootProject.allprojects(action)
-        1 * action.execute(rootProject)
     }
 
     def "has toString()"() {
@@ -394,20 +389,9 @@ class DefaultGradleSpec extends Specification {
         gradle.toString() == "build 'rootProject'"
     }
 
-    def projectRegistry = new DefaultProjectRegistry()
-
     private ProjectInternal project(String name) {
-        def project = Spy(DefaultProject, constructorArgs: [
-            name,
-            null, null, null, Stub(ScriptSource),
-            gradle, Stub(ProjectState), serviceRegistryFactory,
-            Stub(ClassLoaderScope), Stub(ClassLoaderScope)
-        ])
-        project.getProjectConfigurator() >> crossProjectConfigurator
-        projectRegistry.addProject(project)
-        _ * project.getProjectRegistry() >> projectRegistry
-        _ * project.getMutationState() >> projectState
-        _ * projectState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(project) }
+        def project = Mock(ProjectInternal)
+        _ * project.name >> name
         return project
     }
 

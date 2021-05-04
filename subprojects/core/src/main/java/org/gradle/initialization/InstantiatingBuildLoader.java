@@ -38,9 +38,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
     }
 
     private void attachDefaultProject(GradleInternal gradle, ProjectDescriptor defaultProjectDescriptor) {
-        ProjectInternal rootProject = gradle.getRootProject();
-        ProjectRegistry<ProjectInternal> projectRegistry = rootProject.getProjectRegistry();
-
+        ProjectRegistry<ProjectInternal> projectRegistry = gradle.getProjectRegistry();
         String defaultProjectPath = defaultProjectDescriptor.getPath();
         ProjectInternal defaultProject = projectRegistry.getProject(defaultProjectPath);
         if (defaultProject == null) {

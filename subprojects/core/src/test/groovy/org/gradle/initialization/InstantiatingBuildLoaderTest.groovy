@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -38,6 +39,7 @@ class InstantiatingBuildLoaderTest extends Specification {
     File rootProjectDir
     File childProjectDir
     ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
+    def projectRegistry = Mock(ProjectRegistry)
     StartParameter startParameter = new StartParameter()
     ProjectDescriptor rootDescriptor
     ProjectInternal rootProject
@@ -69,6 +71,7 @@ class InstantiatingBuildLoaderTest extends Specification {
             getStartParameter() >> startParameter
             getRootProject() >> rootProject
             baseProjectClassLoaderScope() >> baseProjectClassLoaderScope
+            getProjectRegistry() >> projectRegistry
             getIdentityPath() >> Path.ROOT
         }
         settingsInternal = Mock(SettingsInternal) {
@@ -79,6 +82,7 @@ class InstantiatingBuildLoaderTest extends Specification {
     def createsBuildWithRootProjectAsTheDefaultOne() {
         given:
         settingsInternal.getDefaultProject() >> rootDescriptor
+        projectRegistry.getProject(":") >> rootProject
 
         when:
         buildLoader.load(settingsInternal, gradle)
@@ -96,6 +100,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         def childProjectClassLoaderScope = Mock(ClassLoaderScope)
         settingsInternal.getDefaultProject() >> childDescriptor
         1 * rootProjectClassLoaderScope.createChild(_) >> childProjectClassLoaderScope
+        projectRegistry.getProject(":child") >> childProject
 
         when:
         buildLoader.load(settingsInternal, gradle)

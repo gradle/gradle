@@ -29,7 +29,6 @@ import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
-import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
@@ -58,7 +57,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
     def gradleLauncherFactory = Mock(BuildLifecycleControllerFactory)
     def buildTree = Mock(BuildTreeController)
-    def factory = new BuildStateFactory(buildTree, gradleLauncherFactory, Stub(BuildModelControllerServices), listenerManager, Stub(GradleUserHomeScopeServiceRegistry), Stub(CrossBuildSessionState), Stub(BuildCancellationToken))
+    def factory = new BuildStateFactory(buildTree, gradleLauncherFactory, listenerManager, Stub(GradleUserHomeScopeServiceRegistry), Stub(CrossBuildSessionState), Stub(BuildCancellationToken))
     def registry = new DefaultIncludedBuildRegistry(
         includedBuildFactory,
         Stub(IncludedBuildDependencySubstitutionsBuilder),
