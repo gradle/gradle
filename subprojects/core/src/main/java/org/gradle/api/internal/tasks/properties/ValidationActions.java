@@ -188,14 +188,14 @@ public enum ValidationActions implements ValidationAction {
     public void validate(String propertyName, Object value, TaskValidationContext context) {
         try {
             doValidate(propertyName, value, context);
-        } catch (UnsupportedNotationException ignored) {
+        } catch (UnsupportedNotationException unsupportedNotationException) {
             context.visitPropertyProblem(problem -> {
                     problem.withId(ValidationProblemId.UNSUPPORTED_NOTATION)
                         .forProperty(propertyName)
                         .reportAs(ERROR)
                         .withDescription(() -> "has unsupported value '" + value + "'")
                         .happensBecause(() -> "Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
-                    Collection<String> candidates = ignored.getCandidates();
+                    Collection<String> candidates = unsupportedNotationException.getCandidates();
                     if (candidates.isEmpty()) {
                         problem.addPossibleSolution(() -> "Use a value of type '" + targetType + "'");
                     } else {
