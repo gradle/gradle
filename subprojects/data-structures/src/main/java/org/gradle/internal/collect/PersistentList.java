@@ -27,11 +27,11 @@ public interface PersistentList<T> {
     }
 
     static <T> PersistentList<T> of(T first) {
-        return PersistentList.<T>of().add(first);
+        return PersistentList.<T>of().plus(first);
     }
 
     void forEach(Consumer<? super T> consumer);
 
     @CheckReturnValue
-    PersistentList<T> add(T element);
+    PersistentList<T> plus(T element);
 }

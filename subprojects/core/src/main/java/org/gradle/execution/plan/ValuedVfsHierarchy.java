@@ -124,7 +124,7 @@ public final class ValuedVfsHierarchy<T> {
     @CheckReturnValue
     public ValuedVfsHierarchy<T> recordValue(VfsRelativePath location, T value) {
         if (location.length() == 0) {
-            return new ValuedVfsHierarchy<>(values.add(value), children, caseSensitivity);
+            return new ValuedVfsHierarchy<>(values.plus(value), children, caseSensitivity);
         }
         ChildMap<ValuedVfsHierarchy<T>> newChildren = children.store(location, caseSensitivity, new ChildMap.StoreHandler<ValuedVfsHierarchy<T>>() {
             @Override
@@ -140,7 +140,7 @@ public final class ValuedVfsHierarchy<T> {
 
             @Override
             public ValuedVfsHierarchy<T> mergeWithExisting(ValuedVfsHierarchy<T> child) {
-                return new ValuedVfsHierarchy<>(child.getValues().add(value), child.getChildren(), caseSensitivity);
+                return new ValuedVfsHierarchy<>(child.getValues().plus(value), child.getChildren(), caseSensitivity);
             }
 
             @Override

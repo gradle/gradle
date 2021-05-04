@@ -26,7 +26,7 @@ class Nil<T> implements PersistentList<T> {
     }
 
     @Override
-    public PersistentList<T> add(T element) {
+    public PersistentList<T> plus(T element) {
         return new Cons<>(element, this);
     }
 }
