@@ -100,13 +100,14 @@ class IsolatedProjectsValidationIntegrationTest extends AbstractIsolatedProjects
         }
     }
 
-    def "reports problem when build script uses project() method to apply plugins to another project"() {
+    @Unroll
+    def "reports problem when build script uses #method method to apply plugins to another project"() {
         settingsFile << """
             include("a")
             include("b")
         """
         buildFile << """
-            project(':a').plugins.apply('java-library')
+            $method(':a').plugins.apply('java-library')
         """
 
         when:
@@ -118,6 +119,11 @@ class IsolatedProjectsValidationIntegrationTest extends AbstractIsolatedProjects
                 "Build file 'build.gradle': Cannot access project ':a' from project ':'",
             )
         }
+
+        where:
+        method        | _
+        "project"     | _
+        "findProject" | _
     }
 
     @Unroll
@@ -142,15 +148,16 @@ class IsolatedProjectsValidationIntegrationTest extends AbstractIsolatedProjects
         }
 
         where:
-        chain                                        | _
-        "project(':').allprojects"                   | _
-        "project(':').subprojects"                   | _
-        "project('b').project(':').allprojects"      | _
-        "project('b').project(':').subprojects"      | _
-        "project(':').allprojects.each"              | _
-        "project(':').subprojects.each"              | _
-        "project('b').project(':').allprojects.each" | _
-        "project('b').project(':').subprojects.each" | _
+        chain                                           | _
+        "project(':').allprojects"                      | _
+        "project(':').subprojects"                      | _
+        "project('b').project(':').allprojects"         | _
+        "project('b').project(':').subprojects"         | _
+        "project(':').allprojects.each"                 | _
+        "project(':').subprojects.each"                 | _
+        "project('b').project(':').allprojects.each"    | _
+        "project('b').project(':').subprojects.each"    | _
+        "findProject('b').findProject(':').subprojects" | _
     }
 
     @Unroll
@@ -179,6 +186,7 @@ class IsolatedProjectsValidationIntegrationTest extends AbstractIsolatedProjects
         "project(':').subprojects.each"          | _
         "project(':b').project(':').subprojects" | _
         "project(':').project('b')"              | _
+        "findProject(':').findProject('b').with" | _
     }
 
     @Unroll

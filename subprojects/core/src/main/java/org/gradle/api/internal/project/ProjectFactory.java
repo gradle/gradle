@@ -97,7 +97,7 @@ public class ProjectFactory implements IProjectFactory {
         }
     }
 
-    private static boolean isParentDir(File parent, File f) {
+    private static boolean isParentDir(File parent, @Nullable File f) {
         if (f == null) {
             return false;
         } else if (f.equals(parent)) {

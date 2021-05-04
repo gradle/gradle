@@ -89,6 +89,9 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Nullable
     ProjectInternal findProject(String path);
 
+    @Nullable
+    ProjectInternal findProject(ProjectInternal referrer, String path);
+
     Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer);
 
     void subprojects(ProjectInternal referrer, Action<? super Project> configureAction);

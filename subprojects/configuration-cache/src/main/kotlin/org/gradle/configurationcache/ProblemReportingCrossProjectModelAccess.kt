@@ -101,24 +101,24 @@ class ProblemReportingCrossProjectModelAccess(
     private val problems: ProblemsListener,
     private val userCodeContext: UserCodeApplicationContext
 ) : CrossProjectModelAccess {
-    override fun getProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal {
-        return wrap(delegate.getProject(referrer, relativeTo, path), referrer)
+    override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
+        return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
     }
 
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { wrap(it, referrer) }
+        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
     }
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { wrap(it, referrer) }
+        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
     }
 
     private
-    fun wrap(project: ProjectInternal, referrer: ProjectInternal): ProjectInternal {
-        return if (project == referrer) {
-            project
+    fun ProjectInternal.wrap(referrer: ProjectInternal): ProjectInternal {
+        return if (this == referrer) {
+            this
         } else {
-            ProblemReportingProject(project, referrer, problems, userCodeContext)
+            ProblemReportingProject(this, referrer, problems, userCodeContext)
         }
     }
 
@@ -805,7 +805,11 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun findProject(path: String): ProjectInternal? {
-            return delegate.findProject(path)
+            return delegate.findProject(referrer, path)
+        }
+
+        override fun findProject(referrer: ProjectInternal, path: String): ProjectInternal? {
+            return delegate.findProject(referrer, path)
         }
 
         override fun getInheritedScope(): DynamicObject {

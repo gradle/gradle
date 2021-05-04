@@ -195,7 +195,6 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.getFactory(AntBuilder) >> antBuilderFactoryMock
         serviceRegistryMock.get((Type) ScriptHandlerInternal) >> scriptHandlerMock
         serviceRegistryMock.get((Type) LoggingManagerInternal) >> loggingManagerMock
-        serviceRegistryMock.get(projectRegistryType) >> projectRegistry
         serviceRegistryMock.get(DependencyMetaDataProvider) >> dependencyMetaDataProviderMock
         serviceRegistryMock.get(FileResolver) >> Stub(FileResolver)
         serviceRegistryMock.get(CollectionCallbackActionDecorator) >> Stub(CollectionCallbackActionDecorator)
@@ -264,10 +263,6 @@ class DefaultProjectTest extends Specification {
         return project
     }
 
-    Type getProjectRegistryType() {
-        return DefaultProject.class.getDeclaredMethod("getProjectRegistry").getGenericReturnType()
-    }
-
     //TODO please move more coverage to NewDefaultProjectTest
 
     def scriptClasspath() {
@@ -304,7 +299,6 @@ class DefaultProjectTest extends Specification {
         assert project.defaultTasks == []
         assert project.configurations.is(configurationContainerMock)
         assert project.repositories.is(repositoryHandlerMock)
-        assert project.projectRegistry.is(projectRegistry)
         assert !project.state.executed
         assert project.components.is(softwareComponentsMock)
     }

@@ -574,9 +574,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Inject
-    protected abstract ProjectRegistry<ProjectInternal> getProjectRegistry();
-
-    @Inject
     protected abstract CrossProjectModelAccess getCrossProjectModelAccess();
 
     @Override
@@ -651,15 +648,22 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException {
-        return getCrossProjectModelAccess().getProject(referrer, this, path);
+        ProjectInternal project = getCrossProjectModelAccess().findProject(referrer, this, path);
+        if (project == null) {
+            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
+        }
+        return project;
     }
 
     @Override
     public ProjectInternal findProject(String path) {
-        if (isNullOrEmpty(path)) {
-            throw new InvalidUserDataException("A path must be specified!");
-        }
-        return getProjectRegistry().getProject(absoluteProjectPath(path));
+        return findProject(this, path);
+    }
+
+    @Nullable
+    @Override
+    public ProjectInternal findProject(ProjectInternal referrer, String path) {
+        return getCrossProjectModelAccess().findProject(referrer, this, path);
     }
 
     @Override
