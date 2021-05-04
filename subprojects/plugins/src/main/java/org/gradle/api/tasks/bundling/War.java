@@ -17,13 +17,17 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.RenamingCopyAction;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -48,6 +52,7 @@ public class War extends Jar {
     private File webXml;
     private FileCollection classpath;
     private final DefaultCopySpec webInf;
+    private final DirectoryProperty webAppDir;
 
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
@@ -68,6 +73,9 @@ public class War extends Jar {
         renameSpec.into("");
         renameSpec.from((Callable<File>) War.this::getWebXml);
         renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
+
+        ObjectFactory objectFactory = getProject().getObjects();
+        webAppDir = objectFactory.directoryProperty();
     }
 
     @Internal
@@ -166,4 +174,17 @@ public class War extends Jar {
         this.webXml = webXml;
     }
 
+    /**
+     * Returns the app directory of the task. Defaults to {@code src/main/webapp}.
+     *
+     * @return The app directory.
+     * @since 7.1
+     */
+    @Incubating
+    @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    public DirectoryProperty getWebAppDir() {
+        return webAppDir;
+    }
 }
