@@ -123,9 +123,12 @@ ${groovyProjectAccessors()}
         val objectMethods = Any::class.java.declaredMethods.toList()
         return Project::class
             .memberFunctions
+            .asSequence()
             .mapNotNull { it.javaMethod }
             .filterNot { objectMethods.contains(it) }
-            .joinToString(separator = "\n") { it.toGroovyScriptString() }
+            .map { it.toGroovyScriptString() }
+            .sorted()
+            .joinToString(separator = "\n")
     }
 
     private
