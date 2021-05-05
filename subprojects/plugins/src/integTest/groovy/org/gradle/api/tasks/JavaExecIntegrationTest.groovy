@@ -253,7 +253,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
                 conventionMapping("main") { "driver.Driver" }
             }
         """
-        executer.expectDocumentedDeprecationWarning("The JavaExec.main property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:main for more details.")
 
         when:
         run "run"
