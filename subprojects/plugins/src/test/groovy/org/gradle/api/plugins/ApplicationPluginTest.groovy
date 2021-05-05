@@ -127,14 +127,14 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         run.main == "Acme"
     }
 
-    void "mainClassName in project delegates to mainClassName in startScripts task"() {
+    void "mainClassName in project delegates to mainClass in startScripts task"() {
         when:
-        plugin.apply(project);
+        plugin.apply(project)
         project.mainClassName = "Acme"
 
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScripts.mainClassName == "Acme"
+        startScripts.mainClass.get() == "Acme"
     }
 
     void "applicationDefaultJvmArgs in project delegates to jvmArgs in run task"() {
