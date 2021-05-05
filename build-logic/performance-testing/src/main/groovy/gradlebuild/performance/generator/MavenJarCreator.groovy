@@ -17,7 +17,6 @@
 package gradlebuild.performance.generator
 
 import java.nio.file.attribute.FileTime
-import java.util.jar.JarOutputStream
 import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
