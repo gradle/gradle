@@ -154,7 +154,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE = ModelType.of(ExtensionContainer.class);
     private static final Logger BUILD_LOGGER = Logging.getLogger(Project.class);
 
-    private final ProjectState container;
+    private final ProjectState owner;
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
     private final ServiceRegistry services;
@@ -220,11 +220,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
                           File buildFile,
                           ScriptSource buildScriptSource,
                           GradleInternal gradle,
-                          ProjectState container,
+                          ProjectState owner,
                           ServiceRegistryFactory serviceRegistryFactory,
                           ClassLoaderScope selfClassLoaderScope,
                           ClassLoaderScope baseClassLoaderScope) {
-        this.container = container;
+        this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
         this.rootProject = parent != null ? parent.getRootProject() : this;
@@ -560,12 +560,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public String getPath() {
-        return container.getProjectPath().toString();
+        return owner.getProjectPath().toString();
     }
 
     @Override
     public Path getIdentityPath() {
-        return container.getIdentityPath();
+        return owner.getIdentityPath();
     }
 
     @Override
@@ -603,12 +603,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Path getProjectPath() {
-        return container.getProjectPath();
+        return owner.getProjectPath();
     }
 
     @Override
     public ModelContainer<ProjectInternal> getModel() {
-        return getMutationState();
+        return getOwner();
     }
 
     @Override
@@ -1435,8 +1435,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public ProjectState getMutationState() {
-        return container;
+    public ProjectState getOwner() {
+        return owner;
     }
 
     @Override

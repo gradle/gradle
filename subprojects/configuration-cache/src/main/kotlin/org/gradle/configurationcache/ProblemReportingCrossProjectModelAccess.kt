@@ -899,7 +899,7 @@ class ProblemReportingCrossProjectModelAccess(
             shouldNotBeUsed()
         }
 
-        override fun getMutationState(): ProjectState {
+        override fun getOwner(): ProjectState {
             return MutationStateWrapper(this)
         }
 
@@ -981,7 +981,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun applyToMutableState(action: Consumer<in ProjectInternal>) {
-            project.delegate.mutationState.applyToMutableState { action.accept(project) }
+            project.delegate.owner.applyToMutableState { action.accept(project) }
         }
 
         override fun hasMutableState(): Boolean {

@@ -214,7 +214,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
-        return new DefaultModelRegistry(ruleExtractor, project.getPath(), run -> project.getMutationState().applyToMutableState(p -> run.run()));
+        return new DefaultModelRegistry(ruleExtractor, project.getPath(), run -> project.getOwner().applyToMutableState(p -> run.run()));
     }
 
     protected ScriptHandlerInternal createScriptHandler(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver, NamedObjectInstantiator instantiator) {

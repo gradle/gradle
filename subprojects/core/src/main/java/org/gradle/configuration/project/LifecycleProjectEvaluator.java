@@ -88,7 +88,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public void run(final BuildOperationContext context) {
-            project.getMutationState().applyToMutableState(p -> {
+            project.getOwner().applyToMutableState(p -> {
                 // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
                 try {
                     state.toBeforeEvaluate();

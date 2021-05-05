@@ -164,7 +164,10 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Nullable
     ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action);
 
-    ProjectState getMutationState();
+    /**
+     * Returns the {@link ProjectState} that manages the state of this instance.
+     */
+    ProjectState getOwner();
 
     @Override
     ScriptHandlerInternal getBuildscript();

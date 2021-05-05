@@ -41,7 +41,7 @@ public interface ProjectStateRegistry {
     Collection<? extends ProjectState> getAllProjects();
 
     /**
-     * Locates the state object that owns the given public project model. Can use {@link ProjectInternal#getMutationState()} instead.
+     * Locates the state object that owns the given public project model. Can use {@link ProjectInternal#getOwner()} instead.
      */
     ProjectState stateFor(Project project) throws IllegalArgumentException;
 

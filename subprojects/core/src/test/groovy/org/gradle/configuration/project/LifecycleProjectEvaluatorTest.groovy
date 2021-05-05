@@ -56,7 +56,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
             step.execute(listener)
             null
         }
-        project.getMutationState() >> mutationState
+        project.getOwner() >> mutationState
         mutationState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(project) }
     }
 

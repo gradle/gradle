@@ -89,7 +89,7 @@ public class ProjectBuilderImpl {
 
         // Lock the project, these won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = project.getServices().get(ResourceLockCoordinationService.class);
-        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getMutationState().getAccessLock()));
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
 
         return project;
     }
@@ -138,7 +138,7 @@ public class ProjectBuilderImpl {
         ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
         WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
         WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
-        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease, project.getMutationState().getAccessLock()));
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease, project.getOwner().getAccessLock()));
 
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
