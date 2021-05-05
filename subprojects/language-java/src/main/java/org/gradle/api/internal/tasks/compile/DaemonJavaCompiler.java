@@ -55,7 +55,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
 
     @Override
     protected DaemonForkOptions toDaemonForkOptions(JavaCompileSpec spec) {
-        MinimalForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(findSuitableExecutable(spec));
@@ -71,7 +71,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
     }
 
     private File findSuitableExecutable(JavaCompileSpec spec) {
-        final MinimalForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        final MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         if (forkOptions.getExecutable() != null) {
             return new File(forkOptions.getExecutable());
         } else if (forkOptions.getJavaHome() != null) {

@@ -33,7 +33,7 @@ public class MinimalJavaCompileOptions implements Serializable {
     private String encoding;
     private String bootClasspath;
     private String extensionDirs;
-    private MinimalForkOptions forkOptions;
+    private MinimalJavaCompilerDaemonForkOptions forkOptions;
     private DebugOptions debugOptions;
     private boolean debug;
     private boolean deprecation;
@@ -56,7 +56,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.encoding = compileOptions.getEncoding();
         this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
         this.extensionDirs = compileOptions.getExtensionDirs();
-        this.forkOptions = new MinimalForkOptions(compileOptions.getForkOptions());
+        this.forkOptions = new MinimalJavaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.debugOptions = compileOptions.getDebugOptions();
         this.debug = compileOptions.isDebug();
         this.deprecation = compileOptions.isDeprecation();
@@ -116,11 +116,11 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.extensionDirs = extensionDirs;
     }
 
-    public MinimalForkOptions getForkOptions() {
+    public MinimalJavaCompilerDaemonForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(MinimalForkOptions forkOptions) {
+    public void setForkOptions(MinimalJavaCompilerDaemonForkOptions forkOptions) {
         this.forkOptions = forkOptions;
     }
 

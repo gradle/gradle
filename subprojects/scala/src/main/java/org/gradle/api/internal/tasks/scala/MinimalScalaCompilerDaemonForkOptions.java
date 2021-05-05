@@ -21,8 +21,8 @@ import org.gradle.api.tasks.scala.ScalaForkOptions;
 
 import java.io.Serializable;
 
-public class MinimalScalaForkOptions extends MinimalBaseForkOptions implements Serializable {
-    public MinimalScalaForkOptions(ScalaForkOptions forkOptions) {
+public class MinimalScalaCompilerDaemonForkOptions extends MinimalBaseForkOptions implements Serializable {
+    public MinimalScalaCompilerDaemonForkOptions(ScalaForkOptions forkOptions) {
         super(forkOptions);
         setJvmArgs(forkOptions.getAllJvmArgs());
     }

@@ -44,7 +44,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        final MinimalForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        final MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         String executable = forkOptions.getJavaHome() != null ? Jvm.forHome(forkOptions.getJavaHome()).getJavacExecutable().getAbsolutePath() : forkOptions.getExecutable();
         LOGGER.info("Compiling with Java command line compiler '{}'.", executable);
 

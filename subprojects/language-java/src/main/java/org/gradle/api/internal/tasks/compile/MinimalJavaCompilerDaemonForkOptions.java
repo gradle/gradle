@@ -21,14 +21,14 @@ import org.gradle.api.tasks.compile.ForkOptions;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class MinimalForkOptions extends MinimalBaseForkOptions {
+public class MinimalJavaCompilerDaemonForkOptions extends MinimalBaseForkOptions {
     private String executable;
 
     private String tempDir;
 
     private File javaHome;
 
-    public MinimalForkOptions(ForkOptions forkOptions) {
+    public MinimalJavaCompilerDaemonForkOptions(ForkOptions forkOptions) {
         super(forkOptions);
         this.executable = forkOptions.getExecutable();
         this.tempDir = forkOptions.getTempDir();

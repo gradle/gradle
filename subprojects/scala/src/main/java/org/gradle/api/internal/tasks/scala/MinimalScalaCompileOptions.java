@@ -36,7 +36,7 @@ public class MinimalScalaCompileOptions implements Serializable {
     private boolean listFiles;
     private String loggingLevel;
     private List<String> loggingPhases;
-    private MinimalScalaForkOptions forkOptions;
+    private MinimalScalaCompilerDaemonForkOptions forkOptions;
     private transient IncrementalCompileOptions incrementalOptions;
 
     public MinimalScalaCompileOptions(BaseScalaCompileOptions compileOptions) {
@@ -51,7 +51,7 @@ public class MinimalScalaCompileOptions implements Serializable {
         this.listFiles = compileOptions.isListFiles();
         this.loggingLevel = compileOptions.getLoggingLevel();
         this.loggingPhases = compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases());
-        this.forkOptions = new MinimalScalaForkOptions(compileOptions.getForkOptions());
+        this.forkOptions = new MinimalScalaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.incrementalOptions = compileOptions.getIncrementalOptions();
     }
 
@@ -146,11 +146,11 @@ public class MinimalScalaCompileOptions implements Serializable {
         this.loggingPhases = loggingPhases;
     }
 
-    public MinimalScalaForkOptions getForkOptions() {
+    public MinimalScalaCompilerDaemonForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(MinimalScalaForkOptions forkOptions) {
+    public void setForkOptions(MinimalScalaCompilerDaemonForkOptions forkOptions) {
         this.forkOptions = forkOptions;
     }
 

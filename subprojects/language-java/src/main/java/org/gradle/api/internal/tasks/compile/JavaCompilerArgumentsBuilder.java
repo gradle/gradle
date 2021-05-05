@@ -122,7 +122,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        MinimalForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         if (forkOptions.getMemoryInitialSize() != null) {
             args.add("-J-Xms" + forkOptions.getMemoryInitialSize().trim());
         }

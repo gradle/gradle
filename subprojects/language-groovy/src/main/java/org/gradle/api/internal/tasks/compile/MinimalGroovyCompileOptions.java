@@ -34,7 +34,7 @@ public class MinimalGroovyCompileOptions implements Serializable {
     private boolean fork = true;
     private boolean keepStubs;
     private List<String> fileExtensions;
-    private MinimalGroovyForkOptions forkOptions;
+    private MinimalGroovyCompilerDaemonForkOptions forkOptions;
     private Map<String, Boolean> optimizationOptions;
     private File stubDir;
     private File configurationScript;
@@ -49,7 +49,7 @@ public class MinimalGroovyCompileOptions implements Serializable {
         this.fork = compileOptions.isFork();
         this.keepStubs = compileOptions.isKeepStubs();
         this.fileExtensions = ImmutableList.copyOf(compileOptions.getFileExtensions());
-        this.forkOptions = new MinimalGroovyForkOptions(compileOptions.getForkOptions());
+        this.forkOptions = new MinimalGroovyCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.optimizationOptions = Maps.newHashMap(compileOptions.getOptimizationOptions());
         this.stubDir = compileOptions.getStubDir();
         this.configurationScript = compileOptions.getConfigurationScript();
@@ -113,11 +113,11 @@ public class MinimalGroovyCompileOptions implements Serializable {
         this.fileExtensions = fileExtensions;
     }
 
-    public MinimalGroovyForkOptions getForkOptions() {
+    public MinimalGroovyCompilerDaemonForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(MinimalGroovyForkOptions forkOptions) {
+    public void setForkOptions(MinimalGroovyCompilerDaemonForkOptions forkOptions) {
         this.forkOptions = forkOptions;
     }
 
