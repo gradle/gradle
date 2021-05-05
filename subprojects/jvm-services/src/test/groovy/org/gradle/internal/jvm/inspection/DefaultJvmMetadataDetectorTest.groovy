@@ -113,6 +113,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'correttojre11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JRE 11'   | true
         'bellsoftjdk11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JDK 15' | false
         'bellsoftjre11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JRE 15' | true
+        'graalvm'        | graalVm('15')            | JavaVersion.VERSION_15  | 'GraalVM Community JRE 15' | true
         'whitespaces'    | whitespaces('11.0.3')    | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true
     }
 
@@ -316,6 +317,17 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "${version}+36",
+         'java.runtime.name': "OpenJDK Runtime Environment"
+        ]
+    }
+
+    private static Map<String, String> graalVm(String version) {
+        ['java.home': "java-home",
+         'java.version': "${version}",
+         'java.vendor': "GraalVM Community",
+         'os.arch': "x86_64",
+         'java.vm.name': "OpenJDK 64-Bit GraalVM CE 19.3.5",
+         'java.vm.version': "25.282-b07-jvmci-19.3-b21",
          'java.runtime.name': "OpenJDK Runtime Environment"
         ]
     }
