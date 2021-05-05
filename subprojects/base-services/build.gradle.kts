@@ -38,4 +38,4 @@ classycle {
     excludePatterns.add("org/gradle/util/GradleVersion**")
 }
 
-jmh.include = listOf("HashingAlgorithmsBenchmark")
+jmh.includes.set(listOf("HashingAlgorithmsBenchmark"))

@@ -16,7 +16,7 @@
 import gradlebuild.jmh.tasks.JmhHTMLReport
 
 plugins {
-    id("me.champeau.gradle.jmh")
+    id("me.champeau.jmh")
 }
 
 configurations {
@@ -34,8 +34,8 @@ configurations {
 }
 
 jmh {
-    isIncludeTests = false
-    resultFormat = "CSV"
+    includeTests.set(false)
+    resultFormat.set("CSV")
 }
 
 val jmhReport = tasks.register<JmhHTMLReport>("jmhReport") {
