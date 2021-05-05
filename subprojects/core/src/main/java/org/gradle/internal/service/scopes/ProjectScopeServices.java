@@ -70,7 +70,6 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -196,7 +195,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             get(Instantiator.class),
             get(ITaskFactory.class),
             project,
-            get(ProjectAccessListener.class),
             taskStatistics,
             buildOperationExecutor,
             crossProjectConfigurator,

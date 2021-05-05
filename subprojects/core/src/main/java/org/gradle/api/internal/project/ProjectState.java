@@ -71,6 +71,16 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope);
 
     /**
+     * Configures the mutable model for this project, if not already.
+     */
+    void ensureConfigured();
+
+    /**
+     * Configure the mutable model for this project and discovers any registered tasks, if not already done.
+     */
+    void ensureTasksDiscovered();
+
+    /**
      * Returns the mutable model for this project. This should not be used directly. This property is here to help with migration away from direct usage.
      */
     ProjectInternal getMutableModel();

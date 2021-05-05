@@ -212,13 +212,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         // Cannot use the listener infrastructure here because these events can be nested (that is, handling an event may trigger further events)
         return new ProjectAccessListener() {
             @Override
-            public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
-                for (ProjectAccessHandler handler : handlers) {
-                    handler.beforeRequestingTaskByPath(targetProject);
-                }
-            }
-
-            @Override
             public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {
                 for (ProjectAccessHandler handler : handlers) {
                     handler.beforeResolvingProjectDependency(dependencyProject);

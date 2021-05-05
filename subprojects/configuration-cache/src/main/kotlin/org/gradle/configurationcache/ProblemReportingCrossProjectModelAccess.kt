@@ -28,7 +28,6 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
@@ -73,13 +72,10 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.DynamicObject
-import org.gradle.internal.model.CalculatedModelValue
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
-import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -92,8 +88,6 @@ import org.gradle.util.internal.ConfigureUtil
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Callable
-import java.util.function.Consumer
-import java.util.function.Function
 
 
 class ProblemReportingCrossProjectModelAccess(
@@ -776,7 +770,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun evaluate(): Project {
-            return delegate.evaluate()
+            shouldNotBeUsed()
         }
 
         override fun bindAllModelRules(): ProjectInternal {
@@ -888,7 +882,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getProjectPath(): Path {
-            shouldNotBeUsed()
+            return delegate.projectPath
         }
 
         override fun getIdentityPath(): Path {
@@ -900,7 +894,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getOwner(): ProjectState {
-            return MutationStateWrapper(this)
+            return delegate.owner
         }
 
         override fun getBuildscript(): ScriptHandlerInternal {
@@ -929,67 +923,6 @@ class ProblemReportingCrossProjectModelAccess(
             problems.onProblem(
                 PropertyProblem(location, message, exception, null)
             )
-        }
-    }
-
-    private
-    class MutationStateWrapper(
-        val project: ProblemReportingProject
-    ) : ProjectState {
-        override fun getOwner(): BuildState {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getParent(): ProjectState? {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getName(): String {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getIdentityPath(): Path {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getProjectPath(): Path {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getComponentIdentifier(): ProjectComponentIdentifier {
-            project.shouldNotBeUsed()
-        }
-
-        override fun createMutableModel(selfClassLoaderScope: ClassLoaderScope, baseClassLoaderScope: ClassLoaderScope) {
-            this.project.shouldNotBeUsed()
-        }
-
-        override fun getMutableModel(): ProjectInternal {
-            return project
-        }
-
-        override fun getAccessLock(): ResourceLock {
-            project.shouldNotBeUsed()
-        }
-
-        override fun <S : Any?> fromMutableState(factory: Function<in ProjectInternal, out S>?): S {
-            project.shouldNotBeUsed()
-        }
-
-        override fun <S : Any?> forceAccessToMutableState(factory: Function<in ProjectInternal, out S>?): S {
-            project.shouldNotBeUsed()
-        }
-
-        override fun applyToMutableState(action: Consumer<in ProjectInternal>) {
-            project.delegate.owner.applyToMutableState { action.accept(project) }
-        }
-
-        override fun hasMutableState(): Boolean {
-            project.shouldNotBeUsed()
-        }
-
-        override fun <S : Any?> newCalculatedValue(initialValue: S?): CalculatedModelValue<S> {
-            project.shouldNotBeUsed()
         }
     }
 }

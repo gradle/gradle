@@ -120,7 +120,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         @Override
         public BuildOperationDescriptor.Builder description() {
             Path identityPath = project.getIdentityPath();
-            String displayName = "Configure project " + identityPath.toString();
+            String displayName = "Configure project " + identityPath;
 
             String progressDisplayName = identityPath.toString();
             if (identityPath.equals(Path.ROOT)) {

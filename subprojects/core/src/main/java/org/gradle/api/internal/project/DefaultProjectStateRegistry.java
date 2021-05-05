@@ -248,6 +248,23 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
+        public void ensureConfigured() {
+            synchronized (this) {
+                getMutableModel().evaluate();
+            }
+        }
+
+        @Override
+        public void ensureTasksDiscovered() {
+            synchronized (this) {
+                ProjectInternal project = getMutableModel();
+                project.evaluate();
+                project.getTasks().discoverTasks();
+                project.bindAllModelRules();
+            }
+        }
+
+        @Override
         public ProjectComponentIdentifier getComponentIdentifier() {
             return identifier;
         }

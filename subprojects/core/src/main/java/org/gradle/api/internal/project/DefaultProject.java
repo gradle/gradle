@@ -163,8 +163,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final GradleInternal gradle;
 
-    private ProjectEvaluator projectEvaluator;
-
     private final ScriptSource buildScriptSource;
 
     private final File projectDir;
@@ -184,7 +182,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final Map<String, Project> childProjects = Maps.newTreeMap();
 
-    private List<String> defaultTasks = new ArrayList<String>();
+    private List<String> defaultTasks = new ArrayList<>();
 
     private final ProjectStateInternal state;
 
@@ -381,16 +379,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return gradle;
     }
 
-    public ProjectEvaluator getProjectEvaluator() {
-        if (projectEvaluator == null) {
-            projectEvaluator = services.get(ProjectEvaluator.class);
-        }
-        return projectEvaluator;
-    }
-
-    public void setProjectEvaluator(ProjectEvaluator projectEvaluator) {
-        this.projectEvaluator = projectEvaluator;
-    }
+    @Inject
+    protected abstract ProjectEvaluator getProjectEvaluator();
 
     @Inject
     @Override
@@ -827,7 +817,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                 projectToEvaluate));
         }
-        return projectToEvaluate.evaluate();
+        projectToEvaluate.getOwner().ensureConfigured();
+        return projectToEvaluate;
     }
 
     @Override
@@ -856,6 +847,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         Action<Project> action = new Action<Project>() {
             @Override
             public void execute(Project project) {
+                // Don't force evaluation of rules here, let the task container do what it needs to
+                ((ProjectInternal) project).getOwner().ensureTasksDiscovered();
+
                 foundTargets.put(project, new TreeSet<Task>(project.getTasks()));
             }
         };
@@ -877,7 +871,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             @Override
             public void execute(Project project) {
                 // Don't force evaluation of rules here, let the task container do what it needs to
-                ((ProjectInternal) project).evaluate();
+                ((ProjectInternal) project).getOwner().ensureTasksDiscovered();
 
                 Task task = project.getTasks().findByName(name);
                 if (task != null) {
