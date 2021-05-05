@@ -19,7 +19,6 @@ package org.gradle.plugins.ear;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -79,35 +78,15 @@ public class EarPlugin implements Plugin<Project> {
         earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
         earPluginConvention.setAppDirName("src/main/application");
 
-        wireEarTaskConventions(project, earPluginConvention);
         configureConfigurations(project);
 
         PluginContainer plugins = project.getPlugins();
-
         setupEarTask(project, earPluginConvention, plugins);
-        configureWithJavaPluginApplied(project, plugins);
-        configureWithNoJavaPluginApplied(project);
+        wireEarTaskConventions(project, earPluginConvention);
+        wireEarTaskConventionsWithJavaPluginApplied(project, plugins);
     }
 
-    private void configureWithNoJavaPluginApplied(final Project project) {
-        project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
-            @Override
-            public void execute(final Ear task) {
-                task.from(new Callable<FileCollection>() {
-                    @Override
-                    public FileCollection call() throws Exception {
-                        if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-                            return null;
-                        } else {
-                            return project.fileTree(task.getAppDirName());
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    private void configureWithJavaPluginApplied(final Project project, PluginContainer plugins) {
+    private void wireEarTaskConventionsWithJavaPluginApplied(final Project project, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, javaPlugin -> {
             final JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
             project.getTasks().withType(Ear.class).configureEach(task -> {
@@ -136,7 +115,7 @@ public class EarPlugin implements Plugin<Project> {
                 plugins.withType(JavaPlugin.class, javaPlugin -> {
                     final JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
                     SourceSet sourceSet = mainSourceSetOf(javaPluginExtension);
-                    sourceSet.getResources().srcDir((Callable) () -> ear.getAppDirName()); // TODO remove callable if possible
+                    sourceSet.getResources().srcDir(ear.getAppDirName());
                 });
             }
         });
@@ -155,22 +134,7 @@ public class EarPlugin implements Plugin<Project> {
         project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
             @Override
             public void execute(Ear task) {
-                task.getLib().from(new Callable<FileCollection>() {
-                    @Override
-                    public FileCollection call() throws Exception {
-                        // Ensure that deploy jars are not also added into lib folder.
-                        // Allows the user to get transitive dependencies for a bean artifact by adding it to both earlib and deploy but only having the file once in the ear.
-                        return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME)
-                            .minus(project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME));
-                    }
-                });
-                task.from(new Callable<FileCollection>() {
-                    @Override
-                    public FileCollection call() throws Exception {
-                        // add the module configuration's files
-                        return project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME);
-                    }
-                });
+
             }
         });
     }
@@ -190,6 +154,31 @@ public class EarPlugin implements Plugin<Project> {
                     @Override
                     public DeploymentDescriptor call() throws Exception {
                         return earConvention.getDeploymentDescriptor();
+                    }
+                });
+
+                task.from((Callable<FileCollection>) () -> {
+                    if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
+                        return null;
+                    } else {
+                        return project.fileTree(task.getAppDirName());
+                    }
+                });
+
+                task.getLib().from(new Callable<FileCollection>() {
+                    @Override
+                    public FileCollection call() throws Exception {
+                        // Ensure that deploy jars are not also added into lib folder.
+                        // Allows the user to get transitive dependencies for a bean artifact by adding it to both earlib and deploy but only having the file once in the ear.
+                        return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME)
+                            .minus(project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME));
+                    }
+                });
+                task.from(new Callable<FileCollection>() {
+                    @Override
+                    public FileCollection call() throws Exception {
+                        // add the module configuration's files
+                        return project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME);
                     }
                 });
             }
