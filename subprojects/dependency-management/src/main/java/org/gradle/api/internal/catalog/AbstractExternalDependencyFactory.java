@@ -61,6 +61,21 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         public String getName() {
             return owner.getName();
         }
+
+        @Override
+        public List<String> getDependencyAliases() {
+            return owner.getDependencyAliases();
+        }
+
+        @Override
+        public List<String> getBundleAliases() {
+            return owner.getBundleAliases();
+        }
+
+        @Override
+        public List<String> getVersionAliases() {
+            return owner.getVersionAliases();
+        }
     }
 
     @Inject
