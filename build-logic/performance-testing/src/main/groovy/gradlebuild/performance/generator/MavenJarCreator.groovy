@@ -73,7 +73,6 @@ class MavenJarCreator {
         }
     }
 
-
     class NormalizedZipEntry extends ZipEntry {
         NormalizedZipEntry(String name) {
             super(name)
