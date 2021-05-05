@@ -71,7 +71,7 @@ public class RunApplication extends DefaultTask {
             JavaExecHandleBuilder builder = getExecActionFactory().newJavaExec();
             builder.setExecutable(Jvm.current().getJavaExecutable());
             builder.setClasspath(classpath);
-            builder.setMain(mainClassName);
+            builder.getMainClass().set(mainClassName);
             builder.setArgs(arguments);
             registry.start(getPath(), changeBehavior, JavaApplicationHandle.class, builder);
         }

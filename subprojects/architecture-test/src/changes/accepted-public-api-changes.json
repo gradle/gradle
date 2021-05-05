@@ -689,6 +689,30 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.setMain(java.lang.String)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.getMain()",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.setMain(java.lang.String)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
