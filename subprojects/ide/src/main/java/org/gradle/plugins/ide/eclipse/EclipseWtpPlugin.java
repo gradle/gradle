@@ -41,6 +41,7 @@ import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.internal.RelativePathUtil;
+import org.gradle.util.internal.WrapUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -240,7 +241,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                 convention.map("sourceDirs", new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() throws Exception {
-                        return ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getAppDirectory().get().getAsFileTree().getFiles();
+                        return WrapUtil.toSet(((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getAppDirectory().get().getAsFile());
                     }
                 });
                 project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
