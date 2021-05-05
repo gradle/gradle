@@ -56,7 +56,7 @@ class MavenJarCreator {
 
     private void addZipEntry(ZipOutputStream out, String name, String content) {
         // Add archive entry
-        ZipEntry entry = new NormalizedZipEntry(name)
+        ZipEntry entry = normalizedZipEntry(name)
         out.putNextEntry(entry)
 
         // Write file to archive
@@ -65,7 +65,7 @@ class MavenJarCreator {
     }
 
     private void addGeneratedUncompressedZipEntry(ZipOutputStream out, String name, int sizeInBytes) {
-        ZipEntry entry = new NormalizedZipEntry(name)
+        ZipEntry entry = normalizedZipEntry(name)
         out.putNextEntry(entry)
 
         for (int i = 0; i < sizeInBytes; i++) {
@@ -73,9 +73,8 @@ class MavenJarCreator {
         }
     }
 
-    class NormalizedZipEntry extends ZipEntry {
-        NormalizedZipEntry(String name) {
-            super(name)
+    private static ZipEntry normalizedZipEntry(String name) {
+        new ZipEntry(name).tap {
             creationTime = FileTime.fromMillis(0)
             lastAccessTime = FileTime.fromMillis(0)
             lastModifiedTime = FileTime.fromMillis(0)
