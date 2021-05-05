@@ -960,7 +960,7 @@ class ProblemReportingCrossProjectModelAccess(
             project.shouldNotBeUsed()
         }
 
-        override fun attachMutableModel(project: ProjectInternal) {
+        override fun createMutableModel(selfClassLoaderScope: ClassLoaderScope, baseClassLoaderScope: ClassLoaderScope) {
             this.project.shouldNotBeUsed()
         }
 

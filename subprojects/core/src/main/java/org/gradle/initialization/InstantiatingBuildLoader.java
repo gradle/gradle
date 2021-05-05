@@ -20,17 +20,14 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.build.BuildState;
+import org.gradle.util.Path;
 
 public class InstantiatingBuildLoader implements BuildLoader {
-    private final IProjectFactory projectFactory;
-
-    public InstantiatingBuildLoader(IProjectFactory projectFactory) {
-        this.projectFactory = projectFactory;
-    }
-
     @Override
     public void load(SettingsInternal settings, GradleInternal gradle) {
         createProjects(gradle, settings.getRootProject());
@@ -51,19 +48,22 @@ public class InstantiatingBuildLoader implements BuildLoader {
     private void createProjects(GradleInternal gradle, ProjectDescriptor rootProjectDescriptor) {
         ClassLoaderScope baseProjectClassLoaderScope = gradle.baseProjectClassLoaderScope();
         ClassLoaderScope rootProjectClassLoaderScope = baseProjectClassLoaderScope.createChild("root-project[" + gradle.getIdentityPath() + "]");
+        ProjectStateRegistry projectRegistry = gradle.getServices().get(ProjectStateRegistry.class);
 
-        ProjectInternal rootProject = projectFactory.createProject(gradle, rootProjectDescriptor, null, rootProjectClassLoaderScope, baseProjectClassLoaderScope);
+        ProjectState projectState = projectRegistry.stateFor(gradle.getOwner().getBuildIdentifier(), Path.path(rootProjectDescriptor.getPath()));
+        projectState.createMutableModel(rootProjectClassLoaderScope, baseProjectClassLoaderScope);
+        ProjectInternal rootProject = projectState.getMutableModel();
         gradle.setRootProject(rootProject);
 
-        createChildProjectsRecursively(gradle, rootProject, rootProjectDescriptor, rootProjectClassLoaderScope, baseProjectClassLoaderScope);
+        createChildProjectsRecursively(projectRegistry, gradle.getOwner(), rootProjectDescriptor, rootProjectClassLoaderScope, baseProjectClassLoaderScope);
     }
 
-    private void createChildProjectsRecursively(GradleInternal gradle, ProjectInternal parentProject, ProjectDescriptor parentProjectDescriptor, ClassLoaderScope parentProjectClassLoaderScope, ClassLoaderScope baseProjectClassLoaderScope) {
+    private void createChildProjectsRecursively(ProjectStateRegistry projectRegistry, BuildState owner, ProjectDescriptor parentProjectDescriptor, ClassLoaderScope parentProjectClassLoaderScope, ClassLoaderScope baseProjectClassLoaderScope) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
             ClassLoaderScope childProjectClassLoaderScope = parentProjectClassLoaderScope.createChild("project-" + childProjectDescriptor.getName());
-            ProjectInternal childProject = projectFactory.createProject(gradle, childProjectDescriptor, parentProject, childProjectClassLoaderScope, baseProjectClassLoaderScope);
-
-            createChildProjectsRecursively(gradle, childProject, childProjectDescriptor, childProjectClassLoaderScope, baseProjectClassLoaderScope);
+            ProjectState projectState = projectRegistry.stateFor(owner.getBuildIdentifier(), Path.path(childProjectDescriptor.getPath()));
+            projectState.createMutableModel(childProjectClassLoaderScope, baseProjectClassLoaderScope);
+            createChildProjectsRecursively(projectRegistry, owner, childProjectDescriptor, childProjectClassLoaderScope, baseProjectClassLoaderScope);
         }
     }
 }

@@ -149,7 +149,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     Path getProjectPath();
 
     /**
-     * Returns a unique path for this project within the current Gradle invocation.
+     * Returns a unique path for this project within the current build tree.
      */
     Path getIdentityPath();
 
