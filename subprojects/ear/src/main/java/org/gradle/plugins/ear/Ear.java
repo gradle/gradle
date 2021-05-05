@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
@@ -64,7 +65,7 @@ public class Ear extends Jar {
     private final Property<Boolean> generateDeploymentDescriptor;
     private DeploymentDescriptor deploymentDescriptor;
     private CopySpec lib;
-    private final Property<String> appDirName;
+    private final DirectoryProperty appDir;
 
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
@@ -121,7 +122,7 @@ public class Ear extends Jar {
             return null;
         });
 
-        appDirName = getObjectFactory().property(String.class);
+        appDir = getObjectFactory().directoryProperty();
     }
 
     private Cached<byte[]> cachedContentsOf(DeploymentDescriptor descriptor) {
@@ -276,7 +277,7 @@ public class Ear extends Jar {
     }
 
     /**
-     * The name of the application directory, relative to the project directory.. Added to the output ear archive by default.
+     * The application directory. Added to the produced archive by default.
      * <p>
      * The {@code ear} plugin sets the default value for all {@code Ear} tasks to {@code src/main/application}.
      * <p>
@@ -286,7 +287,7 @@ public class Ear extends Jar {
      */
     @Internal
     @Incubating
-    public Property<String> getAppDirName() {
-        return appDirName;
+    public DirectoryProperty getAppDirectory() {
+        return appDir;
     }
 }

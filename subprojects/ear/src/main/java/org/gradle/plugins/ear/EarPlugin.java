@@ -115,7 +115,7 @@ public class EarPlugin implements Plugin<Project> {
                 plugins.withType(JavaPlugin.class, javaPlugin -> {
                     final JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
                     SourceSet sourceSet = mainSourceSetOf(javaPluginExtension);
-                    sourceSet.getResources().srcDir(ear.getAppDirName());
+                    sourceSet.getResources().srcDir(ear.getAppDirectory());
                 });
             }
         });
@@ -143,7 +143,7 @@ public class EarPlugin implements Plugin<Project> {
         project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
             @Override
             public void execute(Ear task) {
-                task.getAppDirName().convention(project.provider(() -> earConvention.getAppDirName()));
+                task.getAppDirectory().convention(project.provider(() -> project.getLayout().getProjectDirectory().dir(earConvention.getAppDirName())));
                 task.getConventionMapping().map("libDirName", new Callable<String>() {
                     @Override
                     public String call() throws Exception {
@@ -161,7 +161,7 @@ public class EarPlugin implements Plugin<Project> {
                     if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
                         return null;
                     } else {
-                        return project.fileTree(task.getAppDirName());
+                        return task.getAppDirectory().getAsFileTree();
                     }
                 });
 

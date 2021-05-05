@@ -240,8 +240,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                 convention.map("sourceDirs", new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() throws Exception {
-                        String appDirName = ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getAppDirName().get();
-                        return project.getLayout().files(appDirName).getFiles();
+                        return ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getAppDirectory().get().getAsFileTree().getFiles();
                     }
                 });
                 project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
