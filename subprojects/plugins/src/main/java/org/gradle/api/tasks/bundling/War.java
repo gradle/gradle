@@ -54,8 +54,7 @@ public class War extends Jar {
     private final DefaultCopySpec webInf;
     private final DirectoryProperty webAppDirectory;
 
-    @Inject
-    public War(ObjectFactory objectFactory) {
+    public War() {
         getArchiveExtension().set(WAR_EXTENSION);
         setMetadataCharset("UTF-8");
         // Add these as separate specs, so they are not affected by the changes to the main spec
@@ -75,7 +74,12 @@ public class War extends Jar {
         renameSpec.from((Callable<File>) War.this::getWebXml);
         renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
 
-        webAppDirectory = objectFactory.directoryProperty();
+        webAppDirectory = getObjectFactory().directoryProperty();
+    }
+
+    @Inject
+    public ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Internal
