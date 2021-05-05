@@ -84,9 +84,8 @@ public class EarPlugin implements Plugin<Project> {
 
         PluginContainer plugins = project.getPlugins();
 
-        TaskProvider<Ear> earTask = setupEarTask(project, earPluginConvention);
-
-        configureWithJavaPluginApplied(project, earTask, plugins);
+        setupEarTask(project, earPluginConvention, plugins);
+        configureWithJavaPluginApplied(project, plugins);
         configureWithNoJavaPluginApplied(project);
     }
 
@@ -108,17 +107,9 @@ public class EarPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureWithJavaPluginApplied(final Project project, final TaskProvider earTask, PluginContainer plugins) {
+    private void configureWithJavaPluginApplied(final Project project, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, javaPlugin -> {
             final JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-
-            SourceSet sourceSet = mainSourceSetOf(javaPluginExtension);
-            project.getTasks().named(EarPlugin.EAR_TASK_NAME).configure(new Action<Task>() {
-                @Override
-                public void execute(Task task) {
-                    sourceSet.getResources().srcDir((Callable) () -> ((Ear) task).getAppDirName());
-                }
-            });
             project.getTasks().withType(Ear.class).configureEach(task -> {
                 task.dependsOn((Callable<FileCollection>) () ->
                     mainSourceSetOf(javaPluginExtension).getRuntimeClasspath()
@@ -134,13 +125,19 @@ public class EarPlugin implements Plugin<Project> {
         return javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
-    private TaskProvider<Ear> setupEarTask(final Project project, EarPluginConvention convention) {
+    private void setupEarTask(final Project project, EarPluginConvention convention, PluginContainer plugins) {
         TaskProvider<Ear> ear = project.getTasks().register(EAR_TASK_NAME, Ear.class, new Action<Ear>() {
             @Override
             public void execute(Ear ear) {
                 ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
                 ear.setGroup(BasePlugin.BUILD_GROUP);
                 ear.getGenerateDeploymentDescriptor().convention(convention.getGenerateDeploymentDescriptor());
+
+                plugins.withType(JavaPlugin.class, javaPlugin -> {
+                    final JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
+                    SourceSet sourceSet = mainSourceSetOf(javaPluginExtension);
+                    sourceSet.getResources().srcDir((Callable) () -> ear.getAppDirName()); // TODO remove callable if possible
+                });
             }
         });
 
@@ -176,8 +173,6 @@ public class EarPlugin implements Plugin<Project> {
                 });
             }
         });
-
-        return ear;
     }
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
