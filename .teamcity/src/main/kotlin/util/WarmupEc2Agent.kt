@@ -35,7 +35,7 @@ object WarmupEc2Agent : BuildType({
             name = "Resolve all dependencies"
             tasks = "resolveAllDependencies"
             gradleParams = (
-                buildToolGradleParameters(isContinue = false)
+                buildToolGradleParameters(isContinue = false) + listOf("--dependency-verification", "lenient")
                 ).joinToString(separator = " ")
         }
     }
