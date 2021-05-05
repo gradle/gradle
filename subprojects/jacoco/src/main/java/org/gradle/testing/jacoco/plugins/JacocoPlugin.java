@@ -57,7 +57,7 @@ public class JacocoPlugin implements Plugin<Project> {
      *
      * @since 3.4
      */
-    public static final String DEFAULT_JACOCO_VERSION = "0.8.6";
+    public static final String DEFAULT_JACOCO_VERSION = "0.8.7";
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
