@@ -1,3 +1,4 @@
  - This is a small backport release.
  - Java 16 can be used to compile when used with Java toolchains
  - Dynamic versions can be used within plugin declarations
+ - Native support for Apple Silicon processors 
