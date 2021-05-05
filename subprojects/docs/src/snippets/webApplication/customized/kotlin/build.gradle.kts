@@ -31,6 +31,7 @@ dependencies {
 }
 
 tasks.war {
+    webAppDirectory.set(file("src/main/webapp"))
     from("src/rootContent") // adds a file-set to the root of the archive
     webInf { from("src/additionalWebInf") } // adds a file-set to the WEB-INF dir.
     classpath(fileTree("additionalLibs")) // adds a file-set to the WEB-INF/lib dir.

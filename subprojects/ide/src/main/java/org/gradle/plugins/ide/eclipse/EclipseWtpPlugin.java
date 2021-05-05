@@ -201,7 +201,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                     @Override
                     public List<WbResource> call() throws Exception {
                         File projectDir = project.getProjectDir();
-                        File webAppDir = ((War) project.getTasks().getByName("war")).getWebAppDir().get().getAsFile();
+                        File webAppDir = ((War) project.getTasks().getByName("war")).getWebAppDirectory().get().getAsFile();
                         String webAppDirName = RelativePathUtil.relativePath(projectDir, webAppDir);
                         return Lists.newArrayList(new WbResource("/", webAppDirName));
                     }
