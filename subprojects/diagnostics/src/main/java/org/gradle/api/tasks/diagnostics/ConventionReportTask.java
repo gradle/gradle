@@ -22,7 +22,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
@@ -56,11 +55,15 @@ public abstract class ConventionReportTask extends ConventionTask {
 
     /**
      * Returns the project report directory.
+     * <p>
+     * The {@code project-report} plugin sets the default value for all tasks of this type to {@code buildDir/project}.
+     * <p>
+     * Note, that if the {@code project-report} plugin is not applied then this property is ignored.
      *
      * @return the directory to store project reports
      * @since 7.1
      */
-    @OutputDirectory
+    @Internal
     @Incubating
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
