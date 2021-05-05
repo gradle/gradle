@@ -341,11 +341,11 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         execHandleFactory
     }
 
-    void assertIsUnsupported(Closure<?> unsupportedOperation) {
+    static void assertIsUnsupported(Closure<?> unsupportedOperation) {
         try {
             unsupportedOperation.run()
-            throw new SpockAssertionError("Expected to throw UnsupportedOperationException");
-        } catch (UnsupportedOperationException e) {
+            throw new SpockAssertionError("Expected to throw UnsupportedOperationException")
+        } catch (UnsupportedOperationException ignored) {
             // expected
         }
 
