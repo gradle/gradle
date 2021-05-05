@@ -276,13 +276,15 @@ public class Ear extends Jar {
     }
 
     /**
-     * The name of the application directory, relative to the project directory.
-     * Default is "src/main/application".
+     * The name of the application directory, relative to the project directory.. Added to the output ear archive by default.
+     * <p>
+     * The {@code ear} plugin sets the default value for all {@code Ear} tasks to {@code src/main/application}.
+     * <p>
+     * Note, that if the {@code ear} plugin is not applied then this property is ignored.
      *
      * @since 7.1
      */
-    @Input
-    @Optional
+    @Internal
     @Incubating
     public Property<String> getAppDirName() {
         return appDirName;
