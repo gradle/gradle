@@ -689,6 +689,30 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.file.SourceDirectorySet",
+            "member": "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.SourceDirectorySet",
+            "member": "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.SourceDirectorySet",
+            "member": "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(java.io.File)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
