@@ -13,15 +13,7 @@
                 <td><literal><replaceable>${archiveBaseName}</replaceable>-<replaceable>${archiveAppendix}</replaceable>-<replaceable>${archiveVersion}</replaceable>-<replaceable>${archiveClassifier}</replaceable>.<replaceable>${archiveExtension}</replaceable></literal></td>
             </tr>
             <tr>
-                <td>archiveName</td>
-                <td><literal><replaceable>${archiveBaseName}</replaceable>-<replaceable>${archiveAppendix}</replaceable>-<replaceable>${archiveVersion}</replaceable>-<replaceable>${archiveClassifier}</replaceable>.<replaceable>${archiveExtension}</replaceable></literal></td>
-            </tr>
-            <tr>
                 <td>archiveFile</td>
-                <td><literal><replaceable>${destinationDirectory}</replaceable>/<replaceable>${archiveFileName}</replaceable></literal></td>
-            </tr>
-            <tr>
-                <td>archivePath</td>
                 <td><literal><replaceable>${destinationDirectory}</replaceable>/<replaceable>${archiveFileName}</replaceable></literal></td>
             </tr>
             <tr>
@@ -29,28 +21,12 @@
                 <td><literal>""</literal></td>
             </tr>
             <tr>
-                <td>appendix</td>
-                <td><literal>""</literal></td>
-            </tr>
-            <tr>
-                <td>baseName</td>
-                <td><literal>project.archivesBaseName</literal></td>
-            </tr>
-            <tr>
                 <td>archiveBaseName</td>
                 <td><literal>project.archivesBaseName</literal></td>
             </tr>
             <tr>
-                <td>version</td>
-                <td><literal>project.version</literal></td>
-            </tr>
-            <tr>
                 <td>archiveVersion</td>
                 <td><literal>project.version</literal></td>
-            </tr>
-            <tr>
-                <td>extension</td>
-                <td/>
             </tr>
             <tr>
                 <td>archiveExtension</td>
@@ -59,14 +35,6 @@
             <tr>
                 <td>archiveClassifier</td>
                 <td><literal>""</literal></td>
-            </tr>
-            <tr>
-                <td>classifier</td>
-                <td><literal>""</literal></td>
-            </tr>
-            <tr>
-                <td>destinationDir</td>
-                <td><literal>project.distsDir</literal></td>
             </tr>
             <tr>
                 <td>destinationDirectory</td>
