@@ -42,6 +42,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,6 +50,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
@@ -272,7 +274,7 @@ public class TestFile extends File {
             try {
                 final Path targetDir = target.toPath();
                 final Path sourceDir = this.toPath();
-                Files.walkFileTree(sourceDir, new SimpleFileVisitor<Path>() {
+                Files.walkFileTree(sourceDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attributes) throws IOException {
                         Path targetFile = targetDir.resolve(sourceDir.relativize(sourceFile));
