@@ -44,7 +44,7 @@ performanceTest.registerTestProject("gradleBuildBaseline", RemoteProject) {
             return []
         }
         classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
-        main = 'org.gradle.performance.generator.TestProjectGenerator'
+        mainClass = 'org.gradle.performance.generator.TestProjectGenerator'
         args name, buildDir.absolutePath
     }
 }
