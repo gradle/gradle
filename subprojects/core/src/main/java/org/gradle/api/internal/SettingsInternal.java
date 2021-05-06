@@ -43,9 +43,9 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
 
     ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry();
 
-    ProjectDescriptor getDefaultProject();
+    DefaultProjectDescriptor getDefaultProject();
 
-    void setDefaultProject(ProjectDescriptor defaultProject);
+    void setDefaultProject(DefaultProjectDescriptor defaultProject);
 
     @Override
     GradleInternal getGradle();

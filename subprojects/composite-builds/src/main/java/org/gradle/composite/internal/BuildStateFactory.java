@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
@@ -39,27 +40,30 @@ public class BuildStateFactory {
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final CrossBuildSessionState crossBuildSessionState;
     private final BuildCancellationToken buildCancellationToken;
+    private final ProjectStateRegistry projectStateRegistry;
 
     public BuildStateFactory(BuildTreeController buildTreeController,
                              BuildLifecycleControllerFactory buildLifecycleControllerFactory,
                              ListenerManager listenerManager,
                              GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
                              CrossBuildSessionState crossBuildSessionState,
-                             BuildCancellationToken buildCancellationToken) {
+                             BuildCancellationToken buildCancellationToken,
+                             ProjectStateRegistry projectStateRegistry) {
         this.buildTreeController = buildTreeController;
         this.buildLifecycleControllerFactory = buildLifecycleControllerFactory;
         this.listenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
         this.crossBuildSessionState = crossBuildSessionState;
         this.buildCancellationToken = buildCancellationToken;
+        this.projectStateRegistry = projectStateRegistry;
     }
 
     public RootBuildState createRootBuild(BuildDefinition buildDefinition) {
-        return new DefaultRootBuildState(buildDefinition, buildTreeController, buildLifecycleControllerFactory, listenerManager);
+        return new DefaultRootBuildState(buildDefinition, buildTreeController, buildLifecycleControllerFactory, listenerManager, projectStateRegistry);
     }
 
     public StandAloneNestedBuild createNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
-        return new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeController, buildLifecycleControllerFactory);
+        return new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeController, buildLifecycleControllerFactory, projectStateRegistry);
     }
 
     public RootOfNestedBuildTree createNestedTree(BuildDefinition buildDefinition,

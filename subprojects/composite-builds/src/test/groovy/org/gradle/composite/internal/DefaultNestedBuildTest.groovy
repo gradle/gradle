@@ -19,6 +19,7 @@ package org.gradle.composite.internal
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
@@ -45,6 +46,7 @@ class DefaultNestedBuildTest extends Specification {
     def sessionServices = Mock(ServiceRegistry)
     def buildDefinition = Mock(BuildDefinition)
     def buildIdentifier = Mock(BuildIdentifier)
+    def projectStateRegistry = Mock(ProjectStateRegistry)
     DefaultNestedBuild build
 
     def setup() {
@@ -58,7 +60,7 @@ class DefaultNestedBuildTest extends Specification {
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
 
-        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree, factory)
+        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree, factory, projectStateRegistry)
     }
 
     def "stops launcher on stop"() {

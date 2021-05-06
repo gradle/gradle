@@ -113,14 +113,12 @@ public class ProjectBuilderImpl {
         BuildTreeModelControllerServices.Supplier modelServices = buildSessionController.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(true, false, startParameter);
         BuildTreeController buildTreeController = new BuildTreeController(buildSessionController.getServices(), modelServices);
         TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeController.getServices(), homeDir, startParameter);
-        TestRootBuild build = new TestRootBuild(projectDir);
-        buildServices.add(BuildState.class, build);
+        TestRootBuild build = new TestRootBuild(projectDir, buildServices);
 
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
-        GradleInternal gradle = buildServices.get(GradleInternal.class);
+        GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
-        build.setGradle(gradle); // the TestRootBuild instance cannot be created after GradleInternal
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
@@ -129,7 +127,8 @@ public class ProjectBuilderImpl {
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
 
-        ProjectState projectState = buildServices.get(ProjectStateRegistry.class).registerProject(build, projectDescriptor);
+        ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
+        ProjectState projectState = projectStateRegistry.registerProject(build, projectDescriptor);
         projectState.createMutableModel(rootProjectScope, baseScope);
         ProjectInternal project = projectState.getMutableModel();
 
@@ -214,10 +213,19 @@ public class ProjectBuilderImpl {
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
         private final File rootProjectDir;
-        private GradleInternal gradle;
+        private final ProjectStateRegistry projectStateRegistry;
+        private final GradleInternal gradle;
 
-        public TestRootBuild(File rootProjectDir) {
+        public TestRootBuild(File rootProjectDir, TestBuildScopeServices buildServices) {
             this.rootProjectDir = rootProjectDir;
+            buildServices.add(BuildState.class, this);
+            this.projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
+            this.gradle = buildServices.get(GradleInternal.class);
+        }
+
+        @Override
+        protected ProjectStateRegistry getProjectStateRegistry() {
+            return projectStateRegistry;
         }
 
         @Override
@@ -282,10 +290,6 @@ public class ProjectBuilderImpl {
         @Override
         public GradleInternal getBuild() {
             return gradle;
-        }
-
-        public void setGradle(GradleInternal gradle) {
-            this.gradle = gradle;
         }
     }
 }
