@@ -103,6 +103,15 @@ For example, a dependency substitution rule `substitute(project(':a')).with(proj
 With chaining you can, for example, add a reason for a substitution like this:
 `substitute(project(':a')).using(project(':b')).because("a reason")`.
 
+[[incremental_task_inputs_deprecation]]
+=== IncrementalTaskInputs type is deprecated
+
+The `IncrementalTaskInputs` type was used to implement _incremental tasks_, that is to say tasks which can be optimized to run on a subset of changed inputs instead of the whole input.
+This type had a number of drawbacks, in particular the fact of not being able to determine to what input a change was associated with.
+
+You should now use the `InputChanges` type instead.
+Please refer to the <<custom_tasks.adoc#sec:implementing_an_incremental_task, userguide section about implementing incremental tasks for more details>>.
+
 === Potential breaking changes
 
 ==== The `org.gradle.util` package is now a public API

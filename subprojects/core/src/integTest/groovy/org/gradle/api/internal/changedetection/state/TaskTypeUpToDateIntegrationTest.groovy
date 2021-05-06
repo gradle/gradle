@@ -34,13 +34,17 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: succeeds "copy"
-        then: executedAndNotSkipped(":copy")
+        when:
+        succeeds "copy"
+        then:
+        executedAndNotSkipped(":copy")
 
         file('build/input.txt').makeOlder()
 
-        when: succeeds "copy"
-        then: skipped ":copy"
+        when:
+        succeeds "copy"
+        then:
+        skipped ":copy"
 
         buildFile << """
             task other {}
@@ -49,7 +53,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "copy"
         then:
-        skipped":copy"
+        skipped ":copy"
     }
 
     def "task with type declared in build script is not up-to-date after build script change"() {
@@ -57,13 +61,17 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << declareSimpleCopyTask(false)
 
-        when: succeeds "copy"
-        then: executedAndNotSkipped(":copy")
+        when:
+        succeeds "copy"
+        then:
+        executedAndNotSkipped(":copy")
 
         file("output.txt").makeOlder()
 
-        when: succeeds "copy"
-        then: skipped":copy"
+        when:
+        succeeds "copy"
+        then:
+        skipped ":copy"
 
         when:
         buildFile.text = declareSimpleCopyTask(true)
@@ -71,12 +79,13 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         succeeds "copy"
 
         then:
-        executedAndNotSkipped":copy"
+        executedAndNotSkipped ":copy"
 
         when:
         succeeds "copy"
 
-        then: skipped":copy"
+        then:
+        skipped ":copy"
     }
 
     def "task with action declared in build script is not up-to-date after build script change"() {
@@ -91,13 +100,17 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: succeeds "copy"
-        then: executedAndNotSkipped":copy"
+        when:
+        succeeds "copy"
+        then:
+        executedAndNotSkipped ":copy"
 
         file('build/input.txt').makeOlder()
 
-        when: succeeds "copy"
-        then: skipped":copy"
+        when:
+        succeeds "copy"
+        then:
+        skipped ":copy"
 
         when:
         buildFile << """
@@ -107,8 +120,10 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":copy")
 
-        when: succeeds "copy"
-        then: skipped":copy"
+        when:
+        succeeds "copy"
+        then:
+        skipped ":copy"
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2936")
@@ -123,25 +138,31 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: succeeds "copy"
-        then: executedAndNotSkipped":copy"
+        when:
+        succeeds "copy"
+        then:
+        executedAndNotSkipped ":copy"
 
         file("output.txt").makeOlder()
 
-        when: succeeds "copy"
-        then: skipped":copy"
+        when:
+        succeeds "copy"
+        then:
+        skipped ":copy"
 
         when:
         file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").text = declareSimpleCopyTaskType(true)
 
         succeeds "copy"
 
-        then: executedAndNotSkipped":copy"
+        then:
+        executedAndNotSkipped ":copy"
 
         when:
         succeeds "copy"
 
-        then: skipped":copy"
+        then:
+        skipped ":copy"
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1910")
@@ -159,25 +180,31 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: succeeds "copy"
-        then: executedAndNotSkipped(":copy")
+        when:
+        succeeds "copy"
+        then:
+        executedAndNotSkipped(":copy")
 
         file("output.txt").makeOlder()
 
-        when: succeeds "copy"
-        then: skipped(":copy")
+        when:
+        succeeds "copy"
+        then:
+        skipped(":copy")
 
         when:
         file("buildSrc/build.gradle").text = guavaDependency("19.0")
 
         succeeds "copy"
 
-        then: executedAndNotSkipped(":copy")
+        then:
+        executedAndNotSkipped(":copy")
 
         when:
         succeeds "copy"
 
-        then: skipped(":copy")
+        then:
+        skipped(":copy")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9723")
@@ -197,13 +224,18 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        if (deprecated) {
+            executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'IncrementalTask.execute' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
+        }
         fails 'noOutput'
         then:
         failure.assertHasDescription("Execution failed for task ':noOutput'.")
         failure.assertHasCause("You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API")
 
         where:
-        incrementalChangesType << [IncrementalTaskInputs, InputChanges]*.simpleName
+        incrementalChangesType           | deprecated
+        IncrementalTaskInputs.simpleName | true
+        InputChanges.simpleName          | false
     }
 
     private static String declareSimpleCopyTask(boolean modification = false) {
