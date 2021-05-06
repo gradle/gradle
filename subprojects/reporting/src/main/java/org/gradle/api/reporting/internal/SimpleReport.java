@@ -23,7 +23,6 @@ import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.io.File;
@@ -57,23 +56,6 @@ public abstract class SimpleReport implements ConfigurableReport {
     public abstract FileSystemLocationProperty<? extends FileSystemLocation> getOutputLocation();
 
     @Override
-    @Deprecated
-    public File getDestination() {
-        DeprecationLogger.deprecateProperty(Report.class, "destination")
-            .replaceWith("outputLocation")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return getOutputLocation().getAsFile().getOrNull();
-    }
-
-    @Override
-    public void setDestination(File file) {
-        getOutputLocation().fileValue(file);
-    }
-
-    @Override
     public void setDestination(Provider<File> provider) {
         getOutputLocation().fileProvider(provider);
     }
@@ -86,32 +68,5 @@ public abstract class SimpleReport implements ConfigurableReport {
     @Override
     public Report configure(Closure configure) {
         return ConfigureUtil.configureSelf(configure, this);
-    }
-
-    @Override
-    public boolean isEnabled() {
-        DeprecationLogger.deprecateProperty(Report.class, "enabled")
-            .replaceWith("required")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return getRequired().get();
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-        DeprecationLogger.deprecateProperty(Report.class, "enabled")
-            .replaceWith("required")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        getRequired().set(enabled);
-    }
-
-    @Override
-    public void setEnabled(Provider<Boolean> enabled) {
-        getRequired().set(enabled);
     }
 }
