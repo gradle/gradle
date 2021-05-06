@@ -137,7 +137,7 @@ public class DependentComponentsReport extends DefaultTask {
             // Output reports per execution, not mixed.
             // Cross-project ModelRegistry operations do not happen concurrently.
             synchronized (DependentComponentsReport.class) {
-                ((ProjectInternal) getProject()).getMutationState().applyToMutableState(project -> {
+                ((ProjectInternal) getProject()).getOwner().applyToMutableState(project -> {
                     ModelRegistry modelRegistry = getModelRegistry();
 
                     DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);

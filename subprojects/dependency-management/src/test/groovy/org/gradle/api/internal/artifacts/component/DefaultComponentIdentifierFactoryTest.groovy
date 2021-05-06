@@ -40,7 +40,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
         def componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
 
         then:
-        project.mutationState >> Stub(ProjectState) {
+        project.owner >> Stub(ProjectState) {
             getComponentIdentifier() >> expectedId
         }
 
