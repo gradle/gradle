@@ -126,7 +126,11 @@ public interface Settings extends PluginAware, ExtensionAware {
      * {@code $rootDir/../a}.</p>
      *
      * @param projectNames the projects to add.
+     * @deprecated Using a flat project structure is discouraged. For one thing it causes inefficiencies in file-system watching.
+     * Clients should always use a hierarchical project layout and define the structure with {@link #include(String...)}
+     * This method is scheduled for removal in Gradle 8.0.
      */
+    @Deprecated
     void includeFlat(String... projectNames);
 
     /**

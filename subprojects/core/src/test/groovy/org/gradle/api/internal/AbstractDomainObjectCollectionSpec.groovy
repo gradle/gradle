@@ -30,14 +30,14 @@ import org.gradle.internal.Actions
 import org.gradle.internal.DisplayName
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.hasMessage
-import static org.gradle.util.WrapUtil.toList
+import static org.gradle.util.internal.WrapUtil.toList
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assume.assumeTrue

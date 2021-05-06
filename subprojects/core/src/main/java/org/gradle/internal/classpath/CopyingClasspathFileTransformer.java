@@ -19,7 +19,7 @@ package org.gradle.internal.classpath;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 

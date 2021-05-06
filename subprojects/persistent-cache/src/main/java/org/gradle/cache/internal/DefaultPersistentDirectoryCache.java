@@ -25,8 +25,8 @@ import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

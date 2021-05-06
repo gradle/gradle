@@ -29,6 +29,6 @@ dependencies {
 test {
     testLogging.showStandardStreams = true
     testLogging.events 'started', 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
-    reports.junitXml.enabled = true
-    reports.html.enabled = true
+    reports.junitXml.required = true
+    reports.html.required = true
 }

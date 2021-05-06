@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.Resources;
+import org.gradle.util.internal.Resources;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;

@@ -28,7 +28,7 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSet;
@@ -109,23 +109,23 @@ public class EarPlugin implements Plugin<Project> {
 
     private void configureWithJavaPluginApplied(final Project project, final EarPluginConvention earPluginConvention, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, javaPlugin -> {
-            final JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
+            final JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
 
-            SourceSet sourceSet = mainSourceSetOf(javaPluginConvention);
+            SourceSet sourceSet = mainSourceSetOf(javaPluginExtension);
             sourceSet.getResources().srcDir((Callable) () -> earPluginConvention.getAppDirName());
             project.getTasks().withType(Ear.class).configureEach(task -> {
                 task.dependsOn((Callable<FileCollection>) () ->
-                    mainSourceSetOf(javaPluginConvention).getRuntimeClasspath()
+                    mainSourceSetOf(javaPluginExtension).getRuntimeClasspath()
                 );
                 task.from((Callable<FileCollection>) () ->
-                    mainSourceSetOf(javaPluginConvention).getOutput()
+                    mainSourceSetOf(javaPluginExtension).getOutput()
                 );
             });
         });
     }
 
-    private SourceSet mainSourceSetOf(JavaPluginConvention javaPluginConvention) {
-        return javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+    private SourceSet mainSourceSetOf(JavaPluginExtension javaPluginExtension) {
+        return javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
     private void setupEarTask(final Project project, EarPluginConvention convention) {

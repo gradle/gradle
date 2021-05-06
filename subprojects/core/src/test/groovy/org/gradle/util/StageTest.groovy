@@ -16,7 +16,7 @@
 
 package org.gradle.util
 
-import org.gradle.util.GradleVersion.Stage
+import org.gradle.util.internal.DefaultGradleVersion.Stage
 import spock.lang.Specification
 
 class StageTest extends Specification {

@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;

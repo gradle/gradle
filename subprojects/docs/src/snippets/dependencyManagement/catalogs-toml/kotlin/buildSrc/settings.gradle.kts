@@ -19,7 +19,7 @@ enableFeaturePreview("VERSION_CATALOGS")
 // tag::import_main_catalog[]
 dependencyResolutionManagement {
     versionCatalogs {
-        create("lib") {
+        create("libs") {
             from(files("../gradle/libs.versions.toml"))
         }
     }

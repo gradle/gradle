@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;

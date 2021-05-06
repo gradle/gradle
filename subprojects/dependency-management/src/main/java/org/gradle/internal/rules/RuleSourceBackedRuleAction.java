@@ -23,7 +23,7 @@ import org.gradle.model.internal.inspect.DefaultRuleSourceValidationProblemColle
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.RuleSourceValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;

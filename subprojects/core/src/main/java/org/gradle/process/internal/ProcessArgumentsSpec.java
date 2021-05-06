@@ -19,7 +19,7 @@ package org.gradle.process.internal;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;

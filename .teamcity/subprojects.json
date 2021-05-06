@@ -289,7 +289,7 @@
   {
     "dirName": "file-temp",
     "name": "file-temp",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -394,7 +394,7 @@
   {
     "dirName": "java-compiler-plugin",
     "name": "java-compiler-plugin",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

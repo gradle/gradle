@@ -19,7 +19,7 @@ package org.gradle.test.fixtures.server.sftp
 import org.apache.commons.io.FilenameUtils
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.resource.RemoteResource
-import org.gradle.util.RelativePathUtil
+import org.gradle.util.internal.RelativePathUtil
 
 class SftpResource implements RemoteResource {
 

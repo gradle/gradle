@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.api;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.internal.MutableActionSet;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 /**
  * Models the generation/parsing/merging capabilities.

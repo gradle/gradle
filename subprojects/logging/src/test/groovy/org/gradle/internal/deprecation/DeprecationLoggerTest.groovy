@@ -24,7 +24,7 @@ import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.util.GradleVersion
+import org.gradle.util.internal.DefaultGradleVersion
 import org.junit.Rule
 import spock.lang.Subject
 
@@ -149,7 +149,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         def events = outputEventListener.events
         events.size() == 1
         events[0].message == """
-Deprecated Gradle features were used in this build, making it incompatible with ${GradleVersion.current().nextMajor}.
+Deprecated Gradle features were used in this build, making it incompatible with ${DefaultGradleVersion.current().nextMajorVersion}.
 
 You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
 

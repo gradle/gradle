@@ -50,8 +50,8 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder
 
 import java.lang.ref.WeakReference
 
-import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.internal.WrapUtil.toLinkedSet
+import static org.gradle.util.internal.WrapUtil.toSet
 
 class TestTest extends AbstractConventionTaskTest {
     static final String TEST_PATTERN_1 = "pattern1"
@@ -95,8 +95,8 @@ class TestTest extends AbstractConventionTaskTest {
         test.getTestFramework() instanceof JUnitTestFramework
         test.getTestClassesDirs() == null
         test.getClasspath().files.isEmpty()
-        test.getReports().getJunitXml().getDestination() == null
-        test.getReports().getHtml().getDestination() == null
+        test.getReports().getJunitXml().outputLocation.getOrNull() == null
+        test.getReports().getHtml().outputLocation.getOrNull() == null
         test.getIncludes().isEmpty()
         test.getExcludes().isEmpty()
         !test.getIgnoreFailures()
@@ -341,9 +341,9 @@ class TestTest extends AbstractConventionTaskTest {
         test.setTestExecuter(testExecuterMock)
 
         test.setTestClassesDirs(TestFiles.fixed(classesDir))
-        test.getReports().getJunitXml().setDestination(resultsDir)
-        test.setBinResultsDir(binResultsDir)
-        test.getReports().getHtml().setDestination(reportDir)
+        test.getReports().getJunitXml().outputLocation.set(resultsDir)
+        test.binaryResultsDirectory.set(binResultsDir)
+        test.getReports().getHtml().outputLocation.set(reportDir)
         test.setClasspath(classpathMock)
     }
 }

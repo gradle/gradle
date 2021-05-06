@@ -21,7 +21,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.CachedInvokable;
 import org.gradle.internal.reflect.ReflectionCache;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;

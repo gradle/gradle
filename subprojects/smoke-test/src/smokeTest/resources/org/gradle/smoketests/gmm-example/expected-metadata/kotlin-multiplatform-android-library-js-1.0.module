@@ -11,33 +11,34 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "6.1.1",
-      "buildId": "pr4n4lpg5ja6re27qc3piepc4q"
+      "version": "7.1"
     }
   },
   "variants": [
     {
-      "name": "js-api",
+      "name": "jsApiElements-published",
       "attributes": {
         "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.js.compiler": "legacy",
         "org.jetbrains.kotlin.platform.type": "js"
       },
       "files": [
         {
           "name": "kotlin-multiplatform-android-library-js-1.0.jar",
           "url": "kotlin-multiplatform-android-library-js-1.0.jar",
-          "size": 3988,
-          "sha512": "bd1bbf23bdcf7bb7e622b429c068de6d39eab7df7277bd0758e45e3e7baef9d621b4c707a32b2009537f5371b0ce88cf48db2a0f82b9b4064ef5c5edfef1e44c",
-          "sha256": "def48cf63cde9b2bd017e60dc4de5e80520b0333370ab74673d1dba450b261f7",
-          "sha1": "63e84689aeae3d53ae3d4f5f2f244d776470df14",
-          "md5": "24f384b206943d643fdb2badf762deb5"
+          "size": 4002,
+          "sha512": "1a36678787fe1f12dd1a10f25e0a54566db6f9b66d2d8a8bdb915fc76e17aaf43e666fce711179f7d8067c891934839d38949c2301761b514f15040b7cc61347",
+          "sha256": "b3e8694eb309df07a87e017bfe6c4539a894b1b6e8a4f473255517348d89ee32",
+          "sha1": "6abd39e09f592f518560309e215b7e1157623fc7",
+          "md5": "cf8be76656f8ae56765fe5d90ce7b2ea"
         }
       ]
     },
     {
-      "name": "js-runtime",
+      "name": "jsRuntimeElements-published",
       "attributes": {
         "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.js.compiler": "legacy",
         "org.jetbrains.kotlin.platform.type": "js"
       },
       "dependencies": [
@@ -45,14 +46,14 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-js",
           "version": {
-            "requires": "1.3.72"
+            "requires": "1.4.31"
           }
         },
         {
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-common",
           "version": {
-            "requires": "1.3.72"
+            "requires": "1.4.31"
           }
         }
       ],
@@ -60,16 +61,16 @@
         {
           "name": "kotlin-multiplatform-android-library-js-1.0.jar",
           "url": "kotlin-multiplatform-android-library-js-1.0.jar",
-          "size": 3988,
-          "sha512": "bd1bbf23bdcf7bb7e622b429c068de6d39eab7df7277bd0758e45e3e7baef9d621b4c707a32b2009537f5371b0ce88cf48db2a0f82b9b4064ef5c5edfef1e44c",
-          "sha256": "def48cf63cde9b2bd017e60dc4de5e80520b0333370ab74673d1dba450b261f7",
-          "sha1": "63e84689aeae3d53ae3d4f5f2f244d776470df14",
-          "md5": "24f384b206943d643fdb2badf762deb5"
+          "size": 4002,
+          "sha512": "1a36678787fe1f12dd1a10f25e0a54566db6f9b66d2d8a8bdb915fc76e17aaf43e666fce711179f7d8067c891934839d38949c2301761b514f15040b7cc61347",
+          "sha256": "b3e8694eb309df07a87e017bfe6c4539a894b1b6e8a4f473255517348d89ee32",
+          "sha1": "6abd39e09f592f518560309e215b7e1157623fc7",
+          "md5": "cf8be76656f8ae56765fe5d90ce7b2ea"
         }
       ]
     },
     {
-      "name": "metadata-api",
+      "name": "metadataApiElements-published",
       "attributes": {
         "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.platform.type": "common"

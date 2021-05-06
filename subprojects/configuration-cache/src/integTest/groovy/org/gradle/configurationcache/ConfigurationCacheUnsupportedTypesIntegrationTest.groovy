@@ -49,6 +49,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.CompatibilityRuleChain
 import org.gradle.api.attributes.DisambiguationRuleChain
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
@@ -79,6 +80,7 @@ import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultCompatibilityRuleChain
 import org.gradle.api.internal.attributes.DefaultDisambiguationRuleChain
+import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.tasks.DefaultSourceSet
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
@@ -292,7 +294,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         outputContains("beanWithSameType.reference = null")
 
         where:
-        concreteType         | baseType      | reference                                    | deserializedValue
-        DefaultConfiguration | Configuration | "project.configurations.maybeCreate('some')" | 'file collection'
+        concreteType              | baseType           | reference                                            | deserializedValue
+        DefaultConfiguration      | Configuration      | "project.configurations.maybeCreate('some')"         | 'file collection'
+        DefaultSourceDirectorySet | SourceDirectorySet | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 }

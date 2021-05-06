@@ -19,7 +19,7 @@ package org.gradle.test.fixtures.archive
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.collect.ListMultimap
-import org.gradle.util.CollectionUtils
+import org.gradle.util.internal.CollectionUtils
 import org.hamcrest.Matcher
 
 import static org.hamcrest.CoreMatchers.equalTo

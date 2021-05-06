@@ -16,12 +16,15 @@
 
 package org.gradle.integtests.resolve.catalog
 
+import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.resolve.PluginDslSupport
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
+class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
     @Unroll
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
@@ -1291,4 +1294,85 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         failureDescriptionContains "Cannot generate accessors for bundles because it contains both aliases and groups of the same name: [my]"
     }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    @Issue("https://github.com/gradle/gradle/issues/16888")
+    def "disallows aliases which have a name clash with Java methods"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("$reserved").to("org:lib1:1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "help"
+
+        then:
+        verifyContains(failure.error, reservedAlias {
+            inCatalog("libs")
+            alias(reserved)
+            reservedAliases "extensions", "class", "convention"
+        })
+
+        where:
+        reserved << [
+            "extensions",
+            "class",
+            "convention"
+        ]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16768")
+    def "the artifact notation doesn't require to set 'name'"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("myLib").to("org.gradle.test", "lib").version {
+                            require "1.0"
+                        }
+                    }
+                }
+            }
+        """
+
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0")
+        lib.artifact(classifier: 'classy')
+        lib.publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation(libs.myLib) {
+                    artifact {
+                        classifier = 'classy'
+                    }
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.getArtifact(classifier: 'classy').expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0') {
+                    artifact(classifier: 'classy')
+                }
+            }
+        }
+    }
+
 }

@@ -118,30 +118,28 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getPluginManager().apply(JvmEcosystemPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
 
-        JavaPluginConvention javaConvention = addExtensions(projectInternal);
+        DefaultJavaPluginExtension javaPluginExtension = addExtensions(projectInternal);
 
-        configureSourceSetDefaults(javaConvention);
-        configureCompileDefaults(project, javaConvention);
+        configureSourceSetDefaults(project, javaPluginExtension);
+        configureCompileDefaults(project, javaPluginExtension);
 
-        configureJavaDoc(project, javaConvention);
-        configureTest(project, javaConvention);
+        configureJavaDoc(project, javaPluginExtension);
+        configureTest(project, javaPluginExtension);
         configureBuildNeeded(project);
         configureBuildDependents(project);
     }
 
-    private JavaPluginConvention addExtensions(final ProjectInternal project) {
+    private DefaultJavaPluginExtension addExtensions(final ProjectInternal project) {
         DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
-        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, sourceSets, toolchainSpec);
-        project.getConvention().getPlugins().put("java", javaConvention);
-        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices, toolchainSpec);
+        DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
+        project.getConvention().getPlugins().put("java", new DefaultJavaPluginConvention(project, javaPluginExtension));
         project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
-        return javaConvention;
+        return javaPluginExtension;
     }
 
-    private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
-        final Project project = pluginConvention.getProject();
-        pluginConvention.getSourceSets().all(sourceSet -> {
+    private void configureSourceSetDefaults(Project project, final JavaPluginExtension javaPluginExtension) {
+        javaPluginExtension.getSourceSets().all(sourceSet -> {
             ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
 
             ConfigurationContainer configurations = project.getConfigurations();
@@ -274,13 +272,11 @@ public class JavaBasePlugin implements Plugin<Project> {
         runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
     }
 
-    private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
-        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-        DefaultJavaPluginConvention defaultJavaPluginConvention = (DefaultJavaPluginConvention) javaConvention;
+    private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
             ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaExtension, defaultJavaPluginConvention::getSourceCompatibility, defaultJavaPluginConvention::getRawSourceCompatibility));
-            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaExtension, defaultJavaPluginConvention::getTargetCompatibility, defaultJavaPluginConvention::getRawTargetCompatibility));
+            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaExtension, javaExtension::getSourceCompatibility, javaExtension::getRawSourceCompatibility));
+            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaExtension, javaExtension::getTargetCompatibility, javaExtension::getRawTargetCompatibility));
         });
     }
 
@@ -314,9 +310,9 @@ public class JavaBasePlugin implements Plugin<Project> {
         }
     }
 
-    private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
+    private void configureJavaDoc(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
-            javadoc.getConventionMapping().map("destinationDir", () -> new File(convention.getDocsDir(), "javadoc"));
+            javadoc.getConventionMapping().map("destinationDir", () -> new File(javaPluginExtension.getDocsDir().get().getAsFile(), "javadoc"));
             javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             javadoc.getJavadocTool().convention(getToolchainTool(project, JavaToolchainService::javadocToolFor));
         });
@@ -338,18 +334,17 @@ public class JavaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureTest(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().withType(Test.class).configureEach(test -> configureTestDefaults(test, project, convention));
+    private void configureTest(final Project project, final JavaPluginExtension javaPluginExtension) {
+        project.getTasks().withType(Test.class).configureEach(test -> configureTestDefaults(test, project, javaPluginExtension));
     }
 
-    private void configureTestDefaults(final Test test, Project project, final JavaPluginConvention convention) {
+    private void configureTestDefaults(final Test test, Project project, final JavaPluginExtension javaPluginExtension) {
         DirectoryReport htmlReport = test.getReports().getHtml();
         JUnitXmlReport xmlReport = test.getReports().getJunitXml();
 
-        // TODO - should replace `testResultsDir` and `testReportDir` with `Property` types and map their values
-        xmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName()).getAbsolutePath())));
-        htmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestReportDir(), test.getName()).getAbsolutePath())));
-        test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath())));
+        xmlReport.getOutputLocation().convention(javaPluginExtension.getTestResultsDir().dir(test.getName()));
+        htmlReport.getOutputLocation().convention(javaPluginExtension.getTestReportDir().dir(test.getName()));
+        test.getBinaryResultsDirectory().convention(javaPluginExtension.getTestResultsDir().dir(test.getName() + "/binary"));
         test.workingDir(project.getProjectDir());
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
     }

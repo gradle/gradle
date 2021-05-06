@@ -141,8 +141,11 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      *
      * @return The output directory for this set of sources.
      * @since 4.0
+     *
+     * @deprecated Use {@link #getClassesDirectory()} instead. This method will be removed in Gradle 8.0.
      */
     @ReplacedBy("classesDirectory")
+    @Deprecated
     File getOutputDir();
 
     /**
@@ -150,8 +153,10 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
 
      * @param provider provides output directory for this source directory set
      * @since 4.0
+     *
+     * @deprecated Use {@link #getDestinationDirectory()}.set() instead. This method will be removed in Gradle 8.0.
      */
-    @ReplacedBy("destinationDirectory")
+    @Deprecated
     void setOutputDir(Provider<File> provider);
 
     /**
@@ -159,7 +164,9 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      *
      * @param outputDir output directory for this source directory set
      * @since 4.0
+     *
+     * @deprecated Use {@link #getDestinationDirectory()}.set() instead. This method will be removed in Gradle 8.0.
      */
-    @ReplacedBy("destinationDirectory")
+    @Deprecated
     void setOutputDir(File outputDir);
 }

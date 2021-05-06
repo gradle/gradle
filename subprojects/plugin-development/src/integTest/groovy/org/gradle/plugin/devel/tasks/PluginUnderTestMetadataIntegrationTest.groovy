@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 
 import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
 import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.METADATA_FILE_NAME
@@ -49,7 +49,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec imp
         fails TASK_NAME
 
         then:
-        failureDescriptionContains(missingValueMessage { type(PluginUnderTestMetadata.simpleName).property('outputDirectory').includeLink() })
+        failureDescriptionContains(missingValueMessage { type(PluginUnderTestMetadata.name).property('outputDirectory').includeLink() })
     }
 
     def "implementation-classpath entry in metadata is empty if there is no classpath"() {

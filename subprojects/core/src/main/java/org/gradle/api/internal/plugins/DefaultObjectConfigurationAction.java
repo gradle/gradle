@@ -34,7 +34,7 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.net.URI;
 import java.util.LinkedHashSet;

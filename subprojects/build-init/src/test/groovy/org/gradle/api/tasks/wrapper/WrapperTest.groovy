@@ -19,9 +19,9 @@ package org.gradle.api.tasks.wrapper
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.gradle.util.GradleVersion
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 import org.gradle.wrapper.GradleWrapperMain
 import org.gradle.wrapper.WrapperExecutor
 

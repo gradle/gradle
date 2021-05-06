@@ -43,9 +43,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
-import static org.gradle.util.CollectionUtils.collect;
-import static org.gradle.util.CollectionUtils.filter;
-import static org.gradle.util.CollectionUtils.sort;
+import static org.gradle.util.internal.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.filter;
+import static org.gradle.util.internal.CollectionUtils.sort;
 
 @NonNullApi
 public class TaskDetailPrinter {

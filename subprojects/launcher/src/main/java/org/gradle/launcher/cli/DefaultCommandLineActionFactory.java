@@ -37,14 +37,14 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
-import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
-import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
-import org.gradle.util.GradleVersion;
+import org.gradle.launcher.configuration.AllProperties;
+import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.InitialProperties;
+import org.gradle.util.internal.DefaultGradleVersion;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -155,15 +155,15 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static class ShowVersionAction implements Runnable {
         @Override
         public void run() {
-            GradleVersion currentVersion = GradleVersion.current();
+            DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
 
             final StringBuilder sb = new StringBuilder();
             sb.append("%n------------------------------------------------------------%nGradle ");
             sb.append(currentVersion.getVersion());
             sb.append("%n------------------------------------------------------------%n%nBuild time:   ");
-            sb.append(currentVersion.getBuildTime());
+            sb.append(currentVersion.getBuildTimestamp());
             sb.append("%nRevision:     ");
-            sb.append(currentVersion.getRevision());
+            sb.append(currentVersion.getGitRevision());
             sb.append("%n%nKotlin:       ");
             sb.append(KotlinDslVersion.current().getKotlinVersion());
             sb.append("%nGroovy:       ");

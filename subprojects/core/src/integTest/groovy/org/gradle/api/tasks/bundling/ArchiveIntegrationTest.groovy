@@ -16,8 +16,8 @@
 package org.gradle.api.tasks.bundling
 
 import org.apache.commons.lang.RandomStringUtils
-import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.tasks.Copy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
@@ -770,7 +770,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         fails 'archive'
 
         then:
-        failure.assertHasCause "Entry file1.txt is a duplicate but no duplicate handling strategy has been set. Please refer to ${DOCUMENTATION_REGISTRY.getDslRefForProperty(CopySpec.class, "duplicatesStrategy")} for details."
+        failure.assertHasCause "Entry file1.txt is a duplicate but no duplicate handling strategy has been set. Please refer to ${DOCUMENTATION_REGISTRY.getDslRefForProperty(Copy.class, "duplicatesStrategy")} for details."
 
         where:
         archiveType << ['tar', 'zip']

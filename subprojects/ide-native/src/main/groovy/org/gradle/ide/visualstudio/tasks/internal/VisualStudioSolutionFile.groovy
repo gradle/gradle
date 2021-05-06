@@ -23,7 +23,7 @@ import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfigurationMetadata
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectMetadata
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID
 

@@ -15,9 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -27,12 +24,19 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.UncheckedException;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.ValueCalculator;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides the metadata for a component consumed from the same build that produces it.
@@ -41,18 +45,22 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
  */
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final ProjectStateRegistry projectStateRegistry;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildIdentifier thisBuild;
-    private final Cache<ProjectComponentIdentifier, LocalComponentMetadata> projects = CacheBuilder.newBuilder().build();
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentMetadata, ?>> projects = new ConcurrentHashMap<>();
 
-    public DefaultProjectLocalComponentProvider(ProjectStateRegistry projectStateRegistry, ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metadataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
+    public DefaultProjectLocalComponentProvider(ProjectStateRegistry projectStateRegistry,
+                                                LocalComponentMetadataBuilder metadataBuilder,
+                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                BuildIdentifier thisBuild,
+                                                CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.projectStateRegistry = projectStateRegistry;
-        this.projectRegistry = projectRegistry;
         this.metadataBuilder = metadataBuilder;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.thisBuild = thisBuild;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
@@ -60,48 +68,54 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         if (!isLocalProject(projectIdentifier)) {
             return null;
         }
-        try {
-            // Resolving a project component can cause traversal to other projects, at which
-            // point we could release the project lock and allow another task to run.  We can't
-            // use a cache loader here because it is synchronized.  If the other task also tries
-            // to resolve a project component, he can block trying to get the lock around the
-            // loader while still holding the project lock.  To avoid this deadlock, we check,
-            // then release the project lock only if we need to resolve the project and ensure
-            // that only the thread holding the lock can populate the metadata for a project.
-            LocalComponentMetadata metadata = projects.getIfPresent(projectIdentifier);
-            if (metadata == null) {
-                metadata = getLocalComponentMetadata(projectIdentifier);
-            }
-            return metadata;
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
+        CalculatedValueContainer<LocalComponentMetadata, ?> valueContainer = projects.computeIfAbsent(projectIdentifier, projectComponentIdentifier -> {
+            ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
+            return calculatedValueContainerFactory.create(Describables.of("metadata of", projectIdentifier), new MetadataSupplier(projectState));
+        });
+        // Calculate the value after adding the entry to the map, so that the value container can take care of thread synchronization
+        valueContainer.finalizeIfNotAlready();
+        return valueContainer.get();
     }
 
     private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
         return projectIdentifier.getBuild().equals(thisBuild);
     }
 
-    private LocalComponentMetadata getLocalComponentMetadata(final ProjectComponentIdentifier projectIdentifier) {
-        ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
-        return projectState.fromMutableState(p -> {
-            LocalComponentMetadata metadata = projects.getIfPresent(projectIdentifier);
-            if (metadata == null) {
-                metadata = getLocalComponentMetadata(projectState, p);
-                projects.put(projectIdentifier, metadata);
-            }
-            return metadata;
-        });
-    }
+    private class MetadataSupplier implements ValueCalculator<LocalComponentMetadata> {
+        private final ProjectState projectState;
 
-    private LocalComponentMetadata getLocalComponentMetadata(ProjectState projectState, ProjectInternal project) {
-        Module module = project.getModule();
-        ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-        ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
-        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema());
-        for (ConfigurationInternal configuration : project.getConfigurations().withType(ConfigurationInternal.class)) {
-            metadataBuilder.addConfiguration(metaData, configuration);
+        public MetadataSupplier(ProjectState projectState) {
+            this.projectState = projectState;
         }
-        return metaData;
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+        }
+
+        @Override
+        public boolean usesMutableProjectState() {
+            return true;
+        }
+
+        @Override
+        public ProjectInternal getOwningProject() {
+            return projectState.getMutableModel();
+        }
+
+        @Override
+        public LocalComponentMetadata calculateValue(NodeExecutionContext context) {
+            return projectState.fromMutableState(p -> getLocalComponentMetadata(projectState, p));
+        }
+
+        private LocalComponentMetadata getLocalComponentMetadata(ProjectState projectState, ProjectInternal project) {
+            Module module = project.getDependencyMetaDataProvider().getModule();
+            ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
+            ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
+            DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema());
+            for (ConfigurationInternal configuration : project.getConfigurations().withType(ConfigurationInternal.class)) {
+                metadataBuilder.addConfiguration(metaData, configuration);
+            }
+            return metaData;
+        }
     }
 }

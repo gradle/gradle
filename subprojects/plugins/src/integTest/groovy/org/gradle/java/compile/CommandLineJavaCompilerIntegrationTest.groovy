@@ -18,7 +18,7 @@
 package org.gradle.java.compile
 
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ !Jvm.current().getExecutable("javac").exists() })

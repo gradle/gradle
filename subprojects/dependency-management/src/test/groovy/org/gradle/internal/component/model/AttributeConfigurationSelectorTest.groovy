@@ -35,7 +35,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 

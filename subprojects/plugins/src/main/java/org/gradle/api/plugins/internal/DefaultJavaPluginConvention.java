@@ -19,49 +19,29 @@ package org.gradle.api.plugins.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
-import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.Actions;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
-import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
-import org.gradle.testing.base.plugins.TestingBasePlugin;
+import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
-import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultJavaPluginConvention extends JavaPluginConvention implements HasPublicType {
-    private ProjectInternal project;
 
-    private String docsDirName;
+    private final ProjectInternal project;
+    private final JavaPluginExtension extension;
 
-    private String testResultsDirName;
-
-    private String testReportDirName;
-
-    private final SourceSetContainer sourceSets;
-
-    private JavaVersion srcCompat;
-    private JavaVersion targetCompat;
-
-    private boolean autoTargetJvm = true;
-    private final ToolchainSpecInternal toolchainSpec;
-
-    public DefaultJavaPluginConvention(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
+    public DefaultJavaPluginConvention(ProjectInternal project, JavaPluginExtension extension) {
         this.project = project;
-        this.sourceSets = sourceSets;
-        this.toolchainSpec = toolchainSpec;
-        docsDirName = "docs";
-        testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
-        testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
+        this.extension = extension;
     }
 
     @Override
@@ -71,126 +51,102 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public Object sourceSets(Closure closure) {
-        return sourceSets.configure(closure);
+        return extension.sourceSets(closure);
     }
 
     @Override
     public File getDocsDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(docsDirName);
+        return extension.getDocsDir().get().getAsFile();
     }
 
     @Override
     public File getTestResultsDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(testResultsDirName);
+        return extension.getTestResultsDir().get().getAsFile();
     }
 
     @Override
     public File getTestReportDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(getReportsDir()).resolve(testReportDirName);
-    }
-
-    private File getReportsDir() {
-        return project.getExtensions().getByType(ReportingExtension.class).getBaseDir();
+        return extension.getTestReportDir().get().getAsFile();
     }
 
     @Override
     public JavaVersion getSourceCompatibility() {
-        if (srcCompat != null) {
-            return srcCompat;
-        } else if (toolchainSpec != null && toolchainSpec.isConfigured()) {
-            return JavaVersion.toVersion(toolchainSpec.getLanguageVersion().get().toString());
-        } else {
-            return JavaVersion.current();
-        }
-    }
-
-    public JavaVersion getRawSourceCompatibility() {
-        return srcCompat;
+        return extension.getSourceCompatibility();
     }
 
     @Override
     public void setSourceCompatibility(Object value) {
-        setSourceCompatibility(JavaVersion.toVersion(value));
+        extension.setSourceCompatibility(value);
     }
 
     @Override
     public void setSourceCompatibility(JavaVersion value) {
-        srcCompat = value;
+        extension.setSourceCompatibility(value);
     }
 
     @Override
     public JavaVersion getTargetCompatibility() {
-        return targetCompat != null ? targetCompat : getSourceCompatibility();
-    }
-
-    public JavaVersion getRawTargetCompatibility() {
-        return targetCompat;
+        return extension.getTargetCompatibility();
     }
 
     @Override
     public void setTargetCompatibility(Object value) {
-        setTargetCompatibility(JavaVersion.toVersion(value));
+        extension.setTargetCompatibility(value);
     }
 
     @Override
     public void setTargetCompatibility(JavaVersion value) {
-        targetCompat = value;
+        extension.setTargetCompatibility(value);
     }
 
     @Override
     public Manifest manifest() {
-        return manifest(Actions.doNothing());
+        return extension.manifest();
     }
 
     @Override
     public Manifest manifest(Closure closure) {
-        return configure(closure, createManifest());
+        return extension.manifest(closure);
     }
 
     @Override
     public Manifest manifest(Action<? super Manifest> action) {
-        Manifest manifest = createManifest();
-        action.execute(manifest);
-        return manifest;
-    }
-
-    private Manifest createManifest() {
-        return new DefaultManifest(project.getFileResolver());
+        return extension.manifest(action);
     }
 
     @Override
     public String getDocsDirName() {
-        return docsDirName;
+        return relativePath(project.getLayout().getBuildDirectory(), extension.getDocsDir());
     }
 
     @Override
     public void setDocsDirName(String docsDirName) {
-        this.docsDirName = docsDirName;
+        extension.getDocsDir().set(project.getLayout().getBuildDirectory().dir(docsDirName));
     }
 
     @Override
     public String getTestResultsDirName() {
-        return testResultsDirName;
+        return relativePath(project.getLayout().getBuildDirectory(), extension.getTestResultsDir());
     }
 
     @Override
     public void setTestResultsDirName(String testResultsDirName) {
-        this.testResultsDirName = testResultsDirName;
+        extension.getTestResultsDir().set(project.getLayout().getBuildDirectory().dir(testResultsDirName));
     }
 
     @Override
     public String getTestReportDirName() {
-        return testReportDirName;
+        return relativePath(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory(), extension.getTestReportDir());
     }
 
     @Override
     public void setTestReportDirName(String testReportDirName) {
-        this.testReportDirName = testReportDirName;
+        extension.getTestReportDir().set(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(testReportDirName));
     }
 
     @Override
     public SourceSetContainer getSourceSets() {
-        return sourceSets;
+        return extension.getSourceSets();
     }
 
     @Override
@@ -200,11 +156,22 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public void disableAutoTargetJvm() {
-        this.autoTargetJvm = false;
+        extension.disableAutoTargetJvm();
     }
 
     @Override
     public boolean getAutoTargetJvmDisabled() {
-        return !autoTargetJvm;
+        return extension.getAutoTargetJvmDisabled();
+    }
+
+    private File getReportsDir() {
+        // This became public API by accident as Groovy has access to private methods and we show an example in our docs
+        // see subprojects/docs/src/snippets/java/customDirs/groovy/build.gradle
+        // and https://docs.gradle.org/current/userguide/java_testing.html#test_reporting
+        return project.getExtensions().getByType(ReportingExtension.class).getBaseDir();
+    }
+
+    private static String relativePath(DirectoryProperty from, DirectoryProperty to) {
+        return RelativePathUtil.relativePath(from.get().getAsFile(), to.get().getAsFile());
     }
 }

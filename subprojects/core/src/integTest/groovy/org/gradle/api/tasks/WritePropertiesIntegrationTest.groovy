@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-import static org.gradle.util.GUtil.loadProperties
+import static org.gradle.util.internal.GUtil.loadProperties
 
 class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "empty properties are written properly"() {

@@ -9,7 +9,7 @@ import com.nhaarman.mockito_kotlin.verify
 import groovy.lang.Closure
 import groovy.lang.GroovyObject
 
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 
 import org.gradle.kotlin.dsl.support.uncheckedCast
 

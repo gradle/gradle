@@ -17,7 +17,7 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousIntegrationTest {
     def workerDaemonIdentityFileName = "build/workerId"

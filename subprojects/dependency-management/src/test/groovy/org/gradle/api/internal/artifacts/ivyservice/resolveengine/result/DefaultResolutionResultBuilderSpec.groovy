@@ -33,7 +33,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
-import static org.gradle.util.CollectionUtils.first
+import static org.gradle.util.internal.CollectionUtils.first
 
 class DefaultResolutionResultBuilderSpec extends Specification {
 

@@ -18,7 +18,7 @@ package org.gradle.testkit.runner
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE

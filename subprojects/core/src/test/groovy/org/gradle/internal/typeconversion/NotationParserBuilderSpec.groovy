@@ -19,7 +19,7 @@ package org.gradle.internal.typeconversion
 import org.gradle.internal.exceptions.DiagnosticsVisitor
 import spock.lang.Specification
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class NotationParserBuilderSpec extends Specification {
 

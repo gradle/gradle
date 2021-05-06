@@ -31,7 +31,7 @@ import org.gradle.internal.authentication.DefaultAuthenticationContainer
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.ClosureBackedAction
+import org.gradle.util.internal.ClosureBackedAction
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll

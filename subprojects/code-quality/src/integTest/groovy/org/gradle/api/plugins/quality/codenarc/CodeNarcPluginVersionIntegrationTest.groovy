@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.ToBeImplemented
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -90,8 +90,8 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         given:
         buildFile << """
             codenarcMain.reports {
-                xml.enabled true
-                text.enabled true
+                xml.required = true
+                text.required = true
             }
         """
 

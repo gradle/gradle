@@ -26,7 +26,7 @@ import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

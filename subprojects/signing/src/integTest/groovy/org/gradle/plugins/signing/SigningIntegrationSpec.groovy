@@ -23,7 +23,7 @@ import org.junit.Rule
 
 import java.nio.file.Path
 
-import static org.gradle.util.TextUtil.escapeString
+import static org.gradle.util.internal.TextUtil.escapeString
 
 abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     enum SignMethod {
@@ -43,7 +43,10 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'signing'
-            archivesBaseName = '$artifactId'
+
+            base {
+                archivesName = '$artifactId'
+            }
             group = 'sign'
             version = '$version'
         """

@@ -24,7 +24,7 @@ import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import groovy.util.CharsetToolkit;
 import org.gradle.api.GradleException;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.io.Writer;

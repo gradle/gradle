@@ -55,6 +55,7 @@ uploadArchives {
 """
 
         when:
+        expectUploadTaskDeprecationWarning("uploadArchives")
         run "uploadArchives"
 
         then:
@@ -94,6 +95,7 @@ uploadArchives {
 """
 
         when:
+        expectUploadTaskDeprecationWarning("uploadArchives")
         run "uploadArchives"
 
         then:

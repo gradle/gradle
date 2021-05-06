@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.util.ConfigureUtil.configureUsing;
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
     private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
@@ -133,10 +133,19 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     public DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction) {
         validateNotVariantAware();
         validateNoTargetConfiguration();
-        DefaultDependencyArtifact artifact = new DefaultDependencyArtifact();
+        DefaultDependencyArtifact artifact = createDependencyArtifactWithDefaults();
         configureAction.execute(artifact);
         artifact.validate();
         artifacts.add(artifact);
+        return artifact;
+    }
+
+    private DefaultDependencyArtifact createDependencyArtifactWithDefaults() {
+        DefaultDependencyArtifact artifact = new DefaultDependencyArtifact();
+        // Sets the default artifact name to this dependency name
+        // and the type to "jar" by default
+        artifact.setName(getName());
+        artifact.setType("jar");
         return artifact;
     }
 

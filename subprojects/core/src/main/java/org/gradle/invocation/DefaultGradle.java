@@ -40,6 +40,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -79,7 +80,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private Collection<IncludedBuild> includedBuilds;
-    private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
+    private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private boolean projectsLoaded;
     private Path identityPath;
     private ClassLoaderScope classLoaderScope;
@@ -261,9 +262,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Inject
     @Override
-    public TaskExecutionGraphInternal getTaskGraph() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract TaskExecutionGraphInternal getTaskGraph();
 
     @Override
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {
@@ -471,6 +470,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         }
         return classLoaderScope;
     }
+
+    @Override
+    @Inject
+    public abstract ProjectRegistry<ProjectInternal> getProjectRegistry();
 
     @Inject
     protected TextUriResourceLoader.Factory getResourceLoaderFactory() {

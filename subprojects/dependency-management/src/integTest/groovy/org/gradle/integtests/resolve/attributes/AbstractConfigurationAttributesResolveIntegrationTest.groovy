@@ -1259,7 +1259,7 @@ All of them match the consumer attributes:
                 }
                 configurations.all {
                     resolutionStrategy.dependencySubstitution {
-                        substitute module('com.acme.external:external') with project(":c")
+                        substitute module('com.acme.external:external') using project(":c")
                     }
                 }
             }

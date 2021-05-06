@@ -52,7 +52,7 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
                 p.plugins.withType(VisualStudioPlugin.class) {
                     p.tasks.withType(GenerateProjectFileTask) {
                         doFirst {
-                            def relativeToRoot = org.gradle.util.RelativePathUtil.relativePath(visualStudioProject.projectFile.location.parentFile, rootProject.projectDir).replaceAll('/', '\\\\\\\\')
+                            def relativeToRoot = org.gradle.util.internal.RelativePathUtil.relativePath(visualStudioProject.projectFile.location.parentFile, rootProject.projectDir).replaceAll('/', '\\\\\\\\')
                             if (relativeToRoot == "") {
                                 relativeToRoot = "."
                             }

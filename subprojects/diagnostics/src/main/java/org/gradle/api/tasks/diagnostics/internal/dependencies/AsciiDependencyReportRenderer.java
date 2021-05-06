@@ -32,7 +32,7 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.Collections;
 

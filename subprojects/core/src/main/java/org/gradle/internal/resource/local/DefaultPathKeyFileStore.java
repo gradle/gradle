@@ -25,8 +25,8 @@ import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.RelativePathUtil;
+import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;
 import java.util.Collections;

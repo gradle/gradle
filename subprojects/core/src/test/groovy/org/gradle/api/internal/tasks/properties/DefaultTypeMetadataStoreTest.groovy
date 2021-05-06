@@ -67,7 +67,7 @@ import java.lang.annotation.Annotation
 
 import static ModifierAnnotationCategory.NORMALIZATION
 import static org.gradle.internal.reflect.validation.Severity.WARNING
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeMetadataStoreTest extends Specification implements ValidationMessageChecker {
     static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
@@ -204,7 +204,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == [dummyValidationProblem('DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation', null, 'type is broken', 'Test').trim()]
+        collectProblems(typeMetadata) == [dummyValidationProblem(TypeWithCustomAnnotation.canonicalName, null, 'type is broken', 'Test').trim()]
     }
 
     @Unroll

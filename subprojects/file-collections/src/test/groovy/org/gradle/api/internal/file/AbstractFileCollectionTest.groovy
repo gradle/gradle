@@ -24,13 +24,13 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
 
 import static org.gradle.util.Matchers.isEmpty
-import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.gradle.util.WrapUtil.toList
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.internal.WrapUtil.toLinkedSet
+import static org.gradle.util.internal.WrapUtil.toList
+import static org.gradle.util.internal.WrapUtil.toSet
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.core.IsInstanceOf.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat

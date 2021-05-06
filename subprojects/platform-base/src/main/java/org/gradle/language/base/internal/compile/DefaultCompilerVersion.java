@@ -18,7 +18,7 @@ package org.gradle.language.base.internal.compile;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.language.base.compile.CompilerVersion;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 @NonNullApi
 public class DefaultCompilerVersion implements CompilerVersion {

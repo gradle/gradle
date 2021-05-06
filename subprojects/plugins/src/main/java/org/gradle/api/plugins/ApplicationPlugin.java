@@ -199,7 +199,8 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private FileCollection runtimeClasspath(Project project) {
-        return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+
+        return project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
     }
 
     private FileCollection jarsOnlyRuntimeClasspath(Project project) {

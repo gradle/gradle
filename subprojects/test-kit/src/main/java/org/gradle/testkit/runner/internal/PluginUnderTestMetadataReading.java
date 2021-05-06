@@ -17,7 +17,7 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.testkit.runner.InvalidPluginMetadataException;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.net.URL;

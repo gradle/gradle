@@ -19,7 +19,7 @@ package org.gradle.internal.reflect;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;

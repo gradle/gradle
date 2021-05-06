@@ -17,7 +17,7 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 

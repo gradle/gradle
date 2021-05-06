@@ -31,13 +31,12 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
@@ -90,12 +89,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration selectedConfiguration) {
-        List<String> alternatives = selectedConfiguration.getConsumptionAlternatives();
-        if (alternatives != null) {
-            DeprecationLogger.deprecateConfiguration(selectedConfiguration.getName()).forConsumption().replaceWith(alternatives)
-                .willBecomeAnErrorInGradle8()
-                .withUserManual("java_library_plugin", "sec:java_library_configurations_graph")
-                .nagUser();
+        DeprecationMessageBuilder.WithDocumentation consumptionDeprecation = selectedConfiguration.getConsumptionDeprecation();
+        if (consumptionDeprecation != null) {
+            consumptionDeprecation.nagUser();
         }
     }
 

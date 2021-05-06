@@ -17,7 +17,7 @@
 package org.gradle.internal.typeconversion
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 class DefaultTypeConverterTest extends Specification {

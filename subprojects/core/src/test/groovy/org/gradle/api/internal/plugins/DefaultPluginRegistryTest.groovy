@@ -24,7 +24,7 @@ import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Specification
 

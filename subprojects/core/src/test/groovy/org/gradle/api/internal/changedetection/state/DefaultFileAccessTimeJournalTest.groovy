@@ -33,7 +33,7 @@ import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTim
 import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.FILE_ACCESS_PROPERTIES_FILE_NAME
 import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.INCEPTION_TIMESTAMP_KEY
 import static org.gradle.cache.internal.DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME
-import static org.gradle.util.GUtil.loadProperties
+import static org.gradle.util.internal.GUtil.loadProperties
 
 class DefaultFileAccessTimeJournalTest extends Specification {
 

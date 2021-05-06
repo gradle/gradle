@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.s3.fixtures
 
-import com.amazonaws.services.s3.model.CompleteMultipartUploadResult
+
 import groovy.xml.StreamingMarkupBuilder
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
@@ -25,7 +25,7 @@ import org.gradle.integtests.resource.s3.fixtures.stub.StubRequest
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.joda.time.DateTimeZone
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter

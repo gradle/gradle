@@ -141,19 +141,19 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         "1.9"      | "2.0"         | 'projectId("ModuleC")'                | true                 | null  | ''
         "2.0"      | "2.0"         | 'projectId("ModuleC")'                | true                 | null  | ''
         "2.1"      | "2.0"         | 'projectId("ModuleC")'                | true                 | null  | ''
-        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:1.9')"
-        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:2.0')"
-        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | false                | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:2.1')"
-        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:1.9')"
-        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:2.0')"
-        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | true                 | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:2.1')"
-        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | "substitute module('myorg:ModuleC') with project(':ModuleC')"
-        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | "substitute module('myorg:ModuleC') with project(':ModuleC')"
-        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | "substitute module('myorg:ModuleC') with project(':ModuleC')"
+        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | null  | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')"
+        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | null  | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')"
+        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | false                | null  | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')"
+        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | null  | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')"
+        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | null  | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')"
+        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | true                 | null  | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')"
+        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | "substitute module('myorg:ModuleC') using project(':ModuleC')"
+        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | "substitute module('myorg:ModuleC') using project(':ModuleC')"
+        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | "substitute module('myorg:ModuleC') using project(':ModuleC')"
         "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "1.5")' | false                | '1.5' | ''
         "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | '1.9' | ''
-        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | '1.5' | "substitute module('myorg:ModuleC') with project(':ModuleC')"
-        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | '1.9' | "substitute module('myorg:ModuleC') with project(':ModuleC')"
+        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | '1.5' | "substitute module('myorg:ModuleC') using project(':ModuleC')"
+        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | '1.9' | "substitute module('myorg:ModuleC') using project(':ModuleC')"
         "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "1.5")' | true                 | '1.5' | ''
         "1.9"      | "2.0"         | 'projectId("ModuleC")'                | true                 | '1.9' | ''
     }

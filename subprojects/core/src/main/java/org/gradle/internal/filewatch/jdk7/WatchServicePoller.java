@@ -19,7 +19,7 @@ package org.gradle.internal.filewatch.jdk7;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.filewatch.FileWatcherEvent;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;

@@ -22,7 +22,7 @@ import org.gradle.api.provider.Property
 import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.spockframework.util.Assert
 import spock.lang.Unroll
 

@@ -94,8 +94,8 @@ dependencies {
 
            configurations.all {
                resolutionStrategy.dependencySubstitution {
-                   substitute module("gradle:foo") with module("gradle:bar:1.0")
-                   substitute project(":sub") with module("gradle:baz:1.0")
+                   substitute module("gradle:foo") using module("gradle:bar:1.0")
+                   substitute project(":sub") using module("gradle:baz:1.0")
                }
            }
         """

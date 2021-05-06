@@ -381,6 +381,7 @@ enum class Trigger {
     never, eachCommit, daily, weekly
 }
 
+const val GRADLE_BUILD_SMOKE_TEST_NAME = "gradleBuildSmokeTest"
 enum class SpecificBuild {
     CompileAll {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
@@ -419,7 +420,7 @@ enum class SpecificBuild {
     },
     GradleBuildSmokeTests {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "gradleBuildSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, GRADLE_BUILD_SMOKE_TEST_NAME)
         }
     },
     ConfigCacheSmokeTestsMinJavaVersion {

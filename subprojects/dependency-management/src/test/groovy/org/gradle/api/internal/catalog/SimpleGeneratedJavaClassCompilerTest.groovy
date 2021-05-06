@@ -32,7 +32,7 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes
 import spock.lang.Specification
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class SimpleGeneratedJavaClassCompilerTest extends Specification {
     @Rule

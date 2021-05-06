@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.TestDeploymentFixture
 
-import static org.gradle.util.CollectionUtils.single
+import static org.gradle.util.internal.CollectionUtils.single
 
 class DeploymentContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest {
     def fixture = new TestDeploymentFixture()

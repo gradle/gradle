@@ -19,7 +19,7 @@ package org.gradle.caching.local.internal;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 

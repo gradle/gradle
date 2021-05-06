@@ -34,7 +34,7 @@ import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.util.RelativePathUtil;
+import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;
 import java.util.ArrayList;

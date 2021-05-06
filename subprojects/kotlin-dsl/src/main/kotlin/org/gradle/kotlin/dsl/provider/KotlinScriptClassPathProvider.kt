@@ -39,7 +39,7 @@ import org.gradle.kotlin.dsl.support.isGradleKotlinDslJarName
 import org.gradle.kotlin.dsl.support.ProgressMonitor
 import org.gradle.kotlin.dsl.support.serviceOf
 
-import org.gradle.util.GFileUtils.moveFile
+import org.gradle.util.internal.GFileUtils.moveFile
 
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.internal.file.temp.TemporaryFileProvider

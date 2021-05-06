@@ -33,7 +33,7 @@ import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveM
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Resources
+import org.gradle.util.internal.Resources
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification

@@ -37,8 +37,8 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
-import org.gradle.util.BuildCommencedTimeProvider
-import org.gradle.util.GFileUtils
+import org.gradle.util.internal.BuildCommencedTimeProvider
+import org.gradle.util.internal.GFileUtils
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
@@ -61,6 +61,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Stoppable {
+
     private
     val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.DEFAULT))
 

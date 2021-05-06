@@ -19,6 +19,7 @@ package org.gradle.cache.internal
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.DefaultGradleVersion
 
 import java.util.concurrent.TimeUnit
 
@@ -28,8 +29,8 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 @CleanupTestDirectory
 trait VersionSpecificCacheCleanupFixture {
 
-    GradleVersion getCurrentVersion() {
-        GradleVersion.current()
+    DefaultGradleVersion getCurrentVersion() {
+        DefaultGradleVersion.current()
     }
 
     TestFile createVersionSpecificCacheDir(GradleVersion version, MarkerFileType type = MISSING_MARKER_FILE) {

@@ -21,12 +21,12 @@ import org.gradle.api.Project;
 
 public interface CrossProjectConfigurator {
 
-    Project project(Project project, Action<? super Project> configureAction);
+    void project(ProjectInternal project, Action<? super Project> configureAction);
 
-    void subprojects(Iterable<Project> projects, Action<? super Project> configureAction);
+    void subprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction);
 
-    void allprojects(Iterable<Project> projects, Action<? super Project> configureAction);
+    void allprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction);
 
-    Project rootProject(Project project, Action<Project> buildOperationExecutor);
+    void rootProject(ProjectInternal project, Action<? super Project> buildOperationExecutor);
 
 }

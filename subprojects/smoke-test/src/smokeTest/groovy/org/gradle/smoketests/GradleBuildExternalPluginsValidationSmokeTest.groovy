@@ -50,7 +50,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'com.diffplug.spotless',
                 'org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin',
                 'org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin',
-                'me.champeau.gradle.jmh',
+                'me.champeau.jmh',
                 'kotlin-sam-with-receiver',
                 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin',
                 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin',
@@ -71,7 +71,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
         inProject(":") {
             onPlugin('org.jetbrains.gradle.plugin.idea-ext') {
                 failsWith([
-                    (missingAnnotationMessage { type('BuildIdeArtifact').property('artifact').missingInputOrOutput().includeLink() }): ERROR,
+                    (missingAnnotationMessage { type('org.jetbrains.gradle.ext.BuildIdeArtifact').property('artifact').missingInputOrOutput().includeLink() }): ERROR,
                 ])
             }
         }

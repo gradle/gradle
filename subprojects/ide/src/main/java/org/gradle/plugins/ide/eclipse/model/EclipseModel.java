@@ -31,7 +31,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
 
-import static org.gradle.util.ConfigureUtil.configure;
+import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * DSL-friendly model of the Eclipse project information.

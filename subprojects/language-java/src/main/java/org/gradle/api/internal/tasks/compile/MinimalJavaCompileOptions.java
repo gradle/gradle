@@ -46,7 +46,8 @@ public class MinimalJavaCompileOptions implements Serializable {
     private File headerOutputDirectory;
     private String javaModuleVersion;
     private String javaModuleMainClass;
-    private File incrementalCompilationMappingFile;
+    private boolean supportsCompilerApi;
+    private boolean supportsConstantsAnalysis;
     private File previousCompilationDataFile;
 
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
@@ -180,11 +181,12 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.warnings = warnings;
     }
 
+    @Nullable
     public File getAnnotationProcessorGeneratedSourcesDirectory() {
         return annotationProcessorGeneratedSourcesDirectory;
     }
 
-    public void setAnnotationProcessorGeneratedSourcesDirectory(File annotationProcessorGeneratedSourcesDirectory) {
+    public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File annotationProcessorGeneratedSourcesDirectory) {
         this.annotationProcessorGeneratedSourcesDirectory = annotationProcessorGeneratedSourcesDirectory;
     }
 
@@ -216,20 +218,27 @@ public class MinimalJavaCompileOptions implements Serializable {
     }
 
     @Nullable
-    public File getIncrementalCompilationMappingFile() {
-        return incrementalCompilationMappingFile;
-    }
-
-    public void setIncrementalCompilationMappingFile(@Nullable File incrementalCompilationMappingFile) {
-        this.incrementalCompilationMappingFile = incrementalCompilationMappingFile;
-    }
-
-    @Nullable
     public File getPreviousCompilationDataFile() {
         return previousCompilationDataFile;
     }
 
     public void setPreviousCompilationDataFile(@Nullable File previousCompilationDataFile) {
         this.previousCompilationDataFile = previousCompilationDataFile;
+    }
+
+    public boolean supportsCompilerApi() {
+        return supportsCompilerApi;
+    }
+
+    public void setSupportsCompilerApi(boolean supportsCompilerApi) {
+        this.supportsCompilerApi = supportsCompilerApi;
+    }
+
+    public boolean supportsConstantAnalysis() {
+        return supportsConstantsAnalysis;
+    }
+
+    public void setSupportsConstantAnalysis(boolean supportsConstantsAnalysis) {
+        this.supportsConstantsAnalysis = supportsConstantsAnalysis;
     }
 }

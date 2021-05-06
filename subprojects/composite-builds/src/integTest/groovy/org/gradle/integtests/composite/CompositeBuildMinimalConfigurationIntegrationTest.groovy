@@ -55,7 +55,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         includeBuild buildB
         includeBuild buildC, """
-            substitute module("org.gradle:buildX") with project(":") // Not used
+            substitute module("org.gradle:buildX") using project(":") // Not used
 """
 
         when:
@@ -104,16 +104,16 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         includeBuild buildB
         includeBuild buildC, """
-            substitute module("org.test:buildC") with project(":")
-"""
+            substitute module("org.test:buildC") using project(":")
+        """
 
         when:
         buildB.buildFile << """
             println 'Configured buildB'
-"""
+        """
         buildC.buildFile << """
             println 'Configured buildC'
-"""
+        """
 
         and:
         if (!buildArtifacts) {
@@ -152,7 +152,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
             includeBuild buildB
         } else {
             includeBuild buildB, """
-                substitute module("org.test:buildB:") with project(":")
+                substitute module("org.test:buildB:") using project(":")
     """
         }
 

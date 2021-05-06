@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
-import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class TwoStageArtifactsCache extends AbstractArtifactsCache {
     private final AbstractArtifactsCache readOnlyCache;

@@ -22,7 +22,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-import static org.gradle.util.TextUtil.escapeString
+import static org.gradle.util.internal.TextUtil.escapeString
 
 @Issue("https://github.com/gradle/gradle/issues/1498")
 class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {

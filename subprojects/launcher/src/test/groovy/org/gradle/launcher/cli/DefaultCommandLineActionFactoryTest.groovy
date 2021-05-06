@@ -33,9 +33,9 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.CommandLineActionFactory
 import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GradleVersion
-import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.internal.DefaultGradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -217,15 +217,15 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     }
 
     def "displays version message"() {
-        def version = GradleVersion.current()
+        def version = DefaultGradleVersion.current()
         def expectedText = [
             "",
             "------------------------------------------------------------",
             "Gradle ${version.version}",
             "------------------------------------------------------------",
             "",
-            "Build time:   $version.buildTime",
-            "Revision:     $version.revision",
+            "Build time:   $version.buildTimestamp",
+            "Revision:     $version.gitRevision",
             "",
             "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
             "Groovy:       $GroovySystem.version",

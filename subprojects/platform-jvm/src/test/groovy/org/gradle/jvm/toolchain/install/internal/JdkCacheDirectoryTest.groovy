@@ -24,7 +24,7 @@ import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.LockOptions
 import org.gradle.initialization.GradleUserHomeDirProvider
-import org.gradle.util.Resources
+import org.gradle.util.internal.Resources
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification

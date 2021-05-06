@@ -301,7 +301,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
 
         buildFile << """
             configurations.conf.resolutionStrategy.dependencySubstitution {
-                substitute module("org:old") because "better foo than old" with module("org:foo:2.0")
+                substitute module("org:old") because "better foo than old" using module("org:foo:2.0")
             }
             dependencies {
                 conf('org:foo') {

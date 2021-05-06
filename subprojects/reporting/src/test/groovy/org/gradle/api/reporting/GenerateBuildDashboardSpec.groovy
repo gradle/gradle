@@ -23,7 +23,7 @@ class GenerateBuildDashboardSpec extends AbstractProjectBuilderSpec {
         setup:
         GenerateBuildDashboard task = TestUtil.create(temporaryFolder).task(GenerateBuildDashboard)
         when:
-        task.reports.html.enabled = false
+        task.reports.html.required.set(false)
         and:
         task.run()
         then:

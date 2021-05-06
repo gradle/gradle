@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
 abstract class AbstractModuleDependencySpec extends Specification {
@@ -72,7 +72,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         e.message == "Name must not be null!"
     }
 
-    def "cannot request artifact with null name"() {
+    def "artifact defaults to the dependency name"() {
         when:
         def dep = createDependency("group", "name", "version")
         dep.artifact {
@@ -80,8 +80,9 @@ abstract class AbstractModuleDependencySpec extends Specification {
         }
 
         then:
-        def e = thrown InvalidUserDataException
-        e.message == "Artifact name must not be null!"
+        dep.artifacts[0].name == 'name'
+        dep.artifacts[0].classifier == 'test'
+        dep.artifacts[0].type == 'jar'
     }
 
     void "can exclude dependencies"() {

@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.HashSet;
 import java.util.Set;

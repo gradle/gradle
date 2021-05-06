@@ -38,10 +38,12 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.util.GUtil;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -51,7 +53,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
-    private final List<Object> source = new ArrayList<Object>();
+    private final List<Object> source = new ArrayList<>();
     private final String name;
     private final String displayName;
     private final FileCollectionFactory fileCollectionFactory;
@@ -88,7 +90,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     @Override
     public Set<File> getSrcDirs() {
-        Set<File> dirs = new LinkedHashSet<File>();
+        Set<File> dirs = new LinkedHashSet<>();
         for (DirectoryTree tree : getSrcDirTrees()) {
             dirs.add(tree.getDir());
         }
@@ -171,17 +173,38 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     @Override
+    @Deprecated
     public File getOutputDir() {
+        DeprecationLogger.deprecateProperty(SourceDirectorySet.class, "outputDir")
+            .replaceWith("classesDirectory")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
         return destinationDirectory.getAsFile().get();
     }
 
     @Override
+    @Deprecated
     public void setOutputDir(Provider<File> provider) {
+        DeprecationLogger.deprecateMethod(SourceDirectorySet.class, "setOutputDir(Provider<File>)")
+            .withAdvice("Please use the destinationDirectory property instead.")
+            .willBeRemovedInGradle8()
+            .withDslReference(SourceDirectorySet.class, "destinationDirectory")
+            .nagUser();
+
         destinationDirectory.set(classesDirectory.fileProvider(provider));
     }
 
     @Override
+    @Deprecated
     public void setOutputDir(File outputDir) {
+        DeprecationLogger.deprecateMethod(SourceDirectorySet.class, "setOutputDir(File)")
+            .withAdvice("Please use the destinationDirectory property instead.")
+            .willBeRemovedInGradle8()
+            .withDslReference(SourceDirectorySet.class, "destinationDirectory")
+            .nagUser();
+
         destinationDirectory.set(outputDir);
     }
 
@@ -209,7 +232,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     @Override
     public Set<DirectoryTree> getSrcDirTrees() {
         // This implementation is broken. It does not consider include and exclude patterns
-        Map<File, DirectoryTree> trees = new LinkedHashMap<File, DirectoryTree>();
+        Map<File, DirectoryTree> trees = new LinkedHashMap<>();
         for (DirectoryTree tree : getSourceTrees()) {
             if (!trees.containsKey(tree.getDir())) {
                 trees.put(tree.getDir(), tree);
@@ -267,9 +290,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     @Override
     public SourceDirectorySet srcDirs(Object... srcDirs) {
-        for (Object srcDir : srcDirs) {
-            source.add(srcDir);
-        }
+        source.addAll(Arrays.asList(srcDirs));
         return this;
     }
 

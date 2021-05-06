@@ -20,7 +20,7 @@ package org.gradle.java.compile
 import org.gradle.internal.jvm.Jvm
 
 import spock.lang.IgnoreIf
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 @IgnoreIf({ !Jvm.current().getExecutable("javac").exists() })
 class CommandLineJavaCompilerForExecutableIntegrationTest extends JavaCompilerIntegrationSpec {

@@ -23,7 +23,7 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.Resources;
+import org.gradle.util.internal.Resources;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ import static org.gradle.api.internal.file.TestFiles.fileHasher;
 import static org.gradle.api.internal.file.TestFiles.fileSystem;
 import static org.gradle.api.internal.file.TestFiles.streamHasher;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
-import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.internal.WrapUtil.toList;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;

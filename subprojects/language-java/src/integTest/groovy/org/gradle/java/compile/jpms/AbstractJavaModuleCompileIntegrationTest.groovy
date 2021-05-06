@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaCompileMultiTestInterceptor
 import org.gradle.integtests.fixtures.jvm.JavaCompileTest
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 @JavaCompileTest
 abstract class AbstractJavaModuleCompileIntegrationTest extends AbstractJavaModuleIntegrationTest {

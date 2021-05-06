@@ -23,7 +23,7 @@ import org.gradle.api.tasks.testing.TestResult
 import org.slf4j.Logger
 
 import spock.lang.Specification
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class TestCountLoggerTest extends Specification {
     private final ProgressLoggerFactory factory = Mock()

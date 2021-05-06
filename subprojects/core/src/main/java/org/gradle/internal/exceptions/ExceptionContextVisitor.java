@@ -16,7 +16,7 @@
 
 package org.gradle.internal.exceptions;
 
-import org.gradle.util.TreeVisitor;
+import org.gradle.util.internal.TreeVisitor;
 
 public abstract class ExceptionContextVisitor extends TreeVisitor<Throwable> {
     protected abstract void visitCause(Throwable cause);

@@ -7,7 +7,7 @@ dependencies {
 }
 
 tasks.register('runScript', JavaExec) {
-    main = 'scope'
+    mainClass = 'scope'
     classpath = sourceSets.main.runtimeClasspath
     if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
         jvmArgs = ['--add-opens', 'java.base/java.lang=ALL-UNNAMED']

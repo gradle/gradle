@@ -89,5 +89,6 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
+        extractor.appendConfigurationToHasher(hasher);
     }
 }

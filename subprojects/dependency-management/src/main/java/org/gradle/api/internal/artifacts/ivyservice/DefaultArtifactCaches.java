@@ -27,7 +27,7 @@ import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.util.IncubationLogger;
+import org.gradle.util.internal.IncubationLogger;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -59,6 +59,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             if (baseDir != null) {
                 readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheScopeMapping, baseDir);
                 readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(cacheRepository, readOnlyCacheMetadata);
+                LOGGER.info("The read-only dependency cache is enabled \nThe {} environment variable was set to {}", READONLY_CACHE_ENV_VAR, baseDir);
             } else {
                 readOnlyCacheMetadata = null;
                 readOnlyArtifactCacheLockingManager = null;

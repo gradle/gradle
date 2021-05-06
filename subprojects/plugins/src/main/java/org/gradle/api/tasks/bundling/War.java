@@ -17,11 +17,14 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.RenamingCopyAction;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -29,9 +32,10 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.Transformers;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +52,7 @@ public class War extends Jar {
     private File webXml;
     private FileCollection classpath;
     private final DefaultCopySpec webInf;
+    private final DirectoryProperty webAppDirectory;
 
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
@@ -68,6 +73,13 @@ public class War extends Jar {
         renameSpec.into("");
         renameSpec.from((Callable<File>) War.this::getWebXml);
         renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
+
+        webAppDirectory = getObjectFactory().directoryProperty();
+    }
+
+    @Inject
+    public ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Internal
@@ -166,4 +178,19 @@ public class War extends Jar {
         this.webXml = webXml;
     }
 
+    /**
+     * Returns the app directory of the task. Added to the output web archive by default.
+     * <p>
+     * The {@code war} plugin sets the default value for all {@code War} tasks to {@code src/main/webapp} and adds it as a task input.
+     * <p>
+     * Note, that if the {@code war} plugin is not applied then this property is ignored. In that case, clients can manually set an app directory as a task input.
+     *
+     * @return The app directory.
+     * @since 7.1
+     */
+    @Incubating
+    @Internal
+    public DirectoryProperty getWebAppDirectory() {
+        return webAppDirectory;
+    }
 }

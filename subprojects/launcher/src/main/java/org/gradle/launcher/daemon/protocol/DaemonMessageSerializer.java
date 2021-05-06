@@ -93,7 +93,7 @@ public class DaemonMessageSerializer {
         registry.register(UserInputRequestEvent.class, new UserInputRequestEventSerializer());
         registry.register(PromptOutputEvent.class, new PromptOutputEventSerializer());
         registry.register(UserInputResumeEvent.class, new UserInputResumeEventSerializer());
-        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
+        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
         registry.register(ProgressEvent.class, new ProgressEventSerializer());
@@ -107,7 +107,7 @@ public class DaemonMessageSerializer {
     }
 
     private static class SuccessSerializer implements Serializer<Success> {
-        private final Serializer<Object> javaSerializer = new DefaultSerializer<Object>();
+        private final Serializer<Object> javaSerializer = new DefaultSerializer<>();
         private final Serializer<SerializedPayload> payloadSerializer = new SerializedPayloadSerializer();
 
         @Override
@@ -127,7 +127,7 @@ public class DaemonMessageSerializer {
                         encoder.writeByte((byte) 2);
                         payloadSerializer.write(encoder, result.getResult());
                     }
-                } else if (result.getFailure() != null){
+                } else if (result.getFailure() != null) {
                     encoder.writeByte((byte) 3);
                     encoder.writeBoolean(result.wasCancelled());
                     payloadSerializer.write(encoder, result.getFailure());
@@ -151,7 +151,7 @@ public class DaemonMessageSerializer {
                 case 0:
                     return new Success(null);
                 case 1:
-                    return new Success(BuildActionResult.of(new SerializedPayload(null, Collections.<byte[]>emptyList())));
+                    return new Success(BuildActionResult.of(new SerializedPayload(null, Collections.emptyList())));
                 case 2:
                     SerializedPayload result = payloadSerializer.read(decoder);
                     return new Success(BuildActionResult.of(result));
@@ -190,7 +190,7 @@ public class DaemonMessageSerializer {
     }
 
     private static class BuildEventSerializer implements Serializer<BuildEvent> {
-        private final Serializer<Object> payloadSerializer = new DefaultSerializer<Object>();
+        private final Serializer<Object> payloadSerializer = new DefaultSerializer<>();
 
         @Override
         public void write(Encoder encoder, BuildEvent buildEvent) throws Exception {
@@ -284,7 +284,7 @@ public class DaemonMessageSerializer {
 
         BuildActionParametersSerializer() {
             logLevelSerializer = new BaseSerializerFactory().getSerializerFor(LogLevel.class);
-            classPathSerializer = new ListSerializer<File>(FILE_SERIALIZER);
+            classPathSerializer = new ListSerializer<>(FILE_SERIALIZER);
         }
 
         @Override
@@ -294,7 +294,6 @@ public class DaemonMessageSerializer {
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, parameters.getEnvVariables());
             logLevelSerializer.write(encoder, parameters.getLogLevel());
             encoder.writeBoolean(parameters.isUseDaemon()); // Can probably skip this
-            encoder.writeBoolean(parameters.isContinuous());
             classPathSerializer.write(encoder, parameters.getInjectedPluginClasspath().getAsFiles());
         }
 
@@ -305,9 +304,8 @@ public class DaemonMessageSerializer {
             Map<String, String> envVariables = NO_NULL_STRING_MAP_SERIALIZER.read(decoder);
             LogLevel logLevel = logLevelSerializer.read(decoder);
             boolean useDaemon = decoder.readBoolean();
-            boolean continuous = decoder.readBoolean();
             ClassPath classPath = DefaultClassPath.of(classPathSerializer.read(decoder));
-            return new DefaultBuildActionParameters(sysProperties, envVariables, currentDir, logLevel, useDaemon, continuous, classPath);
+            return new DefaultBuildActionParameters(sysProperties, envVariables, currentDir, logLevel, useDaemon, classPath);
         }
     }
 

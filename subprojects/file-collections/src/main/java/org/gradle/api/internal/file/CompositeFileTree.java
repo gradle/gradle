@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
-import static org.gradle.util.ConfigureUtil.configure;
+import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * A {@link FileTree} that contains the union of zero or more file trees.

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -50,7 +49,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     }
 
     @Override
-    public void afterStart(GradleInternal gradle) {
+    public void afterStart() {
         updateOnStartBuild();
         currentTimestamp = currentTimestamp();
     }
@@ -71,7 +70,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     }
 
     @Override
-    public void beforeComplete(GradleInternal gradle) {
+    public void beforeComplete() {
         updateOnFinishBuild();
         synchronized (lock) {
             try {

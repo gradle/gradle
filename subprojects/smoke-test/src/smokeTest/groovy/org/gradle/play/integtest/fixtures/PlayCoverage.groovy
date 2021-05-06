@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.fixtures
 
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.JavaVersion.current
 

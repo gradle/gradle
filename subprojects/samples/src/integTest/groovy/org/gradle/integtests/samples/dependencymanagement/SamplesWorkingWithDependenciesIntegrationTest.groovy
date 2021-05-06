@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationSpec {
 

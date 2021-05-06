@@ -24,7 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Actions;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
 

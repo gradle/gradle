@@ -17,7 +17,7 @@
 package org.gradle.workers.fixtures
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class WorkerExecutorFixture {
     public static final ISOLATION_MODES = ["'noIsolation'", "'classLoaderIsolation'", "'processIsolation'"]

@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 public class ResourceDirsGenerator implements BuildContentGenerator {
 

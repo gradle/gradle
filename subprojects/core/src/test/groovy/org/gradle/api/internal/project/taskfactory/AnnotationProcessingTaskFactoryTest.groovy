@@ -670,8 +670,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, false, e,
-            missingValueMessage { type('AnnotationProcessingTasks.TaskWithNestedBeanWithPrivateClass').property('bean.inputFile').includeLink() },
-            ignoredAnnotationOnField {type('AnnotationProcessingTasks.Bean2').property('inputFile2').annotatedWith('InputFile').includeLink() })
+            missingValueMessage { type(TaskWithNestedBeanWithPrivateClass.canonicalName).property('bean.inputFile').includeLink() },
+            ignoredAnnotationOnField {type(Bean2.canonicalName).property('inputFile2').annotatedWith('InputFile').includeLink() })
     }
 
     @ValidationTestFor(

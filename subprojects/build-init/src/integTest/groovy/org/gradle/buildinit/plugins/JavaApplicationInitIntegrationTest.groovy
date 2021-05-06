@@ -56,7 +56,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("some.thing.AppTest", "testAppHasAGreeting")
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
 
         when:
         run("run")
@@ -152,14 +152,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        switch (testFramework) {
-            case BuildInitTestFramework.JUNIT:
-                assertTestPassed("my.app.AppTest", "testAppHasAGreeting")
-                break
-            case BuildInitTestFramework.TESTNG:
-                assertTestPassed("my.app.AppTest", "appHasAGreeting")
-                break
-        }
+        assertTestPassed("my.app.AppTest", "appHasAGreeting")
 
         when:
         run("run")

@@ -72,7 +72,7 @@ public class TestNGTestFramework implements TestFramework {
         new DslObject(options).getConventionMapping().map("outputDirectory", new Callable<File>() {
             @Override
             public File call() {
-                return html.getDestination();
+                return html.getOutputLocation().getAsFile().getOrNull();
             }
         });
     }

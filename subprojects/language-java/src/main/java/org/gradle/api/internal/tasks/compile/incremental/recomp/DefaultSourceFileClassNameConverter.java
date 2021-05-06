@@ -16,36 +16,39 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import com.google.common.collect.Multimap;
-
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 public class DefaultSourceFileClassNameConverter implements SourceFileClassNameConverter {
-    private final Multimap<String, String> sourceClassesMapping;
-    private final Map<String, String> classSourceMapping;
+    private final Map<String, Set<String>> sourceClassesMapping;
+    private final Map<String, Set<String>> classSourceMapping;
 
-    public DefaultSourceFileClassNameConverter(Multimap<String, String> sourceClassesMapping) {
+    public DefaultSourceFileClassNameConverter(Map<String, Set<String>> sourceClassesMapping) {
         this.sourceClassesMapping = sourceClassesMapping;
         this.classSourceMapping = constructReverseMapping(sourceClassesMapping);
     }
 
-    private Map<String, String> constructReverseMapping(Multimap<String, String> sourceClassesMapping) {
-        return sourceClassesMapping.entries().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    private Map<String, Set<String>> constructReverseMapping(Map<String, Set<String>> sourceClassesMapping) {
+        Map<String, Set<String>> reverse = new HashMap<>();
+        for (Map.Entry<String, ? extends Collection<String>> entry : sourceClassesMapping.entrySet()) {
+            for (String cls : entry.getValue()) {
+                reverse.computeIfAbsent(cls, key -> new HashSet<>()).add(entry.getKey());
+            }
+        }
+        return reverse;
     }
 
     @Override
     public Collection<String> getClassNames(String sourceFileRelativePath) {
-        return sourceClassesMapping.get(sourceFileRelativePath);
+        return sourceClassesMapping.getOrDefault(sourceFileRelativePath, Collections.emptySet());
     }
 
-    public boolean isEmpty() {
-        return classSourceMapping.isEmpty();
+    public Collection<String> getRelativeSourcePaths(String fqcn) {
+        return classSourceMapping.getOrDefault(fqcn, Collections.emptySet());
     }
 
-    public Optional<String> getRelativeSourcePath(String fqcn) {
-        return Optional.ofNullable(classSourceMapping.get(fqcn));
-    }
 }

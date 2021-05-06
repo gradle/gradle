@@ -33,7 +33,7 @@ public interface DirectoryReport extends ConfigurableReport {
      * This can be the index.html file in a HTML report
      *
      * @return the entry point of the report or
-     * {@link org.gradle.api.reporting.DirectoryReport#getDestination()}
+     * {@link DirectoryReport#getOutputLocation()}
      * if no entry point defined
      *
      */

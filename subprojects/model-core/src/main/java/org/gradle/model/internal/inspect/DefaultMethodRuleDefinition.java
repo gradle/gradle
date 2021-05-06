@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.util.CollectionUtils.findFirst;
+import static org.gradle.util.internal.CollectionUtils.findFirst;
 
 @ThreadSafe
 public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinition<R, S> {

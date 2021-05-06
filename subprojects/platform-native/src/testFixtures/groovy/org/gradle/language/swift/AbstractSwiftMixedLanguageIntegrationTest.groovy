@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.StaticLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 import static org.junit.Assume.assumeTrue
 
@@ -41,7 +41,7 @@ class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec 
         assumeTrue(cppToolChain != null)
 
         File initScript = file("init.gradle") << """
-        allprojects { p ->        
+        allprojects { p ->
             p.plugins.withType(${swiftToolChain.pluginClass}) {
                 model {
                     toolChains {

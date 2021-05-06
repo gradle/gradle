@@ -22,7 +22,7 @@ import org.gradle.api.plugins.ProjectReportsPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.internal.WrapUtil;
 
 import java.io.File;
 import java.util.Set;

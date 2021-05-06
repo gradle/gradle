@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
@@ -44,18 +45,27 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
 
 ) : DefaultTask(), SharedAccessorsPackageAware {
 
+    private
+    companion object {
+        const val kotlinModuleName = "precompiled-script-plugin-plugins"
+    }
+
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
-    @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    val sourceFiles: SourceDirectorySet = project.objects.sourceDirectorySet(
-        "precompiled-script-plugin-plugins",
+    @Transient
+    private
+    val sourceDirectorySet: SourceDirectorySet = project.objects.sourceDirectorySet(
+        kotlinModuleName,
         "Precompiled script plugin plugins"
     )
 
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    val sourceFiles: FileTree = sourceDirectorySet
+
     fun sourceDir(dir: Provider<Directory>) {
-        sourceFiles.srcDir(dir)
+        sourceDirectorySet.srcDir(dir)
     }
 
     @TaskAction
@@ -65,7 +75,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
             if (scriptFiles.isNotEmpty())
                 compileKotlinScriptModuleTo(
                     outputDir,
-                    sourceFiles.name,
+                    kotlinModuleName,
                     scriptFiles,
                     scriptDefinitionFromTemplate(
                         CompiledKotlinPluginsBlock::class,

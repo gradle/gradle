@@ -17,7 +17,7 @@
 package org.gradle.testing.fixture
 
 import org.gradle.api.JavaVersion
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 class GroovyCoverage {
     private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8']

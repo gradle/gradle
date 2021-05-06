@@ -58,7 +58,7 @@ abstract class CodeNarcInvoker {
                         } else {
                             setLifecycleLogLevel(ant, null)
                             report(type: r.name) {
-                                option(name: 'outputFile', value: r.destination)
+                                option(name: 'outputFile', value: r.outputLocation.asFile.get())
                             }
                         }
                     }
@@ -74,7 +74,7 @@ abstract class CodeNarcInvoker {
                     def message = "CodeNarc rule violations were found."
                     def report = reports.firstEnabled
                     if (report && report.name != 'console') {
-                        def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                        def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.outputLocation.asFile.get())
                         message += " See the report at: $reportUrl"
                     }
                     if (ignoreFailures) {

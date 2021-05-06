@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.SystemProperties
-import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -40,7 +40,7 @@ class DefaultStandardOutputRedirectorTest extends Specification {
         System.out == outputs.stdOutPrintStream
         System.err == outputs.stdErrPrintStream
     }
-    
+
     def startAndStopRedirectsStdOut() {
         when:
         redirector.redirectStandardOutputTo(stdOutListener)

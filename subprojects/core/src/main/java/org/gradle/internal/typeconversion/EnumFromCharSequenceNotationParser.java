@@ -17,7 +17,7 @@
 package org.gradle.internal.typeconversion;
 
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.ArrayList;
 import java.util.List;

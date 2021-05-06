@@ -24,7 +24,7 @@ import org.junit.Test
 import static org.hamcrest.CoreMatchers.*
 import static org.junit.Assert.*
 
-import org.gradle.util.MultithreadedTestRule
+import org.gradle.util.internal.MultithreadedTestRule
 
 class LongIdGeneratorTest {
     private final LongIdGenerator generator = new LongIdGenerator()

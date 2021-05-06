@@ -19,7 +19,7 @@ package org.gradle.vcs.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 

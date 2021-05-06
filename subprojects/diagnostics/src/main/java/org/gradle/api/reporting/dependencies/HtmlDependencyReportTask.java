@@ -32,7 +32,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.util.ClosureBackedAction;
+import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -68,7 +68,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
 
     public HtmlDependencyReportTask() {
         reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this, getCallbackActionDecorator());
-        reports.getHtml().setEnabled(true);
+        reports.getHtml().getRequired().set(true);
         getOutputs().upToDateWhen(element -> false);
     }
 
@@ -122,13 +122,13 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
 
     @TaskAction
     public void generate() {
-        if (!reports.getHtml().isEnabled()) {
+        if (!reports.getHtml().getRequired().get()) {
             setDidWork(false);
             return;
         }
 
         HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
-        reporter.render(getProjects(), reports.getHtml().getDestination());
+        reporter.render(getProjects(), reports.getHtml().getOutputLocation().getAsFile().get());
 
         getProject().getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));
     }

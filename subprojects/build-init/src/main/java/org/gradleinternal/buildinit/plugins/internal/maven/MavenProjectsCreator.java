@@ -42,7 +42,7 @@ import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystemSession;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.SystemProperties;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.util.LinkedHashSet;

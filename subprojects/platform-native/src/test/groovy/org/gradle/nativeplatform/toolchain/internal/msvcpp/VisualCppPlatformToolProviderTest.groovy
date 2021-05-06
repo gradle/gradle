@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.process.internal.ExecActionFactory
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 
 class VisualCppPlatformToolProviderTest extends Specification {

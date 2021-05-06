@@ -28,7 +28,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

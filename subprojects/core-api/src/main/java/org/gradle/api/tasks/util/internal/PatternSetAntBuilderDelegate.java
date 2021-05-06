@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.AntBuilderAware;
-import org.gradle.util.AntUtil;
+import org.gradle.util.internal.AntUtil;
 
 import java.util.HashMap;
 import java.util.Map;

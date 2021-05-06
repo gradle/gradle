@@ -24,7 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.internal.Describables
 import org.gradle.util.Path
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 class DefaultProjectDependencyPublicationResolverTest extends Specification {

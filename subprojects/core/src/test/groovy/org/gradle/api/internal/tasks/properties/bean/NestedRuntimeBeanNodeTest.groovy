@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.properties.bean
 
 import org.gradle.api.Action
-import org.gradle.util.ClosureBackedAction
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ClosureBackedAction
+import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 

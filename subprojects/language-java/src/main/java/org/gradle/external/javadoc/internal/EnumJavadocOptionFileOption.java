@@ -32,7 +32,7 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.IOException;
 

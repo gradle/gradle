@@ -16,23 +16,33 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.BuildResult;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
+import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
+import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
+import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.invocation.GradleBuildController;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -40,11 +50,23 @@ import java.util.function.Function;
 
 class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
-    private final GradleLauncher gradleLauncher;
+    private final BuildLifecycleController buildLifecycleController;
+    private final DefaultBuildTreeLifecycleController buildController;
+    private boolean completed;
 
-    DefaultRootBuildState(BuildDefinition buildDefinition, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeState owner) {
+    DefaultRootBuildState(BuildDefinition buildDefinition,
+                          BuildTreeController buildTree,
+                          BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+                          ListenerManager listenerManager) {
         this.listenerManager = listenerManager;
-        this.gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, this, owner);
+        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, null, buildScopeServices);
+        IncludedBuildControllers controllers = buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class);
+        WorkerLeaseService workerLeaseService = buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class);
+        ExceptionAnalyser exceptionAnalyser = buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class);
+        BuildOperationExecutor buildOperationExecutor = buildLifecycleController.getGradle().getServices().get(BuildOperationExecutor.class);
+        BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController), buildOperationExecutor);
+        this.buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workerLeaseService, workExecutor, controllers, exceptionAnalyser);
     }
 
     @Override
@@ -68,40 +90,48 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public File getBuildRootDir() {
-        return gradleLauncher.getBuildRootDir();
+        return buildLifecycleController.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
     public void stop() {
-        gradleLauncher.stop();
+        buildLifecycleController.stop();
     }
 
     @Override
-    public <T> T run(Function<? super BuildController, T> action) {
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
-        RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
-        GradleInternal gradle = buildController.getGradle();
-        buildLifecycleListener.afterStart(gradle);
+    public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
+        if (completed) {
+            throw new IllegalStateException("Cannot run more than one action for a build.");
+        }
         try {
-            return action.apply(buildController);
+            RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
+            buildLifecycleListener.afterStart();
+            try {
+                GradleInternal gradle = buildLifecycleController.getGradle();
+                DefaultDeploymentRegistry deploymentRegistry = gradle.getServices().get(DefaultDeploymentRegistry.class);
+                gradle.addBuildListener(new InternalBuildAdapter() {
+                    @Override
+                    public void buildFinished(BuildResult result) {
+                        deploymentRegistry.buildFinished(result);
+                    }
+                });
+                return action.apply(buildController);
+            } finally {
+                buildLifecycleListener.beforeComplete();
+            }
         } finally {
-            buildLifecycleListener.beforeComplete(gradle);
+            completed = true;
         }
     }
 
     @Override
     public StartParameterInternal getStartParameter() {
-        return gradleLauncher.getGradle().getStartParameter();
+        return buildLifecycleController.getGradle().getStartParameter();
     }
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        return gradleLauncher.getGradle().getSettings();
-    }
-
-    @Override
-    public NestedBuildFactory getNestedBuildFactory() {
-        return gradleLauncher.getGradle().getServices().get(NestedBuildFactory.class);
+        return buildLifecycleController.getGradle().getSettings();
     }
 
     @Override
@@ -116,6 +146,11 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public GradleInternal getBuild() {
-        return gradleLauncher.getGradle();
+        return buildLifecycleController.getGradle();
+    }
+
+    @Override
+    public GradleInternal getMutableModel() {
+        return buildLifecycleController.getGradle();
     }
 }

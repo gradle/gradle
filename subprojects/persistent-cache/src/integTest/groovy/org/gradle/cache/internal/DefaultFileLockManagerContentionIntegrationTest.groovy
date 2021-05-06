@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
-import static org.gradle.util.TextUtil.escapeString
+import static org.gradle.util.internal.TextUtil.escapeString
 
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
     def addressFactory = new InetAddressFactory()
@@ -47,14 +47,37 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     def setup() {
         executer.withArguments("-d")
         executer.requireOwnGradleUserHomeDir().withDaemonBaseDir(file("daemonsRequestingLock")).requireDaemon()
-        buildFile << ""
+        buildFile << """
+            import org.gradle.cache.FileLockManager
+            import org.gradle.cache.internal.filelock.LockOptionsBuilder
+            
+            abstract class FileLocker extends DefaultTask {
+                @Inject
+                abstract FileLockManager getFileLockManager()
+                
+                @Inject
+                abstract ProjectLayout getProjectLayout()
+                
+                @TaskAction
+                void lockIt() {
+                    def lock
+                    try {
+                        lock = fileLockManager.lock(projectLayout.projectDirectory.file("locks/testlock").asFile, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "task file lock")
+                    } finally {
+                        lock?.close()
+                    }
+                }
+            }
+            
+            tasks.register("lock", FileLocker)
+        """
     }
 
     def cleanup() {
         socketReceiverThread?.terminate = true
     }
 
-    def "the lock holder is not hammered with ping requests for the shared fileHashes lock"() {
+    def "the lock holder is not hammered with ping requests for the shared lock"() {
         given:
         setupLockOwner()
         def pingRequestCount = 0
@@ -62,13 +85,12 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         replaceSocketReceiver { pingRequestCount++ }
 
         when:
-        def build = executer.withTasks("help").start()
+        def build = executer.withTasks("lock").start()
         def timer = Time.startTimer()
         poll(120) {
             assert (build.standardOutput =~ 'Pinged owner at port').count == 3
         }
         receivingLock.close()
-
         then:
         build.waitForFinish()
         pingRequestCount == 3 || pingRequestCount == 4
@@ -85,7 +107,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         }
 
         when:
-        def build = executer.withTasks("help").start()
+        def build = executer.withTasks("lock").start()
         poll(120) { assert requestReceived }
 
         // simulate additional requests
@@ -113,7 +135,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         setupLockOwner() { requestReceived = true }
 
         when:
-        def build = executer.withTasks("help").start()
+        def build = executer.withTasks("lock").start()
         poll(120) {
             assert requestReceived
         }
@@ -134,9 +156,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         setupLockOwner() { requestReceived = true }
 
         when:
-        def build1 = executer.withArguments("-d").withTasks("help").start()
-        def build2 = executer.withArguments("-d").withTasks("help").start()
-        def build3 = executer.withArguments("-d").withTasks("help").start()
+        def build1 = executer.withArguments("-d").withTasks("lock").start()
+        def build2 = executer.withArguments("-d").withTasks("lock").start()
+        def build3 = executer.withArguments("-d").withTasks("lock").start()
         poll(120) {
             assert requestReceived
             assertConfirmationCount(build1)
@@ -163,9 +185,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         }
 
         when:
-        def build1 = executer.withArguments("-d").withTasks("help").start()
-        def build2 = executer.withArguments("-d").withTasks("help").start()
-        def build3 = executer.withArguments("-d").withTasks("help").start()
+        def build1 = executer.withArguments("-d").withTasks("lock").start()
+        def build2 = executer.withArguments("-d").withTasks("lock").start()
+        def build3 = executer.withArguments("-d").withTasks("lock").start()
 
         then:
         poll(120) {
@@ -190,41 +212,6 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         build1.waitForFinish()
         build2.waitForFinish()
         build3.waitForFinish()
-    }
-
-    def "if the lock was released by one lock holder, but taken away again, the new lock holder is pinged once"() {
-        given:
-        def requestReceived = false
-        def lock1 = setupLockOwner() { requestReceived = true }
-
-        when:
-        def build = executer.withTasks("help").start()
-        poll(120) {
-            assert requestReceived
-            assert countPingsSent(build) == 1
-        }
-
-        requestReceived = false
-        def prevReceivingSocket = receivingSocket
-        def prevReceivingLock = receivingLock
-        lock1.close()
-        def lock2 = setupLockOwner() {
-            requestReceived = true
-        }
-        poll(120) {
-            assert requestReceived
-            assert countPingsSent(build, prevReceivingSocket) == 1
-            assert countPingsSent(build, receivingSocket) == 1
-        }
-        lock2.close()
-
-        then:
-        build.waitForFinish()
-        countPingsSent(build, prevReceivingSocket) == 1
-        countPingsSent(build, receivingSocket) == 1
-        assertConfirmationCount(build, prevReceivingSocket, prevReceivingLock)
-        assertConfirmationCount(build, receivingSocket, receivingLock)
-        assertConfirmationCount(build, prevReceivingSocket, prevReceivingLock)
     }
 
     // This test simulates a long running Zinc compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
@@ -363,7 +350,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             String getProcessDisplayName() { return "process" }
         }, receivingFileLockContentionHandler)
         receivingSocket = receivingFileLockContentionHandler.communicator.socket
-        receivingLock = fileLockManager.lock(new File(executer.gradleUserHomeDir, "caches/${executer.gradleVersion.version}/fileHashes/fileHashes"), LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "fileHashes", "", whenContended)
+        receivingLock = fileLockManager.lock(file("locks/testlock"), LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "testlock", "test holding lock", whenContended)
     }
 
 }

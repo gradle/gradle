@@ -22,6 +22,8 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
+import org.gradle.api.plugins.internal.DefaultJavaPluginExtension
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
@@ -36,14 +38,16 @@ class DefaultJavaPluginConventionTest extends Specification {
     def project = TestUtil.create(tmpDir).rootProject()
     def sourceSets = Stub(SourceSetContainer)
     def toolchainSpec = TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
+    private JavaPluginExtension extension
     private JavaPluginConvention convention
 
     def setup() {
         project.pluginManager.apply(ReportingBasePlugin)
-        convention = new DefaultJavaPluginConvention(project, sourceSets, toolchainSpec)
+        extension = new DefaultJavaPluginExtension(project, sourceSets, toolchainSpec, Stub(JvmPluginServices))
+        convention = new DefaultJavaPluginConvention(project, extension)
     }
 
-    def defaultValues() {
+    def "default values"() {
         expect:
         convention.sourceSets.is(sourceSets)
         convention.docsDirName == 'docs'
@@ -51,7 +55,7 @@ class DefaultJavaPluginConventionTest extends Specification {
         convention.testReportDirName == 'tests'
     }
 
-   def "source and targe compatibility default to curent jvm version"() {
+   def "source and target compatibility default to current jvm version"() {
         given:
         JavaVersion currentJvmVersion = JavaVersion.toVersion(System.properties["java.version"])
         expect:
@@ -59,7 +63,7 @@ class DefaultJavaPluginConventionTest extends Specification {
         convention.targetCompatibility == currentJvmVersion
     }
 
-    def 'source ansd target compatibility default to toolchain spec when it is configured'() {
+    def 'source and target compatibility default to toolchain spec when it is configured'() {
         given:
         toolchainSpec.languageVersion.set(JavaLanguageVersion.of(14))
 
@@ -69,14 +73,15 @@ class DefaultJavaPluginConventionTest extends Specification {
 
     }
 
-    def defaultDirs() {
+    def "default dirs"() {
         expect:
         checkDirs()
     }
 
-    def dynamicDirs() {
+    def "dynamic dirs"() {
         when:
         project.buildDir = project.file('mybuild')
+
         then:
         checkDirs()
     }
@@ -99,7 +104,7 @@ class DefaultJavaPluginConventionTest extends Specification {
         convention.testReportDir == new File(project.projectDir, 'other-reports-dir/other-test-dir')
     }
 
-    def targetCompatibilityDefaultsToSourceCompatibilityWhenNotSet() {
+    def "targetCompatibility defaults to sourceCompatibility when not set"() {
         when:
         convention.sourceCompatibility = '1.4'
         then:
@@ -131,7 +136,7 @@ class DefaultJavaPluginConventionTest extends Specification {
         convention.targetCompatibility == JavaVersion.VERSION_1_3
     }
 
-    def createsManifestWithFileResolvingAndValues() {
+    def "creates manifest with file resolving and values"() {
         given:
         def fileResolver = Mock(FileResolver)
         def manifestFile = tmpDir.file('file') << "key2: value2"
@@ -163,7 +168,7 @@ class DefaultJavaPluginConventionTest extends Specification {
         mergedManifest.attributes as Map == [key: 'value', 'Manifest-Version': '1.0']
     }
 
-    def createsEmptyManifest() {
+    def "creates empty manifest"() {
         expect:
         convention.manifest() instanceof DefaultManifest
     }

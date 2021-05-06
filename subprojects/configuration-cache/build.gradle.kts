@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":persistent-cache"))
     implementation(project(":plugin-use"))
     implementation(project(":plugins"))
+    implementation(project(":process-services"))
     implementation(project(":publish"))
     implementation(project(":resources"))
     implementation(project(":snapshots"))

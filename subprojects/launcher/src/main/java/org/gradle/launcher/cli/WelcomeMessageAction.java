@@ -26,7 +26,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.configuration.BuildLayoutResult;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -40,12 +39,12 @@ public class BuildSessionScopeFileTimeStampInspector extends FileTimeStampInspec
     }
 
     @Override
-    public void afterStart(GradleInternal gradle) {
+    public void afterStart() {
         updateOnStartBuild();
     }
 
     @Override
-    public void beforeComplete(GradleInternal gradle) {
+    public void beforeComplete() {
         updateOnFinishBuild();
     }
 }

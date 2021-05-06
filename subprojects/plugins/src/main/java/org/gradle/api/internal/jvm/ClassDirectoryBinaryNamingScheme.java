@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.jvm;
 
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 

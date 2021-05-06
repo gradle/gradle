@@ -80,8 +80,8 @@ import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -98,7 +98,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.factory;
-import static org.gradle.util.GUtil.uncheckedCall;
+import static org.gradle.util.internal.GUtil.uncheckedCall;
 
 /**
  * @deprecated This class will be removed in Gradle 8.0. Please use {@link org.gradle.api.DefaultTask} instead.

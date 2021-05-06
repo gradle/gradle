@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Custom task for generating the metadata for a plugin user test.

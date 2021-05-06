@@ -21,7 +21,7 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecHandle
 import spock.lang.Specification
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class ForkingGradleHandleTest extends Specification {
 

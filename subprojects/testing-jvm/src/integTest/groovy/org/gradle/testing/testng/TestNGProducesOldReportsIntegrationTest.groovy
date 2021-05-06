@@ -47,7 +47,7 @@ ${mavenCentralRepository()}
 dependencies { testImplementation 'org.testng:testng:6.3.1' }
 
 test {
-    reports.html.enabled = false
+    reports.html.required = false
     useTestNG()
 }
 """
@@ -75,7 +75,7 @@ apply plugin: 'java'
 ${mavenCentralRepository()}
 dependencies { testImplementation 'org.testng:testng:6.3.1' }
 test {
-  reports.html.enabled = false
+  reports.html.required = false
   $preConfig
   useTestNG(){
     useDefaultListeners = true

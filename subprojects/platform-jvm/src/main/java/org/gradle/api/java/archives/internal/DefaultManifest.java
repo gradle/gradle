@@ -27,7 +27,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.ClosureBackedAction;
+import org.gradle.util.internal.ClosureBackedAction;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

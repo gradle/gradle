@@ -1,7 +1,7 @@
 [[build_services]]
 = Shared Build Services
 
-Sometimes, is it useful for several tasks to share some state or resource. For example, tasks might share a cache of pre-computed values in order to do their work faster.
+Sometimes, it is useful for several tasks to share some state or resource. For example, tasks might share a cache of pre-computed values in order to do their work faster.
 Or tasks might do their work using a web service or database instance.
 
 Gradle allows you to declare _build services_ to represent this state. A build service is simply an object that holds the state for tasks to use.

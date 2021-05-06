@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.text
 
 import org.gradle.internal.SystemProperties
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 class LinePrefixingStyledTextOutputTest extends Specification {

@@ -37,7 +37,7 @@ import spock.lang.Unroll
 import javax.xml.namespace.QName
 
 import static java.util.Collections.emptySet
-import static org.gradle.util.CollectionUtils.toSet
+import static org.gradle.util.internal.CollectionUtils.toSet
 
 class ValidatingIvyPublisherTest extends Specification {
     @Rule

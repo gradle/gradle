@@ -20,7 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 
 class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {

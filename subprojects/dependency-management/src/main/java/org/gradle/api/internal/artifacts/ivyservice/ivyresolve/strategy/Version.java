@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import org.gradle.util.internal.VersionNumber;
+
 /**
  * A parsed version.
  *
- * This should be synced with {@link org.gradle.util.VersionNumber} and {@link org.gradle.util.GradleVersion} at some point.
+ * This should be synced with {@link VersionNumber} and {@link org.gradle.util.GradleVersion} at some point.
  */
 public interface Version {
     /**

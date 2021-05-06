@@ -20,7 +20,7 @@ import groovy.io.FileType
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.util.GFileUtils
+import org.gradle.util.internal.GFileUtils
 import org.intellij.lang.annotations.Language
 import spock.lang.IgnoreIf
 

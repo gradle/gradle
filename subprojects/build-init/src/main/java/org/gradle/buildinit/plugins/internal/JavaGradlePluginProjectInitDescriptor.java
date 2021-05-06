@@ -43,18 +43,21 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
 
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {
-        return BuildInitTestFramework.JUNIT;
+        return BuildInitTestFramework.JUNIT_JUPITER;
     }
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return ImmutableSet.of(BuildInitTestFramework.JUNIT);
+        return ImmutableSet.of(BuildInitTestFramework.JUNIT_JUPITER);
     }
 
     @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
-        buildScriptBuilder.testImplementationDependency("Use JUnit test framework for unit tests", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+        buildScriptBuilder.testImplementationDependency(
+            "Use JUnit Jupiter for testing.",
+            "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter")
+        );
     }
 
     @Override

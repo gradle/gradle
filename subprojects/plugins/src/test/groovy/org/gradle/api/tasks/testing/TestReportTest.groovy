@@ -31,7 +31,7 @@ class TestReportTest extends AbstractProjectBuilderSpec {
         reportTask.reportOn([[test2], test3])
 
         then:
-        reportTask.testResultDirs.files as List == [test1, test2, test3].binResultsDir
+        reportTask.testResultDirs.files as List == [test1, test2, test3]*.binaryResultsDirectory*.getAsFile()*.get()
         reportTask.testResultDirs.buildDependencies.getDependencies(reportTask) == [test1, test2, test3] as Set
     }
 
@@ -47,7 +47,7 @@ class TestReportTest extends AbstractProjectBuilderSpec {
 
     def test(String name) {
         def test = TestUtil.createTask(Test, project, name)
-        test.binResultsDir = temporaryFolder.file(name)
+        test.binaryResultsDirectory.set(temporaryFolder.file(name))
         return test
     }
 }

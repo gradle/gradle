@@ -20,12 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Namer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.NameValidator;
+import org.gradle.util.internal.NameValidator;
 
 /**
  * A {@link AbstractNamedDomainObjectContainer} that performs name validation before creating a new domain object.
  *
- * @see org.gradle.util.NameValidator#validate(String, String, String)
+ * @see NameValidator#validate(String, String, String)
  */
 public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {
 

@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collection;
+import java.util.function.Consumer;
 
 @ServiceScope(Scopes.BuildTree.class)
 public interface IncludedBuildTaskGraph {
@@ -30,7 +30,7 @@ public interface IncludedBuildTaskGraph {
     /**
      * Awaits completion of task execution, collecting any task failures into the given collection.
      */
-    void awaitTaskCompletion(Collection<? super Throwable> taskFailures);
+    void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
 
     IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath);
 

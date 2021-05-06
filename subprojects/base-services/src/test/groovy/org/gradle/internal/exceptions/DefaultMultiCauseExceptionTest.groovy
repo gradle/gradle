@@ -16,7 +16,7 @@
 
 package org.gradle.internal.exceptions
 
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 import spock.lang.Specification
 
 

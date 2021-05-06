@@ -28,7 +28,7 @@ import spock.lang.Unroll
 
 import javax.xml.parsers.DocumentBuilderFactory
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class DefaultDeploymentDescriptorTest extends Specification {
     private ObjectFactory objectFactory = TestUtil.objectFactory()

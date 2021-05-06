@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;

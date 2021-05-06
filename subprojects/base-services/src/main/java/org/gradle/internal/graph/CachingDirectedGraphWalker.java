@@ -16,7 +16,7 @@
 
 package org.gradle.internal.graph;
 
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

@@ -46,7 +46,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static com.google.common.collect.ImmutableList.copyOf
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema

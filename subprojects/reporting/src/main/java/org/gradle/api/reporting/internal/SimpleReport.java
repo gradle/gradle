@@ -23,7 +23,8 @@ import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.ConfigureUtil;
 
 import java.io.File;
 
@@ -56,7 +57,14 @@ public abstract class SimpleReport implements ConfigurableReport {
     public abstract FileSystemLocationProperty<? extends FileSystemLocation> getOutputLocation();
 
     @Override
+    @Deprecated
     public File getDestination() {
+        DeprecationLogger.deprecateProperty(Report.class, "destination")
+            .replaceWith("outputLocation")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
         return getOutputLocation().getAsFile().getOrNull();
     }
 
@@ -82,11 +90,23 @@ public abstract class SimpleReport implements ConfigurableReport {
 
     @Override
     public boolean isEnabled() {
+        DeprecationLogger.deprecateProperty(Report.class, "enabled")
+            .replaceWith("required")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
         return getRequired().get();
     }
 
     @Override
     public void setEnabled(boolean enabled) {
+        DeprecationLogger.deprecateProperty(Report.class, "enabled")
+            .replaceWith("required")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
+
         getRequired().set(enabled);
     }
 

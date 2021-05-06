@@ -96,11 +96,11 @@ public interface DependencySubstitutions {
      * configurations { main }
      * configurations.main.resolutionStrategy.dependencySubstitution {
      *   // Substitute project and module dependencies
-     *   substitute module('org.gradle:api') with project(':api')
-     *   substitute project(':util') with module('org.gradle:util:3.0')
+     *   substitute module('org.gradle:api') using project(':api')
+     *   substitute project(':util') using module('org.gradle:util:3.0')
      *
      *   // Substitute one module dependency for another
-     *   substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
+     *   substitute module('org.gradle:api:2.0') using module('org.gradle:api:2.1')
      * }
      * </pre>
      */
@@ -148,7 +148,10 @@ public interface DependencySubstitutions {
 
         /**
          * Specify the target of the substitution.
+         *
+         * @deprecated Use {@link #using(ComponentSelector)} instead. This method will be removed in Gradle 8.0.
          */
+        @Deprecated
         void with(ComponentSelector notation);
 
 

@@ -18,7 +18,7 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class JavaSourceCliIncrementalCompilationIntegrationTest extends BaseJavaSourceIncrementalCompilationIntegrationTest {
 
@@ -30,4 +30,17 @@ class JavaSourceCliIncrementalCompilationIntegrationTest extends BaseJavaSourceI
             }
         """
     }
+
+    def "changing an unused non-private constant incurs full rebuild"() {
+        source "class A { int foo() { return 2; } }", "class B { final static int x = 1;}"
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        source "class B { /* change */ }"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'B', 'A'
+    }
+
 }

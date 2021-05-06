@@ -25,7 +25,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
     static final ISOLATION_MODES = (org.gradle.workers.IsolationMode.values() - org.gradle.workers.IsolationMode.AUTO).collect { "IsolationMode.${it.toString()}" }

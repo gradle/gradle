@@ -25,7 +25,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class FileOrUriNotationConverterTest extends Specification {
 

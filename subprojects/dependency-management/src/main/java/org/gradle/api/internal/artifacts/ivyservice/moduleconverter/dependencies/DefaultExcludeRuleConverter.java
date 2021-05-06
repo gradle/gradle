@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;

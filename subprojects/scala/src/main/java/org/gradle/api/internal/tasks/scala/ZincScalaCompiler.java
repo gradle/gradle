@@ -28,7 +28,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 import sbt.internal.inc.Analysis;
 import sbt.internal.inc.ExternalLookup;
 import sbt.internal.inc.IncrementalCompilerImpl;

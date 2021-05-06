@@ -20,9 +20,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore("https://github.com/gradle/gradle-private/issues/3283")
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -31,6 +29,10 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         server.start()
 
         setupBuild(new BuildTestFile(testDirectory, "root"))
+
+        executer.beforeExecute {
+            withArguments("--max-workers=10")
+        }
     }
 
     private void setupBuild(BuildTestFile buildTestFile) {
@@ -255,7 +257,6 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         server.expectConcurrent("a.jar", "b.jar", "c.jar", "test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
 
         when:
-        executer.withArguments("--max-workers=6")
         succeeds ":resolve"
 
         then:
@@ -310,7 +311,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         server.expect(server.get("test2-2.3.jar"))
 
         when:
-        def build = executer.withArguments("--max-workers=4").withTasks(':resolve').start()
+        def build = executer.withTasks(':resolve').start()
 
         // 4 concurrent operations -> both artifacts are being downloaded and both local files are being transformed
         handle.waitForAllPendingCalls()
@@ -413,7 +414,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         server.expect("lib1.jar")
 
         when:
-        def handle = executer.withArguments("--max-workers=4", "--parallel").withTasks("app1:resolve", "app2:resolve").start()
+        def handle = executer.withArguments("--parallel").withTasks("app1:resolve", "app2:resolve").start()
         then:
         handle.waitForFinish()
     }

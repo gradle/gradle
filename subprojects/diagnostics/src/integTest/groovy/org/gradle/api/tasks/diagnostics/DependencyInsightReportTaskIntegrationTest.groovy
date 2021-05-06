@@ -585,7 +585,7 @@ org:foo:1.+ FAILED
             }
             configurations.forced.resolutionStrategy.force 'org:leaf:1.0'
             configurations.substituted.resolutionStrategy.dependencySubstitution {
-                substitute module('org:leaf') with module('org:leaf:1.0')
+                substitute module('org:leaf') using module('org:leaf:1.0')
             }
             dependencies {
                 conf 'org:foo:1.0', 'org:bar:1.0'
@@ -756,8 +756,8 @@ org:leaf:latest.integration -> 1.0
                         eachDependency { it.useVersion('1.0') }
                         eachDependency { it.useVersion('2.0'); it.because("RULE 2") }
                         dependencySubstitution {
-                            substitute module('org:foo') because "SUBSTITUTION 1" with module('org:foo:3.0')
-                            substitute module('org:foo') because "SUBSTITUTION 2" with module('org:bar:2.0')
+                            substitute module('org:foo') because "SUBSTITUTION 1" using module('org:foo:3.0')
+                            substitute module('org:foo') because "SUBSTITUTION 2" using module('org:bar:2.0')
                             all {
                                 it.useTarget('org:bar:2.0', "SUBSTITUTION 3")
                             }
@@ -899,8 +899,8 @@ org:foo:1.0 -> 2.0
             configurations {
                conf {
                   resolutionStrategy.dependencySubstitution {
-                     substitute module('org:foo') because 'foo superseded by bar' with module('org:bar:1.0')
-                     substitute module('org:baz') with module('org:baz:2.0')
+                     substitute module('org:foo') because 'foo superseded by bar' using module('org:bar:1.0')
+                     substitute module('org:baz') using module('org:baz:2.0')
                   }
                }
             }
@@ -960,8 +960,8 @@ org:foo:1.0 -> org:bar:1.0
             configurations {
                 conf {
                     resolutionStrategy.dependencySubstitution {
-                        substitute module('org:leaf') with module('org:new-leaf:77')
-                        substitute module('org:foo') with module('org:foo:2.0')
+                        substitute module('org:leaf') using module('org:new-leaf:77')
+                        substitute module('org:foo') using module('org:foo:2.0')
                     }
                 }
             }
@@ -1012,8 +1012,8 @@ org:leaf:2.0 -> org:new-leaf:77
             configurations {
                 conf {
                     resolutionStrategy.dependencySubstitution {
-                        substitute module('org:foo:1.0') because('I want to') with module('org:foo:2.0')
-                        substitute module('org:bar:1.0') because('I am not sure I want to explain') with module('org:bar:2.0')
+                        substitute module('org:foo:1.0') because('I want to') using module('org:foo:2.0')
+                        substitute module('org:bar:1.0') because('I am not sure I want to explain') using module('org:bar:2.0')
                     }
                 }
             }
@@ -1500,7 +1500,7 @@ org:middle:1.0 -> 2.0 FAILED
             configurations {
                 conf {
                     resolutionStrategy.dependencySubstitution {
-                        substitute module("org:middle") with module("org:middle:2.0+")
+                        substitute module("org:middle") using module("org:middle:2.0+")
                     }
                 }
             }
@@ -1741,7 +1741,9 @@ org:leaf2:1.0
                 group = 'org.foo'
                 version = '1.0'
             }
-            archivesBaseName = 'root'
+            base {
+                archivesBaseName = 'root'
+            }
             dependencies {
                 implementation project(":impl")
             }

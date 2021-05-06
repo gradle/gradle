@@ -21,7 +21,7 @@ import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
 import org.gradle.security.internal.BaseSignatoryProvider;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
 

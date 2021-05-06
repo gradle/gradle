@@ -8,6 +8,7 @@
             <tr><td>applicationName</td></tr>
             <tr><td>mainModule</td></tr>
             <tr><td>mainClass</td></tr>
+            <tr><td>mainClassName</td></tr>
             <tr><td>classpath</td></tr>
             <tr><td>defaultJvmOpts</td></tr>
             <tr><td>outputDir</td></tr>

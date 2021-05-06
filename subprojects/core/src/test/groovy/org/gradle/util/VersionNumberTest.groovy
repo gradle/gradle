@@ -16,6 +16,7 @@
 
 package org.gradle.util
 
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 
 class VersionNumberTest extends Specification {

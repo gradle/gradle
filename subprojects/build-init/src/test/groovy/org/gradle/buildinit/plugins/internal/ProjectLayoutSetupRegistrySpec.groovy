@@ -17,7 +17,7 @@
 package org.gradle.buildinit.plugins.internal
 
 import org.gradle.api.GradleException
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 

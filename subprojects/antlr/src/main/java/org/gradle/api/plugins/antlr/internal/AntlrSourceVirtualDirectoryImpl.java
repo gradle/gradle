@@ -22,7 +22,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 

@@ -19,7 +19,7 @@ package org.gradle.ide.fixtures
 import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GUtil
+import org.gradle.util.internal.GUtil
 
 @CompileStatic
 abstract class IdeCommandLineUtil {

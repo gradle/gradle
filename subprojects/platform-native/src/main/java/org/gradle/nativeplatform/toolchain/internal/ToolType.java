@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 // Should use stronger modelling for this and make the set of tools open, rather than hard-coding here
 public enum ToolType {

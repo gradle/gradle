@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.net.URL;
 import java.util.Properties;

@@ -20,7 +20,7 @@ import groovy.transform.ToString
 import groovy.util.slurpersupport.GPathResult
 import org.gradle.internal.Transformers
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.CollectionUtils
+import org.gradle.util.internal.CollectionUtils
 
 class IdeaModuleFixture extends IdeProjectFixture {
     private final GPathResult iml

@@ -196,7 +196,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
             task runJavaExec(type: JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath
-                main "driver.Driver"
+                mainClass = "driver.Driver"
 
                 $javaExecConfig
             }
@@ -205,7 +205,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     project.javaexec {
                         classpath = sourceSets.main.runtimeClasspath
-                        main "driver.Driver"
+                        mainClass = "driver.Driver"
 
                         $javaExecConfig
                     }
@@ -220,7 +220,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     execOps.javaexec {
                         classpath = runClasspath
-                        main "driver.Driver"
+                        mainClass = "driver.Driver"
 
                         $javaExecConfig
                     }

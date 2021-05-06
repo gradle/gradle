@@ -18,7 +18,7 @@ package org.gradle.external.javadoc.internal;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.io.IOException;
 import java.util.List;

@@ -17,7 +17,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import junit.framework.AssertionFailedError;
 import org.gradle.internal.Pair;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 import org.hamcrest.Matcher;
 
 import java.util.ArrayList;

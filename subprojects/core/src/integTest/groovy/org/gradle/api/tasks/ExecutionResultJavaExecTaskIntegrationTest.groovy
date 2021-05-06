@@ -24,11 +24,13 @@ class ExecutionResultJavaExecTaskIntegrationTest extends AbstractExecutionResult
     @Override
     protected void makeExecProject() {
         buildFile.text = """
-            apply plugin: "java"
+            plugins {
+                id("java")
+            }
 
             task run(type: JavaExec) {
                 classpath = project.layout.files(compileJava)
-                main "driver.Driver"
+                mainClass = "driver.Driver"
                 args "1"
             }
         """

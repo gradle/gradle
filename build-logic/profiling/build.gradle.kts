@@ -9,6 +9,6 @@ dependencies {
     implementation(project(":documentation"))
     implementation(project(":module-identity"))
 
-    implementation("me.champeau.gradle:jmh-gradle-plugin")
+    implementation("me.champeau.jmh:jmh-gradle-plugin")
     implementation("org.jsoup:jsoup")
 }

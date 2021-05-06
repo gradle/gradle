@@ -16,9 +16,11 @@
 
 package org.gradle.internal.service.scopes;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Attached to a service interface to indicate in which scope it is defined in.
@@ -30,6 +32,7 @@ import java.lang.annotation.RetentionPolicy;
  * @see org.gradle.internal.service.scopes.Scopes
  */
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
 @Inherited
 public @interface ServiceScope {
 

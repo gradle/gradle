@@ -21,13 +21,16 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -38,6 +41,7 @@ import java.util.Collection;
  * consumption.
  */
 @UsedByScanPlugin
+@ServiceScope(Scopes.Build.class)
 public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}
@@ -155,4 +159,5 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     @Override
     StartParameterInternal getStartParameter();
 
+    ProjectRegistry<ProjectInternal> getProjectRegistry();
 }

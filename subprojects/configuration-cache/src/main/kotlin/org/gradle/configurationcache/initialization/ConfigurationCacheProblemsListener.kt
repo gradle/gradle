@@ -20,7 +20,10 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
@@ -35,69 +38,67 @@ import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(Scopes.Build::class)
+@ServiceScope(Scopes.BuildTree::class)
 interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener
 
 
 class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
-    private val userCodeApplicationContext: UserCodeApplicationContext
+    private val userCodeApplicationContext: UserCodeApplicationContext,
+    private val configurationTimeBarrier: ConfigurationTimeBarrier
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
+        if (atConfigurationTime()) {
+            return
+        }
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 
     override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
+        if (atConfigurationTime()) {
+            return
+        }
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 
     private
     fun onTaskExecutionAccessProblem(invocationDescription: String, task: TaskInternal) {
-        val exception = InvalidUserCodeException(
-            "Invocation of '$invocationDescription' by $task at execution time is unsupported."
-        )
-        val currentApplication = userCodeApplicationContext.current()
-        val location = if (currentApplication != null) {
-            PropertyTrace.BuildLogic(currentApplication.displayName)
-        } else {
-            PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
-        }
         problems.onProblem(
-            taskExecutionAccessProblem(
-                location,
-                invocationDescription,
-                exception
+            PropertyProblem(
+                propertyTraceForTask(task),
+                StructuredMessage.build {
+                    text("invocation of ")
+                    reference(invocationDescription)
+                    text(" at execution time is unsupported.")
+                },
+                InvalidUserCodeException(
+                    "Invocation of '$invocationDescription' by $task at execution time is unsupported."
+                ),
+                documentationSection = RequirementsUseProjectDuringExecution
             )
         )
     }
 
     private
-    fun taskExecutionAccessProblem(trace: PropertyTrace, invocationDescription: String, exception: InvalidUserCodeException) =
-        PropertyProblem(
-            trace,
-            StructuredMessage.build {
-                text("invocation of ")
-                reference(invocationDescription)
-                text(" at execution time is unsupported.")
-            },
-            exception,
-            documentationSection = RequirementsUseProjectDuringExecution
-        )
+    fun propertyTraceForTask(task: TaskInternal) =
+        userCodeApplicationContext.current()
+            ?.displayName
+            ?.let(PropertyTrace::BuildLogic)
+            ?: PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-        if (listener !is InternalListener && listener !is ProjectEvaluationListener) {
-            val exception = InvalidUserCodeException(
-                "Listener registration '$invocationDescription' by $invocationSource is unsupported."
-            )
-            problems.onProblem(
-                listenerRegistrationProblem(
-                    userCodeApplicationContext.location(null),
-                    invocationDescription,
-                    exception
+        if (listener is InternalListener || listener is ProjectEvaluationListener || isBuildSrcBuild(invocationSource))
+            return
+        problems.onProblem(
+            listenerRegistrationProblem(
+                userCodeApplicationContext.location(null),
+                invocationDescription,
+                InvalidUserCodeException(
+                    "Listener registration '$invocationDescription' by $invocationSource is unsupported."
                 )
             )
-        }
+        )
     }
 
     private
@@ -105,27 +106,24 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         trace: PropertyTrace,
         invocationDescription: String,
         exception: InvalidUserCodeException
-    ) =
-        PropertyProblem(
-            trace,
-            StructuredMessage.build {
-                text("registration of listener on ")
-                reference(invocationDescription)
-                text(" is unsupported")
-            },
-            exception,
-            documentationSection = RequirementsBuildListeners
-        )
-}
+    ) = PropertyProblem(
+        trace,
+        StructuredMessage.build {
+            text("registration of listener on ")
+            reference(invocationDescription)
+            text(" is unsupported")
+        },
+        exception,
+        documentationSection = RequirementsBuildListeners
+    )
 
+    private
+    fun isBuildSrcBuild(invocationSource: Any): Boolean =
+        (invocationSource as? GradleInternal)?.run {
+            !isRootBuild && identityPath.name == BUILD_SRC
+        } ?: false
 
-class NoOpConfigurationCacheProblemsListener : ConfigurationCacheProblemsListener {
-    override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-    }
-
-    override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-    }
-
-    override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-    }
+    private
+    fun atConfigurationTime() =
+        configurationTimeBarrier.isAtConfigurationTime
 }

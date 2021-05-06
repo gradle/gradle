@@ -100,13 +100,13 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                     task.dependsOn mergeResourcesTask
                                     task.archiveBaseName = "${p.name}-${f}${bt}"
                                     task.archiveExtension = 'aar'
-                                    task.from compileTask.destinationDir
+                                    task.from compileTask.destinationDirectory
                                     task.from p.zipTree(mergeResourcesTask.outputs.files.singleFile)
                                 }
                                 def jarTask = p.tasks.create("${f}${bt.capitalize()}Jar", Jar) { task ->
                                     task.dependsOn compileTask
                                     task.archiveBaseName = "${p.name}-${f}${bt}"
-                                    task.from compileTask.destinationDir
+                                    task.from compileTask.destinationDirectory
                                 }
                                 p.artifacts.add("compile$baseName", jarTask)
                                 p.artifacts.add("_compile$baseName", aarTask)

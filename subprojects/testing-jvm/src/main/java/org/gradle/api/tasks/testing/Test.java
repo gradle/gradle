@@ -79,7 +79,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -92,7 +92,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.gradle.util.ConfigureUtil.configureUsing;
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 /**
  * Executes JUnit (3.8.x, 4.x or 5.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -101,7 +101,9 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  * The sample below shows various configuration options.
  *
  * <pre class='autoTested'>
- * apply plugin: 'java' // adds 'test' task
+ * plugins {
+ *     id 'java' // adds 'test' task
+ * }
  *
  * test {
  *   // enable TestNG support (default is JUnit)
@@ -638,7 +640,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private Set<String> getPreviousFailedTestClasses() {
-        TestResultSerializer serializer = new TestResultSerializer(getBinResultsDir());
+        TestResultSerializer serializer = new TestResultSerializer(getBinaryResultsDirectory().getAsFile().get());
         if (serializer.isHasResults()) {
             final Set<String> previousFailedTestClasses = new HashSet<String>();
             serializer.read(new Action<TestClassResult>() {
@@ -807,7 +809,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * Typically, this would be configured to use the output of a source set:
      * <pre class='autoTested'>
-     * apply plugin: 'java'
+     * plugins {
+     *     id 'java'
+     * }
      *
      * sourceSets {
      *    integrationTest {

@@ -20,7 +20,7 @@ package org.gradle.testkit.runner.enduser
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.IgnoreIf
 

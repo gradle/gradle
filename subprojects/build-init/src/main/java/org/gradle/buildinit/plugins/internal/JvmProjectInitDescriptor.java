@@ -224,8 +224,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                         "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
                         "junit:junit:" + libraryVersionProvider.getVersion("junit"))
                     .taskMethodInvocation(
-                "Use junit platform for unit tests.",
-                "test", "Test", "useJUnitPlatform");
+                        "Use JUnit Platform for unit tests.",
+                        "test", "Test", "useJUnitPlatform");
                 break;
             case TESTNG:
                 buildScriptBuilder
@@ -239,15 +239,11 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             case JUNIT_JUPITER:
                 buildScriptBuilder
                     .testImplementationDependency(
-                        "Use JUnit Jupiter API for testing.",
-                        "org.junit.jupiter:junit-jupiter-api:" + libraryVersionProvider.getVersion("junit-jupiter")
-                    ).testRuntimeOnlyDependency(
-                    "Use JUnit Jupiter Engine for testing.",
-                    "org.junit.jupiter:junit-jupiter-engine"
-                ).taskMethodInvocation(
-                    "Use junit platform for unit tests.",
-                    "test", "Test", "useJUnitPlatform"
-                );
+                        "Use JUnit Jupiter for testing.",
+                        "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter"))
+                    .taskMethodInvocation(
+                        "Use JUnit Platform for unit tests.",
+                        "test", "Test", "useJUnitPlatform");
                 break;
             case SCALATEST:
                 String scalaVersion = libraryVersionProvider.getVersion("scala");

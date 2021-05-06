@@ -17,7 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 @IntegrationTestTimeout(60)
 class WaitForCompletionWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecutorSampleIntegrationTest {

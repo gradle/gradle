@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class ContinuousBuildCancellationIntegrationTest extends AbstractContinuousIntegrationTest {
 

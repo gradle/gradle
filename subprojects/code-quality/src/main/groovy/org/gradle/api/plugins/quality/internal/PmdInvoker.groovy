@@ -25,7 +25,7 @@ import org.gradle.internal.Cast
 import org.gradle.internal.Factory
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.ConsoleRenderer
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 
 import java.lang.reflect.Field
 
@@ -132,12 +132,12 @@ abstract class PmdInvoker {
                     classpath.addToAntBuilder(ant, 'auxclasspath', FileCollection.AntType.ResourceCollection)
                 }
 
-                if (reports.html.enabled) {
-                    assert reports.html.destination.parentFile.exists()
-                    formatter(type: htmlFormat, toFile: reports.html.destination)
+                if (reports.html.required.get()) {
+                    assert reports.html.outputLocation.asFile.get().parentFile.exists()
+                    formatter(type: htmlFormat, toFile: reports.html.outputLocation.asFile.get())
                 }
-                if (reports.xml.enabled) {
-                    formatter(type: 'xml', toFile: reports.xml.destination)
+                if (reports.xml.required.get()) {
+                    formatter(type: 'xml', toFile: reports.xml.outputLocation.asFile.get())
                 }
 
                 if (consoleOutput) {
@@ -154,7 +154,7 @@ abstract class PmdInvoker {
                 def message = "$failureCount PMD rule violations were found."
                 def report = reports.firstEnabled
                 if (report) {
-                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.outputLocation.asFile.get())
                     message += " See the report at: $reportUrl"
                 }
                 if (ignoreFailures || ((failureCount as Integer) <= maxFailures)) {

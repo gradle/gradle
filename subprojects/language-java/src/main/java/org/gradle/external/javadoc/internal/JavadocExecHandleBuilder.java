@@ -21,7 +21,7 @@ import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.io.IOException;

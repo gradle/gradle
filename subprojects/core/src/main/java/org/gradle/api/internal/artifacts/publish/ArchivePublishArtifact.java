@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.util.Date;

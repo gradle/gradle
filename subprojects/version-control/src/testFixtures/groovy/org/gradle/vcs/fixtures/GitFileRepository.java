@@ -28,7 +28,7 @@ import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.gradle.api.Named;
 import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;

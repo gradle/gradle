@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -40,12 +41,12 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -157,11 +158,14 @@ public class JdkTools {
         }
 
         @Override
-        public JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, File mappingFile, CompilationSourceDirs compilationSourceDirs) {
+        public JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, Map<String, Set<String>> sourceToClassMapping, ConstantsAnalysisResult constantsAnalysisResult, CompilationSourceDirs compilationSourceDirs) {
             ensureCompilerTask();
             return DirectInstantiator.instantiate(incrementalCompileTaskClass, task,
-                (Function<File, Optional<String>>) file -> compilationSourceDirs.relativize(file),
-                (Consumer<Map<String, Collection<String>>>) mapping -> SourceClassesMappingFileAccessor.writeSourceClassesMappingFile(mappingFile, mapping));
+                (Function<File, Optional<String>>) compilationSourceDirs::relativize,
+                (Consumer<Map<String, Set<String>>>) sourceToClassMapping::putAll,
+                (BiConsumer<String, String>) constantsAnalysisResult::addPublicDependent,
+                (BiConsumer<String, String>) constantsAnalysisResult::addPrivateDependent
+            );
         }
     }
 

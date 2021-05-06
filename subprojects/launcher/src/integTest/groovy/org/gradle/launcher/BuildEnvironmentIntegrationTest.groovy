@@ -195,7 +195,7 @@ task check {
 
             task echoDefaultEncoding(type: JavaExec) {
                 classpath = project.layout.files(compileJava)
-                main "echo.EchoEncoding"
+                mainClass = "echo.EchoEncoding"
             }
         """, expectedEncoding
 

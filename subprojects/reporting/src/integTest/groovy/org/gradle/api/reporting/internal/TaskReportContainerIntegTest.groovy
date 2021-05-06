@@ -57,12 +57,12 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
                 def doStuff() {
                     reports.enabled.each {
                          if (it.outputType == Report.OutputType.FILE) {
-                             assert it.destination.parentFile.exists() && it.destination.parentFile.directory
-                             it.destination << project.value
+                             assert it.outputLocation.asFile.get().parentFile.exists() && it.outputLocation.asFile.get().parentFile.directory
+                             it.outputLocation.asFile.get() << project.value
                          } else {
-                             assert it.destination.exists() && it.destination.directory
-                             new File(it.destination, "file1") << project.value
-                             new File(it.destination, "file2") << project.value
+                             assert it.outputLocation.asFile.get().exists() && it.outputLocation.asFile.get().directory
+                             new File(it.outputLocation.asFile.get(), "file1") << project.value
+                             new File(it.outputLocation.asFile.get(), "file2") << project.value
                          }
                     }
                 }
@@ -75,8 +75,8 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
             task createReports(type: TestTask) { task ->
                 inputs.property "foo", { project.value }
                 reports.all {
-                    it.enabled true
-                    destination it.outputType == Report.OutputType.DIRECTORY ? file(it.name) : file("\$it.name/file")
+                    it.required = true
+                    outputLocation.set(it.outputType == Report.OutputType.DIRECTORY ? file(it.name) : file("\$it.name/file"))
                 }
             }
         """
@@ -103,7 +103,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            createReports.reports.file1.enabled false
+            createReports.reports.file1.required = false
         """
 
         then:
@@ -117,7 +117,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             createReports.reports.configure {
-                [dir1, dir2, file2]*.enabled false
+                [dir1, dir2, file2]*.required = false
             }
         """
 
@@ -132,9 +132,9 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
             createReports.reports.configure {
-                file1.enabled false
-                file2.enabled false
-                file2.destination file1.destination
+                file1.required = false
+                file2.required = false
+                file2.outputLocation.set(file1.outputLocation)
             }
         """
 

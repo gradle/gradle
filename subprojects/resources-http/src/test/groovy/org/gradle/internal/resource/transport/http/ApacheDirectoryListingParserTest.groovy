@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transport.http
 
 import org.gradle.api.resources.ResourceException
-import org.gradle.util.Resources
+import org.gradle.util.internal.Resources
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll

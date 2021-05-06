@@ -42,7 +42,7 @@ import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.security.internal.Fingerprint;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
-import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;

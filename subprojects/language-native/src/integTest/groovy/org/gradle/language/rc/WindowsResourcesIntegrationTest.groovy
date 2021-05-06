@@ -27,7 +27,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkInstall
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Ignore
 import spock.lang.Unroll
 

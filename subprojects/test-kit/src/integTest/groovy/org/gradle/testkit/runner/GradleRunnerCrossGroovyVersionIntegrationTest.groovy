@@ -21,7 +21,7 @@ import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.embedded })
@@ -78,7 +78,7 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile << '''
             task testGroovyVersion {
                 doLast {
-                    assert org.gradle.util.VersionNumber.parse(GroovySystem.version) > org.gradle.util.VersionNumber.parse("3.0")
+                    assert org.gradle.util.internal.VersionNumber.parse(GroovySystem.version) > org.gradle.util.internal.VersionNumber.parse("3.0")
                 }
             }
         '''

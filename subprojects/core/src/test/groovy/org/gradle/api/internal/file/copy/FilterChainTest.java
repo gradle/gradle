@@ -18,13 +18,13 @@ package org.gradle.api.internal.file.copy;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.gradle.util.TestUtil;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.internal.WrapUtil;
 import org.junit.Test;
 
 import java.io.*;
 import java.nio.charset.*;
 
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.internal.WrapUtil.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 

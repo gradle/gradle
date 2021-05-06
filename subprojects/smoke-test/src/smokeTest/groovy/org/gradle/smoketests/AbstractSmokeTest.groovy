@@ -75,7 +75,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaResolutionRules = "7.8.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0")
+        static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0", "7.0.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = Versions.of("3.3.1")
@@ -133,7 +133,7 @@ abstract class AbstractSmokeTest extends Specification {
         static artifactoryRepoOSSVersion = "6.16.0"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "5.3.0"
+        static aspectj = "5.3.3.3"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
         static undercouchDownload = Versions.of("4.1.1")

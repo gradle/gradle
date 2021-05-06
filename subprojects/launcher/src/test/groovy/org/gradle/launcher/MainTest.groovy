@@ -18,7 +18,7 @@ package org.gradle.launcher
 import org.gradle.launcher.bootstrap.CommandLineActionFactory
 import org.gradle.launcher.bootstrap.ExecutionCompleter
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory
-import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 

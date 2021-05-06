@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.diagnostics;
 
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 

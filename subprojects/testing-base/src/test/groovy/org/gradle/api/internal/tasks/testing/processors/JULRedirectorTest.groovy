@@ -20,7 +20,7 @@ import org.apache.commons.io.IOUtils
 import org.gradle.api.internal.tasks.testing.JULRedirector
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.SystemProperties
-import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 

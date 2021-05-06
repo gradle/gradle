@@ -17,7 +17,7 @@ package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Lists;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.util.List;
 

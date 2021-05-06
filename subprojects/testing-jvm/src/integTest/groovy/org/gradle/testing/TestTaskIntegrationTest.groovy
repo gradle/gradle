@@ -225,7 +225,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 void apply(Project project) {
                     project.apply plugin: 'java'
                     Test test = (Test) project.tasks.getByName("test")
-                    if (test.reports.junitXml.destination.exists()) {
+                    if (test.reports.junitXml.outputLocation.asFile.get().exists()) {
                         println 'JUnit XML report exists!'
                     }
                 }

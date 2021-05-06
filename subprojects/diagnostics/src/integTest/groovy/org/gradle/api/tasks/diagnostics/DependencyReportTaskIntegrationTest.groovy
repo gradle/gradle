@@ -787,7 +787,7 @@ compileClasspath - Compile classpath for source set 'main'.
                 }
 
                 configurations.compile.resolutionStrategy.dependencySubstitution {
-                    substitute module('org.utils:api:1.3') with project(':api2')
+                    substitute module('org.utils:api:1.3') using project(':api2')
                 }
             }
 """
@@ -873,8 +873,8 @@ compile
                 }
 
                 configurations.compile.resolutionStrategy.dependencySubstitution {
-                    substitute module('org.original:original') with module('org.other:another:0.1')
-                    substitute module('org.utils:api') with module('org.utils:api:0.1')
+                    substitute module('org.original:original') using module('org.other:another:0.1')
+                    substitute module('org.utils:api') using module('org.utils:api:0.1')
                 }
             }
 """
@@ -1068,7 +1068,9 @@ compileClasspath - Compile classpath for source set 'main'.
             subprojects {
                 configurations {
                     compile.deprecateForDeclaration('implementation')
-                    compile.deprecateForConsumption('apiElements')
+                    compile.deprecateForConsumption { builder ->
+                        builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                    }
                     compile.deprecateForResolution('compileClasspath')
                     'default' { extendsFrom compile }
                 }
@@ -1098,7 +1100,9 @@ compileClasspath - Compile classpath for source set 'main'.
             }
             configurations {
                 compileOnly.deprecateForResolution("compileClasspath")
-                compileOnly.deprecateForConsumption('apiElements')
+                compileOnly.deprecateForConsumption { builder ->
+                    builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                }
                 implementation.extendsFrom compileOnly
             }
             dependencies {

@@ -17,7 +17,7 @@
 package org.gradle.integtests.resource.gcs.fixtures.stub
 
 import groovy.transform.ToString
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 
 @ToString
 class HttpStub {

@@ -17,7 +17,7 @@
 package org.gradle.external.javadoc.internal
 
 import org.gradle.internal.SystemProperties
-import org.gradle.util.WrapUtil
+import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 import spock.lang.Subject
 

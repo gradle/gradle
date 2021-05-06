@@ -16,7 +16,8 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.util.GradleVersion
+
+import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Specification
 
 import static org.gradle.util.GradleVersion.version
@@ -93,7 +94,7 @@ class CacheVersionMappingTest extends Specification {
     def "throws exception if base version of Gradle version is greater than base version of current Gradle version"() {
         when:
         CacheVersionMapping.introducedIn("1.0")
-            .changedTo(2, GradleVersion.current().nextMajor.version)
+            .changedTo(2, DefaultGradleVersion.current().nextMajorVersion.version)
 
         then:
         def e = thrown(IllegalArgumentException)

@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Named;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 

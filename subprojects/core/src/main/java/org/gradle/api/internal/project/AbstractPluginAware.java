@@ -23,7 +23,7 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.util.Map;

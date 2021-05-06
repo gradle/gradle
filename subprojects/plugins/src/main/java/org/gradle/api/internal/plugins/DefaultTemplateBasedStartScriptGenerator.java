@@ -27,7 +27,7 @@ import org.gradle.api.resources.TextResource;
 import org.gradle.internal.io.IoUtils;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.*;
 import java.util.Map;

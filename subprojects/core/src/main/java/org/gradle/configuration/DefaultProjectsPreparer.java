@@ -19,27 +19,31 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.util.IncubationLogger;
+import org.gradle.util.internal.IncubationLogger;
 
 public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectConfigurer projectConfigurer;
+    private final BuildModelParameters buildModelParameters;
     private final ModelConfigurationListener modelConfigurationListener;
 
     public DefaultProjectsPreparer(
-            ProjectConfigurer projectConfigurer,
-            ModelConfigurationListener modelConfigurationListener,
-            BuildOperationExecutor buildOperationExecutor
+        ProjectConfigurer projectConfigurer,
+        BuildModelParameters buildModelParameters,
+        ModelConfigurationListener modelConfigurationListener,
+        BuildOperationExecutor buildOperationExecutor
     ) {
         this.projectConfigurer = projectConfigurer;
+        this.buildModelParameters = buildModelParameters;
         this.modelConfigurationListener = modelConfigurationListener;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public void prepareProjects(GradleInternal gradle) {
-        if (gradle.getStartParameter().isConfigureOnDemand()) {
+        if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
             IncubationLogger.incubatingFeatureUsed("Configuration on demand");
             projectConfigurer.configure(gradle.getRootProject());
         } else {

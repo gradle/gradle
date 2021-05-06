@@ -18,5 +18,11 @@ package org.gradle.util;
 
 // Used by https://plugins.gradle.org/plugin/nebula.dependency-recommender 9.0.1
 // https://github.com/nebula-plugins/nebula-project-plugin/commit/5f56397384328e24c506b0e2b395d1634dbf600f
+/**
+ * This class is only here to maintain binary compatibility with existing plugins.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ */
+@Deprecated
 public class SingleMessageLogger extends org.gradle.internal.deprecation.DeprecationLogger {
 }

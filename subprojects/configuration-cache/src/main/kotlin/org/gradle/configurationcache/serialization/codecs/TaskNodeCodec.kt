@@ -57,7 +57,7 @@ import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.util.DeferredUtil
+import org.gradle.util.internal.DeferredUtil
 
 
 class TaskNodeCodec(

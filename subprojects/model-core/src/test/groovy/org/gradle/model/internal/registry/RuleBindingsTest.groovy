@@ -24,7 +24,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelProjection
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.type.ModelType
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 
 class RuleBindingsTest extends RegistrySpec {
     final RuleBindings bindings = new RuleBindings()

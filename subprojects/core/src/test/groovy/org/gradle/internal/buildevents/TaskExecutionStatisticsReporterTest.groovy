@@ -18,7 +18,7 @@ package org.gradle.internal.buildevents
 
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatistics
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll

@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 @UsesNativeServices
 class BaseDirFileResolverSpec extends Specification {

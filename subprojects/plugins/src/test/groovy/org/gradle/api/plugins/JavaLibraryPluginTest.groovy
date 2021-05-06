@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.internal.WrapUtil.toSet
 
 class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
     def "applies Java plugin"() {

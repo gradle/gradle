@@ -32,7 +32,7 @@ import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAc
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceUploader;
-import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;

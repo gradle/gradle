@@ -16,17 +16,26 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 
 class DefaultBuildTreeContext implements BuildTreeContext {
     private final ServiceRegistry services;
+    private boolean completed;
 
     public DefaultBuildTreeContext(ServiceRegistry services) {
         this.services = services;
     }
 
     @Override
-    public ServiceRegistry getBuildTreeServices() {
-        return services;
+    public BuildActionRunner.Result execute(BuildAction action) {
+        if (completed) {
+            throw new IllegalStateException("Cannot run more than one action for a build tree.");
+        }
+        try {
+            return services.get(BuildTreeActionExecutor.class).execute(action, this);
+        } finally {
+            completed = true;
+        }
     }
 }

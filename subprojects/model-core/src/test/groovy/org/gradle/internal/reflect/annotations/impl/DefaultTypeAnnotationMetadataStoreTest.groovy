@@ -41,7 +41,7 @@ import java.lang.reflect.Method
 
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE
 import static org.gradle.internal.reflect.validation.Severity.ERROR
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
     private static final COLOR = { "color" } as AnnotationCategory
@@ -177,7 +177,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
             strict(ignoredAnnotationOnField {
-                type('DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation').property('property')
+                type(TypeWithFieldOnlyAnnotation.canonicalName).property('property')
                     .annotatedWith('Large')
                     .includeLink()
             })
@@ -741,10 +741,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     def "warns about annotations on non-getter methods"() {
         expect:
         assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
-            strict(methodShouldNotBeAnnotatedMessage { type('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods').kind('method').method('doSomething').annotation('Large').includeLink() }),
-            strict(methodShouldNotBeAnnotatedMessage { type('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods').kind('setter').method('setSomething').annotation('Large').includeLink() }),
-            strict(methodShouldNotBeAnnotatedMessage { type('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods').kind('static method').method('doStatic').annotation('Large').includeLink() }),
-            strict(methodShouldNotBeAnnotatedMessage { type('DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods').kind('static method').method('getStatic').annotation('Small').includeLink() }),
+            strict(methodShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedNonGetterMethods.canonicalName).kind('method').method('doSomething').annotation('Large').includeLink() }),
+            strict(methodShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedNonGetterMethods.canonicalName).kind('setter').method('setSomething').annotation('Large').includeLink() }),
+            strict(methodShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedNonGetterMethods.canonicalName).kind('static method').method('doStatic').annotation('Large').includeLink() }),
+            strict(methodShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedNonGetterMethods.canonicalName).kind('static method').method('getStatic').annotation('Small').includeLink() }),
         ]
     }
 

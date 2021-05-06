@@ -23,9 +23,9 @@ import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.report.unbound.UnboundRule
 import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import org.gradle.model.internal.report.unbound.UnboundRulesReporter
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class UnboundRulesProcessorTest extends RegistrySpec {
 

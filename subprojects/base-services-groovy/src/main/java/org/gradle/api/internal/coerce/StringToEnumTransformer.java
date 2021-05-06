@@ -18,7 +18,7 @@ package org.gradle.api.internal.coerce;
 
 import org.codehaus.groovy.reflection.CachedClass;
 import org.gradle.internal.Cast;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 public class StringToEnumTransformer implements MethodArgumentsTransformer, PropertySetTransformer {
 

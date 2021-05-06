@@ -23,7 +23,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GUtil;
 
 import java.io.BufferedWriter;
 import java.io.File;

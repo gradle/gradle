@@ -29,8 +29,16 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
-import static org.gradle.util.CollectionUtils.toStringList;
+import static org.gradle.util.internal.CollectionUtils.toStringList;
 
+/**
+ * This class is only here to maintain binary compatibility with existing plugins.
+ * <p>
+ * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ */
+@Deprecated
 public class ConfigureUtil {
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
@@ -68,6 +76,10 @@ public class ConfigureUtil {
         return configureByMap(properties, delegate);
     }
 
+    /**
+     * Incomplete input exception.
+     */
+    @Deprecated
     public static class IncompleteInputException extends RuntimeException {
         private final Collection missingKeys;
 
@@ -154,6 +166,12 @@ public class ConfigureUtil {
         new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
     }
 
+    /**
+     * Wrapper configure action.
+     *
+     * @param <T> the action type.
+     */
+    @Deprecated
     public static class WrappedConfigureAction<T> implements Action<T> {
         private final Closure configureClosure;
 

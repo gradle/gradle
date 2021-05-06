@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginDependenciesSpec;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil;
 
 abstract public class PluginsAwareScript extends DefaultScript {
 

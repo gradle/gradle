@@ -7,7 +7,7 @@ xctest {
     binaries.configureEach {
         runTask.get().configure {
             // Disable the test report for the individual test task
-            reports.html.enabled = false
+            reports.html.required = false
         }
     }
 }

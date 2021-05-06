@@ -21,8 +21,8 @@ import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
 import org.gradle.internal.Cast;
 import org.gradle.process.ExecSpec;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
+import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.io.IOException;

@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * <p>While the methods work with any Object, in general only interfaces should be used as listener types.
  *
  * <p>Implementations are thread-safe: A listener is notified by at most 1 thread at a time, and so do not need to be thread-safe. All listeners
- * of a given type received events in the same order. Listeners can be added and removed at any time.
+ * of a given type receive events in the same order. Listeners can be added and removed at any time.
  */
 @ServiceScope(Scope.Global.class)
 public interface ListenerManager {
@@ -79,7 +79,7 @@ public interface ListenerManager {
      *
      * @param listenerClass The type of listener for which to return a broadcaster.
      * @return The broadcaster that forwards method calls to all listeners of the same type that have been (or will be)
-     *         registered with this manager.
+     * registered with this manager.
      */
     <T> T getBroadcaster(Class<T> listenerClass);
 
@@ -95,7 +95,7 @@ public interface ListenerManager {
      *
      * @param listenerClass The type of listener for which to create a broadcaster.
      * @return A broadcaster that forwards method calls to all listeners assigned to it, or of the same type that have
-     *         been (or will be) registered with this manager.
+     * been (or will be) registered with this manager.
      */
     <T> AnonymousListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass);
 
@@ -106,13 +106,4 @@ public interface ListenerManager {
      * @param logger The new logger to use.
      */
     void useLogger(Object logger);
-
-    /**
-     * Creates a child {@code ListenerManager}. All events broadcast in the child will be received by the listeners
-     * registered in the parent. However, the reverse is not true: events broadcast in the parent are not received
-     * by the listeners in the children. The child inherits the loggers of its parent, though these can be replaced.
-     *
-     * @return The child
-     */
-    ListenerManager createChild(Class<? extends Scope> scope);
 }

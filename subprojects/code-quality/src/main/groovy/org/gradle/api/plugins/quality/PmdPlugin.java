@@ -24,7 +24,7 @@ import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension.setRuleSets(new ArrayList<>(Collections.singletonList("category/java/errorprone.xml")));
         extension.setRuleSetFiles(project.getLayout().files());
         conventionMappingOf(extension).map("targetJdk", () ->
-            getDefaultTargetJdk(getJavaPluginConvention().getSourceCompatibility()));
+            getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
         return extension;
     }
 

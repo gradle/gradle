@@ -19,8 +19,6 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
@@ -43,25 +41,24 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.util.VersionNumber;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.writeSourceClassesMappingFile;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
@@ -74,9 +71,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
-        static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec) {
+        static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec, ApiCompilerResult result) {
             if (spec.incrementalCompilationEnabled()) {
-                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec.getSourceRoots()), spec.getCompilationMappingFile());
+                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec), result);
             } else {
                 return new NoOpCompilationCustomizer();
             }
@@ -86,15 +83,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             super(CompilePhase.CLASS_GENERATION);
         }
 
-        abstract void writeToMappingFile();
-
         abstract void addToConfiguration(CompilerConfiguration configuration);
     }
 
     private static class NoOpCompilationCustomizer extends IncrementalCompilationCustomizer {
-        @Override
-        public void writeToMappingFile() {
-        }
 
         @Override
         public void addToConfiguration(CompilerConfiguration configuration) {
@@ -107,16 +99,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private static class TrackingClassGenerationCompilationCustomizer extends IncrementalCompilationCustomizer {
-        private final Multimap<String, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
-            .hashKeys()
-            .hashSetValues()
-            .build();
         private final CompilationSourceDirs compilationSourceDirs;
-        private final File sourceClassesMappingFile;
+        private final ApiCompilerResult result;
 
-        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, File mappingFile) {
+        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, ApiCompilerResult result) {
             this.compilationSourceDirs = compilationSourceDirs;
-            this.sourceClassesMappingFile = mappingFile;
+            this.result = result;
         }
 
         @Override
@@ -126,16 +114,11 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
         private void inspectClassNode(SourceUnit sourceUnit, ClassNode classNode) {
             String relativePath = compilationSourceDirs.relativize(new File(sourceUnit.getSource().getURI().getPath())).orElseThrow(IllegalStateException::new);
-            sourceClassesMapping.put(relativePath, classNode.getName());
+            result.getSourceClassesMapping().computeIfAbsent(relativePath, key -> new HashSet<>()).add(classNode.getName());
             Iterator<InnerClassNode> iterator = classNode.getInnerClasses();
             while (iterator.hasNext()) {
                 inspectClassNode(sourceUnit, iterator.next());
             }
-        }
-
-        @Override
-        public void writeToMappingFile() {
-            writeSourceClassesMappingFile(sourceClassesMappingFile, sourceClassesMapping);
         }
 
         @Override
@@ -153,6 +136,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
     @Override
     public WorkResult execute(final GroovyJavaJointCompileSpec spec) {
+        ApiCompilerResult result = new ApiCompilerResult();
+        result.getAnnotationProcessingResult().setFullRebuildCause("Incremental annotation processing is not supported by Groovy.");
         GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
         ClassLoader compilerClassLoader = this.getClass().getClassLoader();
         GroovySystemLoader compilerGroovyLoader = groovySystemLoaderFactory.forClassLoader(compilerClassLoader);
@@ -171,7 +156,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             throw new GradleException("Using Groovy compiler flag '--parameters' requires Groovy 2.5+ but found Groovy " + version);
         }
 
-        IncrementalCompilationCustomizer customizer = IncrementalCompilationCustomizer.fromSpec(spec);
+        IncrementalCompilationCustomizer customizer = IncrementalCompilationCustomizer.fromSpec(spec, result);
         customizer.addToConfiguration(configuration);
 
         if (spec.getGroovyCompileOptions().getConfigurationScript() != null) {
@@ -275,7 +260,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
         try {
             unit.compile();
-            customizer.writeToMappingFile();
+            return result;
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
             System.err.println(e.getMessage());
             // Explicit flush, System.err is an auto-flushing PrintWriter unless it is replaced.
@@ -289,8 +274,6 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compileClasspathLoader.shutdown();
             CompositeStoppable.stoppable(classPathLoader, astTransformClassLoader).stop();
         }
-
-        return WorkResults.didWork(true);
     }
 
     private static boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {

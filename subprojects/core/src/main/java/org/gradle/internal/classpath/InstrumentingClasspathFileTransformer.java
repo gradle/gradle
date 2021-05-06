@@ -30,7 +30,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.GFileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -111,7 +111,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
             file,
-            mode(FileLockManager.LockMode.Exclusive),
+            mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation(),
             "instrumented jar cache"
         );
     }

@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.play.integtest.fixtures.Repositories
 import org.gradle.smoketests.AbstractSmokeTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.RelativePathUtil
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.RelativePathUtil
+import org.gradle.util.internal.VersionNumber
 
 abstract class PlayApp {
     boolean oldVersion

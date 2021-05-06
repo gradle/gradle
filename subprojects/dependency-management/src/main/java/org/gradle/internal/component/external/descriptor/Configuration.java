@@ -17,7 +17,7 @@
 package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.base.Objects;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;

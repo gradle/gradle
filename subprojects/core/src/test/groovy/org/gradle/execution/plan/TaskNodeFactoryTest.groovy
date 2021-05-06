@@ -19,6 +19,7 @@ package org.gradle.execution.plan
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.build.BuildState
@@ -41,6 +42,7 @@ class TaskNodeFactoryTest extends Specification {
         services.get(BuildState) >> Stub(BuildState)
         services.get(DocumentationRegistry) >> new DocumentationRegistry()
         project.gradle >> gradle
+        project.pluginManager >> Stub(PluginManagerInternal)
 
         graph = new TaskNodeFactory(gradle, Stub(IncludedBuildTaskGraph))
     }

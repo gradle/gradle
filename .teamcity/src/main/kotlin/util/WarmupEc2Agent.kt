@@ -1,8 +1,10 @@
 package util
 
+import common.BuildToolBuildJvm
 import common.Os
 import common.buildToolGradleParameters
 import common.gradleWrapper
+import common.javaHome
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.Requirement
 import jetbrains.buildServer.configs.kotlin.v2019_2.RequirementType
@@ -25,7 +27,7 @@ object WarmupEc2Agent : BuildType({
 
     params {
         param("defaultBranchName", "master")
-        param("env.JAVA_HOME", Os.LINUX.javaHomeForGradle())
+        param("env.JAVA_HOME", javaHome(BuildToolBuildJvm, Os.LINUX))
     }
 
     steps {
@@ -33,7 +35,7 @@ object WarmupEc2Agent : BuildType({
             name = "Resolve all dependencies"
             tasks = "resolveAllDependencies"
             gradleParams = (
-                buildToolGradleParameters(isContinue = false)
+                buildToolGradleParameters(isContinue = false) + listOf("--dependency-verification", "lenient")
                 ).joinToString(separator = " ")
         }
     }

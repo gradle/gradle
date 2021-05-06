@@ -25,7 +25,7 @@ import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.Path
 import spock.lang.Specification
 
-import static org.gradle.util.WrapUtil.toList
+import static org.gradle.util.internal.WrapUtil.toList
 
 public class DryRunBuildExecutionActionTest extends Specification {
     private static final String EOL = SystemProperties.instance.lineSeparator

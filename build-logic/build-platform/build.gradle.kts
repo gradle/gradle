@@ -14,14 +14,14 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 dependencies {
     constraints {
         // Gradle Plugins
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.6")
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.6.1")
         // Keep version with `settings.gradle.kts` in sync
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.0.2")
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.0.3-rc-2")
         api("org.gradle.guides:gradle-guides-plugin:0.18.0")
         api("com.gradle.publish:plugin-publish-plugin:0.14.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
-        api("me.champeau.gradle:jmh-gradle-plugin:0.5.3")
+        api("me.champeau.jmh:jmh-gradle-plugin:0.6.4")
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
         api("org.gradle:test-retry-gradle-plugin:1.2.0")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }

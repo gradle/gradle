@@ -17,8 +17,8 @@
 package org.gradle.configurationcache
 
 
-import static org.gradle.util.GFileUtils.deleteDirectory
-import static org.gradle.util.GFileUtils.listFiles
+import static org.gradle.util.internal.GFileUtils.deleteDirectory
+import static org.gradle.util.internal.GFileUtils.listFiles
 
 class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 

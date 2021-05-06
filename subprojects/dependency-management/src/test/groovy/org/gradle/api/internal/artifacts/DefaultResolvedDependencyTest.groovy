@@ -30,7 +30,7 @@ import spock.lang.Specification
 import static com.google.common.collect.Iterables.concat
 import static com.google.common.collect.Sets.newHashSet
 import static org.gradle.util.Matchers.strictlyEquals
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.internal.WrapUtil.toSet
 
 class DefaultResolvedDependencyTest extends Specification {
     private BuildOperationExecutor buildOperationProcessor = new TestBuildOperationExecutor()

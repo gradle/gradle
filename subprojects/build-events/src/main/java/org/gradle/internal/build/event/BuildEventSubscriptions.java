@@ -16,23 +16,26 @@
 
 package org.gradle.internal.build.event;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.tooling.events.OperationType;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Set;
 
 /**
  * Provides information about what events the build client is interested in.
  */
-public class BuildEventSubscriptions implements Serializable {
+public class BuildEventSubscriptions {
 
     private final Set<OperationType> operationTypes;
 
     public BuildEventSubscriptions(Set<OperationType> operationTypes) {
-        this.operationTypes = EnumSet.copyOf(operationTypes);
+        this.operationTypes = ImmutableSet.copyOf(operationTypes);
+    }
+
+    public Set<OperationType> getOperationTypes() {
+        return operationTypes;
     }
 
     public boolean isRequested(OperationType workItem) {

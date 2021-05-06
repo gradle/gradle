@@ -16,6 +16,7 @@
 
 package org.gradle.util
 
+import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -43,7 +44,7 @@ class GradleVersionTest extends Specification {
     def "current version has non-null parts"() {
         expect:
         version.version
-        version.nextMajor
+        version.nextMajorVersion
         version.baseVersion
     }
 
@@ -56,7 +57,7 @@ class GradleVersionTest extends Specification {
     def "build time should always print in UTC"() {
         expect:
         // Note: buildTime is null when running a local build
-        version.buildTime == null || version.buildTime.endsWith("UTC")
+        version.buildTimestamp == null || version.buildTimestamp.endsWith("UTC")
     }
 
     def equalsAndHashCode() {
@@ -235,7 +236,7 @@ class GradleVersionTest extends Specification {
 
     def "can get next major version"() {
         expect:
-        GradleVersion.version(v).nextMajor == GradleVersion.version(major)
+        DefaultGradleVersion.version(v).nextMajorVersion == GradleVersion.version(major)
 
         where:
         v                                     | major

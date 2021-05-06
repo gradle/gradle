@@ -20,7 +20,7 @@ import org.gradle.api.Namer
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.specs.Spec
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.ConfigureUtil
+import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.TestUtil
 
 class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectionSpec<Bean> {

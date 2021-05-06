@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.userinput
 
 
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.EOF
@@ -48,14 +48,14 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
                     println "result = " + handler.askYesNoQuestion("thing?", true)
                 }
             }
-            
+
             task selectOption {
                 doLast {
                     def handler = services.get(${UserInputHandler.name})
                     println "result = " + handler.selectOption("select thing", ["a", "b", "c"], "b")
                 }
             }
-            
+
             task ask {
                 doLast {
                     def handler = services.get(${UserInputHandler.name})

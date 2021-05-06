@@ -263,7 +263,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
             execOperations.javaexec {
                 executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
                 classpath(parameters.classpath)
-                main 'org.gradle.TestMain'
+                mainClass = 'org.gradle.TestMain'
                 args parameters.projectDir, parameters.testFile
             }
         """

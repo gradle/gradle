@@ -18,7 +18,7 @@ package org.gradle.internal.execution
 
 import groovy.transform.CompileStatic
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 @CompileStatic
 class WorkValidationExceptionChecker {

@@ -27,7 +27,7 @@ import org.gradle.internal.scopeids.id.WorkspaceScopeId
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 /**
  * Extracts the scope IDs for a build, and asserts that all nested builds have the same IDs.

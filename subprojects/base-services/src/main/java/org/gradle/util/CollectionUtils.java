@@ -52,6 +52,15 @@ import static org.gradle.internal.Cast.cast;
 import static org.gradle.internal.Cast.castNullable;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
+/**
+ * This class is only here to maintain binary compatibility with existing plugins.
+ * <p>
+ * Plugins should prefer external collection frameworks over this class.
+ * Internally, all code should use {@link org.gradle.util.internal.CollectionUtils}.
+ *
+ * @deprecated Will be removed in Gradle 8.0.
+ */
+@Deprecated
 public abstract class CollectionUtils {
 
     /**
@@ -595,6 +604,12 @@ public abstract class CollectionUtils {
         return Pair.of(left, right);
     }
 
+    /**
+     * Injection step.
+     * @param <T> target type.
+     * @param <I> item type.
+     */
+    @Deprecated
     public static class InjectionStep<T, I> {
         private final T target;
         private final I item;

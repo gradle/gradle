@@ -22,7 +22,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.util.TextUtil;
+import org.gradle.util.internal.TextUtil;
 
 /**
  * Console logger for test events.

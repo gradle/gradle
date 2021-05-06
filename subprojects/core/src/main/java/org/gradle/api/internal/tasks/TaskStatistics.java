@@ -20,7 +20,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.io.Closeable;
 import java.io.FileWriter;

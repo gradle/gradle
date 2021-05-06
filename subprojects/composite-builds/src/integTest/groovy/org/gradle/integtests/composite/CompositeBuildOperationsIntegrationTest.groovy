@@ -106,12 +106,15 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[1].details.buildPath == ":${buildName}"
         taskGraphOps[1].parentId == taskGraphOps[0].id
 
+        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        runMainTasks.parentId == root.id
+
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 2
-        runTasksOps[0].displayName == "Run tasks"
-        runTasksOps[0].parentId == root.id
-        runTasksOps[1].displayName == "Run tasks (:${buildName})"
-        runTasksOps[1].parentId == root.id
+        // Build operations are run in parallel, so can appear in either order
+        [runTasksOps[0].displayName, runTasksOps[1].displayName].sort() == ["Run tasks", "Run tasks (:${buildName})"]
+        runTasksOps[0].parentId == runMainTasks.id
+        runTasksOps[1].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 2
@@ -166,12 +169,14 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         configureOps[1].details.buildPath == ":buildB"
         configureOps[1].parentId == configureOps[0].id
 
+        def applyRootProjectBuildScript = operations.first(Pattern.compile("Apply build file 'build.gradle' to root project 'buildA'"))
+
         // The task graph for buildB is calculated multiple times, once for buildscript dependency and again for production dependency
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 3
         taskGraphOps[0].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[0].details.buildPath == ":buildB"
-        // parent is 'apply build script to project'
+        taskGraphOps[0].parentId == applyRootProjectBuildScript.id
         taskGraphOps[1].displayName == "Calculate task graph"
         taskGraphOps[1].details.buildPath == ":"
         taskGraphOps[1].parentId == root.id
@@ -179,15 +184,18 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[2].details.buildPath == ":buildB"
         taskGraphOps[2].parentId == taskGraphOps[1].id
 
+        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        runMainTasks.parentId == root.id
+
         // Tasks are run for buildB multiple times, once for buildscript dependency and again for production dependency
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 3
         runTasksOps[0].displayName == "Run tasks (:buildB)"
-        runTasksOps[0].parentId == root.id
+        runTasksOps[0].parentId == applyRootProjectBuildScript.id
         // Build operations are run in parallel, so can appear in either order
         [runTasksOps[1].displayName, runTasksOps[2].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
-        runTasksOps[1].parentId == root.id
-        runTasksOps[2].parentId == root.id
+        runTasksOps[1].parentId == runMainTasks.id
+        runTasksOps[2].parentId == runMainTasks.id
 
         // Task graph ready event sent only once
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)

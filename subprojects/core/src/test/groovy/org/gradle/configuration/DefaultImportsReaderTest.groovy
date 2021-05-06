@@ -16,7 +16,7 @@
 
 package org.gradle.configuration
 
-import org.gradle.util.Resources
+import org.gradle.util.internal.Resources
 import org.junit.Rule
 import spock.lang.Specification
 

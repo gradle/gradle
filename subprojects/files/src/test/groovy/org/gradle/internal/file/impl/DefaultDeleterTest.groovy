@@ -26,7 +26,7 @@ import spock.lang.Unroll
 import java.nio.file.Files
 import java.util.function.Function
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 import static org.junit.Assume.assumeTrue
 
 class DefaultDeleterTest extends Specification {

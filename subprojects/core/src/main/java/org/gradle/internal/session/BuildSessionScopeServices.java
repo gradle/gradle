@@ -53,6 +53,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.filewatch.PendingChangesManager;
@@ -130,7 +131,7 @@ public class BuildSessionScopeServices {
         return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory);
     }
 
-    ListenerManager createListenerManager(ListenerManager parent) {
+    DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
         return parent.createChild(Scopes.BuildSession.class);
     }
 
@@ -152,11 +153,9 @@ public class BuildSessionScopeServices {
         return new ProjectCacheDir(cacheDir, progressLoggerFactory, deleter);
     }
 
-    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
+    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping) {
         File workDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileChanges", VersionStrategy.CachePerVersion);
-        BuildSessionScopeFileTimeStampInspector timeStampInspector = new BuildSessionScopeFileTimeStampInspector(workDir);
-        listenerManager.addListener(timeStampInspector);
-        return timeStampInspector;
+        return new BuildSessionScopeFileTimeStampInspector(workDir);
     }
 
     ScriptSourceHasher createScriptSourceHasher() {

@@ -59,14 +59,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
         Directory directory = project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
-        extension.getConfigDirectory().convention(project.provider(() -> {
-            // This provider becoming an input needs either a valid value or no value at all
-            if (directory.getAsFile().exists()) {
-                return directory;
-            } else {
-                return null;
-            }
-        }));
+        extension.getConfigDirectory().convention(directory);
         extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
             // If for whatever reason the provider above cannot be resolved, go back to default location, which we know how to ignore if missing
             .orElse(directory.file("checkstyle.xml"))));

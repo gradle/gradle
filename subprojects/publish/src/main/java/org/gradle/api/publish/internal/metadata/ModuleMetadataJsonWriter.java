@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.util.GUtil.elvis;
+import static org.gradle.util.internal.GUtil.elvis;
 
 class ModuleMetadataJsonWriter extends JsonWriterScope {
 

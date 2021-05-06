@@ -390,7 +390,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         def configFile = file('groovycompilerconfig.groovy')
         fails("compileGroovy")
         failureDescriptionContains(inputDoesNotExist {
-            type('GroovyCompile')
+            type('org.gradle.api.tasks.compile.GroovyCompile')
                 .property('groovyOptions.configurationScript')
                 .file(configFile)
                 .includeLink()

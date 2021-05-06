@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app;
 
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Transformer;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;

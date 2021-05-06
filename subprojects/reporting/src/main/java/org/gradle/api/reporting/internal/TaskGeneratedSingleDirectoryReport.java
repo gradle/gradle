@@ -46,9 +46,9 @@ public abstract class TaskGeneratedSingleDirectoryReport extends TaskGeneratedRe
     @Override
     public File getEntryPoint() {
         if (relativeEntryPath == null) {
-            return getDestination();
+            return getOutputLocation().getAsFile().get();
         } else {
-            return new File(getDestination(), relativeEntryPath);
+            return new File(getOutputLocation().getAsFile().getOrNull(), relativeEntryPath);
         }
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.internal.hash.HashValue
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
-import org.gradle.util.GFileUtils.relativePathOf
+import org.gradle.util.internal.GFileUtils.relativePathOf
 import org.gradle.util.GradleVersion
 import java.io.File
 

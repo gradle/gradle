@@ -18,7 +18,7 @@ package org.gradle.internal.scopeids
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 
 class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
