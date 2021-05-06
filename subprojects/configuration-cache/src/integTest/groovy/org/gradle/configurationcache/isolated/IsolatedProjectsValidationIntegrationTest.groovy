@@ -50,6 +50,38 @@ class IsolatedProjectsValidationIntegrationTest extends AbstractIsolatedProjects
     }
 
     @Unroll
+    def "reports problem when build script uses #block block to access dynamically added elements"() {
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            $block {
+                plugins.apply('java-library')
+                java { }
+                java
+            }
+        """
+
+        when:
+        configurationCacheFails("assemble")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 6
+            withUniqueProblems(
+                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'"
+            )
+        }
+
+        where:
+        block         | _
+        "allprojects" | _
+        "subprojects" | _
+    }
+
+    @Unroll
     def "reports problem when build script uses #property property to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -227,12 +259,14 @@ class IsolatedProjectsValidationIntegrationTest extends AbstractIsolatedProjects
                 id('java-library')
             }
             allprojects {
-                println("project name = " + it.name)
-                println("project path = " + it.path)
-                println("project projectDir = " + it.projectDir)
-                println("project rootDir = " + it.rootDir)
-                it.project.name
-                it.project.path
+                println("project name = " + name)
+                println("project path = " + path)
+                println("project projectDir = " + projectDir)
+                println("project rootDir = " + rootDir)
+                it.name
+                project.name
+                project.path
+                allprojects { }
             }
         """
 
