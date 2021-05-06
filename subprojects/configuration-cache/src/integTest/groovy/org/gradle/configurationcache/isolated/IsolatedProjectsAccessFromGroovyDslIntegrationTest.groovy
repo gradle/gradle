@@ -19,7 +19,7 @@ package org.gradle.configurationcache.isolated
 
 import spock.lang.Unroll
 
-class IsolatedProjectsValidationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
+class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     @Unroll
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         settingsFile << """
@@ -59,7 +59,7 @@ class IsolatedProjectsValidationIntegrationTest extends AbstractIsolatedProjects
             $block {
                 plugins.apply('java-library')
                 java { }
-                java
+                java.sourceCompatibility
             }
         """
 
