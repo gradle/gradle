@@ -35,7 +35,7 @@ import java.util.List;
  * @since 7.1
  */
 @Incubating
-public class ProviderAwareForkOptions extends BaseForkOptions {
+public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
 
     private final List<CommandLineArgumentProvider> jvmArgumentProviders = Lists.newArrayList();
 

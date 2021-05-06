@@ -20,7 +20,7 @@ import org.gradle.api.tasks.compile.GroovyForkOptions;
 
 import java.io.Serializable;
 
-public class MinimalGroovyCompilerDaemonForkOptions extends MinimalBaseForkOptions implements Serializable {
+public class MinimalGroovyCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions implements Serializable {
     public MinimalGroovyCompilerDaemonForkOptions(GroovyForkOptions forkOptions) {
         super(forkOptions);
         setJvmArgs(forkOptions.getAllJvmArgs());

@@ -21,7 +21,7 @@ import org.gradle.api.tasks.compile.ForkOptions;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class MinimalJavaCompilerDaemonForkOptions extends MinimalBaseForkOptions {
+public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions {
     private String executable;
 
     private String tempDir;

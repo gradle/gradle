@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.internal.tasks.compile.MinimalBaseForkOptions;
+import org.gradle.api.internal.tasks.compile.MinimalCompilerDaemonForkOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 
 import java.io.Serializable;
 
-public class MinimalScalaCompilerDaemonForkOptions extends MinimalBaseForkOptions implements Serializable {
+public class MinimalScalaCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions implements Serializable {
     public MinimalScalaCompilerDaemonForkOptions(ScalaForkOptions forkOptions) {
         super(forkOptions);
         setJvmArgs(forkOptions.getAllJvmArgs());
