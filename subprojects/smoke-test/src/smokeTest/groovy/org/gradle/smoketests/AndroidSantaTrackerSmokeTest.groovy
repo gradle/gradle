@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -28,6 +29,18 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     @Override
     protected int maxConfigurationCacheProblems() {
         return 150
+    }
+
+    def "plop (agp=#agpVersion)"() {
+        expect:
+        if (VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)) {
+            println("OLD WITH DEPWARN")
+        } else {
+            println("RECENT NO DEPWARN")
+        }
+
+        where:
+        agpVersion << TESTED_AGP_VERSIONS
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
@@ -41,7 +54,10 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        buildLocationExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        SmokeTestGradleRunner runner = VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)
+            ? runnerForLocationExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion, "assembleDebug")
+            : runnerForLocation(checkoutDir, agpVersion, "assembleDebug")
+        runner.build()
 
         then:
         assertConfigurationCacheStateStored()

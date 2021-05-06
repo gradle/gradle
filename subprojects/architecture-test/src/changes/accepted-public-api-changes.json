@@ -673,6 +673,22 @@
             "changes": [
                 "Method added to interface"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getSourceClassesMappingFile()",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getSourceClassesMappingFile()",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

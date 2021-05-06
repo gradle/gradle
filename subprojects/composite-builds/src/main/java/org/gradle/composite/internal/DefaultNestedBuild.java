@@ -25,7 +25,6 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeController;
@@ -54,14 +53,12 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
                        BuildDefinition buildDefinition,
                        BuildState owner,
                        BuildTreeController buildTree,
-                       BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-                       BuildModelControllerServices buildModelControllerServices) {
+                       BuildLifecycleControllerFactory buildLifecycleControllerFactory) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.owner = owner;
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
-        buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
     }
 

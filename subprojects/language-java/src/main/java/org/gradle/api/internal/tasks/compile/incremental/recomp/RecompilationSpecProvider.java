@@ -34,7 +34,7 @@ public interface RecompilationSpecProvider {
 
     default WorkResult decorateResult(RecompilationSpec recompilationSpec, PreviousCompilationData previousCompilationData, WorkResult workResult) {
         if (!recompilationSpec.isFullRebuildNeeded()) {
-            return new DefaultIncrementalCompileResult(previousCompilationData, workResult);
+            return new DefaultIncrementalCompileResult(previousCompilationData, recompilationSpec, workResult);
         }
         return workResult;
     }

@@ -418,7 +418,7 @@ task fastTask { }
                 }
             ''')
             module {
-                'module.gradle'(this.simpleBuild('module'))
+                'module.gradle'(this.simpleBuild())
             }
             'settings.gradle'(this.settingsWithBuildScriptsUseProjectName('module'))
         }

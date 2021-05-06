@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.api.internal.project;
 
-import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree.class)
-public interface BuildModelControllerServices {
+import java.util.Set;
+
+/**
+ * Mediates access across project boundaries.
+ */
+@ServiceScope(Scopes.Build.class)
+public interface CrossProjectModelAccess {
     /**
-     * Registers the services required to produce a {@link BuildModelController} for the given build.
+     * @param path absolute path
      */
-    void supplyBuildScopeServices(BuildScopeServices services);
+    ProjectInternal getProject(ProjectInternal referrer, ProjectInternal relativeTo, String path);
+
+    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo);
+
+    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo);
 }

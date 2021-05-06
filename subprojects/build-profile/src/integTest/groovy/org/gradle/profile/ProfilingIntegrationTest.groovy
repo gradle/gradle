@@ -15,10 +15,15 @@
  */
 package org.gradle.profile
 
+import org.gradle.api.Plugin
+import org.gradle.api.initialization.Settings
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import spock.lang.Issue
 
 class ProfilingIntegrationTest extends AbstractIntegrationSpec {
 
@@ -37,7 +42,7 @@ allprojects {
         succeeds("build", "fooTask", "-x", "barTask")
 
         then:
-        def reportFile = file('build/reports/profile').listFiles().find { it.name ==~ /profile-.+.html/ }
+        def reportFile = findReport()
         Document document = Jsoup.parse(reportFile, null)
         !document.select("TD:contains(:jar)").isEmpty()
         !document.select("TD:contains(:a:jar)").isEmpty()
@@ -47,5 +52,51 @@ allprojects {
         document.text().contains("-x barTask")
         output.contains("See the profiling report at:")
         output.contains("A fine-grained performance profile is available: use the --${StartParameterBuildOptions.BuildScanOption.LONG_OPTION} option.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16872")
+    def "can generate profile report when using init script that applies plugin"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("plugin"))
+        pluginBuilder.addPluginSource("settings-test", "test.SettingsPlugin", """
+            package test
+
+            class SettingsPlugin implements $Plugin.name<$Settings.name> {
+                void apply($Settings.name settings) {
+                    println "Hello from settings plugin"
+                }
+            }
+        """)
+        def pluginJar = file("plugin.jar")
+        pluginBuilder.publishTo(executer, pluginJar)
+
+        file("init.gradle") << """
+            initscript {
+                dependencies {
+                    classpath files("${pluginJar.name}")
+                }
+            }
+            beforeSettings {
+                it.plugins.apply(test.SettingsPlugin)
+            }
+        """
+
+        file("settings.gradle").touch()
+
+        executer.usingInitScript(file('init.gradle'))
+        executer.withArgument("--profile")
+
+        when:
+        succeeds 'help'
+        then:
+        output.contains("Hello from settings plugin")
+        findReport()
+    }
+
+
+    private TestFile findReport() {
+        def reportFile = file('build/reports/profile').listFiles().find { it.name ==~ /profile-.+.html/ }
+        assert reportFile && reportFile.exists()
+        reportFile
     }
 }

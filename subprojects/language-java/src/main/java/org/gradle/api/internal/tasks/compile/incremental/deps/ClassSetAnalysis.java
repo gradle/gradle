@@ -24,8 +24,9 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
-import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -52,7 +53,7 @@ public class ClassSetAnalysis {
     private final ImmutableSetMultimap<String, GeneratedResource> resourceDependenciesFromAnnotationProcessing;
 
     public ClassSetAnalysis(ClassSetAnalysisData classAnalysis) {
-        this(classAnalysis, new AnnotationProcessingData(), CompilerApiData.unavailableOf());
+        this(classAnalysis, new AnnotationProcessingData(), CompilerApiData.unavailable());
     }
 
     public ClassSetAnalysis(ClassSetAnalysisData classAnalysis, AnnotationProcessingData annotationProcessingData, CompilerApiData compilerApiData) {
@@ -153,13 +154,13 @@ public class ClassSetAnalysis {
         if (deps.isDependencyToAll()) {
             return deps;
         }
-        if (!constants.isEmpty() && !compilerApiData.isAvailable()) {
+        if (!constants.isEmpty() && !compilerApiData.isSupportsConstantsMapping()) {
             return DependentsSet.dependencyToAll("an inlineable constant in '" + className + "' has changed");
         }
         Set<String> classesDependingOnAllOthers = annotationProcessingData.participatesInClassGeneration(className) ? annotationProcessingData.getGeneratedTypesDependingOnAllOthers() : Collections.emptySet();
         Set<GeneratedResource> resourcesDependingOnAllOthers = annotationProcessingData.participatesInResourceGeneration(className) ? annotationProcessingData.getGeneratedResourcesDependingOnAllOthers() : Collections.emptySet();
-        Set<String> accessibleConstantDependents = new ObjectOpenHashSet<>(accessibleConstantDependentsForClass(className));
-        Set<String> privateConstantDependents = new ObjectOpenHashSet<>(privateConstantDependentsForClass(className));
+        Set<String> accessibleConstantDependents = new ObjectOpenHashSet<>(compilerApiData.getConstantDependentsForClass(className).getAccessibleDependentClasses());
+        Set<String> privateConstantDependents = new ObjectOpenHashSet<>(compilerApiData.getConstantDependentsForClass(className).getPrivateDependentClasses());
         processTransitiveConstantDependentClasses(new ObjectOpenHashSet<>(Collections.singleton(className)), privateConstantDependents, accessibleConstantDependents);
         if (!deps.hasDependentClasses() && classesDependingOnAllOthers.isEmpty() && resourcesDependingOnAllOthers.isEmpty() && accessibleConstantDependents.isEmpty() && privateConstantDependents.isEmpty()) {
             return deps;
@@ -268,23 +269,10 @@ public class ClassSetAnalysis {
                 continue;
             }
             accessibleConstantDependents.add(accessibleDependentClass);
-            privateConstantDependents.addAll(privateConstantDependentsForClass(accessibleDependentClass));
-            remainingAccessibleDependentClasses.addAll(accessibleConstantDependentsForClass(accessibleDependentClass));
+            DependentsSet constantDependents = compilerApiData.getConstantDependentsForClass(accessibleDependentClass);
+            privateConstantDependents.addAll(constantDependents.getPrivateDependentClasses());
+            remainingAccessibleDependentClasses.addAll(constantDependents.getAccessibleDependentClasses());
         }
-    }
-
-    private Set<String> accessibleConstantDependentsForClass(String constantOrigin) {
-        if (compilerApiData.isAvailable()) {
-            return compilerApiData.accessibleConstantDependentsForClass(constantOrigin);
-        }
-        return Collections.emptySet();
-    }
-
-    private Set<String> privateConstantDependentsForClass(String constantOrigin) {
-        if (compilerApiData.isAvailable()) {
-            return compilerApiData.privateConstantDependentsForClass(constantOrigin);
-        }
-        return Collections.emptySet();
     }
 
     public IntSet getConstants(String className) {

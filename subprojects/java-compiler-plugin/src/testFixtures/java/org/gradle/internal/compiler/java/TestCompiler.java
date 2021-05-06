@@ -25,10 +25,10 @@ import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.StringWriter;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -38,12 +38,12 @@ public class TestCompiler {
 
     private final File outputFolder;
     private final Function<File, Optional<String>> relativize;
-    private final Consumer<Map<String, Collection<String>>> classNameConsumer;
+    private final Consumer<Map<String, Set<String>>> classNameConsumer;
     private final ConstantDependentsConsumer constantDependentsConsumer;
 
     public TestCompiler(File outputFolder,
                         Function<File, Optional<String>> relativize,
-                        Consumer<Map<String, Collection<String>>> classNamesConsumer,
+                        Consumer<Map<String, Set<String>>> classNamesConsumer,
                         ConstantDependentsConsumer constantDependentsConsumer) {
         this.outputFolder = outputFolder;
         this.relativize = relativize;

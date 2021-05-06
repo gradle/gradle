@@ -110,7 +110,6 @@ import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
@@ -203,6 +202,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(DefaultFileOperations.class);
             registration.add(DefaultFileSystemOperations.class);
             registration.add(DefaultArchiveOperations.class);
+            registration.add(TaskPathProjectEvaluator.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
             }
@@ -502,10 +502,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             dependencyMetaDataProvider,
             classPathResolver,
             instantiator);
-    }
-
-    protected ProjectConfigurer createProjectConfigurer(BuildCancellationToken cancellationToken) {
-        return new TaskPathProjectEvaluator(cancellationToken);
     }
 
     protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {

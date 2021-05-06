@@ -16,11 +16,19 @@
 
 package org.gradle.configurationcache.fixtures
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 
 abstract class AbstractOptInFeatureIntegrationTest extends AbstractIntegrationSpec {
     static final String CONFIGURATION_CACHE_MESSAGE = "Configuration cache is an incubating feature."
     static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
+
+    protected ConfigurationCacheProblemsFixture problems
+
+    def setup() {
+        problems = new ConfigurationCacheProblemsFixture(executer, testDirectory)
+    }
 
     abstract void configurationCacheRun(String... tasks)
 

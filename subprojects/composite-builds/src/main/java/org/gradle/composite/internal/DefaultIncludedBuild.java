@@ -26,10 +26,9 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.tasks.TaskReference;
-import org.gradle.internal.build.BuildModelControllerServices;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeController;
@@ -60,8 +59,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildState owner,
         BuildTreeController buildTree,
         WorkerLeaseRegistry.WorkerLease parentLease,
-        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-        BuildModelControllerServices buildModelControllerServices
+        BuildLifecycleControllerFactory buildLifecycleControllerFactory
     ) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
@@ -69,18 +67,9 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.isImplicit = isImplicit;
         this.owner = owner;
         this.parentLease = parentLease;
-        this.buildLifecycleController = createGradleLauncher(owner, buildTree, buildLifecycleControllerFactory, buildModelControllerServices);
-    }
-
-    protected BuildLifecycleController createGradleLauncher(BuildState owner, BuildTreeController buildTree, BuildLifecycleControllerFactory buildLifecycleControllerFactory, BuildModelControllerServices buildModelControllerServices) {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
-        buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
-        return buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildScopeServices);
-    }
-
-    protected BuildDefinition getBuildDefinition() {
-        return buildDefinition;
+        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildScopeServices);
     }
 
     @Override

@@ -18,15 +18,10 @@ package org.gradle.configurationcache.build
 
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
-import org.gradle.api.internal.GradleInternal
 import org.gradle.composite.internal.DefaultIncludedBuild
-import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
-import org.gradle.internal.build.BuildModelController
-import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeController
-import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 
@@ -39,34 +34,5 @@ open class ConfigurationCacheIncludedBuildState(
     owner: BuildState,
     buildTree: BuildTreeController,
     parentLease: WorkerLeaseRegistry.WorkerLease,
-    buildLifecycleControllerFactory: BuildLifecycleControllerFactory,
-    buildModelControllerServices: BuildModelControllerServices
-) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, buildLifecycleControllerFactory, buildModelControllerServices) {
-    override fun createGradleLauncher(owner: BuildState, buildTree: BuildTreeController, buildLifecycleControllerFactory: BuildLifecycleControllerFactory, buildModelControllerServices: BuildModelControllerServices): BuildLifecycleController {
-        val buildScopeServices = object : BuildScopeServices(buildTree.services) {
-            fun createBuildModelController(gradle: GradleInternal): BuildModelController {
-                return NoOpBuildModelController(gradle)
-            }
-        }
-        return buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.mutableModel, buildScopeServices)
-    }
-}
-
-
-// The model for this build is already fully populated and the tasks scheduled when it is created, so this controller does not need to do anything
-private
-class NoOpBuildModelController(val gradle: GradleInternal) : BuildModelController {
-    // TODO - this method should fail, as the fully configured settings object is not actually available
-    override fun getLoadedSettings() = gradle.settings
-
-    // TODO - this method should fail, as the fully configured build model is not actually available
-    override fun getConfiguredModel() = gradle
-
-    // TODO - this method should fail, as the tasks are already scheduled for this build
-    override fun scheduleTasks(tasks: Iterable<String>) {
-    }
-
-    override fun scheduleRequestedTasks() {
-        // Already done
-    }
-}
+    buildLifecycleControllerFactory: BuildLifecycleControllerFactory
+) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, buildLifecycleControllerFactory)

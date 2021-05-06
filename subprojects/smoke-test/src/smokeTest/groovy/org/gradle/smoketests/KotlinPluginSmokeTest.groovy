@@ -19,8 +19,8 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.util.GradleVersion
 import spock.lang.Unroll
+import org.gradle.util.GradleVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
@@ -44,7 +44,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         def result = runner(workers, 'run')
-            .expectDeprecationWarningIf(workers,
+            .expectDeprecationWarningIf(workers && version != TestedVersions.kotlin.latest(),
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",
@@ -80,7 +80,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         def result = runner(workers, 'compileKotlin2Js')
-            .expectDeprecationWarningIf(workers,
+            .expectDeprecationWarningIf(workers && version != TestedVersions.kotlin.latest(),
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",

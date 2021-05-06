@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -53,5 +53,13 @@ public class PreviousCompilation {
 
     public Set<String> getTypesToReprocess() {
         return classAnalysis.getTypesToReprocess();
+    }
+
+    public SourceFileClassNameConverter getSourceToClassConverter() {
+        if (data.getCompilerApiData().isAvailable()) {
+            return new DefaultSourceFileClassNameConverter(data.getCompilerApiData().getSourceToClassMapping());
+        } else {
+            return new FileNameDerivingClassNameConverter();
+        }
     }
 }

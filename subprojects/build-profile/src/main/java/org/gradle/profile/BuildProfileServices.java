@@ -16,6 +16,7 @@
 
 package org.gradle.profile;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.event.ListenerManager;
@@ -47,8 +48,8 @@ public class BuildProfileServices extends AbstractPluginServiceRegistry {
                 return new ReportGeneratingProfileListener(styledTextOutputFactory);
             }
 
-            public ProfileEventAdapter createProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ListenerManager listenerManager) {
-                return new ProfileEventAdapter(buildStartedTime, clock, listenerManager.getBroadcaster(ProfileListener.class));
+            public ProfileEventAdapter createProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ListenerManager listenerManager, StartParameter startParameter) {
+                return new ProfileEventAdapter(buildStartedTime, clock, listenerManager.getBroadcaster(ProfileListener.class), startParameter);
             }
         });
     }

@@ -20,19 +20,20 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.dependencyToAll
-import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.dependentClasses
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet.dependencyToAll
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet.dependentClasses
 
 class ClassSetAnalysisDataSerializerTest extends Specification {
 
     HashCode hash = HashCode.fromInt(0)
-    @Subject serializer = new ClassSetAnalysisData.Serializer(new StringInterner())
+    @Subject serializer = new ClassSetAnalysisData.Serializer({ new HierarchicalNameSerializer(new StringInterner())})
 
     def "serializes"() {
         def data = new ClassSetAnalysisData(["A": hash, "B": hash, "C": hash, "D": hash],

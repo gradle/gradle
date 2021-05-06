@@ -31,14 +31,13 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.BuildTreeController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
-import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -58,11 +57,9 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     DefaultRootBuildState(BuildDefinition buildDefinition,
                           BuildTreeController buildTree,
                           BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-                          BuildModelControllerServices buildModelControllerServices,
                           ListenerManager listenerManager) {
         this.listenerManager = listenerManager;
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
-        buildModelControllerServices.supplyBuildScopeServices(buildScopeServices);
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, null, buildScopeServices);
         IncludedBuildControllers controllers = buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class);
         WorkerLeaseService workerLeaseService = buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class);

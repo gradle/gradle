@@ -18,8 +18,11 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -128,6 +131,17 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
         // This should come from the compiler classpath only
         gradleFilterSpec.disallowPackage("org.gradle.api.internal.tasks.compile");
+
+        /*
+         * This shouldn't be necessary, but currently is because the worker API handles return types differently
+         * depending on whether you use process isolation or classpath isolation. In the former case, the return
+         * value is serialized and deserialized, so the correct class is returned. In the latter case, the result
+         * is returned directly, which means it is not an instance of the expected class unless we allow that class
+         * to leak through here. Should be fixed in the worker API, so that it always serializes/deserializes results.
+         */
+        gradleFilterSpec.allowClass(ApiCompilerResult.class);
+        gradleFilterSpec.allowClass(AnnotationProcessingResult.class);
+        gradleFilterSpec.allowClass(ConstantsAnalysisResult.class);
 
         return gradleFilterSpec;
     }

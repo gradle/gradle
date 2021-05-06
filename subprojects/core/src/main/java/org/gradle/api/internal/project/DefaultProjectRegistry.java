@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T> {
-    private Map<String, T> projects = new HashMap<String, T>();
-    private Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
+    private final Map<String, T> projects = new HashMap<String, T>();
+    private final Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
 
     @Override
     public void addProject(T project) {
