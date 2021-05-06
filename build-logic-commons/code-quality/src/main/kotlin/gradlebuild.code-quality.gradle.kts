@@ -91,7 +91,7 @@ codenarc {
 }
 
 tasks.withType<CodeNarc>().configureEach {
-    reports.xml.isEnabled = true
+    reports.xml.required.set(true)
     if (name.contains("IntegTest")) {
         config = configFile("codenarc-integtests.xml")
     }
