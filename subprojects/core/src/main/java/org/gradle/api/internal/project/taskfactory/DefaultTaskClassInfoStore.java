@@ -28,6 +28,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.work.InputChanges;
 
@@ -195,6 +196,12 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             @SuppressWarnings("deprecation")
             Class<?> incrementalTaskInputsClass = org.gradle.api.tasks.incremental.IncrementalTaskInputs.class;
             if (parameterType.equals(incrementalTaskInputsClass)) {
+                DeprecationLogger.deprecate("IncrementalTaskInputs")
+                    .withContext("On method '" + declaringClass.getSimpleName() + "." + method.getName() + "'")
+                    .withAdvice("use 'org.gradle.work.InputChanges' instead.")
+                    .willBeRemovedInGradle8()
+                    .withUpgradeGuideSection(7, "incremental_task_inputs_deprecation")
+                    .nagUser();
                 taskActionFactory = new IncrementalTaskInputsTaskActionFactory(taskType, method);
             } else if (parameterType.equals(InputChanges.class)) {
                 taskActionFactory = new IncrementalInputsTaskActionFactory(taskType, method);
