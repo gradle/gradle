@@ -44,39 +44,6 @@ class GroovyCompileOptionsTest {
         assertFalse(compileOptions.parameters)
     }
 
-    @Test public void testOptionMapForForkOptions() {
-        Map optionMap = compileOptions.optionMap()
-        assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
-    }
-
-    @Test public void testOptionMapWithTrueFalseValues() {
-        Map booleans = [
-                failOnError: 'failOnError',
-                verbose: 'verbose',
-                listFiles: 'listFiles',
-                fork: 'fork',
-                parameters: 'parameters'
-        ]
-        booleans.keySet().each {compileOptions."$it" = true}
-        Map optionMap = compileOptions.optionMap()
-        booleans.values().each {
-            if (it.equals('nowarn')) {
-                assertEquals(false, optionMap[it])
-            } else {
-                assertEquals(true, optionMap[it])
-            }
-        }
-        booleans.keySet().each {compileOptions."$it" = false}
-        optionMap = compileOptions.optionMap()
-        booleans.values().each {
-            if (it.equals('nowarn')) {
-                assertEquals(true, optionMap[it])
-            } else {
-                assertEquals(false, optionMap[it])
-            }
-        }
-    }
-
     @Test public void testFork() {
         compileOptions.fork = false
         boolean forkUseCalled = false
