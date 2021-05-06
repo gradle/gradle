@@ -689,6 +689,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinResultsDir()",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.setBinResultsDir(java.io.File)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
