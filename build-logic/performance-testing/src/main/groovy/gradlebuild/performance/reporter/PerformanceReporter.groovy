@@ -59,7 +59,7 @@ class PerformanceReporter {
 
         ExecResult result = execOperations.javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
-                spec.setMain(reportGeneratorClass)
+                spec.getMainClass().set(reportGeneratorClass)
                 spec.args(reportDir.path, projectName)
                 spec.args(resultJsons*.path)
                 spec.systemProperties(databaseParameters)
