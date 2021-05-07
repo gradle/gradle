@@ -55,8 +55,8 @@ publishing {
 
 // tag::disable_validation[]
 tasks.withType(GenerateModuleMetadata).configureEach {
-    // The value 'enforced_platform' is provided in the validation
+    // The value 'enforced-platform' is provided in the validation
     // error message you got
-    suppressedValidationErrors.add('enforced_platform')
+    suppressedValidationErrors.add('enforced-platform')
 }
 // end::disable_validation[]
