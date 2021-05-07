@@ -29,6 +29,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
 
@@ -51,6 +53,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
 
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
+        Timer timer = Time.startTimer();
         Result result = delegate.execute(work, context);
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProduceByWork = operation(
             operationContext -> {
@@ -63,7 +66,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 .details(Operation.Details.INSTANCE)
         );
 
-        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), work.markExecutionTime());
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), timer.getElapsedMillis());
 
         return new CurrentSnapshotResult() {
             @Override

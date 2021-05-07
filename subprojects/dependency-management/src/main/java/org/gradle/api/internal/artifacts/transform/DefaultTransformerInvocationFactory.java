@@ -52,8 +52,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nonnull;
@@ -273,7 +271,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final BuildOperationExecutor buildOperationExecutor;
         private final FileCollectionFactory fileCollectionFactory;
 
-        private final Timer executionTimer;
         private final Provider<FileSystemLocation> inputArtifactProvider;
         protected final InputFingerprinter inputFingerprinter;
         private final TransformationWorkspaceServices workspaceServices;
@@ -291,7 +288,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.transformer = transformer;
             this.inputArtifact = inputArtifact;
             this.dependencies = dependencies;
-            this.executionTimer = Time.startTimer();
             this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
 
             this.buildOperationExecutor = buildOperationExecutor;
@@ -449,11 +445,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
                 resultsFile,
                 fileCollectionFactory.fixed(resultsFile));
-        }
-
-        @Override
-        public long markExecutionTime() {
-            return executionTimer.getElapsedMillis();
         }
 
         @Override
