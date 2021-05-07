@@ -45,7 +45,7 @@ tasks.jacocoTestReport {
     reports {
         xml.required.set(false)
         csv.required.set(false)
-        html.destination = layout.buildDirectory.dir("jacocoHtml").get().asFile
+        html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
     }
 }
 // end::report-configuration[]
