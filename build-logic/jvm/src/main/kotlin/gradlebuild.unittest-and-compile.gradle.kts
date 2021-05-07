@@ -273,7 +273,7 @@ fun removeTeamcityTempProperty() {
     }
 }
 
-fun Project.enableExperimentalTestFiltering() = !setOf("kotlin-dsl", "performance", "smoke-test").contains(name)
+fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name)
 
 val Project.maxParallelForks: Int
     get() = if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") {
