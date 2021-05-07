@@ -931,7 +931,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
         if (nextTaskNode?.task instanceof Async) {
             def project = (ProjectInternal) nextTaskNode.task.project
-            project.mutationState.accessLock.unlock()
+            project.owner.accessLock.unlock()
         }
         return nextTaskNode
     }

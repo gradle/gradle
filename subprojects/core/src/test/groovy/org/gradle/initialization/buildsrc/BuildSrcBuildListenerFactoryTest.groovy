@@ -45,7 +45,7 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
     }
     def project = Mock(ProjectInternal) {
         getServices() >> services
-        getMutationState() >> projectState
+        getOwner() >> projectState
     }
     def gradle = Mock(GradleInternal) {
         getStartParameter() >> startParameter

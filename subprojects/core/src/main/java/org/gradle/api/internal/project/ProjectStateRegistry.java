@@ -41,7 +41,7 @@ public interface ProjectStateRegistry {
     Collection<? extends ProjectState> getAllProjects();
 
     /**
-     * Locates the state object that owns the given public project model. Can use {@link ProjectInternal#getMutationState()} instead.
+     * Locates the state object that owns the given public project model. Can use {@link ProjectInternal#getOwner()} instead.
      */
     ProjectState stateFor(Project project) throws IllegalArgumentException;
 
@@ -63,7 +63,7 @@ public interface ProjectStateRegistry {
     /**
      * Registers a single project.
      */
-    void registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor);
+    ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor);
 
     /**
      * Allows a section of code to run against the mutable state of all projects. No other thread will be able to access the state of any project while the given action is running.

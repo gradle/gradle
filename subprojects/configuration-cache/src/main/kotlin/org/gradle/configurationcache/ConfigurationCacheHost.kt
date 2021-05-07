@@ -23,7 +23,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
@@ -62,7 +61,6 @@ import java.io.File
 class ConfigurationCacheHost internal constructor(
     private val gradle: GradleInternal,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-    private val projectFactory: IProjectFactory
 ) : DefaultConfigurationCache.Host {
 
     override val currentBuild: VintageGradleBuild =
@@ -117,14 +115,15 @@ class ConfigurationCacheHost internal constructor(
 
         override fun registerProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
-            service<ProjectStateRegistry>().registerProjects(service<BuildState>())
-            createRootProject()
+            val projectRegistry = service<ProjectStateRegistry>()
+            projectRegistry.registerProjects(service<BuildState>())
+            createRootProject(projectRegistry)
             fireBuildOperationsRequiredByBuildScans()
         }
 
         private
-        fun createRootProject() {
-            val rootProject = createProject(rootProjectDescriptor(), null)
+        fun createRootProject(projectRegistry: ProjectStateRegistry) {
+            val rootProject = createProject(projectRegistry, rootProjectDescriptor())
             gradle.rootProject = rootProject
             gradle.defaultProject = rootProject
         }
@@ -162,14 +161,17 @@ class ConfigurationCacheHost internal constructor(
         }
 
         private
-        fun createProject(descriptor: ProjectDescriptor, parent: ProjectInternal?): ProjectInternal {
-            val project = projectFactory.createProject(gradle, descriptor, parent, coreAndPluginsScope, coreAndPluginsScope)
+        fun createProject(projectRegistry: ProjectStateRegistry, descriptor: ProjectDescriptor): ProjectInternal {
+            val buildId = gradle.owner.buildIdentifier
+            val projectState = projectRegistry.stateFor(buildId, Path.path(descriptor.path))
+            projectState.createMutableModel(coreAndPluginsScope, coreAndPluginsScope)
+            val project = projectState.mutableModel
             // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
-            buildDirs[project.identityPath]?.let {
+            buildDirs[project.projectPath]?.let {
                 project.buildDir = it
             }
             for (child in descriptor.children) {
-                createProject(child, project)
+                createProject(projectRegistry, child)
             }
             return project
         }

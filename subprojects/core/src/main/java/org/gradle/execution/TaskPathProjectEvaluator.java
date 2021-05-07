@@ -38,28 +38,16 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         if (parentProject != null) {
             configure(parentProject);
         }
-        project.evaluate();
+        project.getOwner().ensureConfigured();
     }
 
     @Override
     public void configureFully(ProjectInternal project) {
         configure(project);
-        discoverTasks(project);
-        bindAllModelRules(project);
-    }
-
-    private void discoverTasks(ProjectInternal project) {
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException();
         }
-        project.getTasks().discoverTasks();
-    }
-
-    private void bindAllModelRules(ProjectInternal project) {
-        if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException();
-        }
-        project.bindAllModelRules();
+        project.getOwner().ensureTasksDiscovered();
     }
 
     @Override

@@ -30,7 +30,9 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
@@ -38,7 +40,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     private final BuildOperationRunner runner;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
-    private final ManagedExecutor fixedSizePool;
+    private final Map<BuildOperationConstraint, ManagedExecutor> managedExecutors = new HashMap<>();
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
     private final UnmanagedBuildOperationWrapper wrapper;
 
@@ -63,7 +65,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             currentBuildOperationRef
         );
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
+        managedExecutors.put(BuildOperationConstraint.MAX_WORKERS, executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount()));
+        managedExecutors.put(BuildOperationConstraint.UNCONSTRAINED, executorFactory.create("Unconstrained build operations", parallelismConfiguration.getMaxWorkerCount() * 10));
     }
 
     @Override
@@ -97,17 +100,32 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
-        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(false, new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
+        runAll(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
+    }
+
+    @Override
+    public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
+        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(false, new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction, buildOperationConstraint));
     }
 
     @Override
     public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction) {
-        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(true, new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
+        runAllWithAccessToProjectState(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
+    }
+
+    @Override
+    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
+        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(true, new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction, buildOperationConstraint));
     }
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(false, new QueueWorker<>(parent, worker), schedulingAction));
+        runAll(worker, schedulingAction, BuildOperationConstraint.MAX_WORKERS);
+    }
+
+    @Override
+    public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
+        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(false, new QueueWorker<>(parent, worker), schedulingAction, buildOperationConstraint));
     }
 
     @Nullable
@@ -115,8 +133,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         return (BuildOperationState) currentBuildOperationRef.get();
     }
 
-    private <O extends BuildOperation> void executeInParallel(boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction) {
-        BuildOperationQueue<O> queue = buildOperationQueueFactory.create(fixedSizePool, allowAccessToProjectState, worker);
+    private <O extends BuildOperation> void executeInParallel(boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction, BuildOperationConstraint buildOperationConstraint) {
+        ManagedExecutor executor = managedExecutors.get(buildOperationConstraint);
+        BuildOperationQueue<O> queue = buildOperationQueueFactory.create(executor, allowAccessToProjectState, worker);
 
         List<GradleException> failures = Lists.newArrayList();
         try {
@@ -147,7 +166,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void stop() {
-        fixedSizePool.stop();
+        for (ManagedExecutor pool : managedExecutors.values()) {
+            pool.stop();
+        }
     }
 
     private static class ListenerAdapter implements DefaultBuildOperationRunner.BuildOperationExecutionListener {

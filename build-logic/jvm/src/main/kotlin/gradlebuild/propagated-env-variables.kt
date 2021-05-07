@@ -32,6 +32,9 @@ val propagatedEnvironmentVariables = listOf(
     // For Android tests
     "ANDROID_HOME",
     "ANDROID_SDK_ROOT",
+    // legacy and new android user home
+    "ANDROID_USER_HOME",
+    "ANDROID_PREFS_ROOT",
 
     // Used by Visual Studio
     "USERNAME",

@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ResourceLock;
@@ -65,9 +66,19 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     ProjectComponentIdentifier getComponentIdentifier();
 
     /**
-     * This state object should own the project instantiation. This method is currently here to allow transition towards that.
+     * Creates the mutable model for this project.
      */
-    void attachMutableModel(ProjectInternal project);
+    void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope);
+
+    /**
+     * Configures the mutable model for this project, if not already.
+     */
+    void ensureConfigured();
+
+    /**
+     * Configure the mutable model for this project and discovers any registered tasks, if not already done.
+     */
+    void ensureTasksDiscovered();
 
     /**
      * Returns the mutable model for this project. This should not be used directly. This property is here to help with migration away from direct usage.
