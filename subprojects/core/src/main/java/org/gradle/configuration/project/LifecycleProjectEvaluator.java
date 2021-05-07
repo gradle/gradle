@@ -88,7 +88,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public void run(final BuildOperationContext context) {
-            project.getMutationState().applyToMutableState(p -> {
+            project.getOwner().applyToMutableState(p -> {
                 // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
                 try {
                     state.toBeforeEvaluate();
@@ -120,7 +120,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         @Override
         public BuildOperationDescriptor.Builder description() {
             Path identityPath = project.getIdentityPath();
-            String displayName = "Configure project " + identityPath.toString();
+            String displayName = "Configure project " + identityPath;
 
             String progressDisplayName = identityPath.toString();
             if (identityPath.equals(Path.ROOT)) {

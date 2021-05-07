@@ -19,7 +19,7 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 /**
- * Locates another project within the multi-project build, and provides access to it's model registry in a usable state.
+ * Locates another project within the multi-project build, and provides access to its model registry in a usable state.
  */
 public interface ProjectModelResolver {
     ModelRegistry resolveProjectModel(String path) throws UnknownProjectException;

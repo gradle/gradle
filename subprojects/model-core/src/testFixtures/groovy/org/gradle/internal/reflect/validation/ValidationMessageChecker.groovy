@@ -235,6 +235,18 @@ trait ValidationMessageChecker {
     @ValidationTestFor(
         ValidationProblemId.CANNOT_WRITE_OUTPUT
     )
+    String cannotCreateRootOfFileTree(@DelegatesTo(value = CannotWriteToDir, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(CannotWriteToDir, 'cannot_write_output', spec)
+        config.isNotDirectory()
+        config.description("is not writable because '${config.dir}' ${config.reason}")
+            .reason("Expected the root of the file tree '${config.problemDir}' to be a directory but it's a file")
+            .solution("Make sure that the root of the file tree '${config.property}' is configured to a directory")
+            .render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
     String cannotWriteToFile(@DelegatesTo(value = CannotWriteToFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(CannotWriteToFile, 'cannot_write_output', spec)
         config.description("is not writable because '${config.file}' ${config.reason}")

@@ -63,7 +63,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
     }
 
     private void runProjectConfigureAction(final ProjectInternal project, final Action<? super Project> configureAction) {
-        project.getMutationState().applyToMutableState(p -> buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
+        project.getOwner().applyToMutableState(p -> buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
                 Actions.with(project, mutationGuard.withMutationEnabled(configureAction));

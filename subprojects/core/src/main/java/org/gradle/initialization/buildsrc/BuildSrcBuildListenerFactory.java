@@ -70,7 +70,7 @@ public class BuildSrcBuildListenerFactory {
             final BuildableJavaComponent mainComponent = mainComponentOf(gradle);
             gradle.getStartParameter().setTaskNames(mainComponent.getBuildTasks());
             classpath = mainComponent.getRuntimeClasspath();
-            rootProjectState = gradle.getRootProject().getMutationState();
+            rootProjectState = gradle.getRootProject().getOwner();
         }
 
         public Collection<File> getRuntimeClasspath() {

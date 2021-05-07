@@ -109,7 +109,6 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
@@ -339,7 +338,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     DependencyLockingProvider dependencyLockingProvider,
                                                                     ProjectStateRegistry projectStateRegistry,
                                                                     CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                                                    ProjectAccessListener projectAccessListener,
                                                                     DocumentationRegistry documentationRegistry,
                                                                     CollectionCallbackActionDecorator callbackDecorator,
                                                                     UserCodeApplicationContext userCodeApplicationContext,
@@ -352,7 +350,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     domainObjectContext,
                     listenerManager,
                     metaDataProvider,
-                    projectAccessListener,
                     metaDataBuilder,
                     fileCollectionFactory,
                     globalDependencyResolutionRules.getDependencySubstitutionRules(),
