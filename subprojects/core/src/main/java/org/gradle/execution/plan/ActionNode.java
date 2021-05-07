@@ -104,7 +104,7 @@ public class ActionNode extends Node implements SelfExecutingNode {
     @Override
     public ResourceLock getProjectToLock() {
         if (projectToLock != null) {
-            return projectToLock.getMutationState().getAccessLock();
+            return projectToLock.getOwner().getAccessLock();
         }
         return null;
     }

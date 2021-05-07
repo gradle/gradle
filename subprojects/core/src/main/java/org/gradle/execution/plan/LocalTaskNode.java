@@ -73,7 +73,7 @@ public class LocalTaskNode extends TaskNode {
             return null;
         } else {
             // Running the task requires access to the task's owning project
-            return ((ProjectInternal) task.getProject()).getMutationState().getAccessLock();
+            return ((ProjectInternal) task.getProject()).getOwner().getAccessLock();
         }
     }
 

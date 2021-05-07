@@ -34,8 +34,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.ClasspathNormalizer;
@@ -77,8 +75,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
-    private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesAccessors.class);
-
     private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
     private final static Pattern SUPPORTED_PATTERN = Pattern.compile(SUPPORTED_PROJECT_NAMES);
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";

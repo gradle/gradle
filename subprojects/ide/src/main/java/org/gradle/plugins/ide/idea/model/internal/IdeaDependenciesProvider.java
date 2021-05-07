@@ -109,7 +109,7 @@ public class IdeaDependenciesProvider {
         final JavaModuleDetector javaModuleDetector = projectInternal.getServices().get(JavaModuleDetector.class);
 
         final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
-        return projectInternal.getMutationState().fromMutableState(p -> {
+        return projectInternal.getOwner().fromMutableState(p -> {
             new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
             return visitor;
         });

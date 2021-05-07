@@ -17,11 +17,11 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 
+@ServiceScope(Scopes.Build.class)
 public interface ProjectAccessHandler {
-
-    void beforeRequestingTaskByPath(ProjectInternal targetProject);
-
     void beforeResolvingProjectDependency(ProjectInternal dependencyProject);
 }
