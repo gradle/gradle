@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    compile(kotlin("stdlib-js"))
+    implementation(kotlin("stdlib-js"))
 }
 
 repositories {

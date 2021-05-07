@@ -19,19 +19,8 @@ package org.gradle.api.internal.project;
 import org.gradle.initialization.ProjectAccessHandler;
 
 public class ConfigurationOnDemandProjectAccessListener implements ProjectAccessHandler {
-
-    @Override
-    public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
-        evaluateProjectAndDiscoverTasks(targetProject);
-    }
-
     @Override
     public void beforeResolvingProjectDependency(ProjectInternal targetProject) {
-        evaluateProjectAndDiscoverTasks(targetProject);
-    }
-
-    private synchronized void evaluateProjectAndDiscoverTasks(final ProjectInternal targetProject) {
-        targetProject.evaluate();
-        targetProject.getTasks().discoverTasks();
+        targetProject.getOwner().ensureConfigured();
     }
 }

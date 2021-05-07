@@ -34,10 +34,7 @@ class RelevantProjectsRegistry : ProjectAccessHandler {
                 node.owningProject
             }
 
-    override fun beforeRequestingTaskByPath(targetProject: ProjectInternal) {
-    }
-
     override fun beforeResolvingProjectDependency(dependencyProject: ProjectInternal) {
-        targetProjects.add(dependencyProject)
+        targetProjects.add(dependencyProject.owner.mutableModel)
     }
 }

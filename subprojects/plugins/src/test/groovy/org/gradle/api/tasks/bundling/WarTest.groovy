@@ -35,7 +35,7 @@ class WarTest extends AbstractArchiveTaskTest {
 
     def "test War"() {
         expect:
-        war.extension == War.WAR_EXTENSION
+        war.archiveExtension.get() == War.WAR_EXTENSION
     }
 
     def "can configure WEB-INF CopySpec using an Action"() {
@@ -48,6 +48,6 @@ class WarTest extends AbstractArchiveTaskTest {
         execute(war)
 
         then:
-        new JarTestFixture(war.archivePath).assertContainsFile('WEB-INF/file.txt')
+        new JarTestFixture(war.archiveFile.get().asFile).assertContainsFile('WEB-INF/file.txt')
     }
 }
