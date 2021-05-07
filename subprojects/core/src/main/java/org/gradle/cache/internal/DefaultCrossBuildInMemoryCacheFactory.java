@@ -86,10 +86,6 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         private final Map<K, V> valuesForThisSession = new HashMap<>();
 
         @Override
-        public void afterStart() {
-        }
-
-        @Override
         public void beforeComplete() {
             synchronized (lock) {
                 retainValuesFromCurrentSession(valuesForThisSession.values());
@@ -285,10 +281,6 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
             delegate.clear();
             keysFromCurrentBuild.clear();
             keysFromPreviousBuild.clear();
-        }
-
-        @Override
-        public void afterStart() {
         }
 
         @Override

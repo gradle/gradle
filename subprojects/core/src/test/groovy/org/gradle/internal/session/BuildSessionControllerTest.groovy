@@ -21,13 +21,20 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.initialization.SessionLifecycleListener
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
+import org.gradle.internal.service.scopes.Scopes
 import spock.lang.Specification
 
+import java.util.function.Function
+
 class BuildSessionControllerTest extends Specification {
+    def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
+    def actionExecutor = Mock(BuildSessionActionExecutor)
     def userHomeServiceRegistry = Mock(GradleUserHomeScopeServiceRegistry)
     def crossBuildState = Mock(CrossBuildSessionState)
     def startParameter = new StartParameterInternal()
@@ -41,9 +48,45 @@ class BuildSessionControllerTest extends Specification {
     def setup() {
         _ * userHomeServiceRegistry.getServicesFor(_) >> new DefaultServiceRegistry()
         def services = new DefaultServiceRegistry()
-        services.add(BuildSessionActionExecutor, Stub(BuildSessionActionExecutor))
+        services.add(BuildSessionActionExecutor, actionExecutor)
+        services.add(listenerManager)
         _ * crossBuildState.services >> services
         state = new BuildSessionController(userHomeServiceRegistry, crossBuildState, startParameter, buildRequestMetadata, classPath, cancellationToken, clientMetadata, eventConsumer)
+    }
+
+    def "does nothing when function does nothing"() {
+        def listener = Mock(SessionLifecycleListener)
+        def action = Mock(Function)
+
+        given:
+        listenerManager.addListener(listener)
+
+        when:
+        state.run(action)
+
+        then:
+        1 * action.apply(_)
+        0 * actionExecutor._
+        0 * listener._
+    }
+
+    def "fires events before and after build action is run"() {
+        def listener = Mock(SessionLifecycleListener)
+        def action = Mock(Function)
+        def buildAction = Stub(BuildAction)
+
+        given:
+        listenerManager.addListener(listener)
+
+        when:
+        state.run(action)
+
+        then:
+        1 * action.apply(_) >> { BuildSessionContext context -> context.execute(buildAction) }
+        1 * listener.afterStart()
+        1 * actionExecutor.execute(buildAction, _)
+        1 * listener.beforeComplete()
+        0 * listener._
     }
 
     def "cannot run multiple actions against a session"() {
@@ -60,5 +103,4 @@ class BuildSessionControllerTest extends Specification {
         then:
         thrown(IllegalStateException)
     }
-
 }

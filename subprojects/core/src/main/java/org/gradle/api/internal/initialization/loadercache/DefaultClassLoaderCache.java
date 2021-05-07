@@ -147,11 +147,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
     }
 
     @Override
-    public void afterStart() {
-
-    }
-
-    @Override
     public void beforeComplete() {
         synchronized (lock) {
             Set<ClassLoaderId> unused = Sets.newHashSet(byId.keySet());

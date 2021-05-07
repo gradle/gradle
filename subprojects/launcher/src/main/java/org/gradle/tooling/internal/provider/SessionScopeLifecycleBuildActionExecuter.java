@@ -18,10 +18,8 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.SessionLifecycleListener;
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionController;
@@ -54,21 +52,15 @@ public class SessionScopeLifecycleBuildActionExecuter implements BuildActionExec
         try (CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter)) {
             try (BuildSessionController buildSessionController = new BuildSessionController(userHomeServiceRegistry, crossBuildSessionState, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
                 return buildSessionController.run(context -> {
-                    SessionLifecycleListener sessionLifecycleListener = context.getServices().get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
-                    try {
-                        sessionLifecycleListener.afterStart();
-                        BuildActionRunner.Result result = context.execute(action);
-                        PayloadSerializer payloadSerializer = context.getServices().get(PayloadSerializer.class);
-                        if (result.getBuildFailure() == null) {
-                            return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
-                        }
-                        if (requestContext.getCancellationToken().isCancellationRequested()) {
-                            return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));
-                        }
-                        return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));
-                    } finally {
-                        sessionLifecycleListener.beforeComplete();
+                    BuildActionRunner.Result result = context.execute(action);
+                    PayloadSerializer payloadSerializer = context.getServices().get(PayloadSerializer.class);
+                    if (result.getBuildFailure() == null) {
+                        return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
                     }
+                    if (requestContext.getCancellationToken().isCancellationRequested()) {
+                        return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));
+                    }
+                    return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));
                 });
             }
         }

@@ -182,9 +182,6 @@ public class WorkerDaemonClientsManager implements Stoppable {
 
     private class StopSessionScopedWorkers implements SessionLifecycleListener {
         @Override
-        public void afterStart() { }
-
-        @Override
         public void beforeComplete() {
             synchronized (lock) {
                 List<WorkerDaemonClient> sessionScopedClients = CollectionUtils.filter(allClients, client -> client.getKeepAliveMode() == KeepAliveMode.SESSION);
