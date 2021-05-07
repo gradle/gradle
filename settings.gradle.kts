@@ -15,7 +15,7 @@ plugins {
     id("gradlebuild.base.allprojects")
     id("gradlebuild.internal.testfiltering")
     // Keep version with `build-logic/build-platform/buildSrc.gradle.kts` in sync
-    id("com.gradle.enterprise.test-distribution").version("2.0.3-rc-4")
+    id("com.gradle.enterprise.test-distribution").version("2.0.3")
     id("com.gradle.internal.test-selection").version("0.5.2-rc-1")
 }
 
