@@ -111,7 +111,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         when:
         def runner = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
-            agpVersion.startsWith("4.1"),
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
                 "kotlin-android-extensions-runtime-1.5.0-RC.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0-RC)"
@@ -124,7 +123,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         when:
         result = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
-            agpVersion.startsWith("4.1"),
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
                 "kotlin-android-extensions-runtime-1.5.0-RC.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0-RC)",
@@ -140,20 +138,18 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, String agpVersion, String task, boolean expectWorkerExecutorDeprecation, List<String> artifacts) {
-        SmokeTestGradleRunner runner = expectWorkerExecutorDeprecation
-            ? runnerForLocationExpectingWorkerExecutorDeprecation(location, agpVersion, task)
-            : runnerForLocation(location, agpVersion, task)
-        if (agpVersion.startsWith("4.1")) {
-            artifacts.each { artifact ->
-                runner.expectLegacyDeprecationWarning("Type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
+    private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, String agpVersion, String task, List<String> artifacts) {
+        SmokeTestGradleRunner runner = runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, task)
+        artifacts.each { artifact ->
+            runner.expectLegacyDeprecationWarningIf(
+                agpVersion.startsWith("4.1"),
+                "Type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
                     "Cannot convert the provided notation to a File or URI: $artifact. " +
                     "The following types/formats are supported:  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'. - A String or CharSequence URI, for example 'file:/usr/include'. - A File instance. - A Path instance. - A Directory instance. - A RegularFile instance. - A URI or URL instance. - A TextResource instance. " +
                     "Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. " +
                     "Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unresolvable_input for more details about this problem. " +
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                     "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-            }
         }
         return runner
     }

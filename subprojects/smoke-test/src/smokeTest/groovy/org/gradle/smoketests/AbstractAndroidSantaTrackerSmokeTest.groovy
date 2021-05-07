@@ -25,7 +25,6 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
@@ -54,25 +53,19 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
     }
 
-    private BuildResult buildLocationExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
-        runnerForLocationExpectingWorkerExecutorDeprecation(location, agpVersion, "assembleDebug")
+    protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
+        return runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, "assembleDebug")
             .build()
     }
 
-    protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
-        if (VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)) {
-            return buildLocationExpectingWorkerExecutorDeprecation(location, agpVersion)
-        }
-        return buildLocation(location, agpVersion)
-    }
-
-    protected SmokeTestGradleRunner runnerForLocationExpectingWorkerExecutorDeprecation(File location, String agpVersion, String... tasks) {
-        runnerForLocation(location, agpVersion, tasks)
-            .expectDeprecationWarning("The WorkerExecutor.submit() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",
-                "TODO Add followup issue")
+    protected SmokeTestGradleRunner runnerForLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion, String... tasks) {
+        return runnerForLocation(location, agpVersion, tasks)
+            .expectLegacyDeprecationWarningIf(agpVersion.startsWith("4.1"),
+                "The WorkerExecutor.submit() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. " +
+                    "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
+            )
     }
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {
