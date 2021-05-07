@@ -19,30 +19,13 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.file.FileCollectionFactory;
 
 import java.util.List;
 
 @NonNullApi
-public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
+public class OutputFilesCollector implements OutputUnpacker.UnpackedOutputConsumer {
     private final List<OutputFilePropertySpec> specs = Lists.newArrayList();
-    private final String ownerDisplayName;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final boolean locationOnly;
     private ImmutableSortedSet<OutputFilePropertySpec> fileProperties;
-    private boolean hasDeclaredOutputs;
-
-    public GetOutputFilesVisitor(String ownerDisplayName, FileCollectionFactory fileCollectionFactory, boolean locationOnly) {
-        this.ownerDisplayName = ownerDisplayName;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.locationOnly = locationOnly;
-    }
-
-    @Override
-    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-        hasDeclaredOutputs = true;
-        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, locationOnly, specs::add);
-    }
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
@@ -51,8 +34,12 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
         return fileProperties;
     }
 
-    public boolean hasDeclaredOutputs() {
-        return hasDeclaredOutputs;
+    @Override
+    public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
+        specs.add(spec);
     }
 
+    @Override
+    public void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value) {
+    }
 }

@@ -89,6 +89,9 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Nullable
     ProjectInternal findProject(String path);
 
+    @Nullable
+    ProjectInternal findProject(ProjectInternal referrer, String path);
+
     Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer);
 
     void subprojects(ProjectInternal referrer, Action<? super Project> configureAction);
@@ -146,7 +149,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     Path getProjectPath();
 
     /**
-     * Returns a unique path for this project within the current Gradle invocation.
+     * Returns a unique path for this project within the current build tree.
      */
     Path getIdentityPath();
 
@@ -161,7 +164,10 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Nullable
     ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action);
 
-    ProjectState getMutationState();
+    /**
+     * Returns the {@link ProjectState} that manages the state of this instance.
+     */
+    ProjectState getOwner();
 
     @Override
     ScriptHandlerInternal getBuildscript();
