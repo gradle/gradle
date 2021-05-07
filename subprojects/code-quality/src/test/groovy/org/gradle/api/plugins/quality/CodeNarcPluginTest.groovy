@@ -66,7 +66,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         task.maxPriority2Violations == 0
         task.maxPriority3Violations == 0
         task.reports.enabled*.name == ["html"]
-        task.reports.html.destination == project.file("build/reports/codenarc/custom.html")
+        task.reports.html.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.html")
         task.ignoreFailures == false
     }
 
@@ -93,7 +93,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         task.maxPriority2Violations == 50
         task.maxPriority3Violations == 200
         task.reports.enabled*.name == ["xml"]
-        task.reports.xml.destination == project.file("codenarc-reports/custom.xml")
+        task.reports.xml.outputLocation.asFile.get() == project.file("codenarc-reports/custom.xml")
         task.ignoreFailures == true
     }
 
@@ -101,14 +101,14 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         CodeNarc task = project.tasks.create("codenarcCustom", CodeNarc)
 
         task.reports.xml {
-            enabled = true
-            destination = project.file("build/foo.xml")
+            required = true
+            outputLocation = project.file("build/foo.xml")
         }
 
         expect:
         task.reports {
             assert enabled == [html, xml] as Set
-            assert xml.destination == project.file("build/foo.xml")
+            assert xml.outputLocation.asFile.get() == project.file("build/foo.xml")
         }
     }
 }
