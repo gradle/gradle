@@ -147,10 +147,6 @@ public interface UnitOfWork extends Describable {
         default void visitDestroyable(File destroyableRoot) {}
     }
 
-    default long markExecutionTime() {
-        return 0;
-    }
-
     /**
      * Validate the work definition and configuration.
      */
