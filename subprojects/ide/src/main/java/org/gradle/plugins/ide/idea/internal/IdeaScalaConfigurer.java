@@ -111,7 +111,7 @@ public class IdeaScalaConfigurer {
         for (final Project scalaProject : scalaProjects) {
             final IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
             final Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
-            ProjectLibrary library = ((ProjectInternal) scalaProject).getMutationState().fromMutableState(p -> createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule));
+            ProjectLibrary library = ((ProjectInternal) scalaProject).getOwner().fromMutableState(p -> createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule));
             if (library != null) {
                 ProjectLibrary duplicate = Iterables.find(scalaCompilerLibraries.values(), Predicates.equalTo(library), null);
                 scalaCompilerLibraries.put(scalaProject.getPath(), duplicate == null ? library : duplicate);

@@ -27,7 +27,6 @@ import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.resource.EmptyFileTextResource
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -42,9 +41,8 @@ class ProjectFactoryTest extends Specification {
     def project = Stub(DefaultProject)
     def buildId = Stub(BuildIdentifier)
     def owner = Stub(BuildState)
-    def projectStateRegistry = Stub(ProjectStateRegistry)
     def projectState = Stub(ProjectState)
-    def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), projectRegistry, owner, projectStateRegistry)
+    def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader())
     def rootProjectScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
 
@@ -61,10 +59,10 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.name >> "name"
         projectDescriptor.projectDir >> projectDir
         projectDescriptor.buildFile >> buildFile
-        projectStateRegistry.stateFor(buildId, Path.path(":name")) >> projectState
+        gradle.projectRegistry >> projectRegistry
 
         when:
-        def result = factory.createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, projectState, null, rootProjectScope, baseScope)
 
         then:
         result == project
@@ -80,10 +78,10 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.name >> "name"
         projectDescriptor.projectDir >> projectDir
         projectDescriptor.buildFile >> buildFile
-        projectStateRegistry.stateFor(buildId, Path.path(":name")) >> projectState
+        gradle.projectRegistry >> projectRegistry
 
         when:
-        def result = factory.createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, projectState, null, rootProjectScope, baseScope)
 
         then:
         result == project
@@ -100,10 +98,10 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.name >> "name"
         projectDescriptor.projectDir >> projectDir
         projectDescriptor.buildFile >> buildFile
-        projectStateRegistry.stateFor(buildId, Path.path(":name")) >> projectState
+        gradle.projectRegistry >> projectRegistry
 
         when:
-        def result = factory.createProject(gradle, projectDescriptor, parent, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, projectState, parent, rootProjectScope, baseScope)
 
         then:
         result == project

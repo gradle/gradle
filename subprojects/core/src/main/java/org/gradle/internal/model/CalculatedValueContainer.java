@@ -147,7 +147,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     public ModelContainer<?> getResourceToLock() {
         CalculationState<T, S> calculationState = this.calculationState;
         if (calculationState != null && calculationState.supplier.usesMutableProjectState()) {
-            return calculationState.supplier.getOwningProject().getMutationState();
+            return calculationState.supplier.getOwningProject().getOwner();
         } else {
             return RootScriptDomainObjectContext.INSTANCE.getModel();
         }

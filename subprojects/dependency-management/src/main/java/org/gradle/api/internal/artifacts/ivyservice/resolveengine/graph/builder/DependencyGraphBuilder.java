@@ -57,6 +57,7 @@ import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -353,7 +354,7 @@ public class DependencyGraphBuilder {
                 for (final ComponentState componentState : toDownloadInParallel) {
                     buildOperationQueue.add(new DownloadMetadataOperation(componentState));
                 }
-            });
+            }, BuildOperationConstraint.UNCONSTRAINED);
         }
     }
 

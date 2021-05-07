@@ -31,7 +31,7 @@ class ArchivePublishArtifactTest extends Specification {
 
     def "provides sensible default values for quite empty archive tasks"() {
         def quiteEmptyJar = testUtil.task(DummyJar)
-        quiteEmptyJar.destinationDir = temporaryFolder.testDirectory
+        quiteEmptyJar.destinationDirectory.set(temporaryFolder.testDirectory)
 
         when:
         def a = new ArchivePublishArtifact(quiteEmptyJar)
@@ -39,23 +39,23 @@ class ArchivePublishArtifactTest extends Specification {
         then:
         a.archiveTask == quiteEmptyJar
         a.classifier == ""
-        a.date.time == quiteEmptyJar.archivePath.lastModified()
+        a.date.time == quiteEmptyJar.archiveFile.get().asFile.lastModified()
         a.extension == "jar"
-        a.file == quiteEmptyJar.archivePath
+        a.file == quiteEmptyJar.archiveFile.get().asFile
         a.type == "jar"
     }
 
     def "configures name correctly"() {
         def noName = testUtil.task(DummyJar)
         def withArchiveName = testUtil.task(DummyJar)
-        withArchiveName.archiveName = "hey"
+        withArchiveName.archiveFileName.set("hey")
         def withBaseName = testUtil.task(DummyJar)
-        withBaseName.baseName = "foo"
+        withBaseName.archiveBaseName.set("foo")
         def withAppendix = testUtil.task(DummyJar)
-        withAppendix.baseName = "foo"
-        withAppendix.appendix = "javadoc"
+        withAppendix.archiveBaseName.set("foo")
+        withAppendix.archiveAppendix.set("javadoc")
         def withAppendixOnly = testUtil.task(DummyJar)
-        withAppendixOnly.appendix = "javadoc"
+        withAppendixOnly.archiveAppendix.set("javadoc")
 
         expect:
         new ArchivePublishArtifact(noName).name == null
@@ -70,7 +70,7 @@ class ArchivePublishArtifactTest extends Specification {
 
     static class DummyJar extends AbstractArchiveTask {
         DummyJar() {
-            extension = "jar"
+            archiveExtension.set("jar")
         }
 
         protected CopyAction createCopyAction() {

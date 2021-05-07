@@ -23,7 +23,6 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factory;
 import org.gradle.internal.model.RuleBasedPluginListener;
@@ -31,8 +30,16 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessors;
+import org.gradle.model.internal.core.DirectNodeNoInputsModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelMapModelProjection;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.model.internal.core.NodeBackedModelMap;
+import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -49,7 +56,6 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final ITaskFactory taskFactory;
     private final CollectionCallbackActionDecorator callbackDecorator;
     private final ProjectInternal project;
-    private final ProjectAccessListener projectAccessListener;
     private final TaskStatistics statistics;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CrossProjectConfigurator crossProjectConfigurator;
@@ -57,7 +63,6 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     public DefaultTaskContainerFactory(Instantiator instantiator,
                                        ITaskFactory taskFactory,
                                        ProjectInternal project,
-                                       ProjectAccessListener projectAccessListener,
                                        TaskStatistics statistics,
                                        BuildOperationExecutor buildOperationExecutor,
                                        CrossProjectConfigurator crossProjectConfigurator,
@@ -65,7 +70,6 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.instantiator = instantiator;
         this.taskFactory = taskFactory;
         this.project = project;
-        this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
         this.buildOperationExecutor = buildOperationExecutor;
         this.crossProjectConfigurator = crossProjectConfigurator;
@@ -74,7 +78,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
 
     @Override
     public TaskContainerInternal create() {
-        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener, statistics, buildOperationExecutor, crossProjectConfigurator, callbackDecorator);
+        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, statistics, buildOperationExecutor, crossProjectConfigurator, callbackDecorator);
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;
     }

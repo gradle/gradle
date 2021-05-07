@@ -28,7 +28,6 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
@@ -73,13 +72,10 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.DynamicObject
-import org.gradle.internal.model.CalculatedModelValue
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
-import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -92,8 +88,6 @@ import org.gradle.util.internal.ConfigureUtil
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Callable
-import java.util.function.Consumer
-import java.util.function.Function
 
 
 class ProblemReportingCrossProjectModelAccess(
@@ -101,24 +95,24 @@ class ProblemReportingCrossProjectModelAccess(
     private val problems: ProblemsListener,
     private val userCodeContext: UserCodeApplicationContext
 ) : CrossProjectModelAccess {
-    override fun getProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal {
-        return wrap(delegate.getProject(referrer, relativeTo, path), referrer)
+    override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
+        return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
     }
 
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { wrap(it, referrer) }
+        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
     }
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { wrap(it, referrer) }
+        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
     }
 
     private
-    fun wrap(project: ProjectInternal, referrer: ProjectInternal): ProjectInternal {
-        return if (project == referrer) {
-            project
+    fun ProjectInternal.wrap(referrer: ProjectInternal): ProjectInternal {
+        return if (this == referrer) {
+            this
         } else {
-            ProblemReportingProject(project, referrer, problems, userCodeContext)
+            ProblemReportingProject(this, referrer, problems, userCodeContext)
         }
     }
 
@@ -776,7 +770,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun evaluate(): Project {
-            return delegate.evaluate()
+            shouldNotBeUsed()
         }
 
         override fun bindAllModelRules(): ProjectInternal {
@@ -805,7 +799,11 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun findProject(path: String): ProjectInternal? {
-            return delegate.findProject(path)
+            return delegate.findProject(referrer, path)
+        }
+
+        override fun findProject(referrer: ProjectInternal, path: String): ProjectInternal? {
+            return delegate.findProject(referrer, path)
         }
 
         override fun getInheritedScope(): DynamicObject {
@@ -884,7 +882,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getProjectPath(): Path {
-            shouldNotBeUsed()
+            return delegate.projectPath
         }
 
         override fun getIdentityPath(): Path {
@@ -895,8 +893,8 @@ class ProblemReportingCrossProjectModelAccess(
             shouldNotBeUsed()
         }
 
-        override fun getMutationState(): ProjectState {
-            return MutationStateWrapper(this)
+        override fun getOwner(): ProjectState {
+            return delegate.owner
         }
 
         override fun getBuildscript(): ScriptHandlerInternal {
@@ -925,67 +923,6 @@ class ProblemReportingCrossProjectModelAccess(
             problems.onProblem(
                 PropertyProblem(location, message, exception, null)
             )
-        }
-    }
-
-    private
-    class MutationStateWrapper(
-        val project: ProblemReportingProject
-    ) : ProjectState {
-        override fun getOwner(): BuildState {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getParent(): ProjectState? {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getName(): String {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getIdentityPath(): Path {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getProjectPath(): Path {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getComponentIdentifier(): ProjectComponentIdentifier {
-            project.shouldNotBeUsed()
-        }
-
-        override fun attachMutableModel(project: ProjectInternal) {
-            this.project.shouldNotBeUsed()
-        }
-
-        override fun getMutableModel(): ProjectInternal {
-            return project
-        }
-
-        override fun getAccessLock(): ResourceLock {
-            project.shouldNotBeUsed()
-        }
-
-        override fun <S : Any?> fromMutableState(factory: Function<in ProjectInternal, out S>?): S {
-            project.shouldNotBeUsed()
-        }
-
-        override fun <S : Any?> forceAccessToMutableState(factory: Function<in ProjectInternal, out S>?): S {
-            project.shouldNotBeUsed()
-        }
-
-        override fun applyToMutableState(action: Consumer<in ProjectInternal>) {
-            project.delegate.mutationState.applyToMutableState { action.accept(project) }
-        }
-
-        override fun hasMutableState(): Boolean {
-            project.shouldNotBeUsed()
-        }
-
-        override fun <S : Any?> newCalculatedValue(initialValue: S?): CalculatedModelValue<S> {
-            project.shouldNotBeUsed()
         }
     }
 }
