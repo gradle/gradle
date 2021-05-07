@@ -28,7 +28,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
     }
 
     protected void checkConstructor() {
-        assert archiveTask.classifier == ''
+        assert archiveTask.archiveClassifier.get() == ''
     }
 
     @CompileStatic
