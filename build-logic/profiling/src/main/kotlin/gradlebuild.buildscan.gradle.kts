@@ -142,8 +142,8 @@ fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID")?.let
 fun extractCheckstyleAndCodenarcData() {
     gradle.taskGraph.afterTask {
         if (state.failure != null) {
-            if (this is Checkstyle && reports.xml.destination.exists()) {
-                val checkstyle = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
+            if (this is Checkstyle && reports.xml.outputLocation.get().asFile.exists()) {
+                val checkstyle = Jsoup.parse(reports.xml.outputLocation.get().asFile.readText(), "", Parser.xmlParser())
                 val errors = checkstyle.getElementsByTag("file").flatMap { file ->
                     file.getElementsByTag("error").map { error ->
                         val filePath = project.relativePath(file.attr("name"))
@@ -154,8 +154,8 @@ fun extractCheckstyleAndCodenarcData() {
                 errors.forEach { buildScan?.value("Checkstyle Issue", it) }
             }
 
-            if (this is CodeNarc && reports.xml.destination.exists()) {
-                val codenarc = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
+            if (this is CodeNarc && reports.xml.outputLocation.get().asFile.exists()) {
+                val codenarc = Jsoup.parse(reports.xml.outputLocation.get().asFile.readText(), "", Parser.xmlParser())
                 val errors = codenarc.getElementsByTag("Package").flatMap { codenarcPackage ->
                     codenarcPackage.getElementsByTag("File").flatMap { file ->
                         file.getElementsByTag("Violation").map { violation ->
@@ -243,13 +243,13 @@ fun Project.extractAllReportsFromCI() {
 
     gradle.taskGraph.afterTask {
         if (state.failure != null && this is Reporting<*>) {
-            this.reports.filter { it.name in capturedReportingTypes && it.isEnabled && it.destination.exists() }
+            this.reports.filter { it.name in capturedReportingTypes && it.required.get() && it.outputLocation.get().asFile.exists() }
                 .forEach { report ->
                     val linkName = "${this::class.java.simpleName.split("_")[0]} Report ($path)" // Strip off '_Decorated' addition to class names
                     // see: ciReporting.gradle
                     val reportPath =
-                        if (report.destination.isDirectory) "report-${project.name}-${report.destination.name}.zip"
-                        else "report-${project.name}-${report.destination.parentFile.name}-${report.destination.name}"
+                        if (report.outputLocation.get().asFile.isDirectory) "report-${project.name}-${report.outputLocation.get().asFile.name}.zip"
+                        else "report-${project.name}-${report.outputLocation.get().asFile.parentFile.name}-${report.outputLocation.get().asFile.name}"
                     val reportLink = "$basePath/$reportPath"
                     buildScan?.link(linkName, reportLink)
                 }
