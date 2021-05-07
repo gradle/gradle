@@ -17,7 +17,6 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -117,20 +116,19 @@ class ConfigurationCacheHost internal constructor(
             // Ensure projects are registered for look up e.g. by dependency resolution
             val projectRegistry = service<ProjectStateRegistry>()
             projectRegistry.registerProjects(service<BuildState>())
-            createRootProject(projectRegistry)
+            createRootProject()
             fireBuildOperationsRequiredByBuildScans()
         }
 
         private
-        fun createRootProject(projectRegistry: ProjectStateRegistry) {
-            val rootProject = createProject(projectRegistry, rootProjectDescriptor())
+        fun createRootProject() {
+            val rootProject = createProject(rootProjectDescriptor())
             gradle.rootProject = rootProject
             gradle.defaultProject = rootProject
         }
 
         private
-        fun rootProjectDescriptor() =
-            projectDescriptorRegistry.rootProject!!
+        fun rootProjectDescriptor() = projectDescriptorRegistry.rootProject!!
 
         private
         fun fireBuildOperationsRequiredByBuildScans() {
@@ -161,23 +159,22 @@ class ConfigurationCacheHost internal constructor(
         }
 
         private
-        fun createProject(projectRegistry: ProjectStateRegistry, descriptor: ProjectDescriptor): ProjectInternal {
-            val buildId = gradle.owner.buildIdentifier
-            val projectState = projectRegistry.stateFor(buildId, Path.path(descriptor.path))
+        fun createProject(descriptor: DefaultProjectDescriptor): ProjectInternal {
+            val projectState = gradle.owner.getProject(descriptor.path())
             projectState.createMutableModel(coreAndPluginsScope, coreAndPluginsScope)
             val project = projectState.mutableModel
             // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
             buildDirs[project.projectPath]?.let {
                 project.buildDir = it
             }
-            for (child in descriptor.children) {
-                createProject(projectRegistry, child)
+            for (child in descriptor.children()) {
+                createProject(child)
             }
             return project
         }
 
         override fun getProject(path: String): ProjectInternal =
-            gradle.rootProject.project(path)
+            gradle.owner.getProject(Path.path(path)).mutableModel
 
         override fun scheduleNodes(nodes: Collection<Node>) {
             gradle.taskGraph.run {
@@ -220,7 +217,8 @@ class ConfigurationCacheHost internal constructor(
             owner,
             service<BuildTreeController>(),
             service<WorkerLeaseService>().currentWorkerLease,
-            service<BuildLifecycleControllerFactory>()
+            service<BuildLifecycleControllerFactory>(),
+            service<ProjectStateRegistry>()
         )
 
         override fun prepareBuild(includedBuild: IncludedBuildState) {

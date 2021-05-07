@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.AbstractBuildState;
@@ -44,6 +45,7 @@ import java.util.function.Function;
 class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild, Stoppable {
     private final Path identityPath;
     private final BuildState owner;
+    private final ProjectStateRegistry projectStateRegistry;
     private final BuildIdentifier buildIdentifier;
     private final BuildDefinition buildDefinition;
     private final BuildLifecycleController buildLifecycleController;
@@ -53,13 +55,20 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
                        BuildDefinition buildDefinition,
                        BuildState owner,
                        BuildTreeController buildTree,
-                       BuildLifecycleControllerFactory buildLifecycleControllerFactory) {
+                       BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+                       ProjectStateRegistry projectStateRegistry) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.owner = owner;
+        this.projectStateRegistry = projectStateRegistry;
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
+    }
+
+    @Override
+    protected ProjectStateRegistry getProjectStateRegistry() {
+        return projectStateRegistry;
     }
 
     @Override

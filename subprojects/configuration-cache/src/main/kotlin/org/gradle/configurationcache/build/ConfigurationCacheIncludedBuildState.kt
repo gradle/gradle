@@ -18,6 +18,7 @@ package org.gradle.configurationcache.build
 
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.composite.internal.DefaultIncludedBuild
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
@@ -34,5 +35,6 @@ open class ConfigurationCacheIncludedBuildState(
     owner: BuildState,
     buildTree: BuildTreeController,
     parentLease: WorkerLeaseRegistry.WorkerLease,
-    buildLifecycleControllerFactory: BuildLifecycleControllerFactory
-) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, buildLifecycleControllerFactory)
+    buildLifecycleControllerFactory: BuildLifecycleControllerFactory,
+    projectStateRegistry: ProjectStateRegistry
+) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, buildLifecycleControllerFactory, projectStateRegistry)

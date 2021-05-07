@@ -17,18 +17,15 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -45,7 +42,6 @@ class InstantiatingBuildLoaderTest extends Specification {
     File rootProjectDir
     File childProjectDir
     ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-    def projectRegistry = Mock(ProjectRegistry)
     StartParameter startParameter = new StartParameter()
     ProjectDescriptor rootDescriptor
     ProjectInternal rootProject
@@ -54,8 +50,6 @@ class InstantiatingBuildLoaderTest extends Specification {
     GradleInternal gradle
     SettingsInternal settingsInternal
     BuildState buildState = Mock(BuildState)
-    ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
-    BuildIdentifier buildId = new DefaultBuildIdentifier("test")
     ProjectState rootProjectState = Mock(ProjectState)
 
     def rootProjectClassLoaderScope = Mock(ClassLoaderScope)
@@ -78,28 +72,27 @@ class InstantiatingBuildLoaderTest extends Specification {
         childDescriptor = descriptor('child', rootDescriptor, childProjectDir)
         childProject = project(childDescriptor, rootProject)
         def services = new DefaultServiceRegistry()
-        services.add(projectStateRegistry)
         gradle = Mock(GradleInternal) {
             getStartParameter() >> startParameter
             getRootProject() >> rootProject
             baseProjectClassLoaderScope() >> baseProjectClassLoaderScope
-            getProjectRegistry() >> projectRegistry
             getIdentityPath() >> Path.ROOT
             getServices() >> services
             getOwner() >> buildState
         }
-        settingsInternal = Mock(SettingsInternal) {
+        def descriptorRegistry = Mock(ProjectRegistry) {
             getRootProject() >> rootDescriptor
         }
-        buildState.buildIdentifier >> buildId
-        projectStateRegistry.stateFor(buildId, Path.ROOT) >> rootProjectState
+        settingsInternal = Mock(SettingsInternal) {
+            getProjectRegistry() >> descriptorRegistry
+        }
+        buildState.getProject(Path.ROOT) >> rootProjectState
     }
 
     def createsBuildWithRootProjectAsTheDefaultOne() {
         given:
         settingsInternal.defaultProject >> rootDescriptor
-        projectStateRegistry.stateFor(buildId, _) >> Stub(ProjectState)
-        projectRegistry.getProject(':') >> rootProject
+        buildState.getProject(_) >> Stub(ProjectState)
 
         when:
         buildLoader.load(settingsInternal, gradle)
@@ -118,8 +111,8 @@ class InstantiatingBuildLoaderTest extends Specification {
         def childProjectState = Mock(ProjectState)
         def childProjectClassLoaderScope = Mock(ClassLoaderScope)
         settingsInternal.defaultProject >> childDescriptor
-        projectStateRegistry.stateFor(buildId, Path.path(':child')) >> childProjectState
-        projectRegistry.getProject(':child') >> childProject
+        buildState.getProject(_) >> childProjectState
+        childProjectState.mutableModel >> childProject
 
         when:
         buildLoader.load(settingsInternal, gradle)
