@@ -43,7 +43,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         setupCopyOfSantaTracker(relocatedDir)
 
         when: 'clean build'
-        buildLocationExpectingWorkerExecutorDeprecation(originalDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorDeprecation(originalDir, agpVersion)
 
         then:
         assertConfigurationCacheStateStored()
@@ -55,7 +55,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         assertConfigurationCacheStateLoaded()
 
         when: 'clean cached build'
-        BuildResult relocatedResult = buildLocationExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
+        BuildResult relocatedResult = buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
 
         then:
         assertConfigurationCacheStateStored()
@@ -70,7 +70,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'clean cached build, reusing configuration cache when enabled'
         cleanLocation(relocatedDir, agpVersion)
-        buildLocation(relocatedDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
 
         then:
         assertConfigurationCacheStateLoaded()

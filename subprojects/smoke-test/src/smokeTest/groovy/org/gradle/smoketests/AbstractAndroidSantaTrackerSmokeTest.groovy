@@ -25,6 +25,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
@@ -53,9 +54,16 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
     }
 
-    protected BuildResult buildLocationExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
+    private BuildResult buildLocationExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
         runnerForLocationExpectingWorkerExecutorDeprecation(location, agpVersion, "assembleDebug")
             .build()
+    }
+
+    protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
+        if (VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)) {
+            return buildLocationExpectingWorkerExecutorDeprecation(location, agpVersion)
+        }
+        return buildLocation(location, agpVersion)
     }
 
     protected SmokeTestGradleRunner runnerForLocationExpectingWorkerExecutorDeprecation(File location, String agpVersion, String... tasks) {

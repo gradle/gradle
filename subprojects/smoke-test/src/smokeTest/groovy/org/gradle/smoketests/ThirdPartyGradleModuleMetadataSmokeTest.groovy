@@ -126,20 +126,10 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
                 "JFrog announced JCenter's shutdown in February 2021. Use mavenCentral() instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#jcenter_deprecation",
                 "TODO Add followup issue")
-            .expectDeprecationWarning("Adding a Configuration as a dependency is a confusing behavior which isn't recommended. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                "If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration[]) for more details.",
-                "TODO Add followup issue")
             .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the destinationDirectory property instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
-                "TODO Add followup issue")
-            .expectDeprecationWarning("The AbstractTestTask.binResultsDir property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Please use the binaryResultsDirectory property instead. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.AbstractTestTask.html#org.gradle.api.tasks.testing.AbstractTestTask:binResultsDir for more details.",
                 "TODO Add followup issue")
             .expectDeprecationWarning("The WorkerExecutor.submit() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +

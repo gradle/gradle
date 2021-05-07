@@ -54,10 +54,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        SmokeTestGradleRunner runner = VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)
-            ? runnerForLocationExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion, "assembleDebug")
-            : runnerForLocation(checkoutDir, agpVersion, "assembleDebug")
-        runner.build()
+        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
 
         then:
         assertConfigurationCacheStateStored()
@@ -82,7 +79,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
 
         when:
-        def result = buildLocationExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        def result = buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
         then:
@@ -91,7 +88,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
-        buildLocationExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
 
         then:
@@ -114,13 +111,13 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def result = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
+        def runner = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
             agpVersion.startsWith("4.1") || (agpVersion.startsWith("7.0") && GradleContextualExecuter.configCache),
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
-                "kotlin-android-extensions-runtime-1.4.31.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31)"
+                "kotlin-android-extensions-runtime-1.5.0-RC.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0-RC)"
             ])
-            .buildAndFail()
+        def result = runner.buildAndFail()
 
         then:
         assertConfigurationCacheStateStored()
@@ -128,10 +125,10 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         when:
         result = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
-            agpVersion.startsWith("4.1") || (agpVersion.startsWith("7.0") && !GradleContextualExecuter.configCache),
+            agpVersion.startsWith("4.1"),
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
-                "kotlin-android-extensions-runtime-1.4.31.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31)",
+                "kotlin-android-extensions-runtime-1.5.0-RC.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0-RC)",
                 "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
             ])
             .buildAndFail()
