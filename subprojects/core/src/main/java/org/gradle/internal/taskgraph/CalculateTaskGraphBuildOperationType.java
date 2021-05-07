@@ -16,7 +16,6 @@
 
 package org.gradle.internal.taskgraph;
 
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -47,7 +46,7 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
         long getTaskId();
 
     }
-    
+
     /**
      *
      * @since 6.2

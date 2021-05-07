@@ -64,7 +64,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         task instanceof War
         dependsOn(JavaPlugin.CLASSES_TASK_NAME).matches(task)
-        task.destinationDir == project.libsDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
 
         when:
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
@@ -120,7 +120,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         dependsOn(JavaPlugin.CLASSES_TASK_NAME).matches(task)
-        task.destinationDir == project.libsDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 
     def "replaces jar as publication"() {

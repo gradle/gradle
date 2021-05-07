@@ -72,7 +72,7 @@ class ApplyDefaultConfigurationTest {
             "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
             "SHOW_TOOLCHAINS",
             "GRADLE_RUNNER",
-            "CHECK_CLEAN_M2"
+            "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         ), steps.items.map(BuildStep::name))
         assertEquals(expectedRunnerParam(), getGradleStep("GRADLE_RUNNER").gradleParams)
     }
@@ -92,7 +92,7 @@ class ApplyDefaultConfigurationTest {
             "SHOW_TOOLCHAINS",
             "GRADLE_RUNNER",
             "KILL_PROCESSES_STARTED_BY_GRADLE",
-            "CHECK_CLEAN_M2"
+            "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         ), steps.items.map(BuildStep::name))
         verifyGradleRunnerParams(extraParameters, expectedDaemonParam)
     }
@@ -115,7 +115,7 @@ class ApplyDefaultConfigurationTest {
             "SET_BUILD_SUCCESS_ENV",
             "DUMP_OPEN_FILES_ON_FAILURE",
             "KILL_PROCESSES_STARTED_BY_GRADLE",
-            "CHECK_CLEAN_M2"
+            "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         ), steps.items.map(BuildStep::name))
         verifyGradleRunnerParams(extraParameters, expectedDaemonParam, Os.WINDOWS)
     }

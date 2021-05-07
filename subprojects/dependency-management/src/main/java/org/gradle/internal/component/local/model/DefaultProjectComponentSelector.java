@@ -26,7 +26,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
 
 import java.util.Collections;
@@ -146,8 +145,8 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     public static ProjectComponentSelector newSelector(Project project, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
         ProjectInternal projectInternal = (ProjectInternal) project;
-        BuildIdentifier currentBuild = projectInternal.getServices().get(BuildState.class).getBuildIdentifier();
-        return new DefaultProjectComponentSelector(currentBuild, projectInternal.getIdentityPath(), projectInternal.getProjectPath(), project.getName(), attributes, requestedCapabilities);
+        ProjectComponentIdentifier projectComponentIdentifier = projectInternal.getOwner().getComponentIdentifier();
+        return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectInternal.getIdentityPath(), projectInternal.getProjectPath(), project.getName(), attributes, requestedCapabilities);
     }
 
     public static ProjectComponentSelector newSelector(ProjectComponentIdentifier identifier) {
