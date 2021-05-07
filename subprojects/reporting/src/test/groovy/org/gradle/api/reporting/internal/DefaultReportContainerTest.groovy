@@ -85,22 +85,22 @@ class DefaultReportContainerTest extends Specification {
         thrown(ReportContainer.ImmutableViolationException)
     }
 
-    def "enable empty by default"() {
+    def "require empty by default"() {
         expect:
-        container.every { !it.enabled } && container.enabled.empty
+        container.every { !it.required.get() } && container.enabled.empty
     }
 
-    def "can change enabled"() {
+    def "can change required"() {
         when:
-        container.each { it.enabled = false }
+        container.each { it.required = false }
 
         then:
         container.enabled.empty
 
         when:
         container.configure {
-            a.enabled true
-            b.enabled true
+            a.required = true
+            b.required = true
         }
 
         then:

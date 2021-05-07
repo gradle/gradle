@@ -372,10 +372,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
-        test.reports.junitXml.destination == new File(project.testResultsDir, 'customTest')
-        test.reports.html.destination == new File(project.testReportDir, 'customTest')
-        test.reports.junitXml.enabled
-        test.reports.html.enabled
+        test.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
+        test.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
+        test.reports.junitXml.required.get()
+        test.reports.html.required.get()
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")

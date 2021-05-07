@@ -60,7 +60,7 @@ class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
 
         Task htmlReport = project.tasks.getByName(ProjectReportsPlugin.HTML_DEPENDENCY_REPORT);
         htmlReport instanceOf(HtmlDependencyReportTask.class)
-        htmlReport.reports.html.destination == new File(project.buildDir, "reports/project/dependencies")
+        htmlReport.reports.html.outputLocation.get().asFile == new File(project.buildDir, "reports/project/dependencies")
         htmlReport.projects == [project] as Set
 
         Task projectReport = project.getTasks().getByName(ProjectReportsPlugin.PROJECT_REPORT);
