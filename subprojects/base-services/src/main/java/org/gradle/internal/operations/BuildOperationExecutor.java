@@ -80,12 +80,26 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
     <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction);
 
     /**
+     * Overload allowing {@link BuildOperationConstraint} to be specified.
+     *
+     * @see BuildOperationExecutor#runAllWithAccessToProjectState(Action)
+     */
+    <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
+
+    /**
      * Same as {@link #runAll(Action)}. However, the actions are allowed to access mutable project state. In general, this is more likely to
      * result in deadlocks and other flaky behaviours.
      *
      * <p>See {@link org.gradle.internal.resources.ProjectLeaseRegistry#whileDisallowingProjectLockChanges(Factory)} for more details.
      */
     <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction);
+
+    /**
+     * Overload allowing {@link BuildOperationConstraint} to be specified.
+     *
+     * @see BuildOperationExecutor#runAllWithAccessToProjectState(Action)
+     */
+    <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
 
     /**
      * Submits an arbitrary number of operations, created synchronously by the scheduling action, to be executed by the supplied
@@ -95,4 +109,11 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
      * <p>Actions are not permitted to access any mutable project state. Generally, this is preferred.</p>
      */
     <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction);
+
+    /**
+     * Overload allowing {@link BuildOperationConstraint} to be specified.
+     *
+     * @see BuildOperationExecutor#runAll(BuildOperationWorker, Action)
+     */
+    <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
 }
