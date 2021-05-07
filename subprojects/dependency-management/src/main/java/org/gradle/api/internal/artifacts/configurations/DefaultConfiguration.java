@@ -94,7 +94,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
@@ -181,7 +180,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
-    private final ProjectAccessListener projectAccessListener;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
@@ -246,7 +244,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ListenerManager listenerManager,
                                 DependencyMetaDataProvider metaDataProvider,
                                 Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-                                ProjectAccessListener projectAccessListener,
                                 FileCollectionFactory fileCollectionFactory,
                                 BuildOperationExecutor buildOperationExecutor,
                                 Instantiator instantiator,
@@ -272,7 +269,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
-        this.projectAccessListener = projectAccessListener;
         this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
         this.buildOperationExecutor = buildOperationExecutor;
@@ -878,7 +874,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
         if (useDependedOn) {
-            return new TasksFromProjectDependencies(taskName, getAllDependencies(), projectAccessListener);
+            return new TasksFromProjectDependencies(taskName, getAllDependencies());
         } else {
             return new TasksFromDependentProjects(taskName, getName());
         }
@@ -1156,7 +1152,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName, configurationsProvider, resolver, listenerManager,
-            metaDataProvider, childResolutionStrategy, projectAccessListener, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser,
+            metaDataProvider, childResolutionStrategy, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser,
             attributesFactory, rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, owner, projectStateRegistry, domainObjectCollectionFactory,
             calculatedValueContainerFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);

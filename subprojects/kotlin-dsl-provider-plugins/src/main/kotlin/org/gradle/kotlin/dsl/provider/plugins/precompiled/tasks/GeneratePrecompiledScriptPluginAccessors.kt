@@ -24,8 +24,8 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -40,6 +40,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedRootBuild
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -331,13 +332,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                         lock()
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project")
-                    val rootProject = gradle.serviceOf<IProjectFactory>().createProject(
-                        gradle,
-                        settings.rootProject.apply { name = "gradle-kotlin-dsl-accessors" },
-                        null,
-                        rootProjectScope,
-                        baseScope
-                    )
+                    settings.rootProject.name = "gradle-kotlin-dsl-accessors"
+                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as DefaultProjectDescriptor)
+                    projectState.createMutableModel(rootProjectScope, baseScope)
+                    val rootProject = projectState.mutableModel
                     gradle.rootProject = rootProject
                     gradle.defaultProject = rootProject
                     rootProject.run {

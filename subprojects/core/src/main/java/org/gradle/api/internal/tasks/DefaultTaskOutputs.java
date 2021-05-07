@@ -29,9 +29,10 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
-import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.OutputFilesCollector;
+import org.gradle.api.internal.tasks.properties.OutputUnpacker;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -139,9 +140,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
-        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor(task.toString(), fileCollectionFactory, false);
-        TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
-        return visitor.getFileProperties();
+        OutputFilesCollector collector = new OutputFilesCollector();
+        TaskPropertyUtils.visitProperties(propertyWalker, task, new OutputUnpacker(task.toString(), fileCollectionFactory, false, false, collector));
+        return collector.getFileProperties();
     }
 
     @Override

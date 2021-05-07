@@ -18,6 +18,7 @@ package org.gradle.execution
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.initialization.BuildCancellationToken
 import spock.lang.Specification
 
@@ -41,7 +42,9 @@ class TaskPathProjectEvaluatorTest extends Specification {
     }
 
     def "project hierarchy configuration fails when cancelled"() {
+        def projectState = Mock(ProjectState)
         def child1 = Mock(ProjectInternal)
+        def child1State = Mock(ProjectState)
         def child2 = Mock(ProjectInternal)
         def subprojects = [child1, child2]
 
@@ -56,8 +59,10 @@ class TaskPathProjectEvaluatorTest extends Specification {
         BuildCancelledException e = thrown()
 
         and:
-        1 * project.evaluate()
-        1 * child1.evaluate()
+        1 * project.owner >> projectState
+        1 * projectState.ensureConfigured()
+        1 * child1.owner >> child1State
+        1 * child1State.ensureConfigured()
         0 * child2._
     }
 }

@@ -20,8 +20,5 @@ import org.gradle.api.internal.project.ProjectInternal;
 
 
 public interface ProjectAccessListener {
-
-    void beforeRequestingTaskByPath(ProjectInternal targetProject);
-
     void beforeResolvingProjectDependency(ProjectInternal dependencyProject);
 }
