@@ -32,12 +32,10 @@ class TaskGeneratedSingleFileReportTest extends Specification {
         def resolvedOutput = tmpDir.file("report.txt")
 
         expect:
-        report.destination == null
         !report.outputLocation.isPresent()
 
         report.conventionMapping.map("destination") { output }
 
-        report.destination == output
         report.outputLocation.asFile.get() == resolvedOutput
     }
 }
