@@ -19,19 +19,19 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Collections.emptyList;
+import javax.annotation.Nullable;
 
 class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
     private final ProviderInternal<?> left;
+    @Nullable
+    private final ProviderInternal<?> right;
     private final ValueSupplier.ValueProducer leftProducer;
     private final ValueSupplier.ValueProducer rightProducer;
 
-    public OrElseValueProducer(ProviderInternal<?> left, ValueSupplier.ValueProducer rightProducer) {
+    public OrElseValueProducer(ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer rightProducer) {
         this.left = left;
+        this.right = right;
         this.leftProducer = left.getProducer();
         this.rightProducer = rightProducer;
     }
@@ -50,43 +50,18 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
     @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
-
-        List<Task> leftTasks = producerTasksOf(leftProducer);
-        List<Task> rightTasks = producerTasksOf(rightProducer);
-
-        if (rightTasks.isEmpty()) {
-            if (leftTasks.isEmpty()) {
-                return;
-            }
-            // We should only execute leftTasks if the left provider can ever produce a value
-            if (!isLeftMissing()) {
-                leftTasks.forEach(visitor::execute);
+        if (!isMissing(left)) {
+            if (leftProducer.isKnown()) {
+                leftProducer.visitProducerTasks(visitor);
             }
             return;
         }
-
-        if (leftTasks.isEmpty()) {
-            return;
+        if (right != null && rightProducer.isKnown() && !isMissing(right)) {
+            rightProducer.visitProducerTasks(visitor);
         }
-
-        // TODO: configuration cache: this condition needs to be evaluated at execution time
-        //  when `leftProducer.isProducesDifferentValueOverTime()`
-        List<Task> producerTasks = isLeftMissing()
-            ? rightTasks
-            : leftTasks;
-        producerTasks.forEach(visitor::execute);
     }
 
-    private boolean isLeftMissing() {
-        return left.calculateExecutionTimeValue().isMissing();
-    }
-
-    private List<Task> producerTasksOf(ValueSupplier.ValueProducer producer) {
-        if (!producer.isKnown()) {
-            return emptyList();
-        }
-        ArrayList<Task> tasks = new ArrayList<>();
-        producer.visitProducerTasks(tasks::add);
-        return tasks;
+    private boolean isMissing(ProviderInternal<?> provider) {
+        return provider.calculateExecutionTimeValue().isMissing();
     }
 }

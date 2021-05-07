@@ -35,10 +35,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     public ValueProducer getProducer() {
-        ExecutionTimeValue<? extends T> leftValue = left.calculateExecutionTimeValue();
-        return leftValue.isMissing()
-            ? right.getProducer()
-            : new OrElseValueProducer(left, right.getProducer());
+        return new OrElseValueProducer(left, right, right.getProducer());
     }
 
     @Override

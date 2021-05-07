@@ -37,7 +37,7 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public ValueProducer getProducer() {
-        return new OrElseValueProducer(provider, ValueProducer.unknown());
+        return new OrElseValueProducer(provider, null, ValueProducer.unknown());
     }
 
     @Override
