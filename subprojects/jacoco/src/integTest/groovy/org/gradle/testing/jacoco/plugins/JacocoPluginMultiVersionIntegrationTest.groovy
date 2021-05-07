@@ -55,7 +55,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
                 reports {
                     xml.required = true
                     csv.required = true
-                    html.destination file("\${buildDir}/jacocoHtml")
+                    html.outputLocation.set(file("\${buildDir}/jacocoHtml"))
                 }
             }
             """
@@ -217,7 +217,7 @@ public class ThingTest {
             reports {
                 xml.required = false
                 csv.required = false
-                html.destination file("\${buildDir}/reports/jacoco/integ")
+                html.outputLocation.set(file("\${buildDir}/reports/jacoco/integ"))
             }
             executionData test
         }

@@ -63,8 +63,8 @@ class TaskReportContainerTest extends Specification {
     DefaultReportContainer createContainer(Closure c) {
         def container = project.services.get(Instantiator).newInstance(TestReportContainer, task, c)
         container.all {
-            it.enabled true
-            destination project.file(it.name)
+            it.required = true
+            outputLocation = project.file(it.name)
         }
         task.reports = container
         return container
@@ -87,8 +87,8 @@ class TaskReportContainerTest extends Specification {
     @Unroll("tasks inputs and outputs are wired correctly A: #aEnabled, B: #bEnabled")
     def "tasks inputs and outputs are wired correctly"() {
         when:
-        container.a.enabled = aEnabled
-        container.b.enabled = bEnabled
+        container.a.required = aEnabled
+        container.b.required = bEnabled
 
         then:
         outputFiles*.name == fileNames
