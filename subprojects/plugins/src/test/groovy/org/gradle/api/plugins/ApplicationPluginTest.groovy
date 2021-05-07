@@ -77,7 +77,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
-        task.archiveName == "${project.applicationName}.zip"
+        task.archiveFileName.get() == "${project.applicationName}.zip"
     }
 
     def "adds distTar task to project"() {
@@ -87,7 +87,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_DIST_TAR_NAME]
         task instanceof Tar
-        task.archiveName == "${project.applicationName}.tar"
+        task.archiveFileName.get() == "${project.applicationName}.tar"
     }
 
     void "applicationName is configurable"() {
@@ -103,7 +103,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         installTest.destinationDir == project.file("build/install/SuperApp")
 
         def distZipTask = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
-        distZipTask.archiveName == "SuperApp.zip"
+        distZipTask.archiveFileName.get() == "SuperApp.zip"
     }
 
     void "executableDir is configurable"() {

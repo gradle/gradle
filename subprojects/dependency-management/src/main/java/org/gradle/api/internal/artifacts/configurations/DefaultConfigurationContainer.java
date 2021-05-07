@@ -48,7 +48,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -70,7 +69,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final DomainObjectContext context;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final ProjectAccessListener projectAccessListener;
     private final FileCollectionFactory fileCollectionFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
@@ -91,7 +89,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          DomainObjectContext context,
                                          ListenerManager listenerManager,
                                          DependencyMetaDataProvider dependencyMetaDataProvider,
-                                         ProjectAccessListener projectAccessListener,
                                          LocalComponentMetadataBuilder localComponentMetadataBuilder,
                                          FileCollectionFactory fileCollectionFactory,
                                          DependencySubstitutionRules globalDependencySubstitutionRules,
@@ -117,7 +114,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.context = context;
         this.listenerManager = listenerManager;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
-        this.projectAccessListener = projectAccessListener;
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -139,7 +135,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     protected Configuration doCreate(String name) {
         DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context, name, this, resolver, listenerManager, dependencyMetaDataProvider,
-            resolutionStrategyFactory, projectAccessListener, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
+            resolutionStrategyFactory, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
             rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, context, projectStateRegistry, domainObjectCollectionFactory, calculatedValueContainerFactory);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
@@ -170,7 +166,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter.getAndIncrement();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class, context, name, detachedConfigurationsProvider, resolver, listenerManager,
-            dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser,
+            dependencyMetaDataProvider, resolutionStrategyFactory, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser,
             capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), documentationRegistry, userCodeApplicationContext,
             context, projectStateRegistry, domainObjectCollectionFactory, calculatedValueContainerFactory);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();

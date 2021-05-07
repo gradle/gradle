@@ -23,13 +23,14 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.tasks.StaticValue;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -56,16 +57,23 @@ public class DefaultTaskProperties implements TaskProperties {
         String beanName = task.toString();
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
-        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, fileCollectionFactory, true);
+        ValidationVisitor validationVisitor = new ValidationVisitor();
+        OutputFilesCollector outputFilesCollector = new OutputFilesCollector();
+        OutputUnpacker outputUnpacker = new OutputUnpacker(
+            beanName,
+            fileCollectionFactory,
+            true,
+            true,
+            OutputUnpacker.UnpackedOutputConsumer.composite(outputFilesCollector, validationVisitor)
+        );
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);
-        ValidationVisitor validationVisitor = new ValidationVisitor();
         ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
         try {
             TaskPropertyUtils.visitProperties(propertyWalker, task, validationContext, new CompositePropertyVisitor(
                 inputPropertiesVisitor,
                 inputFilesVisitor,
-                outputFilesVisitor,
+                outputUnpacker,
                 validationVisitor,
                 destroyablesVisitor,
                 localStateVisitor
@@ -78,8 +86,8 @@ public class DefaultTaskProperties implements TaskProperties {
             task.toString(),
             inputPropertiesVisitor.getProperties(),
             inputFilesVisitor.getFileProperties(),
-            outputFilesVisitor.getFileProperties(),
-            outputFilesVisitor.hasDeclaredOutputs(),
+            outputFilesCollector.getFileProperties(),
+            outputUnpacker.hasDeclaredOutputs(),
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
             validationVisitor.getTaskPropertySpecs(),
@@ -259,7 +267,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
     }
 
-    private static class ValidationVisitor extends PropertyVisitor.Adapter {
+    private static class ValidationVisitor extends PropertyVisitor.Adapter implements OutputUnpacker.UnpackedOutputConsumer {
         private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<>();
 
         @Override
@@ -282,8 +290,18 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-            taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
+        public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
+            taskPropertySpecs.add(new DefaultValidatingProperty(
+                propertyName,
+                new StaticValue(spec.getOutputFile()),
+                optional,
+                ValidationActions.outputValidationActionFor(spec))
+            );
+        }
+
+        @Override
+        public void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value) {
+            taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, ValidationActions.NO_OP));
         }
 
         public List<ValidatingProperty> getTaskPropertySpecs() {
