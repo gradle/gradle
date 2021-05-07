@@ -76,8 +76,8 @@ fun BuildSteps.substDirOnWindows(os: Os) {
                 subst p: "%teamcity.build.checkoutDir%"
                 """.trimIndent()
         }
-        cleanBuildLogicBuild("P:/build-logic-commons", os)
-        cleanBuildLogicBuild("P:/build-logic", os)
+        cleanBuildLogicBuild("P:/build-logic-commons")
+        cleanBuildLogicBuild("P:/build-logic")
     }
 }
 
@@ -88,12 +88,12 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os) {
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """dir p: && subst p: /d"""
         }
-        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons", os)
-        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic", os)
+        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons")
+        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic")
     }
 }
 
-private fun BuildSteps.cleanBuildLogicBuild(buildDir: String, os: Os) {
+private fun BuildSteps.cleanBuildLogicBuild(buildDir: String) {
     // Gradle detects overlapping outputs when running first on a subst drive and then in the original location.
     // Even when running clean builds on CI, we don't run clean in buildSrc, so there may be stale leftover files there.
     // This means that we need to clean buildSrc before running for the first time on the subst drive

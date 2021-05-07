@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -29,7 +30,8 @@ public interface CrossProjectModelAccess {
     /**
      * @param path absolute path
      */
-    ProjectInternal getProject(ProjectInternal referrer, ProjectInternal relativeTo, String path);
+    @Nullable
+    ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path);
 
     Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo);
 

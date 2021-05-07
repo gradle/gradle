@@ -121,9 +121,9 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         when:
         def rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
         def archive = rootProject.task('foo', type: Jar, {})
-        archive.setBaseName("base-name")
-        archive.setExtension('extension')
-        archive.setDestinationDir(rootProject.buildDir)
+        archive.archiveBaseName.set("base-name")
+        archive.archiveExtension.set('extension')
+        archive.destinationDirectory.set(rootProject.buildDir)
 
         IvyArtifact ivyArtifact = parser.parseNotation(archive)
 
@@ -131,7 +131,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.name == 'pub-name'
         ivyArtifact.extension == "extension"
         ivyArtifact.classifier == null
-        ivyArtifact.file == archive.archivePath
+        ivyArtifact.file == archive.archiveFile.get().asFile
         ivyArtifact.buildDependencies.getDependencies(null) == [archive] as Set
     }
 
