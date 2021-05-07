@@ -37,8 +37,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
+import org.gradle.api.services.internal.DefaultBuildServiceProvider
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
@@ -65,6 +65,7 @@ class FixedValueReplacingProviderCodec(
     val providerWithChangingValueCodec = BindingsBackedCodec {
         bind(ValueSourceProviderCodec(valueSourceProviderFactory))
         bind(BuildServiceProviderCodec(buildStateRegistry))
+        bind(LimitedBuildServiceProviderCodec())
         bind(BeanCodec())
     }
 
@@ -144,9 +145,9 @@ class ProviderCodec(
 internal
 class BuildServiceProviderCodec(
     private val buildStateRegistry: BuildStateRegistry
-) : Codec<BuildServiceProvider<*, *>> {
+) : Codec<DefaultBuildServiceProvider<*, *>> {
 
-    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
+    override suspend fun WriteContext.encode(value: DefaultBuildServiceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
             val buildIdentifier = value.buildIdentifier
             write(buildIdentifier)
@@ -159,7 +160,7 @@ class BuildServiceProviderCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
+    override suspend fun ReadContext.decode(): DefaultBuildServiceProvider<*, *>? =
         decodePreservingSharedIdentity {
             val buildIdentifier = readNonNull<BuildIdentifier>()
             val name = readString()
@@ -179,6 +180,22 @@ class BuildServiceProviderCodec(
             DefaultBuildIdentifier.ROOT -> buildStateRegistry.rootBuild.build
             else -> buildStateRegistry.getIncludedBuild(buildIdentifier).configuredBuild
         }
+}
+
+
+internal
+class LimitedBuildServiceProviderCodec : Codec<DefaultBuildServiceProvider.LimitedBuildServiceProvider<*, *>> {
+
+    override suspend fun WriteContext.encode(value: DefaultBuildServiceProvider.LimitedBuildServiceProvider<*, *>) {
+        writeInt(value.parallelUsages)
+        write(value.delegate)
+    }
+
+    override suspend fun ReadContext.decode(): DefaultBuildServiceProvider.LimitedBuildServiceProvider<*, *> {
+        val parallelUsages = readInt()
+        val delegate = read()
+        return DefaultBuildServiceProvider.LimitedBuildServiceProvider(parallelUsages, delegate as DefaultBuildServiceProvider<*, *>)
+    }
 }
 
 

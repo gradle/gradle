@@ -92,7 +92,8 @@ Currently, it is not possible to use a build service with a worker API action th
 == Concurrent access to the service
 
 You can constrain concurrent execution when you register the service, by using the `Property` object returned from link:{javadocPath}/org/gradle/api/services/BuildServiceSpec.html#getMaxParallelUsages--[BuildServiceSpec.getMaxParallelUsages()].
-When this property has no value, which is the default, Gradle does not constrain access to the service. When this property has a value > 0, Gradle will allow no more than the specified number of tasks to use the service concurrently.
+When this property has no value, which is the default, Gradle does not constrain access to the service. When this property has a value > 0, Gradle will allow no more than the specified number of concurrent usages.
+By default, each task consumes 1 parallel usage, but this can be adjusted by using link:{javadocPath}/org/gradle/api/services/BuildServiceProvider.html#withParallelUsages--[BuildServiceProvider.withParallelUsages(int)].
 
 [[operation_listener]]
 == Receiving information about task execution

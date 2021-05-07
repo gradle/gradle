@@ -17,33 +17,19 @@
 package org.gradle.api.services;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
 /**
- * Details of a build service.
+ * This interface only exists to make older plugins work after making the return type of {@link #getService()} more concrete in {@link BuildServiceRegistration}.
  *
  * @param <T> the service type.
  * @param <P> the service parameters type.
- * @since 6.1
+ * @since 7.2
  */
 @Incubating
-public interface BuildServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> extends Named, BuildServiceRegistrationLegacySupport<T, P> {
-    /**
-     * Returns the parameters that will be used to instantiate the service with.
-     */
-    P getParameters();
-
-    /**
-     * Specifies the maximum number of concurrent usages of this service. When this property has no value defined, then any number of concurrent usages are allowed. This is the default.
-     *
-     * @see BuildServiceProvider#withParallelUsages(int)
-     */
-    Property<Integer> getMaxParallelUsages();
-
+public interface BuildServiceRegistrationLegacySupport<T extends BuildService<P>, P extends BuildServiceParameters> {
     /**
      * Returns a {@link Provider} that will create the service instance when its value is queried.
      */
-    BuildServiceProvider<T, P> getService();
+    Provider<T> getService();
 }

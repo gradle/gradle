@@ -54,6 +54,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
+import org.gradle.api.services.internal.InternalBuildServiceprovider;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -80,9 +81,9 @@ import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
@@ -989,7 +990,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         for (Provider<? extends BuildService<?>> service : requiredServices) {
             SharedResource resource = serviceRegistry.forService(service);
             if (resource.getMaxUsages() > 0) {
-                locks.add(resource.getResourceLock(1));
+                if (service instanceof InternalBuildServiceprovider) {
+                    InternalBuildServiceprovider<? extends BuildService<?>, ?> buildServiceProvider = (InternalBuildServiceprovider<? extends BuildService<?>, ?>) service;
+                    locks.add(resource.getResourceLock(buildServiceProvider.getParallelUsages()));
+                } else {
+                    throw new IllegalArgumentException(service + " is not a BuildServiceProvider");
+                }
             }
         }
         return locks.build();

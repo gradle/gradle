@@ -29,7 +29,7 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     /**
      * @param maxUsages Same semantics as {@link SharedResource#getMaxUsages()}.
      */
-    BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters, int maxUsages);
+    DefaultBuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters, int maxUsages);
 
     SharedResource forService(Provider<? extends BuildService<?>> service);
 }

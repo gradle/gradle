@@ -26,6 +26,7 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.api.services.BuildServiceProvider;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.Cast;
@@ -73,10 +74,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public SharedResource forService(Provider<? extends BuildService<?>> service) {
-        if (!(service instanceof BuildServiceProvider)) {
+        if (!(service instanceof InternalBuildServiceprovider)) {
             throw new IllegalArgumentException("The given provider is not a build service provider.");
         }
-        BuildServiceProvider<?, ?> provider = (BuildServiceProvider<?, ?>) service;
+        InternalBuildServiceprovider<?, ?> provider = (InternalBuildServiceprovider<?, ?>) service;
         DefaultServiceRegistration<?, ?> registration = (DefaultServiceRegistration<?, ?>) registrations.getByName(provider.getName());
         return registration.asSharedResource(() -> {
             // Prevent further changes to registration
@@ -91,7 +92,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction) {
+    public <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction) {
         BuildServiceRegistration<?, ?> existing = registrations.findByName(name);
         if (existing != null) {
             // TODO - assert same type
@@ -121,20 +122,20 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters, int maxUsages) {
+    public DefaultBuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters, int maxUsages) {
         if (registrations.findByName(name) != null) {
             throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
         }
         return doRegister(name, Cast.uncheckedNonnullCast(implementationType), parameters, maxUsages <= 0 ? null : maxUsages);
     }
 
-    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
+    private <T extends BuildService<P>, P extends BuildServiceParameters> DefaultBuildServiceProvider<T, P> doRegister(
         String name,
         Class<T> implementationType,
         P parameters,
         @Nullable Integer maxParallelUsages
     ) {
-        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(
+        DefaultBuildServiceProvider<T, P> provider = new DefaultBuildServiceProvider<>(
             buildIdentifier,
             name,
             implementationType,
@@ -180,10 +181,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     public static abstract class DefaultServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> implements BuildServiceRegistration<T, P> {
         private final String name;
         private final P parameters;
-        private final BuildServiceProvider<T, P> provider;
+        private final DefaultBuildServiceProvider<T, P> provider;
         private SharedResource resourceWrapper;
 
-        public DefaultServiceRegistration(String name, P parameters, BuildServiceProvider<T, P> provider) {
+        public DefaultServiceRegistration(String name, P parameters, DefaultBuildServiceProvider<T, P> provider) {
             this.name = name;
             this.parameters = parameters;
             this.provider = provider;
@@ -200,7 +201,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         }
 
         @Override
-        public Provider<T> getService() {
+        public BuildServiceProvider<T, P> getService() {
             return provider;
         }
 
@@ -232,9 +233,9 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     private static class ServiceCleanupListener extends BuildAdapter {
-        private final BuildServiceProvider<?, ?> provider;
+        private final DefaultBuildServiceProvider<?, ?> provider;
 
-        ServiceCleanupListener(BuildServiceProvider<?, ?> provider) {
+        ServiceCleanupListener(DefaultBuildServiceProvider<?, ?> provider) {
             this.provider = provider;
         }
 

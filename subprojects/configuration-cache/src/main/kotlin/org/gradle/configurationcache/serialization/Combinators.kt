@@ -252,7 +252,7 @@ suspend fun WriteContext.writeMapEntries(value: Map<*, *>) {
 
 
 internal
-suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) -> T): T {
+suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapInto(factory: (Int) -> T): T {
     val size = readSmallInt()
     val items = factory(size)
     readMapEntriesInto(items, size)

@@ -22,18 +22,18 @@ import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.api.services.BuildServiceProvider;
 import org.gradle.internal.Try;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
 
 // TODO - complain when used at configuration time, except when opted in to this
-public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
+public class DefaultBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements InternalBuildServiceprovider<T, P> {
     private final BuildIdentifier buildIdentifier;
     private final String name;
     private final Class<T> implementationType;
@@ -44,7 +44,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     private final P parameters;
     private Try<T> instance;
 
-    public BuildServiceProvider(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, @Nullable P parameters, IsolationScheme<BuildService, BuildServiceParameters> isolationScheme, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory, ServiceRegistry internalServices) {
+    public DefaultBuildServiceProvider(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, @Nullable P parameters, IsolationScheme<BuildService, BuildServiceParameters> isolationScheme, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory, ServiceRegistry internalServices) {
         this.buildIdentifier = buildIdentifier;
         this.name = name;
         this.implementationType = implementationType;
@@ -138,6 +138,77 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
                     }
                 });
             }
+        }
+    }
+
+    @Override
+    public BuildServiceProvider<T, P> withParallelUsages(int parallelUsages) {
+        return new LimitedBuildServiceProvider<>(parallelUsages, this);
+    }
+
+    @Override
+    public int getParallelUsages() {
+        return 1;
+    }
+
+    public static final class LimitedBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements InternalBuildServiceprovider<T, P> {
+
+        private final int parallelUsages;
+        private final DefaultBuildServiceProvider<T, P> delegate;
+
+        public LimitedBuildServiceProvider(int parallelUsages, DefaultBuildServiceProvider<T, P> delegate) {
+            this.parallelUsages = parallelUsages;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public BuildServiceProvider<T, P> withParallelUsages(int parallelUsages) {
+            return new LimitedBuildServiceProvider<>(parallelUsages, delegate);
+        }
+
+        @Override
+        public int getParallelUsages() {
+            return parallelUsages;
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            return delegate.calculateValue(consumer);
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return delegate.getType();
+        }
+
+        @Override
+        public String getName() {
+            return delegate.getName();
+        }
+
+        @Override
+        public Object unpackState() {
+            return delegate.unpackState();
+        }
+
+        @Override
+        public boolean isImmutable() {
+            return delegate.isImmutable();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return delegate.calculatePresence(consumer);
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.changingValue(this);
+        }
+
+        public DefaultBuildServiceProvider<T, P> getDelegate() {
+            return delegate;
         }
     }
 }

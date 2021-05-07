@@ -67,17 +67,17 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         run ":a:ping", ":b:ping"
     }
 
-    def "tasks are not run in parallel when they require an exclusive shared service"() {
+    def "tasks are not run in parallel when they require all leases of a service"() {
         given:
         withParallelThreads(2)
 
         buildFile << """
             def service = gradle.sharedServices.registerIfAbsent("exclusive", BuildService) {
-                maxParallelUsages = 1
+                maxParallelUsages = $maxUsages
             }
 
             allprojects {
-                ping.usesService(service)
+                ping.usesService(service.withParallelUsages($usagesPerTask))
             }
         """
 
@@ -91,6 +91,11 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         blockingServer.expectConcurrent("b")
 
         run ":a:ping", ":b:ping"
+
+        where:
+        maxUsages | usagesPerTask
+        1         | 1
+        2         | 2
     }
 
     def "tasks run in parallel when sufficient max usages"() {
@@ -99,11 +104,11 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
 
         buildFile << """
             def service = gradle.sharedServices.registerIfAbsent("service", BuildService) {
-                maxParallelUsages = 2
+                maxParallelUsages = $maxUsages
             }
 
             allprojects {
-                ping.usesService(service)
+                ping.usesService(service.withParallelUsages($usagesPerTask))
             }
         """
 
@@ -115,6 +120,11 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         blockingServer.expectConcurrent("a", "b")
 
         run ":a:ping", ":b:ping"
+
+        where:
+        maxUsages | usagesPerTask
+        2         | 1
+        4         | 2
     }
 
     def "task parallelization is limited by max usages"() {
@@ -123,11 +133,11 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
 
         buildFile << """
             def service = gradle.sharedServices.registerIfAbsent("service", BuildService) {
-                maxParallelUsages = 2
+                maxParallelUsages = $maxUsages
             }
 
             allprojects {
-                ping.usesService(service)
+                ping.usesService(service.withParallelUsages($usagesPerTask))
             }
         """
 
@@ -141,6 +151,11 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         blockingServer.expectConcurrent("c")
 
         run ":a:ping", ":b:ping", ":c:ping"
+
+        where:
+        maxUsages | usagesPerTask
+        2         | 1
+        4         | 2
     }
 
     def "task can use multiple services"() {

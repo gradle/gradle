@@ -1,10 +1,24 @@
 {
-    "acceptedApiChanges": [{
-        "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecScopeKt",
-        "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecScopeKt.version(org.gradle.plugin.use.PluginDependencySpec,org.gradle.api.provider.Provider)",
-        "acceptation": "Detector incorrectly detects that @since is missing",
-        "changes": [
-            "METHOD_ADDED_TO_PUBLIC_CLASS"
-        ]
-    }]
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecScopeKt",
+            "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecScopeKt.version(org.gradle.plugin.use.PluginDependencySpec,org.gradle.api.provider.Provider)",
+            "acceptation": "Detector incorrectly detects that @since is missing",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.api.services.BuildServiceRegistration",
+            "member": "Method org.gradle.api.services.BuildServiceRegistration.getService()",
+            "acceptation": "More concrete return type, plus bridge method for older plugins",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.services.BuildServiceRegistry",
+            "member": "Method org.gradle.api.services.BuildServiceRegistry.registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)",
+            "acceptation": "More concrete return type, plus bridge method for older plugins",
+            "changes": []
+        }
+    ]
 }

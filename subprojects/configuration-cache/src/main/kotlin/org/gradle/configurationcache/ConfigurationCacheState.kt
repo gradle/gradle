@@ -23,7 +23,7 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.provider.Provider
-import org.gradle.api.services.internal.BuildServiceProvider
+import org.gradle.api.services.internal.DefaultBuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
@@ -144,7 +144,7 @@ class ConfigurationCacheState(
             StoredBuildTreeState(
                 storedBuilds,
                 buildEventListeners
-                    .filterIsInstance<BuildServiceProvider<*, *>>()
+                    .filterIsInstance<DefaultBuildServiceProvider<*, *>>()
                     .groupBy { it.buildIdentifier }
             )
         )
@@ -447,7 +447,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildEventListenerSubscriptions(listeners: List<Provider<*>>) {
         writeCollection(listeners) { listener ->
             when (listener) {
-                is BuildServiceProvider<*, *> -> {
+                is DefaultBuildServiceProvider<*, *> -> {
                     writeBoolean(true)
                     write(listener.buildIdentifier)
                     writeString(listener.name)
@@ -649,7 +649,7 @@ class ConfigurationCacheState(
 internal
 class StoredBuildTreeState(
     val storedBuilds: StoredBuilds,
-    val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>
+    val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<DefaultBuildServiceProvider<*, *>>>
 )
 
 
