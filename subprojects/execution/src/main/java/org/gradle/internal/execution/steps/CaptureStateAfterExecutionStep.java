@@ -35,13 +35,13 @@ import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filt
 public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
-    private final Step<? super C, ? extends ExecuteWorkResult> delegate;
+    private final Step<? super C, ? extends Result> delegate;
 
     public CaptureStateAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
-        Step<? super C, ? extends ExecuteWorkResult> delegate
+        Step<? super C, ? extends Result> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
@@ -51,7 +51,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
 
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
-        ExecuteWorkResult result = delegate.execute(work, context);
+        Result result = delegate.execute(work, context);
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProduceByWork = operation(
             operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = captureOutputs(work, context);
@@ -63,7 +63,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 .details(Operation.Details.INSTANCE)
         );
 
-        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), result.getDuration().toMillis());
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), work.markExecutionTime());
 
         return new CurrentSnapshotResult() {
             @Override

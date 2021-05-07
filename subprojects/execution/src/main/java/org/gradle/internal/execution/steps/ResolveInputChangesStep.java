@@ -33,17 +33,17 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Optional;
 
-public class ResolveInputChangesStep<C extends IncrementalChangesContext, R extends Result> implements Step<C, R> {
+public class ResolveInputChangesStep<C extends IncrementalChangesContext> implements Step<C, Result> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveInputChangesStep.class);
 
-    private final Step<? super InputChangesContext, ? extends R> delegate;
+    private final Step<? super InputChangesContext, ? extends Result> delegate;
 
-    public ResolveInputChangesStep(Step<? super InputChangesContext, ? extends R> delegate) {
+    public ResolveInputChangesStep(Step<? super InputChangesContext, ? extends Result> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public Result execute(UnitOfWork work, C context) {
         Optional<InputChangesInternal> inputChanges = work.getInputChangeTrackingStrategy().requiresInputChanges()
             ? Optional.of(determineInputChanges(work, context))
             : Optional.empty();

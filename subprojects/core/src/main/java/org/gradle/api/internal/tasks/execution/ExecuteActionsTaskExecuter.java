@@ -397,6 +397,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public long markExecutionTime() {
+            return context.markExecutionTime();
+        }
+
+        @Override
         public void markLegacySnapshottingInputsStarted() {
             // Note: this operation should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
             //   expects it to be added also when the build cache is enabled (but not the scan plugin)

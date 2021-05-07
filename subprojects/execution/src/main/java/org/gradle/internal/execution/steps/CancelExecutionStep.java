@@ -20,20 +20,20 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.execution.UnitOfWork;
 
-public class CancelExecutionStep<C extends Context, R extends Result> implements Step<C, R> {
+public class CancelExecutionStep<C extends Context> implements Step<C, Result> {
     private final BuildCancellationToken cancellationToken;
-    private final Step<? super C, ? extends R> delegate;
+    private final Step<? super C, ? extends Result> delegate;
 
     public CancelExecutionStep(
         BuildCancellationToken cancellationToken,
-        Step<? super C, ? extends R> delegate
+        Step<? super C, ? extends Result> delegate
     ) {
         this.cancellationToken = cancellationToken;
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public Result execute(UnitOfWork work, C context) {
         Thread thread = Thread.currentThread();
         Runnable interrupt = thread::interrupt;
         try {
