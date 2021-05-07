@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 
 class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     private final ProviderInternal<T> left;
@@ -42,7 +38,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
         ExecutionTimeValue<? extends T> leftValue = left.calculateExecutionTimeValue();
         return leftValue.isMissing()
             ? right.getProducer()
-            : new OrElseValueProducer();
+            : new OrElseValueProducer(left, right.getProducer());
     }
 
     @Override
@@ -72,45 +68,5 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
             return rightValue;
         }
         return leftValue.addPathsFrom(rightValue);
-    }
-
-    private class OrElseValueProducer implements ValueProducer {
-
-        final ValueProducer leftProducer = left.getProducer();
-        final ValueProducer rightProducer = right.getProducer();
-
-        @Override
-        public boolean isKnown() {
-            return leftProducer.isKnown()
-                || rightProducer.isKnown();
-        }
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return leftProducer.isProducesDifferentValueOverTime()
-                || rightProducer.isProducesDifferentValueOverTime();
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            ArrayList<Task> leftTasks = producerTasksOf(leftProducer);
-            ArrayList<Task> rightTasks = producerTasksOf(rightProducer);
-            if (leftTasks.isEmpty() && rightTasks.isEmpty()) {
-                return;
-            }
-            // TODO: configuration cache: this condition needs to be evaluated at execution time
-            //  when `leftProducer.isProducesDifferentValueOverTime()`
-            ArrayList<Task> producerTasks = left.isPresent()
-                ? leftTasks
-                : rightTasks;
-            producerTasks.forEach(visitor::execute);
-        }
-
-        private ArrayList<Task> producerTasksOf(ValueProducer producer) {
-            ArrayList<Task> tasks = new ArrayList<>();
-            producer.visitProducerTasks(tasks::add);
-            return tasks;
-        }
-
     }
 }
