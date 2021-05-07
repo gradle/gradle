@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
@@ -37,6 +38,7 @@ public abstract class JvmVendorSpec {
      *
      * @since 7.1
      */
+    @Incubating
     public static final JvmVendorSpec GRAAL_VM = matching(KnownJvmVendor.GRAAL_VM);
 
     public static final JvmVendorSpec HEWLETT_PACKARD = matching(KnownJvmVendor.HEWLETT_PACKARD);
