@@ -14,56 +14,47 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.tasks;
+package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.tasks.Console;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.compile.AbstractOptions;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
-import org.gradle.api.tasks.scala.ScalaForkOptions;
+import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.List;
 
-/**
- * Options for Scala platform compilation.
- */
-public class BaseScalaCompileOptions extends AbstractOptions {
-
-    private static final long serialVersionUID = 0;
-
+public class MinimalScalaCompileOptions implements Serializable {
     private boolean failOnError = true;
-
     private boolean deprecation = true;
-
     private boolean unchecked = true;
-
     private String debugLevel;
-
     private boolean optimize;
-
     private String encoding;
-
     private boolean force;
-
     private List<String> additionalParameters;
-
     private boolean listFiles;
-
     private String loggingLevel;
-
     private List<String> loggingPhases;
-
-    private ScalaForkOptions forkOptions = new ScalaForkOptions();
-
+    private MinimalScalaCompilerDaemonForkOptions forkOptions;
     private transient IncrementalCompileOptions incrementalOptions;
 
-    /**
-     * Fail the build on compilation errors.
-     */
-    @Input
+    public MinimalScalaCompileOptions(BaseScalaCompileOptions compileOptions) {
+        this.failOnError = compileOptions.isFailOnError();
+        this.deprecation = compileOptions.isDeprecation();
+        this.unchecked = compileOptions.isUnchecked();
+        this.debugLevel = compileOptions.getDebugLevel();
+        this.optimize = compileOptions.isOptimize();
+        this.encoding = compileOptions.getEncoding();
+        this.force = compileOptions.isForce();
+        this.additionalParameters = compileOptions.getAdditionalParameters() == null ? null : ImmutableList.copyOf(compileOptions.getAdditionalParameters());
+        this.listFiles = compileOptions.isListFiles();
+        this.loggingLevel = compileOptions.getLoggingLevel();
+        this.loggingPhases = compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases());
+        this.forkOptions = new MinimalScalaCompilerDaemonForkOptions(compileOptions.getForkOptions());
+        this.incrementalOptions = compileOptions.getIncrementalOptions();
+    }
+
     public boolean isFailOnError() {
         return failOnError;
     }
@@ -72,10 +63,6 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.failOnError = failOnError;
     }
 
-    /**
-     * Generate deprecation information.
-     */
-    @Console
     public boolean isDeprecation() {
         return deprecation;
     }
@@ -84,10 +71,6 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.deprecation = deprecation;
     }
 
-    /**
-     * Generate unchecked information.
-     */
-    @Console
     public boolean isUnchecked() {
         return unchecked;
     }
@@ -96,13 +79,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.unchecked = unchecked;
     }
 
-    /**
-     * Generate debugging information.
-     * Legal values: none, source, line, vars, notailcalls
-     */
     @Nullable
-    @Optional
-    @Input
     public String getDebugLevel() {
         return debugLevel;
     }
@@ -111,10 +88,6 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.debugLevel = debugLevel;
     }
 
-    /**
-     * Run optimizations.
-     */
-    @Input
     public boolean isOptimize() {
         return optimize;
     }
@@ -123,10 +96,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.optimize = optimize;
     }
 
-    /**
-     * Encoding of source files.
-     */
-    @Nullable @Optional @Input
+    @Nullable
     public String getEncoding() {
         return encoding;
     }
@@ -135,13 +105,6 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.encoding = encoding;
     }
 
-    /**
-     * Whether to force the compilation of all files.
-     * Legal values:
-     * - false (only compile modified files)
-     * - true (always recompile all files)
-     */
-    @Input
     public boolean isForce() {
         return force;
     }
@@ -150,11 +113,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.force = force;
     }
 
-    /**
-     * Additional parameters passed to the compiler.
-     * Each parameter must start with '-'.
-     */
-    @Nullable @Optional @Input
+    @Nullable
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }
@@ -163,10 +122,6 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.additionalParameters = additionalParameters;
     }
 
-    /**
-     * List files to be compiled.
-     */
-    @Console
     public boolean isListFiles() {
         return listFiles;
     }
@@ -175,11 +130,6 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.listFiles = listFiles;
     }
 
-    /**
-     * Specifies the amount of logging.
-     * Legal values:  none, verbose, debug
-     */
-    @Console
     public String getLoggingLevel() {
         return loggingLevel;
     }
@@ -188,12 +138,6 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.loggingLevel = loggingLevel;
     }
 
-    /**
-     * Phases of the compiler to log.
-     * Legal values: namer, typer, pickler, uncurry, tailcalls, transmatch, explicitouter, erasure,
-     *               lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
-     */
-    @Console
     public List<String> getLoggingPhases() {
         return loggingPhases;
     }
@@ -202,22 +146,14 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.loggingPhases = loggingPhases;
     }
 
-    /**
-     * Options for running the Scala compiler in a separate process.
-     */
-    @Nested
-    public ScalaForkOptions getForkOptions() {
+    public MinimalScalaCompilerDaemonForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(ScalaForkOptions forkOptions) {
+    public void setForkOptions(MinimalScalaCompilerDaemonForkOptions forkOptions) {
         this.forkOptions = forkOptions;
     }
 
-    /**
-     * Options for incremental compilation of Scala code.
-     */
-    @Nested
     public IncrementalCompileOptions getIncrementalOptions() {
         return incrementalOptions;
     }
