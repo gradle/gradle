@@ -19,7 +19,6 @@ package org.gradle.internal.buildtree;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.BuildTreeScopeInitializer;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -41,9 +40,6 @@ public class BuildTreeController implements Closeable {
             .provider(new BuildTreeScopeServices(this, modelServices))
             .build();
         context = new DefaultBuildTreeContext(services);
-
-        // This initialization construct should be generalized for all types of service registries.
-        services.getAll(BuildTreeScopeInitializer.class).forEach(BuildTreeScopeInitializer::initializeBuildTreeScope);
     }
 
     public ServiceRegistry getServices() {
