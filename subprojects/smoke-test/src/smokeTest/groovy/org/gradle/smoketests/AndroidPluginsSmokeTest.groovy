@@ -19,12 +19,11 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
-
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
  *
@@ -84,7 +83,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ))
 
         when: 'first build'
-        def result = runner.build()
+        def result = buildMaybeExpectingWorkerExecutorDeprecation(runner, agpVersion)
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -92,37 +91,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
         and:
-        def agpBaseVersion = baseVersionNumberOf(agpVersion)
-        def threeDotSixBaseVersion = baseVersionNumberOf("3.6.0")
-        if (agpBaseVersion < threeDotSixBaseVersion) {
-            assert result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
-        } else {
-            assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
-            if (agpBaseVersion == baseVersionNumberOf("3.6.4")) {
-                expectDeprecationWarnings(
-                        result,
-                        "Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. " +
-                                "This is scheduled to be removed in Gradle 8.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead. " +
-                                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_gradle_types.html#domainobjectset for more details.",
-                        "The WorkerExecutor.submit() method has been deprecated. " +
-                                "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-                )
-            } else if (agpVersion.startsWith('4.0.2')) {
-                expectDeprecationWarnings(
-                        result,
-                        "The WorkerExecutor.submit() method has been deprecated. " +
-                                "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-                )
-            } else if (agpVersion.startsWith('4.1')) {
-                expectDeprecationWarnings(result, "The WorkerExecutor.submit() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
-            } else {
-                expectNoDeprecationWarnings(result)
-            }
-        }
+        assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
 
         and:
         assertConfigurationCacheStateStored()
@@ -133,10 +102,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
         result.task(':library:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
-        // In AGP 3.4 and 3.5 some of the dependencies of `:app:assembleDebug` are invalid and are thus forced to re-execute every time
-        result.task(':app:assembleDebug').outcome == (VersionNumber.parse(agpVersion) < VersionNumber.parse("3.6.0")
-            ? TaskOutcome.SUCCESS
-            : TaskOutcome.UP_TO_DATE)
+        result.task(':app:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
         result.task(':app:processDebugAndroidTestManifest').outcome == TaskOutcome.UP_TO_DATE
 
         and:
@@ -144,7 +110,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'abi change on library'
         abiChange.run()
-        result = runner.build()
+        result = buildMaybeExpectingWorkerExecutorDeprecation(runner, agpVersion)
 
         then: 'dependent sources are recompiled'
         result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -157,7 +123,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'clean re-build'
         useAgpVersion(agpVersion, this.runner('clean')).build()
-        result = runner.build()
+        result = buildMaybeExpectingWorkerExecutorDeprecation(runner, agpVersion)
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -174,8 +140,13 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    private VersionNumber baseVersionNumberOf(String versionString) {
-        VersionNumber.parse(versionString).baseVersion
+    private static BuildResult buildMaybeExpectingWorkerExecutorDeprecation(SmokeTestGradleRunner runner, String agpVersion) {
+        return runner
+            .expectLegacyDeprecationWarningIf(agpVersion.startsWith('4.1'),
+                "The WorkerExecutor.submit() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
+            .build()
     }
 
     /**
