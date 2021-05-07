@@ -450,11 +450,12 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         settingsFile << "rootProject.name = 'testproject'\n"
         buildFile.text = simpleJavaProject()
 
+        def classesDir = 'file("build/classes/moreTests")'
         buildFile << """
             sourceSets {
                 moreTests {
                     java.srcDir "src/test"
-                    ${separateClassesDirs(targetVersion) ? "java.outputDir" : "output.classesDir"} = file("build/classes/moreTests")
+                    ${destinationDirectoryCode(classesDir)}
                     compileClasspath = compileClasspath + sourceSets.test.compileClasspath
                     runtimeClasspath = runtimeClasspath + sourceSets.test.runtimeClasspath
                 }
