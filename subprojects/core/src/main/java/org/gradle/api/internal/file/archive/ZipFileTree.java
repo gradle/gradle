@@ -26,6 +26,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -40,14 +41,18 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ZipFileTree extends AbstractArchiveFileTree {
-    private final File zipFile;
+    private final Provider<File> fileProvider;
     private final File tmpDir;
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileHasher fileHasher;
 
-    public ZipFileTree(File zipFile, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, FileHasher fileHasher) {
-        this.zipFile = zipFile;
+    public ZipFileTree(Provider<File> zipFile,
+                       File tmpDir,
+                       Chmod chmod,
+                       DirectoryFileTreeFactory directoryFileTreeFactory,
+                       FileHasher fileHasher) {
+        this.fileProvider = zipFile;
         this.tmpDir = tmpDir;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -61,7 +66,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
     @Override
     public String getDisplayName() {
-        return String.format("ZIP '%s'", zipFile);
+        return String.format("ZIP '%s'", fileProvider.getOrNull());
     }
 
     @Override
@@ -71,6 +76,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
     @Override
     public void visit(FileVisitor visitor) {
+        File zipFile = fileProvider.get();
         if (!zipFile.exists()) {
             throw new InvalidUserDataException(String.format("Cannot expand %s as it does not exist.", getDisplayName()));
         }
@@ -110,11 +116,12 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     }
 
     @Override
-    public File getBackingFile() {
-        return zipFile;
+    public Provider<File> getBackingFileProvider() {
+        return fileProvider;
     }
 
     private File getExpandedDir() {
+        File zipFile = fileProvider.get();
         String expandedDirName = zipFile.getName() + "_" + fileHasher.hash(zipFile);
         return new File(tmpDir, expandedDirName);
     }

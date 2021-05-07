@@ -63,6 +63,7 @@ import java.util.List;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 import static org.gradle.util.TestUtil.objectFactory;
+import static org.gradle.util.TestUtil.providerFactory;
 
 public class TestFiles {
     private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
@@ -169,8 +170,8 @@ public class TestFiles {
             fileSystem,
             getPatternSetFactory(),
             deleter(),
-            documentationRegistry()
-        );
+            documentationRegistry(),
+            providerFactory());
     }
 
     public static ApiTextResourceAdapter.Factory textResourceAdapterFactory(@Nullable TemporaryFileProvider temporaryFileProvider) {

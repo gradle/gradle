@@ -172,8 +172,8 @@ class FileTreeCodec(
         private
         fun toSpecOrNull(tree: MinimalFileTree): FileTreeSpec? = when (tree) {
             // TODO - deal with tree that is not backed by a file
-            is ZipFileTree -> tree.backingFile?.let(::ZipTreeSpec)
-            is TarFileTree -> tree.backingFile?.let(::TarTreeSpec)
+            is ZipFileTree -> tree.backingFileProvider.orNull?.let(::ZipTreeSpec)
+            is TarFileTree -> tree.backingFileProvider.orNull?.let(::TarTreeSpec)
             // TODO - capture the patterns
             is FilteredMinimalFileTree -> toSpecOrNull(tree.tree)
             is GeneratedSingletonFileTree -> GeneratedTreeSpec(tree.toSpec())
