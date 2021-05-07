@@ -209,6 +209,7 @@ fun configureTests() {
     }
 
     tasks.withType<Test>().configureEach {
+        configureAndroidUserHome()
         filterEnvironmentVariables()
 
         maxParallelForks = project.maxParallelForks
@@ -317,4 +318,11 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
         description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
         group = ciGroup
     }
+}
+
+// https://github.com/gradle/gradle-private/issues/3380
+fun Test.configureAndroidUserHome() {
+    val androidUserHomeForTest = project.layout.buildDirectory.dir("androidUserHomeForTest/$name").get().asFile.absolutePath
+    environment["ANDROID_PREFS_ROOT"] = androidUserHomeForTest
+    environment["ANDROID_USER_HOME"] = androidUserHomeForTest
 }
