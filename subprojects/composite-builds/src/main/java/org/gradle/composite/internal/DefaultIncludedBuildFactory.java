@@ -19,7 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
@@ -36,18 +36,18 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
     private final WorkerLeaseService workerLeaseService;
     private final BuildLifecycleControllerFactory buildLifecycleControllerFactory;
-    private final BuildModelControllerServices buildModelControllerServices;
+    private final ProjectStateRegistry projectStateRegistry;
 
     public DefaultIncludedBuildFactory(BuildTreeController buildTree,
                                        Instantiator instantiator,
                                        WorkerLeaseService workerLeaseService,
                                        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-                                       BuildModelControllerServices buildModelControllerServices) {
+                                       ProjectStateRegistry projectStateRegistry) {
         this.buildTree = buildTree;
         this.instantiator = instantiator;
         this.workerLeaseService = workerLeaseService;
         this.buildLifecycleControllerFactory = buildLifecycleControllerFactory;
-        this.buildModelControllerServices = buildModelControllerServices;
+        this.projectStateRegistry = projectStateRegistry;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -72,7 +72,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             buildTree,
             workerLeaseService.getCurrentWorkerLease(),
             buildLifecycleControllerFactory,
-            buildModelControllerServices
+            projectStateRegistry
         );
     }
 }

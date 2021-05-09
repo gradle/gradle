@@ -39,38 +39,31 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
     }
 
     @Override
-    public Project project(Project project, Action<? super Project> configureAction) {
+    public void project(ProjectInternal project, Action<? super Project> configureAction) {
         runProjectConfigureAction(project, configureAction);
-        return project;
     }
 
     @Override
-    public void subprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureAction);
+    public void subprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction) {
+        runBlockConfigureAction(SUBPROJECTS_DETAILS, projects, configureAction);
     }
 
     @Override
-    public void allprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.ALLPROJECTS_DETAILS, projects, configureAction);
+    public void allprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction) {
+        runBlockConfigureAction(ALLPROJECTS_DETAILS, projects, configureAction);
     }
 
     @Override
-    public Project rootProject(Project project, Action<Project> buildOperationExecutor) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor);
-        return project;
+    public void rootProject(ProjectInternal project, Action<? super Project> buildOperationExecutor) {
+        runBlockConfigureAction(ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor);
     }
 
-    private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Action<? super Project> configureAction) {
-        buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects) {
-            @Override
-            protected void doRunProjectConfigure(Project project) {
-                runProjectConfigureAction(project, configureAction);
-            }
-        });
+    private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<? extends ProjectInternal> projects, final Action<? super Project> configureAction) {
+        buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects, configureAction));
     }
 
-    private void runProjectConfigureAction(final Project project, final Action<? super Project> configureAction) {
-        ((ProjectInternal) project).getMutationState().applyToMutableState(p -> buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
+    private void runProjectConfigureAction(final ProjectInternal project, final Action<? super Project> configureAction) {
+        project.getOwner().applyToMutableState(p -> buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
                 Actions.with(project, mutationGuard.withMutationEnabled(configureAction));
@@ -83,26 +76,28 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         return mutationGuard;
     }
 
-    private static abstract class BlockConfigureBuildOperation implements RunnableBuildOperation {
+    private final static String ALLPROJECTS = "allprojects";
+    private final static String SUBPROJECTS = "subprojects";
+    private final static String ROOTPROJECT = "rootProject";
 
-        private final static String ALLPROJECTS = "allprojects";
-        private final static String SUBPROJECTS = "subprojects";
-        private final static String ROOTPROJECT = "rootProject";
+    private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(ALLPROJECTS);
+    private final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(SUBPROJECTS);
+    private final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails(ROOTPROJECT);
 
-        private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(ALLPROJECTS);
-        private final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(SUBPROJECTS);
-        private final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails(ROOTPROJECT);
+    private static BuildOperationDescriptor.Builder computeConfigurationBlockBuildOperationDetails(String configurationBlockName) {
+        return BuildOperationDescriptor.displayName("Execute '" + configurationBlockName + " {}' action").name(configurationBlockName);
+    }
+
+    private class BlockConfigureBuildOperation implements RunnableBuildOperation {
 
         private final BuildOperationDescriptor.Builder details;
-        private final Iterable<Project> projects;
+        private final Iterable<? extends ProjectInternal> projects;
+        private final Action<? super Project> configureAction;
 
-        private BlockConfigureBuildOperation(BuildOperationDescriptor.Builder details, Iterable<Project> projects) {
+        private BlockConfigureBuildOperation(BuildOperationDescriptor.Builder details, Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction) {
             this.details = details;
             this.projects = projects;
-        }
-
-        private static BuildOperationDescriptor.Builder computeConfigurationBlockBuildOperationDetails(String configurationBlockName) {
-            return BuildOperationDescriptor.displayName("Execute '" + configurationBlockName + " {}' action").name(configurationBlockName);
+            this.configureAction = configureAction;
         }
 
         @Override
@@ -112,16 +107,14 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
 
         @Override
         public void run(BuildOperationContext context) {
-            for (Project project : projects) {
-                doRunProjectConfigure(project);
+            for (ProjectInternal project : projects) {
+                runProjectConfigureAction(project, configureAction);
             }
         }
-
-        abstract void doRunProjectConfigure(Project project);
     }
 
     private static abstract class CrossConfigureProjectBuildOperation implements RunnableBuildOperation {
-        private Project project;
+        private final Project project;
 
         private CrossConfigureProjectBuildOperation(Project project) {
             this.project = project;

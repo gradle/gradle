@@ -65,7 +65,8 @@ public class WarPlugin implements Plugin<Project> {
         project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.from((Callable) () -> pluginConvention.getWebAppDir());
+            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> pluginConvention.getWebAppDir())));
+            task.from(task.getWebAppDirectory());
             task.dependsOn((Callable) () -> project.getExtensions()
                 .getByType(JavaPluginExtension.class)
                 .getSourceSets()

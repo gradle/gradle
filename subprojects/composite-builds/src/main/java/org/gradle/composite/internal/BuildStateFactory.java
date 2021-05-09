@@ -18,8 +18,8 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.RootBuildState;
@@ -36,40 +36,40 @@ import org.gradle.util.Path;
 public class BuildStateFactory {
     private final BuildTreeController buildTreeController;
     private final BuildLifecycleControllerFactory buildLifecycleControllerFactory;
-    private final BuildModelControllerServices buildModelControllerServices;
     private final ListenerManager listenerManager;
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final CrossBuildSessionState crossBuildSessionState;
     private final BuildCancellationToken buildCancellationToken;
+    private final ProjectStateRegistry projectStateRegistry;
 
     public BuildStateFactory(BuildTreeController buildTreeController,
                              BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-                             BuildModelControllerServices buildModelControllerServices,
                              ListenerManager listenerManager,
                              GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
                              CrossBuildSessionState crossBuildSessionState,
-                             BuildCancellationToken buildCancellationToken) {
+                             BuildCancellationToken buildCancellationToken,
+                             ProjectStateRegistry projectStateRegistry) {
         this.buildTreeController = buildTreeController;
         this.buildLifecycleControllerFactory = buildLifecycleControllerFactory;
-        this.buildModelControllerServices = buildModelControllerServices;
         this.listenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
         this.crossBuildSessionState = crossBuildSessionState;
         this.buildCancellationToken = buildCancellationToken;
+        this.projectStateRegistry = projectStateRegistry;
     }
 
     public RootBuildState createRootBuild(BuildDefinition buildDefinition) {
-        return new DefaultRootBuildState(buildDefinition, buildTreeController, buildLifecycleControllerFactory, buildModelControllerServices, listenerManager);
+        return new DefaultRootBuildState(buildDefinition, buildTreeController, buildLifecycleControllerFactory, listenerManager, projectStateRegistry);
     }
 
     public StandAloneNestedBuild createNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
-        return new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeController, buildLifecycleControllerFactory, buildModelControllerServices);
+        return new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeController, buildLifecycleControllerFactory, projectStateRegistry);
     }
 
     public RootOfNestedBuildTree createNestedTree(BuildDefinition buildDefinition,
                                                   BuildIdentifier buildIdentifier,
                                                   Path identityPath,
                                                   BuildState owner) {
-        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, buildModelControllerServices, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
+        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
     }
 }

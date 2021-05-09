@@ -16,6 +16,7 @@
 package org.gradle.profile;
 
 import org.gradle.BuildResult;
+import org.gradle.StartParameter;
 import org.gradle.api.Describable;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
@@ -43,18 +44,17 @@ public class ProfileEventAdapter implements InternalBuildListener, ProjectEvalua
     private final ThreadLocal<ContinuousOperation> currentTransformation = new ThreadLocal<ContinuousOperation>();
     private BuildProfile buildProfile;
 
-    public ProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ProfileListener listener) {
+    public ProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ProfileListener listener, StartParameter startParameter) {
         this.buildStartedTime = buildStartedTime;
         this.clock = clock;
         this.listener = listener;
+        this.buildProfile = new BuildProfile(startParameter);
     }
 
     // BuildListener
-
     @Override
     public void beforeSettings(Settings settings) {
         long now = clock.getCurrentTime();
-        buildProfile = new BuildProfile(settings.getStartParameter());
         buildProfile.setBuildStarted(now);
         buildProfile.setProfilingStarted(buildStartedTime.getStartTime());
     }

@@ -56,7 +56,7 @@ class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrat
     def "configures an additional outgoing variant (#scenario, #capability)"() {
         buildFile << """
             def shadowJar = tasks.register("shadowJar", Jar) {
-                classifier = 'all'
+                archiveClassifier = 'all'
                 from(sourceSets.main.output)
             }
 

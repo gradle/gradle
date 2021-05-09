@@ -23,13 +23,13 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
-import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
@@ -58,7 +58,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
     def gradleLauncherFactory = Mock(BuildLifecycleControllerFactory)
     def buildTree = Mock(BuildTreeController)
-    def factory = new BuildStateFactory(buildTree, gradleLauncherFactory, Stub(BuildModelControllerServices), listenerManager, Stub(GradleUserHomeScopeServiceRegistry), Stub(CrossBuildSessionState), Stub(BuildCancellationToken))
+    def factory = new BuildStateFactory(buildTree, gradleLauncherFactory, listenerManager, Stub(GradleUserHomeScopeServiceRegistry), Stub(CrossBuildSessionState), Stub(BuildCancellationToken), Stub(ProjectStateRegistry))
     def registry = new DefaultIncludedBuildRegistry(
         includedBuildFactory,
         Stub(IncludedBuildDependencySubstitutionsBuilder),
@@ -76,19 +76,19 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def buildDefinition = Stub(BuildDefinition)
         def gradleLauncher = Stub(BuildLifecycleController)
         def gradle = Stub(GradleInternal)
-        def services = Stub(ServiceRegistry)
+        def services = new DefaultServiceRegistry()
+        services.add(Stub(WorkerLeaseService))
+        services.add(Stub(IncludedBuildControllers))
+        services.add(Stub(ExceptionAnalyser))
+        services.add(Stub(BuildOperationExecutor))
 
         when:
         def rootBuild = registry.createRootBuild(buildDefinition)
 
         then:
-        _ * buildTree.services >> new DefaultServiceRegistry()
+        _ * buildTree.services >> services
         _ * gradleLauncher.gradle >> gradle
         _ * gradle.services >> services
-        _ * services.get(WorkerLeaseService) >> Stub(WorkerLeaseService)
-        _ * services.get(IncludedBuildControllers) >> Stub(IncludedBuildControllers)
-        _ * services.get(ExceptionAnalyser) >> Stub(ExceptionAnalyser)
-        _ * services.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         1 * gradleLauncherFactory.newInstance(buildDefinition, _, null, _) >> gradleLauncher
         1 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
             notifiedBuild = addedBuild

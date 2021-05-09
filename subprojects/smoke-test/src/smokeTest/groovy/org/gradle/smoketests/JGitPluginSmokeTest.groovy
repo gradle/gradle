@@ -85,8 +85,6 @@ class JGitPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         result.task(':commit').outcome == SUCCESS
         result.task(':tag').outcome == SUCCESS
         result.task(':checkout').outcome == SUCCESS
-
-        expectNoDeprecationWarnings(result)
     }
 
     @Override

@@ -26,12 +26,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 
 public class ClassNameCollector implements TaskListener {
     private final Map<File, Optional<String>> relativePaths = new HashMap<>();
-    private final Map<String, Collection<String>> mapping = new HashMap<>();
+    private final Map<String, Set<String>> mapping = new HashMap<>();
     private final Function<File, Optional<String>> relativize;
     private final Elements elements;
 
@@ -40,7 +41,7 @@ public class ClassNameCollector implements TaskListener {
         this.elements = elements;
     }
 
-    public Map<String, Collection<String>> getMapping() {
+    public Map<String, Set<String>> getMapping() {
         return mapping;
     }
 

@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
-
-import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-@ServiceScope(Scopes.BuildTree.class)
-public interface BuildModelControllerServices {
-    /**
-     * Registers the services required to produce a {@link BuildModelController} for the given build.
-     */
-    void supplyBuildScopeServices(BuildScopeServices services);
+val testFilteringProperty = "gradle.internal.testselection.enabled"
+val gitBranchName: String? = System.getenv("BUILD_BRANCH")
+if (!System.getProperties().containsKey(testFilteringProperty) && gitBranchName != null) {
+    val protectedBranches = listOf("master", "release")
+    if (!protectedBranches.contains(gitBranchName) && !gitBranchName.startsWith("pre-test/")) {
+        System.setProperty(testFilteringProperty, "true")
+    }
 }

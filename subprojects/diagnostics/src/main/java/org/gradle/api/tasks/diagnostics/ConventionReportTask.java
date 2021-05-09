@@ -44,7 +44,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
 /**
  * The base class for all project based report tasks with custom task actions.
  *
- * @since 7.0
+ * @since 6.9
  */
 @Incubating
 public abstract class ConventionReportTask extends ConventionTask {

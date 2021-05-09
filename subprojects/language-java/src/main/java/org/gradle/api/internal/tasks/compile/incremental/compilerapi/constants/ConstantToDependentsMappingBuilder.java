@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import com.google.common.collect.Iterables;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,19 +32,8 @@ import java.util.Set;
  */
 public class ConstantToDependentsMappingBuilder implements Serializable {
 
-    private final Set<String> visitedClasses;
-    private final List<String> dependents;
-    private final Map<String, IntSet> privateDependentsIndexes;
-    private final Map<String, IntSet> accessibleDependentsIndexes;
-    private final Map<String, Integer> classNameToIndex;
-
-    ConstantToDependentsMappingBuilder() {
-        this.visitedClasses = new HashSet<>();
-        this.dependents = new ArrayList<>();
-        this.classNameToIndex = new HashMap<>();
-        this.privateDependentsIndexes = new HashMap<>();
-        this.accessibleDependentsIndexes = new HashMap<>();
-    }
+    private final Map<String, Set<String>> privateDependents = new HashMap<>();
+    private final Map<String, Set<String>> accessibleDependents = new HashMap<>();
 
     public ConstantToDependentsMappingBuilder addAccessibleDependents(String constantOrigin, Collection<String> dependents) {
         dependents.forEach(dependent -> addAccessibleDependent(constantOrigin, dependent));
@@ -58,44 +46,30 @@ public class ConstantToDependentsMappingBuilder implements Serializable {
     }
 
     public ConstantToDependentsMappingBuilder addPrivateDependent(String constantOrigin, String dependent) {
-        IntSet accessibleDependents = accessibleDependentsIndexes.getOrDefault(constantOrigin, IntSet.of());
-        IntSet privateDependents = privateDependentsIndexes.computeIfAbsent(constantOrigin, k -> new IntOpenHashSet());
-        int dependentIndex = classNameToIndex.getOrDefault(dependent, -1);
-        if (dependentIndex < 0 || !accessibleDependents.contains(dependentIndex)) {
-            addDependent(privateDependents, dependent);
+        Set<String> accessibleDependents = this.accessibleDependents.computeIfAbsent(constantOrigin, k -> new HashSet<>());
+        Set<String> privateDependents = this.privateDependents.computeIfAbsent(constantOrigin, k -> new HashSet<>());
+        if (!accessibleDependents.contains(dependent)) {
+            privateDependents.add(dependent);
         }
         return this;
     }
 
     public ConstantToDependentsMappingBuilder addAccessibleDependent(String constantOrigin, String dependent) {
-        IntSet accessibleDependents = accessibleDependentsIndexes.computeIfAbsent(constantOrigin, k -> new IntOpenHashSet());
-        IntSet privateDependents = privateDependentsIndexes.getOrDefault(constantOrigin, IntSet.of());
-        int dependentIndex = addDependent(accessibleDependents, dependent);
-        if (!privateDependents.isEmpty()) {
-            privateDependents.remove(dependentIndex);
-        }
+        Set<String> accessibleDependents = this.accessibleDependents.computeIfAbsent(constantOrigin, k -> new HashSet<>());
+        Set<String> privateDependents = this.privateDependents.computeIfAbsent(constantOrigin, k -> new HashSet<>());
+        accessibleDependents.add(dependent);
+        privateDependents.remove(dependent);
         return this;
-    }
-
-    public ConstantToDependentsMappingBuilder addVisitedClass(String visitedClass) {
-        visitedClasses.add(visitedClass);
-        return this;
-    }
-
-    private int addDependent(IntSet dependentIndexes, String dependent) {
-        int dependentIndex = classNameToIndex.computeIfAbsent(dependent, k -> {
-            addVisitedClass(dependent);
-            dependents.add(dependent);
-            return dependents.size() - 1;
-        });
-        dependentIndexes.add(dependentIndex);
-        return dependentIndex;
     }
 
     public ConstantToDependentsMapping build() {
-        privateDependentsIndexes.values().removeIf(Set::isEmpty);
-        accessibleDependentsIndexes.values().removeIf(Set::isEmpty);
-        return new ConstantToDependentsMapping(visitedClasses, dependents, privateDependentsIndexes, accessibleDependentsIndexes);
+        Map<String, DependentsSet> constantDependents = new HashMap<>();
+        for (String constantOrigin : Iterables.concat(privateDependents.keySet(), accessibleDependents.keySet())) {
+            Set<String> privateDependents = this.privateDependents.getOrDefault(constantOrigin, Collections.emptySet());
+            Set<String> accessibleDependents = this.accessibleDependents.getOrDefault(constantOrigin, Collections.emptySet());
+            constantDependents.put(constantOrigin, DependentsSet.dependentClasses(privateDependents, accessibleDependents));
+        }
+        return new ConstantToDependentsMapping(constantDependents);
     }
 
 }

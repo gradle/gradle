@@ -52,11 +52,9 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ConfigurationOnDemandProjectAccessListener;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
-import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
@@ -110,7 +108,6 @@ import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
@@ -203,6 +200,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(DefaultFileOperations.class);
             registration.add(DefaultFileSystemOperations.class);
             registration.add(DefaultArchiveOperations.class);
+            registration.add(TaskPathProjectEvaluator.class);
+            registration.add(ProjectFactory.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
             }
@@ -212,13 +211,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected ProjectAccessListener createProjectAccessListener(List<ProjectAccessHandler> handlers) {
         // Cannot use the listener infrastructure here because these events can be nested (that is, handling an event may trigger further events)
         return new ProjectAccessListener() {
-            @Override
-            public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
-                for (ProjectAccessHandler handler : handlers) {
-                    handler.beforeRequestingTaskByPath(targetProject);
-                }
-            }
-
             @Override
             public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {
                 for (ProjectAccessHandler handler : handlers) {
@@ -267,10 +259,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected TextFileResourceLoader createTextFileResourceLoader(RelativeFilePathResolver resolver) {
         return new DefaultTextFileResourceLoader(resolver);
-    }
-
-    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry, BuildState owner, ProjectStateRegistry projectStateRegistry, TextFileResourceLoader resourceLoader) {
-        return new ProjectFactory(instantiator, resourceLoader, projectRegistry, owner, projectStateRegistry);
     }
 
     protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {
@@ -338,13 +326,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultActorFactory(get(ExecutorFactory.class));
     }
 
-    protected BuildLoader createBuildLoader(GradleProperties gradleProperties, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {
+    protected BuildLoader createBuildLoader(GradleProperties gradleProperties, BuildOperationExecutor buildOperationExecutor) {
         return new NotifyingBuildLoader(
             new ProjectPropertySettingBuildLoader(
                 gradleProperties,
-                new InstantiatingBuildLoader(
-                    projectFactory
-                )
+                new InstantiatingBuildLoader()
             ),
             buildOperationExecutor
         );
@@ -502,10 +488,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             dependencyMetaDataProvider,
             classPathResolver,
             instantiator);
-    }
-
-    protected ProjectConfigurer createProjectConfigurer(BuildCancellationToken cancellationToken) {
-        return new TaskPathProjectEvaluator(cancellationToken);
     }
 
     protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {

@@ -22,7 +22,10 @@ import java.io.File;
 
 /**
  * <p>A {@link Convention} used for the WarPlugin.</p>
+ *
+ * @deprecated Please configure the tasks directly. This class is scheduled for removal in Gradle 8.0.
  */
+@Deprecated
 public abstract class WarPluginConvention {
     /**
      * Returns the web application directory.

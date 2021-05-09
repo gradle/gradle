@@ -109,7 +109,7 @@ class TaskTransitiveSubclassingBinaryCompatibilityCrossVersionSpec extends Cross
 
             tasks.named('sofExec') { JavaExec task ->
                 classpath = sourceSets.main.runtimeClasspath
-                main = "ClientMain"
+                mainClass = "ClientMain"
             }
         """
         file("src/main/java/ClientMain.java") << """

@@ -24,11 +24,13 @@ import org.gradle.workers.internal.DefaultWorkResult;
  */
 public class DefaultIncrementalCompileResult extends DefaultWorkResult implements IncrementalCompilationResult {
     private final PreviousCompilationData previousCompilationData;
+    private final RecompilationSpec recompilationSpec;
     private final WorkResult compilerResult;
 
-    public DefaultIncrementalCompileResult(PreviousCompilationData previousCompilationData, WorkResult compilerResult) {
+    public DefaultIncrementalCompileResult(PreviousCompilationData previousCompilationData, RecompilationSpec recompilationSpec, WorkResult compilerResult) {
         super(compilerResult.getDidWork(), maybeException(compilerResult));
         this.previousCompilationData = previousCompilationData;
+        this.recompilationSpec = recompilationSpec;
         this.compilerResult = compilerResult;
     }
 
@@ -49,4 +51,8 @@ public class DefaultIncrementalCompileResult extends DefaultWorkResult implement
         return previousCompilationData;
     }
 
+    @Override
+    public RecompilationSpec getRecompilationSpec() {
+        return recompilationSpec;
+    }
 }

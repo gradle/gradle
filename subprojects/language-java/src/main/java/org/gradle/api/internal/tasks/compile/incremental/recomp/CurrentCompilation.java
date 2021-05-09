@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 
 import java.io.File;
 import java.util.Collection;

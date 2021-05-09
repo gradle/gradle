@@ -171,11 +171,12 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         settingsFile << "rootProject.name = 'testproject'\n"
         buildFile.text = simpleJavaProject()
 
+        def classesDir = 'file("build/classes/moreTests")'
         buildFile << """
             sourceSets {
                 moreTests {
                     java.srcDir "src/test"
-                    ${separateClassesDirs(targetVersion) ? "java.outputDir" : "output.classesDir"} = file("build/classes/moreTests")
+                    ${destinationDirectoryCode(classesDir)}
                     compileClasspath = compileClasspath + sourceSets.test.compileClasspath
                     runtimeClasspath = runtimeClasspath + sourceSets.test.runtimeClasspath
                 }
@@ -224,6 +225,17 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
     static boolean separateClassesDirs(GradleVersion version) {
         version.baseVersion >= GradleVersion.version("4.0")
+    }
+
+    String destinationDirectoryCode(String destinationDirectory) {
+        //${separateClassesDirs(targetVersion) ? "java.outputDir" : "output.classesDir"} = file("build/classes/moreTests")
+        if (!separateClassesDirs(targetVersion)) {
+            return "output.classesDir = $destinationDirectory"
+        }
+        if (targetVersion.baseVersion < GradleVersion.version("6.1")) {
+            return "java.outputDir = $destinationDirectory"
+        }
+        return "java.destinationDirectory.set($destinationDirectory)"
     }
 
     def changeTestSource() {

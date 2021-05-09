@@ -52,7 +52,7 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
 
     private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
         ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(getBuildIdentifier(), project.getIdentityPath(), project.getProjectPath(), project.getName());
-        ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getModule());
+        ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getDependencyMetaDataProvider().getModule());
         LOGGER.info("Registering {} in composite build. Will substitute for module '{}'.", project, moduleId.getModule());
         availableModules.add(Pair.of(moduleId, projectIdentifier));
     }
@@ -63,7 +63,7 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
         DefaultProjectComponentIdentifier original = (DefaultProjectComponentIdentifier) identifier;
         String name = getIdentityPath().getName();
         if (name == null) {
-             name = getBuildIdentifier().getName();
+            name = getBuildIdentifier().getName();
         }
         return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(getBuildIdentifier().getName(), name), original.getIdentityPath(), original.projectPath(), original.getProjectName());
     }

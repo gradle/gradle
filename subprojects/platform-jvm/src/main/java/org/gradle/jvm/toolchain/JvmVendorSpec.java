@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
@@ -31,6 +32,15 @@ public abstract class JvmVendorSpec {
     public static final JvmVendorSpec APPLE = matching(KnownJvmVendor.APPLE);
     public static final JvmVendorSpec AZUL = matching(KnownJvmVendor.AZUL);
     public static final JvmVendorSpec BELLSOFT = matching(KnownJvmVendor.BELLSOFT);
+
+    /**
+     * A constant for using <a href="https://www.graalvm.org/">GraalVM</a> as the JVM vendor.
+     *
+     * @since 7.1
+     */
+    @Incubating
+    public static final JvmVendorSpec GRAAL_VM = matching(KnownJvmVendor.GRAAL_VM);
+
     public static final JvmVendorSpec HEWLETT_PACKARD = matching(KnownJvmVendor.HEWLETT_PACKARD);
     public static final JvmVendorSpec IBM = matching(KnownJvmVendor.IBM);
     public static final JvmVendorSpec ORACLE = matching(KnownJvmVendor.ORACLE);

@@ -17,13 +17,12 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
 import java.io.File;
 import java.util.Map;
 
 public interface ScalaCompileSpec extends JvmLanguageCompileSpec {
-    BaseScalaCompileOptions getScalaCompileOptions();
+    MinimalScalaCompileOptions getScalaCompileOptions();
 
     Iterable<File> getScalaCompilerPlugins();
 

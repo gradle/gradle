@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -719,6 +720,55 @@ project.extensions.create("some", SomeExtension)
 
         when:
         run 'consumer'
+        then:
+        executedAndNotSkipped(":producer", ":consumer")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16775")
+    def "orElse does not cause error when map-ing a task property"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                @OutputDirectory
+                abstract DirectoryProperty getOutput()
+
+                @TaskAction
+                def action() {
+                    def outputFile = new File(output.get().asFile, "output.txt")
+                    outputFile.write("some text")
+                }
+            }
+
+            abstract class MyExt {
+                abstract DirectoryProperty getArtifactDir()
+            }
+
+            abstract class Consumer extends DefaultTask {
+                @InputFiles
+                abstract ListProperty<String> getFileNames()
+
+                @TaskAction
+                def action() {
+                    println("files: " + fileNames.get())
+                }
+            }
+
+            def producer = tasks.register("producer", Producer) {
+                output = layout.buildDirectory.dir("producer")
+            }
+
+            def myExt = extensions.create("myExt", MyExt)
+            myExt.artifactDir = producer.flatMap { it.output }
+
+            tasks.register("consumer", Consumer) {
+               fileNames = myExt.artifactDir.map {
+                  it.asFileTree.collect { it.absolutePath }
+               }.orElse([ "else" ])
+            }
+        """
+
+        when:
+        run 'consumer'
+
         then:
         executedAndNotSkipped(":producer", ":consumer")
     }

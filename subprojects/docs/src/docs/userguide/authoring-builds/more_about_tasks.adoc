@@ -753,8 +753,11 @@ There are other task types where this kind of nested inputs are available:
 
 * link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:argumentProviders[JavaExec.getArgumentProviders()] - model e.g. custom tools
 * link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:jvmArgumentProviders[JavaExec.getJvmArgumentProviders()] - used for Jacoco Java agent
-* link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders[CompileOptions.getCompilerArgumentProviders()] - model e.g annotation processors
-* link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:argumentProviders[Exec.getArgumentProviders()] - model e.g custom tools
+* link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders[CompileOptions.getCompilerArgumentProviders()] - model e.g. annotation processors
+* link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:argumentProviders[Exec.getArgumentProviders()] - model e.g. custom tools
+* link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:jvmArgumentProviders[JavaCompile.getOptions().getForkOptions().getJvmArgumentProviders()] - model Java compiler daemon command line arguments
+* link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyForkOptions.html#org.gradle.api.tasks.compile.GroovyForkOptions:jvmArgumentProviders[GroovyCompile.getGroovyOptions().getForkOptions().getJvmArgumentProviders()] - model Groovy compiler daemon command line arguments
+* link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaForkOptions.html#org.gradle.api.tasks.scala.ScalaForkOptions:jvmArgumentProviders[ScalaCompile.getScalaOptions().getForkOptions().getJvmArgumentProviders()] - model Scala compiler daemon command line arguments
 
 In the same way, this kind of modelling is available to custom tasks.
 

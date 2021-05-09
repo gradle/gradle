@@ -19,8 +19,7 @@ package configurations
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
-import common.checkCleanM2
-import common.cleanAndroidUserHome
+import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.killGradleProcessesStep
@@ -66,7 +65,6 @@ class PerformanceTest(
         if (testProjects.isNotEmpty()) {
             steps {
                 preBuildSteps()
-                cleanAndroidUserHome(os)
                 killGradleProcessesStep(os)
                 substDirOnWindows(os)
 
@@ -86,7 +84,7 @@ class PerformanceTest(
                         ).joinToString(separator = " ")
                 }
                 removeSubstDirOnWindows(os)
-                checkCleanM2(os)
+                checkCleanM2AndAndroidUserHome(os)
             }
         }
 

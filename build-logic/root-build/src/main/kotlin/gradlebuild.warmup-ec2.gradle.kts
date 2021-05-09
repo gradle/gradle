@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
-
-import java.io.Serializable;
-import java.util.Optional;
-
-public class NoOpConstantsAnalysisResult implements ConstantsAnalysisResult, Serializable {
-
-    @Override
-    public Optional<ConstantToDependentsMapping> getConstantToDependentsMapping() {
-        return Optional.empty();
+tasks.register("resolveAllDependencies") {
+    doLast {
+        allprojects {
+            configurations.forEach { c ->
+                if (c.isCanBeResolved) {
+                    println("Downloading dependencies for '$path' - ${c.name}")
+                    val result = c.incoming.artifactView { lenient(true) }.artifacts
+                    result.failures.forEach {
+                        println("- Ignoring Error: ${it.message}")
+                    }
+                }
+            }
+        }
     }
-
-    @Override
-    public void addPublicDependent(String constantOrigin, String constantDependent) {
-
-    }
-
-    @Override
-    public void addPrivateDependent(String constantOrigin, String constantDependent) {
-
-    }
-
 }

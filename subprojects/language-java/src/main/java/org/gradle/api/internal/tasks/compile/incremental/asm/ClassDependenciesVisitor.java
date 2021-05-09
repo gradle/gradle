@@ -76,11 +76,11 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         if (superName != null) {
             // superName can be null if what we are analyzing is `java.lang.Object`
             // which can happen when a custom Java SDK is on classpath (typically, android.jar)
-            String type = typeOfFromSlashyString(superName);
+            Type type = Type.getObjectType(superName);
             maybeAddDependentType(types, type);
         }
         for (String s : interfaces) {
-            String interfaceType = typeOfFromSlashyString(s);
+            Type interfaceType = Type.getObjectType(s);
             maybeAddDependentType(types, interfaceType);
         }
     }
@@ -103,34 +103,22 @@ public class ClassDependenciesVisitor extends ClassVisitor {
                 // A CONSTANT_Class entry, read the class descriptor
                 String classDescriptor = reader.readUTF8(itemOffset, charBuffer);
                 Type type = Type.getObjectType(classDescriptor);
-                while (type.getSort() == Type.ARRAY) {
-                    type = type.getElementType();
-                }
-                if (type.getSort() != Type.OBJECT) {
-                    // A primitive type
-                    continue;
-                }
-                String name = type.getClassName();
-                // Any class that hasn't been added yet, is used in method bodies, which are implementation details and not visible as an "API"1
-                if (!accessibleTypes.contains(name)) {
-                    maybeAddDependentType(privateTypes, name);
-                }
+                maybeAddDependentType(privateTypes, type);
             }
         }
     }
 
-    protected void maybeAddDependentType(Set<String> types, String type) {
-        if (typeFilter.test(type)) {
-            types.add(intern(type));
+    protected void maybeAddDependentType(Set<String> types, Type type) {
+        while (type.getSort() == Type.ARRAY) {
+            type = type.getElementType();
         }
-    }
-
-    private String intern(String type) {
-        return interner.intern(type);
-    }
-
-    protected String typeOfFromSlashyString(String slashyStyleDesc) {
-        return Type.getObjectType(slashyStyleDesc).getClassName();
+        if (type.getSort() != Type.OBJECT) {
+            return;
+        }
+        String name = type.getClassName();
+        if (typeFilter.test(name)) {
+            types.add(interner.intern(name));
+        }
     }
 
     public Set<String> getPrivateClassDependencies() {
@@ -152,7 +140,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
-        maybeAddDependentType(types, descTypeOf(desc));
+        maybeAddDependentType(types, Type.getType(desc));
         if (isAccessibleConstant(access, value)) {
             // we need to compute a hash for a constant, which is based on the name of the constant + its value
             // otherwise we miss the case where a class defines several constants with the same value, or when
@@ -162,21 +150,13 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         return new FieldVisitor(types);
     }
 
-    protected String descTypeOf(String desc) {
-        Type type = Type.getType(desc);
-        if (type.getSort() == Type.ARRAY && type.getDimensions() > 0) {
-            type = type.getElementType();
-        }
-        return type.getClassName();
-    }
-
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
         Type methodType = Type.getMethodType(desc);
-        maybeAddDependentType(types, methodType.getReturnType().getClassName());
+        maybeAddDependentType(types, methodType.getReturnType());
         for (Type argType : methodType.getArgumentTypes()) {
-            maybeAddDependentType(types, argType.getClassName());
+            maybeAddDependentType(types, argType);
         }
         return new MethodVisitor(types);
     }
@@ -186,7 +166,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         if (isAnnotationType && "Ljava/lang/annotation/Retention;".equals(desc)) {
             return retentionPolicyVisitor;
         } else {
-            maybeAddDependentType(accessibleTypes, Type.getType(desc).getClassName());
+            maybeAddDependentType(accessibleTypes, Type.getType(desc));
             return new AnnotationVisitor(accessibleTypes);
         }
     }
@@ -217,13 +197,13 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
         }
     }
@@ -238,25 +218,25 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         @Override
         public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
-            maybeAddDependentType(types, descTypeOf(desc));
+            maybeAddDependentType(types, Type.getType(desc));
             super.visitLocalVariable(name, desc, signature, start, end, index);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
-            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
         }
     }
@@ -288,7 +268,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         @Override
         public void visit(String name, Object value) {
             if (value instanceof Type) {
-                maybeAddDependentType(types, ((Type) value).getClassName());
+                maybeAddDependentType(types, (Type) value);
             }
         }
 
@@ -299,7 +279,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitAnnotation(String name, String descriptor) {
-            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            maybeAddDependentType(types, Type.getType(descriptor));
             return this;
         }
     }

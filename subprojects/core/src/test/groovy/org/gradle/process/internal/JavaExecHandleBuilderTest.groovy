@@ -64,7 +64,7 @@ class JavaExecHandleBuilderTest extends Specification {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
 
-        builder.main = 'mainClass'
+        builder.mainClass.set('mainClass')
         builder.args("arg1", "arg2")
         builder.jvmArgs("jvm1", "jvm2")
         builder.classpath(jar1, jar2)
@@ -128,7 +128,7 @@ class JavaExecHandleBuilderTest extends Specification {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
 
-        builder.main = "main"
+        builder.mainClass.set("main")
         builder.classpath(jar1)
 
         when:
