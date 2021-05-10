@@ -51,13 +51,6 @@ class RerunFlakyTest(os: Os) : BuildType({
         ).joinToString(separator = " ")
 
     killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
-    steps {
-        gradleWrapper {
-            name = "SHOW_TOOLCHAINS"
-            tasks = "javaToolchains"
-            gradleParams = parameters
-        }
-    }
     (1..10).forEach { idx ->
         steps {
             gradleWrapper {
