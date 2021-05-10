@@ -18,7 +18,6 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.javadoc.Groovydoc;
@@ -47,7 +46,7 @@ public class GroovyPlugin implements Plugin<Project> {
             SourceSet sourceSet = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             groovyDoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
 
-            GroovySourceSet groovySourceSet = new DslObject(sourceSet).getConvention().getPlugin(GroovySourceSet.class);
+            GroovySourceSet groovySourceSet = sourceSet.getExtensions().getByType(GroovySourceSet.class);
             groovyDoc.setSource(groovySourceSet.getGroovy());
         });
     }

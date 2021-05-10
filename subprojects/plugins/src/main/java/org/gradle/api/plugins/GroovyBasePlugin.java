@@ -91,6 +91,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(sourceSet -> {
             final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
             new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
+            sourceSet.getExtensions().add("groovy", groovySourceSet);
 
             final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
             groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");
