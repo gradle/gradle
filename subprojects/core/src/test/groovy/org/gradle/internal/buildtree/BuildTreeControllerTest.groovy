@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree
 
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.invocation.BuildAction
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import spock.lang.Specification
@@ -31,6 +32,8 @@ class BuildTreeControllerTest extends Specification {
 
     def setup() {
         def services = new DefaultServiceRegistry()
+        services.add(Mock(BuildOperationProgressEventEmitter))
+        services.add(Mock(BuildModelParameters))
         services.add(BuildTreeActionExecutor, actionExecutor)
         services.add(listenerManager)
         state = new BuildTreeController(services, Stub(BuildTreeModelControllerServices.Supplier))

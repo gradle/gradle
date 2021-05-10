@@ -19,33 +19,24 @@ package org.gradle.launcher.exec;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeContext;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.buildtree.BuildActionRunner;
-import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 
 public class InProcessBuildActionExecuter implements BuildTreeActionExecutor {
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
-    private final BuildOperationNotificationValve buildOperationNotificationValve;
 
     public InProcessBuildActionExecuter(BuildStateRegistry buildStateRegistry,
-                                        BuildOperationNotificationValve buildOperationNotificationValve,
                                         BuildActionRunner buildActionRunner) {
         this.buildActionRunner = buildActionRunner;
         this.buildStateRegistry = buildStateRegistry;
-        this.buildOperationNotificationValve = buildOperationNotificationValve;
     }
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
-        buildOperationNotificationValve.start();
-        try {
-            RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
-            return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
-        } finally {
-            buildOperationNotificationValve.stop();
-        }
+        RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
+        return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
     }
 }
