@@ -54,12 +54,12 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
 
     private final VirtualFileSystem virtualFileSystem;
     private final ValidationWarningRecorder warningReporter;
-    private final Step<? super ValidationContext, ? extends R> delegate;
+    private final Step<? super ValidationFinishedContext, ? extends R> delegate;
 
     public ValidateStep(
         VirtualFileSystem virtualFileSystem,
         ValidationWarningRecorder warningReporter,
-        Step<? super ValidationContext, ? extends R> delegate
+        Step<? super ValidationFinishedContext, ? extends R> delegate
     ) {
         this.virtualFileSystem = virtualFileSystem;
         this.warningReporter = warningReporter;
@@ -103,7 +103,7 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
             virtualFileSystem.invalidateAll();
         }
 
-        return delegate.execute(work, new ValidationContext() {
+        return delegate.execute(work, new ValidationFinishedContext() {
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return context.getBeforeExecutionState();

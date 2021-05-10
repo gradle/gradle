@@ -185,7 +185,7 @@ import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.UpToDateResult;
 import org.gradle.internal.execution.steps.ValidateStep;
-import org.gradle.internal.execution.steps.ValidationContext;
+import org.gradle.internal.execution.steps.ValidationFinishedContext;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -786,7 +786,7 @@ class DependencyManagementBuildScopeServices {
     }
 
 
-    private static class NoOpCachingStateStep implements Step<ValidationContext, CachingResult> {
+    private static class NoOpCachingStateStep implements Step<ValidationFinishedContext, CachingResult> {
         private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
 
         public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
@@ -794,7 +794,7 @@ class DependencyManagementBuildScopeServices {
         }
 
         @Override
-        public CachingResult execute(UnitOfWork work, ValidationContext context) {
+        public CachingResult execute(UnitOfWork work, ValidationFinishedContext context) {
             UpToDateResult result = delegate.execute(work, new CachingContext() {
                 @Override
                 public CachingState getCachingState() {

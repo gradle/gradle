@@ -53,7 +53,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         then:
         result == delegateResult
 
-        1 * delegate.execute(work, { ValidationContext context -> !context.validationProblems.present }) >> delegateResult
+        1 * delegate.execute(work, { ValidationFinishedContext context -> !context.validationProblems.present }) >> delegateResult
         _ * work.validate(_ as  WorkValidationContext) >> { validated = true }
 
         then:
@@ -140,7 +140,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         1 * virtualFileSystem.invalidateAll()
 
         then:
-        1 * delegate.execute(work, { ValidationContext context -> context.validationProblems.get().warnings == [expectedWarning] })
+        1 * delegate.execute(work, { ValidationFinishedContext context -> context.validationProblems.get().warnings == [expectedWarning] })
         0 * _
     }
 
