@@ -38,7 +38,7 @@ public class DefaultGroovySourceSet extends DefaultSourceDirectorySet implements
     private final SourceDirectorySet allGroovy;
 
     public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        super(name, displayName, patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory);
+        super(name, displayName + " Groovy source", patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory);
         getFilter().include("**/*.java", "**/*.groovy");
         allGroovy = objectFactory.sourceDirectorySet("all" + name, displayName + " Groovy source");
         allGroovy.source(this);
