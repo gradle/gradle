@@ -173,15 +173,14 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 buildStateRegistry,
                 new BuildCompletionNotifyingBuildActionRunner(
                     new FileSystemWatchingBuildActionRunner(eventEmitter,
-                        new ValidatingBuildActionRunner(
-                            new BuildOutcomeReportingBuildActionRunner(
-                                styledTextOutputFactory,
-                                workValidationWarningReporter,
-                                listenerManager,
-                                new ChainingBuildActionRunner(buildActionRunners),
-                                buildStartedTime,
-                                buildRequestMetaData,
-                                clock)))));
+                        new BuildOutcomeReportingBuildActionRunner(
+                            styledTextOutputFactory,
+                            workValidationWarningReporter,
+                            listenerManager,
+                            new ChainingBuildActionRunner(buildActionRunners),
+                            buildStartedTime,
+                            buildRequestMetaData,
+                            clock))));
         }
     }
 }
