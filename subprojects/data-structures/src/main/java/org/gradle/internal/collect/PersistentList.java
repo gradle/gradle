@@ -22,6 +22,12 @@ import javax.annotation.CheckReturnValue;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+/**
+ * A simple persistent List implementation.
+ *
+ * The main use-case is to create new lists with added elements creating the minimal amount of garbage.
+ * Uses Cons/Nil as building blocks.
+ */
 public abstract class PersistentList<T> {
     public static <T> PersistentList<T> of() {
         return Cast.uncheckedNonnullCast(NIL);
@@ -42,6 +48,11 @@ public abstract class PersistentList<T> {
 
     public abstract void forEach(Consumer<? super T> consumer);
 
+    /**
+     * Creates a new list with the given element as the first element in the list.
+     *
+     * So {@code (b : c).plus(a) == (a : b : c)}
+     */
     @CheckReturnValue
     public abstract PersistentList<T> plus(T element);
 
