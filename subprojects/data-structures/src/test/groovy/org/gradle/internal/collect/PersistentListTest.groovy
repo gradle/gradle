@@ -37,8 +37,9 @@ class PersistentListTest extends Specification {
         expect:
         PersistentList.of().toString() == "Nil"
         PersistentList.of("a").toString() == "a : Nil"
-        (PersistentList.of("a").plus("b")).toString() == "b : a : Nil"
-        listOf(["a", "b", "c"]).toString() == "a : b : c : Nil"
+        PersistentList.of("a", "b").toString() == "a : b : Nil"
+        PersistentList.of("a", "b", "c").toString() == "a : b : c : Nil"
+        PersistentList.of("a", "b", "c", "d").toString() == "a : b : c : d : Nil"
     }
 
     def "forEach iterates the elements #elements"() {
@@ -47,12 +48,14 @@ class PersistentListTest extends Specification {
         listOf(elements).forEach { newList.add(it) }
         then:
         newList == elements
+        listOf(elements) == PersistentList.of(*elements)
 
         where:
         elements << [
             [],
             ["a"],
-            ["a", "b", "c"]
+            ["a", "b", "c"],
+            ["a", "b", "d"]
         ]
     }
 

@@ -31,6 +31,14 @@ public abstract class PersistentList<T> {
         return PersistentList.<T>of().plus(first);
     }
 
+    @SafeVarargs
+    public static <T> PersistentList<T> of(T first, T second, T... rest) {
+        PersistentList<T> result = of();
+        for (int i = rest.length - 1; i >= 0; i--) {
+            result = result.plus(rest[i]);
+        }
+        return result.plus(second).plus(first);
+    }
 
     public abstract void forEach(Consumer<? super T> consumer);
 
