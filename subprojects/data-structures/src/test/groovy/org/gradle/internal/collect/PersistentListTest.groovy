@@ -55,7 +55,7 @@ class PersistentListTest extends Specification {
             [],
             ["a"],
             ["a", "b", "c"],
-            ["a", "b", "d"]
+            ["a", "b", "c", "d"]
         ]
     }
 
