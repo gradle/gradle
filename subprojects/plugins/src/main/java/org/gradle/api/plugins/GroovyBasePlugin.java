@@ -23,6 +23,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
@@ -36,6 +38,8 @@ import org.gradle.api.tasks.GroovyRuntime;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -56,15 +60,21 @@ public class GroovyBasePlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
     private final JvmPluginServices jvmPluginServices;
+    private final Factory<PatternSet> patternSetFactory;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     private Project project;
     private GroovyRuntime groovyRuntime;
 
     @Inject
-    public GroovyBasePlugin(ObjectFactory objectFactory, ModuleRegistry moduleRegistry, JvmEcosystemUtilities jvmPluginServices) {
+    public GroovyBasePlugin(ObjectFactory objectFactory, ModuleRegistry moduleRegistry, JvmEcosystemUtilities jvmPluginServices, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
+        this.patternSetFactory = patternSetFactory;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
     @Override
@@ -89,7 +99,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults() {
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(sourceSet -> {
-            final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
+            final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory, patternSetFactory, fileCollectionFactory, directoryFileTreeFactory);
             new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
             sourceSet.getExtensions().add("groovy", groovySourceSet);
 
