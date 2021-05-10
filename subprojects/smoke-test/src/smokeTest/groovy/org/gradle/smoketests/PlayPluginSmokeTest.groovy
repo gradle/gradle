@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -51,7 +52,18 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('build').build()
+        def result = runner('build')
+            .expectDeprecationWarning(
+                "The CreateStartScripts.mainClassName property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.jvm.application.tasks.CreateStartScripts.html#org.gradle.jvm.application.tasks.CreateStartScripts:mainClassName for more details.",
+                "https://github.com/gradle/playframework/pull/168")
+            .expectDeprecationWarning(
+                "The WorkerExecutor.submit() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",
+                "https://github.com/gradle/playframework/pull/167")
+            .build()
 
         then:
         result.task(':build').outcome == SUCCESS

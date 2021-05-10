@@ -243,7 +243,7 @@ fun Project.extractAllReportsFromCI() {
 
     gradle.taskGraph.afterTask {
         if (state.failure != null && this is Reporting<*>) {
-            this.reports.filter { it.name in capturedReportingTypes && it.isEnabled && it.destination.exists() }
+            this.reports.filter { it.name in capturedReportingTypes && it.required.get() && it.destination.exists() }
                 .forEach { report ->
                     val linkName = "${this::class.java.simpleName.split("_")[0]} Report ($path)" // Strip off '_Decorated' addition to class names
                     // see: ciReporting.gradle
