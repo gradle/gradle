@@ -53,15 +53,12 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         then:
         buildResult.task(':assembleBootDist').outcome == SUCCESS
         buildResult.task(':check').outcome == UP_TO_DATE // no tests
-        expectNoDeprecationWarnings(buildResult)
 
         when:
         def runResult = runner('bootRun').build()
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS
-
-        expectNoDeprecationWarnings(runResult)
     }
 
     @Override

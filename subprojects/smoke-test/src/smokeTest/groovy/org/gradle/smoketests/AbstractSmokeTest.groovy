@@ -32,7 +32,6 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
@@ -231,8 +230,8 @@ abstract class AbstractSmokeTest extends Specification {
         file
     }
 
-    GradleRunner runner(String... tasks) {
-        GradleRunner gradleRunner = GradleRunner.create()
+    SmokeTestGradleRunner runner(String... tasks) {
+        def gradleRunner = GradleRunner.create()
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
@@ -241,6 +240,7 @@ abstract class AbstractSmokeTest extends Specification {
                 tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
+        return new SmokeTestGradleRunner(gradleRunner)
     }
 
     private List<String> configurationCacheParameters() {
@@ -309,7 +309,7 @@ abstract class AbstractSmokeTest extends Specification {
         FileUtils.copyDirectory(smokeTestDirectory, testProjectDir.root)
     }
 
-    protected GradleRunner useAgpVersion(String agpVersion, GradleRunner runner) {
+    protected SmokeTestGradleRunner useAgpVersion(String agpVersion, SmokeTestGradleRunner runner) {
         def extraArgs = [AGP_VERSIONS.OVERRIDE_VERSION_CHECK]
         if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
@@ -342,37 +342,7 @@ abstract class AbstractSmokeTest extends Specification {
         RepoScriptBlockUtil.googleRepository(dsl)
     }
 
-    protected static void expectNoDeprecationWarnings(BuildResult result) {
-        verifyDeprecationWarnings(result, [])
-    }
-
-    protected static void expectDeprecationWarnings(BuildResult result, String... warnings) {
-        if (warnings.length == 0) {
-            throw new IllegalArgumentException("Use expectNoDeprecationWarnings() when no deprecation warnings are to be expected")
-        }
-        verifyDeprecationWarnings(result, warnings as List)
-    }
-
-    private static void verifyDeprecationWarnings(BuildResult result, List<String> remainingWarnings) {
-        def lines = result.output.readLines()
-        int foundDeprecations = 0
-        lines.eachWithIndex { String line, int lineIndex ->
-            if (remainingWarnings.remove(line)) {
-                foundDeprecations++
-                return
-            }
-            assert !containsDeprecationWarning(line), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
-        }
-        assert remainingWarnings.empty, "Expected ${remainingWarnings.size()} deprecation warnings, found ${foundDeprecations} deprecation warnings:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
-    }
-
-    private static boolean containsDeprecationWarning(String line) {
-        line.contains("has been deprecated and is scheduled to be removed in Gradle") ||
-            line.contains("has been deprecated. This is scheduled to be removed in Gradle")
-    }
-
     void copyRemoteProject(String remoteProject, File targetDir) {
         new TestFile(new File("build/$remoteProject")).copyTo(targetDir)
     }
-
 }
