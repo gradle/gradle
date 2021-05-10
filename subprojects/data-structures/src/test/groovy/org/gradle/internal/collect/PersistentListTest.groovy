@@ -36,10 +36,10 @@ class PersistentListTest extends Specification {
     def "has a nice toString method"() {
         expect:
         PersistentList.of().toString() == "Nil"
-        PersistentList.of("a").toString() == "a : Nil"
-        PersistentList.of("a", "b").toString() == "a : b : Nil"
-        PersistentList.of("a", "b", "c").toString() == "a : b : c : Nil"
-        PersistentList.of("a", "b", "c", "d").toString() == "a : b : c : d : Nil"
+        PersistentList.of("a").toString() == "a"
+        PersistentList.of("a", "b").toString() == "a : b"
+        PersistentList.of("a", "b", "c").toString() == "a : b : c"
+        PersistentList.of("a", "b", "c", "d").toString() == "a : b : c : d"
     }
 
     def "forEach iterates the elements #elements"() {

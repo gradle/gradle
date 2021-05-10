@@ -102,7 +102,7 @@ public abstract class PersistentList<T> {
 
         @Override
         public String toString() {
-            return head + " : " + tail;
+            return tail == NIL ? head.toString() : head + " : " + tail;
         }
     }
 }
