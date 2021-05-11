@@ -258,7 +258,7 @@ The following plugin configurations have been deprecated for consumption:
 | `zinc`
 
 | `war`
-| `providedRuntime`
+| `providedCompile`, `providedRuntime`
 |===
 
 If your use case needs to consume any of the above mentioned configurations in another project, please create a separate consumable

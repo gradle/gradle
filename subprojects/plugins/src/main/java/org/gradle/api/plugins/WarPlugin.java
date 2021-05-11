@@ -95,12 +95,13 @@ public class WarPlugin implements Plugin<Project> {
     public void configureConfigurations(ConfigurationContainer configurationContainer) {
         Configuration providedCompileConfiguration = configurationContainer.create(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
             setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
+        deprecateForConsumption(providedCompileConfiguration);
+
         Configuration providedRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
             extendsFrom(providedCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
-        ((DeprecatableConfiguration) providedRuntimeConfiguration).deprecateForConsumption(deprecation -> deprecation
-            .willBecomeAnErrorInGradle8()
-            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
+        deprecateForConsumption(providedRuntimeConfiguration);
+
         configurationContainer.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME).extendsFrom(providedCompileConfiguration);
         configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
@@ -108,6 +109,12 @@ public class WarPlugin implements Plugin<Project> {
         configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
+    }
+
+    private static void deprecateForConsumption(Configuration configuration) {
+        ((DeprecatableConfiguration) configuration).deprecateForConsumption(deprecation -> deprecation
+            .willBecomeAnErrorInGradle8()
+            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {
