@@ -33,11 +33,11 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 /**
  * A {@link BuildExecuter} responsible for establishing the {@link BuildSessionController} to execute a {@link BuildAction} within.
  */
-public class SessionScopeLifecycleBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+public class BuildSessionLifecycleBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
     private final ServiceRegistry globalServices;
     private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 
-    public SessionScopeLifecycleBuildActionExecuter(GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, ServiceRegistry globalServices) {
+    public BuildSessionLifecycleBuildActionExecuter(GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, ServiceRegistry globalServices) {
         this.userHomeServiceRegistry = userHomeServiceRegistry;
         this.globalServices = globalServices;
     }

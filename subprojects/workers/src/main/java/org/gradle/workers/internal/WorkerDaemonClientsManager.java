@@ -22,7 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.SessionLifecycleListener;
+import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
@@ -55,7 +55,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final ListenerManager listenerManager;
     private final LoggingManagerInternal loggingManager;
     private final OsMemoryInfo memoryInfo;
-    private final SessionLifecycleListener stopSessionScopeWorkers;
+    private final BuildSessionLifecycleListener stopSessionScopeWorkers;
     private final OutputEventListener logLevelChangeEventListener;
     private final WorkerDaemonExpiration workerDaemonExpiration;
     private final MemoryManager memoryManager;
@@ -180,7 +180,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    private class StopSessionScopedWorkers implements SessionLifecycleListener {
+    private class StopSessionScopedWorkers implements BuildSessionLifecycleListener {
         @Override
         public void beforeComplete() {
             synchronized (lock) {

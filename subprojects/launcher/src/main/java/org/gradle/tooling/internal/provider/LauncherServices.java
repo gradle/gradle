@@ -51,10 +51,10 @@ import org.gradle.internal.time.Time;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
-import org.gradle.launcher.exec.BuildTreeScopeLifecycleBuildActionExecuter;
+import org.gradle.launcher.exec.BuildTreeLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
-import org.gradle.launcher.exec.InProcessBuildActionExecuter;
-import org.gradle.launcher.exec.RunAsBuildOperationBuildActionRunner;
+import org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor;
+import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DaemonSidePayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
@@ -98,7 +98,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 new SessionFailureReportingActionExecuter(styledTextOutputFactory, Time.clock(), workValidationWarningReporter,
                 new StartParamsValidatingActionExecuter(
                 new GradleThreadBuildActionExecuter(
-                new SessionScopeLifecycleBuildActionExecuter(userHomeServiceRegistry, globalServices
+                new BuildSessionLifecycleBuildActionExecuter(userHomeServiceRegistry, globalServices
                 )))));
             // @formatter:on
         }
@@ -152,10 +152,10 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                         BuildOperationNotificationValve buildOperationNotificationValve,
                                                         BuildTreeModelControllerServices buildModelServices
         ) {
-            return new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, listenerFactory, eventConsumer,
-                new ContinuousBuildActionExecuter(fileSystemChangeWaiterFactory, inputsListeners, styledTextOutputFactory, executorFactory, requestMetaData, cancellationToken, deploymentRegistry, listenerManager, buildStartedTime, clock,
-                    new RunAsBuildOperationBuildActionRunner(
-                        new BuildTreeScopeLifecycleBuildActionExecuter(buildModelServices), buildOperationExecutor, loggingBuildOperationProgressBroadcaster, buildOperationNotificationValve)));
+            return new SubscribableBuildActionExecutor(listenerManager, buildOperationListenerManager, listenerFactory, eventConsumer,
+                new ContinuousBuildActionExecutor(fileSystemChangeWaiterFactory, inputsListeners, styledTextOutputFactory, executorFactory, requestMetaData, cancellationToken, deploymentRegistry, listenerManager, buildStartedTime, clock,
+                    new RunAsBuildOperationBuildActionExecutor(
+                        new BuildTreeLifecycleBuildActionExecutor(buildModelServices), buildOperationExecutor, loggingBuildOperationProgressBroadcaster, buildOperationNotificationValve)));
         }
     }
 
@@ -169,7 +169,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                      BuildStartedTime buildStartedTime,
                                                      BuildRequestMetaData buildRequestMetaData,
                                                      Clock clock) {
-            return new InProcessBuildActionExecuter(
+            return new RootBuildLifecycleBuildActionExecutor(
                 buildStateRegistry,
                 new BuildCompletionNotifyingBuildActionRunner(
                     new FileSystemWatchingBuildActionRunner(eventEmitter,

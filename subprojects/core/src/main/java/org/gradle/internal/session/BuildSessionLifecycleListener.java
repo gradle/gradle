@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.session;
 
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.Scopes;
  * One or more builds may be run during a session. For example, when running in continuous mode, multiple builds are run during a single session.
  */
 @EventScope(Scopes.BuildSession.class)
-public interface SessionLifecycleListener {
+public interface BuildSessionLifecycleListener {
     /**
      * Called at the start of the session, immediately after initializing the session services.
      *

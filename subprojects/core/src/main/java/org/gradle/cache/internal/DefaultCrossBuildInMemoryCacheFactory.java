@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.ManualEvictionInMemoryCache;
-import org.gradle.initialization.SessionLifecycleListener;
+import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.event.ListenerManager;
 
@@ -81,7 +81,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         return map;
     }
 
-    private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
+    private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
         private final Object lock = new Object();
         private final Map<K, V> valuesForThisSession = new HashMap<>();
 
@@ -240,7 +240,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
     }
 
-    private static class CrossBuildCacheRetainingDataFromPreviousBuild<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
+    private static class CrossBuildCacheRetainingDataFromPreviousBuild<K, V> implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
         private final ManualEvictionInMemoryCache<K, V> delegate = new ManualEvictionInMemoryCache<>();
         private final ConcurrentMap<K, Boolean> keysFromPreviousBuild = new ConcurrentHashMap<>();
         private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();

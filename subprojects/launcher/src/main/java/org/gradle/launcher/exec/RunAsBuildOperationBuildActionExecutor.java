@@ -30,7 +30,7 @@ import org.gradle.internal.session.BuildSessionContext;
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
  */
-public class RunAsBuildOperationBuildActionRunner implements BuildSessionActionExecutor {
+public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActionExecutor {
     private static final RunBuildBuildOperationType.Details DETAILS = new RunBuildBuildOperationType.Details() {
     };
     private static final RunBuildBuildOperationType.Result RESULT = new RunBuildBuildOperationType.Result() {
@@ -40,10 +40,10 @@ public class RunAsBuildOperationBuildActionRunner implements BuildSessionActionE
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
 
-    public RunAsBuildOperationBuildActionRunner(BuildSessionActionExecutor delegate,
-                                                BuildOperationExecutor buildOperationExecutor,
-                                                LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-                                                BuildOperationNotificationValve buildOperationNotificationValve) {
+    public RunAsBuildOperationBuildActionExecutor(BuildSessionActionExecutor delegate,
+                                                  BuildOperationExecutor buildOperationExecutor,
+                                                  LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
+                                                  BuildOperationNotificationValve buildOperationNotificationValve) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;

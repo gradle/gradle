@@ -16,7 +16,6 @@
 
 package org.gradle.internal.session;
 
-import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
@@ -41,7 +40,7 @@ class DefaultBuildSessionContext implements BuildSessionContext {
             throw new IllegalStateException("Cannot run more than one action for a session.");
         }
         try {
-            SessionLifecycleListener sessionLifecycleListener = sessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
+            BuildSessionLifecycleListener sessionLifecycleListener = sessionScopeServices.get(ListenerManager.class).getBroadcaster(BuildSessionLifecycleListener.class);
             sessionLifecycleListener.afterStart();
             try {
                 return sessionScopeServices.get(BuildSessionActionExecutor.class).execute(action, this);

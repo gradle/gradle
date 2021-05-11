@@ -26,10 +26,10 @@ import org.gradle.internal.session.BuildSessionContext;
 /**
  * A {@link BuildActionExecuter} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
  */
-public class BuildTreeScopeLifecycleBuildActionExecuter implements BuildSessionActionExecutor {
+public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildTreeModelControllerServices buildTreeModelControllerServices;
 
-    public BuildTreeScopeLifecycleBuildActionExecuter(BuildTreeModelControllerServices buildTreeModelControllerServices) {
+    public BuildTreeLifecycleBuildActionExecutor(BuildTreeModelControllerServices buildTreeModelControllerServices) {
         this.buildTreeModelControllerServices = buildTreeModelControllerServices;
     }
 

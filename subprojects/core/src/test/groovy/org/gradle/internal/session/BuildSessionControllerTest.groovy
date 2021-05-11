@@ -21,7 +21,6 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.initialization.BuildRequestMetaData
-import org.gradle.initialization.SessionLifecycleListener
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.invocation.BuildAction
@@ -55,7 +54,7 @@ class BuildSessionControllerTest extends Specification {
     }
 
     def "does nothing when function does nothing"() {
-        def listener = Mock(SessionLifecycleListener)
+        def listener = Mock(BuildSessionLifecycleListener)
         def action = Mock(Function)
 
         given:
@@ -71,7 +70,7 @@ class BuildSessionControllerTest extends Specification {
     }
 
     def "fires events before and after build action is run"() {
-        def listener = Mock(SessionLifecycleListener)
+        def listener = Mock(BuildSessionLifecycleListener)
         def action = Mock(Function)
         def buildAction = Stub(BuildAction)
 

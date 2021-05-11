@@ -24,12 +24,12 @@ import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeContext;
 import org.gradle.internal.invocation.BuildAction;
 
-public class InProcessBuildActionExecuter implements BuildTreeActionExecutor {
+public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExecutor {
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
 
-    public InProcessBuildActionExecuter(BuildStateRegistry buildStateRegistry,
-                                        BuildActionRunner buildActionRunner) {
+    public RootBuildLifecycleBuildActionExecutor(BuildStateRegistry buildStateRegistry,
+                                                 BuildActionRunner buildActionRunner) {
         this.buildActionRunner = buildActionRunner;
         this.buildStateRegistry = buildStateRegistry;
     }

@@ -23,7 +23,7 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
-import org.gradle.initialization.SessionLifecycleListener;
+import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, SessionLifecycleListener {
+public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, BuildSessionLifecycleListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClassLoaderCache.class);
 
     private final Object lock = new Object();
