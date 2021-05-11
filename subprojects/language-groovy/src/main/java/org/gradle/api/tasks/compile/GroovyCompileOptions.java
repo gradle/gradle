@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -37,8 +36,6 @@ import java.util.Map;
  */
 public class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
-    private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
-            ImmutableSet.of("forkOptions", "optimizationOptions", "stubDir", "keepStubs", "fileExtensions");
 
     private boolean failOnError = true;
 
@@ -348,23 +345,5 @@ public class GroovyCompileOptions extends AbstractOptions {
         fork = true;
         forkOptions.define(forkArgs);
         return this;
-    }
-
-    @Override
-    protected boolean excludeFromAntProperties(String fieldName) {
-        return EXCLUDE_FROM_ANT_PROPERTIES.contains(fieldName);
-    }
-
-    /**
-     * Internal method.
-     */
-    @Override
-    public Map<String, Object> optionMap() {
-        Map<String, Object> map = super.optionMap();
-        map.putAll(forkOptions.optionMap());
-        if (optimizationOptions.containsKey("indy")) {
-            map.put("indy", optimizationOptions.get("indy"));
-        }
-        return map;
     }
 }

@@ -689,6 +689,38 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractOptions",
+            "member": "Method org.gradle.api.tasks.compile.AbstractOptions.optionMap()",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractOptions",
+            "member": "Method org.gradle.api.tasks.compile.AbstractOptions.getAntPropertyValue(java.lang.String,java.lang.Object)",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractOptions",
+            "member": "Method org.gradle.api.tasks.compile.AbstractOptions.getAntPropertyName(java.lang.String)",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractOptions",
+            "member": "Method org.gradle.api.tasks.compile.AbstractOptions.excludeFromAntProperties(java.lang.String)",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
