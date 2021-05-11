@@ -112,7 +112,7 @@ class ConfigurationCacheProblems(
     inner class BuildFinishedProblemsHandler : BuildAdapter() {
 
         override fun buildFinished(result: BuildResult) {
-            if (result.gradle?.parent != null || cacheAction == null || problems.isEmpty()) {
+            if (result.gradle?.parent != null || problems.isEmpty()) {
                 return
             }
             val tooManyProblems = problems.size > startParameter.maxProblems
@@ -120,7 +120,7 @@ class ConfigurationCacheProblems(
                 // Invalidate stored state if problems fail the build
                 requireNotNull(invalidateStoredState).invoke()
             }
-            val cacheActionText = requireNotNull(cacheAction).summaryText()
+            val cacheActionText = cacheAction.summaryText()
             val outputDirectory = outputDirectoryFor(result.gradle?.rootProject?.buildDir ?: startParameter.rootDirectory)
             val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problems)
             when {
@@ -138,8 +138,9 @@ class ConfigurationCacheProblems(
         }
 
         private
-        fun ConfigurationCacheAction.summaryText() =
+        fun ConfigurationCacheAction?.summaryText() =
             when (this) {
+                null -> "storing"
                 LOAD -> "reusing"
                 STORE -> "storing"
             }
@@ -178,7 +179,6 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         override fun beforeComplete() {
-            if (cacheAction == null) return
             val hasProblems = problems.isNotEmpty()
             val hasTooManyProblems = problems.size > startParameter.maxProblems
             when {
@@ -186,10 +186,13 @@ class ConfigurationCacheProblems(
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
                 cacheAction == STORE && isFailOnProblems && hasProblems -> log("Configuration cache entry discarded with {}.", problemCount)
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCount)
+                cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
+                cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCount)
                 cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCount)
-                !hasProblems -> log("Configuration cache entry stored.")
-                else -> log("Configuration cache entry stored with {}.", problemCount)
+                hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCount)
+                hasProblems -> log("Configuration cache problems found ({}).", problemCount)
+                // else not storing or loading and no problems to report
             }
         }
 
