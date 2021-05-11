@@ -166,7 +166,7 @@ The Groovy plugin does not add any convention properties to the project.
 [[sec:groovy_source_set_properties]]
 == Source set properties
 
-The Groovy plugin adds the following convention properties to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
+The Groovy plugin adds the following extensions to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
 
 === Groovy Plugin — source set properties
 
