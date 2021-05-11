@@ -12,7 +12,8 @@ We would like to thank the following community members for their contributions t
 [Anže Sodja](https://github.com/asodja),
 [Alexander Likhachev](https://github.com/ALikhachev),
 [Björn Kautler](https://github.com/Vampire),
-[Sebastian Schuberth](https://github.com/sschuberth).
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Florian Schmitt](https://github.com/florianschmitt).
 
 ## Upgrade Instructions
 

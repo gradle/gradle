@@ -229,12 +229,14 @@ They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.p
 [[plugin_configuration_consumption]]
 === Deprecated consumption of internal plugin configurations
 
-The following code quality plugins each declare a configuration with the same name as the plugin:
+The following plugins each declare a configuration with the same name as the plugin:
 
 - `codenarc`
 - `pmd`
 - `checkstyle`
 - `antlr`
+
+The `jacoco` plugin declares two configurations `jacocoAnt` and `jacocoAgent`.
 
 Those configurations are used to declare dependencies for the respective tool's runtime classpath.
 They are not meant for consumption outside of the project applying the plugin, but Gradle did not explicitly

@@ -64,9 +64,4 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
         }
         return builder.build();
     }
-
-    @Override
-    protected boolean excludeFromAntProperties(String fieldName) {
-        return fieldName.equals("jvmArgumentProviders") || super.excludeFromAntProperties(fieldName);
-    }
 }
