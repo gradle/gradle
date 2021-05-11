@@ -121,21 +121,15 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         runner('publish')
             .withProjectDir(new File(testProjectDir.root, 'producer'))
             .forwardOutput()
-            .expectDeprecationWarning("The RepositoryHandler.jcenter() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "JFrog announced JCenter's shutdown in February 2021. Use mavenCentral() instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#jcenter_deprecation",
-                "TODO Add followup issue")
-            .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
+            // expect legacy deprecation warnings because those are fixed in later versions of Android plugin
+            .expectLegacyDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the destinationDirectory property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
-                "TODO Add followup issue")
-            .expectDeprecationWarning("The WorkerExecutor.submit() method has been deprecated. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring")
+            .expectLegacyDeprecationWarning("The WorkerExecutor.submit() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",
-                "TODO Add followup issue")
+                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
             .build()
     }
 
