@@ -33,13 +33,9 @@ import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.VersionNumber
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-// https://github.com/gradle/gradle-private/issues/3387
-@Requires(TestPrecondition.NOT_EC2_AGENT)
 class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @ToBeFixedForConfigurationCache
     def "rebuilds application when a single source file changes"() {
@@ -151,7 +147,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         outputs.deletedClasses("multiply", "sum")
 
         // See https://github.com/gradle/gradle-native/issues/1004
-        if (toolchainUnderTest.version.major == 5 && toolchainUnderTest.version.minor == 0) {
+        if (toolchainUnderTest.version.major == 5) {
             outputs.recompiledClasses('renamed-sum')
         } else {
             outputs.recompiledClasses('greeter', 'renamed-sum', 'main')
@@ -187,7 +183,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         outputs.deletedClasses("multiply", "sum")
 
         // See https://github.com/gradle/gradle-native/issues/1004
-        if (toolchainUnderTest.version.major == 5 && toolchainUnderTest.version.minor == 0) {
+        if (toolchainUnderTest.version.major == 5) {
             outputs.recompiledClasses('renamed-sum')
         } else {
             outputs.recompiledClasses('greeter', 'renamed-sum')
@@ -374,19 +370,31 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
             result.add(objectFileFor(swiftFile, intermediateFilesDirPath).relativizeFrom(intermediateFilesDir).path)
             result.add(swiftmoduleFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
             result.add(swiftdocFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
+
+            if (toolChain.version >= VersionNumber.parse("5.3")) {
+                // Seems to be introduced by 5.3:
+                // https://github.com/bazelbuild/rules_swift/issues/496
+                result.add(swiftsourceinfoFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
+            }
+
             result.add(dependFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
             result.add(swiftDepsFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
         }
-        if (toolChain.version.compareTo(VersionNumber.parse("4.2")) >= 0) {
+        if (toolChain.version >= VersionNumber.parse("4.2")) {
             result.add("module.swiftdeps~moduleonly")
         }
+
         result.add("module.swiftdeps")
         result.add("output-file-map.json")
         return result
     }
 
-    def swiftmoduleFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+    def swiftsourceinfoFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
         return intermediateFileFor(sourceFile, intermediateFilesDir, "~partial.swiftmodule")
+    }
+
+    def swiftmoduleFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+        return intermediateFileFor(sourceFile, intermediateFilesDir, "~partial.swiftsourceinfo")
     }
 
     def swiftdocFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
@@ -401,15 +409,18 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         return intermediateFileFor(sourceFile, intermediateFilesDir, ".d")
     }
 
-    private List<String> getCompileAndLinkTasks(String projectPath="") {
-        [ "${projectPath}:compileDebugSwift", "${projectPath}:linkDebug" ]
+    private List<String> getCompileAndLinkTasks(String projectPath = "") {
+        ["${projectPath}:compileDebugSwift", "${projectPath}:linkDebug"]
     }
-    private List<String> getAssembleAppTasks(String projectPath="") {
-        getCompileAndLinkTasks(projectPath) + [ "${projectPath}:installDebug", "${projectPath}:assemble" ]
+
+    private List<String> getAssembleAppTasks(String projectPath = "") {
+        getCompileAndLinkTasks(projectPath) + ["${projectPath}:installDebug", "${projectPath}:assemble"]
     }
-    private List<String> getAssembleLibTasks(String projectPath="") {
-        getCompileAndLinkTasks(projectPath) + [ "${projectPath}:assemble" ]
+
+    private List<String> getAssembleLibTasks(String projectPath = "") {
+        getCompileAndLinkTasks(projectPath) + ["${projectPath}:assemble"]
     }
+
     private List<String> getAssembleAppAndLibTasks() {
         getAssembleLibTasks(":greeter") + getAssembleAppTasks(":app")
     }
