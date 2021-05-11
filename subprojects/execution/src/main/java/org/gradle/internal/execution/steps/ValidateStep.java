@@ -24,6 +24,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.reflect.validation.Severity;
@@ -47,7 +48,7 @@ import static java.util.stream.Collectors.toList;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
-public class ValidateStep<R extends Result> implements Step<AfterPreviousExecutionContext, R> {
+public class ValidateStep<R extends Result> implements Step<BeforeExecutionContext, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
     private static final String MAX_NB_OF_ERRORS = "org.gradle.internal.max.validation.errors";
 
@@ -66,7 +67,7 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
     }
 
     @Override
-    public R execute(UnitOfWork work, AfterPreviousExecutionContext context) {
+    public R execute(UnitOfWork work, BeforeExecutionContext context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
 
@@ -103,6 +104,11 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         }
 
         return delegate.execute(work, new ValidationContext() {
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
+            }
+
             @Override
             public Optional<ValidationResult> getValidationProblems() {
                 return warnings.isEmpty()

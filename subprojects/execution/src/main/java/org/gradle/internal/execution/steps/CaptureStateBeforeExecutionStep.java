@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep extends BuildOperationStep<ValidationContext, CachingResult> {
+public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -66,7 +66,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, ValidationContext context) {
+    public CachingResult execute(UnitOfWork work, AfterPreviousExecutionContext context) {
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
             .map(executionHistoryStore -> captureExecutionStateOp(work, context));
         return delegate.execute(work, new BeforeExecutionContext() {
@@ -117,11 +117,6 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Validati
             @Override
             public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
-            }
-
-            @Override
-            public Optional<ValidationResult> getValidationProblems() {
-                return context.getValidationProblems();
             }
         });
     }

@@ -20,7 +20,7 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal;
 
 import java.util.Optional;
 
-public interface InputChangesContext extends BeforeExecutionContext {
+public interface InputChangesContext extends ValidationContext {
     Optional<InputChangesInternal> getInputChanges();
     boolean isIncrementalExecution();
 }

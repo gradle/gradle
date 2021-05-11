@@ -29,7 +29,7 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 
-class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> implements ValidationMessageChecker {
+class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements ValidationMessageChecker {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
@@ -38,9 +38,9 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> implement
     def delegateResult = Mock(Result)
 
     @Override
-    protected AfterPreviousExecutionContext createContext() {
+    protected BeforeExecutionContext createContext() {
         def validationContext = new DefaultWorkValidationContext(documentationRegistry)
-        return Stub(AfterPreviousExecutionContext) {
+        return Stub(BeforeExecutionContext) {
             getValidationContext() >> validationContext
         }
     }

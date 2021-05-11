@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableCollection;
 
 import java.util.Optional;
 
-public interface ValidationContext extends AfterPreviousExecutionContext {
+public interface ValidationContext extends BeforeExecutionContext {
     /**
      * Returns validation warnings or {@link Optional#empty()} if there were no validation problems.
      */

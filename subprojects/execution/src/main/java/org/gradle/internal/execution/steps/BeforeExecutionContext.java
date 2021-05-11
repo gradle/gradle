@@ -20,7 +20,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 
 import java.util.Optional;
 
-public interface BeforeExecutionContext extends ValidationContext {
+public interface BeforeExecutionContext extends AfterPreviousExecutionContext {
     /**
      * Returns the execution state before execution.
      * Empty if execution state was not observed before execution.

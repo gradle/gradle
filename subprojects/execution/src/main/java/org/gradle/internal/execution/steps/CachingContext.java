@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.caching.CachingState;
 
-public interface CachingContext extends BeforeExecutionContext {
+public interface CachingContext extends ValidationContext {
     /**
      * The resolved state of caching for the work.
      */

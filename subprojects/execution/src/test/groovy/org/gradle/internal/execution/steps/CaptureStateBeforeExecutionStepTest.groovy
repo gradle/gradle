@@ -34,7 +34,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
 
-class CaptureStateBeforeExecutionStepTest extends StepSpec<ValidationContext> {
+class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContext> {
 
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def outputSnapshotter = Mock(OutputSnapshotter)
