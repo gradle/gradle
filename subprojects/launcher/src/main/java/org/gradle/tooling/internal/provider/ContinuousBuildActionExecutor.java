@@ -51,7 +51,7 @@ import org.gradle.util.internal.DisconnectableInputStream;
 
 import java.util.function.Supplier;
 
-public class ContinuousBuildActionExecuter implements BuildSessionActionExecutor {
+public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildSessionActionExecutor delegate;
     private final TaskInputsListeners inputsListeners;
     private final BuildRequestMetaData requestMetaData;
@@ -65,7 +65,7 @@ public class ContinuousBuildActionExecuter implements BuildSessionActionExecutor
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
-    public ContinuousBuildActionExecuter(
+    public ContinuousBuildActionExecutor(
         FileSystemChangeWaiterFactory changeWaiterFactory,
         TaskInputsListeners inputsListeners,
         StyledTextOutputFactory styledTextOutputFactory,
@@ -88,7 +88,7 @@ public class ContinuousBuildActionExecuter implements BuildSessionActionExecutor
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
         this.changeWaiterFactory = changeWaiterFactory;
-        this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.QUIET);
+        this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecutor.class, LogLevel.QUIET);
         this.delegate = delegate;
     }
 

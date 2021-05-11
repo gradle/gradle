@@ -27,7 +27,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.buildtree.BuildTreeController
+import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
@@ -39,7 +39,7 @@ class DefaultIncludedBuildTest extends Specification {
     def buildDefinition = Stub(BuildDefinition)
     def gradleLauncher = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
-    def buildTree = Mock(BuildTreeController)
+    def buildTree = Mock(BuildTreeState)
     DefaultIncludedBuild build
 
     def setup() {

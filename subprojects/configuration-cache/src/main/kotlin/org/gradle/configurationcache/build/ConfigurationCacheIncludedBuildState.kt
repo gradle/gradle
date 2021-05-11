@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.composite.internal.DefaultIncludedBuild
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.buildtree.BuildTreeController
+import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 
@@ -33,7 +33,7 @@ open class ConfigurationCacheIncludedBuildState(
     buildDefinition: BuildDefinition,
     isImplicit: Boolean,
     owner: BuildState,
-    buildTree: BuildTreeController,
+    buildTree: BuildTreeState,
     parentLease: WorkerLeaseRegistry.WorkerLease,
     buildLifecycleControllerFactory: BuildLifecycleControllerFactory,
     projectStateRegistry: ProjectStateRegistry

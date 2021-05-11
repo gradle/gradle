@@ -44,7 +44,7 @@ import spock.lang.Timeout
 
 import java.util.concurrent.TimeUnit
 
-class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
+class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
 
     @Rule
     RedirectStdIn redirectStdIn = new RedirectStdIn()
@@ -155,7 +155,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
         inputsListeners.broadcastFileSystemInputsOf(Mock(TaskInternal), TestFiles.fixed(file))
     }
 
-    private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(waiterFactory, inputsListeners, new TestStyledTextOutputFactory(), executorFactory, requestContext, cancellationToken, deploymentRegistry, listenerManager.createChild(Scopes.BuildSession), buildExecutionTimer, Time.clock(), delegate)
+    private ContinuousBuildActionExecutor executer() {
+        new ContinuousBuildActionExecutor(waiterFactory, inputsListeners, new TestStyledTextOutputFactory(), executorFactory, requestContext, cancellationToken, deploymentRegistry, listenerManager.createChild(Scopes.BuildSession), buildExecutionTimer, Time.clock(), delegate)
     }
 }

@@ -16,42 +16,16 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.internal.build.event.BuildEventListenerFactory;
-import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
-import org.gradle.internal.buildtree.BuildActionRunner;
-import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.launcher.exec.ChainingBuildActionRunner;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
-            BuildActionRunner createBuildActionRunner(
-                BuildOperationAncestryTracker ancestryTracker,
-                BuildOperationListenerManager buildOperationListenerManager
-            ) {
-                return new ChainingBuildActionRunner(
-                    Arrays.asList(
-                        new BuildModelActionRunner(),
-                        new TestExecutionRequestActionRunner(ancestryTracker, buildOperationListenerManager),
-                        new ClientProvidedBuildActionRunner(),
-                        new ClientProvidedPhasedActionRunner()));
-            }
-
-            BuildEventListenerFactory createToolingApiSubscribableBuildActionRunnerRegistration(
-                BuildOperationAncestryTracker ancestryTracker,
-                BuildOperationIdFactory buildOperationIdFactory,
-                List<OperationResultPostProcessorFactory> postProcessorFactories
-            ) {
-                return new ToolingApiBuildEventListenerFactory(ancestryTracker, buildOperationIdFactory, postProcessorFactories);
-            }
-        });
+        registration.add(BuildModelActionRunner.class);
+        registration.add(TestExecutionRequestActionRunner.class);
+        registration.add(ClientProvidedBuildActionRunner.class);
+        registration.add(ClientProvidedPhasedActionRunner.class);
+        registration.add(ToolingApiBuildEventListenerFactory.class);
     }
 }

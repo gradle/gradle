@@ -28,7 +28,7 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.internal.provider.action.SubscribableBuildAction
 import spock.lang.Specification
 
-class SubscribableBuildActionExecuterSpec extends Specification {
+class SubscribableBuildActionExecutorSpec extends Specification {
 
     def "removes listeners after executing build action"() {
         given:
@@ -47,7 +47,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
             createListeners(_, consumer) >> [listener1, listener2]
         }
 
-        def runner = new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, factory, consumer, delegate)
+        def runner = new SubscribableBuildActionExecutor(listenerManager, buildOperationListenerManager, factory, consumer, delegate)
 
         when:
         runner.execute(buildAction, buildSessionContext)

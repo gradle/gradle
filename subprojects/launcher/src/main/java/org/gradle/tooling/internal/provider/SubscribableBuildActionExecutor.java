@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Attaches build operation listeners to forward relevant operations back to the client.
  */
-public class SubscribableBuildActionExecuter implements BuildSessionActionExecutor {
+public class SubscribableBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildEventConsumer eventConsumer;
     private final BuildSessionActionExecutor delegate;
     private final ListenerManager listenerManager;
@@ -42,7 +42,7 @@ public class SubscribableBuildActionExecuter implements BuildSessionActionExecut
     private final List<Object> listeners = new ArrayList<>();
     private final BuildEventListenerFactory factory;
 
-    public SubscribableBuildActionExecuter(ListenerManager listenerManager,
+    public SubscribableBuildActionExecutor(ListenerManager listenerManager,
                                            BuildOperationListenerManager buildOperationListenerManager,
                                            BuildEventListenerFactory factory,
                                            BuildEventConsumer eventConsumer,

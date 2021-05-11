@@ -25,7 +25,7 @@ import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
-import org.gradle.internal.buildtree.BuildTreeController
+import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -43,7 +43,7 @@ class DefaultRootBuildStateTest extends Specification {
     def listenerManager = Mock(ListenerManager)
     def lifecycleListener = Mock(RootBuildLifecycleListener)
     def action = Mock(Function)
-    def buildTree = Mock(BuildTreeController)
+    def buildTree = Mock(BuildTreeState)
     def buildDefinition = Mock(BuildDefinition)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def includedBuildControllers = Mock(IncludedBuildControllers)

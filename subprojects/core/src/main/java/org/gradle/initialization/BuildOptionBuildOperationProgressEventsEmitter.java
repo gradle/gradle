@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
 import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.Scopes;
@@ -25,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.inject.Inject;
 
 @ServiceScope(Scopes.BuildTree.class)
-public class BuildOptionBuildOperationProgressEventsEmitter {
+public class BuildOptionBuildOperationProgressEventsEmitter implements BuildTreeLifecycleListener {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final BuildModelParameters buildModelParameters;
@@ -36,8 +37,8 @@ public class BuildOptionBuildOperationProgressEventsEmitter {
         this.buildModelParameters = buildModelParameters;
     }
 
-    @SuppressWarnings({"Anonymous2MethodRef", "Convert2Lambda"})
-    public void emit() {
+    @Override
+    public void afterStart() {
         eventEmitter.emitNowForCurrent(new ConfigurationCacheSettingsFinalizedProgressDetails() {
             @Override
             public boolean isEnabled() {

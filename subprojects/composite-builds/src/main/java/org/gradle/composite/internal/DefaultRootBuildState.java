@@ -34,7 +34,7 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
-import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
@@ -57,7 +57,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     private boolean completed;
 
     DefaultRootBuildState(BuildDefinition buildDefinition,
-                          BuildTreeController buildTree,
+                          BuildTreeState buildTree,
                           BuildLifecycleControllerFactory buildLifecycleControllerFactory,
                           ListenerManager listenerManager,
                           ProjectStateRegistry projectStateRegistry) {

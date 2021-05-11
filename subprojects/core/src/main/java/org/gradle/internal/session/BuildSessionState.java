@@ -33,20 +33,20 @@ import java.util.function.Function;
 /**
  * Encapsulates the state for a build session.
  */
-public class BuildSessionController implements Closeable {
+public class BuildSessionState implements Closeable {
     private final GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry;
     private final ServiceRegistry userHomeServices;
     private final ServiceRegistry sessionScopeServices;
     private final DefaultBuildSessionContext context;
 
-    public BuildSessionController(GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry,
-                                  CrossBuildSessionState crossBuildSessionServices,
-                                  StartParameterInternal startParameter,
-                                  BuildRequestMetaData requestMetaData,
-                                  ClassPath injectedPluginClassPath,
-                                  BuildCancellationToken buildCancellationToken,
-                                  BuildClientMetaData buildClientMetaData,
-                                  BuildEventConsumer buildEventConsumer) {
+    public BuildSessionState(GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry,
+                             CrossBuildSessionState crossBuildSessionServices,
+                             StartParameterInternal startParameter,
+                             BuildRequestMetaData requestMetaData,
+                             ClassPath injectedPluginClassPath,
+                             BuildCancellationToken buildCancellationToken,
+                             BuildClientMetaData buildClientMetaData,
+                             BuildEventConsumer buildEventConsumer) {
         this.userHomeScopeServiceRegistry = userHomeScopeServiceRegistry;
         userHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
         sessionScopeServices = ServiceRegistryBuilder.builder()

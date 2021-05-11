@@ -17,7 +17,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.internal.buildtree.BuildActionRunner;
-import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.session.BuildSessionActionExecutor;
@@ -26,17 +26,17 @@ import org.gradle.internal.session.BuildSessionContext;
 /**
  * A {@link BuildActionExecuter} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
  */
-public class BuildTreeScopeLifecycleBuildActionExecuter implements BuildSessionActionExecutor {
+public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildTreeModelControllerServices buildTreeModelControllerServices;
 
-    public BuildTreeScopeLifecycleBuildActionExecuter(BuildTreeModelControllerServices buildTreeModelControllerServices) {
+    public BuildTreeLifecycleBuildActionExecutor(BuildTreeModelControllerServices buildTreeModelControllerServices) {
         this.buildTreeModelControllerServices = buildTreeModelControllerServices;
     }
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
         BuildTreeModelControllerServices.Supplier modelServices = buildTreeModelControllerServices.servicesForBuildTree(action.isRunTasks(), action.isCreateModel(), action.getStartParameter());
-        try (BuildTreeController buildTree = new BuildTreeController(buildSession.getServices(), modelServices)) {
+        try (BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), modelServices)) {
             return buildTree.run(context -> context.execute(action));
         }
     }
