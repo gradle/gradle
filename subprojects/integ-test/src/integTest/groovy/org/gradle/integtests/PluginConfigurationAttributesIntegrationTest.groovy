@@ -59,6 +59,8 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         'antlr'      | 'antlr'
         'jacoco'     | 'jacocoAgent'
         'jacoco'     | 'jacocoAnt'
+        'scala'      | 'zinc'
+        'war'        | 'providedRuntime'
     }
 
     def "plugin runtime configuration can be extended and consumed without deprecation"() {
@@ -113,6 +115,8 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         'antlr'      | 'antlr'
         'jacoco'     | 'jacocoAgent'
         'jacoco'     | 'jacocoAnt'
+        'scala'      | 'zinc'
+        'war'        | 'providedRuntime'
     }
 
 }
