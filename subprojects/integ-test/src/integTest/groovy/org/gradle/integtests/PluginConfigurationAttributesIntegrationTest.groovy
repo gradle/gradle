@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -29,6 +30,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         """
     }
 
+    @ToBeFixedForConfigurationCache(iterationMatchers = ".*plugin: scala, configuration: zinc.*")
     def "plugin runtime configuration is deprecated for consumption"() {
         given:
         file("producer/build.gradle") << """
