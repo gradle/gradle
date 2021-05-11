@@ -102,9 +102,9 @@ class JavaAgentCommandLineArgumentProvider implements CommandLineArgumentProvide
 }
 ```
 
-### Easier Groovy source set configuration in the Kotlin DSL
+### Easier source set configuration in the Kotlin DSL
 
-When using the Kotlin DSL, a special construct was required when configuring `groovy` source locations:
+When using the Kotlin DSL, a special construct was required when configuring source locations. For example, here's how you could configure `groovy` sources:
 
 ```kotlin
 sourceSets {
@@ -118,7 +118,12 @@ sourceSets {
 }
 ```
 
-Gradle 7.1 defines the `groovy` source set as an extension when applying the Groovy plugin. This means that the Kotlin DSL has auto-generated accessors and `withConvention` block can be omitted:
+Gradle 7.1 defines source sets as an extension in the following plugins:
+
+- `groovy`
+- `antlr`
+
+ This means that the Kotlin DSL has auto-generated accessors and `withConvention` block can be omitted:
 
 ```kotlin
 sourceSets {

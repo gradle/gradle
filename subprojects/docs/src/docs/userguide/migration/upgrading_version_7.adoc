@@ -165,8 +165,13 @@ The last set of classes have no external or internal usages and therefore were d
 - `DeferredUtil`
 - `ChangeListener`
 
-==== The return type of the `groovy { }` block has changed
-The `groovy` source set is now defined via extension. This extension is backed by the link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceDirectorySet.html[GroovySourceDirectorySet] interface.
+==== The return type of source set extensions have changed
+
+The following source sets are contributed via an extension with a custom type:
+
+- `groovy`: link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceDirectorySet.html[GroovySourceDirectorySet]
+- `antlr`: link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+
 The 'idiomatic' DSL declaration is backward compatible:
 
 ```groovy
@@ -179,8 +184,7 @@ sourceSets {
 }
 ```
 
-However, the return type of the groovy block has changed from link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceSet.html[GroovySourceSet] to
-link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceDirectorySet.html[GroovySourceDirectorySet]. This means that the following snippet no longer works in Gradle 7.1:
+However, the return type of the groovy block has changed to the extension type. This means that the following snippet no longer works in Gradle 7.1:
 
 ```groovy
  sourceSets {
@@ -190,7 +194,7 @@ link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceDirectorySet.html[GroovySo
          }
      }
  }
- ```
+```
 
 [[java_exec_properties]]
 ==== Properties deprecated in JavaExec task
@@ -323,7 +327,7 @@ configurations {
 }
 ```
 
-[[ear_convention_deprecation]]
+[[project_report_convention_deprecation]]
 === Deprecated `project-report` plugin conventions
 
 link:{groovyDslPath}/org.gradle.api.plugins.ProjectReportsPluginConvention.html[ProjectReportsPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0. Clients should configure the project report tasks directly. Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(...).configureEach(...)] can be used to configure each task of the same type (`HtmlDependencyReportTask` for example).
@@ -338,10 +342,19 @@ link:{javadocPath}/org/gradle/api/plugins/WarPluginConvention.html[WarPluginConv
 
 link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0. Clients should configure the `ear` task directly. Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `Ear`.
 
-[[groovy_source_set_deprecation]]
-=== Deprecated `GroovySourceSet` interface
-link:{javadocPath}/org/gradle/api/tasks/GroovySourceSet.html[GroovySourceSet] is now deprecated and scheduled for removal in Gradle 8.0. Clients should configure `groovy` sources configuration via the
-the link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[new extension] defined on the source set object:
+[[custom_source_set_deprecation]]
+=== Deprecated custom source set interfaces
+The following source set interfaces are now deprecated and scheduled for removal in Gradle 8.0:
+
+- link:{javadocPath}/org/gradle/api/tasks/GroovySourceSet.html[GroovySourceSet]
+- link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+
+Clients should configure the sources with their plugin-specific configuration:
+- `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
+- `antlr`: link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+
+For example, here's how you configure the groovy sources from a plugin:
+
 ```java
 GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
 groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
