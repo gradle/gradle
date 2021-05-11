@@ -23,6 +23,7 @@ import model.PerformanceTestCoverage
 import model.SpecificBuild
 import model.Stage
 import model.StageNames
+import model.TestCoverage
 import model.TestType
 
 class StageProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalTestBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage) : Project({
@@ -34,7 +35,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
 
     val performanceTests: List<PerformanceTestsPass>
 
-    val functionalTests: List<FunctionalTest>
+    val functionalTests: List<BuildType>
 
     init {
         features {
@@ -76,10 +77,13 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
 
         functionalTestProjects.forEach { functionalTestProject ->
             this@StageProject.subProject(functionalTestProject)
-            this@StageProject.buildType(FunctionalTestsPass(model, functionalTestProject))
+        }
+        val functionalTestsPass = functionalTestProjects.map { functionalTestProject ->
+            FunctionalTestsPass(model, functionalTestProject).also { this@StageProject.buildType(it) }
         }
 
-        functionalTests = topLevelFunctionalTests + functionalTestProjects.flatMap(FunctionalTestProject::functionalTests)
+        functionalTests = topLevelFunctionalTests + functionalTestsPass
+        val crossVersionTests = topLevelFunctionalTests.filter { it.testCoverage.isCrossVersionTest } + functionalTestsPass.filter { it.testCoverage.isCrossVersionTest }
         if (stage.stageName !in listOf(StageNames.QUICK_FEEDBACK_LINUX_ONLY, StageNames.QUICK_FEEDBACK)) {
             if (topLevelFunctionalTests.size + functionalTestProjects.size > 1) {
                 buildType(PartialTrigger("All Functional Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_FuncTests", model, functionalTests))
@@ -88,7 +92,6 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
             if (smokeTests.size > 1) {
                 buildType(PartialTrigger("All Smoke Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_SmokeTests", model, smokeTests))
             }
-            val crossVersionTests = functionalTests.filter { it.testCoverage.testType in setOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion) }
             if (crossVersionTests.size > 1) {
                 buildType(PartialTrigger("All Cross-Version Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_CrossVersionTests", model, crossVersionTests))
             }
@@ -106,6 +109,10 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
             }
         }
     }
+
+    private
+    val TestCoverage.isCrossVersionTest
+        get() = testType in setOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion)
 
     private
     fun createPerformanceTests(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, performanceTestCoverage: PerformanceTestCoverage): PerformanceTestsPass {
