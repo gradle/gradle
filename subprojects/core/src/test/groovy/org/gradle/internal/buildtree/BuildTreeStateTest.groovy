@@ -25,10 +25,10 @@ import spock.lang.Specification
 
 import java.util.function.Function
 
-class BuildTreeControllerTest extends Specification {
+class BuildTreeStateTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
     def actionExecutor = Mock(BuildTreeActionExecutor)
-    BuildTreeController state
+    BuildTreeState state
 
     def setup() {
         def services = new DefaultServiceRegistry()
@@ -36,7 +36,7 @@ class BuildTreeControllerTest extends Specification {
         services.add(Mock(BuildModelParameters))
         services.add(BuildTreeActionExecutor, actionExecutor)
         services.add(listenerManager)
-        state = new BuildTreeController(services, Stub(BuildTreeModelControllerServices.Supplier))
+        state = new BuildTreeState(services, Stub(BuildTreeModelControllerServices.Supplier))
     }
 
     def "does nothing when function does nothing"() {

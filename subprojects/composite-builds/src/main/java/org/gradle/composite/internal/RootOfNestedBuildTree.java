@@ -37,7 +37,7 @@ import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.NestedRootBuild;
-import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
@@ -51,7 +51,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.session.BuildSessionController;
+import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -66,8 +66,8 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     private final BuildState owner;
     private final BuildLifecycleController buildLifecycleController;
     private String buildName;
-    private final BuildSessionController session;
-    private final BuildTreeController buildTree;
+    private final BuildSessionState session;
+    private final BuildTreeState buildTree;
     private final BuildScopeServices buildServices;
 
     public RootOfNestedBuildTree(BuildDefinition buildDefinition,
@@ -84,9 +84,9 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
         StartParameterInternal startParameter = buildDefinition.getStartParameter();
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        session = new BuildSessionController(userHomeDirServiceRegistry, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+        session = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         BuildTreeModelControllerServices.Supplier modelServices = session.getServices().get(BuildTreeModelControllerServices.class).servicesForNestedBuildTree(startParameter);
-        buildTree = new BuildTreeController(session.getServices(), modelServices);
+        buildTree = new BuildTreeState(session.getServices(), modelServices);
         // Create the controller using the services of the nested tree
         BuildLifecycleControllerFactory buildLifecycleControllerFactory = buildTree.getServices().get(BuildLifecycleControllerFactory.class);
         buildServices = new BuildScopeServices(buildTree.getServices());

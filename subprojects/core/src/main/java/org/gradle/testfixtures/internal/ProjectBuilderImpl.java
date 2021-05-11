@@ -45,7 +45,7 @@ import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.classpath.ClassPath;
@@ -57,7 +57,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.session.BuildSessionController;
+import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
@@ -109,10 +109,10 @@ public class ProjectBuilderImpl {
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
-        BuildSessionController buildSessionController = new BuildSessionController(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-        BuildTreeModelControllerServices.Supplier modelServices = buildSessionController.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(true, false, startParameter);
-        BuildTreeController buildTreeController = new BuildTreeController(buildSessionController.getServices(), modelServices);
-        TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeController.getServices(), homeDir, startParameter);
+        BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+        BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(true, false, startParameter);
+        BuildTreeState buildTreeState = new BuildTreeState(buildSessionState.getServices(), modelServices);
+        TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeState.getServices(), homeDir, startParameter);
         TestRootBuild build = new TestRootBuild(projectDir, buildServices);
 
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
@@ -147,8 +147,8 @@ public class ProjectBuilderImpl {
                 (Stoppable) workerLeaseService::releaseCurrentProjectLocks,
                 (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
                 buildServices,
-                buildTreeController,
-                buildSessionController,
+                    buildTreeState,
+                buildSessionState,
                 crossBuildSessionState
             )
         );

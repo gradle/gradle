@@ -29,11 +29,11 @@ import java.util.function.Function;
  * Encapsulates the state for a particular build tree.
  */
 @ServiceScope(Scopes.BuildTree.class)
-public class BuildTreeController implements Closeable {
+public class BuildTreeState implements Closeable {
     private final ServiceRegistry services;
     private final DefaultBuildTreeContext context;
 
-    public BuildTreeController(ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
+    public BuildTreeState(ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
         services = ServiceRegistryBuilder.builder()
             .displayName("build tree services")
             .parent(parent)

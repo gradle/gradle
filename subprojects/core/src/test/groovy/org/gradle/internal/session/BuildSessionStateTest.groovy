@@ -31,7 +31,7 @@ import spock.lang.Specification
 
 import java.util.function.Function
 
-class BuildSessionControllerTest extends Specification {
+class BuildSessionStateTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
     def actionExecutor = Mock(BuildSessionActionExecutor)
     def userHomeServiceRegistry = Mock(GradleUserHomeScopeServiceRegistry)
@@ -42,7 +42,7 @@ class BuildSessionControllerTest extends Specification {
     def cancellationToken = Mock(BuildCancellationToken)
     def eventConsumer = Mock(BuildEventConsumer)
     def classPath = ClassPath.EMPTY
-    BuildSessionController state
+    BuildSessionState state
 
     def setup() {
         _ * userHomeServiceRegistry.getServicesFor(_) >> new DefaultServiceRegistry()
@@ -50,7 +50,7 @@ class BuildSessionControllerTest extends Specification {
         services.add(BuildSessionActionExecutor, actionExecutor)
         services.add(listenerManager)
         _ * crossBuildState.services >> services
-        state = new BuildSessionController(userHomeServiceRegistry, crossBuildState, startParameter, buildRequestMetadata, classPath, cancellationToken, clientMetadata, eventConsumer)
+        state = new BuildSessionState(userHomeServiceRegistry, crossBuildState, startParameter, buildRequestMetadata, classPath, cancellationToken, clientMetadata, eventConsumer)
     }
 
     def "does nothing when function does nothing"() {
