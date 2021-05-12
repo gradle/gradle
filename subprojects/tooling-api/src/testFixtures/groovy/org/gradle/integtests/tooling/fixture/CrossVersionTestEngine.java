@@ -43,8 +43,8 @@ import org.spockframework.runtime.SpockEngineDescriptor;
 import org.spockframework.runtime.SpockExecutionContext;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -145,10 +145,22 @@ class DelegatingDiscoveryRequest implements EngineDiscoveryRequest {
 
     @Override
     public <T extends DiscoverySelector> List<T> getSelectorsByType(Class<T> selectorType) {
-        if (!selectorType.isAssignableFrom(ClassSelector.class)) {
-            return Collections.emptyList();
+        if (selectorType.equals(ClassSelector.class)) {
+            return Cast.uncheckedCast(selectors);
         }
-        return Cast.uncheckedCast(selectors);
+        if (selectorType.equals(DiscoverySelector.class)) {
+            List<DiscoverySelector> result = new ArrayList<DiscoverySelector>(delegate.getSelectorsByType(selectorType));
+            Iterator<DiscoverySelector> iterator = result.iterator();
+            while (iterator.hasNext()) {
+                DiscoverySelector selector = iterator.next();
+                if (selector instanceof ClassSelector) {
+                    iterator.remove();
+                }
+            }
+            result.addAll(selectors);
+            return Cast.uncheckedCast(result);
+        }
+        return delegate.getSelectorsByType(selectorType);
     }
 
     @Override
