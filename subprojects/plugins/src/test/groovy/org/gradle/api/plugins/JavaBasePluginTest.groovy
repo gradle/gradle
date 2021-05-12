@@ -22,7 +22,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -32,9 +31,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.jvm.Jvm
-
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -275,8 +272,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     private void setupProjectWithToolchain(JavaVersion version) {
         project.pluginManager.apply(JavaPlugin)
         project.java.toolchain.languageVersion = JavaLanguageVersion.of(version.majorVersion)
-        // workaround for https://github.com/gradle/gradle/issues/13122
-        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
     }
 
     def "tasks reflect changes to source set configuration"() {
