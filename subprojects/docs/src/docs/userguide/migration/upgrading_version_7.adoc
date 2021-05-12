@@ -229,20 +229,39 @@ They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.p
 [[plugin_configuration_consumption]]
 === Deprecated consumption of internal plugin configurations
 
-The following plugins each declare a configuration with the same name as the plugin:
+Some of the core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
+published or consumed by another subproject directly. Gradle did not explicitly prohobit this.
+Gradle 7.1 deprecates consumption of those configurations and this will become an error in Gradle 8.0.
 
-- `codenarc`
-- `pmd`
-- `checkstyle`
-- `antlr`
+The following plugin configurations have been deprecated for consumption:
 
-The `jacoco` plugin declares two configurations `jacocoAnt` and `jacocoAgent`.
+[cols="1,1"]
+|===
+| plugin | configurations deprecated for consumption
 
-Those configurations are used to declare dependencies for the respective tool's runtime classpath.
-They are not meant for consumption outside of the project applying the plugin, but Gradle did not explicitly
-prohibit this. Gradle 7.1 deprecates such consumption and it will become an error in Gradle 8.0.
+| `codenarc`
+| `codenarc`
 
-If your use case needs to consume the configurations of the above tools in another project, please create a separate consumable
+| `pmd`
+| `pmd`
+
+| `checkstyle`
+| `checkstyle`
+
+| `antlr`
+| `antlr`
+
+| `jacoco`
+| `jacocoAnt`, `jacocoAgent`
+
+| `scala`
+| `zinc`
+
+| `war`
+| `providedCompile`, `providedRuntime`
+|===
+
+If your use case needs to consume any of the above mentioned configurations in another project, please create a separate consumable
 configuration that extends from the internal ones. For example:
 ```
 plugins {
