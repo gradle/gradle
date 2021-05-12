@@ -277,10 +277,13 @@ fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance",
 
 val Project.maxParallelForks: Int
     get() = if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") {
-        8
+        maxParallelForksConfig * 2
     } else {
-        findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
+        maxParallelForksConfig
     }
+
+val Project.maxParallelForksConfig: Int
+    get() = findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
