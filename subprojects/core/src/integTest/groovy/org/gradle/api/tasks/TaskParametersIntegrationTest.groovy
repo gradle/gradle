@@ -844,6 +844,30 @@ task someTask(type: SomeTask) {
         succeeds "foo"
     }
 
+    def "reports the input property which failed to evaluate"() {
+        buildFile("""
+            abstract class FailingTask extends DefaultTask {
+                @Input
+                abstract Property<String> getStringInput()
+
+                @TaskAction
+                void doStuff() {
+                    println("Hello world")
+                }
+            }
+
+            tasks.register("failingTask", FailingTask) {
+                stringInput.set(provider { throw new RuntimeException("BOOM") })
+            }
+        """)
+
+        when:
+        fails "failingTask"
+        then:
+        failureHasCause("Failed to calculate the value of task ':failingTask' property 'stringInput'.")
+        failureHasCause("BOOM")
+    }
+
     def "input and output properties are not evaluated too often"() {
         buildFile << """
             import org.gradle.api.services.BuildServiceParameters
