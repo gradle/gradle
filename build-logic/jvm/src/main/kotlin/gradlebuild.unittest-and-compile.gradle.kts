@@ -209,6 +209,7 @@ fun configureTests() {
     }
 
     tasks.withType<Test>().configureEach {
+        outputs.cacheIf { false }
         configureAndroidUserHome()
         filterEnvironmentVariables()
 
