@@ -231,14 +231,14 @@ fun configureTests() {
 
         useJUnitPlatform()
 
-        if (project.enableExperimentalTestFiltering() && !isUnitTest()) {
+        /*if (project.enableExperimentalTestFiltering() && !isUnitTest()) {
             distribution {
                 enabled.set(true)
                 maxRemoteExecutors.set(0)
                 // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
                 (this as TestDistributionExtensionInternal).server.set(uri("https://ge-experiment.grdev.net"))
             }
-        }
+        }*/
 
         if (project.testDistributionEnabled() && !isUnitTest()) {
             println("Remote test distribution has been enabled for $testName")
