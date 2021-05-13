@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -37,6 +38,16 @@ public interface JavaInstallationMetadata {
      */
     @Input
     JavaLanguageVersion getLanguageVersion();
+
+    /**
+     * Returns the full Java version of the JVM, as specified in its {@code java.version} property.
+     *
+     * @return the full Java version of the JVM
+     * @since 7.1
+     */
+    @Internal
+    @Incubating
+    String getJavaVersion();
 
     /**
      * Returns a human-readable string for the vendor of the JVM.
