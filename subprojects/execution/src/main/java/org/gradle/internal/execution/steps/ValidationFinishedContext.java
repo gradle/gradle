@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,17 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.history.BeforeExecutionState;
+import com.google.common.collect.ImmutableCollection;
 
 import java.util.Optional;
 
-public interface BeforeExecutionContext extends AfterPreviousExecutionContext {
+public interface ValidationFinishedContext extends BeforeExecutionContext {
     /**
-     * Returns the execution state before execution.
-     * Empty if execution state was not observed before execution.
+     * Returns validation warnings or {@link Optional#empty()} if there were no validation problems.
      */
-    Optional<BeforeExecutionState> getBeforeExecutionState();
+    Optional<ValidationResult> getValidationProblems();
+
+    interface ValidationResult {
+        ImmutableCollection<String> getWarnings();
+    }
 }
