@@ -217,16 +217,27 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
     public <T extends DiscoverySelector> List<T> getSelectorsByType(Class<T> selectorType) {
         List<T> selectors = super.getSelectorsByType(selectorType);
         if (selectorType.equals(DiscoverySelector.class)) {
-            // Test distribution uses UniqueIdSelectors and we have to set the correct classloader for this thread that will run the test
-            if (selectors.size() == 1 && selectors.get(0) instanceof UniqueIdSelector) {
-                UniqueIdSelector uniqueIdSelector = (UniqueIdSelector) selectors.get(0);
-                String classToLoad = uniqueIdSelector.getUniqueId().getLastSegment().getValue();
-                try {
-                    Thread.currentThread().setContextClassLoader(toolingApiClassLoaderForTest(Class.forName(classToLoad)));
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
+            List<ClassSelector> result = new ArrayList<ClassSelector>();
+            for (T selector : selectors) {
+                // Test distribution uses UniqueIdSelectors and we have to set the correct classloader for this thread that will run the test
+                if (selector instanceof UniqueIdSelector) {
+                    UniqueIdSelector uniqueIdSelector = (UniqueIdSelector) selectors.get(0);
+                    if (uniqueIdSelector.toString().contains("[variant:selected]")) {
+                        String classToLoad = uniqueIdSelector.getUniqueId().getLastSegment().getValue();
+                        try {
+                            Class<?> testClass = Class.forName(classToLoad);
+                            if (ToolingApiSpecification.class.isAssignableFrom(testClass)) {
+                                result.add(DiscoverySelectors.selectClass(toolingApiClassLoaderForTest(testClass).loadClass(classToLoad)));
+                            }
+                        } catch (ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                } else {
+                    return selectors;
                 }
             }
+            return Cast.uncheckedCast(result);
         }
         return selectors;
     }
