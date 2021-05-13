@@ -35,6 +35,7 @@ import org.junit.platform.engine.TestEngine;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.descriptor.EngineDescriptor;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
 import org.spockframework.runtime.RunContext;
@@ -54,6 +55,7 @@ import static org.gradle.integtests.fixtures.compatibility.AbstractContextualMul
 public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutionContext> {
 
     private final TestEngine delegateEngine = new SpockEngine();
+
     @Override
     public String getId() {
         return "cross-version-test-engine";
@@ -182,11 +184,12 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 
     private static final GradleVersion MIN_LOADABLE_TAPI_VERSION = GradleVersion.version("2.6");
 
+    private final String toolingApiVersionToLoad;
     private ToolingApiDistribution toolingApi;
 
     ToolingApiClassloaderDiscoveryRequest(EngineDiscoveryRequest delegate) {
         super(delegate);
-        String toolingApiVersionToLoad = getToolingApiVersionToLoad();
+        this.toolingApiVersionToLoad = getToolingApiVersionToLoad();
         if (toolingApiVersionToLoad == null) {
             return;
         }
@@ -200,7 +203,7 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 
         for (ClassSelector selector : delegate.getSelectorsByType(ClassSelector.class)) {
             if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
-                ClassLoader classLoader = ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(toolingApiVersionToLoad), selector.getJavaClass());
+                ClassLoader classLoader = toolingApiClassLoaderForTest(selector.getJavaClass());
                 try {
                     addSelector(DiscoverySelectors.selectClass(classLoader.loadClass(selector.getClassName())));
                 } catch (ClassNotFoundException e) {
@@ -208,6 +211,28 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
                 }
             }
         }
+    }
+
+    @Override
+    public <T extends DiscoverySelector> List<T> getSelectorsByType(Class<T> selectorType) {
+        List<T> selectors = super.getSelectorsByType(selectorType);
+        if (selectorType.equals(DiscoverySelector.class)) {
+            // Test distribution uses UniqueIdSelectors and we have to set the correct classloader for this thread that will run the test
+            if (selectors.size() == 1 && selectors.get(0) instanceof UniqueIdSelector) {
+                UniqueIdSelector uniqueIdSelector = (UniqueIdSelector) selectors.get(0);
+                String classToLoad = uniqueIdSelector.getUniqueId().getLastSegment().getValue();
+                try {
+                    Thread.currentThread().setContextClassLoader(toolingApiClassLoaderForTest(Class.forName(classToLoad)));
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return selectors;
+    }
+
+    private ClassLoader toolingApiClassLoaderForTest(Class<?> testClass) {
+        return ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(toolingApiVersionToLoad), testClass);
     }
 
     private ToolingApiDistribution getToolingApi(String versionToTestAgainst) {
