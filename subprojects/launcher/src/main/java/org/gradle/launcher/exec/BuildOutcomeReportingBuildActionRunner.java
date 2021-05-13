@@ -26,13 +26,10 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
-
-import java.util.Collections;
 
 public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner {
     private final ListenerManager listenerManager;
@@ -70,12 +67,6 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         buildController.getGradle().useLogger(buildLogger);
 
         Result result = delegate.run(action, buildController);
-
-        Throwable failure = DeprecationLogger.getDeprecationFailure();
-        if (failure != null) {
-            // Replace result if we fail on warning
-            result = result.addFailures(Collections.singletonList(failure));
-        }
 
         buildLogger.logResult(result.getBuildFailure());
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
