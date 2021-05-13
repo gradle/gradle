@@ -34,12 +34,10 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.VersionNumber
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-// https://github.com/gradle/gradle-private/issues/3387
-@Requires(TestPrecondition.NOT_EC2_AGENT)
+@Ignore("https://github.com/gradle/gradle-private/issues/3387")
 class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @ToBeFixedForConfigurationCache
     def "rebuilds application when a single source file changes"() {
