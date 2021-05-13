@@ -16,11 +16,9 @@
 
 package org.gradle.launcher.exec;
 
-import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
-import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.buildevents.BuildLogger;
@@ -34,7 +32,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
 
-import java.util.List;
+import java.util.Collections;
 
 public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner {
     private final ListenerManager listenerManager;
@@ -76,32 +74,11 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         Throwable failure = DeprecationLogger.getDeprecationFailure();
         if (failure != null) {
             // Replace result if we fail on warning
-            result = computeUpdatedResult(result, failure);
+            result = result.addFailures(Collections.singletonList(failure));
         }
 
         buildLogger.logResult(result.getBuildFailure());
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
         return result;
-    }
-
-    private Result computeUpdatedResult(Result previousResult, Throwable deprecationFailure) {
-        if (previousResult.getBuildFailure() != null) {
-            // Enhance already reported failures
-            Throwable buildFailure = previousResult.getBuildFailure();
-            List<Throwable> newFailures;
-            if (buildFailure instanceof MultipleBuildFailures) {
-                MultipleBuildFailures multipleBuildFailures = (MultipleBuildFailures) buildFailure;
-                newFailures = Lists.newArrayListWithExpectedSize(multipleBuildFailures.getCauses().size() + 1);
-                newFailures.addAll(multipleBuildFailures.getCauses());
-            } else {
-                newFailures = Lists.newArrayListWithExpectedSize(2);
-                newFailures.add(buildFailure);
-            }
-            newFailures.add(deprecationFailure);
-            previousResult = Result.failed(new MultipleBuildFailures(newFailures));
-        } else {
-            previousResult = Result.failed(deprecationFailure);
-        }
-        return previousResult;
     }
 }

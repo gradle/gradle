@@ -17,15 +17,23 @@
 package org.gradle.configurationcache.fixtures
 
 import org.apache.tools.ant.util.TeeOutputStream
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+
+import javax.inject.Inject
 
 trait ToolingApiSpec {
     abstract GradleExecuter getExecuter()
+
+    abstract TestFile getBuildFile()
 
     ToolingApiBackedGradleExecuter getToolingApiExecutor() {
         return (ToolingApiBackedGradleExecuter) getExecuter()
@@ -35,21 +43,9 @@ trait ToolingApiSpec {
 
     abstract TestFile file(Object... path)
 
-    void withSomeToolingModelBuilderInBuildSrc() {
-        file("buildSrc/src/main/groovy/my/My.groovy") << """
+    void withSomeToolingModelBuilderPluginInBuildSrc(String content = "") {
+        file("buildSrc/src/main/groovy/my/MyModel.groovy") << """
             package my
-
-            import org.gradle.tooling.provider.model.ToolingModelBuilder
-            import org.gradle.api.Project
-
-            class MyModelBuilder implements ToolingModelBuilder {
-                boolean canBuild(String modelName) {
-                    return modelName == "${SomeToolingModel.class.name}"
-                }
-                Object buildAll(String modelName, Project project) {
-                    return new MyModel("It works!")
-                }
-            }
 
             class MyModel implements java.io.Serializable {
                 private final String message
@@ -57,13 +53,41 @@ trait ToolingApiSpec {
                 String getMessage() { message }
             }
         """.stripIndent()
-    }
 
-    String someToolingModelBuilderRegistration() {
-        """
-        def registry = services.get(org.gradle.tooling.provider.model.ToolingModelBuilderRegistry)
-        registry.register(new my.MyModelBuilder())
-        """
+        file("buildSrc/src/main/groovy/my/MyModelBuilder.groovy") << """
+            package my
+
+            import ${ToolingModelBuilder.name}
+            import ${Project.name}
+
+            class MyModelBuilder implements ToolingModelBuilder {
+                boolean canBuild(String modelName) {
+                    return modelName == "${SomeToolingModel.class.name}"
+                }
+                Object buildAll(String modelName, Project project) {
+                    $content
+                    return new MyModel("It works!")
+                }
+            }
+        """.stripIndent()
+
+        file("buildSrc/src/main/groovy/my/MyPlugin.groovy") << """
+            package my
+
+            import ${Project.name}
+            import ${Plugin.name}
+            import ${Inject.name}
+            import ${ToolingModelBuilderRegistry.name}
+
+            abstract class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    registry.register(new my.MyModelBuilder())
+                }
+
+                @Inject
+                abstract ToolingModelBuilderRegistry getRegistry()
+            }
+        """.stripIndent()
     }
 
     SomeToolingModel fetchModel() {

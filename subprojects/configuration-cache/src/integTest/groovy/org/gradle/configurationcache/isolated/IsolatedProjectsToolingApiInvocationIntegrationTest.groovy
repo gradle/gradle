@@ -26,18 +26,18 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)
     }
 
-    def "reports problems while building tooling model"() {
+    def "reports cross project access from build script when fetching tooling model"() {
         given:
         settingsFile << """
             include('a')
             include('b')
         """
-        withSomeToolingModelBuilderInBuildSrc()
+        withSomeToolingModelBuilderPluginInBuildSrc()
         buildFile << """
             allprojects {
                 plugins.apply('java-library')
             }
-            ${someToolingModelBuilderRegistration()}
+            plugins.apply(my.MyPlugin)
         """
 
         when:
@@ -49,6 +49,32 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         problems.assertResultHasProblems(result) {
             withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
             "Build file 'build.gradle': Cannot access project ':b' from project ':'")
+        }
+        result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
+    }
+
+    def "reports cross project access from model builder while fetching tooling model"() {
+        given:
+        settingsFile << """
+            include('a')
+            include('b')
+        """
+        withSomeToolingModelBuilderPluginInBuildSrc("""
+            project.subprojects.each { it.extensions }
+        """)
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model = fetchModel()
+
+        then:
+        model.message == "It works!"
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("Unknown location: Cannot access project ':a' from project ':'",
+                "Unknown location: Cannot access project ':b' from project ':'")
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
     }

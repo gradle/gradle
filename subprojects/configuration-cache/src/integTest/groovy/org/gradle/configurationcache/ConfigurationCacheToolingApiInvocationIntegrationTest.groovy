@@ -215,13 +215,13 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
     }
 
     private void buildWithSomeToolingModelAndScriptLogStatement() {
-        withSomeToolingModelBuilderInBuildSrc()
+        withSomeToolingModelBuilderPluginInBuildSrc()
         buildFile << """
             plugins {
                 id("java")
             }
+            plugins.apply(my.MyPlugin)
             println("script log statement")
-            ${someToolingModelBuilderRegistration()}
         """
     }
 }
