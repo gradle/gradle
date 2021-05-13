@@ -866,6 +866,9 @@ task someTask(type: SomeTask) {
         then:
         failureHasCause("Failed to calculate the value of task ':failingTask' property 'stringInput'.")
         failureHasCause("BOOM")
+        if (GradleContextualExecuter.isConfigCache()) {
+            failureDescriptionContains("Configuration cache problems found in this build.")
+        }
     }
 
     def "input and output properties are not evaluated too often"() {
