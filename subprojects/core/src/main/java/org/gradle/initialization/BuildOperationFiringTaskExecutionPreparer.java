@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
@@ -39,6 +40,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Collections.newSetFromMap;
 import static java.util.Objects.requireNonNull;
 
 @SuppressWarnings({"Guava"})
@@ -89,25 +91,20 @@ public class BuildOperationFiringTaskExecutionPreparer implements TaskExecutionP
                 }
 
                 private List<CalculateTaskGraphBuildOperationType.PlannedTask> toPlannedTasks(List<Node> scheduledWork) {
-                    List<CalculateTaskGraphBuildOperationType.PlannedTask> plannedTasks = new ArrayList<>();
-                    for (Node node : scheduledWork) {
-                        if (node instanceof TaskNode) {
-                            TaskNode taskNode = (TaskNode) node;
-                            plannedTasks.add(toPlannedTask(taskNode));
-                        }
-                    }
-
-                    return plannedTasks;
+                    return FluentIterable.from(scheduledWork)
+                        .filter(TaskNode.class)
+                        .transform(this::toPlannedTask)
+                        .toList();
                 }
 
                 private CalculateTaskGraphBuildOperationType.PlannedTask toPlannedTask(TaskNode taskNode) {
                     TaskIdentity<?> taskIdentity = taskNode.getTask().getTaskIdentity();
                     return new DefaultPlannedTask(
                         new PlannedTaskIdentity(taskIdentity),
-                        traverseNonTasks(taskNode.getDependencySuccessors(), Node::getDependencySuccessors),
-                        filterNonTasks(taskNode.getMustSuccessors()),
-                        filterNonTasks(taskNode.getShouldSuccessors()),
-                        filterNonTasks(taskNode.getFinalizers())
+                        taskIdentifiesOf(taskNode.getDependencySuccessors(), Node::getDependencySuccessors),
+                        taskIdentifiesOf(taskNode.getMustSuccessors()),
+                        taskIdentifiesOf(taskNode.getShouldSuccessors()),
+                        taskIdentifiesOf(taskNode.getFinalizers())
                     );
                 }
             });
@@ -131,41 +128,37 @@ public class BuildOperationFiringTaskExecutionPreparer implements TaskExecutionP
         }
     }
 
-    private static List<CalculateTaskGraphBuildOperationType.TaskIdentity> traverseNonTasks(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser) {
+    private static List<CalculateTaskGraphBuildOperationType.TaskIdentity> taskIdentifiesOf(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser) {
         if (nodes.isEmpty()) {
             return Collections.emptyList();
-        } else {
-            List<CalculateTaskGraphBuildOperationType.TaskIdentity> list = new ArrayList<>();
-            traverseNonTasks(nodes, traverser, Collections.newSetFromMap(new IdentityHashMap<>()))
-                .forEach(taskNode -> list.add(toIdentity(taskNode)));
-
-            return list;
         }
+        List<CalculateTaskGraphBuildOperationType.TaskIdentity> list = new ArrayList<>();
+        traverseNonTasks(nodes, traverser, newSetFromMap(new IdentityHashMap<>()))
+            .forEach(taskNode -> list.add(toIdentity(taskNode)));
+        return list;
     }
 
     private static Iterable<TaskNode> traverseNonTasks(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser, Set<Node> seen) {
         if (nodes.isEmpty()) {
             return Collections.emptyList();
         }
-
         return FluentIterable.from(nodes)
             .filter(seen::add)
             .transformAndConcat(
                 node -> node instanceof TaskNode
-                    ? Collections.singleton((TaskNode) node)
+                    ? ImmutableSet.of((TaskNode) node)
                     : traverseNonTasks(requireNonNull(traverser.apply(node)), traverser, seen)
             );
     }
 
-    private static List<CalculateTaskGraphBuildOperationType.TaskIdentity> filterNonTasks(Collection<Node> nodes) {
+    private static List<CalculateTaskGraphBuildOperationType.TaskIdentity> taskIdentifiesOf(Collection<Node> nodes) {
         if (nodes.isEmpty()) {
             return Collections.emptyList();
-        } else {
-            return FluentIterable.from(nodes)
-                .filter(TaskNode.class)
-                .transform(BuildOperationFiringTaskExecutionPreparer::toIdentity)
-                .toList();
         }
+        return FluentIterable.from(nodes)
+            .filter(TaskNode.class)
+            .transform(BuildOperationFiringTaskExecutionPreparer::toIdentity)
+            .toList();
     }
 
     private static CalculateTaskGraphBuildOperationType.TaskIdentity toIdentity(TaskNode n) {
