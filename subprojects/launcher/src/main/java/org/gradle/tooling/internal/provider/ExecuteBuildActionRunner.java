@@ -28,7 +28,7 @@ public class ExecuteBuildActionRunner implements BuildActionRunner {
             return Result.nothing();
         }
         try {
-            buildController.run();
+            buildController.scheduleAndRunTasks();
             return Result.of(null);
         } catch (RuntimeException e) {
             return Result.failed(e);

@@ -17,10 +17,13 @@
 package org.gradle.internal.resources;
 
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import java.util.Collection;
 
+@ServiceScope(Scopes.BuildSession.class)
 public interface ProjectLeaseRegistry {
     /**
      * Get a lock for the specified project.

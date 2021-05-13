@@ -122,7 +122,7 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.run()
+            controller.scheduleAndRunTasks()
             return '<result>'
         }
         1 * lifecycleListener.afterStart()
@@ -147,8 +147,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * lifecycleListener.afterStart()
         1 * launcher.getConfiguredBuild() >> gradle
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.configure()
-            return '<result>'
+            controller.fromBuildModel(false) {'<result>' }
         }
         1 * launcher.finishBuild(null, _)
         1 * includedBuildControllers.finishBuild(_)
@@ -159,8 +158,8 @@ class DefaultRootBuildStateTest extends Specification {
     def "cannot request configuration after build has been run"() {
         given:
         action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.run()
-            controller.configure()
+            controller.scheduleAndRunTasks()
+            controller.fromBuildModel(false) {'<result>' }
         }
 
         when:
@@ -203,7 +202,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * lifecycleListener.afterStart()
         1 * launcher.executeTasks() >> { throw failure }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.run()
+            controller.scheduleAndRunTasks()
         }
         1 * includedBuildControllers.finishBuild(_)
         2 * exceptionAnalyzer.transform(_) >> { ex ->
@@ -230,7 +229,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * lifecycleListener.afterStart()
         1 * launcher.getConfiguredBuild() >> { throw failure }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.configure()
+            controller.fromBuildModel(false) {'<result>' }
         }
         1 * includedBuildControllers.finishBuild(_)
         2 * exceptionAnalyzer.transform(_) >> { ex ->
@@ -260,7 +259,7 @@ class DefaultRootBuildStateTest extends Specification {
         and:
         1 * lifecycleListener.afterStart()
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.run()
+            controller.scheduleAndRunTasks()
         }
         1 * launcher.executeTasks() >> { throw failure1 }
         1 * includedBuildControllers.awaitTaskCompletion(_) >> { Consumer consumer -> consumer.accept(failure2) }
@@ -291,11 +290,11 @@ class DefaultRootBuildStateTest extends Specification {
         1 * launcher.configuredBuild >> { throw new RuntimeException() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             try {
-                controller.configure()
+                controller.fromBuildModel(false) {'<result>' }
             } catch (RuntimeException) {
                 // Ignore
             }
-            controller.run()
+            controller.scheduleAndRunTasks()
         }
         1 * lifecycleListener.beforeComplete()
         0 * lifecycleListener._
@@ -304,7 +303,7 @@ class DefaultRootBuildStateTest extends Specification {
     def "cannot run multiple actions"() {
         given:
         action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.run()
+            controller.scheduleAndRunTasks()
         }
         build.run(action)
 
