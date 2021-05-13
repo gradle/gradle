@@ -50,17 +50,19 @@ class BuildOperationSettingsProcessorTest extends Specification {
     def "exposes build operation with settings configuration result"() {
         given:
         settings()
+        def contextualizedName = "Contextualized display name"
 
         when:
         buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
 
         then:
         1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> settingsInternal
+        1 * gradleInternal.contextualize("Evaluate settings") >> contextualizedName
 
         and:
         buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).displayName == "Evaluate settings"
-        buildOperationExecutor.operations.get(0).name == "Evaluate settings"
+        buildOperationExecutor.operations.get(0).displayName == contextualizedName
+        buildOperationExecutor.operations.get(0).name == contextualizedName
 
         buildOperationExecutor.operations.get(0).metadata == BuildOperationMetadata.NONE
         buildOperationExecutor.operations.get(0).details.settingsDir == rootDir.absolutePath
