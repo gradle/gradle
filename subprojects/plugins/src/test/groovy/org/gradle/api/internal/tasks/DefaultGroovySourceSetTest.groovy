@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -31,7 +30,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf
 class DefaultGroovySourceSetTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def sourceSet = new DefaultGroovySourceSet("<name>", "<display-name>", TestUtil.objectFactory(tmpDir.testDirectory), TestFiles.getPatternSetFactory(), TestFiles.fileCollectionFactory(tmpDir.file()), TestFiles.directoryFileTreeFactory())
+    def sourceSet = new DefaultGroovySourceSet("<name>", "<display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
 
     void defaultValues() {
         expect:

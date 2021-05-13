@@ -60,9 +60,6 @@ public class GroovyBasePlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
     private final JvmPluginServices jvmPluginServices;
-    private final Factory<PatternSet> patternSetFactory;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     private Project project;
     private GroovyRuntime groovyRuntime;
@@ -72,9 +69,6 @@ public class GroovyBasePlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
-        this.patternSetFactory = patternSetFactory;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
     @Override
@@ -99,9 +93,9 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults() {
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(sourceSet -> {
-            final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory, patternSetFactory, fileCollectionFactory, directoryFileTreeFactory);
+            final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
             new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
-            sourceSet.getExtensions().add("groovy", groovySourceSet);
+            sourceSet.getExtensions().add(SourceDirectorySet.class, "groovy", groovySourceSet.getGroovy());
 
             final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
             groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");

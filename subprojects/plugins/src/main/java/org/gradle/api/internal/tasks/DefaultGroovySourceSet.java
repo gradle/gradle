@@ -18,36 +18,36 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.GroovySourceSet;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
-public class DefaultGroovySourceSet extends DefaultSourceDirectorySet implements GroovySourceSet, HasPublicType {
-
+public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
+    private final SourceDirectorySet groovy;
     private final SourceDirectorySet allGroovy;
 
-    public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        super(name, displayName + " Groovy source", patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory);
-        getFilter().include("**/*.java", "**/*.groovy");
+    public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory) {
+        this.groovy = createGroovySourceDirectorySet(name, displayName, objectFactory);
         allGroovy = objectFactory.sourceDirectorySet("all" + name, displayName + " Groovy source");
-        allGroovy.source(this);
+        allGroovy.source(groovy);
         allGroovy.getFilter().include("**/*.groovy");
+    }
+
+    private static SourceDirectorySet createGroovySourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
+        SourceDirectorySet groovySourceDirectorySet = objectFactory.sourceDirectorySet(name, displayName+ " Groovy source");
+        groovySourceDirectorySet.getFilter().include("**/*.java", "**/*.groovy");
+        return groovySourceDirectorySet;
     }
 
     @Override
     public SourceDirectorySet getGroovy() {
-        return this;
+        return groovy;
     }
 
     @Override

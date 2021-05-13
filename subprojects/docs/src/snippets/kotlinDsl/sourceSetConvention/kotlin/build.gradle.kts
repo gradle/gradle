@@ -5,8 +5,8 @@ plugins {
 
 sourceSets {
     main {
-        withConvention(GroovySourceSet::class) {
-            groovy.srcDir("src/core/groovy")
+        groovy {
+            setSrcDir("src/core/groovy")
         }
     }
 }
