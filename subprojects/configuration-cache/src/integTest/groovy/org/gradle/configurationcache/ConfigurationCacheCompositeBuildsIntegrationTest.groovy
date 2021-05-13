@@ -20,11 +20,18 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
 
+import java.util.regex.Pattern
+
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "can publish build scan with composite build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
+        def buildScanOperations = {
+            configurationCache.operations.all(
+                Pattern.compile(/Load build|Evaluate settings|Calculate task graph|Notify task graph whenReady listeners/)
+            )
+        }
         withLibBuild()
         withEnterprisePlugin(withAppBuild())
 
@@ -35,6 +42,8 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         then:
         postBuildOutputContains 'Build scan written to'
         configurationCache.assertStateStored()
+        def buildScanOperationsOnStore = buildScanOperations()
+        !buildScanOperationsOnStore.isEmpty()
 
         when:
         inDirectory 'app'
@@ -43,6 +52,8 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         then:
         postBuildOutputContains 'Build scan written to'
         configurationCache.assertStateLoaded()
+        def buildScanOperationsOnLoad = buildScanOperations()
+        buildScanOperationsOnStore*.displayName == buildScanOperationsOnLoad*.displayName
     }
 
     def "can use lib produced by included build"() {

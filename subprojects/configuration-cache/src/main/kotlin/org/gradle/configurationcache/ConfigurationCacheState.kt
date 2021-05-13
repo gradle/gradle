@@ -110,7 +110,9 @@ class ConfigurationCacheState(
             build,
             StoredBuildTreeState(
                 storedBuilds,
-                buildEventListeners.filterIsInstance<BuildServiceProvider<*, *>>().groupBy { it.buildIdentifier }
+                buildEventListeners
+                    .filterIsInstance<BuildServiceProvider<*, *>>()
+                    .groupBy { it.buildIdentifier }
             )
         )
         writeRootEventListenerSubscriptions(gradle, buildEventListeners)
@@ -125,7 +127,6 @@ class ConfigurationCacheState(
         readBuildTreeState(gradle)
         readBuildState(build)
         readRootEventListenerSubscriptions(gradle)
-        build.prepareForTaskExecution()
     }
 
     internal

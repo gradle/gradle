@@ -92,7 +92,7 @@ class ConfigurationCacheHost internal constructor(
 
         init {
             gradle.run {
-                settings = processSettings()
+                settings = createSettings()
                 setBaseProjectClassLoaderScope(coreScope)
                 rootProjectDescriptor().name = rootProjectName
             }
@@ -137,6 +137,21 @@ class ConfigurationCacheHost internal constructor(
             NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor)
                 .load(gradle.settings, gradle)
 
+            // Fire build operation required by build scans to determine build path (and settings execution time)
+            // It may be better to instead point GE at the origin build that produced the cached task graph,
+            // or replace this with a different event/op that carries this information and wraps some actual work
+            BuildOperationSettingsProcessor(
+                { _, _, _, _ -> gradle.settings },
+                service()
+            ).process(
+                gradle,
+                SettingsLocation(settingsDir(), null),
+                gradle.classLoaderScope,
+                gradle.startParameter.apply {
+                    useEmptySettings()
+                }
+            )
+
             // Fire build operation required by build scans to determine the root path
             buildOperationExecutor.run(object : RunnableBuildOperation {
                 override fun run(context: BuildOperationContext) = Unit
@@ -177,24 +192,19 @@ class ConfigurationCacheHost internal constructor(
             gradle.owner.getProject(Path.path(path)).mutableModel
 
         override fun scheduleNodes(nodes: Collection<Node>) {
+            // Fire build operation required by build scan to determine when task execution starts
+            // This might be better done as a new build operation type
+            BuildOperationFiringTaskExecutionPreparer(
+                { populateTaskGraphWith(nodes) },
+                service<BuildOperationExecutor>()
+            ).prepareForTaskExecution(gradle)
+        }
+
+        private
+        fun populateTaskGraphWith(nodes: Collection<Node>) {
             gradle.taskGraph.run {
                 addNodes(nodes)
                 populate()
-            }
-        }
-
-        override fun prepareForTaskExecution() {
-            // Fire build operation required by build scan to determine when task execution starts
-            // Currently this operation is not around the actual task graph calculation/populate for configuration cache (just to make this a smaller step)
-            // This might be better done as a new build operation type
-            BuildOperationFiringTaskExecutionPreparer(
-                {
-                    // Nothing to do
-                    // TODO:configuration-cache - perhaps move this so it wraps loading tasks from cache file
-                },
-                service<BuildOperationExecutor>()
-            ).run {
-                prepareForTaskExecution(gradle)
             }
         }
 
@@ -222,24 +232,6 @@ class ConfigurationCacheHost internal constructor(
         )
 
         override fun prepareBuild(includedBuild: IncludedBuildState) {
-        }
-
-        private
-        fun processSettings(): SettingsInternal {
-            // Fire build operation required by build scans to determine build path (and settings execution time)
-            // It may be better to instead point GE at the origin build that produced the cached task graph,
-            // or replace this with a different event/op that carries this information and wraps some actual work
-            return BuildOperationSettingsProcessor(
-                { _, _, _, _ -> createSettings() },
-                service()
-            ).process(
-                gradle,
-                SettingsLocation(settingsDir(), null),
-                gradle.classLoaderScope,
-                gradle.startParameter.apply {
-                    useEmptySettings()
-                }
-            )
         }
 
         private
