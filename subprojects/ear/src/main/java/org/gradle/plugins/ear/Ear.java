@@ -18,8 +18,10 @@ package org.gradle.plugins.ear;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
@@ -63,6 +65,7 @@ public class Ear extends Jar {
     private final Property<Boolean> generateDeploymentDescriptor;
     private DeploymentDescriptor deploymentDescriptor;
     private CopySpec lib;
+    private final DirectoryProperty appDir;
 
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
@@ -118,6 +121,8 @@ public class Ear extends Jar {
 
             return null;
         });
+
+        appDir = getObjectFactory().directoryProperty();
     }
 
     private Cached<byte[]> cachedContentsOf(DeploymentDescriptor descriptor) {
@@ -271,4 +276,18 @@ public class Ear extends Jar {
         this.deploymentDescriptor = deploymentDescriptor;
     }
 
+    /**
+     * The application directory. Added to the produced archive by default.
+     * <p>
+     * The {@code ear} plugin sets the default value for all {@code Ear} tasks to {@code src/main/application}.
+     * <p>
+     * Note, that if the {@code ear} plugin is not applied then this property is ignored.
+     *
+     * @since 7.1
+     */
+    @Internal
+    @Incubating
+    public DirectoryProperty getAppDirectory() {
+        return appDir;
+    }
 }

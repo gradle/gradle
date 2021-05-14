@@ -114,7 +114,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         _ * context.rebuildReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationContext.ValidationResult)
+        _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationFinishedContext.ValidationResult)
         1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
         _ * context.afterPreviousExecutionState >> Optional.empty()
         0 * _

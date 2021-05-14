@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -51,9 +50,6 @@ import java.util.Map;
  */
 public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
-
-    private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
-        ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "incremental", "allCompilerArgs", "compilerArgumentProviders");
 
     private boolean failOnError = true;
 
@@ -378,41 +374,6 @@ public class CompileOptions extends AbstractOptions {
     public CompileOptions setIncremental(boolean incremental) {
         this.incremental = incremental;
         return this;
-    }
-
-    /**
-     * Internal method.
-     */
-    @Override
-    public Map<String, Object> optionMap() {
-        Map<String, Object> map = super.optionMap();
-        map.putAll(debugOptions.optionMap());
-        map.putAll(forkOptions.optionMap());
-        return map;
-    }
-
-    @Override
-    protected boolean excludeFromAntProperties(String fieldName) {
-        return EXCLUDE_FROM_ANT_PROPERTIES.contains(fieldName);
-    }
-
-    @Override
-    protected String getAntPropertyName(String fieldName) {
-        if (fieldName.equals("warnings")) {
-            return "nowarn";
-        }
-        if (fieldName.equals("extensionDirs")) {
-            return "extdirs";
-        }
-        return fieldName;
-    }
-
-    @Override
-    protected Object getAntPropertyValue(String fieldName, Object value) {
-        if (fieldName.equals("warnings")) {
-            return !warnings;
-        }
-        return value;
     }
 
     /**

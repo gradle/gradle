@@ -32,7 +32,7 @@ class NormalizingGroovyCompilerTest extends Specification {
         spec.sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
         spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
-        spec.groovyCompileOptions = new GroovyCompileOptions()
+        spec.groovyCompileOptions = new MinimalGroovyCompileOptions(new GroovyCompileOptions())
     }
 
     def "silently excludes source files not ending in .java or .groovy by default"() {

@@ -16,13 +16,13 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.EmptyChildMap;
@@ -40,7 +40,7 @@ public class ExecutionNodeAccessHierarchy {
     private final Stat stat;
 
     public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
-        this.root = new ValuedVfsHierarchy<>(ImmutableList.of(), EmptyChildMap.getInstance(), caseSensitivity);
+        this.root = new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
         this.stat = stat;
     }
 
@@ -52,7 +52,7 @@ public class ExecutionNodeAccessHierarchy {
     public ImmutableSet<Node> getNodesAccessing(String location) {
         return visitValues(location, new AbstractNodeAccessVisitor() {
             @Override
-            public void visitChildren(Iterable<NodeAccess> values, Supplier<String> relativePathSupplier) {
+            public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
                 values.forEach(this::addNode);
             }
         });
@@ -67,7 +67,7 @@ public class ExecutionNodeAccessHierarchy {
     public ImmutableSet<Node> getNodesAccessing(String location, Spec<FileTreeElement> filter) {
         return visitValues(location, new AbstractNodeAccessVisitor() {
             @Override
-            public void visitChildren(Iterable<NodeAccess> values, Supplier<String> relativePathSupplier) {
+            public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
                 if (relativePathMatchesSpec(filter, new File(location, relativePathFromLocation), relativePathFromLocation)) {
                     values.forEach(this::addNode);

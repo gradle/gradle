@@ -214,7 +214,9 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         this.forkOptions = forkOptions;
     }
 
-
+    /**
+     * Options for incremental compilation of Scala code.
+     */
     @Nested
     public IncrementalCompileOptions getIncrementalOptions() {
         return incrementalOptions;

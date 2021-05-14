@@ -112,7 +112,12 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             }
         }
 
-        fun createCrossProjectModelAccess(projectRegistry: ProjectRegistry<ProjectInternal>, modelParameters: BuildModelParameters, problemsListener: ProblemsListener, userCodeApplicationContext: UserCodeApplicationContext): CrossProjectModelAccess {
+        fun createCrossProjectModelAccess(
+            projectRegistry: ProjectRegistry<ProjectInternal>,
+            modelParameters: BuildModelParameters,
+            problemsListener: ProblemsListener,
+            userCodeApplicationContext: UserCodeApplicationContext
+        ): CrossProjectModelAccess {
             val delegate = DefaultCrossProjectModelAccess(projectRegistry)
             return if (modelParameters.isIsolatedProjects) {
                 ProblemReportingCrossProjectModelAccess(delegate, problemsListener, userCodeApplicationContext)

@@ -41,10 +41,10 @@ import java.util.List;
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
 public class BuildTreeScopeServices {
-    private final BuildTreeController buildTree;
+    private final BuildTreeState buildTree;
     private final BuildTreeModelControllerServices.Supplier modelServices;
 
-    public BuildTreeScopeServices(BuildTreeController buildTree, BuildTreeModelControllerServices.Supplier modelServices) {
+    public BuildTreeScopeServices(BuildTreeState buildTree, BuildTreeModelControllerServices.Supplier modelServices) {
         this.buildTree = buildTree;
         this.modelServices = modelServices;
     }
@@ -53,7 +53,7 @@ public class BuildTreeScopeServices {
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
             pluginServiceRegistry.registerBuildTreeServices(registration);
         }
-        registration.add(BuildTreeController.class, buildTree);
+        registration.add(BuildTreeState.class, buildTree);
         registration.add(GradleEnterprisePluginManager.class);
         registration.add(DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);

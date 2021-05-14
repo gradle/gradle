@@ -422,8 +422,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.classpath.files == project.sourceSets.test.runtimeClasspath.files
         task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
         task.workingDir == project.projectDir
-        task.reports.junitXml.destination == new File(project.testResultsDir, 'customTest')
-        task.reports.html.destination == new File(project.testReportDir, 'customTest')
+        task.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
+        task.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
     }
 
     def "build other projects"() {

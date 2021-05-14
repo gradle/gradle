@@ -53,7 +53,6 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         def result = runner('test').buildAndFail()
-        expectNoDeprecationWarnings(result)
 
         and:
         result.task(":test").outcome == TaskOutcome.FAILED

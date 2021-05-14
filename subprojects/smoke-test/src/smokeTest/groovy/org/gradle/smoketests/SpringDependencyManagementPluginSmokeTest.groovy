@@ -50,8 +50,6 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidating
 
         then:
         result.output.contains('org.springframework:spring-core -> 4.0.3.RELEASE')
-
-        expectNoDeprecationWarnings(result)
     }
 
     @Override

@@ -45,7 +45,7 @@ import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.classpath.ClassPath;
@@ -57,7 +57,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.session.BuildSessionController;
+import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
@@ -109,18 +109,16 @@ public class ProjectBuilderImpl {
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
-        BuildSessionController buildSessionController = new BuildSessionController(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-        BuildTreeModelControllerServices.Supplier modelServices = buildSessionController.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(true, false, startParameter);
-        BuildTreeController buildTreeController = new BuildTreeController(buildSessionController.getServices(), modelServices);
-        TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeController.getServices(), homeDir, startParameter);
-        TestRootBuild build = new TestRootBuild(projectDir);
-        buildServices.add(BuildState.class, build);
+        BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+        BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(true, false, startParameter);
+        BuildTreeState buildTreeState = new BuildTreeState(buildSessionState.getServices(), modelServices);
+        TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeState.getServices(), homeDir, startParameter);
+        TestRootBuild build = new TestRootBuild(projectDir, buildServices);
 
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
-        GradleInternal gradle = buildServices.get(GradleInternal.class);
+        GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
-        build.setGradle(gradle); // the TestRootBuild instance cannot be created after GradleInternal
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
@@ -129,7 +127,8 @@ public class ProjectBuilderImpl {
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
 
-        ProjectState projectState = buildServices.get(ProjectStateRegistry.class).registerProject(build, projectDescriptor);
+        ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
+        ProjectState projectState = projectStateRegistry.registerProject(build, projectDescriptor);
         projectState.createMutableModel(rootProjectScope, baseScope);
         ProjectInternal project = projectState.getMutableModel();
 
@@ -148,8 +147,8 @@ public class ProjectBuilderImpl {
                 (Stoppable) workerLeaseService::releaseCurrentProjectLocks,
                 (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
                 buildServices,
-                buildTreeController,
-                buildSessionController,
+                    buildTreeState,
+                buildSessionState,
                 crossBuildSessionState
             )
         );
@@ -214,10 +213,19 @@ public class ProjectBuilderImpl {
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
         private final File rootProjectDir;
-        private GradleInternal gradle;
+        private final ProjectStateRegistry projectStateRegistry;
+        private final GradleInternal gradle;
 
-        public TestRootBuild(File rootProjectDir) {
+        public TestRootBuild(File rootProjectDir, TestBuildScopeServices buildServices) {
             this.rootProjectDir = rootProjectDir;
+            buildServices.add(BuildState.class, this);
+            this.projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
+            this.gradle = buildServices.get(GradleInternal.class);
+        }
+
+        @Override
+        protected ProjectStateRegistry getProjectStateRegistry() {
+            return projectStateRegistry;
         }
 
         @Override
@@ -282,10 +290,6 @@ public class ProjectBuilderImpl {
         @Override
         public GradleInternal getBuild() {
             return gradle;
-        }
-
-        public void setGradle(GradleInternal gradle) {
-            this.gradle = gradle;
         }
     }
 }

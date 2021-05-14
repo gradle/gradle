@@ -401,7 +401,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ProjectStateRegistry projectRegistry,
         BuildLayoutFactory buildLayoutFactory,
         GradlePropertiesController gradlePropertiesController,
-        BuildIncluder buildIncluder
+        BuildIncluder buildIncluder,
+        InitScriptHandler initScriptHandler
     ) {
         return new DefaultSettingsLoaderFactory(
             settingsProcessor,
@@ -409,7 +410,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             projectRegistry,
             buildLayoutFactory,
             gradlePropertiesController,
-            buildIncluder
+            buildIncluder,
+            initScriptHandler
         );
     }
 
@@ -466,10 +468,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected SettingsPreparer createSettingsPreparer(InitScriptHandler initScriptHandler, SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildDefinition buildDefinition) {
+    protected SettingsPreparer createSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildDefinition buildDefinition) {
         return new BuildOperationFiringSettingsPreparer(
             new DefaultSettingsPreparer(
-                initScriptHandler,
                 settingsLoaderFactory
             ),
             buildOperationExecutor,

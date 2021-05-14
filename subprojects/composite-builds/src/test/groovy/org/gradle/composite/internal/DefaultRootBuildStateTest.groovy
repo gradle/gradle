@@ -20,18 +20,16 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
-import org.gradle.internal.buildtree.BuildTreeController
+import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
@@ -45,8 +43,7 @@ class DefaultRootBuildStateTest extends Specification {
     def listenerManager = Mock(ListenerManager)
     def lifecycleListener = Mock(RootBuildLifecycleListener)
     def action = Mock(Function)
-    def buildTree = Mock(BuildTreeController)
-    def sessionServices = Mock(ServiceRegistry)
+    def buildTree = Mock(BuildTreeState)
     def buildDefinition = Mock(BuildDefinition)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def includedBuildControllers = Mock(IncludedBuildControllers)
@@ -56,17 +53,18 @@ class DefaultRootBuildStateTest extends Specification {
     def setup() {
         _ * factory.newInstance(buildDefinition, _, null, _) >> launcher
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
-        _ * sessionServices.get(ProjectStateRegistry) >> projectStateRegistry
-        _ * sessionServices.get(BuildOperationExecutor) >> new TestBuildOperationExecutor()
-        _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
-        _ * sessionServices.get(IncludedBuildControllers) >> includedBuildControllers
-        _ * sessionServices.get(ExceptionAnalyser) >> exceptionAnalyzer
+        def sessionServices = new DefaultServiceRegistry()
+        sessionServices.add(new TestBuildOperationExecutor())
+        sessionServices.add(new TestWorkerLeaseService())
+        sessionServices.add(includedBuildControllers)
+        sessionServices.add(exceptionAnalyzer)
+        sessionServices.add(Stub(DefaultDeploymentRegistry))
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
-        _ * buildTree.services >> new DefaultServiceRegistry()
+        _ * buildTree.services >> sessionServices
         _ * projectStateRegistry.withLenientState(_) >> { args -> return args[0].create() }
 
-        build = new DefaultRootBuildState(buildDefinition, buildTree, factory, listenerManager)
+        build = new DefaultRootBuildState(buildDefinition, buildTree, factory, listenerManager, projectStateRegistry)
     }
 
     def "has identifier"() {

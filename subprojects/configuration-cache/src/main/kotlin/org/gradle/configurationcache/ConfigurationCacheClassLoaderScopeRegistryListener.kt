@@ -24,9 +24,9 @@ import org.gradle.configurationcache.serialization.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
+import org.gradle.internal.buildtree.BuildTreeLifecycleListener
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.service.scopes.BuildTreeScopeInitializer
 import java.io.Closeable
 
 
@@ -39,7 +39,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     private
     val listenerManager: ClassLoaderScopeRegistryListenerManager
 
-) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeScopeInitializer, Closeable {
+) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeLifecycleListener, Closeable {
 
     private
     val scopeSpecs = mutableMapOf<ClassLoaderScopeId, ClassLoaderScopeSpec>()
@@ -47,7 +47,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     private
     val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
-    override fun initializeBuildTreeScope() {
+    override fun afterStart() {
         if (startParameter.isEnabled) {
             listenerManager.add(this)
         }

@@ -20,7 +20,7 @@ import common.BuildToolBuildJvm
 import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
-import common.checkCleanM2
+import common.checkCleanM2AndAndroidUserHome
 import common.compileAllDependency
 import common.functionalTestExtraParameters
 import common.functionalTestParameters
@@ -50,14 +50,7 @@ class RerunFlakyTest(os: Os) : BuildType({
             functionalTestParameters(os)
         ).joinToString(separator = " ")
 
-    killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon, os)
-    steps {
-        gradleWrapper {
-            name = "SHOW_TOOLCHAINS"
-            tasks = "javaToolchains"
-            gradleParams = parameters
-        }
-    }
+    killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
     (1..10).forEach { idx ->
         steps {
             gradleWrapper {
@@ -67,10 +60,10 @@ class RerunFlakyTest(os: Os) : BuildType({
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
         }
-        killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", daemon, os)
+        killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", daemon)
     }
     steps {
-        checkCleanM2(os)
+        checkCleanM2AndAndroidUserHome(os)
     }
 
     params {

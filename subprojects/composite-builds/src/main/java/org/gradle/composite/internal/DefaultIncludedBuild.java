@@ -25,13 +25,14 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -48,6 +49,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final boolean isImplicit;
     private final BuildState owner;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
+    private final ProjectStateRegistry projectStateRegistry;
 
     private final BuildLifecycleController buildLifecycleController;
 
@@ -57,9 +59,10 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildDefinition buildDefinition,
         boolean isImplicit,
         BuildState owner,
-        BuildTreeController buildTree,
+        BuildTreeState buildTree,
         WorkerLeaseRegistry.WorkerLease parentLease,
-        BuildLifecycleControllerFactory buildLifecycleControllerFactory
+        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+        ProjectStateRegistry projectStateRegistry
     ) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
@@ -67,9 +70,15 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.isImplicit = isImplicit;
         this.owner = owner;
         this.parentLease = parentLease;
-        // Use a defensive copy of the build definition, as it may be mutated during build execution
+        this.projectStateRegistry = projectStateRegistry;
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        // Use a defensive copy of the build definition, as it may be mutated during build execution
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildScopeServices);
+    }
+
+    @Override
+    protected ProjectStateRegistry getProjectStateRegistry() {
+        return projectStateRegistry;
     }
 
     @Override

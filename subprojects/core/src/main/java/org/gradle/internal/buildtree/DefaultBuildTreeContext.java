@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -33,7 +34,13 @@ class DefaultBuildTreeContext implements BuildTreeContext {
             throw new IllegalStateException("Cannot run more than one action for a build tree.");
         }
         try {
-            return services.get(BuildTreeActionExecutor.class).execute(action, this);
+            BuildTreeLifecycleListener broadcaster = services.get(ListenerManager.class).getBroadcaster(BuildTreeLifecycleListener.class);
+            broadcaster.afterStart();
+            try {
+                return services.get(BuildTreeActionExecutor.class).execute(action, this);
+            } finally {
+                broadcaster.beforeStop();
+            }
         } finally {
             completed = true;
         }
