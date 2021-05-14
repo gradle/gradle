@@ -36,6 +36,7 @@ import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.DisplayName;
@@ -267,6 +268,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private boolean providesOwnToStringImplementation;
         private boolean requiresFactory;
         private final List<Pair<PropertyMetadata, Boolean>> propertiesToAttach = new ArrayList<>();
+        private final List<PropertyMetadata> allProperties = new ArrayList<>();
 
         public ClassInspectionVisitorImpl(Class<?> type, boolean decorate, String suffix, int factoryId) {
             this.type = type;
@@ -328,6 +330,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
+        public void trackProperty(PropertyMetadata property) {
+            allProperties.add(property);
+        }
+
+        @Override
         public ClassGenerationVisitor builder() {
             if (!decorate && !serviceInjection && !Modifier.isAbstract(type.getModifiers())) {
                 // Don't need to generate a subclass
@@ -349,7 +356,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             boolean requiresServicesMethod = (extensible || serviceInjection) && !providesOwnServicesImplementation;
             boolean requiresToString = !providesOwnToStringImplementation;
-            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresToString, requiresServicesMethod, requiresFactory, propertiesToAttach);
+            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresToString, requiresServicesMethod, requiresFactory, propertiesToAttach, allProperties);
             builder.startClass();
             return builder;
         }
@@ -466,6 +473,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean providesOwnDynamicObject;
         private final boolean requiresToString;
         private final List<Pair<PropertyMetadata, Boolean>> propertiesToAttach;
+        private final List<PropertyMetadata> allProperties;
         private final boolean requiresServicesMethod;
         private final boolean requiresFactory;
 
@@ -481,7 +489,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             boolean requiresToString,
             boolean requiresServicesMethod,
             boolean requiresFactory,
-            List<Pair<PropertyMetadata, Boolean>> propertiesToAttach
+            List<Pair<PropertyMetadata, Boolean>> propertiesToAttach,
+            List<PropertyMetadata> allProperties
         ) {
             this.type = type;
             this.factoryId = factoryId;
@@ -498,6 +507,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             this.providesOwnDynamicObject = providesOwnDynamicObject;
             this.requiresServicesMethod = requiresServicesMethod;
             this.requiresFactory = requiresFactory;
+            this.allProperties = allProperties;
         }
 
         public void startClass() {
@@ -679,6 +689,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_FACTORY_FOR_NEXT_METHOD_NAME, RETURN_MANAGED_OBJECT_FACTORY, false);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE.getDescriptor());
             }
+
             for (Pair<PropertyMetadata, Boolean> entry : propertiesToAttach) {
                 // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
                 PropertyMetadata property = entry.left;
@@ -692,6 +703,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitMethodInsn(INVOKESTATIC, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING, false);
                 if (entry.right) {
                     applyRoleTo(methodVisitor);
+                }
+            }
+
+            if (conventionAware) {
+                for (PropertyMetadata property : allProperties) {
+                    // GENERATE getConventionMapping()
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getConventionMapping", RETURN_CONVENTION_MAPPING, false);
+                    if (Provider.class.isAssignableFrom(property.getType())) {
+                        // GENERATE convention.ineligible(__property.getName()__)
+                        methodVisitor.visitLdcInsn(property.getName());
+                        methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "ineligible", RETURN_VOID_FROM_STRING, true);
+                    } else {
+                        // GENERATE convention.eligible(__property.getName()__)
+                        methodVisitor.visitLdcInsn(property.getName());
+                        methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "eligible", RETURN_VOID_FROM_STRING, true);
+                    }
                 }
             }
         }

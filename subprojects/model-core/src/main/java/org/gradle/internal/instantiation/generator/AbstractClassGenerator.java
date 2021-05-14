@@ -973,6 +973,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
         private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
         private final List<PropertyMetadata> eagerAttachProperties = new ArrayList<>();
+        private final List<PropertyMetadata> allProperties = new ArrayList<>();
+
         private boolean hasFields;
 
         @Override
@@ -987,6 +989,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 // If the getter is not final, then attach lazily in the getter
                 eagerAttachProperties.add(property);
             }
+            allProperties.add(property);
         }
 
         @Override
@@ -1029,6 +1032,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             for (PropertyMetadata property : eagerAttachProperties) {
                 boolean applyRole = isRoleType(property);
                 visitor.attachDuringConstruction(property, applyRole);
+            }
+            for (PropertyMetadata property : allProperties) {
+                visitor.trackProperty(property);
             }
         }
 
@@ -1360,6 +1366,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void instantiatesNestedObjects();
 
         void attachDuringConstruction(PropertyMetadata property, boolean applyRole);
+
+        void trackProperty(PropertyMetadata property);
 
         ClassGenerationVisitor builder();
     }

@@ -1465,6 +1465,16 @@ public class AsmBackedClassGeneratorTest {
             throw new UnsupportedOperationException();
         }
 
+        @Override
+        public void ineligible(String propertyName) {
+
+        }
+
+        @Override
+        public void eligible(String propertyName) {
+
+        }
+
         public <T> T getConventionValue(T actualValue, String propertyName) {
             if (actualValue instanceof String) {
                 return (T) ("[" + actualValue + "]");
