@@ -29,6 +29,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
 
@@ -52,6 +54,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
         ExecuteWorkResult result = delegate.execute(work, context);
+        Timer timer = Time.startTimer();
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProduceByWork = operation(
             operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = captureOutputs(work, context);
@@ -62,8 +65,14 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 .displayName("Snapshot outputs after executing " + work.getDisplayName())
                 .details(Operation.Details.INSTANCE)
         );
+        long snapshotOutputDuration = timer.getElapsedMillis();
 
-        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), result.getDuration().toMillis());
+        // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
+        // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
+        // which is currently the _only_ thing this value is used for.
+        long originExecutionTime = result.getDuration().toMillis() + snapshotOutputDuration;
+
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
 
         return new CurrentSnapshotResult() {
             @Override
