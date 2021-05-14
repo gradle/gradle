@@ -36,7 +36,6 @@ import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.DisplayName;
@@ -268,7 +267,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private boolean providesOwnToStringImplementation;
         private boolean requiresFactory;
         private final List<Pair<PropertyMetadata, Boolean>> propertiesToAttach = new ArrayList<>();
-        private final List<PropertyMetadata> allProperties = new ArrayList<>();
+        private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
 
         public ClassInspectionVisitorImpl(Class<?> type, boolean decorate, String suffix, int factoryId) {
             this.type = type;
@@ -330,8 +329,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void trackProperty(PropertyMetadata property) {
-            allProperties.add(property);
+        public void markPropertyAsIneligibleForConventionMapping(PropertyMetadata property) {
+            ineligibleProperties.add(property);
         }
 
         @Override
@@ -356,7 +355,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             boolean requiresServicesMethod = (extensible || serviceInjection) && !providesOwnServicesImplementation;
             boolean requiresToString = !providesOwnToStringImplementation;
-            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresToString, requiresServicesMethod, requiresFactory, propertiesToAttach, allProperties);
+            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresToString, requiresServicesMethod, requiresFactory, propertiesToAttach, ineligibleProperties);
             builder.startClass();
             return builder;
         }
@@ -473,7 +472,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean providesOwnDynamicObject;
         private final boolean requiresToString;
         private final List<Pair<PropertyMetadata, Boolean>> propertiesToAttach;
-        private final List<PropertyMetadata> allProperties;
+        private final List<PropertyMetadata> ineligibleProperties;
         private final boolean requiresServicesMethod;
         private final boolean requiresFactory;
 
@@ -490,7 +489,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             boolean requiresServicesMethod,
             boolean requiresFactory,
             List<Pair<PropertyMetadata, Boolean>> propertiesToAttach,
-            List<PropertyMetadata> allProperties
+            List<PropertyMetadata> ineligibleProperties
         ) {
             this.type = type;
             this.factoryId = factoryId;
@@ -507,7 +506,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             this.providesOwnDynamicObject = providesOwnDynamicObject;
             this.requiresServicesMethod = requiresServicesMethod;
             this.requiresFactory = requiresFactory;
-            this.allProperties = allProperties;
+            this.ineligibleProperties = ineligibleProperties;
         }
 
         public void startClass() {
@@ -707,19 +706,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
 
             if (conventionAware) {
-                for (PropertyMetadata property : allProperties) {
+                for (PropertyMetadata property : ineligibleProperties) {
                     // GENERATE getConventionMapping()
                     methodVisitor.visitVarInsn(ALOAD, 0);
                     methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getConventionMapping", RETURN_CONVENTION_MAPPING, false);
-                    if (Provider.class.isAssignableFrom(property.getType())) {
-                        // GENERATE convention.ineligible(__property.getName()__)
-                        methodVisitor.visitLdcInsn(property.getName());
-                        methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "ineligible", RETURN_VOID_FROM_STRING, true);
-                    } else {
-                        // GENERATE convention.eligible(__property.getName()__)
-                        methodVisitor.visitLdcInsn(property.getName());
-                        methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "eligible", RETURN_VOID_FROM_STRING, true);
-                    }
+                    // GENERATE convention.ineligible(__property.getName()__)
+                    methodVisitor.visitLdcInsn(property.getName());
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "ineligible", RETURN_VOID_FROM_STRING, true);
                 }
             }
         }

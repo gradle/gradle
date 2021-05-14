@@ -1470,11 +1470,6 @@ public class AsmBackedClassGeneratorTest {
 
         }
 
-        @Override
-        public void eligible(String propertyName) {
-
-        }
-
         public <T> T getConventionValue(T actualValue, String propertyName) {
             if (actualValue instanceof String) {
                 return (T) ("[" + actualValue + "]");

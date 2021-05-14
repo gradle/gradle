@@ -17,7 +17,6 @@
 package org.gradle.internal.extensibility;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestTask;
 import org.gradle.util.TestUtil;
@@ -50,9 +49,6 @@ public class ConventionAwareHelperTest {
     @Before public void setUp() {
         testTask = TestUtil.create(temporaryFolder).task(TestTask.class);
         conventionAware = new ConventionAwareHelper(testTask, new DefaultConvention(TestUtil.instantiatorFactory().decorateLenient()));
-        for (String name : JavaPropertyReflectionUtil.propertyNames(testTask)) {
-            conventionAware.eligible(name);
-        }
     }
 
     @Test

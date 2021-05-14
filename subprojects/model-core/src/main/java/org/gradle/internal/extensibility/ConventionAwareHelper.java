@@ -25,6 +25,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,7 +50,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this._source = source;
         this._convention = convention;
-        this._propertyNames = new HashSet<>();
+        this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
         this._ineligiblePropertyNames = new HashSet<>();
     }
 
@@ -107,14 +108,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
 
     @Override
     public void ineligible(String propertyName) {
-        // Remove this once the deprecation above becomes an error
-        _propertyNames.add(propertyName);
         _ineligiblePropertyNames.add(propertyName);
-    }
-
-    @Override
-    public void eligible(String propertyName) {
-        _propertyNames.add(propertyName);
     }
 
     @Override

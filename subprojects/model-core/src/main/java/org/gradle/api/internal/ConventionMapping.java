@@ -36,11 +36,6 @@ public interface ConventionMapping {
      */
     void ineligible(String propertyName);
 
-    /**
-     * Mark a property as eligible for convention mapping.
-     */
-    void eligible(String propertyName);
-
     @Nullable
     <T> T getConventionValue(@Nullable T actualValue, String propertyName, boolean isExplicitValue);
 
