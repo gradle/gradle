@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.tasks.GroovySourceDirectorySet
 import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -33,7 +34,7 @@ class DefaultGroovySourceSetTest extends Specification {
 
     void defaultValues() {
         expect:
-        sourceSet.groovy instanceof SourceDirectorySet
+        sourceSet.groovy instanceof GroovySourceDirectorySet
         sourceSet.groovy.isEmpty()
         sourceSet.groovy.name == '<name>'
         sourceSet.groovy.displayName == '<display-name> Groovy source'
