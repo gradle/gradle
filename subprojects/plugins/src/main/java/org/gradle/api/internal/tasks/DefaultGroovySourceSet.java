@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
+@Deprecated
 public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
     private final GroovySourceDirectorySet groovy;
     private final SourceDirectorySet allGroovy;
