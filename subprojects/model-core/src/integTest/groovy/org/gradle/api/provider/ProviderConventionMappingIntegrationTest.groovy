@@ -30,6 +30,8 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
     def "emits deprecation warning when convention mapping is used with Provider"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
+                @Inject abstract ProviderFactory getProviderFactory()
+                
                 @Internal abstract Property<String> getOther()
             
                 @Internal Provider<String> getFoo() {
@@ -42,7 +44,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             tasks.register("mytask", MyTask) {
-                conventionMapping.map("foo", { project.provider { "foobar" } })
+                conventionMapping.map("foo", { providerFactory.provider { "foobar" } })
                 other.convention("other")
             }
         """
