@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.file.DelegatingSourceDirectorySet;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 
 public class DefaultGroovySourceDirectorySet extends DelegatingSourceDirectorySet implements SourceDirectorySet, GroovySourceDirectorySet {

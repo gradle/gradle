@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -49,6 +49,10 @@ public class DelegatingSourceDirectorySet implements SourceDirectorySet {
 
     public DelegatingSourceDirectorySet(SourceDirectorySet delegate) {
         this.delegate = delegate;
+    }
+
+    public SourceDirectorySet getDelegate() {
+        return delegate;
     }
 
     @Override

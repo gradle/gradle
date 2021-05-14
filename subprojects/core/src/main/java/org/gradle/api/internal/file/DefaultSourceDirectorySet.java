@@ -244,9 +244,9 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     protected Set<DirectoryFileTree> getSourceTrees() {
         Set<DirectoryFileTree> result = new LinkedHashSet<>();
         for (Object path : source) {
-            if (path instanceof DefaultSourceDirectorySet) {
-                DefaultSourceDirectorySet nested = (DefaultSourceDirectorySet) path;
-                result.addAll(nested.getSourceTrees());
+            DefaultSourceDirectorySet sourceSet = findAndUnpackSourceDirectorySet(path);
+            if (sourceSet != null) {
+                result.addAll(sourceSet.getSourceTrees());
             } else {
                 for (File srcDir : fileCollectionFactory.resolving(path)) {
                     if (srcDir.exists() && !srcDir.isDirectory()) {
@@ -257,6 +257,16 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
             }
         }
         return result;
+    }
+
+    private DefaultSourceDirectorySet findAndUnpackSourceDirectorySet(Object path) {
+        if (path instanceof DelegatingSourceDirectorySet) {
+            return findAndUnpackSourceDirectorySet(((DelegatingSourceDirectorySet)path).getDelegate());
+        } else if (path instanceof DefaultSourceDirectorySet) {
+            return (DefaultSourceDirectorySet) path;
+        } else {
+            return null;
+        }
     }
 
     @Override
