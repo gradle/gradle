@@ -29,21 +29,19 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
 
 public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
-    private final Step<? super C, ? extends Result> delegate;
+    private final Step<? super C, ? extends ExecuteWorkResult> delegate;
 
     public CaptureStateAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
-        Step<? super C, ? extends Result> delegate
+        Step<? super C, ? extends ExecuteWorkResult> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
@@ -53,8 +51,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
 
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
-        Timer timer = Time.startTimer();
-        Result result = delegate.execute(work, context);
+        ExecuteWorkResult result = delegate.execute(work, context);
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProduceByWork = operation(
             operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = captureOutputs(work, context);
@@ -66,7 +63,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 .details(Operation.Details.INSTANCE)
         );
 
-        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), timer.getElapsedMillis());
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), result.getDuration().toMillis());
 
         return new CurrentSnapshotResult() {
             @Override

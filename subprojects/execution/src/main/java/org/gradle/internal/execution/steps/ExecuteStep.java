@@ -29,12 +29,15 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.gradle.work.InputChanges;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Optional;
 
-public class ExecuteStep<C extends InputChangesContext> implements Step<C, Result> {
+public class ExecuteStep<C extends InputChangesContext> implements Step<C, ExecuteWorkResult> {
 
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -43,11 +46,11 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
     }
 
     @Override
-    public Result execute(UnitOfWork work, C context) {
-        return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
+    public ExecuteWorkResult execute(UnitOfWork work, C context) {
+        return buildOperationExecutor.call(new CallableBuildOperation<ExecuteWorkResult>() {
             @Override
-            public Result call(BuildOperationContext operationContext) {
-                Result result = executeInternal(work, context);
+            public ExecuteWorkResult call(BuildOperationContext operationContext) {
+                ExecuteWorkResult result = executeInternal(work, context);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return result;
             }
@@ -61,42 +64,47 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
         });
     }
 
-    private static Result executeInternal(UnitOfWork work, InputChangesContext context) {
+    private static ExecuteWorkResult executeInternal(UnitOfWork work, InputChangesContext context) {
+        UnitOfWork.ExecutionRequest executionRequest = new UnitOfWork.ExecutionRequest() {
+            @Override
+            public File getWorkspace() {
+                return context.getWorkspace();
+            }
+
+            @Override
+            public Optional<InputChangesInternal> getInputChanges() {
+                return context.getInputChanges();
+            }
+
+            @Override
+            public Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs() {
+                return context.getAfterPreviousExecutionState()
+                    .map(AfterPreviousExecutionState::getOutputFilesProducedByWork);
+            }
+        };
+        UnitOfWork.WorkOutput workOutput;
+
+        Timer timer = Time.startTimer();
         try {
-            UnitOfWork.ExecutionRequest executionRequest = new UnitOfWork.ExecutionRequest() {
-                @Override
-                public File getWorkspace() {
-                    return context.getWorkspace();
-                }
-
-                @Override
-                public Optional<InputChangesInternal> getInputChanges() {
-                    return context.getInputChanges();
-                }
-
-                @Override
-                public Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs() {
-                    return context.getAfterPreviousExecutionState()
-                        .map(AfterPreviousExecutionState::getOutputFilesProducedByWork);
-                }
-            };
-            UnitOfWork.WorkOutput workOutput = work.execute(executionRequest);
-            ExecutionOutcome outcome = determineOutcome(context, workOutput);
-            ExecutionResult executionResult = new ExecutionResult() {
-                @Override
-                public ExecutionOutcome getOutcome() {
-                    return outcome;
-                }
-
-                @Override
-                public Object getOutput() {
-                    return workOutput.getOutput();
-                }
-            };
-            return () -> Try.successful(executionResult);
+            workOutput = work.execute(executionRequest);
         } catch (Throwable t) {
-            return () -> Try.failure(t);
+            return failed(t, Duration.ofMillis(timer.getElapsedMillis()));
         }
+
+        Duration duration = Duration.ofMillis(timer.getElapsedMillis());
+        ExecutionOutcome outcome = determineOutcome(context, workOutput);
+
+        return success(duration, new ExecutionResult() {
+            @Override
+            public ExecutionOutcome getOutcome() {
+                return outcome;
+            }
+
+            @Override
+            public Object getOutput() {
+                return workOutput.getOutput();
+            }
+        });
     }
 
     private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
@@ -131,4 +139,33 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
             Operation.Result INSTANCE = new Operation.Result() {};
         }
     }
+
+    private static ExecuteWorkResult failed(Throwable t, Duration duration) {
+        return new ExecuteWorkResult() {
+            @Override
+            public Duration getDuration() {
+                return duration;
+            }
+
+            @Override
+            public Try<ExecutionResult> getExecutionResult() {
+                return Try.failure(t);
+            }
+        };
+    }
+
+    private static ExecuteWorkResult success(Duration duration, ExecutionResult executionResult) {
+        return new ExecuteWorkResult() {
+            @Override
+            public Duration getDuration() {
+                return duration;
+            }
+
+            @Override
+            public Try<ExecutionResult> getExecutionResult() {
+                return Try.successful(executionResult);
+            }
+        };
+    }
+
 }
