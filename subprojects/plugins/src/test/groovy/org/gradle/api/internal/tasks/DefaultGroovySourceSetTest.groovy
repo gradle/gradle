@@ -20,8 +20,8 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
 import org.gradle.util.internal.CollectionUtils
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -43,7 +43,7 @@ class DefaultGroovySourceSetTest extends Specification {
         sourceSet.groovy.filter.excludes.isEmpty()
 
         sourceSet.allGroovy.isEmpty()
-        sourceSet.allGroovy.displayName == '<display-name> Groovy source'
+        sourceSet.allGroovy.displayName =='<display-name> Groovy source'
         sourceSet.allGroovy.source.contains(sourceSet.groovy)
         sourceSet.allGroovy.filter.includes.containsAll(['**/*.groovy'])
         sourceSet.allGroovy.filter.excludes.isEmpty()
