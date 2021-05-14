@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -29,6 +30,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         """
     }
 
+    @ToBeFixedForConfigurationCache(iterationMatchers = ".*plugin: scala, configuration: zinc.*")
     def "plugin runtime configuration is deprecated for consumption"() {
         given:
         file("producer/build.gradle") << """
@@ -59,6 +61,9 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         'antlr'      | 'antlr'
         'jacoco'     | 'jacocoAgent'
         'jacoco'     | 'jacocoAnt'
+        'scala'      | 'zinc'
+        'war'        | 'providedRuntime'
+        'war'        | 'providedCompile'
     }
 
     def "plugin runtime configuration can be extended and consumed without deprecation"() {
@@ -113,6 +118,9 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         'antlr'      | 'antlr'
         'jacoco'     | 'jacocoAgent'
         'jacoco'     | 'jacocoAnt'
+        'scala'      | 'zinc'
+        'war'        | 'providedRuntime'
+        'war'        | 'providedCompile'
     }
 
 }

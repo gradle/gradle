@@ -18,10 +18,12 @@ package org.gradle.testfixtures.internal;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -30,7 +32,9 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Map;
 
 public class TestBuildScopeServices extends BuildScopeServices {
     private final File homeDir;
@@ -40,6 +44,11 @@ public class TestBuildScopeServices extends BuildScopeServices {
         super(parent);
         this.homeDir = homeDir;
         this.startParameter = startParameter;
+    }
+
+    @Override
+    protected GradleProperties createGradleProperties(GradlePropertiesController gradlePropertiesController) {
+        return new EmptyGradleProperties();
     }
 
     protected BuildDefinition createBuildDefinition(StartParameterInternal startParameter) {
@@ -60,5 +69,18 @@ public class TestBuildScopeServices extends BuildScopeServices {
 
     protected GradleInternal createGradle(InstantiatorFactory instantiatorFactory, ServiceRegistryFactory serviceRegistryFactory) {
         return instantiatorFactory.decorateLenient().newInstance(DefaultGradle.class, null, startParameter, serviceRegistryFactory);
+    }
+
+    private static class EmptyGradleProperties implements GradleProperties {
+        @Nullable
+        @Override
+        public String find(String propertyName) {
+            return null;
+        }
+
+        @Override
+        public Map<String, String> mergeProperties(Map<String, String> properties) {
+            return properties;
+        }
     }
 }

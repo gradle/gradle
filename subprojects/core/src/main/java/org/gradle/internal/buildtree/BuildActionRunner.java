@@ -16,11 +16,14 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Responsible for executing a {@link BuildAction} and generating the result.
@@ -104,5 +107,28 @@ public interface BuildActionRunner {
             return clientFailure;
         }
 
+        /**
+         * Returns a copy of this result adding the given failures.
+         */
+        public Result addFailures(List<Throwable> failures) {
+            if (failures.isEmpty()) {
+                return this;
+            }
+            List<Throwable> newFailures = new ArrayList<>(1 + failures.size());
+            if (buildFailure != null) {
+                if (buildFailure instanceof MultipleBuildFailures) {
+                    MultipleBuildFailures multipleBuildFailures = (MultipleBuildFailures) buildFailure;
+                    newFailures.addAll(multipleBuildFailures.getCauses());
+                } else {
+                    newFailures.add(buildFailure);
+                }
+            }
+            newFailures.addAll(failures);
+            if (newFailures.size() == 1) {
+                return failed(newFailures.get(0));
+            } else {
+                return failed(new MultipleBuildFailures(newFailures));
+            }
+        }
     }
 }

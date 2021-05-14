@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.BuildResult;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
@@ -35,35 +34,36 @@ import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 public abstract class AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
+    private final BuildCancellationToken buildCancellationToken;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final ProjectLeaseRegistry projectLeaseRegistry;
+
+    public AbstractClientProvidedBuildActionRunner(BuildCancellationToken buildCancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLeaseRegistry projectLeaseRegistry) {
+        this.buildCancellationToken = buildCancellationToken;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.projectLeaseRegistry = projectLeaseRegistry;
+    }
+
     protected Result runClientAction(ClientAction action, BuildTreeLifecycleController buildController) {
 
         GradleInternal gradle = buildController.getGradle();
 
-        ActionRunningListener listener = new ActionRunningListener(gradle, action);
+        ActionRunningListener listener = new ActionRunningListener(action, buildCancellationToken, buildOperationExecutor, projectLeaseRegistry);
 
-        Throwable buildFailure = null;
-        RuntimeException clientFailure = null;
         try {
             gradle.addBuildListener(listener);
-            if (action.isRunTasks()) {
-                buildController.run();
-            } else {
-                buildController.configure();
-            }
+            buildController.fromBuildModel(action.isRunTasks(), listener);
+            return Result.of(action.getResult());
         } catch (RuntimeException e) {
-            buildFailure = e;
-            clientFailure = e;
+            RuntimeException clientFailure = e;
+            if (listener.actionFailure != null) {
+                clientFailure = new InternalBuildActionFailureException(listener.actionFailure);
+            }
+            return Result.failed(e, clientFailure);
         }
-        if (listener.actionFailure != null) {
-            clientFailure = new InternalBuildActionFailureException(listener.actionFailure);
-        }
-
-        if (buildFailure != null) {
-            return Result.failed(buildFailure, clientFailure);
-        }
-        return Result.of(action.getResult());
     }
 
     private void forceFullConfiguration(GradleInternal gradle, Set<GradleInternal> alreadyConfigured) {
@@ -93,39 +93,39 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         Object getResult();
     }
 
-    private class ActionRunningListener extends InternalBuildAdapter {
-        private final GradleInternal gradle;
+    private class ActionRunningListener extends InternalBuildAdapter implements Function<GradleInternal, Object> {
         private final ClientAction clientAction;
+        private final BuildCancellationToken buildCancellationToken;
+        private final BuildOperationExecutor buildOperationExecutor;
+        private final ProjectLeaseRegistry projectLeaseRegistry;
         RuntimeException actionFailure;
 
-        ActionRunningListener(GradleInternal gradle, ClientAction clientAction) {
-            this.gradle = gradle;
+        ActionRunningListener(ClientAction clientAction, BuildCancellationToken buildCancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLeaseRegistry projectLeaseRegistry) {
             this.clientAction = clientAction;
+            this.buildCancellationToken = buildCancellationToken;
+            this.buildOperationExecutor = buildOperationExecutor;
+            this.projectLeaseRegistry = projectLeaseRegistry;
         }
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
-            forceFullConfiguration(this.gradle, new HashSet<>());
-            runAction(clientAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
+            GradleInternal gradleInternal = (GradleInternal) gradle;
+            forceFullConfiguration(gradleInternal, new HashSet<>());
+            runAction(gradleInternal, clientAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
         }
 
         @Override
-        public void buildFinished(BuildResult result) {
-            if (result.getFailure() != null) {
-                return;
-            }
-            runAction(clientAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
+        public Object apply(GradleInternal gradle) {
+            runAction(gradle, clientAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
+            return null;
         }
 
         @SuppressWarnings("deprecation")
-        private void runAction(@Nullable Object action, PhasedActionResult.Phase phase) {
+        private void runAction(GradleInternal gradle, @Nullable Object action, PhasedActionResult.Phase phase) {
             if (action == null || actionFailure != null) {
                 return;
             }
-            DefaultBuildController internalBuildController = new DefaultBuildController(gradle,
-                gradle.getServices().get(BuildCancellationToken.class),
-                gradle.getServices().get(BuildOperationExecutor.class),
-                gradle.getServices().get(ProjectLeaseRegistry.class));
+            DefaultBuildController internalBuildController = new DefaultBuildController(gradle, buildCancellationToken, buildOperationExecutor, projectLeaseRegistry);
             try {
                 Object result;
                 if (action instanceof InternalBuildActionVersion2<?>) {

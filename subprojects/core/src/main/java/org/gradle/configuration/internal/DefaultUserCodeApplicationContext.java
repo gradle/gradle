@@ -21,6 +21,7 @@ import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 public class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
 
@@ -84,6 +85,17 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
             currentApplication.set(this);
             try {
                 runnable.run();
+            } finally {
+                currentApplication.set(current);
+            }
+        }
+
+        @Override
+        public <T> T reapply(Supplier<T> action) {
+            CurrentApplication current = currentApplication.get();
+            currentApplication.set(this);
+            try {
+                return action.get();
             } finally {
                 currentApplication.set(current);
             }

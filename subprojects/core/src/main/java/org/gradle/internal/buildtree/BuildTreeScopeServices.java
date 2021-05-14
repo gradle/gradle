@@ -34,6 +34,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.problems.buildtree.ProblemReporter;
 
 import java.util.List;
 
@@ -78,5 +79,9 @@ public class BuildTreeScopeServices {
 
     protected ConfigurationTimeBarrier createConfigurationTimeBarrier() {
         return new DefaultConfigurationTimeBarrier();
+    }
+
+    protected ProblemReporter createProblemReporter() {
+        return new DeprecationsReporter();
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -53,8 +54,10 @@ import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
 import org.gradle.launcher.exec.BuildTreeLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
+import org.gradle.internal.buildtree.ProblemReportingBuildActionRunner;
 import org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
+import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DaemonSidePayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
@@ -168,7 +171,9 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                      ListenerManager listenerManager,
                                                      BuildStartedTime buildStartedTime,
                                                      BuildRequestMetaData buildRequestMetaData,
-                                                     Clock clock) {
+                                                     Clock clock,
+                                                     ExceptionAnalyser exceptionAnalyser,
+                                                     List<ProblemReporter> problemReporters) {
             return new RootBuildLifecycleBuildActionExecutor(
                 buildStateRegistry,
                 new BuildCompletionNotifyingBuildActionRunner(
@@ -177,7 +182,11 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             styledTextOutputFactory,
                             workValidationWarningReporter,
                             listenerManager,
-                            new ChainingBuildActionRunner(buildActionRunners),
+                            new ProblemReportingBuildActionRunner(
+                                new ChainingBuildActionRunner(buildActionRunners),
+                                exceptionAnalyser,
+                                problemReporters
+                            ),
                             buildStartedTime,
                             buildRequestMetaData,
                             clock))));
