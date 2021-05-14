@@ -352,16 +352,16 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
     }
 
     protected KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, File... scripts) {
-        return kotlinDslScriptsModelFor(lenient, scripts.toList())
+        return kotlinDslScriptsModelFor(lenient, true, scripts.toList())
     }
 
-    protected KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, Iterable<File> scripts) {
+    protected KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, boolean explicitlyRequestPreparationTasks = true, Iterable<File> scripts) {
         return withConnection { connection ->
             new KotlinDslScriptsModelClient().fetchKotlinDslScriptsModel(
                 connection,
                 new KotlinDslScriptsModelRequest(
                     scripts.toList(),
-                    null, null, [], [], lenient
+                    null, null, [], [], lenient, explicitlyRequestPreparationTasks
                 )
             )
         }
