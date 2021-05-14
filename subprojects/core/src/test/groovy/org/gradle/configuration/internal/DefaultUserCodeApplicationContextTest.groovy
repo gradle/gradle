@@ -20,6 +20,8 @@ import org.gradle.api.Action
 import org.gradle.internal.Describables
 import spock.lang.Specification
 
+import java.util.function.Supplier
+
 class DefaultUserCodeApplicationContextTest extends Specification {
     def context = new DefaultUserCodeApplicationContext()
 
@@ -103,6 +105,63 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
         and:
         context.current() == null
+    }
+
+    def "can run supplier registered by previous application"() {
+        def displayName = Describables.of("thing 1")
+        def displayName2 = Describables.of("thing 2")
+        def action = Mock(Action)
+        def supplier = Mock(Supplier)
+        def action2 = Mock(Action)
+        def application1
+
+        when:
+        context.apply(displayName, action)
+
+        then:
+        1 * action.execute(_) >> { UserCodeApplicationId id ->
+            application1 = context.current()
+            context.apply(displayName2, action2)
+        }
+        1 * action2.execute(_) >> { UserCodeApplicationId id ->
+            def result = application1.reapply(supplier)
+            assert result == "result"
+        }
+        1 * supplier.get() >> {
+            assert context.current().id == application1.id
+            assert context.current().displayName == displayName
+            return "result"
+        }
+
+        and:
+        context.current() == null
+    }
+
+    def "can retain application instance and later run actions against it"() {
+        def displayName = Describables.of("thing 1")
+        def action = Mock(Action)
+        def supplier = Mock(Supplier)
+        def application1
+
+        when:
+        context.apply(displayName, action)
+
+        then:
+        1 * action.execute(_) >> { UserCodeApplicationId id ->
+            application1 = context.current()
+        }
+
+        when:
+        def result = application1.reapply(supplier)
+
+        then:
+        result == "result"
+
+        and:
+        supplier.get() >> {
+            assert context.current() == application1
+            return "result"
+        }
     }
 
     def "can create actions for current application that can be run later"() {

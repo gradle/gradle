@@ -73,8 +73,8 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("Unknown location: Cannot access project ':a' from project ':'",
-                "Unknown location: Cannot access project ':b' from project ':'")
+            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
+                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
     }
