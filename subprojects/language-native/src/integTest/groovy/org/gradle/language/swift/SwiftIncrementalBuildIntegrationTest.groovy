@@ -34,7 +34,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.VersionNumber
-import spock.lang.Ignore
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @Ignore("https://github.com/gradle/gradle-private/issues/3387")
