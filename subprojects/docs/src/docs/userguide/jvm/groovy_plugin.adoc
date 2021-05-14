@@ -170,7 +170,7 @@ The Groovy plugin adds the following extensions to each source set in the projec
 
 === Groovy Plugin — source set properties
 
-`groovy` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
+`groovy` — link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceDirectorySet.html[GroovySourceDirectorySet] (read-only)::
 _Default value_: Not null
 +
 The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
