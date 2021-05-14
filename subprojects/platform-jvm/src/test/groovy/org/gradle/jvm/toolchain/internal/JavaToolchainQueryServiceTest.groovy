@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
@@ -83,6 +84,25 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaLanguageVersion.of(7)   | "/path/7.9"
         JavaLanguageVersion.of(8)   | "/path/8.0.zzz.foo" // zzz resolves to a real toolversion 999
         JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
+    }
+
+    @NotYetImplemented
+    def "uses most recent version of multiple matches if version has a legacy format"() {
+        // See https://github.com/gradle/gradle/issues/17195
+        given:
+        def registry = createDeterministicInstallationRegistry(["1.8.0_282", "1.8.0_292"])
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+        def versionToFind = JavaLanguageVersion.of(8)
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(versionToFind)
+        def toolchain = queryService.findMatchingToolchain(filter).get()
+
+        then:
+        toolchain.languageVersion == versionToFind
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/1.8.0_292")
     }
 
     def "uses j9 toolchain if requested"() {
@@ -317,6 +337,14 @@ class JavaToolchainQueryServiceTest extends Specification {
             }
         }
         registry
+    }
+
+    def createDeterministicInstallationRegistry(List<String> installations) {
+        def installationLocations = installations.collect { new InstallationLocation(new File("/path/${it}").absoluteFile, "test") } as LinkedHashSet
+        Mock(JavaInstallationRegistry) {
+            listInstallations() >> installationLocations
+            installationExists(_ as InstallationLocation) >> true
+        }
     }
 
     ProviderFactory createProviderFactory() {
