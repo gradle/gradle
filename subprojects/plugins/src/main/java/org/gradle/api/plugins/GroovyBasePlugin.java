@@ -35,6 +35,7 @@ import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.GroovyRuntime;
+import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
@@ -95,7 +96,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(sourceSet -> {
             final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
             new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
-            sourceSet.getExtensions().add(SourceDirectorySet.class, "groovy", groovySourceSet.getGroovy());
+            sourceSet.getExtensions().add(GroovySourceDirectorySet.class, "groovy", groovySourceSet.getGroovy());
 
             final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
             groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");

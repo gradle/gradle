@@ -21,6 +21,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.GroovySourceSet;
 
 import javax.annotation.Nullable;
@@ -29,7 +30,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
-    private final SourceDirectorySet groovy;
+    private final GroovySourceDirectorySet groovy;
     private final SourceDirectorySet allGroovy;
 
     public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory) {
@@ -39,14 +40,14 @@ public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
         allGroovy.getFilter().include("**/*.groovy");
     }
 
-    private static SourceDirectorySet createGroovySourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
-        SourceDirectorySet groovySourceDirectorySet = objectFactory.sourceDirectorySet(name, displayName+ " Groovy source");
+    private static GroovySourceDirectorySet createGroovySourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
+        GroovySourceDirectorySet groovySourceDirectorySet = new DefaultGroovySourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName+ " Groovy source"));
         groovySourceDirectorySet.getFilter().include("**/*.java", "**/*.groovy");
         return groovySourceDirectorySet;
     }
 
     @Override
-    public SourceDirectorySet getGroovy() {
+    public GroovySourceDirectorySet getGroovy() {
         return groovy;
     }
 
