@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
@@ -696,5 +697,33 @@ rootProject.name = 'sample'
 
         then:
         executed(':compileJava', ':processResources', ':classes', ':jar', ':run')
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle-private/issues/3386")
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "does not execute code in environment variables"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        def exploit = file("i-do-whatever-i-want")
+        assert !exploit.exists()
+
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment JAVA_OPTS: '`\$(touch "${exploit.absolutePath}")`'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains('Hello World!')
+        !exploit.exists()
     }
 }
