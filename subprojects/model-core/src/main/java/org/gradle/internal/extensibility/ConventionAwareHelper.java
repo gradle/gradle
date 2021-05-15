@@ -63,7 +63,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         if (_ineligiblePropertyNames.contains(propertyName)) {
             DeprecationLogger.deprecateBehaviour("Using internal convention mapping with a Provider backed property.")
                     .willBecomeAnErrorInGradle8()
-                    .withUpgradeGuideSection(7, "TODO")
+                    .withUpgradeGuideSection(7, "convention_mapping")
                     .nagUser();
         }
 

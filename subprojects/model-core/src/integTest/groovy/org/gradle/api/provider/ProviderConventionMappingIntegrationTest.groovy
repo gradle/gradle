@@ -24,7 +24,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("Using internal convention mapping with a Provider backed property. " +
                 "This will fail with an error in Gradle 8.0. " +
                 "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_7.html#TODO")
+                "https://docs.gradle.org/current/userguide/upgrading_version_7.html#convention_mapping")
     }
 
     def "emits deprecation warning when convention mapping is used with Provider"() {
