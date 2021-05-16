@@ -28,8 +28,10 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
@@ -39,6 +41,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -92,14 +95,26 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
+    public void finishBuild(Consumer<? super Throwable> collector) {
+        buildLifecycleController.finishBuild(null, collector);
+    }
+
+    @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
         IncludedBuildControllers controllers = buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class);
         WorkerLeaseService workerLeaseService = buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class);
         ExceptionAnalyser exceptionAnalyser = buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class);
-        // Create a wrapper for the controllers, to prevent the build controller from finishing any other builds
-        IncludedBuildControllers noFinishController = new DoNoFinishIncludedBuildControllers(controllers);
+        BuildModelParameters modelParameters = buildLifecycleController.getGradle().getServices().get(BuildModelParameters.class);
         BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
-        DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workerLeaseService, workExecutor, noFinishController, exceptionAnalyser);
+        // On completion of the action, finish only this build and do not finish any other builds
+        // When the build model is required, then do not finish anything on completion of the action
+        BuildTreeFinishExecutor finishExecutor;
+        if (modelParameters.isRequiresBuildModel()) {
+            finishExecutor = new DoNothingBuildFinishExecutor();
+        } else {
+            finishExecutor = new FinishThisBuildOnlyFinishExecutor(exceptionAnalyser);
+        }
+        DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workerLeaseService, workExecutor, finishExecutor, exceptionAnalyser);
         return buildAction.apply(buildController);
     }
 
@@ -133,36 +148,23 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         return buildLifecycleController.getGradle();
     }
 
-    private static class DoNoFinishIncludedBuildControllers implements IncludedBuildControllers {
-        private final IncludedBuildControllers controllers;
+    private static class DoNothingBuildFinishExecutor implements BuildTreeFinishExecutor {
+        @Override
+        public void finishBuildTree(List<Throwable> failures, Consumer<? super Throwable> finishFailures) {
+        }
+    }
 
-        public DoNoFinishIncludedBuildControllers(IncludedBuildControllers controllers) {
-            this.controllers = controllers;
+    private class FinishThisBuildOnlyFinishExecutor implements BuildTreeFinishExecutor {
+        private final ExceptionAnalyser exceptionAnalyser;
+
+        public FinishThisBuildOnlyFinishExecutor(ExceptionAnalyser exceptionAnalyser) {
+            this.exceptionAnalyser = exceptionAnalyser;
         }
 
         @Override
-        public void populateTaskGraphs() {
-            controllers.populateTaskGraphs();
-        }
-
-        @Override
-        public void startTaskExecution() {
-            controllers.startTaskExecution();
-        }
-
-        @Override
-        public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
-            controllers.awaitTaskCompletion(taskFailures);
-        }
-
-        @Override
-        public void finishBuild(Consumer<? super Throwable> collector) {
-            // Do not finish any other builds
-        }
-
-        @Override
-        public IncludedBuildController getBuildController(BuildIdentifier buildIdentifier) {
-            return controllers.getBuildController(buildIdentifier);
+        public void finishBuildTree(List<Throwable> failures, Consumer<? super Throwable> finishFailures) {
+            RuntimeException reportable = exceptionAnalyser.transform(failures);
+            buildLifecycleController.finishBuild(reportable, finishFailures);
         }
     }
 }

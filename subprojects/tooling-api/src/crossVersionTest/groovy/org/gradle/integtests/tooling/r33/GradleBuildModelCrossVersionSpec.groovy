@@ -58,10 +58,10 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
                 rootProject.name = 'root'
-                includeBuild('includedBuild') { 
-                    dependencySubstitution { 
-                        substitute module('group:name') with project(':') 
-                    } 
+                includeBuild('includedBuild') {
+                    dependencySubstitution {
+                        substitute module('group:name') with project(':')
+                    }
                 }
             """
         }
@@ -78,7 +78,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         includedBuild.projects.size() == 4
     }
 
-    @TargetGradleVersion(">=3.1 <3.3")
+    @TargetGradleVersion(">=2.6 <3.3")
     def "No included builds for old Gradle versions"() {
         singleProjectBuildInRootFolder("root") {
             settingsFile << """

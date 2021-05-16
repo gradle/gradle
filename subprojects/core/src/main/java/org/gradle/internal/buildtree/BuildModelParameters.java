@@ -24,11 +24,22 @@ public class BuildModelParameters {
     private final boolean configureOnDemand;
     private final boolean configurationCache;
     private final boolean isolatedProjects;
+    private final boolean requiresBuildModel;
 
-    public BuildModelParameters(boolean configureOnDemand, boolean configurationCache, boolean isolatedProjects) {
+    public BuildModelParameters(boolean configureOnDemand, boolean configurationCache, boolean isolatedProjects, boolean requiresBuildModel) {
         this.configureOnDemand = configureOnDemand;
         this.configurationCache = configurationCache;
         this.isolatedProjects = isolatedProjects;
+        this.requiresBuildModel = requiresBuildModel;
+    }
+
+    /**
+     * Will the build model, that is the configured Gradle and Project objects, be required during the build execution?
+     *
+     * <p>When the build model is not required, certain state can be discarded.
+     */
+    public boolean isRequiresBuildModel() {
+        return requiresBuildModel;
     }
 
     public boolean isConfigureOnDemand() {

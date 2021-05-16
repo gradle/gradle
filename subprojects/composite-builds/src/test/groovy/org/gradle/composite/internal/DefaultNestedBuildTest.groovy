@@ -20,9 +20,11 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -39,7 +41,7 @@ class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
     def tree = Mock(BuildTreeState)
     def factory = Mock(BuildLifecycleControllerFactory)
-    def launcher = Mock(BuildLifecycleController)
+    def controller = Mock(BuildLifecycleController)
     def parentGradle = Mock(GradleInternal)
     def gradle = Mock(GradleInternal)
     def action = Mock(Function)
@@ -47,17 +49,21 @@ class DefaultNestedBuildTest extends Specification {
     def buildDefinition = Mock(BuildDefinition)
     def buildIdentifier = Mock(BuildIdentifier)
     def projectStateRegistry = Mock(ProjectStateRegistry)
+    def includedBuildControllers = Mock(IncludedBuildControllers)
+    def exceptionAnalyzer = Mock(ExceptionAnalyser)
     DefaultNestedBuild build
 
     def setup() {
         _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
         _ * owner.mutableModel >> parentGradle
-        _ * factory.newInstance(buildDefinition, _, parentGradle, _) >> launcher
+        _ * factory.newInstance(buildDefinition, _, parentGradle, _) >> controller
         _ * buildDefinition.name >> "nested"
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
+        _ * sessionServices.get(IncludedBuildControllers) >> includedBuildControllers
+        _ * sessionServices.get(ExceptionAnalyser) >> exceptionAnalyzer
         _ * tree.services >> new DefaultServiceRegistry()
-        _ * launcher.gradle >> gradle
+        _ * controller.gradle >> gradle
         _ * gradle.services >> sessionServices
 
         build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree, factory, projectStateRegistry)
@@ -68,10 +74,13 @@ class DefaultNestedBuildTest extends Specification {
         build.stop()
 
         then:
-        1 * launcher.stop()
+        1 * controller.stop()
     }
 
-    def "runs action and returns result"() {
+    def "runs action and finishes build when model is not required by root build"() {
+        given:
+        sessionServices.get(BuildModelParameters) >> new BuildModelParameters(false, false, false, false)
+
         when:
         def result = build.run(action)
 
@@ -80,11 +89,36 @@ class DefaultNestedBuildTest extends Specification {
 
         then:
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
+            controller.scheduleAndRunTasks()
             '<result>'
         }
+        _ * exceptionAnalyzer.transform(_)
+        1 * controller.finishBuild(_, _)
+    }
+
+    def "runs action but does not finish build when model is required by root build"() {
+        given:
+        sessionServices.get(BuildModelParameters) >> new BuildModelParameters(false, false, false, true)
+
+        when:
+        def result = build.run(action)
+
+        then:
+        result == '<result>'
+
+        then:
+        1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
+            controller.scheduleAndRunTasks()
+            '<result>'
+        }
+        _ * exceptionAnalyzer.transform(_)
+        0 * controller.finishBuild(_, _)
     }
 
     def "can have null result"() {
+        given:
+        sessionServices.get(BuildModelParameters) >> new BuildModelParameters(false, false, false, false)
+
         when:
         def result = build.run(action)
 

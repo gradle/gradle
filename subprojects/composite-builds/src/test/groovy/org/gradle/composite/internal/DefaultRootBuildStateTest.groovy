@@ -25,6 +25,7 @@ import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.event.ListenerManager
@@ -59,6 +60,7 @@ class DefaultRootBuildStateTest extends Specification {
         sessionServices.add(includedBuildControllers)
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(Stub(DefaultDeploymentRegistry))
+        sessionServices.add(Stub(BuildStateRegistry))
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
         _ * buildTree.services >> sessionServices
@@ -125,13 +127,18 @@ class DefaultRootBuildStateTest extends Specification {
             controller.scheduleAndRunTasks()
             return '<result>'
         }
+
+        and:
         1 * lifecycleListener.afterStart()
+
+        and:
         1 * launcher.scheduleRequestedTasks()
         1 * includedBuildControllers.startTaskExecution()
         1 * launcher.executeTasks()
         1 * includedBuildControllers.awaitTaskCompletion(_)
         1 * launcher.finishBuild(null, _)
-        1 * includedBuildControllers.finishBuild(_)
+
+        and:
         1 * lifecycleListener.beforeComplete()
         0 * lifecycleListener._
     }
@@ -144,13 +151,18 @@ class DefaultRootBuildStateTest extends Specification {
         result == '<result>'
 
         and:
-        1 * lifecycleListener.afterStart()
-        1 * launcher.getConfiguredBuild() >> gradle
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.fromBuildModel(false) {'<result>' }
         }
+
+        and:
+        1 * lifecycleListener.afterStart()
+
+        and:
+        1 * launcher.getConfiguredBuild() >> gradle
         1 * launcher.finishBuild(null, _)
-        1 * includedBuildControllers.finishBuild(_)
+
+        and:
         1 * lifecycleListener.beforeComplete()
         0 * lifecycleListener._
     }
@@ -199,17 +211,22 @@ class DefaultRootBuildStateTest extends Specification {
         e == transformedFailure
 
         and:
-        1 * lifecycleListener.afterStart()
-        1 * launcher.executeTasks() >> { throw failure }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
         }
-        1 * includedBuildControllers.finishBuild(_)
+
+        and:
+        1 * lifecycleListener.afterStart()
+
+        and:
+        1 * launcher.executeTasks() >> { throw failure }
         2 * exceptionAnalyzer.transform(_) >> { ex ->
             assert ex[0] == [failure]
             return transformedFailure
         }
         1 * launcher.finishBuild(transformedFailure, _)
+
+        and:
         1 * lifecycleListener.beforeComplete()
         0 * lifecycleListener._
     }
@@ -226,17 +243,22 @@ class DefaultRootBuildStateTest extends Specification {
         e == transformedFailure
 
         and:
-        1 * lifecycleListener.afterStart()
-        1 * launcher.getConfiguredBuild() >> { throw failure }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.fromBuildModel(false) {'<result>' }
         }
-        1 * includedBuildControllers.finishBuild(_)
+
+        and:
+        1 * lifecycleListener.afterStart()
+
+        and:
+        1 * launcher.getConfiguredBuild() >> { throw failure }
         2 * exceptionAnalyzer.transform(_) >> { ex ->
             assert ex[0] == [failure]
             return transformedFailure
         }
         1 * launcher.finishBuild(transformedFailure, _)
+
+        and:
         1 * lifecycleListener.beforeComplete()
         0 * lifecycleListener._
     }
@@ -245,7 +267,6 @@ class DefaultRootBuildStateTest extends Specification {
         def failure1 = new RuntimeException()
         def failure2 = new RuntimeException()
         def failure3 = new RuntimeException()
-        def failure4 = new RuntimeException()
         def transformedFailure = new RuntimeException()
         def finalFailure = new RuntimeException()
 
@@ -257,22 +278,27 @@ class DefaultRootBuildStateTest extends Specification {
         e == finalFailure
 
         and:
-        1 * lifecycleListener.afterStart()
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
         }
+
+        and:
+        1 * lifecycleListener.afterStart()
+
+        and:
         1 * launcher.executeTasks() >> { throw failure1 }
         1 * includedBuildControllers.awaitTaskCompletion(_) >> { Consumer consumer -> consumer.accept(failure2) }
-        1 * includedBuildControllers.finishBuild(_) >> { Consumer consumer -> consumer.accept(failure3) }
         1 * exceptionAnalyzer.transform(_) >> { ex ->
-            assert ex[0] == [failure1, failure2, failure3]
+            assert ex[0] == [failure1, failure2]
             return transformedFailure
         }
-        1 * launcher.finishBuild(transformedFailure, _) >> { Throwable throwable, Consumer consumer -> consumer.accept(failure4) }
+        1 * launcher.finishBuild(transformedFailure, _) >> { Throwable throwable, Consumer consumer -> consumer.accept(failure3) }
         1 * exceptionAnalyzer.transform(_) >> { ex ->
-            assert ex[0] == [failure1, failure2, failure3, failure4]
+            assert ex[0] == [failure1, failure2, failure3]
             return finalFailure
         }
+
+        and:
         1 * lifecycleListener.beforeComplete()
         0 * lifecycleListener._
     }

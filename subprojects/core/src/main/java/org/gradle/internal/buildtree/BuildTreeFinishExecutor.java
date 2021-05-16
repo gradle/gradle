@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.internal.buildtree;
 
+import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * A build that is a child of some other build, and whose lifetime is bounded by the lifetime of that containing build.
- */
-public interface NestedBuildState extends BuildState {
+public interface BuildTreeFinishExecutor {
     /**
-     * Runs any user build finished hooks and other user code cleanup for this build, if not already. Does not stop the services for this build.
+     * Finishes any work and runs any pending user clean up code such as build finished hooks.
+     * @param failures The failures to report to the build finished hooks.
+     * @param finishFailures Collects any failures that happen during finishing.
      */
-    void finishBuild(Consumer<? super Throwable> collector);
+    void finishBuildTree(List<Throwable> failures, Consumer<? super Throwable> finishFailures);
 }
