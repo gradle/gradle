@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork.OutputVisitor
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.file.TreeType
@@ -31,7 +31,7 @@ import org.junit.Rule
 class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implements SnasphotterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-    def afterPreviousExecution = Mock(AfterPreviousExecutionState)
+    def afterPreviousExecution = Mock(AfterExecutionState)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
     def outputChangeListener = Mock(OutputChangeListener)

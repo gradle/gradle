@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
@@ -97,7 +97,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
     }
 
     def "doesn't provide input file changes when work fails validation"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def afterPreviousExecutionState = Mock(AfterExecutionState)
         when:
         def result = step.execute(work, context)
 
@@ -113,15 +113,15 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         }
         _ * context.rebuildReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterLastSuccessfulExecutionState >> Optional.of(afterPreviousExecutionState)
         _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationFinishedContext.ValidationResult)
         1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
-        _ * context.afterPreviousExecutionState >> Optional.empty()
+        _ * context.afterLastSuccessfulExecutionState >> Optional.empty()
         0 * _
     }
 
     def "provides input file changes when history is available"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def afterPreviousExecutionState = Mock(AfterExecutionState)
         def changes = Mock(ExecutionStateChanges)
 
         when:
@@ -136,7 +136,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         }
         _ * context.rebuildReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterLastSuccessfulExecutionState >> Optional.of(afterPreviousExecutionState)
         _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * changeDetector.detectChanges(afterPreviousExecutionState, beforeExecutionState, work, _) >> changes
         0 * _

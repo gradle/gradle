@@ -21,7 +21,7 @@ import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -150,18 +150,22 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
     }
 
     def "detects overlapping outputs when instructed"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def afterPreviousExecutionState = Mock(AfterExecutionState)
         def afterPreviousOutputSnapshot = Mock(FileSystemSnapshot)
         def afterPreviousOutputSnapshots = ImmutableSortedMap.of("outputDir", afterPreviousOutputSnapshot)
+        def afterLastSuccessExecutionState = Mock(AfterExecutionState)
         def beforeExecutionOutputSnapshot = Mock(FileSystemSnapshot)
         def beforeExecutionOutputSnapshots = ImmutableSortedMap.of("outputDir", beforeExecutionOutputSnapshot)
 
         when:
         step.execute(work, context)
+
         then:
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
         1 * afterPreviousExecutionState.outputFilesProducedByWork >> afterPreviousOutputSnapshots
+
+        _ * context.afterLastSuccessfulExecutionState >> Optional.of(afterLastSuccessExecutionState)
+        1 * afterLastSuccessExecutionState.inputProperties >> ImmutableSortedMap.of()
         _ * outputSnapshotter.snapshotOutputs(work, _) >> beforeExecutionOutputSnapshots
 
         _ * work.overlappingOutputHandling >> DETECT_OVERLAPS

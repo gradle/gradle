@@ -17,24 +17,25 @@
 package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+import javax.annotation.Nullable;
+
 /**
- * A execution state after the previous execution has finished.
+ * The state after an execution of a work item.
  */
-public interface AfterPreviousExecutionState extends ExecutionState {
+public interface AfterExecutionState extends ExecutionState {
 
     /**
      * The ID and execution time of origin of the execution's outputs.
      */
     OriginMetadata getOriginMetadata();
 
-    /**
-     * Whether or not the execution was successful.
-     */
-    boolean isSuccessful();
+    @Nullable
+    BuildCacheKey getCacheKey();
 
     @Override
     ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties();

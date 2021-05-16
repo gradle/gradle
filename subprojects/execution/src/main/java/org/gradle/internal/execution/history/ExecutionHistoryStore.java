@@ -18,25 +18,31 @@ package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public interface ExecutionHistoryStore {
-    Optional<AfterPreviousExecutionState> load(String key);
+    Optional<AfterExecutionState> loadLastSuccessfulState(String key);
 
-    void store(String key,
-               OriginMetadata originMetadata,
-               ImplementationSnapshot implementation,
-               ImmutableList<ImplementationSnapshot> additionalImplementations,
-               ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-               ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-               ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties,
-               boolean successful);
+    Optional<AfterExecutionState> loadLastState(String key);
 
+    void store(
+        boolean success,
+        String key,
+        OriginMetadata originMetadata,
+        @Nullable BuildCacheKey cacheKey,
+        ImplementationSnapshot implementation,
+        ImmutableList<ImplementationSnapshot> additionalImplementations,
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties
+    );
     void remove(String key);
 }

@@ -41,7 +41,7 @@ import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.CreateOutputsStep
+import org.gradle.internal.execution.steps.MkDirsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.IdentityCacheStep
@@ -162,7 +162,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new StoreExecutionStateStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
-            new CreateOutputsStep<>(
+            new MkDirsStep<>(
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
@@ -264,7 +264,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
         when:
         buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
-        result = outOfDate(builder.build(), "Task has failed previously.")
+        result = outOfDate(builder.build(), "No history is available.")
 
         then:
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY

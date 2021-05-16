@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -94,8 +94,13 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            public Optional<AfterExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<AfterExecutionState> getAfterLastSuccessfulExecutionState() {
+                return context.getAfterLastSuccessfulExecutionState();
             }
 
             @Override

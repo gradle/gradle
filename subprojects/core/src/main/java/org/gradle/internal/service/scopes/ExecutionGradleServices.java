@@ -50,7 +50,7 @@ import org.gradle.internal.execution.steps.BuildCacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CreateOutputsStep;
+import org.gradle.internal.execution.steps.MkDirsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
@@ -174,7 +174,7 @@ public class ExecutionGradleServices {
             new BuildCacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
-            new CreateOutputsStep<>(
+            new MkDirsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(

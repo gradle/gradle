@@ -44,7 +44,7 @@ import org.gradle.internal.execution.DefaultOutputSnapshotter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
@@ -105,7 +105,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         getInputFileProperties() >> ImmutableSortedSet.of()
         getOutputFileProperties() >> ImmutableSortedSet.of()
     }
-    def previousState = Stub(AfterPreviousExecutionState) {
+    def previousState = Stub(AfterExecutionState) {
         getInputProperties() >> ImmutableSortedMap.of()
         getInputFileProperties() >> ImmutableSortedMap.of()
         getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
@@ -204,7 +204,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getTaskProperties() >> taskProperties
         executionContext.getValidationContext() >> validationContext
         executionContext.getValidationAction() >> { { historyMaintained, c -> } as TaskExecutionContext.ValidationAction }
-        executionHistoryStore.load("task") >> Optional.of(previousState)
+        executionHistoryStore.loadLastState("task") >> Optional.of(previousState)
+        executionHistoryStore.loadLastSuccessfulState("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }
 

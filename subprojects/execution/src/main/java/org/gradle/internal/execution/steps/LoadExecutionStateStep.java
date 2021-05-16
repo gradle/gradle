@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -29,21 +29,28 @@ import java.io.File;
 import java.util.Optional;
 
 public class LoadExecutionStateStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
-    private final Step<? super AfterPreviousExecutionContext, ? extends R> delegate;
+    private final Step<? super ExecutionHistoryContext, ? extends R> delegate;
 
-    public LoadExecutionStateStep(Step<? super AfterPreviousExecutionContext, ? extends R> delegate) {
+    public LoadExecutionStateStep(Step<? super ExecutionHistoryContext, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public R execute(UnitOfWork work, C context) {
         Identity identity = context.getIdentity();
-        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getHistory()
-            .flatMap(history -> history.load(identity.getUniqueId()));
-        return delegate.execute(work, new AfterPreviousExecutionContext() {
+        Optional<AfterExecutionState> afterPreviousExecutionState = context.getHistory()
+            .flatMap(history -> history.loadLastState(identity.getUniqueId()));
+        Optional<AfterExecutionState> afterLastSuccessfulExecutionState = context.getHistory()
+            .flatMap(history -> history.loadLastSuccessfulState(identity.getUniqueId()));
+        return delegate.execute(work, new ExecutionHistoryContext() {
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            public Optional<AfterExecutionState> getAfterPreviousExecutionState() {
                 return afterPreviousExecutionState;
+            }
+
+            @Override
+            public Optional<AfterExecutionState> getAfterLastSuccessfulExecutionState() {
+                return afterLastSuccessfulExecutionState;
             }
 
             @Override

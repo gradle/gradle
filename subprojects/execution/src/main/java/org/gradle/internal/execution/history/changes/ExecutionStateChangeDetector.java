@@ -17,14 +17,14 @@
 package org.gradle.internal.execution.history.changes;
 
 import org.gradle.api.Describable;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 
 public interface ExecutionStateChangeDetector {
     int MAX_OUT_OF_DATE_MESSAGES = 3;
 
     ExecutionStateChanges detectChanges(
-        AfterPreviousExecutionState lastExecution,
+        AfterExecutionState lastExecution,
         BeforeExecutionState thisExecution,
         Describable executable,
         IncrementalInputProperties incrementalInputProperties

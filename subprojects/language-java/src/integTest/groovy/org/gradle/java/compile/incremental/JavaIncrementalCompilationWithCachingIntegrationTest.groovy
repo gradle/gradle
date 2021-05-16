@@ -52,6 +52,21 @@ class JavaIncrementalCompilationWithCachingIntegrationTest extends AbstractJavaG
         outputs.recompiledClasses("A")
     }
 
+    def "incremental state is restored after a compile failure"() {
+        source("class A {}", "class B {}")
+        withBuildCache().run language.compileTaskName
+        source("class A { garbage }")
+        withBuildCache().runAndFail language.compileTaskName
+
+        when:
+        source("class A {  }")
+        withBuildCache().run language.compileTaskName, "--info"
+
+        then:
+        //Can't use outputs.recompiledClasses because the build cache recreated all outputs
+        outputContains("Incremental compilation of 1 classes completed")
+    }
+
     def "classpath analysis is restored from the build cache"() {
         requireOwnGradleUserHomeDir().requireDaemon().requireIsolatedDaemons()
         buildFile << "dependencies { implementation 'org.apache.commons:commons-lang3:3.8' }\n"

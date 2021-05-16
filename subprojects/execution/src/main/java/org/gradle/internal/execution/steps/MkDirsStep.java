@@ -26,12 +26,12 @@ import java.io.File;
 
 import static org.gradle.util.internal.GFileUtils.mkdirs;
 
-public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CreateOutputsStep.class);
+public class MkDirsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MkDirsStep.class);
 
     private final Step<? super C, ? extends R> delegate;
 
-    public CreateOutputsStep(Step<? super C, ? extends R> delegate) {
+    public MkDirsStep(Step<? super C, ? extends R> delegate) {
         this.delegate = delegate;
     }
 

@@ -19,9 +19,11 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -34,13 +36,13 @@ import org.gradle.internal.snapshot.impl.SnapshotSerializer;
 
 import java.util.Map;
 
-public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<AfterPreviousExecutionState> {
+public class AfterExecutionStateSerializer extends AbstractSerializer<AfterExecutionState> {
     private final Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer;
     private final Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
     private final Serializer<ValueSnapshot> valueSnapshotSerializer = new SnapshotSerializer();
 
-    public DefaultPreviousExecutionStateSerializer(
+    public AfterExecutionStateSerializer(
         Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer,
         Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer
     ) {
@@ -50,11 +52,29 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     }
 
     @Override
-    public AfterPreviousExecutionState read(Decoder decoder) throws Exception {
+    public AfterExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = new OriginMetadata(
             decoder.readString(),
             decoder.readLong()
         );
+        String hashString = decoder.readNullableString();
+        HashCode hashCode = hashString == null ? null : HashCode.fromString(hashString);
+        BuildCacheKey cacheKey = hashCode == null ? null : new BuildCacheKey() {
+            @Override
+            public String getHashCode() {
+                return hashCode.toString();
+            }
+
+            @Override
+            public byte[] toByteArray() {
+                return hashCode.toByteArray();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return getHashCode();
+            }
+        };
 
         ImplementationSnapshot taskImplementation = implementationSnapshotSerializer.read(decoder);
 
@@ -71,24 +91,24 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
         ImmutableSortedMap<String, FileCollectionFingerprint> inputFilesFingerprints = readFingerprints(decoder);
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesSnapshots = readSnapshots(decoder);
 
-        boolean successful = decoder.readBoolean();
-
-        return new DefaultAfterPreviousExecutionState(
+        return new DefaultAfterExecutionState(
             originMetadata,
+            cacheKey,
             taskImplementation,
             taskActionImplementations,
             inputProperties,
             inputFilesFingerprints,
-            outputFilesSnapshots,
-            successful
+            outputFilesSnapshots
         );
     }
 
     @Override
-    public void write(Encoder encoder, AfterPreviousExecutionState execution) throws Exception {
+    public void write(Encoder encoder, AfterExecutionState execution) throws Exception {
         OriginMetadata originMetadata = execution.getOriginMetadata();
         encoder.writeString(originMetadata.getBuildInvocationId());
         encoder.writeLong(originMetadata.getExecutionTime());
+        BuildCacheKey cacheKey = execution.getCacheKey();
+        encoder.writeNullableString(cacheKey == null ? null : cacheKey.getHashCode());
 
         implementationSnapshotSerializer.write(encoder, execution.getImplementation());
         ImmutableList<ImplementationSnapshot> additionalImplementations = execution.getAdditionalImplementations();
@@ -100,8 +120,6 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
         writeInputProperties(encoder, execution.getInputProperties());
         writeFingerprints(encoder, execution.getInputFileProperties());
         writeSnapshots(encoder, execution.getOutputFilesProducedByWork());
-
-        encoder.writeBoolean(execution.isSuccessful());
     }
 
     public ImmutableSortedMap<String, ValueSnapshot> readInputProperties(Decoder decoder) throws Exception {

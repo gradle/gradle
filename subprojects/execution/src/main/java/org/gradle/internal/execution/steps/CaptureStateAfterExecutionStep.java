@@ -17,12 +17,13 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -85,6 +86,11 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
             public boolean isReused() {
                 return false;
             }
+
+            @Override
+            public BuildCacheKey getCacheKey() {
+                return null;
+            }
         };
     }
 
@@ -97,7 +103,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
 
         if (hasDetectedOverlappingOutputs) {
             ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots = context.getAfterPreviousExecutionState()
-                .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
+                .map(AfterExecutionState::getOutputFilesProducedByWork)
                 .orElse(ImmutableSortedMap.of());
 
             ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsBeforeExecution = context.getBeforeExecutionState()

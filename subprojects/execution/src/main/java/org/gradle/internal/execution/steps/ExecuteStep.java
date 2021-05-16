@@ -21,7 +21,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -77,7 +77,7 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
                 @Override
                 public Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs() {
                     return context.getAfterPreviousExecutionState()
-                        .map(AfterPreviousExecutionState::getOutputFilesProducedByWork);
+                        .map(AfterExecutionState::getOutputFilesProducedByWork);
                 }
             };
             UnitOfWork.WorkOutput workOutput = work.execute(executionRequest);

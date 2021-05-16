@@ -18,6 +18,8 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
 
+import java.util.Optional;
+
 /**
  * Represents the complete changes in execution state
  */
@@ -29,6 +31,10 @@ public interface ExecutionStateChanges {
     ImmutableList<String> getAllChangeMessages();
 
     InputChangesInternal createInputChanges();
+
+    default Optional<String> getOutputFileChangeMessage() {
+        return Optional.empty();
+    }
 
     /**
      * Turn these changes into ones forcing a rebuild with the given reason.

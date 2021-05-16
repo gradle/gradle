@@ -17,8 +17,11 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import javax.annotation.Nullable;
 
 public interface CurrentSnapshotResult extends SnapshotResult {
     /**
@@ -35,6 +38,9 @@ public interface CurrentSnapshotResult extends SnapshotResult {
      * or to another build if the work was reused.
      */
     OriginMetadata getOriginMetadata();
+
+    @Nullable
+    BuildCacheKey getCacheKey();
 
     /**
      * Did we reuse the output from some previous execution?

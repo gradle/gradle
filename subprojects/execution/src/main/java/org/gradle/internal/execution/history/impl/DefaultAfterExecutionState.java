@@ -18,31 +18,35 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class DefaultAfterPreviousExecutionState extends AbstractExecutionState<FileCollectionFingerprint> implements AfterPreviousExecutionState {
+import javax.annotation.Nullable;
+
+public class DefaultAfterExecutionState extends AbstractExecutionState<FileCollectionFingerprint> implements AfterExecutionState {
+    private final BuildCacheKey cacheKey;
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork;
     private final OriginMetadata originMetadata;
-    private final boolean successful;
 
-    public DefaultAfterPreviousExecutionState(
+    public DefaultAfterExecutionState(
         OriginMetadata originMetadata,
+        @Nullable
+        BuildCacheKey cacheKey,
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedMap<String, FileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork,
-        boolean successful
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork
     ) {
         super(implementation, additionalImplementations, inputProperties, inputFileProperties);
+        this.cacheKey = cacheKey;
         this.outputFilesProducedByWork = outputFilesProducedByWork;
         this.originMetadata = originMetadata;
-        this.successful = successful;
     }
 
     @Override
@@ -56,7 +60,7 @@ public class DefaultAfterPreviousExecutionState extends AbstractExecutionState<F
     }
 
     @Override
-    public boolean isSuccessful() {
-        return successful;
+    public BuildCacheKey getCacheKey() {
+        return cacheKey;
     }
 }

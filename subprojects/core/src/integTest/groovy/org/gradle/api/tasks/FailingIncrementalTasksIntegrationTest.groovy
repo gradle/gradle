@@ -49,7 +49,7 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         fails "foo", "--info"
         then:
         failureHasCause "Boo!"
-        output.contains "Task has failed previously."
+        output.contains "out.txt has changed"
         //this exposes an issue we used to have with in-memory cache.
     }
 

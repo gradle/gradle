@@ -25,7 +25,7 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.DefaultIncrementalInputProperties;
@@ -67,7 +67,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             )
             .orElseGet(() ->
                 beforeExecutionState
-                    .map(beforeExecution -> context.getAfterPreviousExecutionState()
+                    .map(beforeExecution -> context.getAfterLastSuccessfulExecutionState()
                         .map(afterPreviousExecution -> context.getValidationProblems()
                             .map(__ -> rebuildChanges(work, beforeExecution, VALIDATION_FAILED))
                             .orElseGet(() ->
@@ -129,8 +129,13 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            public Optional<AfterExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<AfterExecutionState> getAfterLastSuccessfulExecutionState() {
+                return context.getAfterLastSuccessfulExecutionState();
             }
 
             @Override

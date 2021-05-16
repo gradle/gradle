@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Unroll
@@ -27,7 +27,7 @@ import spock.lang.Unroll
 class ExecuteStepTest extends StepSpec<InputChangesContext> {
     def workspace = Mock(File)
     def previousOutputs = ImmutableSortedMap.of()
-    def afterPreviousExecutionState = Stub(AfterPreviousExecutionState) {
+    def afterPreviousExecutionState = Stub(AfterExecutionState) {
         getOutputFilesProducedByWork() >> previousOutputs
     }
 

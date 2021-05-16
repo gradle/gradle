@@ -20,20 +20,18 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import java.util.Optional;
 
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.findOutputsStillPresentSincePreviousExecution;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
-    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, IncrementalInputProperties incrementalInputProperties) {
-        // Capture changes in execution outcome
-        ChangeContainer previousSuccessState = new PreviousSuccessChanges(
-            lastExecution.isSuccessful());
-
+    public ExecutionStateChanges detectChanges(AfterExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, IncrementalInputProperties incrementalInputProperties) {
         // Capture changes to implementation
         ChangeContainer implementationChanges = new ImplementationChanges(
             lastExecution.getImplementation(), lastExecution.getAdditionalImplementations(),
@@ -78,12 +76,10 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         // Collect changes that would trigger a rebuild
         ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(
-            previousSuccessState,
             implementationChanges,
             inputPropertyChanges,
             inputPropertyValueChanges,
             outputFilePropertyChanges,
-            outputFileChanges,
             inputFilePropertyChanges,
             nonIncrementalInputFileChanges
         ));
@@ -102,12 +98,14 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
                 thisExecution.getInputFileProperties()
             );
             InputFileChanges incrementalInputFileChanges = errorHandling(executable, caching(directIncrementalInputFileChanges));
-            ImmutableList<String> incrementalInputFileChangeMessages = collectChanges(incrementalInputFileChanges);
+            ChangeContainer allChanges = errorHandling(executable, new SummarizingChangeContainer(incrementalInputFileChanges, outputFileChanges));
+            ImmutableList<String> incrementalInputFileChangeMessages = collectChanges(allChanges);
             return new IncrementalDetectedExecutionStateChanges(
                 incrementalInputFileChangeMessages,
                 thisExecution.getInputFileProperties(),
                 incrementalInputFileChanges,
-                incrementalInputProperties
+                incrementalInputProperties,
+                outputFileChanges
             );
         }
     }
@@ -155,20 +153,34 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
     private static class IncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges {
         private final InputFileChanges inputFileChanges;
+        private final OutputFileChanges outputFileChanges;
 
         public IncrementalDetectedExecutionStateChanges(
             ImmutableList<String> allChangeMessages,
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
             InputFileChanges incrementalInputFileChanges,
-            IncrementalInputProperties incrementalInputProperties
-        ) {
+            IncrementalInputProperties incrementalInputProperties,
+            OutputFileChanges outputFileChanges) {
             super(allChangeMessages, inputFileProperties, incrementalInputProperties);
             this.inputFileChanges = incrementalInputFileChanges;
+            this.outputFileChanges = outputFileChanges;
         }
 
         @Override
         public InputChangesInternal createInputChanges() {
             return new IncrementalInputChanges(inputFileChanges, incrementalInputProperties);
+        }
+
+        @Override
+        public Optional<String> getOutputFileChangeMessage() {
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            outputFileChanges.accept(new MessageCollectingChangeVisitor(builder, 1));
+            ImmutableList<String> messages = builder.build();
+            if (messages.isEmpty()) {
+                return Optional.empty();
+            } else {
+                return Optional.of(messages.get(0));
+            }
         }
     }
 

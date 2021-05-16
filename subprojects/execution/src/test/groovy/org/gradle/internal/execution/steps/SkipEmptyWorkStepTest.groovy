@@ -18,22 +18,22 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import spock.lang.Unroll
 
-class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
+class SkipEmptyWorkStepTest extends StepSpec<ExecutionHistoryContext> {
     def step = new SkipEmptyWorkStep<>(delegate)
-    def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+    def afterPreviousExecutionState = Mock(AfterExecutionState)
 
     def delegateResult = Mock(CachingResult)
     def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of()
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     @Override
-    protected AfterPreviousExecutionContext createContext() {
-        Stub(AfterPreviousExecutionContext)
+    protected ExecutionHistoryContext createContext() {
+        Stub(ExecutionHistoryContext)
     }
 
     def setup() {

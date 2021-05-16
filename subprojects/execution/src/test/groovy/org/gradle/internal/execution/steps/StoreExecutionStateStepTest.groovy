@@ -18,10 +18,10 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionResult
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.hash.HashCode
@@ -32,6 +32,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def originMetadata = Mock(OriginMetadata)
+    def cacheKey = Mock(BuildCacheKey)
     def implementationSnapshot = ImplementationSnapshot.of("Test", HashCode.fromInt(123))
     def additionalImplementations = ImmutableList.of()
     def inputProperties = ImmutableSortedMap.of()
@@ -76,7 +77,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         0 * _
     }
 
-    def "output snapshots are stored after failed execution when there's no previous state available"() {
+    def "output snapshots are stored after failed execution"() {
         when:
         def result = step.execute(work, context)
 
@@ -88,71 +89,25 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
-
-        then:
-        _ * context.afterPreviousExecutionState >> Optional.empty()
 
         then:
         interaction { expectStore(false, outputFilesProduceByWork) }
         0 * _
     }
 
-    def "output snapshots are stored after failed execution with changed outputs"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
-
-        when:
-        def result = step.execute(work, context)
-
-        then:
-        result == delegateResult
-        1 * delegate.execute(work, context) >> delegateResult
-
-        then:
-        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
-        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
-
-        then:
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
-
-        then:
-        interaction { expectStore(false, outputFilesProduceByWork) }
-        0 * _
-    }
-
-    def "output snapshots are not stored after failed execution with unchanged outputs"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
-
-        when:
-        def result = step.execute(work, context)
-
-        then:
-        result == delegateResult
-        1 * delegate.execute(work, context) >> delegateResult
-
-        then:
-        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
-        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
-
-        then:
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFilesProducedByWork >> outputFilesProduceByWork
-        0 * _
-    }
-
-    void expectStore(boolean successful, ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs) {
+    void expectStore(boolean success, ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs) {
         1 * delegateResult.originMetadata >> originMetadata
+        1 * delegateResult.cacheKey >> cacheKey
         1 * executionHistoryStore.store(
+            success,
             identity.uniqueId,
             originMetadata,
+            cacheKey,
             implementationSnapshot,
             additionalImplementations,
             inputProperties,
             inputFileProperties,
-            finalOutputs,
-            successful
+            finalOutputs
         )
     }
 }

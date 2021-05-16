@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -117,8 +117,13 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            public Optional<AfterExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<AfterExecutionState> getAfterLastSuccessfulExecutionState() {
+                return context.getAfterLastSuccessfulExecutionState();
             }
 
             @Override

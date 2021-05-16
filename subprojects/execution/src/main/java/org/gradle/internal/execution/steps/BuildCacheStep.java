@@ -30,13 +30,22 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.work.InputChanges;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -116,6 +125,11 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                         }
 
                         @Override
+                        public BuildCacheKey getCacheKey() {
+                            return cacheKey;
+                        }
+
+                        @Override
                         public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
                             return outputFilesProducedByWork;
                         }
@@ -171,7 +185,130 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
     }
 
     private CurrentSnapshotResult executeWithoutCache(UnitOfWork work, IncrementalChangesContext context) {
-        return delegate.execute(work, context);
+        IncrementalChangesContext nextContext = maybeRestorePreviousOutputs(work, context);
+        CurrentSnapshotResult result = delegate.execute(work, nextContext);
+        BuildCacheKey cacheKey = context.getCachingState().getKey().orElse(null);
+        return new CurrentSnapshotResult() {
+            @Override
+            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
+                return result.getOutputFilesProduceByWork();
+            }
+
+            @Override
+            public OriginMetadata getOriginMetadata() {
+                return result.getOriginMetadata();
+            }
+
+            @Nullable
+            @Override
+            public BuildCacheKey getCacheKey() {
+                return cacheKey;
+            }
+
+            @Override
+            public boolean isReused() {
+                return result.isReused();
+            }
+
+            @Override
+            public Try<ExecutionResult> getExecutionResult() {
+                return result.getExecutionResult();
+            }
+        };
+    }
+
+    private IncrementalChangesContext maybeRestorePreviousOutputs(UnitOfWork work, IncrementalChangesContext context) {
+        Optional<ExecutionStateChanges> outputChanges = context.getChanges()
+            .flatMap(ExecutionStateChanges::getOutputFileChangeMessage)
+            .flatMap(message -> {
+                Optional<ExecutionStateChanges> changes = context.getChanges();
+                boolean incremental = work.getInputChangeTrackingStrategy().requiresInputChanges()
+                    && changes.map(ExecutionStateChanges::createInputChanges).map(InputChanges::isIncremental).orElse(false);
+                if (!incremental) {
+                    return changes.map(original -> original.withEnforcedRebuild(message));
+                }
+                Optional<LoadMetadata> load = context.getAfterLastSuccessfulExecutionState()
+                    .map(AfterExecutionState::getCacheKey)
+                    .flatMap(cacheKey -> {
+                        CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
+                        return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
+                            ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
+                            : Optional.<LoadMetadata>empty()
+                        ).getOrMapFailure(loadFailure -> Optional.empty());
+                    });
+                if (load.isPresent()) {
+                    return changes;
+                } else {
+                    return changes.map(original -> original.withEnforcedRebuild(message + " and the previous outputs could not be restored from the build cache"));
+                }
+            });
+        Optional<ExecutionStateChanges> changes = outputChanges.isPresent() ? outputChanges : context.getChanges();
+        return new IncrementalChangesContext() {
+            @Override
+            public Optional<ExecutionStateChanges> getChanges() {
+                return changes;
+            }
+
+            @Override
+            public CachingState getCachingState() {
+                return context.getCachingState();
+            }
+
+            @Override
+            public Optional<ValidationResult> getValidationProblems() {
+                return context.getValidationProblems();
+            }
+
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
+            }
+
+            @Override
+            public Optional<AfterExecutionState> getAfterPreviousExecutionState() {
+                return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<AfterExecutionState> getAfterLastSuccessfulExecutionState() {
+                return context.getAfterLastSuccessfulExecutionState();
+            }
+
+            @Override
+            public File getWorkspace() {
+                return context.getWorkspace();
+            }
+
+            @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return context.getHistory();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return context.getInputProperties();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return context.getInputFileProperties();
+            }
+
+            @Override
+            public UnitOfWork.Identity getIdentity() {
+                return context.getIdentity();
+            }
+
+            @Override
+            public Optional<String> getRebuildReason() {
+                return context.getRebuildReason();
+            }
+
+            @Override
+            public WorkValidationContext getValidationContext() {
+                return context.getValidationContext();
+            }
+        };
     }
 
     private static class CacheableWork implements CacheableEntity {

@@ -22,7 +22,7 @@ import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.ExecutionState;
@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
+public class CaptureStateBeforeExecutionStep extends BuildOperationStep<ExecutionHistoryContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -66,7 +66,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, AfterPreviousExecutionContext context) {
+    public CachingResult execute(UnitOfWork work, ExecutionHistoryContext context) {
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
             .map(executionHistoryStore -> captureExecutionStateOp(work, context));
         return delegate.execute(work, new BeforeExecutionContext() {
@@ -115,13 +115,18 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            public Optional<AfterExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<AfterExecutionState> getAfterLastSuccessfulExecutionState() {
+                return context.getAfterLastSuccessfulExecutionState();
             }
         });
     }
 
-    private BeforeExecutionState captureExecutionStateOp(UnitOfWork work, AfterPreviousExecutionContext executionContext) {
+    private BeforeExecutionState captureExecutionStateOp(UnitOfWork work, ExecutionHistoryContext executionContext) {
         return operation(operationContext -> {
                 BeforeExecutionState beforeExecutionState = captureExecutionState(work, executionContext);
                 operationContext.setResult(Operation.Result.INSTANCE);
@@ -133,9 +138,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
         );
     }
 
-    private BeforeExecutionState captureExecutionState(UnitOfWork work, AfterPreviousExecutionContext context) {
-        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getAfterPreviousExecutionState();
-
+    private BeforeExecutionState captureExecutionState(UnitOfWork work, ExecutionHistoryContext context) {
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
         work.visitImplementations(implementationsBuilder);
         ImplementationSnapshot implementation = implementationsBuilder.getImplementation();
@@ -146,11 +149,11 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             LOGGER.debug("Additional implementations for {}: {}", work.getDisplayName(), additionalImplementations);
         }
 
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = context.getAfterLastSuccessfulExecutionState()
             .map(ExecutionState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
-        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterPreviousExecution = afterPreviousExecutionState
-            .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
+        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterPreviousExecution = context.getAfterPreviousExecutionState()
+            .map(AfterExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
 
         ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());

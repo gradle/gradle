@@ -159,7 +159,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
@@ -171,7 +171,7 @@ import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CreateOutputsStep;
+import org.gradle.internal.execution.steps.MkDirsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
@@ -776,7 +776,7 @@ class DependencyManagementBuildScopeServices {
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new StoreExecutionStateStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
-            new CreateOutputsStep<>(
+            new MkDirsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
@@ -837,7 +837,12 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
-                public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                public Optional<AfterExecutionState> getAfterLastSuccessfulExecutionState() {
+                    return context.getAfterLastSuccessfulExecutionState();
+                }
+
+                @Override
+                public Optional<AfterExecutionState> getAfterPreviousExecutionState() {
                     return context.getAfterPreviousExecutionState();
                 }
 

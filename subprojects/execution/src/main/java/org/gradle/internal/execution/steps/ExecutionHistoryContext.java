@@ -16,14 +16,20 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 
 import java.util.Optional;
 
-public interface AfterPreviousExecutionContext extends WorkspaceContext {
+public interface ExecutionHistoryContext extends WorkspaceContext {
     /**
      * Returns the execution state after the previous execution if available.
      * Empty when execution history is not available.
      */
-    Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState();
+    Optional<AfterExecutionState> getAfterPreviousExecutionState();
+
+    /**
+     * Returns the execution state after the last successful execution if available.
+     * Empty when execution history is not available.
+     */
+    Optional<AfterExecutionState> getAfterLastSuccessfulExecutionState();
 }

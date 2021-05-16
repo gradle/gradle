@@ -24,8 +24,9 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -33,6 +34,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -41,55 +43,72 @@ import static com.google.common.collect.Maps.transformValues;
 
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
-    private final PersistentIndexedCache<String, AfterPreviousExecutionState> store;
+    private final PersistentIndexedCache<String, AfterExecutionState> lastExecutions;
+    private final PersistentIndexedCache<String, AfterExecutionState> lastSuccessfulExecutions;
 
     public DefaultExecutionHistoryStore(
         Supplier<PersistentCache> cache,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         Interner<String> stringInterner
     ) {
-        DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
+        AfterExecutionStateSerializer serializer = new AfterExecutionStateSerializer(
             new FileCollectionFingerprintSerializer(stringInterner),
             new FileSystemSnapshotSerializer(stringInterner)
         );
 
         CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
-        this.store = cache.get().createCache(
-            PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer)
-            .withCacheDecorator(inMemoryCacheDecorator)
+        this.lastExecutions = cache.get().createCache(
+            PersistentIndexedCacheParameters.of("lastExecution", String.class, serializer)
+                .withCacheDecorator(inMemoryCacheDecorator)
+        );
+        this.lastSuccessfulExecutions = cache.get().createCache(
+            PersistentIndexedCacheParameters.of("lastSuccesfulExecution", String.class, serializer)
+                .withCacheDecorator(inMemoryCacheDecorator)
         );
     }
 
     @Override
-    public Optional<AfterPreviousExecutionState> load(String key) {
-        return Optional.ofNullable(store.getIfPresent(key));
+    public Optional<AfterExecutionState> loadLastState(String key) {
+        return Optional.ofNullable(lastExecutions.getIfPresent(key));
+    }
+
+    @Override
+    public Optional<AfterExecutionState> loadLastSuccessfulState(String key) {
+        return Optional.ofNullable(lastSuccessfulExecutions.getIfPresent(key));
     }
 
     @Override
     public void store(
+        boolean success,
         String key,
         OriginMetadata originMetadata,
+        @Nullable BuildCacheKey cacheKey,
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties,
-        boolean successful
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties
     ) {
-        store.put(key, new DefaultAfterPreviousExecutionState(
+        DefaultAfterExecutionState state = new DefaultAfterExecutionState(
             originMetadata,
+            cacheKey,
             implementation,
             additionalImplementations,
             inputProperties,
             prepareForSerialization(inputFileProperties),
-            outputFileProperties,
-            successful
-        ));
+            outputFileProperties
+        );
+
+        lastExecutions.put(key, state);
+        if (success) {
+            lastSuccessfulExecutions.put(key, state);
+        }
     }
 
     @Override
     public void remove(String key) {
-        store.remove(key);
+        lastExecutions.remove(key);
+        lastSuccessfulExecutions.remove(key);
     }
 
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {

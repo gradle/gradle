@@ -69,12 +69,10 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         interaction { withValidCacheKey() }
 
-        then:
         _ * work.allowedToLoadFromCache >> true
         1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.of(loadMetadata)
 
-        then:
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
             visitor.visitLocalState(localStateFile)
         }
@@ -84,7 +82,6 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
             return true
         }
 
-        then:
         1 * loadMetadata.originMetadata >> cachedOriginMetadata
         1 * loadMetadata.resultingSnapshots >> outputsFromCache
 
@@ -92,24 +89,26 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     }
 
     def "executes work and stores in cache on cache miss"() {
+        given:
+
         when:
         def result = step.execute(work, context)
 
         then:
-        result == delegateResult
+        result.cacheKey == cacheKey
+        result.originMetadata == delegateResult.originMetadata
+        result.outputFilesProduceByWork == delegateResult.outputFilesProduceByWork
+        result.reused == delegateResult.reused
 
         interaction { withValidCacheKey() }
-
-        then:
         _ * work.allowedToLoadFromCache >> true
         1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.empty()
-
-        then:
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegate.execute(work,  { IncrementalChangesContext ctx ->
+            ctx.changes == context.changes && ctx.afterPreviousExecutionState == context.afterPreviousExecutionState
+        }) >> delegateResult
         1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
-        then:
         interaction { outputStored {} }
         0 * _
     }
@@ -148,42 +147,33 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def result = step.execute(work, context)
 
         then:
-        result == delegateResult
         !result.reused
 
         interaction { withValidCacheKey() }
 
-        then:
         _ * work.allowedToLoadFromCache >> true
         1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.empty()
 
-        then:
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegate.execute(work, _) >> delegateResult
         1 * delegateResult.executionResult >> Try.failure(new RuntimeException("failure"))
 
-        then:
         0 * buildCacheController.store(_)
         0 * _
     }
 
     def "does not load but stores when loading is disabled"() {
         when:
-        def result = step.execute(work, context)
+        step.execute(work, context)
 
         then:
-        result == delegateResult
-
         interaction { withValidCacheKey() }
 
-        then:
         _ * work.allowedToLoadFromCache >> false
 
-        then:
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegate.execute(work, _) >> delegateResult
         1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
-        then:
         interaction { outputStored {} }
         0 * _
     }
@@ -201,14 +191,11 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         interaction { withValidCacheKey() }
 
-        then:
         _ * work.allowedToLoadFromCache >> false
 
-        then:
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegate.execute(work, _) >> delegateResult
         1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
-        then:
         interaction { outputStored { throw failure } }
         0 * _
     }
@@ -218,19 +205,19 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def result = step.execute(work, context)
 
         then:
-        result == delegateResult
         !result.reused
 
         _ * context.cachingState >> cachingState
         1 * cachingState.disabledReasons >> ImmutableList.of(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * cachingState.key >> Optional.empty()
+        1 * delegate.execute(work, _) >> delegateResult
         0 * _
     }
 
     private void withValidCacheKey() {
-        _ * context.cachingState >> cachingState
-        1 * cachingState.disabledReasons >> ImmutableList.of()
-        1 * cachingState.key >> Optional.of(cacheKey)
+        _ * context.getCachingState() >> cachingState
+        _ * cachingState.disabledReasons >> ImmutableList.of()
+        _ * cachingState.key >> Optional.of(cacheKey)
     }
 
     private void outputStored(Closure storeResult) {
@@ -238,10 +225,11 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def outputFilesProduceByWork = snapshotsOf("test": [])
         def storeCommand = Mock(BuildCacheStoreCommand)
 
-        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
-        1 * delegateResult.originMetadata >> originMetadata
-        1 * originMetadata.executionTime >> 123L
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFilesProduceByWork, 123L) >> storeCommand
-        1 * buildCacheController.store(storeCommand) >> { storeResult() }
+        _ * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
+        _ * delegateResult.originMetadata >> originMetadata
+        _ * delegateResult.reused >> false
+        _ * originMetadata.executionTime >> 123L
+        _ * buildCacheCommandFactory.createStore(cacheKey, _, outputFilesProduceByWork, 123L) >> storeCommand
+        _ * buildCacheController.store(storeCommand) >> { storeResult() }
     }
 }

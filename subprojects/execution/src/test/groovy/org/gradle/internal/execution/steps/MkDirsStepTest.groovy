@@ -20,8 +20,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
-class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
-    def step = new CreateOutputsStep<>(delegate)
+class MkDirsStepTest extends StepSpec<WorkspaceContext> {
+    def step = new MkDirsStep<>(delegate)
 
     @Override
     protected WorkspaceContext createContext() {
