@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 #
 # Copyright 2015 the original author or authors.
@@ -172,14 +172,8 @@ if [ "\$cygwin" = "true" -o "\$msys" = "true" ] ; then
     esac
 fi
 
-# Escape application args
-save () {
-    for i do printf %s\\\\n "\$i" | sed "s/'/'\\\\\\\\''/g;1s/^/'/;\\\$s/\\\$/' \\\\\\\\/" ; done
-    echo " "
-}
-APP_ARGS=`save "\$@"`
+IFS=\$'\n' read -rd '' -a DEFAULT_JVM_OPTS_ARR <<< "\$(echo \$DEFAULT_JVM_OPTS | xargs -n1)"
+IFS=\$'\n' read -rd '' -a JAVA_OPTS_ARR <<< "\$(echo \$JAVA_OPTS | xargs -n1)"
+IFS=\$'\n' read -rd '' -a ${optsEnvironmentVar}_ARR <<< "\$(echo \$${optsEnvironmentVar} | xargs -n1)"
 
-# Collect all arguments for the java command, following the shell quoting and substitution rules
-eval set -- \$DEFAULT_JVM_OPTS \$JAVA_OPTS \$${optsEnvironmentVar} <% if ( appNameSystemProperty ) { %>"\"-D${appNameSystemProperty}=\$APP_BASE_NAME\"" <% } %>-classpath "\"\$CLASSPATH\"" <% if ( mainClassName.startsWith('--module ') ) { %>--module-path "\"\$MODULE_PATH\"" <% } %>${mainClassName} "\$APP_ARGS"
-
-exec "\$JAVACMD" "\$@"
+exec "\$JAVACMD" "\${DEFAULT_JVM_OPTS_ARR[@]}" "\${JAVA_OPTS_ARR[@]}" "\${${optsEnvironmentVar}_ARR[@]}" <% if ( appNameSystemProperty ) { %>"\"-D${appNameSystemProperty}=\$APP_BASE_NAME\"" <% } %>-classpath "\$CLASSPATH" <% if ( mainClassName.startsWith('--module ') ) { %>--module-path "\$MODULE_PATH" <% } %>${mainClassName} "\$@"
