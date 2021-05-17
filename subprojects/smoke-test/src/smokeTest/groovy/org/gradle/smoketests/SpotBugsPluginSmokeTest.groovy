@@ -57,8 +57,6 @@ class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         then:
         file('build/reports/spotbugs').isDirectory()
-
-        expectNoDeprecationWarnings(result)
     }
 
     @Override

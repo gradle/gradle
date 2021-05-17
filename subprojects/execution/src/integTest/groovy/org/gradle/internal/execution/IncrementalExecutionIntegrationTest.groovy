@@ -153,8 +153,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
-            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(

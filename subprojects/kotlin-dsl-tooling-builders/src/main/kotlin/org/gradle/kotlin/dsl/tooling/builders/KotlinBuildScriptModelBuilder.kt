@@ -226,9 +226,7 @@ fun precompiledScriptPluginModelBuilder(
 
 private
 val Project.precompiledScriptPluginsMetadataDir: File
-    get() = buildDir.resolve("kotlin-dsl/precompiled-script-plugins-metadata").apply {
-        require(isDirectory)
-    }
+    get() = buildDir.resolve("kotlin-dsl/precompiled-script-plugins-metadata")
 
 
 private

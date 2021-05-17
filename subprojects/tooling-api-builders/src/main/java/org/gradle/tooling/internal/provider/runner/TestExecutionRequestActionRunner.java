@@ -71,7 +71,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
     private void doRun(TestExecutionRequestAction action, BuildTreeLifecycleController buildController) {
         TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action, buildController.getGradle());
         buildController.getGradle().getServices().get(BuildConfigurationActionExecuter.class).setTaskSelectors(Collections.singletonList(testTasksConfigurationAction));
-        buildController.run();
+        buildController.scheduleAndRunTasks();
     }
 
     private Throwable findRootCause(Exception tex) {

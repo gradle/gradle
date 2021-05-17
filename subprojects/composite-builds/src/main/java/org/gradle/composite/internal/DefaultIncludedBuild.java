@@ -32,7 +32,7 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -59,7 +59,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildDefinition buildDefinition,
         boolean isImplicit,
         BuildState owner,
-        BuildTreeController buildTree,
+        BuildTreeState buildTree,
         WorkerLeaseRegistry.WorkerLease parentLease,
         BuildLifecycleControllerFactory buildLifecycleControllerFactory,
         ProjectStateRegistry projectStateRegistry

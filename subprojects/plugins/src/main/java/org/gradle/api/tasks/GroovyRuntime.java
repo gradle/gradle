@@ -19,11 +19,14 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
@@ -70,9 +73,11 @@ public class GroovyRuntime {
         "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc");
 
     private final Project project;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
     public GroovyRuntime(Project project) {
         this.project = project;
+        this.jvmEcosystemUtilities = ((ProjectInternal) project).getServices().get(JvmEcosystemUtilities.class);
     }
 
     /**
@@ -123,7 +128,7 @@ public class GroovyRuntime {
                     // add groovy-templates for Groovy 2.5+
                     addGroovyDependency(notation, dependencies, "groovy-templates");
                 }
-                return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0]));
+                return detachedRuntimeClasspath(dependencies.toArray(new Dependency[0]));
             }
 
             private void addGroovyDependency(String groovyDependencyNotion, List<Dependency> dependencies, String otherDependency) {
@@ -141,7 +146,7 @@ public class GroovyRuntime {
                     return project.getLayout().files(groovyClasspath);
                 }
 
-                return project.getConfigurations().detachedConfiguration(
+                return detachedRuntimeClasspath(
                     GROOVY3_LIBS.stream()
                         .map(libName -> project.getDependencies().create("org.codehaus.groovy:" + libName + ":" + groovyVersion))
                         .toArray(Dependency[]::new)
@@ -156,6 +161,12 @@ public class GroovyRuntime {
                 }
             }
         };
+    }
+
+    private Configuration detachedRuntimeClasspath(Dependency... dependencies) {
+        Configuration classpath = project.getConfigurations().detachedConfiguration(dependencies);
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(classpath);
+        return classpath;
     }
 
     @Nullable

@@ -115,11 +115,6 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
 
     steps {
         gradleWrapper {
-            name = "SHOW_TOOLCHAINS"
-            tasks = "javaToolchains"
-            gradleParams = parameters
-        }
-        gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = parameters

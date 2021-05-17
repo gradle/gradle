@@ -29,9 +29,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
-    private enum State {Created, Running, Completed}
-
-    private State state = State.Created;
+    private boolean completed;
     private final BuildLifecycleController buildLifecycleController;
     private final WorkerLeaseService workerLeaseService;
     private final BuildTreeWorkExecutor workExecutor;
@@ -52,14 +50,14 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public GradleInternal getGradle() {
-        if (state == State.Completed) {
+        if (completed) {
             throw new IllegalStateException("Cannot use Gradle object after build has finished.");
         }
         return buildLifecycleController.getGradle();
     }
 
     @Override
-    public void run() {
+    public void scheduleAndRunTasks() {
         doBuild((buildController, failures) -> {
             buildController.scheduleRequestedTasks();
             workExecutor.execute(failures);
@@ -68,47 +66,52 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     @Override
-    public void configure() {
-        doBuild((buildController, failures) -> buildController.getConfiguredBuild());
+    public <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action) {
+        return doBuild((buildController, failures) -> {
+            if (runTasks) {
+                buildController.scheduleRequestedTasks();
+                workExecutor.execute(failures);
+            } else {
+                buildController.getConfiguredBuild();
+            }
+            return action.apply(buildController.getGradle());
+        });
     }
 
     @Override
-    public <T> T withEmptyBuild(Function<SettingsInternal, T> action) {
+    public <T> T withEmptyBuild(Function<? super SettingsInternal, T> action) {
         return doBuild((buildController, failures) -> action.apply(buildController.getLoadedSettings()));
     }
 
     private <T> T doBuild(final BuildAction<T> build) {
-        if (state != State.Created) {
+        if (completed) {
             throw new IllegalStateException("Cannot run more than one action for this build.");
         }
-        state = State.Running;
-        try {
-            // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
-            return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), () -> {
-                List<Throwable> failures = new ArrayList<>();
-                Consumer<Throwable> collector = failures::add;
+        completed = true;
+        // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
+        return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), () -> {
+            List<Throwable> failures = new ArrayList<>();
+            Consumer<Throwable> collector = failures::add;
 
-                T result = null;
-                try {
-                    result = build.run(buildLifecycleController, collector);
-                } catch (Throwable t) {
-                    failures.add(t);
-                }
+            T result;
+            try {
+                result = build.run(buildLifecycleController, collector);
+            } catch (Throwable t) {
+                result = null;
+                failures.add(t);
+            }
 
-                includedBuildControllers.finishBuild(collector);
-                RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
-                buildLifecycleController.finishBuild(reportableFailure, collector);
+            includedBuildControllers.finishBuild(collector);
+            RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
+            buildLifecycleController.finishBuild(reportableFailure, collector);
 
-                RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
-                if (finalReportableFailure != null) {
-                    throw finalReportableFailure;
-                }
+            RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
+            if (finalReportableFailure != null) {
+                throw finalReportableFailure;
+            }
 
-                return result;
-            });
-        } finally {
-            state = State.Completed;
-        }
+            return result;
+        });
     }
 
     private interface BuildAction<T> {

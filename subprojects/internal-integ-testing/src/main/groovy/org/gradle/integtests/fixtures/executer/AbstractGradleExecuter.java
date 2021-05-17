@@ -181,9 +181,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
 
-    private final TestDirectoryProvider testDirectoryProvider;
+    protected final TestDirectoryProvider testDirectoryProvider;
     protected final GradleVersion gradleVersion;
-    private final GradleDistribution distribution;
+    protected final GradleDistribution distribution;
 
     private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
     private boolean debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);

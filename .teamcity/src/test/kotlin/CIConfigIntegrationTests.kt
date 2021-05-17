@@ -1,29 +1,29 @@
-import common.VersionedSettingsBranch
-import model.CROSS_VERSION_BUCKETS
-import model.FunctionalTestBucketProvider
-import model.JsonBasedGradleSubprojectProvider
-import model.StatisticBasedFunctionalTestBucketProvider
-import model.ignoredSubprojects
 import common.JvmVendor
 import common.JvmVersion
 import common.Os
+import common.VersionedSettingsBranch
 import configurations.FunctionalTest
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
 import model.CIBuildModel
+import model.CROSS_VERSION_BUCKETS
+import model.FunctionalTestBucketProvider
 import model.GradleSubproject
+import model.JsonBasedGradleSubprojectProvider
 import model.Stage
 import model.StageNames
+import model.StatisticBasedFunctionalTestBucketProvider
 import model.TestCoverage
 import model.TestType
+import model.ignoredSubprojects
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import projects.FunctionalTestProject
 import projects.CheckProject
+import projects.FunctionalTestProject
 import projects.StageProject
 import java.io.File
 
@@ -71,30 +71,19 @@ class CIConfigIntegrationTests {
     @Test
     fun configurationsHaveDependencies() {
         val stagePassConfigs = rootProject.buildTypes
+        assertEquals(model.stages.size, stagePassConfigs.size)
         stagePassConfigs.forEach {
             val stageNumber = stagePassConfigs.indexOf(it) + 1
-            if (stageNumber <= model.stages.size) {
-                val stage = model.stages[stageNumber - 1]
-                val prevStage = if (stageNumber > 1) model.stages[stageNumber - 2] else null
-                var functionalTestCount = 0
+            val stage = model.stages[stageNumber - 1]
+            val prevStage = if (stageNumber > 1) model.stages[stageNumber - 2] else null
 
-                if (stage.runsIndependent) {
-                    return@forEach
-                }
-
-                stage.functionalTests.forEach { testCoverage ->
-                    functionalTestCount += if (testCoverage.testDistribution) 1 else gradleBuildBucketProvider.createFunctionalTestsFor(stage, testCoverage).size
-                    if (testCoverage.testType == TestType.soak) {
-                        functionalTestCount++
-                    }
-                }
-
-                assertEquals(
-                    stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0),
-                    it.dependencies.items.size, stage.stageName.stageName)
-            } else {
-                assertEquals(2, it.dependencies.items.size) // Individual Performance Worker
+            if (stage.runsIndependent) {
+                return@forEach
             }
+
+            assertEquals(
+                stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + (if (prevStage != null) 1 else 0),
+                it.dependencies.items.size, stage.stageName.stageName)
         }
     }
 

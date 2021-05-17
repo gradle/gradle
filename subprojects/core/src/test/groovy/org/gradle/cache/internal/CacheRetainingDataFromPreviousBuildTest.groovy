@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.initialization.SessionLifecycleListener
+import org.gradle.internal.session.BuildSessionLifecycleListener
 
 import java.util.function.Function
 
@@ -43,7 +43,7 @@ class CacheRetainingDataFromPreviousBuildTest extends AbstractCrossBuildInMemory
         0 * function._
 
         when:
-        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
         cache.get("a", function)
         cache.get("b", function)
         // Do not refresh "c"
@@ -52,14 +52,14 @@ class CacheRetainingDataFromPreviousBuildTest extends AbstractCrossBuildInMemory
         0 * function._
 
         when:
-        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
         cache.get("a", function)
         // Do not refresh "b" or "c"
         then:
         0 * function._
 
         when:
-        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
         cache.get("a", function)
         cache.get("b", function)
         cache.get("c", function)
@@ -85,7 +85,7 @@ class CacheRetainingDataFromPreviousBuildTest extends AbstractCrossBuildInMemory
         0 * function._
 
         when:
-        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
         cache.get("a", function)
         cache.get("b", function)
         cache.get("c", function)
@@ -96,7 +96,7 @@ class CacheRetainingDataFromPreviousBuildTest extends AbstractCrossBuildInMemory
         0 * function._
 
         when:
-        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
         cache.get("a", function)
         cache.get("b", function)
         cache.get("c", function)

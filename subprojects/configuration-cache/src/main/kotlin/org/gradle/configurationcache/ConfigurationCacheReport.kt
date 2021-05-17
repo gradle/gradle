@@ -57,13 +57,28 @@ class ConfigurationCacheReport {
         require(outputDirectory.mkdirs()) {
             "Could not create configuration cache report directory '$outputDirectory'"
         }
-        return outputDirectory.resolve(reportHtmlFileName).also { htmlReportFile ->
-            val html = javaClass.requireResource(reportHtmlFileName)
-            htmlReportFile.bufferedWriter().use { writer ->
-                html.openStream().bufferedReader().use { reader ->
-                    writer.writeReportFileText(reader, cacheAction, problems)
+        // Groovy JSON uses the context classloader to locate various components, so use this class's classloader as the context classloader
+        return withContextClassLoader {
+            outputDirectory.resolve(reportHtmlFileName).also { htmlReportFile ->
+                val html = javaClass.requireResource(reportHtmlFileName)
+                htmlReportFile.bufferedWriter().use { writer ->
+                    html.openStream().bufferedReader().use { reader ->
+                        writer.writeReportFileText(reader, cacheAction, problems)
+                    }
                 }
             }
+        }
+    }
+
+    private
+    fun <T> withContextClassLoader(action: () -> T): T {
+        val currentThread = Thread.currentThread()
+        val previous = currentThread.contextClassLoader
+        currentThread.contextClassLoader = javaClass.classLoader
+        try {
+            return action()
+        } finally {
+            currentThread.contextClassLoader = previous
         }
     }
 

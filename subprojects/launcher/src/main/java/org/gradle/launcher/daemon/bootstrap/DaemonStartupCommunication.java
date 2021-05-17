@@ -79,7 +79,7 @@ public class DaemonStartupCommunication {
             Decoder decoder = new InputStreamBackedDecoder(inputStream);
             String pidString = decoder.readNullableString();
             String uid = decoder.readString();
-            Long pid = pidString == null ? null : Long.valueOf(pidString);
+            Long pid = pidString == null ? null : Long.parseLong(pidString);
             Address address = new MultiChoiceAddressSerializer().read(decoder);
             File daemonLog = new File(decoder.readString());
             return new DaemonStartupInfo(uid, address, new DaemonDiagnostics(daemonLog, pid));

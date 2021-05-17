@@ -16,51 +16,48 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
-import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult;
+import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
+    private final PayloadSerializer payloadSerializer;
+    private final BuildEventConsumer buildEventConsumer;
+
+    public ClientProvidedPhasedActionRunner(BuildCancellationToken buildCancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLeaseRegistry projectLeaseRegistry, PayloadSerializer payloadSerializer, BuildEventConsumer buildEventConsumer) {
+        super(buildCancellationToken, buildOperationExecutor, projectLeaseRegistry);
+        this.payloadSerializer = payloadSerializer;
+        this.buildEventConsumer = buildEventConsumer;
+    }
+
     @Override
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         if (!(action instanceof ClientProvidedPhasedAction)) {
             return Result.nothing();
         }
 
-        GradleInternal gradle = buildController.getGradle();
-
         ClientProvidedPhasedAction clientProvidedPhasedAction = (ClientProvidedPhasedAction) action;
-        PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
-
         InternalPhasedAction phasedAction = (InternalPhasedAction) payloadSerializer.deserialize(clientProvidedPhasedAction.getPhasedAction());
 
-        return runClientAction(new ClientActionImpl(phasedAction, gradle, action), buildController);
-    }
-
-    private PayloadSerializer getPayloadSerializer(GradleInternal gradle) {
-        return gradle.getServices().get(PayloadSerializer.class);
-    }
-
-    private BuildEventConsumer getBuildEventConsumer(GradleInternal gradle) {
-        return gradle.getServices().get(BuildEventConsumer.class);
+        return runClientAction(new ClientActionImpl(phasedAction, action), buildController);
     }
 
     private class ClientActionImpl implements ClientAction {
         private final InternalPhasedAction phasedAction;
-        private final GradleInternal gradle;
         private final BuildAction action;
 
-        public ClientActionImpl(InternalPhasedAction phasedAction, GradleInternal gradle, BuildAction action) {
+        public ClientActionImpl(InternalPhasedAction phasedAction, BuildAction action) {
             this.phasedAction = phasedAction;
-            this.gradle = gradle;
             this.action = action;
         }
 
@@ -76,10 +73,9 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
 
         @Override
         public void collectActionResult(Object result, PhasedActionResult.Phase phase) {
-            PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
             SerializedPayload serializedResult = payloadSerializer.serialize(result);
             PhasedBuildActionResult res = new PhasedBuildActionResult(serializedResult, phase);
-            getBuildEventConsumer(gradle).dispatch(res);
+            buildEventConsumer.dispatch(res);
         }
 
         @Override

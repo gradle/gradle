@@ -19,7 +19,6 @@ package org.gradle.configurationcache
 import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.intellij.lang.annotations.Language
 
@@ -32,8 +31,6 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractOptInFe
     static final String DISABLE_CLI_OPT = "--no-${ConfigurationCacheOption.LONG_OPTION}"
     static final String DISABLE_GRADLE_PROP = "${ConfigurationCacheOption.PROPERTY_NAME}=false"
     static final String DISABLE_SYS_PROP = "-D$DISABLE_GRADLE_PROP"
-
-    static final String WARN_PROBLEMS_CLI_OPT = "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
 
     static final String MAX_PROBLEMS_GRADLE_PROP = "${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
     static final String MAX_PROBLEMS_SYS_PROP = "-D$MAX_PROBLEMS_GRADLE_PROP"

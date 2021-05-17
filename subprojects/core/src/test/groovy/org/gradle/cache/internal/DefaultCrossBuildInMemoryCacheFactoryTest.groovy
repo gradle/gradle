@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.initialization.SessionLifecycleListener
+import org.gradle.internal.session.BuildSessionLifecycleListener
 
 import java.util.function.Function
 
@@ -41,7 +41,7 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends AbstractCrossBuildInMemo
         0 * function._
 
         when:
-        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
         System.gc()
         cache.get("a", function)
         cache.get("b", function)

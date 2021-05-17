@@ -46,7 +46,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
     private static final Pattern TASK_PATTERN = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
 
-    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED) in( \\d+m?[smh])+");
+    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("(BUILD|CONFIGURE) (SUCCESSFUL|FAILED) in( \\d+m?[smh])+");
 
     private final LogContent output;
     private final LogContent error;
@@ -70,7 +70,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
      */
     public static OutputScrapingExecutionResult from(String output, String error) {
         // Should provide a Gradle version as parameter so this check can be more precise
-        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED")) {
+        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED") || error.contains("CONFIGURE FAILED")) {
             return new OutputScrapingExecutionFailure(output, error, true);
         }
         return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error), true);
@@ -164,7 +164,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
                 i+=4;
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
-                result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
+                result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("$1 $2 in 0s"));
                 i++;
             } else {
                 result.add(line);

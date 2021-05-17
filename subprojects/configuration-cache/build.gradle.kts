@@ -77,6 +77,7 @@ dependencies {
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
 
+    integTestImplementation(testFixtures(project(":tooling-api")))
     integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":jacoco")))
     integTestImplementation(testFixtures(project(":model-core")))

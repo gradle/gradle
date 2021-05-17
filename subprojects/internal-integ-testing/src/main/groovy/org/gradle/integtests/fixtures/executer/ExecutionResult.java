@@ -36,7 +36,7 @@ public interface ExecutionResult {
      * <ul>
      *     <li>Removes warning about running using configure on demand or parallel execution.</li>
      *     <li>Removes notice about starting or stopping the daemon.</li>
-     *     <li>Normalizes build time to 1 second.
+     *     <li>Normalizes build time to 0 seconds.
      * </ul>
      *
      * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
