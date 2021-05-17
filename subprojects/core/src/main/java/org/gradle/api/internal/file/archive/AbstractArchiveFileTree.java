@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.archive;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
@@ -47,7 +46,6 @@ public abstract class AbstractArchiveFileTree implements FileSystemMirroringFile
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        ProviderInternal<File> backingFileProvider = (ProviderInternal<File>) getBackingFileProvider();
-        backingFileProvider.visitDependencies(context);
+        context.add(getBackingFileProvider());
     }
 }
