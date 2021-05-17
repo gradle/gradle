@@ -121,17 +121,12 @@ public class TaskNodeFactory {
             public Optional<PluginId> findPluginDefining(Class<?> type) {
                 return classToPlugin.computeIfAbsent(type, clazz -> {
                     File taskJar = jarFileFor(type);
-                    Optional<Plugin<?>> pluginForTask = Cast.uncheckedCast(plugins.stream()
-                        .filter(plugin -> Objects.equals(jarFileFor(plugin.getClass()), taskJar))
-                        .findFirst());
-                    if (pluginForTask.isPresent()) {
-                        Optional<PluginId> pluginIdForClass = pluginManager.findPluginIdForClass(pluginForTask.get().getClass());
-                        if (pluginIdForClass.isPresent()) {
-                            return pluginIdForClass;
-                        }
-                        return Optional.of(new DefaultPluginId(pluginForTask.get().getClass().getName()));
-                    }
-                    return Optional.empty();
+                    return plugins.stream()
+                        .map(plugin -> Cast.<Class<Plugin<?>>>uncheckedNonnullCast(plugin.getClass()))
+                        .filter(pluginType -> Objects.equals(jarFileFor(pluginType), taskJar))
+                        .map(pluginType -> pluginManager.findPluginIdForClass(pluginType)
+                            .orElseGet(() -> new DefaultPluginId(pluginType.getName())))
+                        .findFirst();
                 });
             }
         }
