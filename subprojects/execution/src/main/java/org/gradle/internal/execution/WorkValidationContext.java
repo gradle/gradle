@@ -32,11 +32,8 @@ public interface WorkValidationContext {
     ImmutableSet<Class<?>> getValidatedTypes();
 
     interface TypeOriginInspector {
-        TypeOriginInspector NO_OP = new TypeOriginInspector() {
-        };
+        TypeOriginInspector NO_OP = type -> Optional.empty();
 
-        default Optional<PluginId> findPluginDefining(Class<?> type) {
-            return Optional.empty();
-        }
+        Optional<PluginId> findPluginDefining(Class<?> type);
     }
 }
