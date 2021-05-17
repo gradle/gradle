@@ -52,7 +52,7 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
      * @param antBuildFile The build file. This is resolved as per {@link Project#file(Object)}.
      * @param baseDirectory The base directory. This is resolved as per {@link Project#file(Object)}.
      *
-     * @since 6.9
+     * @since 7.1
      */
     @Incubating
     public abstract void importBuild(Object antBuildFile, String baseDirectory);
@@ -87,7 +87,7 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
      * @param baseDirectory The base directory. This is resolved as per {@link Project#file(Object)}.
      * @param taskNamer A transformer that calculates the name of the Gradle task for a corresponding Ant target.
      *
-     * @since 6.9
+     * @since 7.1
      */
     @Incubating
     public abstract void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer);
