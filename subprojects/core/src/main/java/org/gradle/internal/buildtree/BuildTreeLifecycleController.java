@@ -35,17 +35,19 @@ public interface BuildTreeLifecycleController {
      * Runs the given action against an empty build model. Does not attempt to perform any configuration or run any tasks.
      * When this method returns, all user code will have completed, including 'build finished' hooks.
      */
-    <T> T withEmptyBuild(Function<SettingsInternal, T> action);
+    <T> T withEmptyBuild(Function<? super SettingsInternal, T> action);
 
     /**
      * Creates the task graph for the tasks specified in the {@link org.gradle.StartParameter} associated with the build, runs the tasks and finishes up the build.
      * When this method returns, all user code will have completed, including 'build finished' hooks.
      */
-    void run();
+    void scheduleAndRunTasks();
 
     /**
-     * Configures the build, but does not schedule or run any tasks, and finishes up the build.
+     * Configures the build, optionally schedules and runs any tasks, calls the given action and finally finishes up the build.
      * When this method returns, all user code will have completed, including 'build finished' hooks.
+     *
+     * Does not call the given action if execution fails.
      */
-    void configure();
+    <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action);
 }

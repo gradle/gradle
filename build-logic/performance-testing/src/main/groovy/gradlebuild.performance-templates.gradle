@@ -44,7 +44,7 @@ performanceTest.registerTestProject("gradleBuildBaseline", RemoteProject) {
             return []
         }
         classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
-        main = 'org.gradle.performance.generator.TestProjectGenerator'
+        mainClass = 'org.gradle.performance.generator.TestProjectGenerator'
         args name, buildDir.absolutePath
     }
 }
@@ -395,7 +395,7 @@ performanceTest.registerTestProject("largeAndroidBuild", RemoteProject) {
 performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch
-    ref = 'b51d338057d025229154ee5a39f59aa4d4498f11'
+    ref = '3930e2bccc74a2cb134754f29069bddc15235792'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }

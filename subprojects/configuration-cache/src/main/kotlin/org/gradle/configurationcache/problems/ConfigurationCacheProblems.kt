@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache.problems
 
-import org.gradle.BuildAdapter
-import org.gradle.BuildResult
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
@@ -31,8 +29,10 @@ import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.problems.buildtree.ProblemReporter
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Consumer
 
 
 private
@@ -54,11 +54,7 @@ class ConfigurationCacheProblems(
     private
     val listenerManager: ListenerManager
 
-) : ProblemsListener, AutoCloseable {
-
-    private
-    val buildFinishedHandler = BuildFinishedProblemsHandler()
-
+) : ProblemsListener, ProblemReporter, AutoCloseable {
     private
     val postBuildHandler = PostBuildProblemsHandler()
 
@@ -78,12 +74,10 @@ class ConfigurationCacheProblems(
     var invalidateStoredState: (() -> Unit)? = null
 
     init {
-        listenerManager.addListener(buildFinishedHandler)
         listenerManager.addListener(postBuildHandler)
     }
 
     override fun close() {
-        listenerManager.removeListener(buildFinishedHandler)
         listenerManager.removeListener(postBuildHandler)
     }
 
@@ -108,69 +102,70 @@ class ConfigurationCacheProblems(
         problems.add(problem)
     }
 
-    private
-    inner class BuildFinishedProblemsHandler : BuildAdapter() {
+    override fun getId(): String {
+        return "configuration-cache"
+    }
 
-        override fun buildFinished(result: BuildResult) {
-            if (result.gradle?.parent != null || cacheAction == null || problems.isEmpty()) {
-                return
+    override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
+        if (problems.isEmpty()) {
+            return
+        }
+        val tooManyProblems = problems.size > startParameter.maxProblems
+        if (cacheAction == STORE && (isFailOnProblems || tooManyProblems)) {
+            // Invalidate stored state if problems fail the build
+            requireNotNull(invalidateStoredState).invoke()
+        }
+        val cacheActionText = cacheAction.summaryText()
+        val outputDirectory = outputDirectoryFor(reportDir)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problems)
+        when {
+            isFailOnProblems -> {
+                // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
+                validationFailures.accept(newProblemsException(cacheActionText, htmlReportFile))
             }
-            val tooManyProblems = problems.size > startParameter.maxProblems
-            if (cacheAction == STORE && (isFailOnProblems || tooManyProblems)) {
-                // Invalidate stored state if problems fail the build
-                requireNotNull(invalidateStoredState).invoke()
+            tooManyProblems -> {
+                validationFailures.accept(newTooManyProblemsException(cacheActionText, htmlReportFile))
             }
-            val cacheActionText = requireNotNull(cacheAction).summaryText()
-            val outputDirectory = outputDirectoryFor(result.gradle?.rootProject?.buildDir ?: startParameter.rootDirectory)
-            val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problems)
-            when {
-                isFailOnProblems -> {
-                    // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
-                    throw newProblemsException(cacheActionText, htmlReportFile)
-                }
-                tooManyProblems -> {
-                    throw newTooManyProblemsException(cacheActionText, htmlReportFile)
-                }
-                else -> {
-                    logger.warn(report.consoleSummaryFor(cacheActionText, problems, htmlReportFile))
-                }
+            else -> {
+                logger.warn(report.consoleSummaryFor(cacheActionText, problems, htmlReportFile))
             }
         }
-
-        private
-        fun ConfigurationCacheAction.summaryText() =
-            when (this) {
-                LOAD -> "reusing"
-                STORE -> "storing"
-            }
-
-        private
-        fun newProblemsException(cacheActionText: String, htmlReportFile: File) =
-            ConfigurationCacheProblemsException(
-                problems.causes(),
-                cacheActionText,
-                problems,
-                htmlReportFile
-            )
-
-        private
-        fun newTooManyProblemsException(cacheActionText: String, htmlReportFile: File) =
-            TooManyConfigurationCacheProblemsException(
-                problems.causes(),
-                cacheActionText,
-                problems,
-                htmlReportFile
-            )
-
-        private
-        fun outputDirectoryFor(buildDir: File): File =
-            buildDir.resolve("reports/configuration-cache/$cacheKey").let { base ->
-                if (!base.exists()) base
-                else generateSequence(1) { it + 1 }
-                    .map { base.resolveSibling("${base.name}-$it") }
-                    .first { !it.exists() }
-            }
     }
+
+    private
+    fun ConfigurationCacheAction?.summaryText() =
+        when (this) {
+            null -> "storing"
+            LOAD -> "reusing"
+            STORE -> "storing"
+        }
+
+    private
+    fun newProblemsException(cacheActionText: String, htmlReportFile: File) =
+        ConfigurationCacheProblemsException(
+            problems.causes(),
+            cacheActionText,
+            problems,
+            htmlReportFile
+        )
+
+    private
+    fun newTooManyProblemsException(cacheActionText: String, htmlReportFile: File) =
+        TooManyConfigurationCacheProblemsException(
+            problems.causes(),
+            cacheActionText,
+            problems,
+            htmlReportFile
+        )
+
+    private
+    fun outputDirectoryFor(buildDir: File): File =
+        buildDir.resolve("reports/configuration-cache/$cacheKey").let { base ->
+            if (!base.exists()) base
+            else generateSequence(1) { it + 1 }
+                .map { base.resolveSibling("${base.name}-$it") }
+                .first { !it.exists() }
+        }
 
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {
@@ -178,7 +173,6 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         override fun beforeComplete() {
-            if (cacheAction == null) return
             val hasProblems = problems.isNotEmpty()
             val hasTooManyProblems = problems.size > startParameter.maxProblems
             when {
@@ -186,10 +180,13 @@ class ConfigurationCacheProblems(
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
                 cacheAction == STORE && isFailOnProblems && hasProblems -> log("Configuration cache entry discarded with {}.", problemCount)
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCount)
+                cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
+                cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCount)
                 cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCount)
-                !hasProblems -> log("Configuration cache entry stored.")
-                else -> log("Configuration cache entry stored with {}.", problemCount)
+                hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCount)
+                hasProblems -> log("Configuration cache problems found ({}).", problemCount)
+                // else not storing or loading and no problems to report
             }
         }
 

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -43,15 +44,33 @@ import static org.gradle.internal.serialization.Transient.varOf;
 /**
  * The base class for all project based report tasks with custom task actions.
  *
- * @since 7.0
+ * @since 6.9
  */
 @Incubating
 public abstract class ConventionReportTask extends ConventionTask {
     // todo annotate as required
     private final Transient.Var<Set<Project>> projects = varOf(new HashSet<>(singleton(getProject())));
+    private final DirectoryProperty reportDir;
     private File outputFile;
 
+    /**
+     * Returns the project report directory.
+     * <p>
+     * The {@code project-report} plugin sets the default value for all tasks of this type to {@code buildDir/project}.
+     * <p>
+     * Note, that if the {@code project-report} plugin is not applied then this property is ignored.
+     *
+     * @return the directory to store project reports
+     * @since 7.1
+     */
+    @Internal
+    @Incubating
+    public DirectoryProperty getProjectReportDirectory() {
+        return reportDir;
+    }
+
     protected ConventionReportTask() {
+        reportDir = getProject().getObjects().directoryProperty();
         getOutputs().upToDateWhen(satisfyNone());
     }
 

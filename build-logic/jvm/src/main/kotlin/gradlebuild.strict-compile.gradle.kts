@@ -21,5 +21,9 @@ extensions.create<StrictCompileExtension>("strictCompile")
 val strictCompilerArgs = listOf("-Werror", "-Xlint:all", "-Xlint:-options", "-Xlint:-serial", "-Xlint:-classfile")
 
 tasks.withType<JavaCompile>().configureEach {
-    options.compilerArgs.addAll(strictCompilerArgs)
+    // Generated classes may not adhere to the strict no-warning policy that we apply to handwritten code
+    // For example, external JMH plugin generates code that produces compiler warnings
+    if (!name.contains("CompileGeneratedClasses")) {
+        options.compilerArgs.addAll(strictCompilerArgs)
+    }
 }

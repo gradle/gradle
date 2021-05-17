@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp
 
 import com.google.common.collect.Multimap
 import com.google.common.collect.MultimapBuilder
+import com.google.common.collect.Multimaps
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -35,8 +36,9 @@ class GroovySourceFileClassNameConverterTest extends Specification {
         sourceClassesMapping.put('MyClass.groovy', 'org.gradle.MyClass1')
         sourceClassesMapping.put('MyClass.groovy', 'org.gradle.MyClass2')
         sourceClassesMapping.put('YourClass.groovy', 'org.gradle.YourClass')
+        sourceClassesMapping.put('YourOtherClass.groovy', 'org.gradle.YourClass')
 
-        converter = new DefaultSourceFileClassNameConverter(sourceClassesMapping)
+        converter = new DefaultSourceFileClassNameConverter(Multimaps.asMap(sourceClassesMapping))
     }
 
     @Unroll
@@ -52,14 +54,15 @@ class GroovySourceFileClassNameConverterTest extends Specification {
     }
 
     @Unroll
-    def 'can get file by classname'() {
+    def 'can get files by classname'() {
         expect:
-        converter.getRelativeSourcePath(fqcn) == file
+        converter.getRelativeSourcePaths(fqcn) == files
+
         where:
-        fqcn                    | file
-        'org.gradle.MyClass1'   | Optional.of('MyClass.groovy')
-        'org.gradle.MyClass2'   | Optional.of('MyClass.groovy')
-        'org.gradle.YourClass'  | Optional.of('YourClass.groovy')
-        'org.gradle.OtherClass' | Optional.empty()
+        fqcn                    | files
+        'org.gradle.MyClass1'   | ['MyClass.groovy'] as Set
+        'org.gradle.MyClass2'   | ['MyClass.groovy'] as Set
+        'org.gradle.YourClass'  | ['YourClass.groovy', 'YourOtherClass.groovy'] as Set
+        'org.gradle.OtherClass' | [] as Set
     }
 }

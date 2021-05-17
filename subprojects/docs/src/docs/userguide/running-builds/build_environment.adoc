@@ -32,14 +32,16 @@ Aside from configuring the build environment, you can configure a given project 
 [[sec:gradle_configuration_properties]]
 == Gradle properties
 
-Gradle provides several options that make it easy to configure the Java process that will be used to execute your build. While it's possible to configure these in your local environment via `GRADLE_OPTS` or `JAVA_OPTS`, it is useful to store certain settings like JVM memory configuration and Java home location in version control so that an entire team can work with a consistent environment.
+Gradle provides several options that make it easy to configure the Java process that will be used to execute your build. While it's possible to configure these in your local environment via `GRADLE_OPTS` or `JAVA_OPTS`, it is useful to be able to store certain settings like JVM memory configuration and Java home location in version control so that an entire team can work with a consistent environment. To do so, place these settings into a `gradle.properties` file committed to your version control system.
 
-Setting up a consistent environment for your build is as simple as placing these settings into a `gradle.properties` file. The configuration is a combination of all your `gradle.properties` files, but if an option is configured in multiple locations, the _first one wins_:
+The final configuration taken into account by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files. If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
-* system properties, e.g. when `-Dgradle.user.home` is set on the command line.
+* command line, as set using the `-P` / `--project-prop` <<command_line_interface.adoc#sec:environment_options, environment options>>.
 * `gradle.properties` in `GRADLE_USER_HOME` directory.
 * `gradle.properties` in project root directory.
 * `gradle.properties` in Gradle installation directory.
+
+Note that the location of the Gradle user home may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
 
 The following properties can be used to configure the Gradle build environment:
 

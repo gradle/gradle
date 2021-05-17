@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -27,6 +28,18 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     @Override
     protected int maxConfigurationCacheProblems() {
         return 150
+    }
+
+    def "plop (agp=#agpVersion)"() {
+        expect:
+        if (VersionNumber.parse(agpVersion).baseVersion < VersionNumber.version(4, 2)) {
+            println("OLD WITH DEPWARN")
+        } else {
+            println("RECENT NO DEPWARN")
+        }
+
+        where:
+        agpVersion << TESTED_AGP_VERSIONS
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
@@ -40,15 +53,9 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def result = buildLocation(checkoutDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
 
         then:
-        expectDeprecationWarnings(result,
-            "The WorkerExecutor.submit() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-        )
         assertConfigurationCacheStateStored()
 
         where:
@@ -71,7 +78,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
 
         when:
-        def result = buildLocation(checkoutDir, agpVersion)
+        def result = buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
         then:
@@ -80,7 +87,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
-        buildLocation(checkoutDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
 
         then:
@@ -103,15 +110,25 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def result = runnerForLocation(checkoutDir, agpVersion, "lintDebug").buildAndFail()
+        def runner = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
+            [
+                "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
+                "kotlin-android-extensions-runtime-1.5.0-RC.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0-RC)"
+            ])
+        def result = runner.buildAndFail()
 
         then:
         assertConfigurationCacheStateStored()
         result.output.contains("Lint found errors in the project; aborting build.")
 
         when:
-        runnerForLocation(checkoutDir, agpVersion, "clean").build()
-        result = runnerForLocation(checkoutDir, agpVersion, "lintDebug").buildAndFail()
+        result = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
+            [
+                "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
+                "kotlin-android-extensions-runtime-1.5.0-RC.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0-RC)",
+                "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
+            ])
+            .buildAndFail()
 
         then:
         assertConfigurationCacheStateLoaded()
@@ -119,5 +136,21 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
+    }
+
+    private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, String agpVersion, String task, List<String> artifacts) {
+        SmokeTestGradleRunner runner = runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, task)
+        artifacts.each { artifact ->
+            runner.expectLegacyDeprecationWarningIf(
+                agpVersion.startsWith("4.1"),
+                "Type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
+                    "Cannot convert the provided notation to a File or URI: $artifact. " +
+                    "The following types/formats are supported:  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'. - A String or CharSequence URI, for example 'file:/usr/include'. - A File instance. - A Path instance. - A Directory instance. - A RegularFile instance. - A URI or URL instance. - A TextResource instance. " +
+                    "Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. " +
+                    "Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unresolvable_input for more details about this problem. " +
+                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                    "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        }
+        return runner
     }
 }

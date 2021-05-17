@@ -83,6 +83,40 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Groovy$$Generated.class').exists()
     }
 
+    def "can compile with annotation processor that takes arguments"() {
+        Assume.assumeFalse(versionLowerThan("1.7"))
+
+        when:
+        writeAnnotationProcessingBuild(
+            "", // no Java
+            "$annotationText class Groovy {}"
+        )
+        setupAnnotationProcessor()
+        enableAnnotationProcessingOfJavaStubs()
+        buildFile << """
+            compileGroovy.options.compilerArgumentProviders.add(new SuffixArgumentProvider("Gen"))
+            class SuffixArgumentProvider implements CommandLineArgumentProvider {
+                @Input
+                String suffix
+
+                SuffixArgumentProvider(String suffix) {
+                    this.suffix = suffix
+                }
+
+                @Override
+                List<String> asArguments() {
+                    ["-Asuffix=\${suffix}".toString()]
+                }
+            }
+        """
+
+        then:
+        succeeds("compileGroovy")
+        groovyClassFile('Groovy.class').exists()
+        groovyGeneratedSourceFile('Groovy$$Gen.java').exists()
+        groovyClassFile('Groovy$$Gen.class').exists()
+    }
+
     def "disableIncrementalCompilationWithAnnotationProcessor"() {
         Assume.assumeFalse(versionLowerThan("1.7"))
 
@@ -622,25 +656,34 @@ ${annotationProcessorExtraSetup()}
                         import java.io.IOException;
                         import java.io.Writer;
                         import java.util.Set;
+                        import java.util.Map;
 
-                        import javax.annotation.processing.AbstractProcessor;
-                        import javax.annotation.processing.RoundEnvironment;
-                        import javax.annotation.processing.SupportedAnnotationTypes;
+                        import javax.annotation.processing.*;
                         import javax.lang.model.element.Element;
                         import javax.lang.model.element.TypeElement;
                         import javax.lang.model.SourceVersion;
                         import javax.tools.JavaFileObject;
 
                         @SupportedAnnotationTypes("com.test.SimpleAnnotation")
+                        @SupportedOptions({ "suffix" })
                         public class SimpleAnnotationProcessor extends AbstractProcessor {
+                            private Map<String, String> options;
+
+                            @Override
+                            public synchronized void init(ProcessingEnvironment processingEnv) {
+                                super.init(processingEnv);
+                                options = processingEnv.getOptions();
+                            }
+
                             @Override
                             public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
                                 if (isClasspathContaminated()) {
                                     throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
                                 }
 
+                                final String suffix = options.getOrDefault("suffix", "Generated");
                                 for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
-                                    final String className = String.format("%s\$\$Generated", classElement.getSimpleName().toString());
+                                    final String className = String.format("%s\$\$%s", classElement.getSimpleName().toString(), suffix);
 
                                     Writer writer = null;
                                     try {

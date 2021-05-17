@@ -321,7 +321,7 @@ Surely that investment is worth it if it saves users time on a daily basis.
 
 === Incremental build
 
-You can can avoid executing tasks, even if they’re required by a user.
+You can avoid executing tasks, even if they’re required by a user.
 If neither a task’s inputs nor its outputs have changed since the last time it was run, Gradle will not run it again.
 
 Incremental build is the name Gradle gives to this feature of checking inputs and outputs to determine whether a task needs to run again or not.

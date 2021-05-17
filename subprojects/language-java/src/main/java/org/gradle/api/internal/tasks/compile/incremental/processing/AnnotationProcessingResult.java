@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.processing;
 
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;

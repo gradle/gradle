@@ -49,7 +49,7 @@ public class ProjectBackedModule implements Module {
 
     @Override
     public ProjectComponentIdentifier getProjectId() {
-        return project.getMutationState().getComponentIdentifier();
+        return project.getOwner().getComponentIdentifier();
     }
 
     @Override

@@ -163,7 +163,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
             pmdMain {
                 reports {
                     xml.required = false
-                    html.destination file("htmlReport.html")
+                    html.outputLocation = file("htmlReport.html")
                 }
             }
         """

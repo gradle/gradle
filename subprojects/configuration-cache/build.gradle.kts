@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":persistent-cache"))
     implementation(project(":plugin-use"))
     implementation(project(":plugins"))
+    implementation(project(":process-services"))
     implementation(project(":publish"))
     implementation(project(":resources"))
     implementation(project(":snapshots"))
@@ -76,6 +77,7 @@ dependencies {
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
 
+    integTestImplementation(testFixtures(project(":tooling-api")))
     integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":jacoco")))
     integTestImplementation(testFixtures(project(":model-core")))

@@ -65,7 +65,7 @@ val isCiServer = "CI" in System.getenv()
 
 if (isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
     gradle.buildFinished {
-        failedTasks().forEach { prepareReportForCIPublishing(it.reports["html"].destination) }
+        failedTasks().forEach { prepareReportForCIPublishing(it.reports["html"].outputLocation.get().asFile) }
     }
 }
 

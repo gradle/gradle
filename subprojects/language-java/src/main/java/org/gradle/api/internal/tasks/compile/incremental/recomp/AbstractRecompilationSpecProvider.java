@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
@@ -82,4 +82,11 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     protected String rebuildClauseForChangedNonSourceFile(String description, FileChange fileChange) {
         return String.format("%s '%s' has been %s", description, fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
+
+    protected final SourceFileClassNameConverter getSourceFileClassNameConverter(PreviousCompilation previousCompilation) {
+        return new WellKnownSourceFileClassNameConverter(previousCompilation.getSourceToClassConverter(), getFileExtension());
+    }
+
+    protected abstract String getFileExtension();
+
 }

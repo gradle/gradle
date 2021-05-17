@@ -1,9 +1,9 @@
 {
   "formatVersion": "1.1",
   "component": {
-    "url": "../../kotlin-multiplatform-library-macosx64/1.0/kotlin-multiplatform-library-macosx64-1.0.module",
+    "url": "../../kotlin-multiplatform-library-linuxx64/1.0/kotlin-multiplatform-library-linuxx64-1.0.module",
     "group": "example",
-    "module": "kotlin-multiplatform-library-macosx64",
+    "module": "kotlin-multiplatform-library-linuxx64",
     "version": "1.0",
     "attributes": {
       "org.gradle.status": "release"
@@ -11,13 +11,12 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "6.1.1",
-      "buildId": "pr4n4lpg5ja6re27qc3piepc4q"
+      "version": "7.1"
     }
   },
   "variants": [
     {
-      "name": "metadata-api",
+      "name": "metadataApiElements-published",
       "attributes": {
         "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.platform.type": "common"
@@ -26,11 +25,11 @@
         {
           "name": "kotlin-multiplatform-library-metadata-1.0.jar",
           "url": "kotlin-multiplatform-library-metadata-1.0.jar",
-          "size": 1026,
-          "sha512": "0528314a4128405d736d9736c2ab17d419318d9ffca4eb821cfb76fc0c8534b9b354db672161c300a799ca15b7b906c161c16cf63ab7d69ce977994ca9732de7",
-          "sha256": "5d8b2e57a1d366beba255299a7ee7df82d06dd838b5a390dfd6ed7c0089dc51c",
-          "sha1": "feab845e50c07d1ddb6c1f1cbd0e96d6133b9959",
-          "md5": "3b2e8efc39ef8e12ce24f4c5d48d982e"
+          "size": 1031,
+          "sha512": "d14d257029c1786f03315d970e7f78425e6e12bc0ea15883e2f432dce12638aea9a27eafe7d758d3af5ec2a51b91c196ff2b344e8b723f6fd3f613242a1163f5",
+          "sha256": "93d5c8a809c536f2fad956dd5c3dd2129c593c189d568a87d007d950adcb9f0b",
+          "sha1": "56ef39d9ddf424002281729c3e33bcc8b65b86cd",
+          "md5": "6cb4717aa4606913062e2590b3a3ee56"
         }
       ]
     }

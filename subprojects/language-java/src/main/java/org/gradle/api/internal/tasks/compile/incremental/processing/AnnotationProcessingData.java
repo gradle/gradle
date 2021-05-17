@@ -19,8 +19,9 @@ package org.gradle.api.internal.tasks.compile.incremental.processing;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
 import org.gradle.internal.serialize.AbstractSerializer;
-import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.MapSerializer;
@@ -28,6 +29,7 @@ import org.gradle.internal.serialize.SetSerializer;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class AnnotationProcessingData {
     private final Map<String, Set<String>> generatedTypesByOrigin;
@@ -107,22 +109,23 @@ public class AnnotationProcessingData {
     }
 
     public static final class Serializer extends AbstractSerializer<AnnotationProcessingData> {
-        private final SetSerializer<String> typesSerializer;
-        private final MapSerializer<String, Set<String>> generatedTypesSerializer;
-        private final SetSerializer<GeneratedResource> resourcesSerializer;
-        private final MapSerializer<String, Set<GeneratedResource>> generatedResourcesSerializer;
 
-        public Serializer() {
-            typesSerializer = new SetSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
-            generatedTypesSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, typesSerializer);
+        private final Supplier<HierarchicalNameSerializer> classNameSerializerSupplier;
 
-            GeneratedResourceSerializer resourceSerializer = new GeneratedResourceSerializer(BaseSerializerFactory.STRING_SERIALIZER);
-            this.resourcesSerializer = new SetSerializer<>(resourceSerializer);
-            this.generatedResourcesSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, resourcesSerializer);
+        public Serializer(Supplier<HierarchicalNameSerializer> classNameSerializerSupplier) {
+            this.classNameSerializerSupplier = classNameSerializerSupplier;
         }
 
         @Override
         public AnnotationProcessingData read(Decoder decoder) throws Exception {
+            HierarchicalNameSerializer hierarchicalNameSerializer = classNameSerializerSupplier.get();
+            SetSerializer<String> typesSerializer = new SetSerializer<>(hierarchicalNameSerializer);
+            MapSerializer<String, Set<String>> generatedTypesSerializer = new MapSerializer<>(hierarchicalNameSerializer, typesSerializer);
+            GeneratedResourceSerializer resourceSerializer = new GeneratedResourceSerializer(hierarchicalNameSerializer);
+            SetSerializer<GeneratedResource> resourcesSerializer = new SetSerializer<>(resourceSerializer);
+            MapSerializer<String, Set<GeneratedResource>> generatedResourcesSerializer = new MapSerializer<>(hierarchicalNameSerializer, resourcesSerializer);
+
+
             Map<String, Set<String>> generatedTypes = generatedTypesSerializer.read(decoder);
             Set<String> aggregatedTypes = typesSerializer.read(decoder);
             Set<String> generatedTypesDependingOnAllOthers = typesSerializer.read(decoder);
@@ -135,6 +138,13 @@ public class AnnotationProcessingData {
 
         @Override
         public void write(Encoder encoder, AnnotationProcessingData value) throws Exception {
+            HierarchicalNameSerializer hierarchicalNameSerializer = classNameSerializerSupplier.get();
+            SetSerializer<String> typesSerializer = new SetSerializer<>(hierarchicalNameSerializer);
+            MapSerializer<String, Set<String>> generatedTypesSerializer = new MapSerializer<>(hierarchicalNameSerializer, typesSerializer);
+            GeneratedResourceSerializer resourceSerializer = new GeneratedResourceSerializer(hierarchicalNameSerializer);
+            SetSerializer<GeneratedResource> resourcesSerializer = new SetSerializer<>(resourceSerializer);
+            MapSerializer<String, Set<GeneratedResource>> generatedResourcesSerializer = new MapSerializer<>(hierarchicalNameSerializer, resourcesSerializer);
+
             generatedTypesSerializer.write(encoder, value.generatedTypesByOrigin);
             typesSerializer.write(encoder, value.aggregatedTypes);
             typesSerializer.write(encoder, value.generatedTypesDependingOnAllOthers);

@@ -19,6 +19,8 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.util.Path;
@@ -32,6 +34,13 @@ public abstract class AbstractBuildState implements BuildState {
     @Override
     public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
         throw new UnsupportedOperationException("Cannot include build '" + includedBuildSpec.rootDir.getName() + "' in " + getBuildIdentifier() + ". This is not supported yet.");
+    }
+
+    protected abstract ProjectStateRegistry getProjectStateRegistry();
+
+    @Override
+    public ProjectState getProject(Path projectPath) {
+        return getProjectStateRegistry().stateFor(getBuildIdentifier(), projectPath);
     }
 
     @Override

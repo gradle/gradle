@@ -644,7 +644,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             if (sign == 'skip') {
                 tasks.withType(Sign)*.onlyIf { false }
             } else {
-                tasks.withType(Sign)*.enabled = Boolean.valueOf(sign)
+                tasks.withType(Sign)*.enabled = Boolean.parseBoolean(sign)
             }
 
         """

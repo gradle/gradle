@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
@@ -43,9 +42,9 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
 
     ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry();
 
-    ProjectDescriptor getDefaultProject();
+    DefaultProjectDescriptor getDefaultProject();
 
-    void setDefaultProject(ProjectDescriptor defaultProject);
+    void setDefaultProject(DefaultProjectDescriptor defaultProject);
 
     @Override
     GradleInternal getGradle();

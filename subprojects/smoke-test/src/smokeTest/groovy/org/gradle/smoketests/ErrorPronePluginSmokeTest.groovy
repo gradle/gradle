@@ -65,11 +65,8 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             }
         """
 
-        when:
-        def result = runner('compileJava').forwardOutput().build()
-
-        then:
-        expectNoDeprecationWarnings(result)
+        expect:
+        runner('compileJava').forwardOutput().build()
     }
 
     @Override

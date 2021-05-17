@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -24,7 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class RecompilationSpec {
-    private final Collection<String> classesToCompile = new LinkedHashSet<>();
+    private final Set<String> classesToCompile = new LinkedHashSet<>();
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
     private final Set<String> relativeSourcePathsToCompile = new LinkedHashSet<>();
@@ -52,15 +52,19 @@ public class RecompilationSpec {
         classesToCompile.addAll(classes);
     }
 
-    public Collection<String> getClassesToCompile() {
-        return Collections.unmodifiableCollection(classesToCompile);
+    public Set<String> getClassesToCompile() {
+        return Collections.unmodifiableSet(classesToCompile);
     }
 
     public PreviousCompilation getPreviousCompilation() {
         return previousCompilation;
     }
 
-    public void addRelativeSourcePathsToCompile(String path) {
+    public void addRelativeSourcePathsToCompile(Collection<String> paths) {
+        relativeSourcePathsToCompile.addAll(paths);
+    }
+
+    public void addRelativeSourcePathToCompile(String path) {
         relativeSourcePathsToCompile.add(path);
     }
 

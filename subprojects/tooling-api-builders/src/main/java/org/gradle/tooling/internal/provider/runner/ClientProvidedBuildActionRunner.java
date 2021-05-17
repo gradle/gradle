@@ -16,33 +16,35 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.invocation.BuildAction;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
+    private final PayloadSerializer payloadSerializer;
+
+    public ClientProvidedBuildActionRunner(BuildCancellationToken buildCancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLeaseRegistry projectLeaseRegistry, PayloadSerializer payloadSerializer) {
+        super(buildCancellationToken, buildOperationExecutor, projectLeaseRegistry);
+        this.payloadSerializer = payloadSerializer;
+    }
+
     @Override
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         if (!(action instanceof ClientProvidedBuildAction)) {
             return Result.nothing();
         }
 
-        GradleInternal gradle = buildController.getGradle();
-
         ClientProvidedBuildAction clientProvidedBuildAction = (ClientProvidedBuildAction) action;
-        PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
 
         Object clientAction = payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
         return runClientAction(new ClientActionImpl(clientAction, action), buildController);
-    }
-
-    private PayloadSerializer getPayloadSerializer(GradleInternal gradle) {
-        return gradle.getServices().get(PayloadSerializer.class);
     }
 
     private static class ClientActionImpl implements ClientAction {

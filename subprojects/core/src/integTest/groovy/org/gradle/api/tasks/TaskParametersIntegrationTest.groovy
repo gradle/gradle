@@ -719,7 +719,7 @@ task someTask(type: SomeTask) {
     }
 
     @ValidationTestFor(
-
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
     )
     @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
@@ -778,6 +778,36 @@ task someTask(type: SomeTask) {
         "dirs"  | "output-file.txt"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    @Issue("https://github.com/gradle/gradle/issues/15679")
+    def "fileTrees with regular file roots cannot be used as output files"() {
+        expectReindentedValidationMessage()
+        buildScript """
+            task myTask {
+                inputs.file file('input.txt')
+                outputs.files(files('build/output.txt').asFileTree).withPropertyName('output')
+                doLast {
+                    file('build/output.txt').text = new File('input.txt').text
+                }
+            }
+        """.stripIndent()
+
+
+        def outputFile = file('build/output.txt')
+        outputFile.text = "pre-existing"
+        file('input.txt').text = 'input file'
+
+        expect:
+        fails('myTask')
+        failureDescriptionContains(cannotCreateRootOfFileTree {
+            type('org.gradle.api.DefaultTask').property('output')
+                .dir(outputFile)
+                .includeLink()
+        })
+    }
+
     def "can specify null as an input property in ad-hoc task"() {
         buildFile << """
             task foo {
@@ -812,6 +842,33 @@ task someTask(type: SomeTask) {
 
         expect:
         succeeds "foo"
+    }
+
+    def "reports the input property which failed to evaluate"() {
+        buildFile("""
+            abstract class FailingTask extends DefaultTask {
+                @Input
+                abstract Property<String> getStringInput()
+
+                @TaskAction
+                void doStuff() {
+                    println("Hello world")
+                }
+            }
+
+            tasks.register("failingTask", FailingTask) {
+                stringInput.set(provider { throw new RuntimeException("BOOM") })
+            }
+        """)
+
+        when:
+        fails "failingTask"
+        then:
+        failureHasCause("Failed to calculate the value of task ':failingTask' property 'stringInput'.")
+        failureHasCause("BOOM")
+        if (GradleContextualExecuter.isConfigCache()) {
+            failureDescriptionContains("Configuration cache problems found in this build.")
+        }
     }
 
     def "input and output properties are not evaluated too often"() {

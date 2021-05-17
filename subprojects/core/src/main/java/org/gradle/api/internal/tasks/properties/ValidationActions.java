@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
@@ -28,7 +27,6 @@ import org.gradle.model.internal.type.ModelType;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
@@ -79,14 +77,6 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     },
-    OUTPUT_DIRECTORIES_VALIDATOR("file collection") {
-        @Override
-        public void doValidate(String propertyName, Object values, TaskValidationContext context) {
-            for (File directory : toFiles(context, values)) {
-                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, directory, context);
-            }
-        }
-    },
     OUTPUT_FILE_VALIDATOR("file") {
         @Override
         public void doValidate(String propertyName, Object value, TaskValidationContext context) {
@@ -107,14 +97,39 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     },
-    OUTPUT_FILES_VALIDATOR("file collection") {
+    OUTPUT_FILE_TREE_VALIDATOR("directory") {
         @Override
-        public void doValidate(String propertyName, Object values, TaskValidationContext context) {
-            for (File file : toFiles(context, values)) {
-                OUTPUT_FILE_VALIDATOR.validate(propertyName, file, context);
+        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
+            File directory = toFile(context, value);
+            validateNotInReservedFileSystemLocation(propertyName, context, directory);
+            if (directory.exists()) {
+                if (!directory.isDirectory()) {
+                    reportFileTreeWithFileRoot(propertyName, context, directory);
+                }
+            } else {
+                for (File candidate = directory.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+                    if (candidate.exists() && !candidate.isDirectory()) {
+                        reportCannotWriteToDirectory(propertyName, context, candidate, "'" + directory + "' ancestor '" + candidate + "' is not a directory");
+                        return;
+                    }
+                }
             }
         }
     };
+
+    public static ValidationAction outputValidationActionFor(OutputFilePropertySpec spec) {
+        if (spec instanceof DirectoryTreeOutputFilePropertySpec) {
+            return OUTPUT_FILE_TREE_VALIDATOR;
+        }
+        switch (spec.getOutputType()) {
+            case FILE:
+                return OUTPUT_FILE_VALIDATOR;
+            case DIRECTORY:
+                return OUTPUT_DIRECTORY_VALIDATOR;
+            default:
+                throw new AssertionError("Unknown tree type " + spec);
+        }
+    }
 
     private static void reportMissingInput(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
@@ -156,6 +171,17 @@ public enum ValidationActions implements ValidationAction {
         );
     }
 
+    private static void reportFileTreeWithFileRoot(String propertyName, TaskValidationContext context, File directory) {
+        context.visitPropertyProblem(problem ->
+            problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+                .reportAs(ERROR)
+                .forProperty(propertyName)
+                .withDescription(() -> "is not writable because '" + directory + "' is not a directory")
+                .happensBecause(() -> "Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
+                .addPossibleSolution("Make sure that the root of the file tree '" + propertyName + "' is configured to a directory")
+                .documentedAt("validation_problems", "cannot_write_output")
+        );
+    }
 
     private static void reportCannotWriteToFile(String propertyName, TaskValidationContext context, String cause) {
         context.visitPropertyProblem(problem ->
@@ -206,14 +232,14 @@ public enum ValidationActions implements ValidationAction {
     public void validate(String propertyName, Object value, TaskValidationContext context) {
         try {
             doValidate(propertyName, value, context);
-        } catch (UnsupportedNotationException ignored) {
+        } catch (UnsupportedNotationException unsupportedNotationException) {
             context.visitPropertyProblem(problem -> {
                     problem.withId(ValidationProblemId.UNSUPPORTED_NOTATION)
                         .forProperty(propertyName)
                         .reportAs(ERROR)
                         .withDescription(() -> "has unsupported value '" + value + "'")
                         .happensBecause(() -> "Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
-                    Collection<String> candidates = ignored.getCandidates();
+                    Collection<String> candidates = unsupportedNotationException.getCandidates();
                     if (candidates.isEmpty()) {
                         problem.addPossibleSolution(() -> "Use a value of type '" + targetType + "'");
                     } else {
@@ -252,15 +278,5 @@ public enum ValidationActions implements ValidationAction {
 
     private static File toFile(TaskValidationContext context, Object value) {
         return context.getFileOperations().file(value);
-    }
-
-    private static Iterable<? extends File> toFiles(TaskValidationContext context, Object value) {
-        if (value instanceof Map) {
-            return toFiles(context, ((Map) value).values());
-        } else if (value instanceof FileCollection) {
-            return (FileCollection) value;
-        } else {
-            return context.getFileOperations().immutableFiles(value);
-        }
     }
 }

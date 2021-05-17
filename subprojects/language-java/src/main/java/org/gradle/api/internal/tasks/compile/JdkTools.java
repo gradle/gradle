@@ -41,7 +41,6 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -159,11 +158,11 @@ public class JdkTools {
         }
 
         @Override
-        public JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, File classToFileMapping, ConstantsAnalysisResult constantsAnalysisResult, CompilationSourceDirs compilationSourceDirs) {
+        public JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, Map<String, Set<String>> sourceToClassMapping, ConstantsAnalysisResult constantsAnalysisResult, CompilationSourceDirs compilationSourceDirs) {
             ensureCompilerTask();
             return DirectInstantiator.instantiate(incrementalCompileTaskClass, task,
-                (Function<File, Optional<String>>) file -> compilationSourceDirs.relativize(file),
-                (Consumer<Map<String, Collection<String>>>) mapping -> SourceClassesMappingFileAccessor.writeSourceClassesMappingFile(classToFileMapping, mapping),
+                (Function<File, Optional<String>>) compilationSourceDirs::relativize,
+                (Consumer<Map<String, Set<String>>>) sourceToClassMapping::putAll,
                 (BiConsumer<String, String>) constantsAnalysisResult::addPublicDependent,
                 (BiConsumer<String, String>) constantsAnalysisResult::addPrivateDependent
             );

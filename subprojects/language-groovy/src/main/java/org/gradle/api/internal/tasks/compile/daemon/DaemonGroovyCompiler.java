@@ -18,10 +18,13 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.api.tasks.compile.GroovyForkOptions;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
+import org.gradle.api.internal.tasks.compile.MinimalGroovyCompilerDaemonForkOptions;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -63,13 +66,14 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
     @Override
     protected CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
+
         return new GroovyCompilerParameters(compilerClass.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
     }
 
     @Override
     protected DaemonForkOptions toDaemonForkOptions(GroovyJavaJointCompileSpec spec) {
-        ForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
-        GroovyForkOptions groovyOptions = spec.getGroovyCompileOptions().getForkOptions();
+        MinimalJavaCompilerDaemonForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
+        MinimalGroovyCompilerDaemonForkOptions groovyOptions = spec.getGroovyCompileOptions().getForkOptions();
         // Ant is optional dependency of groovy(-all) module but mandatory dependency of Groovy compiler;
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
         // is compatible with Gradle's current Ant version.
@@ -128,6 +132,17 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
         // This should come from the compiler classpath only
         gradleFilterSpec.disallowPackage("org.gradle.api.internal.tasks.compile");
+
+        /*
+         * This shouldn't be necessary, but currently is because the worker API handles return types differently
+         * depending on whether you use process isolation or classpath isolation. In the former case, the return
+         * value is serialized and deserialized, so the correct class is returned. In the latter case, the result
+         * is returned directly, which means it is not an instance of the expected class unless we allow that class
+         * to leak through here. Should be fixed in the worker API, so that it always serializes/deserializes results.
+         */
+        gradleFilterSpec.allowClass(ApiCompilerResult.class);
+        gradleFilterSpec.allowClass(AnnotationProcessingResult.class);
+        gradleFilterSpec.allowClass(ConstantsAnalysisResult.class);
 
         return gradleFilterSpec;
     }

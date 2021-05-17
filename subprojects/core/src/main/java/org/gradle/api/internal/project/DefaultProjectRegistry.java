@@ -16,8 +16,8 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T> {
-    private Map<String, T> projects = new HashMap<String, T>();
-    private Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
+    private final Map<String, T> projects = new HashMap<String, T>();
+    private final Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
 
     @Override
     public void addProject(T project) {
@@ -69,7 +69,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
 
     @Override
     public T getRootProject() {
-        return getProject(Project.PATH_SEPARATOR);
+        return getProject(Path.ROOT.getPath());
     }
 
     @Override
@@ -87,7 +87,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
         });
         if (projects.size() > 1) {
             throw new InvalidUserDataException(String.format("Found multiple projects with project directory '%s': %s",
-                    projectDir, projects));
+                projectDir, projects));
         }
         return projects.size() == 1 ? projects.iterator().next() : null;
     }

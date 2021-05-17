@@ -44,7 +44,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
         this.store = store;
         this.projectRegistry = projectRegistry;
         this.fileOperations = fileOperations;
-        currentProject = projectRegistry.stateFor(currentBuild.getBuildIdentifier(), domainObjectContext.getProjectPath()).getComponentIdentifier();
+        currentProject = currentBuild.getProject(domainObjectContext.getProjectPath()).getComponentIdentifier();
     }
 
     @Override

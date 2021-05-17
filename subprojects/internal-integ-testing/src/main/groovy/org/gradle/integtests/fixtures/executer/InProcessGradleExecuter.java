@@ -231,7 +231,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             builder.jvmArgs(invocation.launcherJvmArgs);
             builder.environment(invocation.environmentVars);
 
-            builder.setMain(Main.class.getName());
+            builder.getMainClass().set(Main.class.getName());
             builder.args(invocation.args);
             builder.setStandardInput(connectStdIn());
 

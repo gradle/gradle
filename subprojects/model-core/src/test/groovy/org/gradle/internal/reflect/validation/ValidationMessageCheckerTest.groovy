@@ -601,6 +601,31 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    def "tests output of cannotCreateRootOfFileTree"() {
+        def location = dummyLocation('/tmp/foo/bar')
+
+        when:
+        render cannotCreateRootOfFileTree {
+            type('Writer').property('output')
+            dir(location)
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Type 'Writer' property 'output' is not writable because '${location}' is not a directory.
+
+Reason: Expected the root of the file tree '${location}' to be a directory but it's a file.
+
+Possible solution: Make sure that the root of the file tree 'output' is configured to a directory.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
+"""
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.UNSUPPORTED_NOTATION
     )
     def "tests output of unsupportedNotation"() {

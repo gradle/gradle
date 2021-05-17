@@ -28,16 +28,16 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
     }
 
     protected void checkConstructor() {
-        assert archiveTask.classifier == ''
+        assert archiveTask.archiveClassifier.get() == ''
     }
 
     @CompileStatic
     protected void configure(AbstractArchiveTask archiveTask) {
-        archiveTask.baseName = 'testbasename'
-        archiveTask.appendix = 'testappendix'
-        archiveTask.version = '1.0'
-        archiveTask.classifier = 'src'
-        archiveTask.destinationDir = new File(temporaryFolder.testDirectory, 'destinationDir')
+        archiveTask.archiveBaseName.set('testbasename')
+        archiveTask.archiveAppendix.set('testappendix')
+        archiveTask.archiveVersion.set('1.0')
+        archiveTask.archiveClassifier.set('src')
+        archiveTask.destinationDirectory.set(new File(temporaryFolder.testDirectory, 'destinationDir'))
     }
 
     def "test execute()"() {
@@ -50,99 +50,97 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         then:
         archiveTask.destinationDirectory.isPresent()
         archiveTask.archiveFile.isPresent()
-        archiveTask.destinationDir.isDirectory()
-        archiveTask.archivePath.isFile()
     }
 
-    def "archiveName with empty extension"() {
+    def "archiveFileName with empty extension"() {
         when:
-        archiveTask.extension = null
+        archiveTask.archiveExtension.set(null)
 
         then:
-        archiveTask.archiveName == 'testbasename-testappendix-1.0-src'
+        archiveTask.archiveFileName.get() == 'testbasename-testappendix-1.0-src'
     }
 
-    def "archiveName with empty extension in provider"() {
+    def "archiveFileName with empty extension in provider"() {
         when:
         archiveTask.archiveExtension.set(project.provider { null })
 
         then:
-        archiveTask.archiveName == 'testbasename-testappendix-1.0-src'
+        archiveTask.archiveFileName.get() == 'testbasename-testappendix-1.0-src'
     }
 
-    def "archiveName with empty basename"() {
+    def "archiveFileName with empty basename"() {
         when:
-        archiveTask.baseName = null
+        archiveTask.archiveBaseName.set(null)
 
         then:
-        archiveTask.archiveName == "testappendix-1.0-src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "testappendix-1.0-src.${archiveTask.archiveExtension.get()}".toString()
     }
 
-    def "archiveName with empty basename and appendix"() {
+    def "archiveBaseName with empty basename and appendix"() {
         when:
-        archiveTask.baseName = null
-        archiveTask.appendix = null
+        archiveTask.archiveBaseName.set(null)
+        archiveTask.archiveAppendix.set(null)
 
         then:
-        archiveTask.archiveName == "1.0-src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "1.0-src.${archiveTask.archiveExtension.get()}".toString()
     }
 
-    def "archiveName with empty basename, appendix, and version" () {
+    def "archiveFileName with empty basename, appendix, and version" () {
         when:
-        archiveTask.baseName = null
-        archiveTask.appendix = null
-        archiveTask.version = null
+        archiveTask.archiveBaseName.set(null)
+        archiveTask.archiveAppendix.set(null)
+        archiveTask.archiveVersion.set(null)
 
         then:
-        archiveTask.archiveName == "src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "src.${archiveTask.archiveExtension.get()}".toString()
     }
 
-    def "archiveName with empty basename, appendix, version, and classifier"() {
+    def "archiveFileName with empty basename, appendix, version, and classifier"() {
         when:
-        archiveTask.baseName = null
-        archiveTask.appendix = null
-        archiveTask.version = null
-        archiveTask.classifier = null
+        archiveTask.archiveBaseName.set(null)
+        archiveTask.archiveAppendix.set(null)
+        archiveTask.archiveVersion.set(null)
+        archiveTask.archiveClassifier.set(null)
 
         then:
-        archiveTask.archiveName == ".${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == ".${archiveTask.archiveExtension.get()}".toString()
     }
 
-    def "archiveName with empty classifier"() {
+    def "archiveFileName with empty classifier"() {
         when:
-        archiveTask.classifier = null
+        archiveTask.archiveClassifier.set(null)
 
         then:
-        archiveTask.archiveName == "testbasename-testappendix-1.0.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "testbasename-testappendix-1.0.${archiveTask.archiveExtension.get()}".toString()
     }
 
-    def "archiveName with empty appendix"() {
+    def "archiveFileName with empty appendix"() {
         when:
-        archiveTask.appendix = null
+        archiveTask.archiveAppendix.set(null)
 
         then:
-        archiveTask.archiveName == "testbasename-1.0-src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "testbasename-1.0-src.${archiveTask.archiveExtension.get()}".toString()
     }
 
-    def "archiveName with empty version"() {
+    def "archiveFileName with empty version"() {
         when:
-        archiveTask.version = null
+        archiveTask.archiveVersion.set(null)
 
         then:
-        archiveTask.archiveName == "testbasename-testappendix-src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "testbasename-testappendix-src.${archiveTask.archiveExtension.get()}".toString()
     }
 
     def "uses custom archive name when set"() {
         when:
-        archiveTask.archiveName = 'somefile.out'
+        archiveTask.archiveFileName.set('somefile.out')
 
         then:
-        archiveTask.archiveName == 'somefile.out'
+        archiveTask.archiveFileName.get() == 'somefile.out'
     }
 
     def "correct archive path"() {
         expect:
-        archiveTask.archivePath == new File(archiveTask.destinationDir, archiveTask.archiveName)
+        archiveTask.archiveFile.set(new File(archiveTask.destinationDirectory.get().asFile, archiveTask.archiveFileName.get()))
     }
 
     def "does not accept unset destinationDir"() {

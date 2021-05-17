@@ -24,6 +24,10 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -45,6 +49,8 @@ class InstantiatingBuildLoaderTest extends Specification {
     ProjectInternal childProject
     GradleInternal gradle
     SettingsInternal settingsInternal
+    BuildState buildState = Mock(BuildState)
+    ProjectState rootProjectState = Mock(ProjectState)
 
     def rootProjectClassLoaderScope = Mock(ClassLoaderScope)
     def baseProjectClassLoaderScope = Mock(ClassLoaderScope) {
@@ -56,7 +62,7 @@ class InstantiatingBuildLoaderTest extends Specification {
 
     def setup() {
         projectFactory = Mock(IProjectFactory)
-        buildLoader = new InstantiatingBuildLoader(projectFactory)
+        buildLoader = new InstantiatingBuildLoader()
         testDir = tmpDir.testDirectory
         (rootProjectDir = new File(testDir, 'root')).mkdirs()
         (childProjectDir = new File(rootProjectDir, 'child')).mkdirs()
@@ -65,26 +71,35 @@ class InstantiatingBuildLoaderTest extends Specification {
         rootProject = project(rootDescriptor, null)
         childDescriptor = descriptor('child', rootDescriptor, childProjectDir)
         childProject = project(childDescriptor, rootProject)
+        def services = new DefaultServiceRegistry()
         gradle = Mock(GradleInternal) {
             getStartParameter() >> startParameter
             getRootProject() >> rootProject
             baseProjectClassLoaderScope() >> baseProjectClassLoaderScope
             getIdentityPath() >> Path.ROOT
+            getServices() >> services
+            getOwner() >> buildState
         }
-        settingsInternal = Mock(SettingsInternal) {
+        def descriptorRegistry = Mock(ProjectRegistry) {
             getRootProject() >> rootDescriptor
         }
+        settingsInternal = Mock(SettingsInternal) {
+            getProjectRegistry() >> descriptorRegistry
+        }
+        buildState.getProject(Path.ROOT) >> rootProjectState
     }
 
     def createsBuildWithRootProjectAsTheDefaultOne() {
         given:
-        settingsInternal.getDefaultProject() >> rootDescriptor
+        settingsInternal.defaultProject >> rootDescriptor
+        buildState.getProject(_) >> Stub(ProjectState)
 
         when:
         buildLoader.load(settingsInternal, gradle)
 
         then:
-        projectFactory.createProject(gradle, rootDescriptor, null, rootProjectClassLoaderScope, baseProjectClassLoaderScope) >> rootProject
+        1 * rootProjectState.createMutableModel(rootProjectClassLoaderScope, baseProjectClassLoaderScope)
+        _ * rootProjectState.mutableModel >> rootProject
 
         and:
         1 * gradle.setRootProject(rootProject)
@@ -93,16 +108,20 @@ class InstantiatingBuildLoaderTest extends Specification {
 
     def createsBuildWithMultipleProjectsAndNotRootDefaultProject() {
         given:
+        def childProjectState = Mock(ProjectState)
         def childProjectClassLoaderScope = Mock(ClassLoaderScope)
-        settingsInternal.getDefaultProject() >> childDescriptor
-        1 * rootProjectClassLoaderScope.createChild(_) >> childProjectClassLoaderScope
+        settingsInternal.defaultProject >> childDescriptor
+        buildState.getProject(_) >> childProjectState
+        childProjectState.mutableModel >> childProject
 
         when:
         buildLoader.load(settingsInternal, gradle)
 
         then:
-        1 * projectFactory.createProject(gradle, rootDescriptor, null, rootProjectClassLoaderScope, baseProjectClassLoaderScope) >> rootProject
-        1 * projectFactory.createProject(gradle, childDescriptor, rootProject, childProjectClassLoaderScope, baseProjectClassLoaderScope) >> childProject
+        1 * rootProjectClassLoaderScope.createChild(_) >> childProjectClassLoaderScope
+        1 * rootProjectState.mutableModel >> rootProject
+        1 * rootProjectState.createMutableModel(rootProjectClassLoaderScope, baseProjectClassLoaderScope)
+        1 * childProjectState.createMutableModel(childProjectClassLoaderScope, baseProjectClassLoaderScope)
 
         and:
         1 * gradle.setRootProject(rootProject)

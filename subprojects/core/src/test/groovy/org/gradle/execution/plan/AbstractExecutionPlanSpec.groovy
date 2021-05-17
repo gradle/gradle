@@ -67,7 +67,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         def project = Mock(ProjectInternal, name: name)
         _ * project.identityPath >> (parent == null ? Path.ROOT : Path.ROOT.child(name))
         _ * project.gradle >> thisBuild
-        _ * project.mutationState >> projectState
+        _ * project.owner >> projectState
         _ * project.services >> backing.services
         _ * project.tasks >> Stub(TaskContainerInternal)
 

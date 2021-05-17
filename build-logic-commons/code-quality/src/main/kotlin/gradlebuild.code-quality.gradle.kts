@@ -81,7 +81,7 @@ plugins.withType<GroovyBasePlugin> {
             config = configFile("checkstyle-groovy.xml")
             source(allGroovy)
             classpath = compileClasspath
-            reports.xml.destination = checkstyle.reportsDir.resolve("${this@all.name}-groovy.xml")
+            reports.xml.outputLocation.set(checkstyle.reportsDir.resolve("${this@all.name}-groovy.xml"))
         }
     }
 }
@@ -91,7 +91,7 @@ codenarc {
 }
 
 tasks.withType<CodeNarc>().configureEach {
-    reports.xml.isEnabled = true
+    reports.xml.required.set(true)
     if (name.contains("IntegTest")) {
         config = configFile("codenarc-integtests.xml")
     }
