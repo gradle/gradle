@@ -16,7 +16,8 @@ We would like to thank the following community members for their contributions t
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Kejn](https://github.com/kejn),
 [Anuraag Agrawal](https://github.com/anuraaga),
-[Florian Schmitt](https://github.com/florianschmitt).
+[Florian Schmitt](https://github.com/florianschmitt),
+[Evgeny Mandrikov](https://github.com/Godin).
 
 ## Upgrade Instructions
 
