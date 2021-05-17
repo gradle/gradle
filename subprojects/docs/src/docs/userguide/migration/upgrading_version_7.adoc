@@ -113,6 +113,10 @@ With chaining you can, for example, add a reason for a substitution like this:
 
 === Potential breaking changes
 
+==== Updates to default tool integration versions
+
+- JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.7].
+
 ==== The `org.gradle.util` package is now a public API
 
 Officially, the `org.gradle.util` package is not part of the public API.
