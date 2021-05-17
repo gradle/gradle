@@ -66,6 +66,7 @@ task check {
     def "strict resolution strategy can be used when resolving a script classpath from settings"() {
         given:
         mavenRepo().module("org.gradle", "test", "1.45").publish()
+        mavenRepo().module("org.gradle", "test", "1.46").publish()
 
         and:
         settingsFile << """
@@ -78,24 +79,14 @@ buildscript {
     }
     dependencies {
         classpath "org.gradle:test:1.45"
+        classpath "org.gradle:test:1.46"
     }
 }
 
 rootProject.name = 'testproject'
 """
-        buildFile << """
-task check {
-    doLast {
-        assert gradle.settings.buildscript.configurations.classpath.collect { it.name } == ['test-1.45.jar']
-        def result = gradle.settings.buildscript.configurations.classpath.incoming.resolutionResult
-
-        // Check root component
-        def rootId = result.root.id
-        assert rootId instanceof ModuleComponentIdentifier
-    }
-}
-"""
         expect:
-        succeeds "check"
+        fails "help"
+        failureHasCause("Conflict(s) found for the following module(s):")
     }
 }
