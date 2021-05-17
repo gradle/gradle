@@ -203,13 +203,8 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
-                if (replacement === value) {
-                    writeEnum(Format.ReadResolve)
-                    encodeBean(value)
-                } else {
-                    writeEnum(Format.WriteReplace)
-                    write(replacement)
-                }
+                writeEnum(Format.ReadResolve)
+                encodeBean(replacement)
             }
         }
     }
