@@ -85,13 +85,8 @@ public class TypeValidationProblemRenderer {
     private static String introductionFor(TypeValidationProblemLocation location) {
         StringBuilder builder = new StringBuilder();
         Class<?> rootType = location.getType()
-            .map(clazz -> {
-                if (shouldRenderType(clazz)) {
-                    return clazz;
-                } else {
-                    return null;
-                }
-            }).orElse(null);
+            .filter(TypeValidationProblemRenderer::shouldRenderType)
+            .orElse(null);
         PluginId pluginId = location.getPlugin().orElse(null);
         if (rootType != null) {
             if (pluginId != null) {
