@@ -173,7 +173,7 @@ The following services are available for injection:
 - link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations] - Allows a task to run external processes with dedicated support for running external `java` programs.
 - link:{javadocPath}/org/gradle/tooling/provider/model/ToolingModelBuilderRegistry.html[ToolingModelBuilderRegistry] - Allows a plugin to registers a Gradle tooling API model.
 
-Out of the above, `ProjectLayout` and `WorkerExecutor` services are only available for injection in project plugins.
+Out of the above, `ProjectLayout` and `WorkerExecutor` services are not available for injection in settings plugins.
 
 === Constructor injection
 
