@@ -79,46 +79,6 @@ class FailFastTestListenerInternalTest extends Specification {
         1 * delegate.completed(testDescriptor, testResult, completeEvent)
 
         where:
-        result << TestResult.ResultType.values()
-    }
-
-    @Unroll
-    def "after failure completed indicates failure on composite for result #result"() {
-        TestResult failedResult = new SimpleTestResult()
-        failedResult.resultType = TestResult.ResultType.FAILURE
-        testDescriptor.composite = true
-        testResult.resultType = result
-
-        given:
-        unit.completed(testDescriptor, failedResult, completeEvent)
-
-        when:
-        unit.completed(testDescriptor, testResult, completeEvent)
-
-        then:
-        1 * delegate.completed(testDescriptor, { it.getResultType() == TestResult.ResultType.FAILURE }, completeEvent)
-
-        where:
-        result << TestResult.ResultType.values()
-    }
-
-    @Unroll
-    def "after failure completed indicates skipped on non-composite for result #result"() {
-        TestResult failedResult = new SimpleTestResult()
-        failedResult.resultType = TestResult.ResultType.FAILURE
-        testDescriptor.composite = false
-        testResult.resultType = result
-
-        given:
-        unit.completed(testDescriptor, failedResult, completeEvent)
-
-        when:
-        unit.completed(testDescriptor, testResult, completeEvent)
-
-        then:
-        1 * delegate.completed(testDescriptor, { it.getResultType() == TestResult.ResultType.SKIPPED }, completeEvent)
-
-        where:
-        result << TestResult.ResultType.values()
+        result << TestResult.ResultType.values().toList()
     }
 }
