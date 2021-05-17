@@ -222,7 +222,7 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
                 // Test distribution uses UniqueIdSelectors and we have to set the correct classloader for this thread that will run the test
                 if (selector instanceof UniqueIdSelector) {
                     UniqueIdSelector uniqueIdSelector = (UniqueIdSelector) selectors.get(0);
-                    if (uniqueIdSelector.toString().contains("[variant:selected]")) {
+                    if (toolingApiVersionToLoad != null && uniqueIdSelector.toString().contains("[variant:selected]")) {
                         String classToLoad = uniqueIdSelector.getUniqueId().getLastSegment().getValue();
                         try {
                             Class<?> testClass = Class.forName(classToLoad);
