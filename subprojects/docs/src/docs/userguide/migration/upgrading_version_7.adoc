@@ -38,6 +38,14 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Deprecations
 
+[[convention_mapping]]
+==== Using convention mapping with properties with type Provider is deprecated
+Convention mapping is an internal feature that is been replaced by the <<lazy_configuration#lazy_configuration,Provider API>>.
+When mixing convention mapping with the Provider API, unexpected behavior can occur.
+Gradle emits a deprecation warning when a property in a task, extension or other domain object uses convention mapping with the Provider API.
+
+To fix this, the plugin that configures the convention mapping for the task, extension or domain object needs to be changed to use the Provider API only.
+
 [[jacoco_merge]]
 ==== JacocoMerge task type is deprecated
 
