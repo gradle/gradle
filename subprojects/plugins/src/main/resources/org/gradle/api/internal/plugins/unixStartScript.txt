@@ -149,10 +149,8 @@ if [ "\$cygwin" = "true" -o "\$msys" = "true" ] ; then
     fi
     # Now convert the arguments - kludge to limit ourselves to /bin/sh
     for arg in "\$@" ; do
-        CHECK=\$( echo "\$arg"|egrep -c "\$OURCYGPATTERN" - )
-        CHECK2=\$( echo "\$arg"|egrep -c "^-" )                                 ### Determine if an option
-
-        if [ \$CHECK -ne 0 ] && [ \$CHECK2 -eq 0 ] ; then                    ### Added a condition
+        if ! echo "\$arg" | egrep -q "^-"             && ### Determine if an option
+             echo "\$arg" | egrep -q "\$OURCYGPATTERN" ; then
             arg=\$( cygpath --path --ignore --mixed "\$arg" )
         fi
         # Roll the args around exactly as many times as the number of args.
