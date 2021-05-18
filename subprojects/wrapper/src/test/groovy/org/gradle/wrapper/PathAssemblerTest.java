@@ -22,11 +22,14 @@ import java.io.File;
 import java.net.URI;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class PathAssemblerTest {
     public static final String TEST_GRADLE_USER_HOME = "someUserHome";
-    private PathAssembler pathAssembler = new PathAssembler(new File(TEST_GRADLE_USER_HOME));
+    public static final String TEST_PROJECT_DIR = "someProjectDir";
+    private PathAssembler pathAssembler = new PathAssembler(new File(TEST_GRADLE_USER_HOME), new File(TEST_PROJECT_DIR));
     final WrapperConfiguration configuration = new WrapperConfiguration();
 
     @Before
@@ -53,7 +56,7 @@ public class PathAssemblerTest {
 
         File distributionDir = pathAssembler.getDistribution(configuration).getDistributionDir();
         assertThat(distributionDir.getName(), equalTo("emn8ua2x0re2y4jlewhnxhasz"));
-        assertThat(distributionDir.getParentFile(), equalTo(file(currentDirPath() + "/somePath/gradle-0.9-bin")));
+        assertThat(distributionDir.getParentFile(), equalTo(file(TEST_PROJECT_DIR + "/somePath/gradle-0.9-bin")));
     }
 
     @Test
@@ -100,14 +103,10 @@ public class PathAssemblerTest {
         File dist = pathAssembler.getDistribution(configuration).getZipFile();
         assertThat(dist.getName(), equalTo("gradle-1.0.zip"));
         assertThat(dist.getParentFile().getName(), equalTo("98xa9n94mamfu7vl4mzwomw11"));
-        assertThat(dist.getParentFile().getParentFile(), equalTo(file(currentDirPath() + "/somePath/gradle-1.0")));
+        assertThat(dist.getParentFile().getParentFile(), equalTo(file(TEST_PROJECT_DIR + "/somePath/gradle-1.0")));
     }
 
     private File file(String path) {
         return new File(path);
-    }
-
-    private String currentDirPath() {
-        return System.getProperty("user.dir");
     }
 }
