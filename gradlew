@@ -135,22 +135,17 @@ if [ "$cygwin" = "true" -o "$msys" = "true" ] ; then
 
     JAVACMD=$( cygpath --unix "$JAVACMD" )
 
-    # We build the pattern for arguments to be converted via cygpath
-    ROOTDIRSRAW=$( find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null )
-    SEP=""
-    for dir in $ROOTDIRSRAW ; do
-        ROOTDIRS="$ROOTDIRS$SEP$dir"
-        SEP="|"
-    done
-    OURCYGPATTERN="(^($ROOTDIRS))"
-    # Add a user-defined pattern to the cygpath arguments
-    if [ "$GRADLE_CYGPATTERN" != "" ] ; then
-        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
-    fi
     # Now convert the arguments - kludge to limit ourselves to /bin/sh
-    for arg in "$@" ; do
-        if ! echo "$arg" | egrep -q "^-"             && ### Determine if an option
-             echo "$arg" | egrep -q "$OURCYGPATTERN" ; then
+    for arg do
+        if
+            case $arg in
+              -*)   false ;;                            # don't mess with options
+              /?*)  t=${arg#/} t=/${t%%/*}              # looks like a POSIX filepath
+                    [ -d "$t" ] ;;
+              *)    [ -n "$GRADLE_CYGPATTERN" ] &&      # TODO: choose: list, glob, or regex?
+                    echo "$arg" | egrep -q "$GRADLE_CYGPATTERN"
+            esac
+        then
             arg=$( cygpath --path --ignore --mixed "$arg" )
         fi
         # Roll the args around exactly as many times as the number of args.
