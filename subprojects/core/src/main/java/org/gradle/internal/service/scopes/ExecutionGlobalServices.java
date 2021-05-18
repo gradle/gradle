@@ -34,7 +34,6 @@ import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
@@ -135,7 +134,8 @@ public class ExecutionGlobalServices {
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
         annotationRegistry.registerPropertyTypeAnnotations(builder);
-        return new DefaultTypeAnnotationMetadataStore(
+        @SuppressWarnings("deprecation")
+        TypeAnnotationMetadataStore result = new DefaultTypeAnnotationMetadataStore(
             ImmutableSet.of(
                 CacheableTask.class,
                 CacheableTransform.class,
@@ -162,7 +162,7 @@ public class ExecutionGlobalServices {
                 DefaultTask.class,
                 DynamicObjectAware.class,
                 ExtensionAware.class,
-                HasConvention.class,
+                org.gradle.api.internal.HasConvention.class,
                 IConventionAware.class,
                 ScriptOrigin.class,
                 Task.class
@@ -179,6 +179,7 @@ public class ExecutionGlobalServices {
             IGNORED_METHOD_ANNOTATIONS,
             method -> method.isAnnotationPresent(Generated.class),
             cacheFactory);
+        return result;
     }
 
     InspectionSchemeFactory createInspectionSchemeFactory(

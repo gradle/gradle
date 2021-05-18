@@ -15,7 +15,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.HasConvention
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ObjectConfigurationAction
@@ -629,6 +628,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         getArgument<Action<T>>(index).execute(configurationAction)
     }
 
+    @Suppress("deprecation")
     private
     inline fun <reified T : Any> assertUndecoratedImplicitReceiverOf(fileName: String) {
 
@@ -636,12 +636,12 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             fileName,
             """
             val ${T::class.simpleName}.receiver get() = this
-            (receiver as ${HasConvention::class.qualifiedName}).convention.add("receiver", receiver)
+            (receiver as ${org.gradle.api.internal.HasConvention::class.qualifiedName}).convention.add("receiver", receiver)
             """
         )
 
         val convention = mock<Convention>()
-        val receiver = mock<HasConvention>(extraInterfaces = arrayOf(T::class)) {
+        val receiver = mock<org.gradle.api.internal.HasConvention>(extraInterfaces = arrayOf(T::class)) {
             on { getConvention() } doReturn convention
         }
 

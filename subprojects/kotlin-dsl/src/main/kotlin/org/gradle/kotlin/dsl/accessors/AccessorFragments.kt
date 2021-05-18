@@ -713,7 +713,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
     val (kotlinConventionType, jvmConventionType) = accessibleTypesFor(conventionType)
 
     return className to sequenceOf(
-
+        @Suppress("deprecation")
         AccessorFragment(
             source = conventionAccessor(accessorSpec),
             signature = jvmGetterSignatureFor(

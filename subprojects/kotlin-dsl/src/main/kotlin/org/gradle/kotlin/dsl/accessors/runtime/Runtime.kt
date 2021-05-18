@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
@@ -44,7 +43,7 @@ fun conventionPluginByName(convention: Convention, name: String): Any =
 
 fun conventionOf(target: Any): Convention = when (target) {
     is Project -> target.convention
-    is HasConvention -> target.convention
+    is @Suppress("deprecation") org.gradle.api.internal.HasConvention -> target.convention
     else -> throw IllegalStateException("Object `$target` doesn't support conventions!")
 }
 
