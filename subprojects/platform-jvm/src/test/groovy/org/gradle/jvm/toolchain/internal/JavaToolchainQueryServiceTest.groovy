@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
@@ -86,7 +85,6 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
     }
 
-    @NotYetImplemented
     def "uses most recent version of multiple matches if version has a legacy format"() {
         // See https://github.com/gradle/gradle/issues/17195
         given:
