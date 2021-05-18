@@ -108,14 +108,12 @@ location of your Java installation."
 fi
 
 # Increase the maximum file descriptors if we can.
-if [ "$cygwin" = "false" ] && [ "$darwin" = "false" ] && [ "$nonstop" = "false" ] ; then
-    MAX_FD_LIMIT=$( ulimit -H -n )
-    if [ $? -eq 0 ] ; then
-        if [ "$MAX_FD" = "maximum" ] || [ "$MAX_FD" = "max" ] ; then
-            MAX_FD="$MAX_FD_LIMIT"
-        fi
-        ulimit -n $MAX_FD
-        if [ $? -ne 0 ] ; then
+if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
+    if MAX_FD_LIMIT=$( ulimit -H -n ) ; then
+        case $MAX_FD in
+          max*) MAX_FD=$MAX_FD_LIMIT
+        esac
+        if ! ulimit -n $MAX_FD ; then
             warn "Could not set maximum file descriptor limit: $MAX_FD"
         fi
     else
@@ -129,7 +127,7 @@ if $darwin; then
 fi
 
 # For Cygwin or MSYS, switch paths to Windows format before running java
-if [ "$cygwin" = "true" ] || [ "$msys" = "true" ] ; then
+if "$cygwin" || "$msys" ; then
     APP_HOME=$( cygpath --path --mixed "$APP_HOME" )
     CLASSPATH=$( cygpath --path --mixed "$CLASSPATH" )
 
