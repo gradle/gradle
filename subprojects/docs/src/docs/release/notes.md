@@ -10,6 +10,7 @@ We would like to thank the following community members for their contributions t
 [Kyle Moore](https://github.com/DPUkyle),
 [Stefan Oehme](https://github.com/oehme),
 [Anže Sodja](https://github.com/asodja),
+[Jeff](https://github.com/mathjeff),
 [Alexander Likhachev](https://github.com/ALikhachev),
 [Björn Kautler](https://github.com/Vampire),
 [Sebastian Schuberth](https://github.com/sschuberth),
