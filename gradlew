@@ -145,12 +145,42 @@ if "$cygwin" || "$msys" ; then
     done
 fi
 
-ARGV=("$@")
-eval set -- $DEFAULT_JVM_OPTS
+# Collect all arguments for the java command;
+#   * $DEFAULT_JVM_OPTS, $JAVA_OPTS, and $GRADLE_OPTS can contain fragments of
+#     shell script including quotes and variable substitutions, so put them in
+#     double quotes to make sure that they get re-expanded; and
+#   * put everything else in single quotes, so that it's not re-expanded.
 
-IFS=$'
-' read -rd '' -a JAVA_OPTS_ARR <<< "$(echo $JAVA_OPTS | xargs -n1)"
-IFS=$'
-' read -rd '' -a GRADLE_OPTS_ARR <<< "$(echo $GRADLE_OPTS | xargs -n1)"
+set -- \
+        "-Dorg.gradle.appname=$APP_BASE_NAME" \
+        -classpath "$CLASSPATH" \
+        org.gradle.wrapper.GradleWrapperMain \
+        "$@"
 
-exec "$JAVACMD" "$@" "${JAVA_OPTS_ARR[@]}" "${GRADLE_OPTS_ARR[@]}" "-Dorg.gradle.appname=$APP_BASE_NAME" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "${ARGV[@]}"
+# Use "xargs" to parse quoted args.
+#
+# With -n1 it outputs one arg per line, with the quotes removed.
+#
+# In Bash we could simply go:
+#
+#   readarray ARGS < <( xargs -n1 <<<"$var" ) &&
+#   set -- "${ARGS[@]}" "$@"
+#
+# but POSIX shell has neither arrays nor command substitution, so instead we
+# post-process each arg (as a line of input to sed) to backslash-escape any
+# character that might be a shell metacharacter, then use eval to reverse
+# that process (while maintaining the separation between arguments), and wrap
+# the whole thing up as a single "set" statement.
+#
+# This will of course break if any of these variables contains a newline or
+# an unmatched quote.
+#
+
+eval "set -- $(
+        printf '%s\n' "$DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS" |
+        xargs -n1 |
+        sed ' s~[^-[:alnum:]+,./:=@_]~\\&~g; ' |
+        tr '\n' ' '
+    )" '"$@"'
+
+exec "$JAVACMD" "$@"
