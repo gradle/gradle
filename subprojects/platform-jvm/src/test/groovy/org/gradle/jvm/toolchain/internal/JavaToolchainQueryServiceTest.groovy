@@ -32,6 +32,7 @@ import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -85,8 +86,8 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17195")
     def "uses most recent version of multiple matches if version has a legacy format"() {
-        // See https://github.com/gradle/gradle/issues/17195
         given:
         def registry = createDeterministicInstallationRegistry(["1.8.0_282", "1.8.0_292"])
         def toolchainFactory = newToolchainFactory()
