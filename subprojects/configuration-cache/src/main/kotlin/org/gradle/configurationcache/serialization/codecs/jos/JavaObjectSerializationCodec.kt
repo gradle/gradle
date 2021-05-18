@@ -129,10 +129,6 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
                         }
                     }
                 }
-                Format.WriteReplace -> {
-                    readResolve(readNonNull())
-                        .also { putIdentity(id, it) }
-                }
                 Format.ReadResolve -> {
                     readResolve(decodeBean())
                         .also { putIdentity(id, it) }
@@ -221,7 +217,6 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     private
     enum class Format {
-        WriteReplace,
         ReadResolve,
         WriteObject,
         ReadObject,
