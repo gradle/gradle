@@ -705,7 +705,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 }
             }
 
-            if (conventionAware) {
+            // For classes that could have convention mapping, but implement IConventionAware themselves, we need to
+            // mark ineligible-for-convention-mapping properties in a different way.
+            // See mixInConventionAware() for how we do this for decorated types that do not implement IConventionAware manually
+            //
+            // Doing this for all types introduces a performance penalty for types that have Provider properties, even
+            // if they don't use convention mapping.
+            if (conventionAware && IConventionAware.class.isAssignableFrom(type)) {
                 for (PropertyMetadata property : ineligibleProperties) {
                     // GENERATE getConventionMapping()
                     methodVisitor.visitVarInsn(ALOAD, 0);
@@ -845,6 +851,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 visitor.visitMethodInsn(INVOKESPECIAL, CONVENTION_AWARE_HELPER_TYPE.getInternalName(), "<init>", RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION, false);
 
                 // END
+
+                for (PropertyMetadata property : ineligibleProperties) {
+                    // GENERATE convention.ineligible(__property.getName()__)
+                    visitor.visitInsn(DUP);
+                    visitor.visitLdcInsn(property.getName());
+                    visitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "ineligible", RETURN_VOID_FROM_STRING, true);
+                }
             };
 
             addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, null, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, initConventionAwareHelper);
