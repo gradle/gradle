@@ -62,23 +62,23 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
         )
     }
 
-    def "able to resolve dependencies when the user manually specifies the supported TLS versions using `https.protocols`"() {
+    def "build fails when user specifies `https.protocols` that are not supported by the server"() {
         given:
         keyStore.enableSslWithServerCert(mavenHttpRepo.server) {
-            it.addExcludeProtocols("TLSv1.2", "TLSv1.3")
-            it.setIncludeProtocols("TLSv1", "TLSv1.1")
-            it.setExcludeCipherSuites()
+            it.addExcludeProtocols("TLSv1.3")
+            it.setIncludeProtocols("TLSv1.2")
         }
         keyStore.configureServerCert(executer)
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
         and:
         writeBuildFile()
+
         when:
         module.allowAll()
         and:
-        executer.withArgument("-Dhttps.protocols=TLSv1,TLSv1.1")
+        executer.withArgument("-Dhttps.protocols=TLSv1.3")
         then:
-        succeeds('listJars')
+        fails('listJars')
     }
 
     def writeBuildFile() {
