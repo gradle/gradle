@@ -178,4 +178,4 @@ eval set -- \$DEFAULT_JVM_OPTS
 IFS=\$'\n' read -rd '' -a JAVA_OPTS_ARR <<< "\$(echo \$JAVA_OPTS | xargs -n1)"
 IFS=\$'\n' read -rd '' -a ${optsEnvironmentVar}_ARR <<< "\$(echo \$${optsEnvironmentVar} | xargs -n1)"
 
-exec "\$JAVACMD" "\$@" "\${JAVA_OPTS_ARR[@]}" "\${${optsEnvironmentVar}_ARR[@]}" <% if ( appNameSystemProperty ) { %>"\"-D${appNameSystemProperty}=\$APP_BASE_NAME\"" <% } %>-classpath "\$CLASSPATH" <% if ( mainClassName.startsWith('--module ') ) { %>--module-path "\$MODULE_PATH" <% } %>${mainClassName} "\${ARGV[@]}"
+exec "\$JAVACMD" "\$@" "\${JAVA_OPTS_ARR[@]}" "\${${optsEnvironmentVar}_ARR[@]}" <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=\$APP_BASE_NAME" <% } %>-classpath "\$CLASSPATH" <% if ( mainClassName.startsWith('--module ') ) { %>--module-path "\$MODULE_PATH" <% } %>${mainClassName} "\${ARGV[@]}"
