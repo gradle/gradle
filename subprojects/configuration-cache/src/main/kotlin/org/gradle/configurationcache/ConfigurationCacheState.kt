@@ -48,7 +48,9 @@ import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer
+import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
+import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildState
@@ -149,6 +151,7 @@ class ConfigurationCacheState(
         val gradle = build.gradle
 
         withLoadBuildOperation(gradle) {
+            fire(gradle)
             runReadOperation {
                 readGradleState(build)
             }
@@ -176,6 +179,24 @@ class ConfigurationCacheState(
             gradle.serviceOf(),
             gradle.serviceOf<BuildDefinition>().fromBuild
         ).prepareSettings(gradle)
+    }
+
+    private
+    fun fire(gradle: GradleInternal) {
+        // Fire build operation required by build scans to determine build path (and settings execution time)
+        // It may be better to instead point GE at the origin build that produced the cached task graph,
+        // or replace this with a different event/op that carries this information and wraps some actual work
+        BuildOperationSettingsProcessor(
+            { _, _, _, _ -> gradle.settings },
+            gradle.serviceOf()
+        ).process(
+            gradle,
+            SettingsLocation(gradle.settings.settingsDir, null),
+            gradle.classLoaderScope,
+            gradle.startParameter.apply {
+                useEmptySettings()
+            }
+        )
     }
 
     private

@@ -24,7 +24,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.configuration.project.LifecycleProjectEvaluator.configureProjectBuildOperationBuilderFor
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
@@ -44,7 +44,6 @@ import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.file.PathToFileResolver
-import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -132,45 +131,21 @@ class ConfigurationCacheHost internal constructor(
 
         private
         fun fireBuildOperationsRequiredByBuildScans() {
-            // Fire build operation required by build scans to determine the build's project structure (and build load time)
-            val buildOperationExecutor = service<BuildOperationExecutor>()
-            NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor)
-                .load(gradle.settings, gradle)
-
-            // Fire build operation required by build scans to determine build path (and settings execution time)
-            // It may be better to instead point GE at the origin build that produced the cached task graph,
-            // or replace this with a different event/op that carries this information and wraps some actual work
-            BuildOperationSettingsProcessor(
-                { _, _, _, _ -> gradle.settings },
-                service()
-            ).process(
-                gradle,
-                SettingsLocation(settingsDir(), null),
-                gradle.classLoaderScope,
-                gradle.startParameter.apply {
-                    useEmptySettings()
-                }
-            )
-
             // Fire build operation required by build scans to determine the root path
+            val buildOperationExecutor = service<BuildOperationExecutor>()
             buildOperationExecutor.run(object : RunnableBuildOperation {
                 override fun run(context: BuildOperationContext) = Unit
-
-                override fun description(): BuildOperationDescriptor.Builder {
-                    val project = gradle.rootProject
-                    val displayName = "Configure project " + project.identityPath
-                    return BuildOperationDescriptor.displayName(displayName)
-                        .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
-                        .progressDisplayName(displayName)
-                        .details(
-                            ConfigureProjectBuildOperationType.DetailsImpl(
-                                project.projectPath,
-                                gradle.identityPath,
-                                project.rootDir
-                            )
-                        )
-                }
+                override fun description(): BuildOperationDescriptor.Builder =
+                    configureProjectBuildOperationBuilderFor(gradle.rootProject)
             })
+
+            // Fire build operation required by build scans to determine the build's project structure (and build load time)
+            NotifyingBuildLoader(
+                { _, _ ->
+
+                },
+                buildOperationExecutor
+            ).load(gradle.settings, gradle)
         }
 
         private

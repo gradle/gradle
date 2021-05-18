@@ -119,19 +119,23 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            Path identityPath = project.getIdentityPath();
-            String displayName = "Configure project " + identityPath;
-
-            String progressDisplayName = identityPath.toString();
-            if (identityPath.equals(Path.ROOT)) {
-                progressDisplayName = "root project";
-            }
-
-            return BuildOperationDescriptor.displayName(displayName)
-                .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
-                .progressDisplayName(progressDisplayName)
-                .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath(), project.getRootDir()));
+            return configureProjectBuildOperationBuilderFor(this.project);
         }
+    }
+
+    public static BuildOperationDescriptor.Builder configureProjectBuildOperationBuilderFor(ProjectInternal projectInternal) {
+        Path identityPath = projectInternal.getIdentityPath();
+        String displayName = "Configure project " + identityPath;
+
+        String progressDisplayName = identityPath.toString();
+        if (identityPath.equals(Path.ROOT)) {
+            progressDisplayName = "root project";
+        }
+
+        return BuildOperationDescriptor.displayName(displayName)
+            .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
+            .progressDisplayName(progressDisplayName)
+            .details(new ConfigureProjectBuildOperationType.DetailsImpl(projectInternal.getProjectPath(), projectInternal.getGradle().getIdentityPath(), projectInternal.getRootDir()));
     }
 
     private static class NotifyBeforeEvaluate implements RunnableBuildOperation {
