@@ -36,7 +36,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
 import org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
@@ -47,7 +46,7 @@ import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ScalaRuntime;
-import org.gradle.api.tasks.ScalaSourceSet;
+import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -165,14 +164,16 @@ public class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private static void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage, final ObjectFactory objectFactory) {
+    @SuppressWarnings("deprecation")
+    private void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage, final ObjectFactory objectFactory) {
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
                 String displayName = (String) InvokerHelper.invokeMethod(sourceSet, "getDisplayName", null);
                 Convention sourceSetConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
-                DefaultScalaSourceSet scalaSourceSet = new DefaultScalaSourceSet(displayName, objectFactory);
+                org.gradle.api.internal.tasks.DefaultScalaSourceSet scalaSourceSet = new  org.gradle.api.internal.tasks.DefaultScalaSourceSet(displayName, objectFactory);
                 sourceSetConvention.getPlugins().put("scala", scalaSourceSet);
+                sourceSet.getExtensions().add(ScalaSourceDirectorySet.class, "scala", scalaSourceSet.getScala());
 
                 final SourceDirectorySet scalaDirectorySet = scalaSourceSet.getScala();
                 scalaDirectorySet.srcDir(project.file("src/" + sourceSet.getName() + "/scala"));
@@ -200,16 +201,16 @@ public class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage) {
-        Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
-        final ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
+        final ScalaSourceDirectorySet scalaSourceSet = sourceSet.getExtensions().getByType(ScalaSourceDirectorySet.class);
 
         final TaskProvider<ScalaCompile> scalaCompile = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, new Action<ScalaCompile>() {
             @Override
             public void execute(ScalaCompile scalaCompile) {
-                JvmPluginsHelper.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, scalaCompile.getOptions(), project);
-                scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
-                scalaCompile.setSource(scalaSourceSet.getScala());
+                JvmPluginsHelper.configureForSourceSet(sourceSet, scalaSourceSet, scalaCompile, scalaCompile.getOptions(), project);
+                scalaCompile.setDescription("Compiles the " + scalaSourceSet + ".");
+                scalaCompile.setSource(scalaSourceSet);
 
                 scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
@@ -241,7 +242,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
             }
         });
-        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project, scalaCompile, scalaCompile.map(new Transformer<CompileOptions, ScalaCompile>() {
+        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet, project, scalaCompile, scalaCompile.map(new Transformer<CompileOptions, ScalaCompile>() {
             @Override
             public CompileOptions transform(ScalaCompile scalaCompile) {
                 return scalaCompile.getOptions();

@@ -122,6 +122,7 @@ Gradle 7.1 defines source sets as an extension in the following plugins:
 
 - `groovy`
 - `antlr`
+- `scala`
 
  This means that the Kotlin DSL has auto-generated accessors and `withConvention` block can be omitted:
 

@@ -171,6 +171,7 @@ The following source sets are contributed via an extension with a custom type:
 
 - `groovy`: link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceDirectorySet.html[GroovySourceDirectorySet]
 - `antlr`: link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+- `scala`: link:{groovyDslPath}/org.gradle.api.tasks.ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
 
 The 'idiomatic' DSL declaration is backward compatible:
 
@@ -348,10 +349,12 @@ The following source set interfaces are now deprecated and scheduled for removal
 
 - link:{javadocPath}/org/gradle/api/tasks/GroovySourceSet.html[GroovySourceSet]
 - link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+- link:{javadocPath}/org/gradle/api/tasks/ScalaSourceSet.html[ScalaSourceSet]
 
 Clients should configure the sources with their plugin-specific configuration:
 - `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
 - `antlr`: link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+- `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
 
 For example, here's how you configure the groovy sources from a plugin:
 
