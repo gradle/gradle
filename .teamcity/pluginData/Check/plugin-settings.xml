@@ -22,7 +22,7 @@
         <build-type id="bt270451" />
       </build-types>
     </webhook>
-    <webhook url="http://dev12.gradle.org:3003/teamcity" enabled="true" template="legacy-tailored-json">
+    <webhook url="https://gradle-bot.grdev.net/teamcity" enabled="true" template="legacy-tailored-json">
       <states>
         <state type="buildAddedToQueue" enabled="false" />
         <state type="buildRemovedFromQueue" enabled="false" />
