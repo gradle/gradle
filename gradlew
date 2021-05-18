@@ -18,29 +18,32 @@
 
 ##############################################################################
 ##
-##  Gradle start up script for UN*X
+##  Gradle start up script for POSIX
 ##
 ##############################################################################
 
 # Attempt to set APP_HOME
+
 # Resolve links: $0 may be a link
-PRG="$0"
-# Need this for relative symlinks.
-while [ -h "$PRG" ] ; do
-    ls=$( ls -ld "$PRG" )
+app_path="$0"
+
+# Need this for daisy-chained symlinks.
+while
+    APP_HOME="${app_path%"${app_path##*/}"}"   # leaves a trailing /; empty if no leading path
+    [ -h "$app_path" ]
+do
+    ls="$( ls -ld "$app_path" )"
     link=${ls#*' -> '}
-    case $link in
-      /*) PRG="$link" ;;
-      *)  PRG=$( dirname "$PRG" )"/$link" ;;
+    case $link in             #(
+      /*)   app_path=$link ;; #(
+      *)    app_path=$APP_HOME$link ;;
     esac
 done
-SAVED="$( pwd )"
-cd "$( dirname "$PRG" )/" >/dev/null
-APP_HOME="$( pwd -P )"
-cd "$SAVED" >/dev/null
+
+APP_HOME="$( cd "${APP_HOME:-./}" && pwd -P )" || exit
 
 APP_NAME="Gradle"
-APP_BASE_NAME=$( basename "$0" )
+APP_BASE_NAME="${0##*/}"
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 DEFAULT_JVM_OPTS='-Dfile.encoding=UTF-8 "-Xmx64m" "-Xms64m"'
