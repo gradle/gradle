@@ -37,10 +37,12 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
+    def fileCollectionFactory = TestFiles.fileCollectionFactory(tempDir.root)
+    def compileOptions = new CompileOptions(TestUtil.objectFactory(), fileCollectionFactory)
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        spec.compileOptions = new MinimalJavaCompileOptions(compileOptions)
     }
 
     def "generates options for an unconfigured spec"() {
@@ -181,9 +183,8 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        def compileOptions = new CompileOptions(TestUtil.objectFactory())
         compileOptions.bootstrapClasspath = TestFiles.fixed(new File("lib1.jar"), new File("lib2.jar"))
-        spec.compileOptions = compileOptions
+        spec.compileOptions = new MinimalJavaCompileOptions(compileOptions)
 
         expect:
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
@@ -379,6 +380,74 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         expect:
         builder.build() == expected
         builder.noEmptySourcePath().build() == expected
+    }
+
+    def "friendly error when system properties are set via fork options"() {
+        given:
+        spec.compileOptions.forkOptions.jvmArgs << "-D${systemProperty}".toString()
+
+        when:
+        builder.includeLauncherOptions(true).build()
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "Invalid system property: -D${systemProperty}.  The javac executable only allows setting the system properties java.ext.dirs and java.endorsed.dirs."
+
+        where:
+        systemProperty << ['foo=bar', 'foo']
+    }
+
+    def "no error when allowable system properties are set via fork options"() {
+        given:
+        spec.compileOptions.forkOptions.jvmArgs << '-Djava.ext.dirs=foo'
+        spec.compileOptions.forkOptions.jvmArgs << '-Djava.endorsed.dirs=foo'
+
+        when:
+        builder.includeLauncherOptions(true).build()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "friendly error when system properties are set via compile options"() {
+        given:
+        spec.compileOptions.compilerArgs << "-D${systemProperty}".toString()
+
+        when:
+        builder.build()
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "Invalid system property: -D${systemProperty}.  The javac executable only allows setting the system properties java.ext.dirs and java.endorsed.dirs."
+
+        where:
+        systemProperty << ['foo=bar', 'foo']
+    }
+
+    def "no error when allowable system properties are set via compile options"() {
+        given:
+        spec.compileOptions.compilerArgs << '-Djava.ext.dirs=foo'
+        spec.compileOptions.compilerArgs << '-Djava.endorsed.dirs=foo'
+
+        when:
+        builder.build()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "immutable system properties in fork options are ignored"() {
+        given:
+        spec.compileOptions.forkOptions.jvmArgs << '-Dfile.encoding=foo'
+
+        when:
+        def args = builder.includeLauncherOptions(true).build()
+
+        then:
+        noExceptionThrown()
+
+        and:
+        !args.contains('-Dfile.encoding=foo')
     }
 
     String defaultEmptySourcePathRefFolder() {

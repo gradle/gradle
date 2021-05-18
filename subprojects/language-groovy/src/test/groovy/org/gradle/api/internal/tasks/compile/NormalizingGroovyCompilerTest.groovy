@@ -15,13 +15,18 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
 import org.gradle.util.TestUtil
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class NormalizingGroovyCompilerTest extends Specification {
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+
     org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> target = Mock()
     DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
     NormalizingGroovyCompiler compiler = new NormalizingGroovyCompiler(target)
@@ -31,7 +36,9 @@ class NormalizingGroovyCompilerTest extends Specification {
         spec.groovyClasspath = spec.compileClasspath
         spec.sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.root)
+        def javaCompileOptions = new CompileOptions(TestUtil.objectFactory(), fileCollectionFactory)
+        spec.compileOptions = new MinimalJavaCompileOptions(javaCompileOptions)
         spec.groovyCompileOptions = new MinimalGroovyCompileOptions(new GroovyCompileOptions())
     }
 

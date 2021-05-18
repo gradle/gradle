@@ -27,8 +27,8 @@ class ForkOptionsTest extends Specification {
         expect:
         forkOptions.executable == null
         forkOptions.javaHome == null
-        forkOptions.memoryInitialSize == null
-        forkOptions.memoryMaximumSize == null
+        forkOptions.minHeapSize == null
+        forkOptions.maxHeapSize == null
         forkOptions.tempDir == null
         forkOptions.jvmArgs == []
     }

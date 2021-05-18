@@ -20,9 +20,13 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.util.TestUtil
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class NormalizingJavaCompilerTest extends Specification {
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+
     org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> target = Mock()
     DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec()
     NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
@@ -30,9 +34,10 @@ class NormalizingJavaCompilerTest extends Specification {
     def setup() {
         spec.sourceFiles = files("Source1.java", "Source2.java", "Source3.java")
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
-        def compileOptions = new CompileOptions(TestUtil.objectFactory())
+        def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.root)
+        def compileOptions = new CompileOptions(TestUtil.objectFactory(), fileCollectionFactory)
         compileOptions.annotationProcessorPath = TestFiles.fixed(new File("processor.jar"))
-        spec.compileOptions = compileOptions
+        spec.compileOptions = new MinimalJavaCompileOptions(compileOptions)
     }
 
     def "replaces iterable sources with immutable set"() {

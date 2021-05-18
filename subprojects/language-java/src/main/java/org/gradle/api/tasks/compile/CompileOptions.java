@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
@@ -69,7 +70,7 @@ public class CompileOptions extends AbstractOptions {
 
     private boolean fork;
 
-    private ForkOptions forkOptions = new ForkOptions();
+    private ForkOptions forkOptions;
 
     private FileCollection bootstrapClasspath;
 
@@ -93,12 +94,13 @@ public class CompileOptions extends AbstractOptions {
     private final DirectoryProperty headerOutputDirectory;
 
     @Inject
-    public CompileOptions(ObjectFactory objectFactory) {
+    public CompileOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
         this.javaModuleVersion = objectFactory.property(String.class);
         this.javaModuleMainClass = objectFactory.property(String.class);
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
         this.release = objectFactory.property(Integer.class);
+        this.forkOptions = new ForkOptions(fileCollectionFactory);
     }
 
     /**
@@ -352,7 +354,13 @@ public class CompileOptions extends AbstractOptions {
      * Convenience method to set {@link ForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
      */
+    @Deprecated
     public CompileOptions fork(Map<String, Object> forkArgs) {
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "fork")
+            .withAdvice("Use setter methods instead.")
+            .willBeRemovedInGradle8()
+            .undocumented()
+            .nagUser();
         fork = true;
         forkOptions.define(forkArgs);
         return this;
@@ -362,7 +370,13 @@ public class CompileOptions extends AbstractOptions {
      * Convenience method to set {@link DebugOptions} with named parameter syntax.
      * Calling this method will set {@code debug} to {@code true}.
      */
+    @Deprecated
     public CompileOptions debug(Map<String, Object> debugArgs) {
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "debug")
+            .withAdvice("Use setter methods instead.")
+            .willBeRemovedInGradle8()
+            .undocumented()
+            .nagUser();
         debug = true;
         debugOptions.define(debugArgs);
         return this;

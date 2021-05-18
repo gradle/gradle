@@ -16,6 +16,7 @@
 
 package org.gradle.language.scala.tasks;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
@@ -56,9 +57,13 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     private List<String> loggingPhases;
 
-    private ScalaForkOptions forkOptions = new ScalaForkOptions();
+    private ScalaForkOptions forkOptions;
 
     private transient IncrementalCompileOptions incrementalOptions;
+
+    public BaseScalaCompileOptions(FileCollectionFactory fileCollectionFactory) {
+        this.forkOptions = new ScalaForkOptions(fileCollectionFactory);
+    }
 
     /**
      * Fail the build on compilation errors.

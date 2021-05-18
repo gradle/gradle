@@ -22,11 +22,21 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+
+    CompileOptions options
+
+    def setup() {
+        tmpDir.create()
+        options = new CompileOptions(Mock(ObjectFactory), TestFiles.fileCollectionFactory(tmpDir.root))
+    }
+
     def "produces correct spec type" () {
-        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
         options.fork = fork
         options.forkOptions.executable = executable
         DefaultGroovyJavaJointCompileSpecFactory factory = new DefaultGroovyJavaJointCompileSpecFactory(options, null)
@@ -54,7 +64,6 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
         metadata.languageVersion >> JavaLanguageVersion.of(version)
         metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
 
-        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
         options.fork = fork
         DefaultGroovyJavaJointCompileSpecFactory factory = new DefaultGroovyJavaJointCompileSpecFactory(options, metadata)
 

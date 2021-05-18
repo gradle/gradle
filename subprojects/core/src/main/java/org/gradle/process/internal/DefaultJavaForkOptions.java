@@ -25,7 +25,6 @@ import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -35,42 +34,27 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.getHeapSizeMb;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
-    private final JvmOptions options;
-    private List<CommandLineArgumentProvider> jvmArgumentProviders;
+    private final ProviderAwareJvmOptions options;
 
     @Inject
     public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
         super(resolver);
-        options = new JvmOptions(fileCollectionFactory, debugOptions);
+        options = new ProviderAwareJvmOptions(fileCollectionFactory, debugOptions);
     }
 
     @Override
     public List<String> getAllJvmArgs() {
-        if (hasJvmArgumentProviders(this)) {
-            JvmOptions copy = options.createCopy();
-            for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
-                copy.jvmArgs(jvmArgumentProvider.asArguments());
-            }
-            return copy.getAllJvmArgs();
-        } else {
-            return options.getAllJvmArgs();
-        }
+        return options.getAllJvmArgs();
     }
 
     @Override
     public void setAllJvmArgs(List<String> arguments) {
         options.setAllJvmArgs(arguments);
-        if (hasJvmArgumentProviders(this)) {
-            jvmArgumentProviders.clear();
-        }
     }
 
     @Override
     public void setAllJvmArgs(Iterable<?> arguments) {
         options.setAllJvmArgs(arguments);
-        if (hasJvmArgumentProviders(this)) {
-            jvmArgumentProviders.clear();
-        }
     }
 
     @Override
@@ -102,10 +86,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        if (jvmArgumentProviders == null) {
-            jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
-        }
-        return jvmArgumentProviders;
+        return options.getJvmArgumentProviders();
     }
 
     @Override
@@ -209,17 +190,16 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
         options.copyTo(target);
-        if (jvmArgumentProviders != null) {
-            for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
-                target.jvmArgs(jvmArgumentProvider.asArguments());
-            }
-        }
         return this;
+    }
+
+    boolean hasJvmArgumentProviders() {
+        return options.hasJvmArgumentProviders();
     }
 
     @Override
     public boolean isCompatibleWith(JavaForkOptions options) {
-        if (hasJvmArgumentProviders(this) || hasJvmArgumentProviders(options)) {
+        if (hasJvmArgumentProviders() && hasJvmArgumentProviders(options)) {
             throw new UnsupportedOperationException("Cannot compare options with jvmArgumentProviders.");
         }
         return getDebug() == options.getDebug()
@@ -237,11 +217,6 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     private static boolean hasJvmArgumentProviders(JavaForkOptions forkOptions) {
         return forkOptions instanceof DefaultJavaForkOptions
-            && hasJvmArgumentProviders((DefaultJavaForkOptions) forkOptions);
+            && ((DefaultJavaForkOptions) forkOptions).hasJvmArgumentProviders();
     }
-
-    private static boolean hasJvmArgumentProviders(DefaultJavaForkOptions forkOptions) {
-        return forkOptions.jvmArgumentProviders != null && !forkOptions.jvmArgumentProviders.isEmpty();
-    }
-
 }

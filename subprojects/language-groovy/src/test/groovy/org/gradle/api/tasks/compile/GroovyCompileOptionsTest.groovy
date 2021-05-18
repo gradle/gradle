@@ -16,22 +16,21 @@
 
 package org.gradle.api.tasks.compile
 
-import org.junit.Before
-import org.junit.Test
+import spock.lang.Specification
 
 import static org.junit.Assert.*
 
-class GroovyCompileOptionsTest {
+class GroovyCompileOptionsTest extends Specification {
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
     GroovyCompileOptions compileOptions
 
-    @Before public void setUp()  {
+    def setup() {
         compileOptions = new GroovyCompileOptions()
-        compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as GroovyForkOptions
     }
 
-    @Test public void testCompileOptions() {
+    def "default compile options"() {
+        expect:
         assertTrue(compileOptions.failOnError)
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
@@ -44,23 +43,25 @@ class GroovyCompileOptionsTest {
         assertFalse(compileOptions.parameters)
     }
 
-    @Test public void testFork() {
+    def "fork"() {
+        def forkOptions = Mock(GroovyForkOptions)
+        1 * forkOptions.define(TEST_FORK_OPTION_MAP)
+
         compileOptions.fork = false
-        boolean forkUseCalled = false
-        compileOptions.forkOptions = [define: {Map args ->
-            forkUseCalled = true
-            assertEquals(TEST_FORK_OPTION_MAP, args)
-        }] as GroovyForkOptions
+        compileOptions.forkOptions = forkOptions
+
+        expect:
         assert compileOptions.fork(TEST_FORK_OPTION_MAP).is(compileOptions)
         assertTrue(compileOptions.fork)
-        assertTrue(forkUseCalled)
     }
 
-    @Test public void testDefine() {
+    def "define"() {
         compileOptions.verbose = false
         compileOptions.encoding = 'xxxx'
         compileOptions.fork = false
         compileOptions.parameters = true
+
+        expect:
         compileOptions.define( encoding: 'encoding')
         assertEquals('encoding', compileOptions.encoding)
         assertFalse(compileOptions.verbose)

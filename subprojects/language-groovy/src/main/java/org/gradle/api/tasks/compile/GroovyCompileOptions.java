@@ -17,6 +17,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -25,6 +26,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -51,7 +53,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     private List<String> fileExtensions = ImmutableList.of("java", "groovy");
 
-    private GroovyForkOptions forkOptions = new GroovyForkOptions();
+    private GroovyForkOptions forkOptions;
 
     private Map<String, Boolean> optimizationOptions = Maps.newHashMap();
 
@@ -62,6 +64,10 @@ public class GroovyCompileOptions extends AbstractOptions {
     private boolean javaAnnotationProcessing;
 
     private boolean parameters;
+
+    public GroovyCompileOptions(FileCollectionFactory fileCollectionFactory) {
+        this.forkOptions = new GroovyForkOptions(fileCollectionFactory);
+    }
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -341,7 +347,13 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Convenience method to set {@link GroovyForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
      */
+    @Deprecated
     public GroovyCompileOptions fork(Map<String, Object> forkArgs) {
+        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "fork")
+            .withAdvice("Use setter methods instead.")
+            .willBeRemovedInGradle8()
+            .undocumented()
+            .nagUser();
         fork = true;
         forkOptions.define(forkArgs);
         return this;

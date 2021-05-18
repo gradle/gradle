@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
+import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,8 @@ public class JavaCompilerArgumentsBuilder {
     public static final Logger LOGGER = LoggerFactory.getLogger(JavaCompilerArgumentsBuilder.class);
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
     public static final String EMPTY_SOURCE_PATH_REF_DIR = "emptySourcePathRef";
+    private static final String JAVA_EXT_DIRS = "java.ext.dirs";
+    private static final String JAVA_ENDORSED_DIRS = "java.endorsed.dirs";
 
     private final JavaCompileSpec spec;
 
@@ -114,6 +117,12 @@ public class JavaCompilerArgumentsBuilder {
             if ("--release".equals(arg) && spec.getRelease() != null) {
                 throw new InvalidUserDataException("Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.");
             }
+
+            if (arg != null && arg.startsWith("-D") && !isAllowableSystemProperty(arg)) {
+                if (!isImmutableSystemProperty(arg)) {
+                    throw new InvalidUserDataException("Invalid system property: " + arg + ".  The javac executable only allows setting the system properties " + JAVA_EXT_DIRS + " and " + JAVA_ENDORSED_DIRS + ".");
+                }
+            }
         }
     }
 
@@ -129,9 +138,30 @@ public class JavaCompilerArgumentsBuilder {
         if (forkOptions.getMemoryMaximumSize() != null) {
             args.add("-J-Xmx" + forkOptions.getMemoryMaximumSize().trim());
         }
+
         if (forkOptions.getJvmArgs() != null) {
-            args.addAll(forkOptions.getJvmArgs());
+            validateCompilerArgs(forkOptions.getJvmArgs());
+            // We just ignore any immutable system properties that were added as a default
+            args.addAll(
+                forkOptions.getJvmArgs().stream()
+                    .filter(arg -> !isImmutableSystemProperty(arg))
+                    .collect(Collectors.toList())
+            );
         }
+    }
+
+    private static boolean isAllowableSystemProperty(String arg) {
+        // TODO We should model both of these as compile options (currently only ext dirs is modeled) and disallow any
+        //  system properties in the fork options.
+        return isSystemProperty(JAVA_EXT_DIRS, arg) || isSystemProperty(JAVA_ENDORSED_DIRS, arg);
+    }
+
+    private static boolean isImmutableSystemProperty(String arg) {
+        return JvmOptions.IMMUTABLE_SYSTEM_PROPERTIES.stream().anyMatch(immutableProperty -> isSystemProperty(immutableProperty, arg));
+    }
+
+    private static boolean isSystemProperty(String systemProperty, String candidate) {
+        return candidate.startsWith("-D" + systemProperty + "=") || candidate.equals("-D" + systemProperty);
     }
 
     private void addMainOptions(List<String> compilerArgs) {

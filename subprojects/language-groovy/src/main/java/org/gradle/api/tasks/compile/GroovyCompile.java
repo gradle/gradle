@@ -25,6 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -36,6 +37,7 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFa
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptions;
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptions;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
@@ -86,7 +88,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
-    private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
+    private final GroovyCompileOptions groovyCompileOptions;
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final Property<JavaLauncher> javaLauncher;
     private File previousCompilationDataFile;
@@ -102,6 +104,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
             this.astTransformationClasspath.from((Callable<FileCollection>) this::getClasspath);
         }
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+        this.groovyCompileOptions = new GroovyCompileOptions(getFileCollectionFactory());
     }
 
     @Override
@@ -225,6 +228,10 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         throw new UnsupportedOperationException();
     }
 
+    @Inject protected FileCollectionFactory getFileCollectionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     private FileCollection determineGroovyCompileClasspath() {
         if (experimentalCompilationAvoidanceEnabled()) {
             return astTransformationClasspath.plus(getClasspath());
@@ -265,7 +272,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         configureCompatibilityOptions(spec);
         spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath() == null ? getProjectLayout().files() : compileOptions.getAnnotationProcessorPath()));
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
-        spec.setCompileOptions(compileOptions);
+        spec.setCompileOptions(new MinimalJavaCompileOptions(compileOptions));
         spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(groovyCompileOptions));
         spec.getCompileOptions().setSupportsCompilerApi(true);
         if (getOptions().isIncremental()) {

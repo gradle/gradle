@@ -32,9 +32,12 @@ import org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions;
  * command line arguments.
  */
 public class MinimalCompilerDaemonForkOptions extends BaseForkOptions {
-    public MinimalCompilerDaemonForkOptions(BaseForkOptions forkOptions) {
-        setJvmArgs(forkOptions.getJvmArgs());
-        setMemoryInitialSize(forkOptions.getMemoryInitialSize());
-        setMemoryMaximumSize(forkOptions.getMemoryMaximumSize());
+    public MinimalCompilerDaemonForkOptions() {
+    }
+
+    public MinimalCompilerDaemonForkOptions(ProviderAwareCompilerDaemonForkOptions forkOptions) {
+        setJvmArgs(forkOptions.getAllJvmArgs());
+        setMemoryInitialSize(forkOptions.getMinHeapSize());
+        setMemoryMaximumSize(forkOptions.getMaxHeapSize());
     }
 }

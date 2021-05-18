@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptions;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
 import org.gradle.api.jvm.ModularitySpec;
@@ -366,7 +367,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
             spec.setTargetCompatibility(getTargetCompatibility());
             spec.setSourceCompatibility(getSourceCompatibility());
         }
-        spec.setCompileOptions(compileOptions);
+        spec.setCompileOptions(new MinimalJavaCompileOptions(compileOptions));
     }
 
     private File getTemporaryDirWithoutCreating() {

@@ -16,19 +16,22 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.util.TestUtil
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class CompileOptionsTest extends Specification {
     static final TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+
     CompileOptions compileOptions
 
     def setup()  {
-        compileOptions = new CompileOptions(TestUtil.objectFactory())
-        compileOptions.debugOptions = [optionMap: {TEST_DEBUG_OPTION_MAP}] as DebugOptions
-        compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as ForkOptions
+        compileOptions = new CompileOptions(TestUtil.objectFactory(), TestFiles.fileCollectionFactory(tmpDir.root))
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
@@ -53,18 +56,15 @@ class CompileOptionsTest extends Specification {
     }
 
     def "fork"() {
-        compileOptions.fork = false
-        boolean forkUseCalled = false
+        def forkOptions = Mock(ForkOptions)
+        1 * forkOptions.define(TEST_FORK_OPTION_MAP)
 
-        compileOptions.forkOptions = [define: {Map args ->
-            forkUseCalled = true
-            assert args == TEST_FORK_OPTION_MAP
-        }] as ForkOptions
+        compileOptions.fork = false
+        compileOptions.forkOptions = forkOptions
 
         expect:
         compileOptions.fork(TEST_FORK_OPTION_MAP).is(compileOptions)
         compileOptions.fork
-        forkUseCalled
     }
 
     def "debug"() {

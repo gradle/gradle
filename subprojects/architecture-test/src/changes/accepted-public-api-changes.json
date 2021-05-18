@@ -721,6 +721,272 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.ForkOptions",
+            "member": "Constructor org.gradle.api.tasks.compile.ForkOptions()",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.ForkOptions",
+            "member": "Constructor org.gradle.api.tasks.compile.ForkOptions(org.gradle.api.internal.file.FileCollectionFactory)",
+            "acceptation": "This is only for internal use",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
+            "member": "Constructor org.gradle.api.tasks.compile.GroovyCompileOptions()",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
+            "member": "Constructor org.gradle.api.tasks.compile.GroovyCompileOptions(org.gradle.api.internal.file.FileCollectionFactory)",
+            "acceptation": "This is only for internal use",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyForkOptions",
+            "member": "Constructor org.gradle.api.tasks.compile.GroovyForkOptions()",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyForkOptions",
+            "member": "Constructor org.gradle.api.tasks.compile.GroovyForkOptions(org.gradle.api.internal.file.FileCollectionFactory)",
+            "acceptation": "This is only for internal use",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaCompileOptions",
+            "member": "Constructor org.gradle.api.tasks.scala.ScalaCompileOptions()",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaCompileOptions",
+            "member": "Constructor org.gradle.api.tasks.scala.ScalaCompileOptions(org.gradle.api.internal.file.FileCollectionFactory)",
+            "acceptation": "This is only for internal use",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaForkOptions",
+            "member": "Constructor org.gradle.api.tasks.scala.ScalaForkOptions()",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaForkOptions",
+            "member": "Constructor org.gradle.api.tasks.scala.ScalaForkOptions(org.gradle.api.internal.file.FileCollectionFactory)",
+            "acceptation": "This is only for internal use",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Constructor org.gradle.language.scala.tasks.BaseScalaCompileOptions()",
+            "acceptation": "This was only for internal use",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Constructor org.gradle.language.scala.tasks.BaseScalaCompileOptions(org.gradle.api.internal.file.FileCollectionFactory)",
+            "acceptation": "This is only for internal use",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Class org.gradle.process.JvmForkOptions",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.bootstrapClasspath(java.lang.Object[])",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.debugOptions(org.gradle.api.Action)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getAllJvmArgs()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getBootstrapClasspath()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getDebug()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getDebugOptions()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getDefaultCharacterEncoding()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getEnableAssertions()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getJvmArgs()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getMinHeapSize()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getSystemProperties()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.jvmArgs(java.lang.Iterable)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.jvmArgs(java.lang.Object[])",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setAllJvmArgs(java.util.List)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setAllJvmArgs(java.lang.Iterable)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setBootstrapClasspath(org.gradle.api.file.FileCollection)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setDebug(boolean)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setDefaultCharacterEncoding(java.lang.String)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setEnableAssertions(boolean)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setJvmArgs(java.util.List)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setJvmArgs(java.lang.Iterable)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.getMaxHeapSize()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setMaxHeapSize(java.lang.String)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setMinHeapSize(java.lang.String)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.setSystemProperties(java.util.Map)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.systemProperties(java.util.Map)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.JvmForkOptions",
+            "member": "Method org.gradle.process.JvmForkOptions.systemProperty(java.lang.String,java.lang.Object)",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.ProviderAwareJvmForkOptions",
+            "member": "Method org.gradle.process.ProviderAwareJvmForkOptions.getJvmArgumentProviders()",
+            "acceptation": "This is extracted as a superinterface from an existing stable interface",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.ProviderAwareJvmForkOptions",
+            "member": "Class org.gradle.process.ProviderAwareJvmForkOptions",
+            "acceptation": "This extracted as a superinterface from an existing stable interface",
+            "changes": [
+                "Interface has been added"
+            ]
         }
     ]
 }

@@ -16,9 +16,11 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.process.internal.ProviderAwareJvmOptions;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -34,6 +36,10 @@ public class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private String tempDir;
 
     private File javaHome;
+
+    public ForkOptions(FileCollectionFactory fileCollectionFactory) {
+        super(new ProviderAwareJvmOptions(fileCollectionFactory));
+    }
 
     /**
      * Returns the compiler executable to be used. If set,

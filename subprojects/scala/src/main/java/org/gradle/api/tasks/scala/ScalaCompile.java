@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.CacheableTask;
@@ -47,8 +48,8 @@ public class ScalaCompile extends AbstractScalaCompile {
     private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
 
     @Inject
-    public ScalaCompile() {
-        super(new ScalaCompileOptions());
+    public ScalaCompile(FileCollectionFactory fileCollectionFactory) {
+        super(new ScalaCompileOptions(fileCollectionFactory));
     }
 
     @Nested

@@ -15,10 +15,17 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.process.internal.ProviderAwareJvmOptions;
+
 /**
  * Fork options for Groovy compilation. Only take effect if {@code GroovyCompileOptions.fork}
  * is {@code true}.
  */
 public class GroovyForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private static final long serialVersionUID = 0;
+
+    public GroovyForkOptions(FileCollectionFactory fileCollectionFactory) {
+        super(new ProviderAwareJvmOptions(fileCollectionFactory));
+    }
 }

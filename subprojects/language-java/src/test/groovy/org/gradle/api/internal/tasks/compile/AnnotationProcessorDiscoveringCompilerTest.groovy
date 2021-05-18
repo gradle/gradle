@@ -17,18 +17,26 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.util.TestUtil
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Issue
 import spock.lang.Specification
 
 class AnnotationProcessorDiscoveringCompilerTest extends Specification {
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+
     JavaCompileSpec spec = new DefaultJavaCompileSpec().with {
-        compileOptions = new CompileOptions(TestUtil.objectFactory())
+        tmpDir.create()
+        def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.root)
+        def options = new CompileOptions(TestUtil.objectFactory(), fileCollectionFactory)
+        compileOptions = new MinimalJavaCompileOptions(options)
         it
     }
     AnnotationProcessorDetector detector = Stub(AnnotationProcessorDetector)

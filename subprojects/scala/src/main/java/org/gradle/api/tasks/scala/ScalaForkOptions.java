@@ -32,7 +32,9 @@ package org.gradle.api.tasks.scala;
  * limitations under the License.
  */
 
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions;
+import org.gradle.process.internal.ProviderAwareJvmOptions;
 
 /**
  * Fork options for Scala compilation. Only take effect if {@code BaseScalaCompileOptions.fork}
@@ -40,4 +42,8 @@ import org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions;
  */
 public class ScalaForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private static final long serialVersionUID = 0;
+
+    public ScalaForkOptions(FileCollectionFactory fileCollectionFactory) {
+        super(new ProviderAwareJvmOptions(fileCollectionFactory));
+    }
 }

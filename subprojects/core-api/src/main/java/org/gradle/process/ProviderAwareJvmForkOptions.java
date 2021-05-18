@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.scala;
+package org.gradle.process;
 
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.api.tasks.Nested;
+
+import java.util.List;
 
 /**
- * Options for Scala Compilation.
+ * <p>Specifies the options to use to fork a JVM process that can accept {@link CommandLineArgumentProvider} objects.</p>
+ *
+ * @since 7.1
  */
-public class ScalaCompileOptions extends BaseScalaCompileOptions {
-    public ScalaCompileOptions(FileCollectionFactory fileCollectionFactory) {
-        super(fileCollectionFactory);
-    }
+public interface ProviderAwareJvmForkOptions extends JvmForkOptions {
+    /**
+     * Command line argument providers for the java process to fork.
+     *
+     * @since 4.6
+     */
+    @Nested
+    List<CommandLineArgumentProvider> getJvmArgumentProviders();
 }

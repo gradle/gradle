@@ -22,14 +22,17 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultJavaCompileSpecFactoryTest extends Specification {
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
 
     @Unroll
     def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchainHome"() {
-        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
+        CompileOptions options = new CompileOptions(Mock(ObjectFactory), TestFiles.fileCollectionFactory(tmpDir.root))
         options.fork = fork
         options.forkOptions.executable = executable
         def toolchain = null

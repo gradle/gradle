@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile
 
 import com.google.common.collect.Lists
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -54,7 +55,9 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def sources = createFiles(numFiles)
         def classpath = createFiles(numFiles)
         def spec = new DefaultJavaCompileSpec()
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        def fileCollectionFactory = TestFiles.fileCollectionFactory(tempDir.root)
+        def compileOptions = new CompileOptions(TestUtil.objectFactory(), fileCollectionFactory)
+        spec.compileOptions = new MinimalJavaCompileOptions(compileOptions)
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
         spec.sourceFiles = sources
         spec.compileClasspath = classpath

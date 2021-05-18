@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
-import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
 import java.util.List;
@@ -38,8 +37,8 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
         return compileOptions;
     }
 
-    public void setCompileOptions(CompileOptions compileOptions) {
-        this.compileOptions = new MinimalJavaCompileOptions(compileOptions);
+    public void setCompileOptions(MinimalJavaCompileOptions compileOptions) {
+        this.compileOptions = compileOptions;
     }
 
     @Override
