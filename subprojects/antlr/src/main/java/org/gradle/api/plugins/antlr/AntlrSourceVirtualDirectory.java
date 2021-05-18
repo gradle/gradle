@@ -24,7 +24,11 @@ import org.gradle.api.file.SourceDirectorySet;
  * Contract for a Gradle "convention object" that acts as a handler for what I call a virtual directory mapping,
  * injecting a virtual directory named 'antlr' into the project's various {@link org.gradle.api.tasks.SourceSet source
  * sets}.
+ *
+ * @deprecated Using conventions to contribute source sets is deprecated. You can configure the antlr sources via the {@code AntlrSourceDirectorySet} extension (e.g.
+ * {@code sourceSet.getExtensions().getByType(AntlrSourceDirectorySet.class).setSrcDirs(...)}). This interface is scheduled for removal in Gradle 8.0.
  */
+@Deprecated
 public interface AntlrSourceVirtualDirectory {
     String NAME = "antlr";
 
