@@ -28,12 +28,11 @@ PRG="\$0"
 # Need this for relative symlinks.
 while [ -h "\$PRG" ] ; do
     ls=\$( ls -ld "\$PRG" )
-    link=\$( expr "\$ls" : '.*-> \\(.*\\)\$' )
-    if expr "\$link" : '/.*' > /dev/null; then
-        PRG="\$link"
-    else
-        PRG=\$( dirname "\$PRG" )"/\$link"
-    fi
+    link=\${ls#*' -> '}
+    case \$link in
+      /*) PRG="\$link" ;;
+      *)  PRG=\$( dirname "\$PRG" )"/\$link" ;;
+    esac
 done
 SAVED="\$( pwd )"
 cd "\$( dirname \"\$PRG\" )/${appHomeRelativePath}" >/dev/null
@@ -156,7 +155,7 @@ if [ "\$cygwin" = "true" -o "\$msys" = "true" ] ; then
         else
             eval \$( echo args\$i )="\"\$arg\""
         fi
-        i=\$( expr \$i + 1 )
+        i=\$(( \$i + 1 ))
     done
     case \$i in
         0) set -- ;;
