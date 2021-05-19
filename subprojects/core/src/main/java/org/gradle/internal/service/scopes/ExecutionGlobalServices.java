@@ -131,11 +131,12 @@ public class ExecutionGlobalServices {
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
         @SuppressWarnings("deprecation")
         Class<?> deprecatedAbstractTask = org.gradle.api.internal.AbstractTask.class;
+        @SuppressWarnings("deprecation")
+        Class<?> deprecatedHasConvention = org.gradle.api.internal.HasConvention.class;
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
         annotationRegistry.registerPropertyTypeAnnotations(builder);
-        @SuppressWarnings("deprecation")
-        TypeAnnotationMetadataStore result = new DefaultTypeAnnotationMetadataStore(
+        return new DefaultTypeAnnotationMetadataStore(
             ImmutableSet.of(
                 CacheableTask.class,
                 CacheableTransform.class,
@@ -162,7 +163,7 @@ public class ExecutionGlobalServices {
                 DefaultTask.class,
                 DynamicObjectAware.class,
                 ExtensionAware.class,
-                org.gradle.api.internal.HasConvention.class,
+                deprecatedHasConvention,
                 IConventionAware.class,
                 ScriptOrigin.class,
                 Task.class
@@ -179,7 +180,6 @@ public class ExecutionGlobalServices {
             IGNORED_METHOD_ANNOTATIONS,
             method -> method.isAnnotationPresent(Generated.class),
             cacheFactory);
-        return result;
     }
 
     InspectionSchemeFactory createInspectionSchemeFactory(
