@@ -85,7 +85,7 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
  * @param configuration the configuration block.
  * @see [Convention.getPlugin]
  */
-@Deprecated("Conventions are deprecated; use extensions instead")
+@Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
 inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
     @Suppress("deprecation")
     typeOf<T>().let { type ->

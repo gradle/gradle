@@ -33,18 +33,18 @@ fun extensionOf(target: Any, extensionName: String): Any =
     (target as ExtensionAware).extensions.getByName(extensionName)
 
 
-@Deprecated("Conventions are deprecated; use extensions instead")
+@Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
 fun conventionPluginOf(target: Any, name: String) =
     @Suppress("deprecation")
     conventionPluginByName(conventionOf(target), name)
 
 
-@Deprecated("Conventions are deprecated; use extensions instead")
+@Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
 fun conventionPluginByName(convention: Convention, name: String): Any =
     convention.plugins[name] ?: throw IllegalStateException("A convention named '$name' could not be found.")
 
 
-@Deprecated("Conventions are deprecated; use extensions instead")
+@Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
 fun conventionOf(target: Any): Convention = when (target) {
     is Project -> @Suppress("deprecation") target.convention
     is @Suppress("deprecation") org.gradle.api.internal.HasConvention -> target.convention

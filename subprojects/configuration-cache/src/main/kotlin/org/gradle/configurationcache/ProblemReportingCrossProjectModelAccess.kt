@@ -497,7 +497,7 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.artifacts(configureAction)
         }
 
-        @Deprecated("Conventions are deprecated; use extensions instead")
+        @Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
         override fun getConvention(): Convention {
             onAccess()
             @Suppress("deprecation")

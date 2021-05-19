@@ -94,7 +94,7 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
 }
 
 
-@Deprecated("Conventions are deprecated; use extensions instead")
+@Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
 internal
 fun conventionAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {

@@ -81,7 +81,7 @@ abstract class ProjectDelegate : Project {
     override fun getDefaultTasks(): MutableList<String> =
         delegate.defaultTasks
 
-    @Deprecated("Conventions are deprecated; use extensions instead")
+    @Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
     override fun getConvention(): Convention =
         @Suppress("deprecation")
         delegate.convention
