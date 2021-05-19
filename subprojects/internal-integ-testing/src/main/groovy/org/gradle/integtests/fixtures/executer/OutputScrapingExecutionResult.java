@@ -23,8 +23,8 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
-import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.GUtil;
 import org.junit.ComparisonFailure;
 
 import java.util.ArrayList;
@@ -167,12 +167,16 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("$1 $2 in 0s"));
                 i++;
             } else {
-                result.add(line);
+                result.add(normalizeLambdaIds(line));
                 i++;
             }
         }
 
         return LogContent.of(result).withNormalizedEol();
+    }
+
+    private String normalizeLambdaIds(String line) {
+        return line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
     }
 
     @Override

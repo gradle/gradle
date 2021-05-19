@@ -18,9 +18,12 @@ package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
+import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
+import org.gradle.internal.reflect.validation.TypeProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.plugin.use.PluginId;
@@ -54,6 +57,32 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
                 if (cacheableProblemOnly && !cacheable) {
                     return;
                 }
+                problems.add(problem);
+            }
+        };
+    }
+
+    @Override
+    public TypeValidationContext forIrrelevantType() {
+        return new ProblemRecordingTypeValidationContext(documentationRegistry, null) {
+            @Override
+            public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {
+                super.visitTypeProblem(problem -> {
+                    problem.typeIsIrrelevantInErrorMessage();
+                    problemSpec.execute(problem);
+                });
+            }
+
+            @Override
+            public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {
+                super.visitPropertyProblem(problem -> {
+                    problem.typeIsIrrelevantInErrorMessage();
+                    problemSpec.execute(problem);
+                });
+            }
+
+            @Override
+            protected void recordProblem(TypeValidationProblem problem) {
                 problems.add(problem);
             }
         };

@@ -334,6 +334,17 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    String implementationUnknown(boolean renderSolutions = false, @DelegatesTo(value = UnknownImplementation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(UnknownImplementation, 'implementation_unknown', spec)
+        config.description("${config.prefix} ${config.reason}")
+            .reason("Gradle cannot track inputs when it doesn't know their implementation")
+            .solution("Use an (anonymous) inner class instead")
+            .render(renderSolutions)
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
@@ -791,6 +802,31 @@ trait ValidationMessageChecker {
 
         ConflictingAnnotation inConflict(String... conflicting) {
             inConflict(Arrays.asList(conflicting))
+        }
+    }
+
+    static class UnknownImplementation extends ValidationMessageDisplayConfiguration<UnknownImplementation> {
+
+        String prefix
+        String reason
+
+        UnknownImplementation(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnknownImplementation nestedProperty(String propertyName) {
+            prefix = "Property '${propertyName}'"
+            this
+        }
+
+        UnknownImplementation additionalTaskAction(String taskPath) {
+            prefix = "Additional action of task '${taskPath}'"
+            this
+        }
+
+        UnknownImplementation implementedByLambda(String lambdaPrefix) {
+            reason = "was implemented by the Java lambda '${lambdaPrefix}\$\$Lambda\$<non-deterministic>'. Using Java lambdas is not supported, use an (anonymous) inner class instead."
+            this
         }
     }
 }

@@ -771,6 +771,28 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "tests output of unknown implementation for lambda"() {
+        when:
+        render implementationUnknown(true) {
+            nestedProperty('action')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Property 'action' was implemented by the Java lambda 'LambdaAction\$\$Lambda\$<non-deterministic>'. Using Java lambdas is not supported, use an (anonymous) inner class instead.
+
+Reason: Gradle cannot track inputs when it doesn't know their implementation.
+
+Possible solution: Use an (anonymous) inner class instead.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     def "tests output of dummyValidationProblem"() {

@@ -27,8 +27,12 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.problems.BaseProblem;
@@ -40,6 +44,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -70,6 +75,7 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
     public R execute(UnitOfWork work, BeforeExecutionContext context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
+        context.getBeforeExecutionState().ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
         Map<Severity, List<String>> problems = validationContext.getProblems()
             .stream()
@@ -156,6 +162,47 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
                 return context.getValidationContext();
             }
         });
+    }
+
+    private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
+        TypeValidationContext workValidationContext = validationContext.forIrrelevantType();
+        validateImplementation(work, workValidationContext, beforeExecutionState.getImplementation(),
+            () -> "Implementation of " + work.getDisplayName() + " is unknown: " + beforeExecutionState.getImplementation().getUnknownReason()
+        );
+        beforeExecutionState.getAdditionalImplementations().forEach(additionalImplementation -> validateImplementation(work, workValidationContext, additionalImplementation,
+            () -> "Additional action of " + work.getDisplayName() + " " + additionalImplementation.getUnknownReason()
+        ));
+        beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
+            if (valueSnapshot instanceof ImplementationSnapshot) {
+                ImplementationSnapshot implementationSnapshot = (ImplementationSnapshot) valueSnapshot;
+                validateNestedInput(workValidationContext, propertyName, implementationSnapshot);
+            }
+        });
+    }
+
+    private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementationSnapshot) {
+        if (implementationSnapshot.isUnknown()) {
+            workValidationContext.visitPropertyProblem(problem -> configureImplementationValidationProblem(problem)
+                .forProperty(propertyName)
+                .withDescription(implementationSnapshot::getUnknownReason));
+        }
+    }
+
+    private void validateImplementation(UnitOfWork work, TypeValidationContext workValidationContext, ImplementationSnapshot implementation, Supplier<String> description) {
+        if (implementation.isUnknown()) {
+            workValidationContext.visitTypeProblem(problem -> configureImplementationValidationProblem(problem)
+                .forType(work.getClass())
+                .withDescription(description));
+        }
+    }
+
+    private <T extends ValidationProblemBuilder<T>> T configureImplementationValidationProblem(ValidationProblemBuilder<T> problem) {
+        return problem
+            .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
+            .reportAs(Severity.WARNING)
+            .happensBecause("Gradle cannot track inputs when it doesn't know their implementation")
+            .addPossibleSolution("Use an (anonymous) inner class instead")
+            .documentedAt("validation_problems", "implementation_unknown");
     }
 
     private static String renderedMessage(org.gradle.internal.reflect.validation.TypeValidationProblem p) {
