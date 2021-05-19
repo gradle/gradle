@@ -91,9 +91,9 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         1.6                 | TargetJdk.VERSION_1_6
         1.7                 | TargetJdk.VERSION_1_7
         // 1.4 is the default in the pmd plugin so we use it as a default too
-        1.8 | TargetJdk.VERSION_1_4
-        1.1 | TargetJdk.VERSION_1_4
-        1.2 | TargetJdk.VERSION_1_4
+        1.8                 | TargetJdk.VERSION_1_4
+        1.1                 | TargetJdk.VERSION_1_4
+        1.2                 | TargetJdk.VERSION_1_4
     }
 
     private void configuresPmdTask(String taskName, SourceSet sourceSet) {
@@ -106,8 +106,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert ruleSets == ["category/java/errorprone.xml"]
             assert ruleSetConfig == null
             assert ruleSetFiles.empty
-            assert reports.xml.destination == project.file("build/reports/pmd/${sourceSet.name}.xml")
-            assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
+            assert reports.xml.outputLocation.asFile.get() == project.file("build/reports/pmd/${sourceSet.name}.xml")
+            assert reports.html.outputLocation.asFile.get() == project.file("build/reports/pmd/${sourceSet.name}.html")
             assert ignoreFailures == false
             assert maxFailures.get() == 0
             assert rulesMinimumPriority.get() == 5
@@ -125,8 +125,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.ruleSets == ["category/java/errorprone.xml"]
         task.ruleSetConfig == null
         task.ruleSetFiles.empty
-        task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")
-        task.reports.html.destination == project.file("build/reports/pmd/custom.html")
+        task.reports.xml.outputLocation.asFile.get() == project.file("build/reports/pmd/custom.xml")
+        task.reports.html.outputLocation.asFile.get() == project.file("build/reports/pmd/custom.html")
         task.ignoreFailures == false
         task.maxFailures.get() == 0
         task.rulesMinimumPriority.get() == 5
@@ -182,8 +182,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert ruleSets == ["java-braces", "java-unusedcode"]
             assert ruleSetConfig.asString() == "ruleset contents"
             assert ruleSetFiles.singleFile == project.file("my-ruleset.xml")
-            assert reports.xml.destination == project.file("pmd-reports/${sourceSet.name}.xml")
-            assert reports.html.destination == project.file("pmd-reports/${sourceSet.name}.html")
+            assert reports.xml.outputLocation.asFile.get() == project.file("pmd-reports/${sourceSet.name}.xml")
+            assert reports.html.outputLocation.asFile.get() == project.file("pmd-reports/${sourceSet.name}.html")
             assert ignoreFailures == true
             assert maxFailures.get() == 17
             assert rulesMinimumPriority.get() == 3
@@ -209,9 +209,9 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.ruleSets == ["java-braces", "java-unusedcode"]
         task.ruleSetConfig.asString() == "ruleset contents"
         task.ruleSetFiles.singleFile == project.file("my-ruleset.xml")
-        task.reports.xml.destination == project.file("pmd-reports/custom.xml")
-        task.reports.html.destination == project.file("pmd-reports/custom.html")
-        task.outputs.files.files == task.reports.enabled*.destination as Set
+        task.reports.xml.outputLocation.asFile.get() == project.file("pmd-reports/custom.xml")
+        task.reports.html.outputLocation.asFile.get() == project.file("pmd-reports/custom.html")
+        task.outputs.files.files == task.reports.enabled*.outputLocation.collect { it.get().asFile } as Set
         task.ignoreFailures == true
         task.maxFailures.get() == 5
         task.rulesMinimumPriority.get() == 3

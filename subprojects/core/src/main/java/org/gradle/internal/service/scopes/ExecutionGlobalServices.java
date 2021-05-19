@@ -34,7 +34,6 @@ import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
@@ -132,6 +131,8 @@ public class ExecutionGlobalServices {
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
         @SuppressWarnings("deprecation")
         Class<?> deprecatedAbstractTask = org.gradle.api.internal.AbstractTask.class;
+        @SuppressWarnings("deprecation")
+        Class<?> deprecatedHasConvention = org.gradle.api.internal.HasConvention.class;
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
         annotationRegistry.registerPropertyTypeAnnotations(builder);
@@ -162,7 +163,7 @@ public class ExecutionGlobalServices {
                 DefaultTask.class,
                 DynamicObjectAware.class,
                 ExtensionAware.class,
-                HasConvention.class,
+                deprecatedHasConvention,
                 IConventionAware.class,
                 ScriptOrigin.class,
                 Task.class

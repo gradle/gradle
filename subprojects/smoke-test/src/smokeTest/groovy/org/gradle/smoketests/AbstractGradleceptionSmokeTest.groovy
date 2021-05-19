@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -66,14 +65,16 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         result = runnerFor(tasks, testKitDir).buildAndFail()
     }
 
-    private GradleRunner runnerFor(List<String> tasks, File testKitDir) {
+    private SmokeTestGradleRunner runnerFor(List<String> tasks, File testKitDir) {
         List<String> gradleArgs = tasks + GRADLE_BUILD_TEST_ARGS
-        return testKitDir != null
+        def runner = testKitDir != null
             ? runnerWithTestKitDir(testKitDir, gradleArgs)
             : runner(*gradleArgs)
+        runner.ignoreDeprecationWarnings()
+        return runner
     }
 
-    private GradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
+    private SmokeTestGradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
         runner(*(gradleArgs + ["-g", IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.absolutePath]))
             .withTestKitDir(testKitDir)
     }

@@ -824,6 +824,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void doesNotMixInExtensionAwareToClassWithAnnotation() throws Exception {
         NotExtensibleBean bean = newInstance(NotExtensibleBean.class);
         assertFalse(bean instanceof ExtensionContainer);
@@ -1416,7 +1417,6 @@ public class AsmBackedClassGeneratorTest {
             this.prop = String.format("<%s%s>", part1, part2);
             return this;
         }
-
         public BeanWithMultiArgDslMethods prop(String part1, String part2, String part3) {
             this.prop = String.format("[%s%s%s]", part1, part2, part3);
             return this;
@@ -1463,6 +1463,11 @@ public class AsmBackedClassGeneratorTest {
 
         public MappedProperty map(String propertyName, Callable<?> value) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void ineligible(String propertyName) {
+
         }
 
         public <T> T getConventionValue(T actualValue, String propertyName) {

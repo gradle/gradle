@@ -17,13 +17,11 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
@@ -44,7 +42,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
-import org.gradle.internal.buildtree.BuildTreeController
+import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.BuildOperationContext
@@ -62,7 +60,6 @@ import java.io.File
 class ConfigurationCacheHost internal constructor(
     private val gradle: GradleInternal,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-    private val projectFactory: IProjectFactory
 ) : DefaultConfigurationCache.Host {
 
     override val currentBuild: VintageGradleBuild =
@@ -117,21 +114,21 @@ class ConfigurationCacheHost internal constructor(
 
         override fun registerProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
-            service<ProjectStateRegistry>().registerProjects(service<BuildState>())
+            val projectRegistry = service<ProjectStateRegistry>()
+            projectRegistry.registerProjects(service<BuildState>())
             createRootProject()
             fireBuildOperationsRequiredByBuildScans()
         }
 
         private
         fun createRootProject() {
-            val rootProject = createProject(rootProjectDescriptor(), null)
+            val rootProject = createProject(rootProjectDescriptor())
             gradle.rootProject = rootProject
             gradle.defaultProject = rootProject
         }
 
         private
-        fun rootProjectDescriptor() =
-            projectDescriptorRegistry.rootProject!!
+        fun rootProjectDescriptor() = projectDescriptorRegistry.rootProject!!
 
         private
         fun fireBuildOperationsRequiredByBuildScans() {
@@ -162,20 +159,22 @@ class ConfigurationCacheHost internal constructor(
         }
 
         private
-        fun createProject(descriptor: ProjectDescriptor, parent: ProjectInternal?): ProjectInternal {
-            val project = projectFactory.createProject(gradle, descriptor, parent, coreAndPluginsScope, coreAndPluginsScope)
+        fun createProject(descriptor: DefaultProjectDescriptor): ProjectInternal {
+            val projectState = gradle.owner.getProject(descriptor.path())
+            projectState.createMutableModel(coreAndPluginsScope, coreAndPluginsScope)
+            val project = projectState.mutableModel
             // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
-            buildDirs[project.identityPath]?.let {
+            buildDirs[project.projectPath]?.let {
                 project.buildDir = it
             }
-            for (child in descriptor.children) {
-                createProject(child, project)
+            for (child in descriptor.children()) {
+                createProject(child)
             }
             return project
         }
 
         override fun getProject(path: String): ProjectInternal =
-            gradle.rootProject.project(path)
+            gradle.owner.getProject(Path.path(path)).mutableModel
 
         override fun scheduleNodes(nodes: Collection<Node>) {
             gradle.taskGraph.run {
@@ -216,9 +215,10 @@ class ConfigurationCacheHost internal constructor(
             buildDefinition,
             isImplicit,
             owner,
-            service<BuildTreeController>(),
+            service<BuildTreeState>(),
             service<WorkerLeaseService>().currentWorkerLease,
-            service<BuildLifecycleControllerFactory>()
+            service<BuildLifecycleControllerFactory>(),
+            service<ProjectStateRegistry>()
         )
 
         override fun prepareBuild(includedBuild: IncludedBuildState) {

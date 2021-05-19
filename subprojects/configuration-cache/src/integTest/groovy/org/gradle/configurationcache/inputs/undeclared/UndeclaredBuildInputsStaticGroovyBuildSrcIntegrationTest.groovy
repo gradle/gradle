@@ -16,10 +16,9 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
+import spock.lang.Ignore
 
-import spock.lang.Issue
-
-@Issue("https://github.com/gradle/gradle-private/issues/3252")
+@Ignore("https://github.com/gradle/gradle-private/issues/3252")
 class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     String getLocation() {

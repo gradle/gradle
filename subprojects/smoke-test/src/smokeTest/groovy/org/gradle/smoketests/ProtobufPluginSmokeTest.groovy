@@ -68,8 +68,6 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         result.task(":generateProto").outcome == SUCCESS
         result.task(":compileJava").outcome == SUCCESS
 
-        expectNoDeprecationWarnings(result)
-
         when:
         result = runner('compileJava').forwardOutput().build()
 

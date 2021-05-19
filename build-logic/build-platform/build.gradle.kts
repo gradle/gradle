@@ -16,8 +16,8 @@ dependencies {
         // Gradle Plugins
         api("com.gradle:gradle-enterprise-gradle-plugin:3.6.1")
         // Keep version with `settings.gradle.kts` in sync
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.0.3-rc-2")
-        api("org.gradle.guides:gradle-guides-plugin:0.18.0")
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.1-milestone-1")
+        api("org.gradle.guides:gradle-guides-plugin:0.18.1-hotfix")
         api("com.gradle.publish:plugin-publish-plugin:0.14.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
@@ -49,8 +49,8 @@ dependencies {
         api("com.sun.xml.bind:jaxb-core:2.2.11")
         api("com.sun.xml.bind:jaxb-impl:2.2.11")
         api("junit:junit:4.13.2")
-        api("org.spockframework:spock-core:2.0-M5-groovy-3.0")
-        api("org.spockframework:spock-junit4:2.0-M5-groovy-3.0")
+        api("org.spockframework:spock-core:2.0-groovy-3.0")
+        api("org.spockframework:spock-junit4:2.0-groovy-3.0")
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
         api("com.beust:jcommander:1.78")

@@ -38,6 +38,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaTestFixturesPlugin;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -82,11 +83,15 @@ public class EclipsePlugin extends IdePlugin {
 
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
     private final IdeArtifactRegistry artifactRegistry;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
     @Inject
-    public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry) {
+    public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider,
+                         IdeArtifactRegistry artifactRegistry,
+                         JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }
 
     @Override
@@ -287,7 +292,7 @@ public class EclipsePlugin extends IdePlugin {
         });
     }
 
-    private static void configureScalaDependencies(final Project project, final EclipseModel model) {
+    private void configureScalaDependencies(final Project project, final EclipseModel model) {
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
             public void execute(ScalaBasePlugin scalaBasePlugin) {
@@ -305,7 +310,9 @@ public class EclipsePlugin extends IdePlugin {
 
                     })), dependencyInProvided));
                     if (!dependencies.isEmpty()) {
-                        model.getClasspath().getMinusConfigurations().add(project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0])));
+                        Configuration detachedScalaConfiguration = project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0]));
+                        jvmEcosystemUtilities.configureAsRuntimeClasspath(detachedScalaConfiguration);
+                        model.getClasspath().getMinusConfigurations().add(detachedScalaConfiguration);
                     }
                 });
             }

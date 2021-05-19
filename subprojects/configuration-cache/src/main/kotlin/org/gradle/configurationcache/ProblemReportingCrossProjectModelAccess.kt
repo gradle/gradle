@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import groovy.lang.Closure
+import groovy.lang.GroovyObjectSupport
 import groovy.lang.Script
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
@@ -28,7 +29,6 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
@@ -40,6 +40,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
@@ -68,18 +69,17 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.logging.StandardOutputCapture
+import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.metaobject.DynamicObject
-import org.gradle.internal.model.CalculatedModelValue
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
-import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -92,8 +92,6 @@ import org.gradle.util.internal.ConfigureUtil
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Callable
-import java.util.function.Consumer
-import java.util.function.Function
 
 
 class ProblemReportingCrossProjectModelAccess(
@@ -101,24 +99,24 @@ class ProblemReportingCrossProjectModelAccess(
     private val problems: ProblemsListener,
     private val userCodeContext: UserCodeApplicationContext
 ) : CrossProjectModelAccess {
-    override fun getProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal {
-        return wrap(delegate.getProject(referrer, relativeTo, path), referrer)
+    override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
+        return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
     }
 
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { wrap(it, referrer) }
+        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
     }
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { wrap(it, referrer) }
+        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
     }
 
     private
-    fun wrap(project: ProjectInternal, referrer: ProjectInternal): ProjectInternal {
-        return if (project == referrer) {
-            project
+    fun ProjectInternal.wrap(referrer: ProjectInternal): ProjectInternal {
+        return if (this == referrer) {
+            this
         } else {
-            ProblemReportingProject(project, referrer, problems, userCodeContext)
+            ProblemReportingProject(this, referrer, problems, userCodeContext)
         }
     }
 
@@ -128,10 +126,45 @@ class ProblemReportingCrossProjectModelAccess(
         val referrer: ProjectInternal,
         val problems: ProblemsListener,
         val userCodeContext: UserCodeApplicationContext
-    ) : ProjectInternal {
+    ) : ProjectInternal, GroovyObjectSupport() {
 
         override fun toString(): String {
             return delegate.toString()
+        }
+
+        override fun getProperty(propertyName: String): Any {
+            // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
+            val thisBean = BeanDynamicObject(this).withNotImplementsMissing()
+            val result = thisBean.tryGetProperty(propertyName)
+            if (result.isFound) {
+                return result.value
+            }
+            val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
+            val delegateResult = delegateBean.tryGetProperty(propertyName)
+            if (delegateResult.isFound) {
+                // Only report properties that exist
+                onAccess()
+                return delegateResult.value
+            }
+            throw thisBean.getMissingProperty(propertyName)
+        }
+
+        override fun invokeMethod(name: String, args: Any): Any {
+            // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
+            val varargs: Array<Any?> = args.uncheckedCast()
+            val thisBean = BeanDynamicObject(this).withNotImplementsMissing()
+            val result = thisBean.tryInvokeMethod(name, *varargs)
+            if (result.isFound) {
+                return result.value
+            }
+            val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
+            val delegateResult = delegateBean.tryInvokeMethod(name, *varargs)
+            if (delegateResult.isFound) {
+                // Only report methods that exist
+                onAccess()
+                return delegateResult.value
+            }
+            throw thisBean.methodMissingException(name, args)
         }
 
         override fun compareTo(other: Project?): Int {
@@ -143,17 +176,17 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getBuildDir(): File {
-            beforeAccess()
+            onAccess()
             return delegate.buildDir
         }
 
         override fun setBuildDir(path: File) {
-            beforeAccess()
+            onAccess()
             delegate.buildDir = path
         }
 
         override fun setBuildDir(path: Any) {
-            beforeAccess()
+            onAccess()
             delegate.setBuildDir(path)
         }
 
@@ -162,7 +195,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getBuildFile(): File {
-            beforeAccess()
+            onAccess()
             return delegate.buildFile
         }
 
@@ -171,42 +204,42 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getDescription(): String? {
-            beforeAccess()
+            onAccess()
             return delegate.description
         }
 
         override fun setDescription(description: String?) {
-            beforeAccess()
+            onAccess()
             delegate.description = description
         }
 
         override fun getGroup(): Any {
-            beforeAccess()
+            onAccess()
             return delegate.group
         }
 
         override fun setGroup(group: Any) {
-            beforeAccess()
+            onAccess()
             delegate.group = group
         }
 
         override fun getVersion(): Any {
-            beforeAccess()
+            onAccess()
             return delegate.version
         }
 
         override fun setVersion(version: Any) {
-            beforeAccess()
+            onAccess()
             delegate.version = version
         }
 
         override fun getStatus(): Any {
-            beforeAccess()
+            onAccess()
             return delegate.status
         }
 
         override fun setStatus(status: Any) {
-            beforeAccess()
+            onAccess()
             delegate.status = status
         }
 
@@ -215,7 +248,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun setProperty(name: String, value: Any?) {
-            beforeAccess()
+            onAccess()
             delegate.setProperty(name, value)
         }
 
@@ -224,27 +257,27 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun task(name: String): Task {
-            beforeAccess()
+            onAccess()
             return delegate.task(name)
         }
 
         override fun task(args: MutableMap<String, *>, name: String): Task {
-            beforeAccess()
+            onAccess()
             return delegate.task(args, name)
         }
 
         override fun task(args: MutableMap<String, *>, name: String, configureClosure: Closure<*>): Task {
-            beforeAccess()
+            onAccess()
             return delegate.task(args, name, configureClosure)
         }
 
         override fun task(name: String, configureClosure: Closure<*>): Task {
-            beforeAccess()
+            onAccess()
             return delegate.task(name, configureClosure)
         }
 
         override fun task(name: String, configureAction: Action<in Task>): Task {
-            beforeAccess()
+            onAccess()
             return delegate.task(name, configureAction)
         }
 
@@ -253,37 +286,37 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getDefaultTasks(): MutableList<String> {
-            beforeAccess()
+            onAccess()
             return delegate.defaultTasks
         }
 
         override fun setDefaultTasks(defaultTasks: MutableList<String>) {
-            beforeAccess()
+            onAccess()
             delegate.defaultTasks = defaultTasks
         }
 
         override fun defaultTasks(vararg defaultTasks: String?) {
-            beforeAccess()
+            onAccess()
             delegate.defaultTasks(*defaultTasks)
         }
 
         override fun evaluationDependsOn(path: String): Project {
-            beforeAccess()
+            onAccess()
             return delegate.evaluationDependsOn(path)
         }
 
         override fun evaluationDependsOnChildren() {
-            beforeAccess()
+            onAccess()
             delegate.evaluationDependsOnChildren()
         }
 
         override fun getAllTasks(recursive: Boolean): MutableMap<Project, MutableSet<Task>> {
-            beforeAccess()
+            onAccess()
             return delegate.getAllTasks(recursive)
         }
 
         override fun getTasksByName(name: String, recursive: Boolean): MutableSet<Task> {
-            beforeAccess()
+            onAccess()
             return delegate.getTasksByName(name, recursive)
         }
 
@@ -292,122 +325,122 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun file(path: Any): File {
-            beforeAccess()
+            onAccess()
             return delegate.file(path)
         }
 
         override fun file(path: Any, validation: PathValidation): File {
-            beforeAccess()
+            onAccess()
             return delegate.file(path, validation)
         }
 
         override fun uri(path: Any): URI {
-            beforeAccess()
+            onAccess()
             return delegate.uri(path)
         }
 
         override fun relativePath(path: Any): String {
-            beforeAccess()
+            onAccess()
             return delegate.relativePath(path)
         }
 
         override fun files(vararg paths: Any?): ConfigurableFileCollection {
-            beforeAccess()
+            onAccess()
             return delegate.files(*paths)
         }
 
         override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection {
-            beforeAccess()
+            onAccess()
             return delegate.files(paths, configureClosure)
         }
 
         override fun files(paths: Any, configureAction: Action<in ConfigurableFileCollection>): ConfigurableFileCollection {
-            beforeAccess()
+            onAccess()
             return delegate.files(paths, configureAction)
         }
 
         override fun fileTree(baseDir: Any): ConfigurableFileTree {
-            beforeAccess()
+            onAccess()
             return delegate.fileTree(baseDir)
         }
 
         override fun fileTree(baseDir: Any, configureClosure: Closure<*>): ConfigurableFileTree {
-            beforeAccess()
+            onAccess()
             return delegate.fileTree(baseDir, configureClosure)
         }
 
         override fun fileTree(baseDir: Any, configureAction: Action<in ConfigurableFileTree>): ConfigurableFileTree {
-            beforeAccess()
+            onAccess()
             return delegate.fileTree(baseDir, configureAction)
         }
 
         override fun fileTree(args: MutableMap<String, *>): ConfigurableFileTree {
-            beforeAccess()
+            onAccess()
             return delegate.fileTree(args)
         }
 
         override fun zipTree(zipPath: Any): FileTree {
-            beforeAccess()
+            onAccess()
             return delegate.zipTree(zipPath)
         }
 
         override fun tarTree(tarPath: Any): FileTree {
-            beforeAccess()
+            onAccess()
             return delegate.tarTree(tarPath)
         }
 
         override fun <T : Any?> provider(value: Callable<T>): Provider<T> {
-            beforeAccess()
+            onAccess()
             return delegate.provider(value)
         }
 
         override fun getProviders(): ProviderFactory {
-            beforeAccess()
+            onAccess()
             return delegate.providers
         }
 
         override fun getObjects(): ObjectFactory {
-            beforeAccess()
+            onAccess()
             return delegate.objects
         }
 
         override fun getLayout(): ProjectLayout {
-            beforeAccess()
+            onAccess()
             return delegate.layout
         }
 
         override fun mkdir(path: Any): File {
-            beforeAccess()
+            onAccess()
             return delegate.mkdir(path)
         }
 
         override fun delete(vararg paths: Any?): Boolean {
-            beforeAccess()
+            onAccess()
             return delegate.delete(*paths)
         }
 
         override fun delete(action: Action<in DeleteSpec>): WorkResult {
-            beforeAccess()
+            onAccess()
             return delegate.delete(action)
         }
 
         override fun javaexec(closure: Closure<*>): ExecResult {
-            beforeAccess()
+            onAccess()
             return delegate.javaexec(closure)
         }
 
         override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
-            beforeAccess()
+            onAccess()
             return delegate.javaexec(action)
         }
 
         override fun exec(closure: Closure<*>): ExecResult {
-            beforeAccess()
+            onAccess()
             return delegate.exec(closure)
         }
 
         override fun exec(action: Action<in ExecSpec>): ExecResult {
-            beforeAccess()
+            onAccess()
             return delegate.exec(action)
         }
 
@@ -420,52 +453,54 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getAnt(): AntBuilder {
-            beforeAccess()
+            onAccess()
             return delegate.ant
         }
 
         override fun createAntBuilder(): AntBuilder {
-            beforeAccess()
+            onAccess()
             return delegate.createAntBuilder()
         }
 
         override fun ant(configureClosure: Closure<*>): AntBuilder {
-            beforeAccess()
+            onAccess()
             return delegate.ant(configureClosure)
         }
 
         override fun ant(configureAction: Action<in AntBuilder>): AntBuilder {
-            beforeAccess()
+            onAccess()
             return delegate.ant(configureAction)
         }
 
         override fun getConfigurations(): ConfigurationContainer {
-            beforeAccess()
+            onAccess()
             return delegate.configurations
         }
 
         override fun configurations(configureClosure: Closure<*>) {
-            beforeAccess()
+            onAccess()
             delegate.configurations(configureClosure)
         }
 
         override fun getArtifacts(): ArtifactHandler {
-            beforeAccess()
+            onAccess()
             return delegate.artifacts
         }
 
         override fun artifacts(configureClosure: Closure<*>) {
-            beforeAccess()
+            onAccess()
             delegate.artifacts(configureClosure)
         }
 
         override fun artifacts(configureAction: Action<in ArtifactHandler>) {
-            beforeAccess()
+            onAccess()
             delegate.artifacts(configureAction)
         }
 
+        @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
         override fun getConvention(): Convention {
-            beforeAccess()
+            onAccess()
+            @Suppress("deprecation")
             return delegate.convention
         }
 
@@ -530,192 +565,192 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun beforeEvaluate(action: Action<in Project>) {
-            beforeAccess()
+            onAccess()
             delegate.beforeEvaluate(action)
         }
 
         override fun afterEvaluate(action: Action<in Project>) {
-            beforeAccess()
+            onAccess()
             delegate.afterEvaluate(action)
         }
 
         override fun beforeEvaluate(closure: Closure<*>) {
-            beforeAccess()
+            onAccess()
             delegate.beforeEvaluate(closure)
         }
 
         override fun afterEvaluate(closure: Closure<*>) {
-            beforeAccess()
+            onAccess()
             delegate.afterEvaluate(closure)
         }
 
         override fun hasProperty(propertyName: String): Boolean {
-            beforeAccess()
+            onAccess()
             return delegate.hasProperty(propertyName)
         }
 
         override fun getProperties(): MutableMap<String, *> {
-            beforeAccess()
+            onAccess()
             return delegate.properties
         }
 
         override fun property(propertyName: String): Any? {
-            beforeAccess()
+            onAccess()
             return delegate.property(propertyName)
         }
 
         override fun findProperty(propertyName: String): Any? {
-            beforeAccess()
+            onAccess()
             return delegate.findProperty(propertyName)
         }
 
         override fun getLogger(): Logger {
-            beforeAccess()
+            onAccess()
             return delegate.logger
         }
 
         override fun getLogging(): LoggingManager {
-            beforeAccess()
+            onAccess()
             return delegate.logging
         }
 
         override fun configure(target: Any, configureClosure: Closure<*>): Any {
-            beforeAccess()
+            onAccess()
             return delegate.configure(target, configureClosure)
         }
 
         override fun configure(targets: MutableIterable<*>, configureClosure: Closure<*>): MutableIterable<*> {
-            beforeAccess()
+            onAccess()
             return delegate.configure(targets, configureClosure)
         }
 
         override fun <T : Any?> configure(targets: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
-            beforeAccess()
+            onAccess()
             return delegate.configure(targets, configureAction)
         }
 
         override fun getRepositories(): RepositoryHandler {
-            beforeAccess()
+            onAccess()
             return delegate.repositories
         }
 
         override fun repositories(configureClosure: Closure<*>) {
-            beforeAccess()
+            onAccess()
             delegate.repositories(configureClosure)
         }
 
         override fun getDependencies(): DependencyHandler {
-            beforeAccess()
+            onAccess()
             return delegate.dependencies
         }
 
         override fun dependencies(configureClosure: Closure<*>) {
-            beforeAccess()
+            onAccess()
             delegate.dependencies(configureClosure)
         }
 
         override fun buildscript(configureClosure: Closure<*>) {
-            beforeAccess()
+            onAccess()
             delegate.buildscript(configureClosure)
         }
 
         override fun copy(closure: Closure<*>): WorkResult {
-            beforeAccess()
+            onAccess()
             return delegate.copy(closure)
         }
 
         override fun copy(action: Action<in CopySpec>): WorkResult {
-            beforeAccess()
+            onAccess()
             return delegate.copy(action)
         }
 
         override fun copySpec(closure: Closure<*>): CopySpec {
-            beforeAccess()
+            onAccess()
             return delegate.copySpec(closure)
         }
 
         override fun copySpec(action: Action<in CopySpec>): CopySpec {
-            beforeAccess()
+            onAccess()
             return delegate.copySpec(action)
         }
 
         override fun copySpec(): CopySpec {
-            beforeAccess()
+            onAccess()
             return delegate.copySpec()
         }
 
         override fun sync(action: Action<in CopySpec>): WorkResult {
-            beforeAccess()
+            onAccess()
             return delegate.sync(action)
         }
 
         override fun <T : Any?> container(type: Class<T>): NamedDomainObjectContainer<T> {
-            beforeAccess()
+            onAccess()
             return delegate.container(type)
         }
 
         override fun <T : Any?> container(type: Class<T>, factory: NamedDomainObjectFactory<T>): NamedDomainObjectContainer<T> {
-            beforeAccess()
+            onAccess()
             return delegate.container(type, factory)
         }
 
         override fun <T : Any?> container(type: Class<T>, factoryClosure: Closure<*>): NamedDomainObjectContainer<T> {
-            beforeAccess()
+            onAccess()
             return delegate.container(type, factoryClosure)
         }
 
         override fun getResources(): ResourceHandler {
-            beforeAccess()
+            onAccess()
             return delegate.resources
         }
 
         override fun getComponents(): SoftwareComponentContainer {
-            beforeAccess()
+            onAccess()
             return delegate.components
         }
 
         override fun getNormalization(): InputNormalizationHandler {
-            beforeAccess()
+            onAccess()
             return delegate.normalization
         }
 
         override fun normalization(configuration: Action<in InputNormalizationHandler>) {
-            beforeAccess()
+            onAccess()
             delegate.normalization(configuration)
         }
 
         override fun dependencyLocking(configuration: Action<in DependencyLockingHandler>) {
-            beforeAccess()
+            onAccess()
             delegate.dependencyLocking(configuration)
         }
 
         override fun getDependencyLocking(): DependencyLockingHandler {
-            beforeAccess()
+            onAccess()
             return delegate.dependencyLocking
         }
 
         override fun getPlugins(): PluginContainer {
-            beforeAccess()
+            onAccess()
             return delegate.plugins
         }
 
         override fun apply(closure: Closure<*>) {
-            beforeAccess()
+            onAccess()
             delegate.apply(closure)
         }
 
         override fun apply(action: Action<in ObjectConfigurationAction>) {
-            beforeAccess()
+            onAccess()
             delegate.apply(action)
         }
 
         override fun apply(options: MutableMap<String, *>) {
-            beforeAccess()
+            onAccess()
             delegate.apply(options)
         }
 
         override fun getPluginManager(): PluginManagerInternal {
-            beforeAccess()
+            onAccess()
             return delegate.pluginManager
         }
 
@@ -776,7 +811,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun evaluate(): Project {
-            return delegate.evaluate()
+            shouldNotBeUsed()
         }
 
         override fun bindAllModelRules(): ProjectInternal {
@@ -784,7 +819,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getTasks(): TaskContainerInternal {
-            beforeAccess()
+            onAccess()
             return delegate.tasks
         }
 
@@ -805,7 +840,11 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun findProject(path: String): ProjectInternal? {
-            return delegate.findProject(path)
+            return delegate.findProject(referrer, path)
+        }
+
+        override fun findProject(referrer: ProjectInternal, path: String): ProjectInternal? {
+            return delegate.findProject(referrer, path)
         }
 
         override fun getInheritedScope(): DynamicObject {
@@ -813,7 +852,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getGradle(): GradleInternal {
-            beforeAccess()
+            onAccess()
             return delegate.gradle
         }
 
@@ -846,12 +885,12 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getState(): ProjectStateInternal {
-            beforeAccess()
+            onAccess()
             return delegate.state
         }
 
         override fun getExtensions(): ExtensionContainerInternal {
-            beforeAccess()
+            onAccess()
             return delegate.extensions
         }
 
@@ -884,7 +923,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getProjectPath(): Path {
-            shouldNotBeUsed()
+            return delegate.projectPath
         }
 
         override fun getIdentityPath(): Path {
@@ -895,12 +934,12 @@ class ProblemReportingCrossProjectModelAccess(
             shouldNotBeUsed()
         }
 
-        override fun getMutationState(): ProjectState {
-            return MutationStateWrapper(this)
+        override fun getOwner(): ProjectState {
+            return delegate.owner
         }
 
         override fun getBuildscript(): ScriptHandlerInternal {
-            beforeAccess()
+            onAccess()
             return delegate.buildscript
         }
 
@@ -913,7 +952,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         private
-        fun beforeAccess() {
+        fun onAccess() {
             val location = userCodeContext.location(null)
             val message = StructuredMessage.build {
                 text("Cannot access project ")
@@ -925,67 +964,6 @@ class ProblemReportingCrossProjectModelAccess(
             problems.onProblem(
                 PropertyProblem(location, message, exception, null)
             )
-        }
-    }
-
-    private
-    class MutationStateWrapper(
-        val project: ProblemReportingProject
-    ) : ProjectState {
-        override fun getOwner(): BuildState {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getParent(): ProjectState? {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getName(): String {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getIdentityPath(): Path {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getProjectPath(): Path {
-            project.shouldNotBeUsed()
-        }
-
-        override fun getComponentIdentifier(): ProjectComponentIdentifier {
-            project.shouldNotBeUsed()
-        }
-
-        override fun attachMutableModel(project: ProjectInternal) {
-            this.project.shouldNotBeUsed()
-        }
-
-        override fun getMutableModel(): ProjectInternal {
-            return project
-        }
-
-        override fun getAccessLock(): ResourceLock {
-            project.shouldNotBeUsed()
-        }
-
-        override fun <S : Any?> fromMutableState(factory: Function<in ProjectInternal, out S>?): S {
-            project.shouldNotBeUsed()
-        }
-
-        override fun <S : Any?> forceAccessToMutableState(factory: Function<in ProjectInternal, out S>?): S {
-            project.shouldNotBeUsed()
-        }
-
-        override fun applyToMutableState(action: Consumer<in ProjectInternal>) {
-            project.delegate.mutationState.applyToMutableState { action.accept(project) }
-        }
-
-        override fun hasMutableState(): Boolean {
-            project.shouldNotBeUsed()
-        }
-
-        override fun <S : Any?> newCalculatedValue(initialValue: S?): CalculatedModelValue<S> {
-            project.shouldNotBeUsed()
         }
     }
 }

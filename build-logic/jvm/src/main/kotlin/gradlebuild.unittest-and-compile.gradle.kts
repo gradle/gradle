@@ -209,6 +209,7 @@ fun configureTests() {
     }
 
     tasks.withType<Test>().configureEach {
+        configureAndroidUserHome()
         filterEnvironmentVariables()
 
         maxParallelForks = project.maxParallelForks
@@ -229,11 +230,23 @@ fun configureTests() {
         }
 
         useJUnitPlatform()
-        if (project.testDistributionEnabled() && !isUnitTest()) {
-            println("Test distribution has been enabled for $testName")
+
+        if (project.enableExperimentalTestFiltering() && !isUnitTest()) {
             distribution {
                 enabled.set(true)
+                maxRemoteExecutors.set(0)
+                // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
+                (this as TestDistributionExtensionInternal).server.set(uri("https://ge-experiment.grdev.net"))
+            }
+        }
 
+        if (project.testDistributionEnabled() && !isUnitTest()) {
+            println("Remote test distribution has been enabled for $testName")
+
+            distribution {
+                enabled.set(true)
+                // No limit; use all available executors
+                distribution.maxRemoteExecutors.set(null)
                 // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
                 (this as TestDistributionExtensionInternal).server.set(uri("https://ge-experiment.grdev.net"))
 
@@ -259,6 +272,8 @@ fun removeTeamcityTempProperty() {
         teamcity["teamcity.build.tempDir"] = ""
     }
 }
+
+fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name)
 
 val Project.maxParallelForks: Int
     get() = if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") {
@@ -317,4 +332,11 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
         description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
         group = ciGroup
     }
+}
+
+// https://github.com/gradle/gradle-private/issues/3380
+fun Test.configureAndroidUserHome() {
+    val androidUserHomeForTest = project.layout.buildDirectory.dir("androidUserHomeForTest/$name").get().asFile.absolutePath
+    environment["ANDROID_PREFS_ROOT"] = androidUserHomeForTest
+    environment["ANDROID_USER_HOME"] = androidUserHomeForTest
 }

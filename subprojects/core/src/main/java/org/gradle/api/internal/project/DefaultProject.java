@@ -154,7 +154,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE = ModelType.of(ExtensionContainer.class);
     private static final Logger BUILD_LOGGER = Logging.getLogger(Project.class);
 
-    private final ProjectState container;
+    private final ProjectState owner;
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
     private final ServiceRegistry services;
@@ -162,8 +162,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ProjectInternal rootProject;
 
     private final GradleInternal gradle;
-
-    private ProjectEvaluator projectEvaluator;
 
     private final ScriptSource buildScriptSource;
 
@@ -184,7 +182,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final Map<String, Project> childProjects = Maps.newTreeMap();
 
-    private List<String> defaultTasks = new ArrayList<String>();
+    private List<String> defaultTasks = new ArrayList<>();
 
     private final ProjectStateInternal state;
 
@@ -220,11 +218,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
                           File buildFile,
                           ScriptSource buildScriptSource,
                           GradleInternal gradle,
-                          ProjectState container,
+                          ProjectState owner,
                           ServiceRegistryFactory serviceRegistryFactory,
                           ClassLoaderScope selfClassLoaderScope,
                           ClassLoaderScope baseClassLoaderScope) {
-        this.container = container;
+        this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
         this.rootProject = parent != null ? parent.getRootProject() : this;
@@ -381,16 +379,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return gradle;
     }
 
-    public ProjectEvaluator getProjectEvaluator() {
-        if (projectEvaluator == null) {
-            projectEvaluator = services.get(ProjectEvaluator.class);
-        }
-        return projectEvaluator;
-    }
-
-    public void setProjectEvaluator(ProjectEvaluator projectEvaluator) {
-        this.projectEvaluator = projectEvaluator;
-    }
+    @Inject
+    protected abstract ProjectEvaluator getProjectEvaluator();
 
     @Inject
     @Override
@@ -552,6 +542,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.configurationContainer = configurationContainer;
     }
 
+    @Deprecated
     @Override
     public Convention getConvention() {
         // TODO (donat) deprecate after all internal usages have been eliminated
@@ -560,21 +551,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public String getPath() {
-        return container.getProjectPath().toString();
+        return owner.getProjectPath().toString();
     }
 
     @Override
     public Path getIdentityPath() {
-        return container.getIdentityPath();
+        return owner.getIdentityPath();
     }
 
     @Override
     public int getDepth() {
         return depth;
     }
-
-    @Inject
-    protected abstract ProjectRegistry<ProjectInternal> getProjectRegistry();
 
     @Inject
     protected abstract CrossProjectModelAccess getCrossProjectModelAccess();
@@ -606,12 +594,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Path getProjectPath() {
-        return container.getProjectPath();
+        return owner.getProjectPath();
     }
 
     @Override
     public ModelContainer<ProjectInternal> getModel() {
-        return getMutationState();
+        return getOwner();
     }
 
     @Override
@@ -651,15 +639,22 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException {
-        return getCrossProjectModelAccess().getProject(referrer, this, path);
+        ProjectInternal project = getCrossProjectModelAccess().findProject(referrer, this, path);
+        if (project == null) {
+            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
+        }
+        return project;
     }
 
     @Override
     public ProjectInternal findProject(String path) {
-        if (isNullOrEmpty(path)) {
-            throw new InvalidUserDataException("A path must be specified!");
-        }
-        return getProjectRegistry().getProject(absoluteProjectPath(path));
+        return findProject(this, path);
+    }
+
+    @Nullable
+    @Override
+    public ProjectInternal findProject(ProjectInternal referrer, String path) {
+        return getCrossProjectModelAccess().findProject(referrer, this, path);
     }
 
     @Override
@@ -823,7 +818,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                 projectToEvaluate));
         }
-        return projectToEvaluate.evaluate();
+        projectToEvaluate.getOwner().ensureConfigured();
+        return projectToEvaluate;
     }
 
     @Override
@@ -852,6 +848,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         Action<Project> action = new Action<Project>() {
             @Override
             public void execute(Project project) {
+                // Don't force evaluation of rules here, let the task container do what it needs to
+                ((ProjectInternal) project).getOwner().ensureTasksDiscovered();
+
                 foundTargets.put(project, new TreeSet<Task>(project.getTasks()));
             }
         };
@@ -873,7 +872,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             @Override
             public void execute(Project project) {
                 // Don't force evaluation of rules here, let the task container do what it needs to
-                ((ProjectInternal) project).evaluate();
+                ((ProjectInternal) project).getOwner().ensureTasksDiscovered();
 
                 Task task = project.getTasks().findByName(name);
                 if (task != null) {
@@ -1431,8 +1430,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public ProjectState getMutationState() {
-        return container;
+    public ProjectState getOwner() {
+        return owner;
     }
 
     @Override

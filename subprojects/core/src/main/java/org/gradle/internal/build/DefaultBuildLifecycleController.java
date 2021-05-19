@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
-    private enum Stage {
+    private enum State {
         Created, Configure, TaskGraph, Finished;
 
         String getDisplayName() {
@@ -54,8 +54,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildScopeServices buildServices;
     private final GradleInternal gradle;
     private final BuildModelController modelController;
-
-    private Stage stage = Stage.Created;
+    private State state = State.Created;
     @Nullable
     private RuntimeException stageFailure;
 
@@ -81,6 +80,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public GradleInternal getGradle() {
+        if (state == State.Finished) {
+            throw new IllegalStateException("Cannot use Gradle object after build has finished.");
+        }
         return gradle;
     }
 
@@ -97,7 +99,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     @Override
     public void scheduleTasks(final Iterable<String> taskPaths) {
         withModel(buildModelController -> {
-            stage = Stage.TaskGraph;
+            state = State.TaskGraph;
             buildModelController.scheduleTasks(taskPaths);
             return null;
         });
@@ -106,7 +108,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     @Override
     public void scheduleRequestedTasks() {
         withModel(buildModelController -> {
-            stage = Stage.TaskGraph;
+            state = State.TaskGraph;
             buildModelController.scheduleRequestedTasks();
             return null;
         });
@@ -124,12 +126,15 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         if (stageFailure != null) {
             throw new IllegalStateException("Cannot do further work as this build has failed.", stageFailure);
         }
+        if (state == State.Finished) {
+            throw new IllegalStateException("Cannot do further work as this build has finished.");
+        }
         try {
             try {
                 return action.apply(modelController);
             } finally {
-                if (stage == Stage.Created) {
-                    stage = Stage.Configure;
+                if (state == State.Created) {
+                    state = State.Configure;
                 }
             }
         } catch (Throwable t) {
@@ -140,7 +145,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector) {
-        if (stage == Stage.Created || stage == Stage.Finished) {
+        if (state == State.Created) {
+            state = State.Finished;
+            return;
+        }
+        if (state == State.Finished) {
             return;
         }
 
@@ -148,14 +157,14 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         if (reportableFailure == null && stageFailure != null) {
             reportableFailure = stageFailure;
         }
-        BuildResult buildResult = new BuildResult(stage.getDisplayName(), gradle, reportableFailure);
+        BuildResult buildResult = new BuildResult(state.getDisplayName(), gradle, reportableFailure);
         try {
             buildListener.buildFinished(buildResult);
             buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);
         } catch (Throwable t) {
             collector.accept(t);
         }
-        stage = Stage.Finished;
+        state = State.Finished;
         stageFailure = null;
     }
 
@@ -180,7 +189,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void stop() {
-        if (stage != Stage.Created && stage != Stage.Finished) {
+        if (state != State.Created && state != State.Finished) {
             throw new IllegalStateException("This build has not been finished.");
         }
         try {

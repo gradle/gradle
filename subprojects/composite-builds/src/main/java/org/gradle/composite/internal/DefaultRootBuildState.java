@@ -23,6 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -33,7 +34,7 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
-import org.gradle.internal.buildtree.BuildTreeController;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
@@ -50,23 +51,32 @@ import java.util.function.Function;
 
 class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
+    private final ProjectStateRegistry projectStateRegistry;
     private final BuildLifecycleController buildLifecycleController;
     private final DefaultBuildTreeLifecycleController buildController;
     private boolean completed;
 
     DefaultRootBuildState(BuildDefinition buildDefinition,
-                          BuildTreeController buildTree,
+                          BuildTreeState buildTree,
                           BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-                          ListenerManager listenerManager) {
+                          ListenerManager listenerManager,
+                          ProjectStateRegistry projectStateRegistry) {
         this.listenerManager = listenerManager;
+        this.projectStateRegistry = projectStateRegistry;
+
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, null, buildScopeServices);
-        IncludedBuildControllers controllers = buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class);
-        WorkerLeaseService workerLeaseService = buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class);
-        ExceptionAnalyser exceptionAnalyser = buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class);
-        BuildOperationExecutor buildOperationExecutor = buildLifecycleController.getGradle().getServices().get(BuildOperationExecutor.class);
+        IncludedBuildControllers controllers = buildScopeServices.get(IncludedBuildControllers.class);
+        WorkerLeaseService workerLeaseService = buildScopeServices.get(WorkerLeaseService.class);
+        ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
+        BuildOperationExecutor buildOperationExecutor = buildScopeServices.get(BuildOperationExecutor.class);
         BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController), buildOperationExecutor);
         this.buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workerLeaseService, workExecutor, controllers, exceptionAnalyser);
+    }
+
+    @Override
+    protected ProjectStateRegistry getProjectStateRegistry() {
+        return projectStateRegistry;
     }
 
     @Override

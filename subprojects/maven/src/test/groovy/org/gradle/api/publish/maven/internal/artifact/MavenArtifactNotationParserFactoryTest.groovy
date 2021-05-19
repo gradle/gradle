@@ -126,17 +126,17 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         when:
         def rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
         def archive = rootProject.task('foo', type: Jar, {})
-        archive.setBaseName("baseName")
-        archive.setDestinationDir(temporaryFolder.testDirectory)
-        archive.setExtension(archiveExtension)
-        archive.setClassifier(archiveClassifier)
+        archive.archiveBaseName.set("baseName")
+        archive.destinationDirectory.set(temporaryFolder.testDirectory)
+        archive.archiveExtension.set(archiveExtension)
+        archive.archiveClassifier.set(archiveClassifier)
 
         MavenArtifact mavenArtifact = parser.parseNotation(archive)
 
         then:
         mavenArtifact.extension == artifactExtension
         mavenArtifact.classifier == artifactClassifier
-        mavenArtifact.file == archive.archivePath
+        mavenArtifact.file == archive.archiveFile.get().asFile
         mavenArtifact.buildDependencies.getDependencies(null) == [archive] as Set
 
         where:

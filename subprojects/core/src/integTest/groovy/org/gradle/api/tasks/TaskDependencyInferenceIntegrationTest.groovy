@@ -244,6 +244,27 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         result.assertTasksExecuted(":b", ":c")
     }
 
+    def "dependency declared using orElse provider whose original value is missing and alternative value is missing task output file property doesn't imply dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                // no output value
+            }
+            def taskB = tasks.create("b", FileProducer) {
+                // no output value
+            }
+            tasks.register("c") {
+                dependsOn taskA.output.orElse(taskB.output)
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":c")
+    }
+
     def "dependency declared using orElse provider whose original value is missing and alternative value is constant does not imply task dependency"() {
         taskTypeWithOutputFileProperty()
         buildFile << """

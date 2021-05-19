@@ -150,7 +150,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     protected static Integer invocationsForExperiment(BuildExperimentSpec experiment) {
         String overriddenInvocationCount = getExperimentOverride("runs");
         if (overriddenInvocationCount != null) {
-            return Integer.valueOf(overriddenInvocationCount);
+            return Integer.parseInt(overriddenInvocationCount);
         }
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();

@@ -20,7 +20,6 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -725,7 +724,6 @@ project.extensions.create("some", SomeExtension)
         executedAndNotSkipped(":producer", ":consumer")
     }
 
-    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/16775")
     def "orElse does not cause error when map-ing a task property"() {
         buildFile """
@@ -739,7 +737,7 @@ project.extensions.create("some", SomeExtension)
                     outputFile.write("some text")
                 }
             }
-            
+
             abstract class MyExt {
                 abstract DirectoryProperty getArtifactDir()
             }
@@ -747,7 +745,7 @@ project.extensions.create("some", SomeExtension)
             abstract class Consumer extends DefaultTask {
                 @InputFiles
                 abstract ListProperty<String> getFileNames()
-                
+
                 @TaskAction
                 def action() {
                     println("files: " + fileNames.get())
@@ -757,12 +755,12 @@ project.extensions.create("some", SomeExtension)
             def producer = tasks.register("producer", Producer) {
                 output = layout.buildDirectory.dir("producer")
             }
-            
-            def myext = extensions.create("myext", MyExt)
-            myext.artifactDir = producer.flatMap { it.output }
-            
+
+            def myExt = extensions.create("myExt", MyExt)
+            myExt.artifactDir = producer.flatMap { it.output }
+
             tasks.register("consumer", Consumer) {
-               fileNames = myext.artifactDir.map {
+               fileNames = myExt.artifactDir.map {
                   it.asFileTree.collect { it.absolutePath }
                }.orElse([ "else" ])
             }
@@ -770,6 +768,7 @@ project.extensions.create("some", SomeExtension)
 
         when:
         run 'consumer'
+
         then:
         executedAndNotSkipped(":producer", ":consumer")
     }

@@ -19,14 +19,14 @@ import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.metaobject.DynamicObject;
 
 import java.io.File;
 
@@ -114,7 +114,7 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     @Override
     protected void configureForSourceSet(final SourceSet sourceSet, CodeNarc task) {
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
-        DynamicObject dynamicObject = new DslObject(sourceSet).getAsDynamicObject();
-        task.setSource(dynamicObject.getProperty("allGroovy"));
+        SourceDirectorySet groovySourceSet =  sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
+        task.setSource(groovySourceSet.matching(filter -> filter.include("**/*.groovy")));
     }
 }

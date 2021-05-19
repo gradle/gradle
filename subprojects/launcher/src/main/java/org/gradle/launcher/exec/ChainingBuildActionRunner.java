@@ -37,6 +37,6 @@ public class ChainingBuildActionRunner implements BuildActionRunner {
                 return result;
             }
         }
-        return Result.nothing();
+        throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));
     }
 }

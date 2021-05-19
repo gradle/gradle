@@ -22,7 +22,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -32,9 +31,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.jvm.Jvm
-
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -275,8 +272,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     private void setupProjectWithToolchain(JavaVersion version) {
         project.pluginManager.apply(JavaPlugin)
         project.java.toolchain.languageVersion = JavaLanguageVersion.of(version.majorVersion)
-        // workaround for https://github.com/gradle/gradle/issues/13122
-        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
     }
 
     def "tasks reflect changes to source set configuration"() {
@@ -286,7 +281,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
-        project.sourceSets.custom.java.outputDir = classesDir
+        project.sourceSets.custom.java.destinationDirectory.set(classesDir)
         project.sourceSets.custom.output.resourcesDir = resourcesDir
 
         then:
@@ -372,10 +367,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
-        test.reports.junitXml.destination == new File(project.testResultsDir, 'customTest')
-        test.reports.html.destination == new File(project.testReportDir, 'customTest')
-        test.reports.junitXml.enabled
-        test.reports.html.enabled
+        test.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
+        test.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
+        test.reports.junitXml.required.get()
+        test.reports.html.required.get()
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
@@ -389,7 +384,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskDependencyMatchers.dependsOn().matches(task)
-        task.destinationDir == project.libsDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 
     def "creates lifecycle build tasks"() {

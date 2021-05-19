@@ -271,7 +271,7 @@ abstract class PerformanceTest extends DistributionTest {
     }
 
     void generateResultsJson() {
-        Collection<File> xmls = reports.junitXml.destination.listFiles().findAll { it.path.endsWith(".xml") }
+        Collection<File> xmls = reports.junitXml.outputLocation.get().asFile.listFiles().findAll { it.path.endsWith(".xml") }
         List<ScenarioBuildResultData> resultData = xmls
             .collect { JUnitMarshalling.unmarshalTestSuite(new FileInputStream(it)) }
             .collect { extractResultFromTestSuite(it, getTestProjectName().get()) }

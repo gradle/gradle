@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
+import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
@@ -47,7 +48,6 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
 
@@ -77,7 +77,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
 
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
-        compileOptions.getForkOptions().setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
     }
 
     /**
@@ -128,7 +127,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(getOptions());
-        spec.setScalaCompileOptions(scalaCompileOptions);
+        spec.setScalaCompileOptions(new MinimalScalaCompileOptions(scalaCompileOptions));
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null
             ? ImmutableList.of()
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));

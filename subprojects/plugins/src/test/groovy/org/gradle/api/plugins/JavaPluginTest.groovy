@@ -187,7 +187,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def archivesConfiguration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
 
         then:
-        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archivePath]
+        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archiveFile.get().asFile]
     }
 
     def "adds java library component"() {
@@ -200,7 +200,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }
-        runtime.artifacts.collect {it.file} == [jarTask.archivePath]
+        runtime.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
         runtime.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies
     }
 
@@ -336,7 +336,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof Jar
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
-        task.destinationDir == project.libsDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
         task.mainSpec.sourcePaths == [project.sourceSets.main.output] as Set
         task.manifest != null
         task.manifest.mergeSpecs.size() == 0
@@ -422,8 +422,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.classpath.files == project.sourceSets.test.runtimeClasspath.files
         task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
         task.workingDir == project.projectDir
-        task.reports.junitXml.destination == new File(project.testResultsDir, 'customTest')
-        task.reports.html.destination == new File(project.testReportDir, 'customTest')
+        task.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
+        task.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
     }
 
     def "build other projects"() {

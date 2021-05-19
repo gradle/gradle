@@ -139,7 +139,7 @@ fun Task.containsFailedTest(): Boolean {
 }
 
 fun Task.failedTaskGenericHtmlReports() = when (this) {
-    is Reporting<*> -> listOf(this.reports["html"].destination)
+    is Reporting<*> -> listOf(this.reports["html"].outputLocation.get().asFile)
     else -> emptyList()
 }
 

@@ -36,6 +36,8 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFa
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptions;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -264,7 +266,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath() == null ? getProjectLayout().files() : compileOptions.getAnnotationProcessorPath()));
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
         spec.setCompileOptions(compileOptions);
-        spec.setGroovyCompileOptions(groovyCompileOptions);
+        spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(groovyCompileOptions));
         spec.getCompileOptions().setSupportsCompilerApi(true);
         if (getOptions().isIncremental()) {
             validateIncrementalCompilationOptions(sourceRoots, spec.annotationProcessingConfigured());
@@ -304,7 +306,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         }
     }
 
-    private void configureExecutable(ForkOptions forkOptions) {
+    private void configureExecutable(MinimalJavaCompilerDaemonForkOptions forkOptions) {
         if (javaLauncher.isPresent()) {
             forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
         } else {

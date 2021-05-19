@@ -3,7 +3,7 @@ package util
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
-import common.checkCleanM2
+import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.killGradleProcessesStep
@@ -82,7 +82,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                 ).joinToString(separator = " ")
         }
         removeSubstDirOnWindows(os)
-        checkCleanM2(os)
+        checkCleanM2AndAndroidUserHome(os)
     }
 })
 

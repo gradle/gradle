@@ -31,6 +31,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final BuildLayoutFactory buildLayoutFactory;
     private final GradlePropertiesController gradlePropertiesController;
     private final BuildIncluder buildIncluder;
+    private final InitScriptHandler initScriptHandler;
 
     public DefaultSettingsLoaderFactory(
         SettingsProcessor settingsProcessor,
@@ -38,7 +39,8 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         ProjectStateRegistry projectRegistry,
         BuildLayoutFactory buildLayoutFactory,
         GradlePropertiesController gradlePropertiesController,
-        BuildIncluder buildIncluder
+        BuildIncluder buildIncluder,
+        InitScriptHandler initScriptHandler
     ) {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
@@ -46,34 +48,46 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         this.buildLayoutFactory = buildLayoutFactory;
         this.gradlePropertiesController = gradlePropertiesController;
         this.buildIncluder = buildIncluder;
+        this.initScriptHandler = initScriptHandler;
     }
 
     @Override
     public SettingsLoader forTopLevelBuild() {
-        return new CompositeBuildSettingsLoader(
-            new ChildBuildRegisteringSettingsLoader(
-                new CommandLineIncludedBuildSettingsLoader(
-                    defaultSettingsLoader()
-                ),
-                buildRegistry,
-                buildIncluder),
-            buildRegistry);
+        return new GradlePropertiesHandlingSettingsLoader(
+            new InitScriptHandlingSettingsLoader(
+                new CompositeBuildSettingsLoader(
+                    new ChildBuildRegisteringSettingsLoader(
+                        new CommandLineIncludedBuildSettingsLoader(
+                            defaultSettingsLoader()
+                        ),
+                        buildRegistry,
+                        buildIncluder),
+                    buildRegistry),
+                initScriptHandler),
+            buildLayoutFactory,
+            gradlePropertiesController
+        );
     }
 
     @Override
     public SettingsLoader forNestedBuild() {
-        return new ChildBuildRegisteringSettingsLoader(
-            defaultSettingsLoader(),
-            buildRegistry,
-            buildIncluder);
+        return new GradlePropertiesHandlingSettingsLoader(
+            new InitScriptHandlingSettingsLoader(
+                new ChildBuildRegisteringSettingsLoader(
+                    defaultSettingsLoader(),
+                    buildRegistry,
+                    buildIncluder),
+                initScriptHandler),
+            buildLayoutFactory,
+            gradlePropertiesController
+        );
     }
 
     private SettingsLoader defaultSettingsLoader() {
         return new SettingsAttachingSettingsLoader(
             new DefaultSettingsLoader(
                 settingsProcessor,
-                buildLayoutFactory,
-                gradlePropertiesController
+                buildLayoutFactory
             ),
             projectRegistry
         );

@@ -36,9 +36,11 @@ public class DefaultProjectModelResolver implements ProjectModelResolver {
         }
 
         // TODO This is a brain-dead way to ensure that the reference project's model is ready to access
-        projectInternal.prepareForRuleBasedPlugins();
-        projectInternal.evaluate();
-        projectInternal.getTasks().discoverTasks();
-        return projectInternal.getModelRegistry();
+        return projectInternal.getOwner().fromMutableState(project -> {
+            project.prepareForRuleBasedPlugins();
+            project.evaluate();
+            project.getTasks().discoverTasks();
+            return project.getModelRegistry();
+        });
     }
 }
