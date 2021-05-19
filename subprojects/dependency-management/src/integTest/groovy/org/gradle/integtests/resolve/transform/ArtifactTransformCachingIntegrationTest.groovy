@@ -1333,7 +1333,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         file("lib/dir1.classes").file("child").createFile()
         executer.beforeExecute {
             if (!useParameterObject) {
-                expectDeprecationWarning()
+                expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
             }
         }
 
@@ -1387,7 +1387,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         otherScript.text = "ext.value = 123"
         executer.beforeExecute {
             if (!useParameterObject) {
-                expectDeprecationWarning()
+                expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
             }
         }
 

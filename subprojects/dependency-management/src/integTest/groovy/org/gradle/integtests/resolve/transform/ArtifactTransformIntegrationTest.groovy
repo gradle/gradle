@@ -2047,7 +2047,7 @@ Found the following transforms:
             }
 """
         then:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
         fails "help"
 
         and:
