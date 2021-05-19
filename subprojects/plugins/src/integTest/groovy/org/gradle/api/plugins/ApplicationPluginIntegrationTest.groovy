@@ -725,6 +725,7 @@ rootProject.name = 'sample'
         errorOutput.contains("Unrecognized option: `\$(touch")
         errorOutput.contains("Execution failed for task ':execStartScript'")
         //!errorOutput.contains("Picked up JAVA_TOOL_OPTIONS:")
+        //!output.contains("Picked up JAVA_TOOL_OPTIONS:")
         !exploit.exists()
 
         where:

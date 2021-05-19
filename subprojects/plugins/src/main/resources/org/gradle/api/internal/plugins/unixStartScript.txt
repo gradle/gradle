@@ -182,4 +182,7 @@ APP_ARGS=`save "\$@"`
 # Collect all arguments for the java command, following the shell quoting and substitution rules
 eval set -- \$DEFAULT_JVM_OPTS <% if ( appNameSystemProperty ) { %>"\"-D${appNameSystemProperty}=\$APP_BASE_NAME\"" <% } %>-classpath "\"\$CLASSPATH\"" <% if ( mainClassName.startsWith('--module ') ) { %>--module-path "\"\$MODULE_PATH\"" <% } %>${mainClassName} "\$APP_ARGS"
 
-JAVA_TOOL_OPTIONS="\$JAVA_OPTS \$${optsEnvironmentVar}" exec "\$JAVACMD" "\$@"
+case "\${JAVA_OPTS}\${${optsEnvironmentVar}}" in
+    *\\ * ) JAVA_TOOL_OPTIONS="\$JAVA_OPTS \$${optsEnvironmentVar}" exec "\$JAVACMD" "\$@" ;;
+    * ) exec "\$JAVACMD" \$JAVA_OPTS \$${optsEnvironmentVar} "\$@" ;;
+esac
