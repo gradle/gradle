@@ -109,7 +109,7 @@ fun accessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec, 
         /**
          * Retrieves the [$original][$type] convention.
          *
-         * @deprecated Use extensions instead.
+         * @deprecated The concept of conventions is deprecated. Use extensions instead.
          */
         val $targetType.`$kotlinIdentifier`: $type get() =
             $thisConvention.getPluginByName<$type>("$stringLiteral")
@@ -117,7 +117,7 @@ fun accessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec, 
         /**
          * Configures the [$original][$type] convention.
          *
-         * @deprecated Use extensions instead.
+         * @deprecated The concept of conventions is deprecated. Use extensions instead.
          */
         fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
             configure.execute(`$stringLiteral`)
@@ -134,7 +134,7 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          *
-         * @deprecated Use extensions instead.
+         * @deprecated The concept of conventions is deprecated. Use extensions instead.
          */
         val $targetType.`$kotlinIdentifier`: Any get() =
             $thisConvention.getPluginByName<Any>("$stringLiteral")
@@ -144,7 +144,7 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          *
-         * @deprecated Use extensions instead.
+         * @deprecated The concept of conventions is deprecated. Use extensions instead.
          */
         fun $targetType.`$kotlinIdentifier`(configure: Action<Any>): Unit =
             configure(`$stringLiteral`)
