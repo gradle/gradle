@@ -72,4 +72,5 @@ const val deprecationMessage = "Flag has no effect since `kotlin-dsl` no longer 
 
 internal
 fun Project.kotlinDslPluginOptions(action: KotlinDslPluginOptions.() -> Unit) =
+    @Suppress("deprecation") // TODO (donat) KotlinDslPluginOptions is already an extension; why do we have to deal with conventions here?
     configure(action)

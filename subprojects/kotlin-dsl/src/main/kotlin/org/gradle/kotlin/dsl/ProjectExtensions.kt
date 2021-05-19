@@ -85,7 +85,9 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
  * @param configuration the configuration block.
  * @see [Convention.getPlugin]
  */
+@Deprecated("Conventions are deprecated; use extensions instead")
 inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
+    @Suppress("deprecation")
     typeOf<T>().let { type ->
         convention.findByType(type)?.let(configuration)
             ?: convention.findPlugin<T>()?.let(configuration)
@@ -97,6 +99,7 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
  * Returns the plugin convention or extension of the specified type.
  */
 inline fun <reified T : Any> Project.the(): T =
+    @Suppress("deprecation")
     typeOf<T>().let { type ->
         convention.findByType(type)
             ?: convention.findPlugin(T::class.java)
@@ -107,6 +110,7 @@ inline fun <reified T : Any> Project.the(): T =
 /**
  * Returns the plugin convention or extension of the specified type.
  */
+@Suppress("deprecation")
 fun <T : Any> Project.the(extensionType: KClass<T>): T =
     convention.findByType(extensionType.java)
         ?: convention.findPlugin(extensionType.java)

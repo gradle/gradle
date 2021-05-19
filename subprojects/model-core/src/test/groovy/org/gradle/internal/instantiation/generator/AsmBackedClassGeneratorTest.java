@@ -824,6 +824,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void doesNotMixInExtensionAwareToClassWithAnnotation() throws Exception {
         NotExtensibleBean bean = newInstance(NotExtensibleBean.class);
         assertFalse(bean instanceof ExtensionContainer);

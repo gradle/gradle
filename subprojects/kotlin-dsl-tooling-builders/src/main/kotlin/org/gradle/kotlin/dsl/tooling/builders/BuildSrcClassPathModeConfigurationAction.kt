@@ -97,7 +97,7 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
 
     private
     val Project.sourceSets
-        get() = the<SourceSetContainer>()
+        get() = @Suppress("deprecation") the<SourceSetContainer>()
 }
 
 
