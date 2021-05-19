@@ -360,3 +360,43 @@ To fix this problem, you have two options:
 - remove the `@Optional` annotation
 - or use the boxed type (e.g Integer instead of int) if you intend to make the property nullable
 
+
+[[implementation_unknown]]
+== Cannot use an input with an unknown implementation
+
+This error indicates that a task uses a class as an input and Gradle cannot track the implementation of the class.
+Gradle considers the implementation of the following classes as inputs to a task:
+
+- the task class,
+- the classes of the actions of the task,
+- and the classes of nested inputs of the task, i.e. inputs annotated with `@Nested`.
+
+There are two reasons why Gradle cannot track the implementation of a class:
+
+- a Java lambda was used to implement the class,
+- or the class has been loaded by a classloader unknown to Gradle.
+
+From Java code, it is quite easy to accidentally use a Lambda to implement a task action.
+
+```java
+tasks.register("myTask",
+    myTask -> myTask.doLast(t -> System.out.println("Hello from task"))
+);
+```
+
+Gradle currently isn't able to track the implementation of this task action.
+What you can do instead is to use an anonymous inner class.
+
+```java
+tasks.register("myTask",
+    myTask -> myTask.doLast(new Action<Task>() {
+        @Override
+        public void execute(Task task) {
+            System.out.println("Hello from task");
+        }
+    })
+);
+```
+
+For the second case, instead of loading your class by a classloader unknown to Gradle, you can use Gradle's built-in ways to load the class.
+For example, the <<worker_api.adoc#,worker API>> allows using a different classloader.
