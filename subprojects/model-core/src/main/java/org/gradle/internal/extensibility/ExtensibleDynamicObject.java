@@ -139,6 +139,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     @Override
+    @Deprecated
     public Convention getConvention() {
         return convention;
     }

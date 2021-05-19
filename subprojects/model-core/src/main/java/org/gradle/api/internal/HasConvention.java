@@ -28,7 +28,6 @@ import org.gradle.api.plugins.Convention;
  */
 @Deprecated
 public interface HasConvention {
-
+    @Deprecated
     Convention getConvention();
-
 }
