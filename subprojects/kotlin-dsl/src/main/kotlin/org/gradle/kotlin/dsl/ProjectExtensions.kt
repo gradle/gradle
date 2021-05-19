@@ -89,10 +89,11 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
  * @see [Convention.getPlugin]
  */
 inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
+    @Suppress("deprecation")
     typeOf<T>().let { type ->
-        @Suppress("deprecation") convention.findByType(type)?.let(configuration)
-            ?: @Suppress("deprecation") convention.findPlugin<T>()?.let(configuration)
-            ?: @Suppress("deprecation") convention.configure(type, configuration)
+        convention.findByType(type)?.let(configuration)
+            ?: convention.findPlugin<T>()?.let(configuration)
+            ?: convention.configure(type, configuration)
     }
 
 
