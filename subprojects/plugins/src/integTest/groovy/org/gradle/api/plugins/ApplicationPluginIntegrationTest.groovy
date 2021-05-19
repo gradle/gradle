@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
@@ -699,7 +699,6 @@ rootProject.name = 'sample'
         executed(':compileJava', ':processResources', ':classes', ':jar', ':run')
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle-private/issues/3386")
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     def "does not execute code in user-set environment variable"() {
@@ -720,10 +719,12 @@ rootProject.name = 'sample'
                 environment ${envVar}: '`\$(touch "${exploit.absolutePath}")`'
             }
         """
-        succeeds('execStartScript')
+        fails('execStartScript')
 
         then:
-        outputContains('Hello World!')
+        errorOutput.contains("Unrecognized option: `\$(touch")
+        errorOutput.contains("Execution failed for task ':execStartScript'")
+        //!errorOutput.contains("Picked up JAVA_TOOL_OPTIONS:")
         !exploit.exists()
 
         where:

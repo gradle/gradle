@@ -68,7 +68,7 @@ class Main {
         if (OperatingSystem.current().windows) {
             builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2="some value" -DtestValue3="some value"')
         } else {
-            builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2=\'some value\' -DtestValue3=some\\ value')
+            builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2=\'some value\' -DtestValue3=\'some value\'')
         }
 
         def result = builder.run()
