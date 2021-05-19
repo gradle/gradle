@@ -33,7 +33,7 @@ import kotlin.reflect.KClass
  * @return the convention plugin, never null
  * @throws [IllegalStateException] When the convention cannot be found or cast to the expected type.
  */
-@Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
+@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
 inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
     @Suppress("deprecation")
     conventionPluginByName(this, name).let {
@@ -99,7 +99,7 @@ fun <T : Any> Convention.findPlugin(conventionType: KClass<T>): T? =
  *
  * @see [Convention.getPlugin]
  */
-@Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
+@Deprecated("The concept of conventions is deprecated. Use extensions instead.")
 inline fun <ConventionType : Any, ReturnType> Any.withConvention(
     conventionType: KClass<ConventionType>,
     function: ConventionType.() -> ReturnType
