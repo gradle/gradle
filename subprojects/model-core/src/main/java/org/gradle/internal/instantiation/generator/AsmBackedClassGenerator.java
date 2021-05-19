@@ -30,7 +30,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
@@ -386,7 +385,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final static Type CONVENTION_AWARE_HELPER_TYPE = Type.getType(ConventionAwareHelper.class);
         private final static Type DYNAMIC_OBJECT_AWARE_TYPE = Type.getType(DynamicObjectAware.class);
         private final static Type EXTENSION_AWARE_TYPE = Type.getType(ExtensionAware.class);
-        private final static Type HAS_CONVENTION_TYPE = Type.getType(HasConvention.class);
+        @SuppressWarnings("deprecation")
+        private final static Type HAS_CONVENTION_TYPE = Type.getType(org.gradle.api.internal.HasConvention.class);
         private final static Type DYNAMIC_OBJECT_TYPE = Type.getType(DynamicObject.class);
         private final static Type CONVENTION_MAPPING_TYPE = Type.getType(ConventionMapping.class);
         private final static Type GROOVY_OBJECT_TYPE = Type.getType(GroovyObject.class);

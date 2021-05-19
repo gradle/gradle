@@ -237,6 +237,19 @@ Now, the situation has been cleared and all build should use the `maven-publish`
 The last remaining artifact of the old way of publishing is the `Upload` task that has been deprecated and scheduled for removal in Gradle 8.0.
 Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,`maven-publish` plugin>>.
 
+[[all_convention_deprecation]]
+The concept of conventions is outdated and superseded by extensions. To reflect this in the Gradle API, the following elements are now deprecated:
+
+- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[Project.html#getConvention()]
+- link:{javadocPath}/org/gradle/api/internal/HasConvention.html[HasConvention]
+
+The internal usages of conventions have been also cleaned up (see the deprecated items below).
+
+Plugin authors migrate to extensions if they replicate the changes we've done internally. Here are some examples:
+
+- Migrate plugin configuration: link:https://github.com/gradle/gradle/pull/16900/files#diff-ac53d4f39698b83e30b93855fe6a725ffd96d5ed9df156d4f9dfd32bdc7946e7[gradle/gradle#16900].
+- Migrate custom source sets: link:https://github.com/gradle/gradle/pull/17149/files#diff-e159587e2f9aec398fa795b1d8b344f1593cb631e15e04893d31cdc9465f9781[gradle/gradle#17149].
+
 [[base_convention_deprecation]]
 === Deprecated `base` plugin conventions
 

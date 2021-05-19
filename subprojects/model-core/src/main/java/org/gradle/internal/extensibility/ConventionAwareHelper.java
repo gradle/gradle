@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Cast;
@@ -36,7 +35,8 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.util.internal.GUtil.uncheckedCall;
 
-public class ConventionAwareHelper implements ConventionMapping, HasConvention {
+@SuppressWarnings("deprecation")
+public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final Convention _convention;
     private final IConventionAware _source;
