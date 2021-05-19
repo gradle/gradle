@@ -113,10 +113,14 @@ if ! "\$cygwin" && ! "\$darwin" && ! "\$nonstop" ; then
     fi
 fi
 
-# For Darwin, add options to specify how the application appears in the dock
-if \$darwin; then
-    GRADLE_OPTS="\$GRADLE_OPTS \\"-Xdock:name=\$APP_NAME\\" \\"-Xdock:icon=\$APP_HOME/media/gradle.icns\\""
-fi
+# Collect all arguments for the java command, stacking in reverse order:
+#   * args from the command line
+#   * the main class name
+#   * -classpath
+#   * -D...appname settings
+#   * --module-path (only if needed)
+#   * -Xdock:... settings (for Darwin)
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and ${optsEnvironmentVar} environment variables.
 
 # For Cygwin or MSYS, switch paths to Windows format before running java
 if "\$cygwin" || "\$msys" ; then
@@ -138,10 +142,15 @@ if "\$cygwin" || "\$msys" ; then
         then
             arg=\$( cygpath --path --ignore --mixed "\$arg" )
         fi
-        # Roll the args around exactly as many times as the number of args.
-        # NB: "\$@" above was expanded and captured before the loop began.
-        shift
-        set -- "\$@" "\$arg"
+        # Roll the args list around exactly as many times as the number of
+        # args, so each arg winds up back in the position where it started, but
+        # possibly modified.
+        #
+        # NB: a `for` loop captures its iteration list before it begins, so
+        # changing the positional parameters here affects neither the number of
+        # iterations, nor the values presented in `arg`.
+        shift                   # remove old arg
+        set -- "\$@" "\$arg"      # push replacement arg
     done
 fi
 
@@ -158,7 +167,13 @@ set -- \\
 <% if ( mainClassName.startsWith('--module ') ) {
      %>        --module-path "\$MODULE_PATH" \\
 <% } %>        ${mainClassName} \\
-        "\@"
+        "\$@"
+
+# For Darwin, add options to specify how the application appears in the dock
+if \$darwin; then
+    set -- "-Xdock:name=\$APP_NAME" \\
+           "-Xdock:icon=\$APP_HOME/media/gradle.icns" "\$@"
+fi
 
 # Use "xargs" to parse quoted args.
 #
