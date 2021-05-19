@@ -564,7 +564,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Deprecated
     @Override
     public Convention getConvention() {
-        // TODO (donat) deprecate after all internal usages have been eliminated
+        DeprecationLogger.deprecateMethod(Project.class, "getConvention()")
+            .withAdvice("Use ExtensionAware.getExtensions() instead.")
+            .willBeRemovedInGradle8()
+            .undocumented()
+            .nagUser();
         return extensibleDynamicObject.getConvention();
     }
 
