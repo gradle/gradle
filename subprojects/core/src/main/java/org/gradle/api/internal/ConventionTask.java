@@ -39,6 +39,7 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
 
     @Override
     @Internal
+    @SuppressWarnings("deprecation")
     public ConventionMapping getConventionMapping() {
         if (conventionMapping == null) {
             conventionMapping = new ConventionAwareHelper(this, getConvention());

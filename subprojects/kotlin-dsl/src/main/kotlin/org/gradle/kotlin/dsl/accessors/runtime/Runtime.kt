@@ -42,9 +42,10 @@ fun conventionPluginByName(convention: Convention, name: String): Any =
     convention.plugins[name] ?: throw IllegalStateException("A convention named '$name' could not be found.")
 
 
+@Suppress("deprecation")
 fun conventionOf(target: Any): Convention = when (target) {
-    is Project -> @Suppress("deprecation") target.convention
-    is @Suppress("deprecation") org.gradle.api.internal.HasConvention -> target.convention
+    is Project -> target.convention
+    is org.gradle.api.internal.HasConvention -> target.convention
     else -> throw IllegalStateException("Object `$target` doesn't support conventions!")
 }
 

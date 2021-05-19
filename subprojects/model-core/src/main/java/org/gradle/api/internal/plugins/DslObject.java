@@ -61,6 +61,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     }
 
     @Override
+    @Deprecated
     public Convention getConvention() {
         if (convention == null) {
             this.convention = toType(object, org.gradle.api.internal.HasConvention.class).getConvention();
