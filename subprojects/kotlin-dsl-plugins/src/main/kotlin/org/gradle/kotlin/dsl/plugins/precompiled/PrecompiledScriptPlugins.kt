@@ -78,4 +78,5 @@ val Project.sourceSets
 
 private
 val SourceSet.kotlin: SourceDirectorySet
+    // TODO coordinate with the kotlin-gradle-plugin's authors to migrate from conventions to extensions
     get() = @Suppress("deprecation") withConvention(KotlinSourceSet::class) { kotlin }
