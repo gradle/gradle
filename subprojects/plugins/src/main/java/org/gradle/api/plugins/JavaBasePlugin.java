@@ -30,6 +30,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
@@ -50,6 +51,7 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
@@ -133,7 +135,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", new DefaultJavaPluginConvention(project, javaPluginExtension));
+        ((ExtensibleDynamicObject)((DefaultProject)project).getAsDynamicObject()).getConvention().getPlugins().put("java", new DefaultJavaPluginConvention(project, javaPluginExtension));
         project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaPluginExtension;
     }

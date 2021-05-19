@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -35,6 +36,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -227,7 +229,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
      */
     @Deprecated
     protected JavaPluginConvention getJavaPluginConvention() {
-        return project.getConvention().getPlugin(JavaPluginConvention.class);
+        return ((ExtensibleDynamicObject)((DefaultProject)project).getAsDynamicObject()).getConvention().getPlugin(JavaPluginConvention.class);
     }
 
     protected JavaPluginExtension getJavaPluginExtension() {

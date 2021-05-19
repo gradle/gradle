@@ -17,10 +17,12 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.util.internal.WrapUtil;
 
 /**
@@ -41,7 +43,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
         @SuppressWarnings("deprecation")
         final ProjectReportsPluginConvention convention = new org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention(project);
         @SuppressWarnings("deprecation")
-        Convention projectConvention = project.getConvention();
+        Convention projectConvention = ((ExtensibleDynamicObject)((DefaultProject)project).getAsDynamicObject()).getConvention();
         projectConvention.getPlugins().put("projectReports", convention);
 
         project.getTasks().register(TASK_REPORT, TaskReportTask.class, taskReportTask -> {

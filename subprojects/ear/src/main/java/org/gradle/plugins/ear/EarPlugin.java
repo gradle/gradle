@@ -34,6 +34,7 @@ import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import javax.inject.Inject;
@@ -75,7 +76,7 @@ public class EarPlugin implements Plugin<Project> {
         project.getPluginManager().apply(BasePlugin.class);
 
         EarPluginConvention earPluginConvention = objectFactory.newInstance(org.gradle.plugins.ear.internal.DefaultEarPluginConvention.class);
-        project.getConvention().getPlugins().put("ear", earPluginConvention);
+        ((ExtensibleDynamicObject)((DefaultProject)project).getAsDynamicObject()).getConvention().getPlugins().put("ear", earPluginConvention);
         earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
         earPluginConvention.setAppDirName("src/main/application");
 
