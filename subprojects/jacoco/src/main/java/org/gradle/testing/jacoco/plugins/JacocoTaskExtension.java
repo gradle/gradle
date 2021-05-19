@@ -342,7 +342,7 @@ public class JacocoTaskExtension {
             if (value != null
                 && !((value instanceof Collection) && ((Collection) value).isEmpty())
                 && !((value instanceof String) && (StringUtils.isEmpty((String) value)))
-                && !((value instanceof Integer) && (value == Integer.valueOf(0)))) {
+                && !((value instanceof Integer) && ((Integer) value == 0))) {
                 if (anyArgs) {
                     builder.append(',');
                 }

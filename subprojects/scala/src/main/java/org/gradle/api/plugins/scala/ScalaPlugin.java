@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.scala;
 
-import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -29,6 +28,7 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.ScalaDoc;
@@ -87,7 +87,7 @@ public class ScalaPlugin implements Plugin<Project> {
                         return files;
                     }
                 });
-                scalaDoc.setSource(InvokerHelper.invokeMethod(main, "getScala", null));
+                scalaDoc.setSource(main.getExtensions().getByType(ScalaSourceDirectorySet.class));
             }
         });
         project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, new Action<ScalaDoc>() {

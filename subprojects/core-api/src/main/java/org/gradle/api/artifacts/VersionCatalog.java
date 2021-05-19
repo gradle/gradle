@@ -20,6 +20,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.provider.Provider;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -50,4 +51,28 @@ public interface VersionCatalog extends Named {
      * @param name the name of the version
      */
     Optional<VersionConstraint> findVersion(String name);
+
+    /**
+     * Returns the list of aliases defined in this version catalog.
+     * @return the list of dependency aliases
+     *
+     * @since 7.1
+     */
+    List<String> getDependencyAliases();
+
+    /**
+     * Returns the list of bundles defined in this version catalog.
+     * @return the list of bundle aliases
+     *
+     * @since 7.1
+     */
+    List<String> getBundleAliases();
+
+    /**
+     * Returns the list of version aliases defined in this version catalog.
+     * @return the list of version aliases
+     *
+     * @since 7.1
+     */
+    List<String> getVersionAliases();
 }

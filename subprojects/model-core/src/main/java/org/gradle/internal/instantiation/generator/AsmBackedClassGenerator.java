@@ -267,6 +267,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private boolean providesOwnToStringImplementation;
         private boolean requiresFactory;
         private final List<Pair<PropertyMetadata, Boolean>> propertiesToAttach = new ArrayList<>();
+        private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
 
         public ClassInspectionVisitorImpl(Class<?> type, boolean decorate, String suffix, int factoryId) {
             this.type = type;
@@ -328,6 +329,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
+        public void markPropertyAsIneligibleForConventionMapping(PropertyMetadata property) {
+            ineligibleProperties.add(property);
+        }
+
+        @Override
         public ClassGenerationVisitor builder() {
             if (!decorate && !serviceInjection && !Modifier.isAbstract(type.getModifiers())) {
                 // Don't need to generate a subclass
@@ -349,7 +355,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             boolean requiresServicesMethod = (extensible || serviceInjection) && !providesOwnServicesImplementation;
             boolean requiresToString = !providesOwnToStringImplementation;
-            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresToString, requiresServicesMethod, requiresFactory, propertiesToAttach);
+            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresToString, requiresServicesMethod, requiresFactory, propertiesToAttach, ineligibleProperties);
             builder.startClass();
             return builder;
         }
@@ -466,6 +472,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean providesOwnDynamicObject;
         private final boolean requiresToString;
         private final List<Pair<PropertyMetadata, Boolean>> propertiesToAttach;
+        private final List<PropertyMetadata> ineligibleProperties;
         private final boolean requiresServicesMethod;
         private final boolean requiresFactory;
 
@@ -481,7 +488,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             boolean requiresToString,
             boolean requiresServicesMethod,
             boolean requiresFactory,
-            List<Pair<PropertyMetadata, Boolean>> propertiesToAttach
+            List<Pair<PropertyMetadata, Boolean>> propertiesToAttach,
+            List<PropertyMetadata> ineligibleProperties
         ) {
             this.type = type;
             this.factoryId = factoryId;
@@ -498,6 +506,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             this.providesOwnDynamicObject = providesOwnDynamicObject;
             this.requiresServicesMethod = requiresServicesMethod;
             this.requiresFactory = requiresFactory;
+            this.ineligibleProperties = ineligibleProperties;
         }
 
         public void startClass() {
@@ -679,6 +688,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_FACTORY_FOR_NEXT_METHOD_NAME, RETURN_MANAGED_OBJECT_FACTORY, false);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE.getDescriptor());
             }
+
             for (Pair<PropertyMetadata, Boolean> entry : propertiesToAttach) {
                 // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
                 PropertyMetadata property = entry.left;
@@ -692,6 +702,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitMethodInsn(INVOKESTATIC, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING, false);
                 if (entry.right) {
                     applyRoleTo(methodVisitor);
+                }
+            }
+
+            // For classes that could have convention mapping, but implement IConventionAware themselves, we need to
+            // mark ineligible-for-convention-mapping properties in a different way.
+            // See mixInConventionAware() for how we do this for decorated types that do not implement IConventionAware manually
+            //
+            // Doing this for all types introduces a performance penalty for types that have Provider properties, even
+            // if they don't use convention mapping.
+            if (conventionAware && IConventionAware.class.isAssignableFrom(type)) {
+                for (PropertyMetadata property : ineligibleProperties) {
+                    // GENERATE getConventionMapping()
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getConventionMapping", RETURN_CONVENTION_MAPPING, false);
+                    // GENERATE convention.ineligible(__property.getName()__)
+                    methodVisitor.visitLdcInsn(property.getName());
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "ineligible", RETURN_VOID_FROM_STRING, true);
                 }
             }
         }
@@ -824,6 +851,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 visitor.visitMethodInsn(INVOKESPECIAL, CONVENTION_AWARE_HELPER_TYPE.getInternalName(), "<init>", RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION, false);
 
                 // END
+
+                for (PropertyMetadata property : ineligibleProperties) {
+                    // GENERATE convention.ineligible(__property.getName()__)
+                    visitor.visitInsn(DUP);
+                    visitor.visitLdcInsn(property.getName());
+                    visitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "ineligible", RETURN_VOID_FROM_STRING, true);
+                }
             };
 
             addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, null, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, initConventionAwareHelper);

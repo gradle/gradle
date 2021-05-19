@@ -380,6 +380,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return property.isReadOnly() && !property.getMainGetter().shouldOverride() && isPropertyType(property.getType());
     }
 
+    private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
+        // Provider API types should have conventions set through convention() instead of
+        // using convention mapping.
+        return Provider.class.isAssignableFrom(property.getType());
+    }
+
     private static boolean isLazyAttachProperty(PropertyMetadata property) {
         // Property is read only and getter is not final, so attach owner lazily when queried
         // This should apply to all 'managed' types however only the Provider types and @Nested value current implement OwnerAware
@@ -973,6 +979,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
         private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
         private final List<PropertyMetadata> eagerAttachProperties = new ArrayList<>();
+        private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
+
         private boolean hasFields;
 
         @Override
@@ -986,6 +994,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 // Property is read-only and main getter is final, so attach eagerly in constructor
                 // If the getter is not final, then attach lazily in the getter
                 eagerAttachProperties.add(property);
+            }
+
+            if (isIneligibleForConventionMapping(property)) {
+                ineligibleProperties.add(property);
             }
         }
 
@@ -1029,6 +1041,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             for (PropertyMetadata property : eagerAttachProperties) {
                 boolean applyRole = isRoleType(property);
                 visitor.attachDuringConstruction(property, applyRole);
+            }
+            for (PropertyMetadata property : ineligibleProperties) {
+                visitor.markPropertyAsIneligibleForConventionMapping(property);
             }
         }
 
@@ -1360,6 +1375,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void instantiatesNestedObjects();
 
         void attachDuringConstruction(PropertyMetadata property, boolean applyRole);
+
+        void markPropertyAsIneligibleForConventionMapping(PropertyMetadata property);
 
         ClassGenerationVisitor builder();
     }

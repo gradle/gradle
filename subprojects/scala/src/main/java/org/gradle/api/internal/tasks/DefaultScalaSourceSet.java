@@ -19,39 +19,45 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.api.tasks.ScalaSourceSet;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
-public class DefaultScalaSourceSet implements ScalaSourceSet, HasPublicType {
-    private final SourceDirectorySet scala;
+@Deprecated
+public class DefaultScalaSourceSet implements org.gradle.api.tasks.ScalaSourceSet, HasPublicType {
+    private final ScalaSourceDirectorySet scala;
     private final SourceDirectorySet allScala;
 
     public DefaultScalaSourceSet(String displayName, ObjectFactory objectFactory) {
-        scala = objectFactory.sourceDirectorySet("scala", displayName + " Scala source");
-        scala.getFilter().include("**/*.java", "**/*.scala");
+        scala = createScalaSourceDirectorySet("scala", displayName + " Scala source", objectFactory);
         allScala = objectFactory.sourceDirectorySet("allscala", displayName + " Scala source");
         allScala.getFilter().include("**/*.scala");
         allScala.source(scala);
     }
 
+    private static ScalaSourceDirectorySet createScalaSourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
+        ScalaSourceDirectorySet scalaSourceDirectorySet = new DefaultScalaSourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName));
+        scalaSourceDirectorySet.getFilter().include("**/*.java", "**/*.scala");
+        return scalaSourceDirectorySet;
+    }
+
     @Override
-    public SourceDirectorySet getScala() {
+    public ScalaSourceDirectorySet getScala() {
         return scala;
     }
 
     @Override
     @SuppressWarnings("rawtypes")
-    public ScalaSourceSet scala(Closure configureClosure) {
+    public org.gradle.api.tasks.ScalaSourceSet scala(Closure configureClosure) {
         configure(configureClosure, getScala());
         return this;
     }
 
     @Override
-    public ScalaSourceSet scala(Action<? super SourceDirectorySet> configureAction) {
+    public org.gradle.api.tasks.ScalaSourceSet scala(Action<? super SourceDirectorySet> configureAction) {
         configureAction.execute(getScala());
         return this;
     }
@@ -63,6 +69,6 @@ public class DefaultScalaSourceSet implements ScalaSourceSet, HasPublicType {
 
     @Override
     public TypeOf<?> getPublicType() {
-        return typeOf(ScalaSourceSet.class);
+        return typeOf(org.gradle.api.tasks.ScalaSourceSet.class);
     }
 }

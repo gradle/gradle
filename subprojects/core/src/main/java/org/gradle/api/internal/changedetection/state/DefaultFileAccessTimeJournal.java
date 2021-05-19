@@ -57,14 +57,14 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
         inceptionTimestamp = loadOrPersistInceptionTimestamp();
     }
 
-    private Long loadOrPersistInceptionTimestamp() {
+    private long loadOrPersistInceptionTimestamp() {
         return cache.useCache(() -> {
             File propertiesFile = new File(cache.getBaseDir(), FILE_ACCESS_PROPERTIES_FILE_NAME);
             if (propertiesFile.exists()) {
                 Properties properties = GUtil.loadProperties(propertiesFile);
                 String inceptionTimestamp = properties.getProperty(INCEPTION_TIMESTAMP_KEY);
                 if (inceptionTimestamp != null) {
-                    return Long.valueOf(inceptionTimestamp);
+                    return Long.parseLong(inceptionTimestamp);
                 }
             }
             long inceptionTimestamp = System.currentTimeMillis();

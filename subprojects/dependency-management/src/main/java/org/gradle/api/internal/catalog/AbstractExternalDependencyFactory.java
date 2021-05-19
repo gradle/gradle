@@ -23,6 +23,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractExternalDependencyFactory implements ExternalModuleDependencyFactory {
@@ -59,6 +60,21 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         @Override
         public String getName() {
             return owner.getName();
+        }
+
+        @Override
+        public List<String> getDependencyAliases() {
+            return owner.getDependencyAliases();
+        }
+
+        @Override
+        public List<String> getBundleAliases() {
+            return owner.getBundleAliases();
+        }
+
+        @Override
+        public List<String> getVersionAliases() {
+            return owner.getVersionAliases();
         }
     }
 
@@ -102,6 +118,21 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     @Override
     public final String getName() {
         return config.getName();
+    }
+
+    @Override
+    public List<String> getDependencyAliases() {
+        return config.getDependencyAliases();
+    }
+
+    @Override
+    public List<String> getBundleAliases() {
+        return config.getBundleAliases();
+    }
+
+    @Override
+    public List<String> getVersionAliases() {
+        return config.getVersionAliases();
     }
 
     public static class VersionFactory {

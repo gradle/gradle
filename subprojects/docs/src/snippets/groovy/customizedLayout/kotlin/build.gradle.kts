@@ -14,18 +14,14 @@ dependencies {
 // tag::custom-source-locations[]
 sourceSets {
     main {
-        withConvention(GroovySourceSet::class) {
-            groovy {
-                setSrcDirs(listOf("src/groovy"))
-            }
+        groovy {
+            setSrcDirs(listOf("src/groovy"))
         }
     }
 
     test {
-        withConvention(GroovySourceSet::class) {
-            groovy {
-                setSrcDirs(listOf("test/groovy"))
-            }
+        groovy {
+            setSrcDirs(listOf("test/groovy"))
         }
     }
 }

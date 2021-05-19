@@ -10,9 +10,12 @@ We would like to thank the following community members for their contributions t
 [Kyle Moore](https://github.com/DPUkyle),
 [Stefan Oehme](https://github.com/oehme),
 [Anže Sodja](https://github.com/asodja),
+[Jeff](https://github.com/mathjeff),
 [Alexander Likhachev](https://github.com/ALikhachev),
 [Björn Kautler](https://github.com/Vampire),
 [Sebastian Schuberth](https://github.com/sschuberth),
+[Kejn](https://github.com/kejn),
+[Anuraag Agrawal](https://github.com/anuraaga),
 [Florian Schmitt](https://github.com/florianschmitt).
 
 ## Upgrade Instructions
@@ -23,7 +26,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
 
-NOTE: Gradle 7.0 has had **one** patch release, which fix several issues from the original release.
+NOTE: Gradle 7.0 has had **two** patch releases, which fix several issues from the original release.
 We recommend always using the latest patch release.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
@@ -98,6 +101,40 @@ class JavaAgentCommandLineArgumentProvider implements CommandLineArgumentProvide
     @Override
     List<String> asArguments() {
         ["-javaagent:${javaAgentJarFile.absolutePath}".toString()]
+    }
+}
+```
+
+### Easier source set configuration in the Kotlin DSL
+
+When using the Kotlin DSL, a special construct was required when configuring source locations. For example, here's how you could configure `groovy` sources:
+
+```kotlin
+sourceSets {
+    main {
+        withConvention(GroovySourceSet::class) {
+            groovy {
+                setSrcDirs(listOf("src/groovy"))
+            }
+        }
+    }
+}
+```
+
+Gradle 7.1 defines source sets as an extension in the following plugins:
+
+- `groovy`
+- `antlr`
+- `scala`
+
+ This means that the Kotlin DSL has auto-generated accessors and `withConvention` block can be omitted:
+
+```kotlin
+sourceSets {
+    main {
+        groovy {
+            setSrcDirs(listOf("src/groovy"))
+        }
     }
 }
 ```

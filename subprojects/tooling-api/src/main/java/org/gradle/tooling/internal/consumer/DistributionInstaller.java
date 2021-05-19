@@ -42,6 +42,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -67,8 +68,8 @@ public class DistributionInstaller {
     /**
      * Installs the distribution and returns the result.
      */
-    public File install(File userHomeDir, WrapperConfiguration wrapperConfiguration) throws Exception {
-        Install install = new Install(new Logger(false), new AsyncDownload(), new PathAssembler(userHomeDir));
+    public File install(File userHomeDir, File projectDir, WrapperConfiguration wrapperConfiguration, Map<String, String> systemProperties) throws Exception {
+        Install install = new Install(new Logger(false), new AsyncDownload(systemProperties), new PathAssembler(userHomeDir, projectDir));
         return install.createDist(wrapperConfiguration);
     }
 
@@ -79,88 +80,6 @@ public class DistributionInstaller {
         synchronized (lock) {
             cancelled = true;
             lock.notifyAll();
-        }
-    }
-
-    private void doDownload(URI address, File destination) throws Exception {
-        String displayName = "Download " + address;
-        OperationDescriptor descriptor = new ConsumerOperationDescriptor(displayName);
-        long startTime = clock.getCurrentTime();
-        buildProgressListener.onEvent(new DefaultStartEvent(startTime, displayName + " started", descriptor));
-
-        Throwable failure = null;
-        try {
-            withProgressLogging(address, destination, descriptor);
-        } catch (Throwable t) {
-            failure = t;
-        }
-
-        long endTime = clock.getCurrentTime();
-        OperationResult result = failure == null ? new DefaultOperationSuccessResult(startTime, endTime) : new DefaultOperationFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
-        buildProgressListener.onEvent(new DefaultFinishEvent(endTime, displayName + " finished", descriptor, result));
-        if (failure != null) {
-            if (failure instanceof Exception) {
-                throw (Exception) failure;
-            }
-            throw UncheckedException.throwAsUncheckedException(failure);
-        }
-    }
-
-    private void withProgressLogging(URI address, File destination, OperationDescriptor operationDescriptor) throws Throwable {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionInstaller.class);
-        progressLogger.setDescription("Download " + address);
-        progressLogger.started();
-        try {
-            withAsyncDownload(address, destination, operationDescriptor);
-        } finally {
-            progressLogger.completed();
-        }
-    }
-
-    private void withAsyncDownload(final URI address, final File destination, final OperationDescriptor operationDescriptor) throws Throwable {
-        currentListener.set(buildProgressListener);
-        try {
-            // Start the download in another thread and wait for the result
-            Thread thread = new Thread("Distribution download") {
-                @Override
-                public void run() {
-                    try {
-                        new Download(new Logger(false), new ForwardingDownloadProgressListener(operationDescriptor), APP_NAME, GradleVersion.current().getVersion()).download(address, destination);
-                    } catch (Throwable t) {
-                        synchronized (lock) {
-                            failure = t;
-                        }
-                    } finally {
-                        synchronized (lock) {
-                            completed = true;
-                            lock.notifyAll();
-                        }
-                    }
-                }
-            };
-            thread.setDaemon(true);
-            thread.start();
-            synchronized (lock) {
-                while (!completed && !cancelled) {
-                    try {
-                        lock.wait();
-                    } catch (InterruptedException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-                if (failure != null) {
-                    throw failure;
-                }
-                if (cancelled) {
-                    // When cancelled, try to stop the download thread but don't attempt to wait for it to complete
-                    // Could possibly loop here for a while trying to force the thread to exit
-                    thread.interrupt();
-                    throw new CancellationException();
-                }
-            }
-        } finally {
-            // The download thread may still be running. Ignore any further status events from it
-            currentListener.set(NO_OP);
         }
     }
 
@@ -192,10 +111,98 @@ public class DistributionInstaller {
     }
 
     private class AsyncDownload implements IDownload {
+        private final Map<String, String> systemProperties;
+
+        public AsyncDownload(Map<String, String> systemProperties) {
+            this.systemProperties = systemProperties;
+        }
+
         @Override
         public void download(URI address, File destination) throws Exception {
             synchronized (lock) {
                 doDownload(address, destination);
+            }
+        }
+
+        private void doDownload(URI address, File destination) throws Exception {
+            String displayName = "Download " + address;
+            OperationDescriptor descriptor = new ConsumerOperationDescriptor(displayName);
+            long startTime = clock.getCurrentTime();
+            buildProgressListener.onEvent(new DefaultStartEvent(startTime, displayName + " started", descriptor));
+
+            Throwable failure = null;
+            try {
+                withProgressLogging(address, destination, descriptor);
+            } catch (Throwable t) {
+                failure = t;
+            }
+
+            long endTime = clock.getCurrentTime();
+            OperationResult result = failure == null ? new DefaultOperationSuccessResult(startTime, endTime) : new DefaultOperationFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+            buildProgressListener.onEvent(new DefaultFinishEvent(endTime, displayName + " finished", descriptor, result));
+            if (failure != null) {
+                if (failure instanceof Exception) {
+                    throw (Exception) failure;
+                }
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
+        }
+
+        private void withProgressLogging(URI address, File destination, OperationDescriptor operationDescriptor) throws Throwable {
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionInstaller.class);
+            progressLogger.setDescription("Download " + address);
+            progressLogger.started();
+            try {
+                withAsyncDownload(address, destination, operationDescriptor);
+            } finally {
+                progressLogger.completed();
+            }
+        }
+
+        private void withAsyncDownload(final URI address, final File destination, final OperationDescriptor operationDescriptor) throws Throwable {
+            currentListener.set(buildProgressListener);
+            try {
+                // Start the download in another thread and wait for the result
+                Thread thread = new Thread("Distribution download") {
+                    @Override
+                    public void run() {
+                        try {
+                            new Download(new Logger(false), new ForwardingDownloadProgressListener(operationDescriptor), APP_NAME, GradleVersion.current().getVersion(), systemProperties).download(address, destination);
+                        } catch (Throwable t) {
+                            synchronized (lock) {
+                                failure = t;
+                            }
+                        } finally {
+                            synchronized (lock) {
+                                completed = true;
+                                lock.notifyAll();
+                            }
+                        }
+                    }
+                };
+                thread.setDaemon(true);
+                thread.start();
+                synchronized (lock) {
+                    while (!completed && !cancelled) {
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            throw UncheckedException.throwAsUncheckedException(e);
+                        }
+                    }
+                    if (failure != null) {
+                        throw failure;
+                    }
+                    if (cancelled) {
+                        // When cancelled, try to stop the download thread but don't attempt to wait for it to complete
+                        // Could possibly loop here for a while trying to force the thread to exit
+                        thread.interrupt();
+                        throw new CancellationException();
+                    }
+                }
+            } finally {
+                // The download thread may still be running. Ignore any further status events from it
+                currentListener.set(NO_OP);
             }
         }
     }
