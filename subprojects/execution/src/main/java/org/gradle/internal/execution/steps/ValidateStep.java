@@ -167,7 +167,7 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
     private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
         TypeValidationContext workValidationContext = validationContext.forIrrelevantType();
         validateImplementation(work, workValidationContext, beforeExecutionState.getImplementation(),
-            () -> "Implementation of " + work.getDisplayName() + " is unknown: " + beforeExecutionState.getImplementation().getUnknownReason()
+            () -> "Implementation of " + work.getDisplayName() + " " + beforeExecutionState.getImplementation().getUnknownReason()
         );
         beforeExecutionState.getAdditionalImplementations().forEach(additionalImplementation -> validateImplementation(work, workValidationContext, additionalImplementation,
             () -> "Additional action of " + work.getDisplayName() + " " + additionalImplementation.getUnknownReason()

@@ -34,6 +34,10 @@ trait ValidationMessageChecker {
         messageIndent = indent
     }
 
+    void expectUnindentedValidationMessage() {
+        messageIndent = ''
+    }
+
     String userguideLink(String id, String section) {
         documentationRegistry.getDocumentationFor(id, section)
     }
@@ -819,8 +823,18 @@ trait ValidationMessageChecker {
             this
         }
 
+        UnknownImplementation implementationOfTask(String taskPath) {
+            prefix = "Implementation of task '${taskPath}'"
+            this
+        }
+
         UnknownImplementation additionalTaskAction(String taskPath) {
             prefix = "Additional action of task '${taskPath}'"
+            this
+        }
+
+        UnknownImplementation unknownClassloader(String className) {
+            reason = "was loaded with an unknown classloader (class '${className}')."
             this
         }
 

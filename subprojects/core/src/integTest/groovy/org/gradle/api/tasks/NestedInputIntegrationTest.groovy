@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggingOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -778,32 +777,34 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         """
     }
 
-    def "task with nested bean loaded with custom classloader is not cached"() {
-        file("input.txt").text = "data"
-        buildFile << taskWithNestedBeanFromCustomClassLoader()
-
-        when:
-        withBuildCache().run "customTask", "--info", "-D${BuildCacheDebugLoggingOption.GRADLE_PROPERTY}=true"
-        then:
-        output.contains "Caching disabled for task ':customTask' because:\n" +
-            "  Non-cacheable inputs: property 'bean' was loaded with an unknown classloader (class 'NestedBean')."
-    }
-
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
     @ToBeFixedForConfigurationCache(because = "uses custom GroovyClassLoader")
-    def "task with nested bean loaded with custom classloader is never up-to-date"() {
+    def "task with nested bean loaded with custom classloader disables execution optimizations"() {
+        expectUnindentedValidationMessage()
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
 
         when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            nestedProperty('bean')
+            unknownClassloader('NestedBean')
+            includeLink()
+        })
         run "customTask"
         then:
         executedAndNotSkipped ":customTask"
 
         when:
-        run "customTask", "--info"
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            nestedProperty('bean')
+            unknownClassloader('NestedBean')
+            includeLink()
+        })
+        run "customTask"
         then:
         executedAndNotSkipped ":customTask"
-        output.contains "Implementation of input property 'bean' has changed for task ':customTask'"
     }
 
     def "changes to nested domain object container are tracked"() {

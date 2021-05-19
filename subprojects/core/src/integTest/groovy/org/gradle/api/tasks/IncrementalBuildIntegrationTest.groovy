@@ -1081,8 +1081,12 @@ task b(dependsOn: a)
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
     @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTask")
-    def "task loaded with custom classloader is never up-to-date"() {
+    def "task loaded with custom classloader disables execution optimizations"() {
+        expectUnindentedValidationMessage()
         file("input.txt").text = "data"
         buildFile << """
             def CustomTask = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
@@ -1105,19 +1109,42 @@ task b(dependsOn: a)
             }
         """
         when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+            includeLink()
+        })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+            includeLink()
+        })
         succeeds "customTask"
         then:
         noneSkipped()
 
         when:
-        succeeds "customTask", "--info"
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+            includeLink()
+        })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+            includeLink()
+        })
+        succeeds "customTask"
         then:
         noneSkipped()
-        output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
     @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTaskAction")
     def "task with custom action loaded with custom classloader is never up-to-date"() {
+        expectUnindentedValidationMessage()
         file("input.txt").text = "data"
         buildFile << """
             import org.gradle.api.*
@@ -1153,15 +1180,24 @@ task b(dependsOn: a)
             }
         """
         when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTaskAction')
+            includeLink()
+        })
         succeeds "customTask"
         then:
         noneSkipped()
 
         when:
-        succeeds "customTask", "--info"
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTaskAction')
+            includeLink()
+        })
+        succeeds "customTask"
         then:
         noneSkipped()
-        output.contains "Additional action for task ':customTask': was loaded with an unknown classloader (class 'CustomTaskAction')."
     }
 
     @Issue("gradle/gradle#1168")
