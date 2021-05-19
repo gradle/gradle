@@ -1152,6 +1152,15 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     assert !libs.findBundle('missing').present
                     assert other.findVersion('ver').present
                     assert !other.findVersion('missing').present
+
+                    assert libs.dependencyAliases == ['lib', 'lib2']
+                    assert libs.bundleAliases == ['all']
+                    assert libs.versionAliases == []
+
+                    assert other.dependencyAliases == ['lib']
+                    assert other.bundleAliases == []
+                    assert other.versionAliases == ['ver']
+
                 }
             }
         """
