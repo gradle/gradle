@@ -322,7 +322,7 @@ val Project.gradlePlugin
 
 private
 fun Project.declareScriptPlugins(scriptPlugins: List<PrecompiledScriptPlugin>) {
-    @Suppress("deprecation") // TODO (donat) this seems like an extension, how is it related to conventions?
+
     configure<GradlePluginDevelopmentExtension> {
         for (scriptPlugin in scriptPlugins) {
             plugins.create(scriptPlugin.id) {

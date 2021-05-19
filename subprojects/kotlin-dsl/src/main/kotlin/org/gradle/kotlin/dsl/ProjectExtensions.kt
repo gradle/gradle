@@ -81,13 +81,15 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
  * Executes the given configuration block against the [plugin convention]
  * [Convention.getPlugin] or extension of the specified type.
  *
+ * Note, that the concept of conventions is deprecated and scheduled for
+ * removal in Gradle 8.
+ *
  * @param T the plugin convention type.
  * @param configuration the configuration block.
  * @see [Convention.getPlugin]
  */
-@Deprecated("The concept of conventions is deprecated. Use extensions if possible.")
+@Suppress("deprecation")
 inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
-    @Suppress("deprecation")
     typeOf<T>().let { type ->
         convention.findByType(type)?.let(configuration)
             ?: convention.findPlugin<T>()?.let(configuration)
@@ -97,6 +99,9 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
 
 /**
  * Returns the plugin convention or extension of the specified type.
+ *
+ * Note, that the concept of conventions is deprecated and scheduled for
+ * removal in Gradle 8.
  */
 inline fun <reified T : Any> Project.the(): T =
     @Suppress("deprecation")
@@ -109,6 +114,9 @@ inline fun <reified T : Any> Project.the(): T =
 
 /**
  * Returns the plugin convention or extension of the specified type.
+ *
+ * Note, that the concept of conventions is deprecated and scheduled for
+ * removal in Gradle 8.
  */
 @Suppress("deprecation")
 fun <T : Any> Project.the(extensionType: KClass<T>): T =
