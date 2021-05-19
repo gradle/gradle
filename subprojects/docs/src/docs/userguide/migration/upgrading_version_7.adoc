@@ -389,3 +389,10 @@ Gradle 5.3 introduced the interface `TransformAction` for implementing artifact 
 Using the registration method link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(org.gradle.api.Action)[DependencyHandler.registerTransform(Action)] for `ArtifactTransform` has been deprecated.
 Migrate your artifact transform to use `TransformAction` and use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[DependencyHandler.registerTransform(Class, Action)] instead.
 See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
+
+[[java_lamdba_action]]
+=== Using Java lambdas as task actions
+
+When using a Java lambda to implement a task action, Gradle cannot track the implementation and the task will never be up-to-date of from the build cache.
+Since it is easy to add such a task action, using task actions implemented by Java lambdas is now deprecated.
+See <<validation_problems.adoc#implementation_unknown,Validation problems>> for more details how to fix the issue.
