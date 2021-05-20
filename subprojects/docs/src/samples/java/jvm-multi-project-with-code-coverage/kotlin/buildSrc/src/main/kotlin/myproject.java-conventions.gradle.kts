@@ -55,5 +55,9 @@ configurations.create("coverageDataElements") {
     outgoing.artifact(tasks.test.map { task ->
         task.extensions.getByType<JacocoTaskExtension>().destinationFile!!
     })
-}
 
+    // Request coverage data from all test tasks (note: this realizes all Test tasks)
+    // outgoing.artifact(tasks.withType<Test>().map { task ->
+    //     task.extensions.getByType<JacocoTaskExtension>().destinationFile!!
+    // })
+}

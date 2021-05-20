@@ -2064,6 +2064,11 @@
             <pgp value="7faa0f2206de228f0db01ad741321490758aad6f"/>
          </artifact>
       </component>
+      <component group="org.codehaus.groovy" name="groovy" version="3.0.8">
+         <artifact name="groovy-3.0.8.jar">
+            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
+         </artifact>
+      </component>
       <component group="org.codehaus.groovy.modules" name="http-builder-ng-core" version="0.11.1">
          <artifact name="http-builder-ng-core-0.11.1.jar">
             <pgp value="8756c4f765c9ac3cb6b85d62379ce192d401ab61"/>

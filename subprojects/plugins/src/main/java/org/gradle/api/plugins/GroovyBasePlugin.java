@@ -24,7 +24,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
@@ -33,6 +32,7 @@ import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.GroovyRuntime;
+import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
@@ -87,10 +87,12 @@ public class GroovyBasePlugin implements Plugin<Project> {
         project.getTasks().withType(GroovyCompile.class).configureEach(compile -> compile.getConventionMapping().map("groovyClasspath", () -> groovyRuntime.inferGroovyClasspath(compile.getClasspath())));
     }
 
+    @SuppressWarnings("deprecation")
     private void configureSourceSetDefaults() {
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(sourceSet -> {
-            final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
+            final org.gradle.api.internal.tasks.DefaultGroovySourceSet groovySourceSet = new org.gradle.api.internal.tasks.DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
             new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
+            sourceSet.getExtensions().add(GroovySourceDirectorySet.class, "groovy", groovySourceSet.getGroovy());
 
             final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
             groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");

@@ -22,9 +22,13 @@ import org.gradle.api.file.SourceDirectorySet;
 import javax.annotation.Nullable;
 
 /**
- * A {@code GroovySourceSetConvention} defines the properties and methods added to a {@link SourceSet} by the {@link
+ * A {@code GroovySourceSet} defines the properties and methods added to a {@link SourceSet} by the {@link
  * org.gradle.api.plugins.GroovyPlugin}.
+ *
+ * @deprecated Using convention to contribute to source sets is deprecated. You can configure the groovy sources via the {@code GroovySourceDirectorySet} extension (e.g.
+ * {@code sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class).setSrcDirs(...)}). This interface is scheduled for removal in Gradle 8.0.
  */
+@Deprecated
 public interface GroovySourceSet {
     /**
      * Returns the source to be compiled by the Groovy compiler for this source set. Any Java source present in this set

@@ -129,10 +129,6 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
                         }
                     }
                 }
-                Format.WriteReplace -> {
-                    readResolve(readNonNull())
-                        .also { putIdentity(id, it) }
-                }
                 Format.ReadResolve -> {
                     readResolve(decodeBean())
                         .also { putIdentity(id, it) }
@@ -203,13 +199,8 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
-                if (replacement === value) {
-                    writeEnum(Format.ReadResolve)
-                    encodeBean(value)
-                } else {
-                    writeEnum(Format.WriteReplace)
-                    write(replacement)
-                }
+                writeEnum(Format.ReadResolve)
+                encodeBean(replacement)
             }
         }
     }
@@ -226,7 +217,6 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     private
     enum class Format {
-        WriteReplace,
         ReadResolve,
         WriteObject,
         ReadObject,

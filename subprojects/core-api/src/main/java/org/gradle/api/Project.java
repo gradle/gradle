@@ -1245,7 +1245,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
      * @return The <code>Convention</code>. Never returns null.
+     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
+     * @see ExtensionAware#getExtensions()
      */
+    @Deprecated
     Convention getConvention();
 
     /**

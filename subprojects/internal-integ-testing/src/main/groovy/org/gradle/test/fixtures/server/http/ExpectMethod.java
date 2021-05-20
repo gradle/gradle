@@ -22,6 +22,7 @@ import com.sun.net.httpserver.HttpExchange;
 import org.gradle.test.fixtures.server.http.BlockingHttpServer.BlockingRequest;
 import org.gradle.test.fixtures.server.http.BlockingHttpServer.BuildableExpectedRequest;
 import org.hamcrest.Matcher;
+import org.hamcrest.StringDescription;
 
 import java.io.File;
 import java.io.IOException;
@@ -180,8 +181,14 @@ class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, Resourc
 
         @Override
         public void writeTo(int requestId, HttpExchange exchange) throws IOException {
-            if (!expectedUserAgent.matches(exchange.getRequestHeaders().getFirst("User-Agent"))) {
-                String message = "Unexpected user agent in request";
+            String actual = exchange.getRequestHeaders().getFirst("User-Agent");
+            if (!expectedUserAgent.matches(actual)) {
+                StringDescription description = new StringDescription();
+                description.appendText("Expected user agent ");
+                expectedUserAgent.describeTo(description);
+                description.appendText(" but ");
+                expectedUserAgent.describeMismatch(actual, description);
+                String message = description.toString();
                 byte[] bytes = message.getBytes(Charsets.UTF_8);
                 exchange.sendResponseHeaders(500, bytes.length);
                 exchange.getResponseBody().write(bytes);
