@@ -299,9 +299,8 @@ This gives you the following benefits:
 To understand how incremental compilation works, see <<java_plugin.adoc#sec:incremental_compile,Incremental Java compilation>> for a detailed overview.
 Note that there're several differences from Java incremental compilation:
 
-* Unlike Java, Groovy compiler doesn't inline constants, thus changes to constants won't trigger a full recompilation.
-* Groovy compiler doesn't keep `@Retention` in generated annotation class bytecode (https://issues.apache.org/jira/browse/GROOVY-9185[GROOVY-9185]), thus all annotations are `RUNTIME`.
-  This means that changes to source-retention annotations won't trigger a full recompilation.
+The Groovy compiler doesn't keep `@Retention` in generated annotation class bytecode (https://issues.apache.org/jira/browse/GROOVY-9185[GROOVY-9185]), thus all annotations are `RUNTIME`.
+This means that changes to source-retention annotations won't trigger a full recompilation.
 
 [[sec:incremental_groovy_compilation_known_issues]]
 === Known issues
