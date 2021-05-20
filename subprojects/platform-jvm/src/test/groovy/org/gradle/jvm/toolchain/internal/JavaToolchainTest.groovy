@@ -26,7 +26,7 @@ class JavaToolchainTest extends Specification {
     def "java version is reported as specified in metadata"() {
         given:
         def javaHome = new File("/jvm/$implementationVersion").absoluteFile
-        def metadata = JvmInstallationMetadata.from(javaHome, implementationVersion, "vendor", "implName")
+        def metadata = JvmInstallationMetadata.from(javaHome, implementationVersion, runtimeVersion, jvmVersion, "vendor", "implName")
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
 
@@ -37,13 +37,14 @@ class JavaToolchainTest extends Specification {
             getImplementation() >> JvmImplementation.VENDOR_SPECIFIC.toString()
         })
         then:
-        javaToolchain.javaVersion == implementationVersion
         javaToolchain.languageVersion.asInt() == languageVersion
+        javaToolchain.javaRuntimeVersion == runtimeVersion
+        javaToolchain.jvmVersion == jvmVersion
 
         where:
-        implementationVersion | languageVersion
-        "1.8.0_292"           | 8
-        "11.0.11"             | 11
-        "16"                  | 16
+        implementationVersion | runtimeVersion  | jvmVersion   | languageVersion
+        "1.8.0_292"           | "1.8.0_292-b10" | "25.292-b10" | 8
+        "11.0.11"             | "11.0.9+11"     | "11.0.9+11"  | 11
+        "16"                  | "16+36"         | "16+36"      | 16
     }
 }

@@ -40,14 +40,24 @@ public interface JavaInstallationMetadata {
     JavaLanguageVersion getLanguageVersion();
 
     /**
-     * Returns the full Java version of the JVM, as specified in its {@code java.version} property.
+     * Returns the full Java version (including the build number) of the JVM, as specified in its {@code java.runtime.version} property.
      *
      * @return the full Java version of the JVM
      * @since 7.1
      */
     @Internal
     @Incubating
-    String getJavaVersion();
+    String getJavaRuntimeVersion();
+
+    /**
+     * Returns the version of the JVM, as specified in its {@code java.vm.version} property.
+     *
+     * @return the version of the JVM
+     * @since 7.1
+     */
+    @Internal
+    @Incubating
+    String getJvmVersion();
 
     /**
      * Returns a human-readable string for the vendor of the JVM.
