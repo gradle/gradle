@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
   <webhooks enabled="true">
-    <webhook url="http://dev12.gradle.org:3003/teamcity_slacktemplate" enabled="true" template="slack.com">
+    <webhook url="https://gradle-bot.grdev.net/teamcity_slacktemplate" enabled="true" template="slack.com">
       <states>
         <state type="buildAddedToQueue" enabled="false" />
         <state type="buildRemovedFromQueue" enabled="true" />
@@ -22,7 +22,7 @@
         <build-type id="bt270451" />
       </build-types>
     </webhook>
-    <webhook url="http://dev12.gradle.org:3003/teamcity" enabled="true" template="legacy-tailored-json">
+    <webhook url="https://gradle-bot.grdev.net/teamcity" enabled="true" template="legacy-tailored-json">
       <states>
         <state type="buildAddedToQueue" enabled="false" />
         <state type="buildRemovedFromQueue" enabled="false" />

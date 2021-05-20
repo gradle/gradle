@@ -189,7 +189,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes[0].message == 'Failed to handle GET /b'
-        e.causes[0].cause.message == 'Unexpected user agent in request'
+        e.causes[0].cause.message == 'Expected user agent "some-agent" but was "not-correct"'
         e.causes.message == [
             'Failed to handle GET /b',
             'Failed to handle GET /c'

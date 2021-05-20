@@ -17,15 +17,12 @@
 package gradlebuild.buildutils.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.*
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.TaskAction
 import java.io.ByteArrayOutputStream
 import java.io.File
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import gradlebuild.basics.toPreTestedCommitBaseBranch
-import org.gradle.api.tasks.Internal
 
 
 /**
@@ -35,13 +32,10 @@ import org.gradle.api.tasks.Internal
 abstract class UpdateBranchStatus : DefaultTask() {
     @get: Internal
     abstract val gradleBuildBranch: Property<String>
-    private
-    val logicalBranch: Provider<String>
-        get() = gradleBuildBranch.map(::toPreTestedCommitBaseBranch)
 
     @TaskAction
     fun publishBranchStatus() {
-        when (logicalBranch.get()) {
+        when (gradleBuildBranch.get()) {
             "master" -> publishBranchStatus("master")
             "release" -> publishBranchStatus("release")
         }

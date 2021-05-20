@@ -33,6 +33,7 @@ import spock.lang.Specification
 
 class DistributionFactoryTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    final ConnectionParameters connectionParameters = DefaultConnectionParameters.builder().setProjectDir(tmpDir.testDirectory).build()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
     final BuildCancellationToken cancellationToken = Mock()
@@ -78,7 +79,7 @@ class DistributionFactoryTest extends Specification {
 
         expect:
         def dist = factory.getDistribution(tmpDir.testDirectory)
-        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken).asFiles as Set == [libA, libB] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken).asFiles as Set == [libA, libB] as Set
     }
 
     def failsWhenInstallationDirectoryDoesNotExist() {
@@ -86,7 +87,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken)
 
         then:
         IllegalArgumentException e = thrown()
@@ -98,7 +99,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken)
 
         then:
         IllegalArgumentException e = thrown()
@@ -110,7 +111,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken)
 
         then:
         IllegalArgumentException e = thrown()
@@ -134,11 +135,14 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         expect:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken).asFiles.name as Set == ['gradle-core-0.9.jar', 'gradle-launcher-0.9.jar'] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken).asFiles.name as Set == ['gradle-core-0.9.jar', 'gradle-launcher-0.9.jar'] as Set
     }
 
     def usesWrapperDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
-        File customUserHome = tmpDir.file('customUserHome')
+        ConnectionParameters customUserHome = DefaultConnectionParameters.builder().
+            setProjectDir(tmpDir.testDirectory)
+            .setGradleUserHomeDir(tmpDir.file('customUserHome'))
+            .build()
         def zipFile = createZip {
             lib {
                 file("gradle-core-0.9.jar")
@@ -155,7 +159,10 @@ class DistributionFactoryTest extends Specification {
     }
 
     def usesZipDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
-        File customUserHome = tmpDir.file('customUserHome')
+        ConnectionParameters customUserHome = DefaultConnectionParameters.builder().
+            setProjectDir(tmpDir.testDirectory)
+            .setGradleUserHomeDir(tmpDir.file('customUserHome'))
+            .build()
         def zipFile = createZip {
             lib {
                 file("gradle-core-0.9.jar")
@@ -171,7 +178,10 @@ class DistributionFactoryTest extends Specification {
     }
 
     def reportsZipDownload() {
-        File customUserHome = tmpDir.file('customUserHome')
+        ConnectionParameters customUserHome = DefaultConnectionParameters.builder().
+            setProjectDir(tmpDir.testDirectory)
+            .setGradleUserHomeDir(tmpDir.file('customUserHome'))
+            .build()
         def zipFile = createZip {
             lib {
                 file("gradle-launcher-0.9.jar")
@@ -206,7 +216,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken)
 
         then:
         IllegalArgumentException e = thrown()
@@ -218,7 +228,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken)
 
         then:
         1 * cancellationToken.addCallback(_)

@@ -508,8 +508,11 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * contribute properties and methods to this task.</p>
      *
      * @return The convention object. Never returns null.
+     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
+     * @see ExtensionAware#getExtensions()
      */
     @Internal
+    @Deprecated
     Convention getConvention();
 
     /**

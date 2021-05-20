@@ -30,6 +30,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class Download implements IDownload {
     public static final String UNKNOWN_VERSION = "0";
@@ -42,21 +45,31 @@ public class Download implements IDownload {
     private final String appName;
     private final String appVersion;
     private final DownloadProgressListener progressListener;
+    private final Map<String, String> systemProperties;
 
     public Download(Logger logger, String appName, String appVersion) {
-        this(logger, null, appName, appVersion);
+        this(logger, null, appName, appVersion, convertSystemProperties(System.getProperties()));
     }
 
-    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion) {
+    private static Map<String, String> convertSystemProperties(Properties properties) {
+        Map<String, String> result = new HashMap<String, String>();
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            result.put(entry.getKey().toString(), entry.getValue() == null ? null : entry.getValue().toString());
+        }
+        return result;
+    }
+
+    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties) {
         this.logger = logger;
         this.appName = appName;
         this.appVersion = appVersion;
+        this.systemProperties = systemProperties;
         this.progressListener = new DefaultDownloadProgressListener(logger, progressListener);
         configureProxyAuthentication();
     }
 
     private void configureProxyAuthentication() {
-        if (System.getProperty("http.proxyUser") != null || System.getProperty("https.proxyUser") != null) {
+        if (systemProperties.get("http.proxyUser") != null || systemProperties.get("https.proxyUser") != null) {
             // Only an authenticator for proxies needs to be set. Basic authentication is supported by directly setting the request header field.
             Authenticator.setDefault(new ProxyAuthenticator());
         }
@@ -92,7 +105,6 @@ public class Download implements IDownload {
             long progressCounter = 0;
             while ((numRead = in.read(buffer)) != -1) {
                 if (Thread.currentThread().isInterrupted()) {
-                    System.out.print("interrupted");
                     throw new IOException("Download was interrupted.");
                 }
 
@@ -173,8 +185,8 @@ public class Download implements IDownload {
     }
 
     private String calculateUserInfo(URI uri) {
-        String username = System.getProperty("gradle.wrapperUser");
-        String password = System.getProperty("gradle.wrapperPassword");
+        String username = systemProperties.get("gradle.wrapperUser");
+        String password = systemProperties.get("gradle.wrapperPassword");
         if (username != null && password != null) {
             return username + ':' + password;
         }
@@ -182,24 +194,27 @@ public class Download implements IDownload {
     }
 
     private String calculateUserAgent() {
-        String javaVendor = System.getProperty("java.vendor");
-        String javaVersion = System.getProperty("java.version");
-        String javaVendorVersion = System.getProperty("java.vm.version");
-        String osName = System.getProperty("os.name");
-        String osVersion = System.getProperty("os.version");
-        String osArch = System.getProperty("os.arch");
+        String javaVendor = systemProperties.get("java.vendor");
+        String javaVersion = systemProperties.get("java.version");
+        String javaVendorVersion = systemProperties.get("java.vm.version");
+        String osName = systemProperties.get("os.name");
+        String osVersion = systemProperties.get("os.version");
+        String osArch = systemProperties.get("os.arch");
         return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", appName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
     }
 
-    private static class ProxyAuthenticator extends Authenticator {
+    private class ProxyAuthenticator extends Authenticator {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
             if (getRequestorType() == RequestorType.PROXY) {
                 // Note: Do not use getRequestingProtocol() here, which is "http" even for HTTPS proxies.
                 String protocol = getRequestingURL().getProtocol();
-                String proxyUser = System.getProperty(protocol + ".proxyUser");
+                String proxyUser = systemProperties.get(protocol + ".proxyUser");
                 if (proxyUser != null) {
-                    String proxyPassword = System.getProperty(protocol + ".proxyPassword", "");
+                    String proxyPassword = systemProperties.get(protocol + ".proxyPassword");
+                    if (proxyPassword == null) {
+                        proxyPassword = "";
+                    }
                     return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
                 }
             }
