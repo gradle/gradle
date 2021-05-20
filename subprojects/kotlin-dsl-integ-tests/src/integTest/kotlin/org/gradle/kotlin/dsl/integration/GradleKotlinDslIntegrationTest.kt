@@ -21,7 +21,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
@@ -205,8 +205,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assumeNonEmbeddedGradleExecuter() // Class path isolation, tested here, is not correct in embedded mode
 
-        val differentKotlinVersion = "1.3.72"
-        val expectedKotlinCompilerVersionString = "1.3.72"
+        val differentKotlinVersion = "1.4.20"
+        val expectedKotlinCompilerVersionString = "1.4.20"
 
         assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
 
