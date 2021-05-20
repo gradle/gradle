@@ -69,6 +69,26 @@ ADD RELEASE FEATURES ABOVE
 
 ## New features and usability improvements
 
+### Improved incremental compilation for Java
+
+The Java incremental compiler received substantial improvements in this release:
+
+1. incremental compilation analysis is now stored in the build cache
+2. incremental compilation analysis is faster, uses less memory and disk space
+3. incremental compiler is now aware of constant consumers
+
+In previous Gradle releases, incremental compilation analysis was only stored locally.
+This means that if the compile task outputs were fetched from the build cache, then no incremental compilation was performed on the next build: the initial build after a fetch from the cache was fast, but the next one was always a full recompilation.
+In Gradle 7.1 this is no longer the case, as the result of the analysis is now stored in the build cache, meaning that the first compilation after fetching from the build cache will be incremental.
+
+The next improvement is about performance: incremental compilation analysis adds overhead to compilation, because Gradle needs to extract symbols from class files, analyze a transitive graph of dependencies to determine the consumers of a particular symbol, etc.
+In Gradle 7.1, we have significantly reduced this overhead, as well as reduced the cost of storage of the analysis.
+On the `gradle` project itself, we were able to make incremental compilation up to twice as fast!
+
+Last, because of the way the Java compiler works, previous Gradle releases were forced to perform a full recompilation as soon as _any_ constant was changed in an upstream dependency.
+In Gradle 7.1, we introduced a compiler plugin which allows us to perform constant usage tracking, and only recompile the consumers of constants when those change.
+This should significantly speedup incremental builds for projects using lots of constants, which is often the case for generated code like template engines.
+
 ### Better modeling of command line arguments for compiler daemons
 
 When declaring arguments for a compiler daemon using [jvmArgs](javadoc/org/gradle/api/tasks/compile/BaseForkOptions.html#getJvmArgs--), these arguments are always treated as `String` inputs to the compile task.
