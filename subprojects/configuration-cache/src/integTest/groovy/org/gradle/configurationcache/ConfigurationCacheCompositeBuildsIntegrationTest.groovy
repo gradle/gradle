@@ -39,8 +39,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         then:
         postBuildOutputContains 'Build scan written to'
         configurationCache.assertStateStored()
-        def buildScanOperationsOnStore = buildScanOperationsOf(configurationCache.operations)
-        !buildScanOperationsOnStore.isEmpty()
 
         when:
         inDirectory 'app'
@@ -49,20 +47,45 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         then:
         postBuildOutputContains 'Build scan written to'
         configurationCache.assertStateLoaded()
+    }
+
+    def "hierarchy of build scan relevant build operations is preserved"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        withLibBuild()
+        withAppBuild()
+
+        when:
+        inDirectory 'app'
+        configurationCacheRun 'assemble'
+
+        then:
+        configurationCache.assertStateStored()
+        def buildScanOperationsOnStore = buildScanOperationsOf(configurationCache.operations)
+        !buildScanOperationsOnStore.isEmpty()
+
+        when:
+        inDirectory 'app'
+        configurationCacheRun 'assemble'
+
+        then:
+        configurationCache.assertStateLoaded()
         def buildScanOperationsOnLoad = buildScanOperationsOf(configurationCache.operations)
         buildScanOperationsOnLoad == buildScanOperationsOnStore
     }
 
     private static List<?> buildScanOperationsOf(BuildOperationTreeQueries operations) {
         scanRelevantOperationsIn(operations).collect {
-            parentNameOf(it, operations) + ' / ' + it.displayName
+            (parentsOf(it, operations) + it)
+                .collect { it.displayName }
+                .join ' / '
         }
     }
 
-    private static String parentNameOf(BuildOperationRecord record, BuildOperationTreeQueries operations) {
-        operations.parentsOf(record).last().displayName.with {
-            // normalize root build operation name
-            it == 'Load configuration cache state' ? 'Run build' : it
+    private static List<BuildOperationRecord> parentsOf(BuildOperationRecord record, BuildOperationTreeQueries operations) {
+        operations.parentsOf(record).findAll {
+            // remove intermediate configuration cache state operation from the tree
+            it.displayName != 'Load configuration cache state'
         }
     }
 

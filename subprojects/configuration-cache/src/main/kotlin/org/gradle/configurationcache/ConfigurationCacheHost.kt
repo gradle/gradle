@@ -24,17 +24,12 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.configuration.project.LifecycleProjectEvaluator.configureProjectBuildOperationBuilderFor
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer
-import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
-import org.gradle.initialization.NotifyingBuildLoader
-import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildLifecycleControllerFactory
@@ -44,10 +39,6 @@ import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.file.PathToFileResolver
-import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationDescriptor
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
@@ -116,7 +107,6 @@ class ConfigurationCacheHost internal constructor(
             val projectRegistry = service<ProjectStateRegistry>()
             projectRegistry.registerProjects(service<BuildState>())
             createRootProject()
-            fireBuildOperationsRequiredByBuildScans()
         }
 
         private
@@ -128,25 +118,6 @@ class ConfigurationCacheHost internal constructor(
 
         private
         fun rootProjectDescriptor() = projectDescriptorRegistry.rootProject!!
-
-        private
-        fun fireBuildOperationsRequiredByBuildScans() {
-            // Fire build operation required by build scans to determine the root path
-            val buildOperationExecutor = service<BuildOperationExecutor>()
-            buildOperationExecutor.run(object : RunnableBuildOperation {
-                override fun run(context: BuildOperationContext) = Unit
-                override fun description(): BuildOperationDescriptor.Builder =
-                    configureProjectBuildOperationBuilderFor(gradle.rootProject)
-            })
-
-            // Fire build operation required by build scans to determine the build's project structure (and build load time)
-            NotifyingBuildLoader(
-                { _, _ ->
-
-                },
-                buildOperationExecutor
-            ).load(gradle.settings, gradle)
-        }
 
         private
         fun createProject(descriptor: DefaultProjectDescriptor): ProjectInternal {
@@ -167,16 +138,6 @@ class ConfigurationCacheHost internal constructor(
             gradle.owner.getProject(Path.path(path)).mutableModel
 
         override fun scheduleNodes(nodes: Collection<Node>) {
-            // Fire build operation required by build scan to determine when task execution starts
-            // This might be better done as a new build operation type
-            BuildOperationFiringTaskExecutionPreparer(
-                { populateTaskGraphWith(nodes) },
-                service<BuildOperationExecutor>()
-            ).prepareForTaskExecution(gradle)
-        }
-
-        private
-        fun populateTaskGraphWith(nodes: Collection<Node>) {
             gradle.taskGraph.run {
                 addNodes(nodes)
                 populate()
