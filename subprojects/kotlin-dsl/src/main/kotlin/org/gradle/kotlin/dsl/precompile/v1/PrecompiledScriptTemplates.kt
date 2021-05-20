@@ -92,7 +92,7 @@ open class PrecompiledSettingsScript(
 ) : DefaultKotlinScript(SettingsScriptHost(target)), PluginAware by target {
 
     /**
-     * Configures the plugin dependencies for this project.
+     * Configures the plugin dependencies for this settings script.
      *
      * @see [PluginDependenciesSpec]
      */
