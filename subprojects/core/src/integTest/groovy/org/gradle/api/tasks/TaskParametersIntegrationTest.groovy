@@ -802,7 +802,7 @@ task someTask(type: SomeTask) {
         expect:
         fails('myTask')
         failureDescriptionContains(cannotCreateRootOfFileTree {
-            type('org.gradle.api.DefaultTask').property('output')
+            property('output')
                 .dir(outputFile)
                 .includeLink()
         })
