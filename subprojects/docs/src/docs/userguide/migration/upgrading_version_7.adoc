@@ -380,3 +380,12 @@ For example, here's how you configure the groovy sources from a plugin:
 GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
 groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
 ```
+
+[[old_artifact_transforms_api]]
+==== Registering artifact transforms extending `ArtifactTransform`
+
+When Gradle first introduced artifact transforms, it used the base class `ArtifactTransform` for implementing them.
+Gradle 5.3 introduced the interface `TransformAction` for implementing artifact transforms, replacing the previous class `ArtifactTransform` and addressing various shortcomings.
+Using the registration method link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(org.gradle.api.Action)[DependencyHandler.registerTransform(Action)] for `ArtifactTransform` has been deprecated.
+Migrate your artifact transform to use `TransformAction` and use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[DependencyHandler.registerTransform(Class, Action)] instead.
+See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
