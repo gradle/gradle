@@ -17,17 +17,25 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.BuildResult
-import spock.lang.Unroll
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
+import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
+    public static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
+    private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
+    private static final String ARTIFACT_TRANSFORM_DEPRECATION_WARNING =
+        "Registering artifact transforms extending ArtifactTransform has been deprecated. " +
+            "This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead. " +
+            "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html for more details."
+
 
     // TODO:configuration-cache remove once fixed upstream
     @Override
@@ -50,6 +58,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",
                 "https://youtrack.jetbrains.com/issue/KT-46019"
             )
+            .expectLegacyDeprecationWarningIf(VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
             .build()
 
         then:
@@ -57,7 +66,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         assert result.output.contains("Hello world!")
 
         when:
-        result = build(workers, 'run')
+        result = runner(workers, 'run')
+            .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+            .build()
+
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
@@ -129,7 +141,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         file("src/main/java/Java.java") << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
 
         when:
-        def result = build(false, 'compileJava')
+        def result = runner(false, 'compileJava')
+            .expectLegacyDeprecationWarningIf(VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+            .build()
+
 
         then:
         result.task(':compileJava').outcome == SUCCESS
@@ -160,13 +175,17 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
 
         when:
-        def result = build(false, 'build')
+        def result = runner(false, 'build')
+            .expectLegacyDeprecationWarningIf(VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+            .build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = build(false, 'build')
+        result = runner(false, 'build')
+            .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+            .build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
