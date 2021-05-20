@@ -13,7 +13,6 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -553,7 +552,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         StringGroovyMethods.count(this, text)
 
     // https://github.com/gradle/gradle/issues/15416
-    @Ignore // not yet implemented
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can use plugins block in precompiled settings plugin`() {
