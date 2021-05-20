@@ -61,8 +61,7 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 ## Default JaCoCo version upgraded
-[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to the most recent [JaCoCo version 0.8.7](http://www.jacoco.org/jacoco/trunk/doc/changes.html) which includes support for
-Java 15 and 16 as well as experimental support for Java 17. 
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to the most recent [JaCoCo version 0.8.7](http://www.jacoco.org/jacoco/trunk/doc/changes.html) which includes experimental support for Java 17. 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
