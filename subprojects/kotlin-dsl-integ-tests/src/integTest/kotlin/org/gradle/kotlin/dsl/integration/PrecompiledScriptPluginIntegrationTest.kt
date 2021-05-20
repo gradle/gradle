@@ -13,6 +13,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 
 
@@ -550,4 +551,66 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     private
     fun CharSequence.count(text: CharSequence): Int =
         StringGroovyMethods.count(this, text)
+
+    // https://github.com/gradle/gradle/issues/15416
+    @Ignore // not yet implemented
+    @Test
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    fun `can use plugins block in precompiled settings plugin`() {
+        withFolders {
+            "build-logic" {
+                withFile(
+                    "settings.gradle.kts",
+                    """
+                        $defaultSettingsScript
+                    """
+                )
+                withFile(
+                    "build.gradle.kts",
+                    """
+                        plugins {
+                            `kotlin-dsl`
+                        }
+                        $repositoriesBlock
+                    """
+                )
+                withFile(
+                    "src/main/kotlin/base-plugin.settings.gradle.kts",
+                    """
+                        println("base-plugin settings plugin applied")
+                    """
+                )
+                withFile(
+                    "src/main/kotlin/my-plugin.settings.gradle.kts",
+                    """
+                        plugins {
+                            id("base-plugin")
+                        }
+                        println("my-plugin settings plugin applied")
+                    """
+                )
+            }
+        }
+        withSettings(
+            """
+                pluginManagement {
+                    includeBuild("build-logic")
+                }
+                plugins {
+                    id("my-plugin")
+                }
+            """
+        )
+
+        build("help").run {
+            assertThat(
+                output,
+                containsString("base-plugin settings plugin applied")
+            )
+            assertThat(
+                output,
+                containsString("my-plugin settings plugin applied")
+            )
+        }
+    }
 }
