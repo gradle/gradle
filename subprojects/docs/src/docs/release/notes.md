@@ -75,7 +75,7 @@ The Java incremental compiler received substantial improvements in this release:
 
 1. incremental compilation analysis is now stored in the build cache
 2. incremental compilation analysis is faster, uses less memory and disk space
-3. incremental compiler is now aware of constant consumers
+3. change of a constant in an upstream dependency doesn't trigger a full recompilation anymore
 
 In previous Gradle releases, incremental compilation analysis was only stored locally.
 This means that if the compile task outputs were fetched from the build cache, then no incremental compilation was performed on the next build: the initial build after a fetch from the cache was fast, but the next one was always a full recompilation.
