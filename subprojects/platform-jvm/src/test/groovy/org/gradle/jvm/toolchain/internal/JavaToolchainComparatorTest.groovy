@@ -16,9 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.util.internal.VersionNumber
+import spock.lang.Issue
 import spock.lang.Specification
 
 class JavaToolchainComparatorTest extends Specification {
@@ -91,14 +93,31 @@ class JavaToolchainComparatorTest extends Specification {
         toolchains == [jdk, jre]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17195")
+    def "compares installation paths as a last resort"() {
+        given:
+        def prevJdk = mockToolchain("8.0.1", true, JvmVendor.KnownJvmVendor.ADOPTOPENJDK, "/jdks/openjdk-8.0.1")
+        def nextJdk = mockToolchain("8.0.1", true, JvmVendor.KnownJvmVendor.ADOPTOPENJDK, "/jdks/openjdk-8.0.1.1")
+        def toolchains = [prevJdk, nextJdk]
+
+        when:
+        toolchains.sort(new JavaToolchainComparator())
+
+        then:
+        toolchains == [nextJdk, prevJdk]
+    }
+
+
     void assertOrder(List<JavaToolchain> list, String[] expectedOrder) {
         assert list*.toolVersion.toString() == expectedOrder.toString()
     }
 
-    JavaToolchain mockToolchain(String implementationVersion, boolean isJdk = false, JvmVendor.KnownJvmVendor jvmVendor = JvmVendor.KnownJvmVendor.ADOPTOPENJDK) {
+    JavaToolchain mockToolchain(String implementationVersion, boolean isJdk = false, JvmVendor.KnownJvmVendor jvmVendor = JvmVendor.KnownJvmVendor.ADOPTOPENJDK, String installPath = null) {
+        def javaHome = new File(installPath != null ? installPath : "/jdks/" + implementationVersion).absoluteFile
         Mock(JavaToolchain) {
             getToolVersion() >> VersionNumber.parse(implementationVersion)
             isJdk() >> isJdk
+            getInstallationPath() >> TestFiles.fileFactory().dir(javaHome)
             getMetadata() >> Mock(JvmInstallationMetadata) {
                 getVendor() >> JvmVendor.fromString(jvmVendor.name())
             }
