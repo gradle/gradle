@@ -15,6 +15,7 @@ We would like to thank the following community members for their contributions t
 [Björn Kautler](https://github.com/Vampire),
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Kejn](https://github.com/kejn),
+[xhudik](https://github.com/xhudik),
 [Anuraag Agrawal](https://github.com/anuraaga),
 [Florian Schmitt](https://github.com/florianschmitt),
 [Evgeny Mandrikov](https://github.com/Godin).
