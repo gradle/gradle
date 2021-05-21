@@ -306,7 +306,7 @@ task someTask(type: SomeTask) {
         skipped(":someTask")
     }
 
-    def "can use custom type with non-deterministic serialized form"() {
+    def "using a custom type with non-deterministic serialized form is deprecated"() {
         file("buildSrc/src/main/java/CustomType.java") << customSerializableTypeWithNonDeterministicSerializedForm()
         buildFile << """
 task someTask {
@@ -329,6 +329,7 @@ task someTask {
         // Change to "equal" value
         when:
         buildFile.replace('new CustomType("value1")', 'new CustomType("value1 ignore me")')
+        executer.expectDeprecationWarning("Using objects as inputs which have a different serialized form but are equals has been deprecated. This is scheduled to be removed in Gradle 8.0. Type 'CustomType' has a custom equals implementation. Use @Nested instead. See https://docs.gradle.org/7.2-20210530220000+0000/userguide/upgrading_7.html#equals_up_to_date_deprecation for more details.")
         run "someTask"
 
         then:
