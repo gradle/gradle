@@ -40,7 +40,9 @@ public class ProjectReportsPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         @SuppressWarnings("deprecation")
         final ProjectReportsPluginConvention convention = new org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention(project);
-        project.getConvention().getPlugins().put("projectReports", convention);
+        @SuppressWarnings("deprecation")
+        Convention projectConvention = project.getConvention();
+        projectConvention.getPlugins().put("projectReports", convention);
 
         project.getTasks().register(TASK_REPORT, TaskReportTask.class, taskReportTask -> {
             taskReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> convention.getProjectReportDir())));

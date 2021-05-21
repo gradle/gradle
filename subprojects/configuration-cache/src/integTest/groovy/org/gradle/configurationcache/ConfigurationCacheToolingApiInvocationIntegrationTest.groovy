@@ -21,7 +21,9 @@ import org.gradle.configurationcache.fixtures.SomeToolingModelBuildAction
 import org.gradle.configurationcache.fixtures.ToolingApiBackedGradleExecuter
 import org.gradle.configurationcache.fixtures.ToolingApiSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle-private/issues/3395")
 class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ToolingApiSpec {
     @Override
     GradleExecuter createExecuter() {

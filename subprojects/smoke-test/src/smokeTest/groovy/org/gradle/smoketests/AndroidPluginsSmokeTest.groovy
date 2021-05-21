@@ -379,7 +379,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             }
         """
         validatePlugins {
-            boolean failsValidation = version.startsWith('4.2.0')
+            boolean failsValidation = version.startsWith('4.2.')
             if (failsValidation) {
                 def pluginSuffix = testedPluginId.substring('com.android.'.length())
                 def failingPlugins = ['com.android.internal.version-check', testedPluginId, 'com.android.internal.' + pluginSuffix]

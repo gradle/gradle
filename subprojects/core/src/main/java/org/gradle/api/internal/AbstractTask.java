@@ -512,6 +512,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
+    @Deprecated
     public Convention getConvention() {
         assertDynamicObject();
         return extensibleDynamicObject.getConvention();

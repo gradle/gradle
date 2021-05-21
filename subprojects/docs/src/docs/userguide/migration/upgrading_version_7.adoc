@@ -36,7 +36,106 @@ Some plugins will break with this new version of Gradle, for example because the
 [[changes_7.1]]
 == Upgrading from 7.0 and earlier
 
+=== Potential breaking changes
+
+==== Updates to default tool integration versions
+
+- JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.7].
+
+==== The `org.gradle.util` package is now a public API
+
+Officially, the `org.gradle.util` package is not part of the public API.
+But, because this package name doesn't contain the word `internal`, many Gradle plugins already consider as one.
+Gradle 7.1 addresses the situation and marks the package as public.
+The classes that were unintentionally exposed are either deprecated or removed, depending on their external usage.
+
+The following classes are now officially recognized as public API:
+- `GradleVersion`
+- `Path`
+- `Configurable`
+
+The following classes have known usages in external plugins and are now deprecated and set for removal in Gradle 8.0:
+
+- `VersionNumber`
+- `TextUtil`
+- `WrapUtil`
+- `RelativePathUtil`
+- `DistributionLocator`
+- `SingleMessageLogger`
+
+The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
+
+- `Resources`
+- `RedirectStdOutAndErr`
+- `Swapper`
+- `StdInSwapper`
+- `IncubationLogger`
+- `RedirectStdIn`
+- `MultithreadedTestRule`
+- `DisconnectableInputStream`
+- `BulkReadInputStream`
+- `MockExecutor`
+- `FailsWithMessage`
+- `FailsWithMessageExtension`
+- `TreeVisitor`
+- `AntUtil`
+- `JarUtil`
+
+The last set of classes have no external or internal usages and therefore were deleted:
+
+- `DiffUtil`
+- `NoopChangeListener`
+- `EnumWithClassBody`
+- `AlwaysTrue`
+- `ReflectionEqualsMatcher`
+- `DynamicDelegate`
+- `IncubationLogger`
+- `NoOpChangeListener`
+- `DeferredUtil`
+- `ChangeListener`
+
+==== The return type of source set extensions have changed
+
+The following source sets are contributed via an extension with a custom type:
+
+- `groovy`: link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceDirectorySet.html[GroovySourceDirectorySet]
+- `antlr`: link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+- `scala`: link:{groovyDslPath}/org.gradle.api.tasks.ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
+
+The 'idiomatic' DSL declaration is backward compatible:
+
+```groovy
+sourceSets {
+    main {
+        groovy {
+            // ...
+        }
+    }
+}
+```
+
+However, the return type of the groovy block has changed to the extension type. This means that the following snippet no longer works in Gradle 7.1:
+
+```groovy
+ sourceSets {
+     main {
+         GroovySourceSet sourceSet = groovy {
+             // ...
+         }
+     }
+ }
+```
+
+
 === Deprecations
+
+[[convention_mapping]]
+==== Using convention mapping with properties with type Provider is deprecated
+Convention mapping is an internal feature that is been replaced by the <<lazy_configuration#lazy_configuration,Provider API>>.
+When mixing convention mapping with the Provider API, unexpected behavior can occur.
+Gradle emits a deprecation warning when a property in a task, extension or other domain object uses convention mapping with the Provider API.
+
+To fix this, the plugin that configures the convention mapping for the task, extension or domain object needs to be changed to use the Provider API only.
 
 [[jacoco_merge]]
 ==== JacocoMerge task type is deprecated
@@ -94,7 +193,7 @@ if (System.getProperty("profile") == "custom") {
 You can pass the `profile` system property to Gradle using `gradle -Dprofile=custom` to execute the code in the `custom` profile branch.
 
 [[dependency_substitutions_with]]
-=== Substitution.with replaced with Substitution.using
+==== Substitution.with replaced with Substitution.using
 
 <<resolution_rules#sec:dependency_substitution_rules, Dependency substitutions>> using `with` method have been deprecated
 and are replaced with `using` method that also allows chaining.
@@ -102,60 +201,6 @@ For example, a dependency substitution rule `substitute(project(':a')).with(proj
 `substitute(project(':a')).using(project(':b'))`.
 With chaining you can, for example, add a reason for a substitution like this:
 `substitute(project(':a')).using(project(':b')).because("a reason")`.
-
-=== Potential breaking changes
-
-==== The `org.gradle.util` package is now a public API
-
-Officially, the `org.gradle.util` package is not part of the public API.
-But, because this package name doesn't contain the word `internal`, many Gradle plugins already consider as one.
-Gradle 7.1 addresses the situation and marks the package as public.
-The classes that were unintentionally exposed are either deprecated or removed, depending on their external usage.
-
-The following classes are now officially recognized as public API:
-- `GradleVersion`
-- `Path`
-- `Configurable`
-
-The following classes have known usages in external plugins and are now deprecated and set for removal in Gradle 8.0:
-
-- `VersionNumber`
-- `TextUtil`
-- `WrapUtil`
-- `RelativePathUtil`
-- `DistributionLocator`
-- `SingleMessageLogger`
-
-The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
-
-- `Resources`
-- `RedirectStdOutAndErr`
-- `Swapper`
-- `StdInSwapper`
-- `IncubationLogger`
-- `RedirectStdIn`
-- `MultithreadedTestRule`
-- `DisconnectableInputStream`
-- `BulkReadInputStream`
-- `MockExecutor`
-- `FailsWithMessage`
-- `FailsWithMessageExtension`
-- `TreeVisitor`
-- `AntUtil`
-- `JarUtil`
-
-The last set of classes have no external or internal usages and therefore were deleted:
-
-- `DiffUtil`
-- `NoopChangeListener`
-- `EnumWithClassBody`
-- `AlwaysTrue`
-- `ReflectionEqualsMatcher`
-- `DynamicDelegate`
-- `IncubationLogger`
-- `NoOpChangeListener`
-- `DeferredUtil`
-- `ChangeListener`
 
 [[java_exec_properties]]
 ==== Properties deprecated in JavaExec task
@@ -165,7 +210,7 @@ in link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec] task have b
 Use the link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:mainClass[mainClass] property instead.
 
 [[compile_task_wiring]]
-=== Deprecated properties in `compile` task
+==== Deprecated properties in `compile` task
 
 * The link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html#org.gradle.api.tasks.compile.JavaCompile:destinationDir[JavaCompile.destinationDir]
 property has been deprecated.
@@ -181,7 +226,7 @@ Use the link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html#org.gr
 property instead.
 
 [[deprecated_flat_project_structure]]
-=== Deprecated flat project structure
+==== Deprecated flat project structure
 
 There are several disadvantages of using a flat project structure. One example being that Gradle link:https://github.com/gradle/gradle/issues/13891[file-system watching cannot be efficiently used].
 Because of this, Gradle 7.1 deprecates all layouts that define subprojects outside of a root project directory.
@@ -190,15 +235,28 @@ To make this change more visible for plugin author, Gradle 7.1 also deprecates t
 link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeFlat(java.lang.String&#91;&#93;)[Settings.includeFlat()] method.
 
 [[upload_task_deprecation]]
-=== Deprecated `Upload` task
+==== Deprecated `Upload` task
 
 Gradle used to have two ways of publishing artifacts.
 Now, the situation has been cleared and all build should use the `maven-publish` plugin.
 The last remaining artifact of the old way of publishing is the `Upload` task that has been deprecated and scheduled for removal in Gradle 8.0.
 Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,`maven-publish` plugin>>.
 
+[[all_convention_deprecation]]
+The concept of conventions is outdated and superseded by extensions. To reflect this in the Gradle API, the following elements are now deprecated:
+
+- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[Project.html#getConvention()]
+- link:{javadocPath}/org/gradle/api/internal/HasConvention.html[HasConvention]
+
+The internal usages of conventions have been also cleaned up (see the deprecated items below).
+
+Plugin authors migrate to extensions if they replicate the changes we've done internally. Here are some examples:
+
+- Migrate plugin configuration: link:https://github.com/gradle/gradle/pull/16900/files#diff-ac53d4f39698b83e30b93855fe6a725ffd96d5ed9df156d4f9dfd32bdc7946e7[gradle/gradle#16900].
+- Migrate custom source sets: link:https://github.com/gradle/gradle/pull/17149/files#diff-e159587e2f9aec398fa795b1d8b344f1593cb631e15e04893d31cdc9465f9781[gradle/gradle#17149].
+
 [[base_convention_deprecation]]
-=== Deprecated `base` plugin conventions
+==== Deprecated `base` plugin conventions
 
 The convention properties contributed by the `base` plugin have been deprecated and scheduled for removal in Gradle 8.0.
 The conventions are replaced by the the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
@@ -215,19 +273,19 @@ base {
 ```
 
 [[application_convention_deprecation]]
-=== Deprecated `ApplicationPluginConvention`
+==== Deprecated `ApplicationPluginConvention`
 
 link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention] was already listed as deprecated in the <<application_plugin.adoc#application_convention_properties, documentation>.
 Now, it is officially annotated as deprecated and scheduled for removal in Gradle 8.0.
 
 [[java_convention_deprecation]]
-=== Deprecated `java` plugin conventions
+==== Deprecated `java` plugin conventions
 
 The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
 They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can we configured in the `java {}` block.
 
 [[plugin_configuration_consumption]]
-=== Deprecated consumption of internal plugin configurations
+==== Deprecated consumption of internal plugin configurations
 
 Some of the core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
 published or consumed by another subproject directly. Gradle did not explicitly prohobit this.
@@ -288,17 +346,37 @@ configurations {
 }
 ```
 
-[[ear_convention_deprecation]]
-=== Deprecated `project-report` plugin conventions
+[[project_report_convention_deprecation]]
+==== Deprecated `project-report` plugin conventions
 
 link:{groovyDslPath}/org.gradle.api.plugins.ProjectReportsPluginConvention.html[ProjectReportsPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0. Clients should configure the project report tasks directly. Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(...).configureEach(...)] can be used to configure each task of the same type (`HtmlDependencyReportTask` for example).
 
 [[war_convention_deprecation]]
-=== Deprecated `war` plugin conventions
+==== Deprecated `war` plugin conventions
 
 link:{javadocPath}/org/gradle/api/plugins/WarPluginConvention.html[WarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0. Clients should configure the `war` task  directly. Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
 
 [[ear_convention_deprecation]]
-=== Deprecated `ear` plugin conventions
+==== Deprecated `ear` plugin conventions
 
 link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0. Clients should configure the `ear` task directly. Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `Ear`.
+
+[[custom_source_set_deprecation]]
+==== Deprecated custom source set interfaces
+The following source set interfaces are now deprecated and scheduled for removal in Gradle 8.0:
+
+- link:{javadocPath}/org/gradle/api/tasks/GroovySourceSet.html[GroovySourceSet]
+- link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+- link:{javadocPath}/org/gradle/api/tasks/ScalaSourceSet.html[ScalaSourceSet]
+
+Clients should configure the sources with their plugin-specific configuration:
+- `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
+- `antlr`: link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+- `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
+
+For example, here's how you configure the groovy sources from a plugin:
+
+```java
+GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
+groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
+```

@@ -21,9 +21,8 @@ import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.GroovyBasePlugin;
-import org.gradle.api.tasks.GroovySourceSet;
+import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -81,7 +80,7 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
             task.getPrecompiledGroovyScriptsOutputDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-classes"));
 
             SourceDirectorySet javaSource = pluginSourceSet.getJava();
-            SourceDirectorySet groovySource = new DslObject(pluginSourceSet).getConvention().getPlugin(GroovySourceSet.class).getGroovy();
+            SourceDirectorySet groovySource = pluginSourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
             task.getClasspath().from(pluginSourceSet.getCompileClasspath(), javaSource.getClassesDirectory(), groovySource.getClassesDirectory());
         });
 

@@ -273,7 +273,10 @@ fun removeTeamcityTempProperty() {
     }
 }
 
-fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name)
+fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
+
+val isExperimentalTestFilteringEnabled
+    get() = System.getProperty("gradle.internal.testselection.enabled").toBoolean()
 
 val Project.maxParallelForks: Int
     get() = if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") {

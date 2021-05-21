@@ -17,7 +17,6 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -39,7 +38,8 @@ import java.util.Map;
  *
  * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
  */
-public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject implements HasConvention {
+@SuppressWarnings("deprecation")
+public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject implements org.gradle.api.internal.HasConvention {
 
     public enum Location {
         BeforeConvention, AfterConvention
@@ -139,6 +139,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     @Override
+    @Deprecated
     public Convention getConvention() {
         return convention;
     }

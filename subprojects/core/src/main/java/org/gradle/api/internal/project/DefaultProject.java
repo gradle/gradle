@@ -542,6 +542,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.configurationContainer = configurationContainer;
     }
 
+    @Deprecated
     @Override
     public Convention getConvention() {
         // TODO (donat) deprecate after all internal usages have been eliminated
