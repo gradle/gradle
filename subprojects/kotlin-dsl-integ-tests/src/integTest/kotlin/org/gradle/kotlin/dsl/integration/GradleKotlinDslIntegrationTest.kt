@@ -21,7 +21,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought

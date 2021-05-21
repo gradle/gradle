@@ -1,7 +1,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
