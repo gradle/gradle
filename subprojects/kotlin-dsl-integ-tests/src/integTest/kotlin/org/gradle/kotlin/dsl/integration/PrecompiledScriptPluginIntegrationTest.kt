@@ -550,4 +550,183 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     private
     fun CharSequence.count(text: CharSequence): Int =
         StringGroovyMethods.count(this, text)
+
+    // https://github.com/gradle/gradle/issues/15416
+    @Test
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    fun `can use an empty plugins block in precompiled settings plugin`() {
+        withFolders {
+            "build-logic" {
+                withFile("settings.gradle.kts", defaultSettingsScript)
+                withFile(
+                    "build.gradle.kts",
+                    """
+                        plugins {
+                            `kotlin-dsl`
+                        }
+                        $repositoriesBlock
+                    """
+                )
+                withFile(
+                    "src/main/kotlin/my-plugin.settings.gradle.kts",
+                    """
+                        plugins {
+                        }
+                        println("my-plugin settings plugin applied")
+                    """
+                )
+            }
+        }
+        withSettings(
+            """
+                pluginManagement {
+                    includeBuild("build-logic")
+                }
+                plugins {
+                    id("my-plugin")
+                }
+            """
+        )
+
+        build("help").run {
+            assertThat(output, containsString("my-plugin settings plugin applied"))
+        }
+    }
+
+    // https://github.com/gradle/gradle/issues/15416
+    @Test
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    fun `can apply a plugin from the same project in precompiled settings plugin`() {
+        withFolders {
+            "build-logic" {
+                withFile("settings.gradle.kts", defaultSettingsScript)
+                withFile(
+                    "build.gradle.kts",
+                    """
+                        plugins {
+                            `kotlin-dsl`
+                        }
+                        $repositoriesBlock
+                    """
+                )
+                withFile(
+                    "src/main/kotlin/base-plugin.settings.gradle.kts",
+                    """
+                        println("base-plugin settings plugin applied")
+                    """
+                )
+                withFile(
+                    "src/main/kotlin/my-plugin.settings.gradle.kts",
+                    """
+                        plugins {
+                            id("base-plugin")
+                        }
+                        println("my-plugin settings plugin applied")
+                    """
+                )
+            }
+        }
+        withSettings(
+            """
+                pluginManagement {
+                    includeBuild("build-logic")
+                }
+                plugins {
+                    id("my-plugin")
+                }
+            """
+        )
+
+        build("help").run {
+            assertThat(output, containsString("base-plugin settings plugin applied"))
+            assertThat(output, containsString("my-plugin settings plugin applied"))
+        }
+    }
+
+    // https://github.com/gradle/gradle/issues/15416
+    @Test
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    fun `can apply a plugin from a repository in precompiled settings plugin`() {
+        withFolders {
+            "external-plugin" {
+                withFile("settings.gradle.kts", defaultSettingsScript)
+                withFile(
+                    "build.gradle.kts",
+                    """
+                        plugins {
+                            `kotlin-dsl`
+                            id("maven-publish")
+                        }
+                        $repositoriesBlock
+                        publishing {
+                            repositories {
+                                maven {
+                                    url = uri("maven-repo")
+                                }
+                            }
+                        }
+                        group = "test"
+                        version = "42"
+                    """
+                )
+                withFile(
+                    "src/main/kotlin/base-plugin.settings.gradle.kts",
+                    """
+                        println("base-plugin settings plugin applied")
+                    """
+                )
+            }
+            "build-logic" {
+                withFile("settings.gradle.kts", defaultSettingsScript)
+                withFile(
+                    "build.gradle.kts",
+                    """
+                        plugins {
+                            `kotlin-dsl`
+                        }
+                        repositories {
+                            gradlePluginPortal()
+                            maven {
+                                url = uri("../external-plugin/maven-repo")
+                            }
+                        }
+                        dependencies {
+                             implementation("test:external-plugin:42")
+                        }
+                    """
+                )
+                withFile(
+                    "src/main/kotlin/my-plugin.settings.gradle.kts",
+                    """
+                        plugins {
+                            id("base-plugin")
+                        }
+                        println("my-plugin settings plugin applied")
+                    """
+                )
+            }
+        }
+        withSettings(
+            """
+                pluginManagement {
+                    repositories {
+                        maven {
+                            url = uri("external-plugin/maven-repo")
+                        }
+                    }
+                    includeBuild("build-logic")
+                }
+                plugins {
+                    id("my-plugin")
+                }
+            """
+        )
+
+        build(file("external-plugin"), "publish")
+
+        build("help").run {
+            assertThat(output, containsString("base-plugin settings plugin applied"))
+            assertThat(output, containsString("my-plugin settings plugin applied"))
+        }
+    }
 }
