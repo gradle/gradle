@@ -17,13 +17,14 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
-class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
 
     def "implementation of nested property in Groovy build script is tracked"() {
         setupTaskClassWithActionProperty()
@@ -81,8 +82,8 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         setupTaskClassWithActionProperty()
         def originalClassName = "LambdaActionOriginal"
         def changedClassName = "LambdaActionChanged"
-        file("buildSrc/src/main/java/${originalClassName}.java") << classWithLambda(originalClassName, lambdaWritingFile("ACTION", "original"))
-        file("buildSrc/src/main/java/${changedClassName}.java") << classWithLambda(changedClassName, lambdaWritingFile("ACTION", "changed"))
+        file("buildSrc/src/main/java/${originalClassName}.java") << javaClass(originalClassName, lambdaWritingFile("ACTION", "original"))
+        file("buildSrc/src/main/java/${changedClassName}.java") << javaClass(changedClassName, lambdaWritingFile("ACTION", "changed"))
         buildFile << """
             task myTask(type: TaskWithActionProperty) {
                 action = providers.gradleProperty("changed").forUseAtConfigurationTime().isPresent()
@@ -123,6 +124,62 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "can change nested property from Java lambda to anonymous inner class and back"() {
+        setupTaskClassWithActionProperty()
+        def lambdaClassName = "LambdaAction"
+        def anonymousClassName = "AnonymousAction"
+        file("buildSrc/src/main/java/${lambdaClassName}.java") << javaClass(lambdaClassName, lambdaWritingFile("ACTION", "lambda"))
+        file("buildSrc/src/main/java/${anonymousClassName}.java") << javaClass(anonymousClassName, anonymousClassWritingFile("ACTION", "anonymous"))
+        buildFile << """
+            task myTask(type: TaskWithActionProperty) {
+                outputs.cacheIf { true }
+                action = providers.gradleProperty("anonymous").forUseAtConfigurationTime().isPresent()
+                    ? ${anonymousClassName}.ACTION
+                    : ${lambdaClassName}.ACTION
+            }
+        """
+
+        buildFile.makeOlder()
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            nestedProperty('action')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        })
+        run 'myTask'
+        then:
+        withBuildCache().executedAndNotSkipped(':myTask')
+
+        when:
+        run 'myTask', '-Panonymous'
+        then:
+        withBuildCache().executedAndNotSkipped(':myTask')
+
+        when:
+        withBuildCache().run 'myTask', '-Panonymous'
+        then:
+        skipped(':myTask')
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            nestedProperty('action')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        })
+        withBuildCache().run 'myTask'
+        then:
+        executedAndNotSkipped(':myTask')
+
+        when:
+        withBuildCache().run 'myTask', '-Panonymous'
+        then:
+        skipped(':myTask')
     }
 
     private TestFile setupTaskClassWithActionProperty() {
@@ -172,8 +229,8 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
     )
     @Issue("https://github.com/gradle/gradle/issues/5510")
     def "task with Java lambda actions disables execution optimizations"() {
-        file("buildSrc/src/main/java/LambdaActionOriginal.java") << classWithLambda("LambdaActionOriginal", lambdaPrintingString("ACTION", "From Lambda: original"))
-        file("buildSrc/src/main/java/LambdaActionChanged.java") << classWithLambda("LambdaActionChanged", lambdaPrintingString("ACTION", "From Lambda: changed"))
+        file("buildSrc/src/main/java/LambdaActionOriginal.java") << javaClass("LambdaActionOriginal", lambdaPrintingString("ACTION", "From Lambda: original"))
+        file("buildSrc/src/main/java/LambdaActionChanged.java") << javaClass("LambdaActionChanged", lambdaPrintingString("ACTION", "From Lambda: changed"))
 
         setupCustomTask()
 
@@ -207,6 +264,58 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         run "myTask", "-Pchanged"
         then:
         executedAndNotSkipped(":myTask")
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "can change lambda action to anonymous inner class and back"() {
+        file("buildSrc/src/main/java/LambdaAction.java") << javaClass("LambdaAction", lambdaPrintingString("ACTION", "From Lambda"))
+        file("buildSrc/src/main/java/AnonymousAction.java") << javaClass("AnonymousAction", anonymousClassPrintingString("ACTION", "From Anonymous"))
+
+        setupCustomTask()
+
+        def script = """
+            task myTask(type: CustomTask) {
+                outputs.cacheIf { true }
+            }
+        """
+
+        buildFile << script <<
+            """
+            myTask.doLast(
+                providers.gradleProperty("anonymous").forUseAtConfigurationTime().isPresent()
+                    ? AnonymousAction.ACTION
+                    : LambdaAction.ACTION
+            )
+        """
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown { additionalTaskAction(':myTask').implementedByLambda('LambdaAction').includeLink() })
+        withBuildCache().run "myTask"
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        withBuildCache().run "myTask", "-Panonymous"
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        withBuildCache().run "myTask", "-Panonymous"
+        then:
+        skipped(":myTask")
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown { additionalTaskAction(':myTask').implementedByLambda('LambdaAction').includeLink() })
+        withBuildCache().run "myTask"
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        withBuildCache().run "myTask", "-Panonymous"
+        then:
+        skipped(":myTask")
     }
 
     private TestFile setupCustomTask() {
@@ -247,7 +356,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         """
     }
 
-    private static String classWithLambda(String className, String classBody) {
+    private static String javaClass(String className, String classBody) {
         """
             import org.gradle.api.Action;
             import org.gradle.api.Task;
@@ -274,10 +383,36 @@ ${classBody}
         """
     }
 
+    private static String anonymousClassWritingFile(String constantName, String outputString) {
+        """
+                public static final Action<File> ${constantName} = new Action<File>() {
+                    @Override
+                    public void execute(File file) {
+                        try {
+                            Files.write(file.toPath(), "${outputString}".getBytes());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+        """
+    }
+
     private static String lambdaPrintingString(String constantName, String outputString) {
         """
                 public static final Action<Task> ${constantName} = task -> {
                     System.out.println("${outputString}");
+                };
+        """
+    }
+
+    private static String anonymousClassPrintingString(String constantName, String outputString) {
+        """
+                public static final Action<Task> ${constantName} = new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        System.out.println("${outputString}");
+                    }
                 };
         """
     }

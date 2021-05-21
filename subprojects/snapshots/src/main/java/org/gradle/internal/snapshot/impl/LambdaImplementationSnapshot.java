@@ -29,7 +29,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.markAsInvalid(getUnknownReason());
+        throw new RuntimeException("Cannot hash implementation of lambda " + getTypeName());
     }
 
     @Override

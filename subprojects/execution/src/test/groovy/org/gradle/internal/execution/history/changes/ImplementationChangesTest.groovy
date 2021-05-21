@@ -19,6 +19,7 @@ package org.gradle.internal.execution.history.changes
 import com.google.common.collect.ImmutableList
 import org.gradle.api.DefaultTask
 import org.gradle.api.Describable
+import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
@@ -92,7 +93,7 @@ class ImplementationChangesTest extends Specification {
         ) == ["One or more additional actions for task ':test' have changed."]
     }
 
-    def "not up-to-date when task is loaded with an unknown classloader"() {
+    def "cannot determine changes when task is loaded with an unknown classloader"() {
         def taskClassLoader = new GroovyClassLoader(getClass().getClassLoader())
         Class<? extends TaskInternal> simpleTaskClass = Cast.uncheckedCast(taskClassLoader.parseClass("""
             import org.gradle.api.*
@@ -100,19 +101,23 @@ class ImplementationChangesTest extends Specification {
             class SimpleTask extends DefaultTask {}
         """))
 
-        expect:
+        when:
         changesBetween(
-            impl(simpleTaskClass, null), [impl(TestAction)],
+            impl(simpleTaskClass), [impl(TestAction)],
             impl(simpleTaskClass, null), [impl(TestAction)]
-        ) == ["The type of task ':test' was loaded with an unknown classloader (class 'SimpleTask')."]
+        )
+        then:
+        thrown(GradleException)
     }
 
-    def "not up-to-date when task action is loaded with an unknown classloader"() {
-        expect:
+    def "cannot determine changes when task action is loaded with an unknown classloader"() {
+        when:
         changesBetween(
             impl(SimpleTask), [impl(TestAction)],
             impl(SimpleTask), [impl(TestAction, null)]
-        ) == ["Additional action for task ':test': was loaded with an unknown classloader (class '$TestAction.name')." as String]
+        )
+        then:
+        thrown(GradleException)
     }
 
     def "not up-to-date when task was previously loaded with an unknown classloader"() {
@@ -120,7 +125,7 @@ class ImplementationChangesTest extends Specification {
         changesBetween(
             impl(SimpleTask, null), [impl(TestAction)],
             impl(SimpleTask), [impl(TestAction)]
-        ) == ["During the previous execution of task ':test', it was loaded with an unknown classloader (class '$SimpleTask.name')." as String]
+        ) == ["The implementation of task ':test' has changed." as String]
     }
 
     def "not up-to-date when task action was previously loaded with an unknown classloader"() {
@@ -128,7 +133,7 @@ class ImplementationChangesTest extends Specification {
         changesBetween(
             impl(SimpleTask), [impl(TestAction, null)],
             impl(SimpleTask), [impl(TestAction)]
-        ) == ["During the previous execution of task ':test', it had an additional action that was loaded with an unknown classloader (class '$TestAction.name')." as String]
+        ) == ["One or more additional actions for task ':test' have changed." as String]
     }
 
     List<String> changesBetween(

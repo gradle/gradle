@@ -18,9 +18,8 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
+import org.gradle.api.GradleException;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-
-import javax.annotation.Nullable;
 
 public class ImplementationChanges implements ChangeContainer {
     private final ImplementationSnapshot previousImplementation;
@@ -50,28 +49,22 @@ public class ImplementationChanges implements ChangeContainer {
                 executable.getDisplayName(), previousImplementation.getTypeName(), currentImplementation.getTypeName()));
         }
         if (currentImplementation.isUnknown()) {
-            return visitor.visitChange(new DescriptiveChange("The type of %s %s",
-                    executable.getDisplayName(), currentImplementation.getUnknownReason()));
+            // We already validate that the current implementation can't be unknown.
+            throw new GradleException("Cannot determine changes for work with unknown implementation");
         }
         if (previousImplementation.isUnknown()) {
-            return visitor.visitChange(new DescriptiveChange("During the previous execution of %s, it %s",
-                    executable.getDisplayName(), previousImplementation.getUnknownReason()));
+            // When we fail on an unknown implementation, the previous one can't be unknown.
+            // Currently, we only emit a deprecation warning
+            return visitor.visitChange(new DescriptiveChange("The implementation of %s has changed.",
+                executable.getDisplayName())
+            );
         }
         if (!currentImplementation.getClassLoaderHash().equals(previousImplementation.getClassLoaderHash())) {
             return visitor.visitChange(new DescriptiveChange("Class path of %s has changed from %s to %s.",
                     executable.getDisplayName(), previousImplementation.getClassLoaderHash(), currentImplementation.getClassLoaderHash()));
         }
 
-        ImplementationSnapshot unknownImplementation = findUnknownImplementation(currentAdditionalImplementations);
-        if (unknownImplementation != null) {
-            return visitor.visitChange(new DescriptiveChange("Additional action for %s: %s",
-                    executable.getDisplayName(), unknownImplementation.getUnknownReason()));
-        }
-        ImplementationSnapshot previousUnknownImplementation = findUnknownImplementation(previousAdditionalImplementations);
-        if (previousUnknownImplementation != null) {
-            return visitor.visitChange(new DescriptiveChange("During the previous execution of %s, it had an additional action that %s",
-                    executable.getDisplayName(), previousUnknownImplementation.getUnknownReason()));
-        }
+        validateImplementationsKnown(currentAdditionalImplementations);
         if (!currentAdditionalImplementations.equals(previousAdditionalImplementations)) {
             return visitor.visitChange(new DescriptiveChange("One or more additional actions for %s have changed.",
                     executable.getDisplayName()));
@@ -79,13 +72,11 @@ public class ImplementationChanges implements ChangeContainer {
         return true;
     }
 
-    @Nullable
-    private static ImplementationSnapshot findUnknownImplementation(Iterable<ImplementationSnapshot> implementations) {
+    private static void validateImplementationsKnown(Iterable<ImplementationSnapshot> implementations) {
         for (ImplementationSnapshot implementation : implementations) {
             if (implementation.isUnknown()) {
-                return implementation;
+                throw new GradleException("Cannot determine changes for additional action with unknown implementation");
             }
         }
-        return null;
     }
 }

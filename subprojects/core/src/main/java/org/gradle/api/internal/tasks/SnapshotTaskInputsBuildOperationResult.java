@@ -213,19 +213,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Nullable
     @Override
     public Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
-        return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, Set<String>>() {
-                @Nullable
-                @Override
-                public Set<String> apply(CachingInputs inputs) {
-                    ImmutableSortedSet<String> invalidInputProperties = inputs.getNonCacheableInputProperties();
-                    if (invalidInputProperties.isEmpty()) {
-                        return null;
-                    }
-                    return invalidInputProperties;
-                }
-            })
-            .orElse(null);
+        return null;
     }
 
 

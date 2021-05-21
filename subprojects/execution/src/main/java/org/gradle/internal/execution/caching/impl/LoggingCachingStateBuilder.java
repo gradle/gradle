@@ -47,24 +47,16 @@ public class LoggingCachingStateBuilder extends DefaultCachingStateBuilder {
     }
 
     @Override
-    protected void markInputValuePropertyNotCacheable(String propertyName, String nonCacheableReason) {
-        LOGGER.warn("Non-cacheable input value property '{}' {}.", propertyName, nonCacheableReason);
-        super.markInputValuePropertyNotCacheable(propertyName, nonCacheableReason);
-    }
-
-    @Override
     public void withInputFilePropertyFingerprints(Map<String, CurrentFileCollectionFingerprint> fingerprints) {
-        fingerprints.forEach((propertyName, fingerprint) -> {
-            LOGGER.warn("Appending input file fingerprints for '{}' to build cache key: {} - {}", propertyName, fingerprint.getHash(), fingerprint);
-        });
+        fingerprints.forEach((propertyName, fingerprint) ->
+            LOGGER.warn("Appending input file fingerprints for '{}' to build cache key: {} - {}", propertyName, fingerprint.getHash(), fingerprint));
         super.withInputFilePropertyFingerprints(fingerprints);
     }
 
     @Override
     public void withOutputPropertyNames(Iterable<String> propertyNames) {
-        propertyNames.forEach(propertyName -> {
-            LOGGER.warn("Appending output property name to build cache key: {}", propertyName);
-        });
+        propertyNames.forEach(propertyName ->
+            LOGGER.warn("Appending output property name to build cache key: {}", propertyName));
         super.withOutputPropertyNames(propertyNames);
     }
 

@@ -16,6 +16,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -24,7 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
 
     def setup() {
         expectReindentedValidationMessage()
@@ -1137,6 +1138,91 @@ task b(dependsOn: a)
         succeeds "customTask"
         then:
         noneSkipped()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "can switch between task with implementation from unknown classloader and from known classloader"() {
+        expectUnindentedValidationMessage()
+        file("input.txt").text = "data"
+        buildFile << """
+            ${customTaskImplementation("CustomTaskFromBuildFile")}
+
+            def CustomTaskFromUnknownClassloader = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
+                import org.gradle.api.*
+                import org.gradle.api.tasks.*
+
+                ${customTaskImplementation("CustomTaskFromUnknownClassloader")}
+            '''
+
+            def customTaskClass = providers.gradleProperty("unknownClassloader").forUseAtConfigurationTime().isPresent()
+                    ? CustomTaskFromUnknownClassloader
+                    : CustomTaskFromBuildFile
+
+            task customTask(type: customTaskClass) {
+                outputs.cacheIf { true }
+                input = file("input.txt")
+                output = file("build/output.txt")
+            }
+        """
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
+            includeLink()
+        })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
+            includeLink()
+        })
+        withBuildCache().run "customTask", "-PunknownClassloader"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        withBuildCache().run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        withBuildCache().run "customTask"
+        then:
+        skipped(":customTask")
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
+            includeLink()
+        })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
+            includeLink()
+        })
+        withBuildCache().run "customTask", "-PunknownClassloader"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        withBuildCache().run "customTask"
+        then:
+        skipped(":customTask")
+    }
+
+    private static String customTaskImplementation(String className) {
+        """
+            class ${className} extends DefaultTask {
+                @InputFile File input
+                @OutputFile File output
+                @TaskAction action() {
+                    output.parentFile.mkdirs()
+                    output.text = input.text
+                }
+            }
+        """
     }
 
     @ValidationTestFor(
