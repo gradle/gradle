@@ -22,6 +22,10 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.contracts.ExperimentalContracts"
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))

@@ -15,6 +15,8 @@
  */
 package org.gradle.configurationcache.serialization
 
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
@@ -24,10 +26,14 @@ import kotlin.coroutines.startCoroutine
  * Runs the given [readOperation] synchronously.
  */
 internal
-fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R =
-    runToCompletion {
+fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R {
+    contract {
+        callsInPlace(readOperation, InvocationKind.EXACTLY_ONCE)
+    }
+    return runToCompletion {
         readOperation()
     }
+}
 
 
 /**

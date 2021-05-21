@@ -81,13 +81,12 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) {
+    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
         withReadContextFor(stateFile.inputStream()) { codecs ->
             ConfigurationCacheState(codecs, stateFile).run {
                 readBuildState(includedBuild)
             }
         }
-    }
 
     private
     fun <T> writeConfigurationCacheState(

@@ -27,6 +27,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.caching.configuration.BuildCache
+import org.gradle.configuration.BuildOperationFiringProjectsPreparer
+import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
@@ -48,8 +50,11 @@ import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer
+import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer
+import org.gradle.initialization.BuildOperationSettingsProcessor
+import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
-import org.gradle.initialization.SettingsPreparer
+import org.gradle.initialization.SettingsLocation
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -59,6 +64,10 @@ import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.plugin.management.internal.PluginRequests
@@ -66,6 +75,8 @@ import org.gradle.vcs.internal.VcsMappingsStore
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 
 internal
@@ -91,9 +102,30 @@ class ConfigurationCacheState(
         }
 
     suspend fun DefaultReadContext.readRootBuildState(createBuild: (String) -> ConfigurationCacheBuild) {
-        readRootBuild(createBuild)
+        val buildState = readRootBuild(createBuild)
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
+        }
+        configureBuild(buildState)
+        calculateTaskGraph(buildState)
+    }
+
+    private
+    fun configureBuild(state: CachedBuildState) {
+        val gradle = state.build.gradle
+        val buildOperationExecutor = gradle.serviceOf<BuildOperationExecutor>()
+        fireConfigureBuild(buildOperationExecutor, gradle) {
+            fireLoadProjects(buildOperationExecutor, gradle)
+            state.children.forEach(::configureBuild)
+            fireConfigureProject(buildOperationExecutor, gradle)
+        }
+    }
+
+    private
+    fun calculateTaskGraph(state: CachedBuildState) {
+        fireCalculateTaskGraph(state.build.gradle) {
+            state.build.scheduleNodes(state.workGraph)
+            state.children.forEach(::calculateTaskGraph)
         }
     }
 
@@ -110,7 +142,9 @@ class ConfigurationCacheState(
             build,
             StoredBuildTreeState(
                 storedBuilds,
-                buildEventListeners.filterIsInstance<BuildServiceProvider<*, *>>().groupBy { it.buildIdentifier }
+                buildEventListeners
+                    .filterIsInstance<BuildServiceProvider<*, *>>()
+                    .groupBy { it.buildIdentifier }
             )
         )
         writeRootEventListenerSubscriptions(gradle, buildEventListeners)
@@ -118,14 +152,16 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultReadContext.readRootBuild(createBuild: (String) -> ConfigurationCacheBuild) {
+    suspend fun DefaultReadContext.readRootBuild(
+        createBuild: (String) -> ConfigurationCacheBuild
+    ): CachedBuildState {
         val rootProjectName = readString()
         val build = createBuild(rootProjectName)
         val gradle = build.gradle
         readBuildTreeState(gradle)
-        readBuildState(build)
+        val rootBuildState = readBuildState(build)
         readRootEventListenerSubscriptions(gradle)
-        build.prepareForTaskExecution()
+        return rootBuildState
     }
 
     internal
@@ -143,13 +179,15 @@ class ConfigurationCacheState(
     }
 
     internal
-    suspend fun DefaultReadContext.readBuildState(build: ConfigurationCacheBuild) {
+    suspend fun DefaultReadContext.readBuildState(build: ConfigurationCacheBuild): CachedBuildState {
 
         val gradle = build.gradle
 
+        lateinit var children: List<CachedBuildState>
         withLoadBuildOperation(gradle) {
+            fireEvaluateSettings(gradle)
             runReadOperation {
-                readGradleState(build)
+                children = readGradleState(build)
             }
         }
 
@@ -161,20 +199,22 @@ class ConfigurationCacheState(
 
         readRequiredBuildServicesOf(gradle)
 
-        val scheduledNodes = readWorkGraph(gradle)
-        build.scheduleNodes(scheduledNodes)
+        val workGraph = readWorkGraph(gradle)
+        return CachedBuildState(build, workGraph, children)
     }
 
-    /**
-     * Fires build operation required by build scan to determine startup duration and settings evaluated duration
-     */
+    data class CachedBuildState(
+        val build: ConfigurationCacheBuild,
+        val workGraph: List<Node>,
+        val children: List<CachedBuildState>
+    )
+
     private
-    fun withLoadBuildOperation(gradle: GradleInternal, preparer: SettingsPreparer) {
-        BuildOperationFiringSettingsPreparer(
-            preparer,
-            gradle.serviceOf(),
-            gradle.serviceOf<BuildDefinition>().fromBuild
-        ).prepareSettings(gradle)
+    fun withLoadBuildOperation(gradle: GradleInternal, preparer: () -> Unit) {
+        contract {
+            callsInPlace(preparer, InvocationKind.EXACTLY_ONCE)
+        }
+        fireLoadBuild(preparer, gradle)
     }
 
     private
@@ -253,13 +293,16 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultReadContext.readGradleState(build: ConfigurationCacheBuild) {
+    suspend fun DefaultReadContext.readGradleState(
+        build: ConfigurationCacheBuild
+    ): List<CachedBuildState> {
         val gradle = build.gradle
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
             readStartParameterOf(gradle)
-            readChildBuildsOf(build)
+            val children = readChildBuildsOf(build)
             readBuildOutputCleanupRegistrations(gradle)
+            return children
         }
     }
 
@@ -294,19 +337,20 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultReadContext.readChildBuildsOf(parentBuild: ConfigurationCacheBuild) {
-        val gradle = parentBuild.gradle
+    suspend fun DefaultReadContext.readChildBuildsOf(
+        parentBuild: ConfigurationCacheBuild
+    ): List<CachedBuildState> {
         val includedBuilds = readList {
             readIncludedBuildState(parentBuild)
         }
-        gradle.includedBuilds = includedBuilds.map { it.model }
-
         if (readBoolean()) {
             logNotImplemented(
                 feature = "source dependencies",
                 documentationSection = NotYetImplementedSourceDependencies
             )
         }
+        parentBuild.gradle.includedBuilds = includedBuilds.map { it.first.model }
+        return includedBuilds.mapNotNull { it.second }
     }
 
     private
@@ -334,20 +378,23 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultReadContext.readIncludedBuildState(parentBuild: ConfigurationCacheBuild): IncludedBuildState {
+    suspend fun DefaultReadContext.readIncludedBuildState(
+        parentBuild: ConfigurationCacheBuild
+    ): Pair<IncludedBuildState, CachedBuildState?> {
         val buildDefinition = readIncludedBuildDefinition(parentBuild)
         val includedBuild = parentBuild.addIncludedBuild(buildDefinition)
         val stored = readBoolean()
-        if (stored) {
-            val confCacheBuild = includedBuild.withState { includedGradle ->
-                includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(includedBuild.name)
-            }
-            confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
-                stateFileFor(buildDefinition),
-                confCacheBuild
-            )
-        }
-        return includedBuild
+        val cachedBuildState =
+            if (stored) {
+                val confCacheBuild = includedBuild.withState { includedGradle ->
+                    includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(includedBuild.name)
+                }
+                confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
+                    stateFileFor(buildDefinition),
+                    confCacheBuild
+                )
+            } else null
+        return includedBuild to cachedBuildState
     }
 
     private
@@ -527,6 +574,73 @@ class ConfigurationCacheState(
             DefaultBuildIdentifier.ROOT -> rootBuild.build
             else -> getIncludedBuild(buildIdentifier).configuredBuild
         }
+
+    private
+    fun fireConfigureBuild(buildOperationExecutor: BuildOperationExecutor, gradle: GradleInternal, function: (gradle: GradleInternal) -> Unit) {
+        BuildOperationFiringProjectsPreparer(function, buildOperationExecutor).prepareProjects(gradle)
+    }
+
+    /**
+     * Fire build operation required by build scans to determine the root path.
+     **/
+    private
+    fun fireConfigureProject(buildOperationExecutor: BuildOperationExecutor, gradle: GradleInternal) {
+        buildOperationExecutor.run(object : RunnableBuildOperation {
+            override fun run(context: BuildOperationContext) = Unit
+            override fun description(): BuildOperationDescriptor.Builder =
+                LifecycleProjectEvaluator.configureProjectBuildOperationBuilderFor(gradle.rootProject)
+        })
+    }
+
+    /**
+     * Fire _Load projects_ build operation required by build scans to determine the build's project structure (and build load time).
+     **/
+    private
+    fun fireLoadProjects(buildOperationExecutor: BuildOperationExecutor, gradle: GradleInternal) {
+        NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor).load(gradle.settings, gradle)
+    }
+
+    /**
+     * Fire build operation required by build scan to determine when task execution starts.
+     *
+     * This might be better done as a new build operation type.
+     **/
+    private
+    fun fireCalculateTaskGraph(gradle: GradleInternal, delegate: (GradleInternal) -> Unit) {
+        BuildOperationFiringTaskExecutionPreparer(delegate, gradle.serviceOf()).prepareForTaskExecution(gradle)
+    }
+
+    /**
+     * Fires build operation required by build scan to determine startup duration and settings evaluated duration.
+     */
+    private
+    fun fireLoadBuild(preparer: () -> Unit, gradle: GradleInternal) {
+        BuildOperationFiringSettingsPreparer(
+            { preparer() },
+            gradle.serviceOf(),
+            gradle.serviceOf<BuildDefinition>().fromBuild
+        ).prepareSettings(gradle)
+    }
+
+    /**
+     * Fire build operation required by build scans to determine build path (and settings execution time).
+     * It may be better to instead point GE at the origin build that produced the cached task graph,
+     * or replace this with a different event/op that carries this information and wraps some actual work.
+     **/
+    private
+    fun fireEvaluateSettings(gradle: GradleInternal) {
+        BuildOperationSettingsProcessor(
+            { _, _, _, _ -> gradle.settings },
+            gradle.serviceOf()
+        ).process(
+            gradle,
+            SettingsLocation(gradle.settings.settingsDir, null),
+            gradle.classLoaderScope,
+            gradle.startParameter.apply {
+                useEmptySettings()
+            }
+        )
+    }
 }
 
 
