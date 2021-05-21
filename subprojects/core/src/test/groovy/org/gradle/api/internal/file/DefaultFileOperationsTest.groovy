@@ -66,7 +66,8 @@ class DefaultFileOperationsTest extends Specification {
             TestFiles.fileSystem(),
             TestFiles.patternSetFactory,
             TestFiles.deleter(),
-            TestFiles.documentationRegistry()
+            TestFiles.documentationRegistry(),
+            TestUtil.providerFactory()
         )
     }
 

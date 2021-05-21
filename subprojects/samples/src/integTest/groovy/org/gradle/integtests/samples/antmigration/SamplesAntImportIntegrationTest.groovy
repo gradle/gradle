@@ -83,8 +83,6 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest impl
         executer.inDirectory(dslDir)
 
         when:
-        // FIXME: Infer dependencies for zipTree(Provider<>)
-        expectMissingDependencyDeprecation(":javadocJarArchive", ":unpackJavadocs", dslDir.file("build/libs/ant-file-deps-sample-javadoc.jar"))
         succeeds('javadocJar', 'unpackJavadocs')
 
         then: "The HTML Javadoc files are unpacked to the 'dist' directory"

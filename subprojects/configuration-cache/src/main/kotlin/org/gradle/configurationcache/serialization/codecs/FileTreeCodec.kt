@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.FilteredMinimalFileTree
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
 import org.gradle.api.internal.file.collections.MinimalFileTree
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -62,11 +63,11 @@ class DirectoryTreeSpec(val file: File, val patterns: PatternSet) : FileTreeSpec
 
 
 private
-class ZipTreeSpec(val file: File) : FileTreeSpec()
+class ZipTreeSpec(val file: Provider<File>) : FileTreeSpec()
 
 
 private
-class TarTreeSpec(val file: File) : FileTreeSpec()
+class TarTreeSpec(val file: Provider<File>) : FileTreeSpec()
 
 
 private
@@ -172,8 +173,8 @@ class FileTreeCodec(
         private
         fun toSpecOrNull(tree: MinimalFileTree): FileTreeSpec? = when (tree) {
             // TODO - deal with tree that is not backed by a file
-            is ZipFileTree -> tree.backingFile?.let(::ZipTreeSpec)
-            is TarFileTree -> tree.backingFile?.let(::TarTreeSpec)
+            is ZipFileTree -> ZipTreeSpec(tree.backingFileProvider)
+            is TarFileTree -> TarTreeSpec(tree.backingFileProvider)
             // TODO - capture the patterns
             is FilteredMinimalFileTree -> toSpecOrNull(tree.tree)
             is GeneratedSingletonFileTree -> GeneratedTreeSpec(tree.toSpec())

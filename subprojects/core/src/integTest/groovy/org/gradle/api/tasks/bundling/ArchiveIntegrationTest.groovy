@@ -947,6 +947,28 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @Issue("")
+    def "zipTree tracks task dependencies"() {
+        given:
+        buildFile """
+            plugins {
+                id('java-library')
+            }
+
+            task unpackJar(type: Copy) {
+                from zipTree(jar.archiveFile)
+                into 'build/unzippedJar'
+            }
+        """
+        file("src/main/java/Hello.java") << """public class Hello {}"""
+
+        when:
+        run 'unpackJar'
+
+        then:
+        executedAndNotSkipped ':jar', ':unpackJar'
+    }
+
     private def createTar(String name, Closure cl) {
         TestFile tarRoot = file("${name}.root")
         tarRoot.deleteDir()
