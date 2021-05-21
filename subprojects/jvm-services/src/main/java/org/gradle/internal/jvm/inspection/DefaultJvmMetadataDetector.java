@@ -79,9 +79,11 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
         } catch (IllegalArgumentException e) {
             return failure(javaHome, "Cannot parse version number: " + implementationVersion);
         }
+        String runtimeVersion = metadata.get(ProbedSystemProperty.RUNTIME_VERSION);
+        String jvmVersion = metadata.get(ProbedSystemProperty.VM_VERSION);
         String vendor = metadata.get(ProbedSystemProperty.VENDOR);
         String implementationName = metadata.get(ProbedSystemProperty.VM);
-        return JvmInstallationMetadata.from(javaHome, implementationVersion, vendor, implementationName);
+        return JvmInstallationMetadata.from(javaHome, implementationVersion, runtimeVersion, jvmVersion, vendor, implementationName);
     }
 
     private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {

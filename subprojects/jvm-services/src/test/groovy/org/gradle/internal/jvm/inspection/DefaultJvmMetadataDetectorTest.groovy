@@ -163,6 +163,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         assertIsUnsupported({ metadata.languageVersion })
         assertIsUnsupported({ metadata.vendor })
         assertIsUnsupported({ metadata.implementationVersion })
+        assertIsUnsupported({ metadata.runtimeVersion })
+        assertIsUnsupported({ metadata.jvmVersion })
 
         where:
         jdk                                   | systemProperties | exists | errorMessage
@@ -191,13 +193,14 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.40-b25",
-         'java.runtime.name': "Java(TM) SE Runtime Environment"
+         'java.runtime.name': "Java(TM) SE Runtime Environment",
+         'java.runtime.version': "bad luck"
         ]
     }
 
 
     private static Map<String, String> currentGradle() {
-        ['java.home', 'java.version', 'java.vendor', 'os.arch', 'java.vm.name', 'java.vm.version', 'java.runtime.name'].collectEntries { [it, System.getProperty(it)] }
+        ['java.home', 'java.version', 'java.vendor', 'os.arch', 'java.vm.name', 'java.vm.version', 'java.runtime.name', 'java.runtime.version'].collectEntries { [it, System.getProperty(it)] }
     }
 
     private static Map<String, String> openJdkJvm(String version) {
@@ -207,7 +210,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.40-b25",
-         'java.runtime.name': "Java(TM) SE Runtime Environment"
+         'java.runtime.name': "Java(TM) SE Runtime Environment",
+         'java.runtime.version': "1.${version}.0-b08"
         ]
     }
 
@@ -218,7 +222,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "${version}+7",
-         'java.runtime.name': "OpenJDK Runtime Environment"
+         'java.runtime.name': "OpenJDK Runtime Environment",
+         'java.runtime.version': "${version}+7"
         ]
     }
 
@@ -229,7 +234,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "Eclipse OpenJ9 VM",
          'java.vm.version': "openj9-0.21.0",
-         'java.runtime.name': "OpenJDK Runtime Environment"
+         'java.runtime.name': "OpenJDK Runtime Environment",
+         'java.runtime.version': "${version}+7"
         ]
     }
 
@@ -240,7 +246,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64\r",
          'java.vm.name': "OpenJDK 64-Bit Server VM\r",
          'java.vm.version': "${version}+7\r",
-         'java.runtime.name': "OpenJDK Runtime Environment\r"
+         'java.runtime.name': "OpenJDK Runtime Environment\r",
+         'java.runtime.version': "${version}+7\r"
         ]
     }
 
@@ -251,7 +258,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM",
          'java.vm.version': "25.40-b25",
-         'java.runtime.name': "Java(TM) SE Runtime Environment"
+         'java.runtime.name': "Java(TM) SE Runtime Environment",
+         'java.runtime.version': "1.${version}.0-b08"
         ]
     }
 
@@ -262,7 +270,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "IBM J9 VM",
          'java.vm.version': "2.4",
-         'java.runtime.name': "Java(TM) SE Runtime Environment"
+         'java.runtime.name': "Java(TM) SE Runtime Environment",
+         'java.runtime.version': "1.${version}.0-b08"
         ]
     }
 
@@ -273,7 +282,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.66-b17",
-         'java.runtime.name': "OpenJDK Runtime Environment"
+         'java.runtime.name': "OpenJDK Runtime Environment",
+         'java.runtime.version': "1.${version}.0_66-b08"
         ]
     }
 
@@ -284,7 +294,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "ia64",
          'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM",
          'java.vm.version': "25.66-b17",
-         'java.runtime.name': "Java(TM) SE Runtime Environment"
+         'java.runtime.name': "Java(TM) SE Runtime Environment",
+         'java.runtime.version': "1.${version}.0_66-b08"
         ]
     }
 
@@ -295,7 +306,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "13.0.2+8-sapmachine",
-         'java.runtime.name': "OpenJDK Runtime Environment"
+         'java.runtime.name': "OpenJDK Runtime Environment",
+         'java.runtime.version': "${version}.0.2-b08"
         ]
     }
 
@@ -306,7 +318,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "11.0.8+10-LTS",
-         'java.runtime.name': "OpenJDK Runtime Environment"
+         'java.runtime.name': "OpenJDK Runtime Environment",
+         'java.runtime.version': "${version}.0.8+10-LTS"
         ]
     }
 
@@ -317,7 +330,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "${version}+36",
-         'java.runtime.name': "OpenJDK Runtime Environment"
+         'java.runtime.name': "OpenJDK Runtime Environment",
+         'java.runtime.version': "${version}+36"
         ]
     }
 
@@ -328,7 +342,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit GraalVM CE 19.3.5",
          'java.vm.version': "25.282-b07-jvmci-19.3-b21",
-         'java.runtime.name': "OpenJDK Runtime Environment"
+         'java.runtime.name': "OpenJDK Runtime Environment",
+         'java.runtime.version': "${version}-b08"
         ]
     }
 
