@@ -175,6 +175,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return LogContent.of(result).withNormalizedEol();
     }
 
+    /**
+     * Normalize the non-deterministic part of lambda class name.
+     *
+     * Lambdas do have some non-deterministic class names, depending on when they are loaded.
+     * Since we want to assert the Lambda class name for some deprecation warning tests, we replace the non-deterministic part by {@code <non-deterministic>}.
+     */
     private String normalizeLambdaIds(String line) {
         return line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
     }

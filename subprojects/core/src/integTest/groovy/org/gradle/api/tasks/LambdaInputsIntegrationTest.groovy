@@ -94,19 +94,31 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         buildFile.makeOlder()
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown { nestedProperty('action').implementedByLambda('LambdaActionOriginal').includeLink() })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            nestedProperty('action')
+            implementedByLambda('LambdaActionOriginal')
+            includeLink()
+        })
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown { nestedProperty('action').implementedByLambda('LambdaActionOriginal').includeLink() })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            nestedProperty('action')
+            implementedByLambda('LambdaActionOriginal')
+            includeLink()
+        })
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown { nestedProperty('action').implementedByLambda('LambdaActionChanged').includeLink() })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            nestedProperty('action')
+            implementedByLambda('LambdaActionChanged')
+            includeLink()
+        })
         run 'myTask', '-Pchanged'
         then:
         executedAndNotSkipped(':myTask')

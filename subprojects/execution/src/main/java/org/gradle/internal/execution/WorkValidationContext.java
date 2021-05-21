@@ -27,8 +27,6 @@ import java.util.Optional;
 public interface WorkValidationContext {
     TypeValidationContext forType(Class<?> type, boolean cacheable);
 
-    TypeValidationContext forIrrelevantType();
-
     List<TypeValidationProblem> getProblems();
 
     ImmutableSet<Class<?>> getValidatedTypes();

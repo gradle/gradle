@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -75,7 +77,8 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
     public R execute(UnitOfWork work, BeforeExecutionContext context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
-        context.getBeforeExecutionState().ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
+        context.getBeforeExecutionState()
+            .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
         Map<Severity, List<String>> problems = validationContext.getProblems()
             .stream()
@@ -165,11 +168,24 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
     }
 
     private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
-        TypeValidationContext workValidationContext = validationContext.forIrrelevantType();
-        validateImplementation(work, workValidationContext, beforeExecutionState.getImplementation(),
+        MutableReference<Class<?>> workClass = MutableReference.empty();
+        work.visitImplementations(new UnitOfWork.ImplementationVisitor() {
+            @Override
+            public void visitImplementation(Class<?> implementation) {
+                workClass.set(GeneratedSubclasses.unpack(implementation));
+            }
+
+            @Override
+            public void visitImplementation(ImplementationSnapshot implementation) {
+            }
+        });
+        // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
+        Class<?> workType = workClass.get();
+        TypeValidationContext workValidationContext = validationContext.forType(workType, true);
+        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(),
             () -> "Implementation of " + work.getDisplayName() + " " + beforeExecutionState.getImplementation().getUnknownReason()
         );
-        beforeExecutionState.getAdditionalImplementations().forEach(additionalImplementation -> validateImplementation(work, workValidationContext, additionalImplementation,
+        beforeExecutionState.getAdditionalImplementations().forEach(additionalImplementation -> validateImplementation(workValidationContext, additionalImplementation,
             () -> "Additional action of " + work.getDisplayName() + " " + additionalImplementation.getUnknownReason()
         ));
         beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
@@ -188,16 +204,16 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
         }
     }
 
-    private void validateImplementation(UnitOfWork work, TypeValidationContext workValidationContext, ImplementationSnapshot implementation, Supplier<String> description) {
+    private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, Supplier<String> description) {
         if (implementation.isUnknown()) {
-            workValidationContext.visitTypeProblem(problem -> configureImplementationValidationProblem(problem)
-                .forType(work.getClass())
+            workValidationContext.visitPropertyProblem(problem -> configureImplementationValidationProblem(problem)
                 .withDescription(description));
         }
     }
 
     private <T extends ValidationProblemBuilder<T>> T configureImplementationValidationProblem(ValidationProblemBuilder<T> problem) {
         return problem
+            .typeIsIrrelevantInErrorMessage()
             .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
             .reportAs(Severity.WARNING)
             .happensBecause("Gradle cannot track inputs when it doesn't know their implementation")
