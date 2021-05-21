@@ -205,8 +205,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assumeNonEmbeddedGradleExecuter() // Class path isolation, tested here, is not correct in embedded mode
 
-        val differentKotlinVersion = "1.3.72"
-        val expectedKotlinCompilerVersionString = "1.3.72"
+        val differentKotlinVersion = "1.4.20"
+        val expectedKotlinCompilerVersionString = "1.4.20"
 
         assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
 
