@@ -785,6 +785,27 @@ Reason: Some reason.
 """
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.TEST_PROBLEM
+    )
+    def "displays plugin id when available"() {
+        when:
+        render dummyValidationProblem {
+            inPlugin 'com.foo.bar'
+            type 'Foo'
+            property 'bar'
+            description 'with some description'
+            reason 'some reason'
+        }
+
+        then:
+        outputEquals """
+In plugin 'com.foo.bar' type 'Foo' property 'bar' with some description.
+
+Reason: Some reason.
+"""
+    }
+
     private File dummyLocation(String path = '/tmp/foo') {
         Stub(File) {
             getAbsolutePath() >> path

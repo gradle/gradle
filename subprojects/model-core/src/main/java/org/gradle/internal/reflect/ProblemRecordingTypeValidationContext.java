@@ -24,29 +24,33 @@ import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
+import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
 
 abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
     private final DocumentationRegistry documentationRegistry;
     private final Class<?> rootType;
+    private final PluginId pluginId;
 
     public ProblemRecordingTypeValidationContext(DocumentationRegistry documentationRegistry,
-                                                 @Nullable Class<?> rootType) {
+                                                 @Nullable Class<?> rootType,
+                                                 @Nullable PluginId pluginId) {
         this.documentationRegistry = documentationRegistry;
         this.rootType = rootType;
+        this.pluginId = pluginId;
     }
 
     @Override
     public void visitTypeProblem(Action<? super TypeProblemBuilder> problemSpec) {
-        DefaultTypeValidationProblemBuilder builder = new DefaultTypeValidationProblemBuilder(documentationRegistry);
+        DefaultTypeValidationProblemBuilder builder = new DefaultTypeValidationProblemBuilder(documentationRegistry, pluginId);
         problemSpec.execute(builder);
         recordProblem(builder.build());
     }
 
     @Override
     public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {
-        DefaultPropertyValidationProblemBuilder builder = new DefaultPropertyValidationProblemBuilder(documentationRegistry);
+        DefaultPropertyValidationProblemBuilder builder = new DefaultPropertyValidationProblemBuilder(documentationRegistry, pluginId);
         problemSpec.execute(builder);
         builder.forType(rootType);
         recordProblem(builder.build());

@@ -344,6 +344,19 @@ trait ValidationMessageChecker {
         }.render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.TEST_PROBLEM
+    )
+    String dummyValidationProblem(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        display(SimpleMessage, 'dummy') {
+            type('InvalidTask').property('dummy')
+            description('test problem')
+            reason('this is a test')
+            spec.delegate = delegate
+            spec()
+        }.render()
+    }
+
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
                                                                    String docId = 'more_about_tasks',

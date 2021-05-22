@@ -250,4 +250,12 @@ public interface UnitOfWork extends Describable {
      * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
      */
     default void ensureLegacySnapshottingInputsClosed() {}
+
+    /**
+     * Returns a type origin inspector, which is used for diagnostics (e.g error messages) to provide
+     * more context about the origin of types (for example in what plugin a type is defined)
+     */
+    default WorkValidationContext.TypeOriginInspector getTypeOriginInspector() {
+        return WorkValidationContext.TypeOriginInspector.NO_OP;
+    }
 }

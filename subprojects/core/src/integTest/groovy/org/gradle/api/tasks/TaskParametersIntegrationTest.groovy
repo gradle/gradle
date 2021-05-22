@@ -570,7 +570,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage { type('org.gradle.api.DefaultTask').property('input') })
+        failureDescriptionContains(missingValueMessage { property('input') })
     }
 
     def "optional null input properties registered via TaskInputs.property are allowed"() {
@@ -599,7 +599,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage { type('org.gradle.api.DefaultTask').property('input') })
+        failureDescriptionContains(missingValueMessage { property('input') })
 
         where:
         method << ["file", "files", "dir"]
@@ -635,7 +635,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage { type('org.gradle.api.DefaultTask').property('output') })
+        failureDescriptionContains(missingValueMessage { property('output') })
 
         where:
         method << ["file", "files", "dir", "dirs"]
@@ -674,7 +674,7 @@ task someTask(type: SomeTask) {
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failureDescriptionContains(inputDoesNotExist {
-            type('org.gradle.api.DefaultTask').property('input')
+            property('input')
                 .kind(fileType)
                 .missing(missingFile)
                 .includeLink()
@@ -706,7 +706,7 @@ task someTask(type: SomeTask) {
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failureDescriptionContains(unexpectedInputType {
-            type('org.gradle.api.DefaultTask').property('input')
+            property('input')
                 .kind(fileType)
                 .missing(unexpected)
                 .includeLink()
@@ -736,7 +736,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failureDescriptionContains(cannotWriteToFile {
-            type('org.gradle.api.DefaultTask').property('output')
+            property('output')
                 .file(outputDir)
                 .isNotFile()
                 .includeLink()
@@ -766,7 +766,7 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failureDescriptionContains(cannotWriteToDir {
-            type('org.gradle.api.DefaultTask').property('output')
+            property('output')
                 .dir(outputFile)
                 .isNotDirectory()
                 .includeLink()
@@ -802,7 +802,7 @@ task someTask(type: SomeTask) {
         expect:
         fails('myTask')
         failureDescriptionContains(cannotCreateRootOfFileTree {
-            type('org.gradle.api.DefaultTask').property('output')
+            property('output')
                 .dir(outputFile)
                 .includeLink()
         })
