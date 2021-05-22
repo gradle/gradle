@@ -491,13 +491,12 @@ To help you understand how incremental compilation works, the following provides
 * Gradle will recompile all classes _affected_ by a change.
 * A class is _affected_ if it has been changed or if it depends on another affected class.
     This works no matter if the other class is defined in the same project, another project or even an external library.
-* A class's dependencies are determined from type references in its bytecode.
-* Since constants can be inlined, any change to a constant will result in Gradle recompiling all source files.
-    For that reason, you should try to minimize the use of constants in your source code and replace them with static methods where possible.
+* A class's dependencies are determined from type references in its bytecode or symbol analysis via a compiler plugin.
 * Since source-retention annotations are not visible in bytecode, changes to a source-retention annotation will result in full recompilation.
 * You can improve incremental compilation performance by applying good software design principles like loose coupling.
     For instance, if you put an interface between a concrete class and its dependents, the dependent classes are only recompiled when the interface changes, but not when the implementation changes.
 * The class analysis is cached in the project directory, so the first build after a clean checkout can be slower. Consider turning off the incremental compiler on your build server.
+* The class analysis is also an output stored in the build cache, which means that if a compilation output is fetched from the build cache, then the incremental compilation analysis will be too and the next compilation will be incremental.
 
 [[sec:incremental_compilation_known_issues]]
 === Known issues
@@ -505,7 +504,6 @@ To help you understand how incremental compilation works, the following provides
 * If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
 * If you are using an annotation processor that reads resources (e.g. a configuration file), you need to declare those resources as an input of the compile task.
 * If a resource file is changed, Gradle will trigger a full recompilation.
-* If there is a mismatch in the package declaration and the directory structure of source files (e.g. `package foo` vs location `bar/MyClass.java`), then incremental compilation can produce broken output. Wrong classes might be recompiled and there might be leftover class files in the output.
 
 [[sec:incremental_annotation_processing]]
 == Incremental annotation processing
