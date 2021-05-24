@@ -2,6 +2,7 @@ package configurations
 
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
+import common.failedTestArtifactDestination
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -78,28 +79,36 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         }
     }
 
+    fun SnapshotDependency.notStartBuildIfReadyForNightlyTriggerDependenciesFail() {
+        if (stage.stageName == StageNames.READY_FOR_NIGHTLY) {
+            onDependencyFailure = FailureAction.FAIL_TO_START
+            onDependencyCancel = FailureAction.FAIL_TO_START
+        }
+    }
+
     dependencies {
         if (!stage.runsIndependent && prevStage != null) {
             dependency(RelativeId(stageTriggerId(model, prevStage))) {
                 snapshot {
-                    onDependencyFailure = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) {
-                        // We have a "updateBranchStatus" task in Ready for Nightly Trigger
-                        FailureAction.FAIL_TO_START
-                    } else {
-                        FailureAction.ADD_PROBLEM
-                    }
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
+                    notStartBuildIfReadyForNightlyTriggerDependenciesFail()
                 }
             }
         }
 
-        snapshotDependencies(stageProject.specificBuildTypes)
+        snapshotDependencies(stageProject.specificBuildTypes) {
+            notStartBuildIfReadyForNightlyTriggerDependenciesFail()
+        }
         snapshotDependencies(stageProject.performanceTests) { performanceTestPass ->
             if (!performanceTestPass.performanceSpec.failsStage) {
                 onDependencyFailure = FailureAction.IGNORE
                 onDependencyCancel = FailureAction.IGNORE
             }
+            notStartBuildIfReadyForNightlyTriggerDependenciesFail()
         }
-        snapshotDependencies(stageProject.functionalTests)
+        snapshotDependencies(stageProject.functionalTests) {
+            notStartBuildIfReadyForNightlyTriggerDependenciesFail()
+        }
     }
 })
 
