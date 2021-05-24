@@ -35,7 +35,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         BuildResult result
         useSample("gmm-example")
         def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.4")
-        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("4.1")
+        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("4.2")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
         def expectedMetadata = new File(testProjectDir.root, 'expected-metadata')
@@ -126,10 +126,6 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the destinationDirectory property instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring")
-            .expectLegacyDeprecationWarning("The WorkerExecutor.submit() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
             .build()
     }
 
