@@ -52,7 +52,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         actualRepo.eachFileRecurse { actual ->
             def expected = new File(expectedMetadata, actual.name)
             if (expected.name.endsWith('.pom')) {
-                assert expected.text == actual.text : "content mismatch: ${actual.name}]"
+                assert expected.text == actual.text: "content mismatch: ${actual.name}]"
             }
             if (expected.name.endsWith('.module')) {
                 compareJson(expected, actual)
@@ -121,11 +121,12 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         runner('publish')
             .withProjectDir(new File(testProjectDir.root, 'producer'))
             .forwardOutput()
-            // expect legacy deprecation warnings because those are fixed in later versions of Android plugin
-            .expectLegacyDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
+        // this deprecation is coming from the Kotlin plugin
+            .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the destinationDirectory property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring")
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
+                "https://youtrack.jetbrains.com/issue/KT-46019")
             .build()
     }
 
@@ -149,8 +150,8 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         def actualJson = removeChangingDetails(new JsonSlurper().parseText(actual.text), actual.name)
         def expectedJson = removeChangingDetails(new JsonSlurper().parseText(expected.text), actual.name)
         assert actualJson.formatVersion == expectedJson.formatVersion
-        assert actualJson.component == expectedJson.component : "component content mismatch: ${actual.name}"
-        assert actualJson.variants as Set == expectedJson.variants as Set : "variants content mismatch: ${actual.name}"
+        assert actualJson.component == expectedJson.component: "component content mismatch: ${actual.name}"
+        assert actualJson.variants as Set == expectedJson.variants as Set: "variants content mismatch: ${actual.name}"
     }
 
     private static removeChangingDetails(moduleRoot, String metadataFileName) {
