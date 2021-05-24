@@ -18,6 +18,7 @@ package org.gradle.integtests.composite.plugins
 
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Issue
 
 class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
@@ -629,5 +630,31 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
         where:
         dsl << ['Groovy', 'Kotlin']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16532")
+    def "plugin build reaching out to the rootProject of the root build does not break when applying a settings plugin"() {
+        given:
+        def pluginBuild = pluginBuild("plugins")
+        pluginBuild.buildFile.setText("""
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+            println(gradle.root.rootProject)
+        """)
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild.buildName}")
+            }
+            plugins {
+                id("${pluginBuild.settingsPluginId}")
+            }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        pluginBuild.assertSettingsPluginApplied()
     }
 }
