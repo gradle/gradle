@@ -42,7 +42,7 @@ operator fun ExtensionContainer.get(name: String): Any =
  * If the extension is found but cannot be cast to the expected type it will throw an [IllegalStateException].
  *
  * @param name extension name
- * @return extension, never null
+ * @return extension, never `null`
  * @throws [UnknownDomainObjectException] When the given extension is not found.
  * @throws [IllegalStateException] When the given extension cannot be cast to the expected type.
  */
@@ -109,12 +109,11 @@ inline fun <reified T : Any> ExtensionContainer.create(name: String, vararg cons
 inline fun <reified T : Any> ExtensionContainer.getByType(): T =
     getByType(typeOf<T>())
 
-
 /**
  * Looks for the extension of a given type.
  *
  * @param T the extension type
- * @return the extension or null if not found
+ * @return the extension or `null` if not found
  *
  * @see [ExtensionContainer.findByType]
  * @since 5.0
