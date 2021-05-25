@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=4.10")
-@TargetGradleVersion('>=7.1')
+@TargetGradleVersion('>=7.2')
 class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
     def "includes buildSrc builds in model"() {
         buildsWithBuildSrc()
@@ -92,6 +92,32 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         nested.includedBuilds.empty
         nested.editableBuilds.empty
         included.includedBuilds[0].is(nested)
+    }
+
+    def "build action can fetch model for buildSrc project"() {
+        buildsWithBuildSrc()
+
+        given:
+        def model = withConnection {
+            it.action(new FetchBuildSrcProjectModelAction()).run()
+        }
+
+        expect:
+        model != null
+        model.projectDirectory == file("buildSrc")
+    }
+
+    def "build action can fetch model for buildSrc build"() {
+        buildsWithBuildSrc()
+
+        given:
+        def model = withConnection {
+            it.action(new FetchBuildSrcModelAction()).run()
+        }
+
+        expect:
+        model != null
+        model.projectDirectory == file("buildSrc")
     }
 
     def buildsWithBuildSrc() {
