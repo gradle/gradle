@@ -40,6 +40,7 @@ public class ThreadFactoryImpl implements ThreadFactory {
         } else {
             thread.setName(displayName + " Thread " + count);
         }
+        thread.setContextClassLoader(null);
         return thread;
     }
 
