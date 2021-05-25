@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.ExtensionContainer
 
@@ -47,13 +48,35 @@ operator fun ExtensionContainer.get(name: String): Any =
  * @throws [IllegalStateException] When the given extension cannot be cast to the expected type.
  */
 @Suppress("extension_shadowed_by_member")
-inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
-    getByName(name).let {
-        it as? T
-            ?: throw IllegalStateException(
-                "Element '$name' of type '${it::class.java.name}' from container '$this' cannot be cast to '${T::class.qualifiedName}'."
-            )
-    }
+inline fun <reified T : Any> ExtensionContainer.getByName(name: String): T =
+    tryCastExtension(getByName(name), name)
+
+
+/**
+ * Looks for the extension of a given name and casts it to the expected type [T].
+ *
+ * If none found `null` is returned.
+ * If the extension is found but cannot be cast to the expected type it will throw an [IllegalStateException].
+ *
+ * @param name extension name
+ * @return extension or `null`
+ * @throws [IllegalStateException] When the given extension cannot be cast to the expected type.
+ * @since 7.4
+ */
+@Suppress("extension_shadowed_by_member")
+@Incubating
+inline fun <reified T : Any> ExtensionContainer.findByName(name: String): T? =
+    findByName(name)?.let { tryCastExtension(it, name) }
+
+
+/** Casts given [extension] to the specified type [T] or throws [IllegalStateException]. */
+@PublishedApi
+internal
+inline fun <reified T : Any> ExtensionContainer.tryCastExtension(extension: Any, name: String): T =
+    extension as? T
+        ?: throw IllegalStateException(
+            "Element '$name' of type '${extension::class.java.name}' from container '$this' cannot be cast to '${T::class.qualifiedName}'."
+        )
 
 
 /**
@@ -108,6 +131,7 @@ inline fun <reified T : Any> ExtensionContainer.create(name: String, vararg cons
  */
 inline fun <reified T : Any> ExtensionContainer.getByType(): T =
     getByType(typeOf<T>())
+
 
 /**
  * Looks for the extension of a given type.
