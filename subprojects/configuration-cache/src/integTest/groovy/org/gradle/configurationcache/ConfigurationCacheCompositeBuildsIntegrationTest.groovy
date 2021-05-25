@@ -51,6 +51,20 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
     def "hierarchy of build scan relevant build operations is preserved"() {
         given:
+        def expectedOperations = [
+            "Run build / Load build",
+            "Run build / Load build / Evaluate settings",
+            "Run build / Load build / Load build (:lib)",
+            "Run build / Load build / Load build (:lib) / Evaluate settings (:lib)",
+            "Run build / Configure build / Load projects",
+            "Run build / Configure build / Configure build (:lib) / Load projects",
+            "Run build / Configure build / Configure build (:lib) / Configure project :lib",
+            "Run build / Configure build / Configure project :",
+            "Run build / Calculate task graph",
+            "Run build / Calculate task graph / Notify task graph whenReady listeners",
+            "Run build / Calculate task graph / Calculate task graph (:lib)",
+            "Run build / Calculate task graph / Calculate task graph (:lib) / Notify task graph whenReady listeners (:lib)"
+        ]
         def configurationCache = newConfigurationCacheFixture()
         withLibBuild()
         withAppBuild()
@@ -62,7 +76,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         then:
         configurationCache.assertStateStored()
         def buildScanOperationsOnStore = buildScanOperationsOf(configurationCache.operations)
-        !buildScanOperationsOnStore.isEmpty()
+        buildScanOperationsOnStore == expectedOperations
 
         when:
         inDirectory 'app'
