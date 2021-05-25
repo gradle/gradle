@@ -46,7 +46,8 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
 
         buildScopeServices.add(BuildDefinition.class, buildDefinition);
         buildScopeServices.add(BuildState.class, owner);
-        buildScopeServices.addProvider(new GradleModelProvider(parentModel, startParameter));
+        buildScopeServices.addProvider(new GradleModelProvider(parentModel, startParameter,
+            buildDefinition.isPluginBuild() && !"buildSrc".equals(buildDefinition.getName())));
 
         final ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
         for (Action<ListenerManager> action : buildScopeServices.getAll(BuildScopeListenerManagerAction.class)) {
@@ -104,13 +105,22 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         @Nullable
         private final GradleInternal parentModel;
         private final StartParameter startParameter;
+        private final boolean pluginBuild;
 
-        private GradleModelProvider(@Nullable GradleInternal parentModel, StartParameter startParameter) {
+        private GradleModelProvider(@Nullable GradleInternal parentModel, StartParameter startParameter, boolean pluginBuild) {
             this.parentModel = parentModel;
             this.startParameter = startParameter;
+            this.pluginBuild = pluginBuild;
         }
 
         GradleInternal createGradleModel(Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory) {
+            if (pluginBuild) {
+                return instantiator.newInstance(
+                    PluginBuildGradle.class,
+                    startParameter,
+                    serviceRegistryFactory
+                );
+            }
             return instantiator.newInstance(
                 DefaultGradle.class,
                 parentModel,

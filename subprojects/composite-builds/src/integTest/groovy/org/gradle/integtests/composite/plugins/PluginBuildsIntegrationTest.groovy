@@ -633,14 +633,15 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16532")
-    def "plugin build reaching out to the rootProject of the root build does not break when applying a settings plugin"() {
+    def "plugin build reaching out to the rootProject of the root build resolves to the root project of the plugin build"() {
         given:
         def pluginBuild = pluginBuild("plugins")
         pluginBuild.buildFile.setText("""
             plugins {
                 id("groovy-gradle-plugin")
             }
-            println(gradle.root.rootProject)
+            println("Root project: \${gradle.root.rootProject}")
+            assert gradle.parent == null
         """)
         settingsFile << """
             pluginManagement {
@@ -656,5 +657,42 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
         then:
         pluginBuild.assertSettingsPluginApplied()
+        outputContains("Root project: project ':plugins'")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16532")
+    def "multiple included plugin builds have their separate root builds"() {
+
+        given:
+        def pluginBuildLogic = """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+            println("Root project: \${gradle.root.rootProject}")
+            assert gradle.parent == null
+        """
+        def pluginBuild1 = pluginBuild("plugins1")
+        pluginBuild1.buildFile.setText(pluginBuildLogic)
+        def pluginBuild2 = pluginBuild("plugins2")
+        pluginBuild2.buildFile.setText(pluginBuildLogic)
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild1.buildName}")
+                includeBuild("${pluginBuild2.buildName}")
+            }
+            plugins {
+                id("${pluginBuild1.settingsPluginId}")
+                id("${pluginBuild2.settingsPluginId}")
+            }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        pluginBuild1.assertSettingsPluginApplied()
+        pluginBuild2.assertSettingsPluginApplied()
+        outputContains("Root project: project ':plugins1'")
+        outputContains("Root project: project ':plugins2'")
     }
 }
