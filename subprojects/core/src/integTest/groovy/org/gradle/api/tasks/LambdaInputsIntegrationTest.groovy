@@ -22,6 +22,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
@@ -326,6 +327,37 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         skipped(":myTask")
     }
 
+    @ToBeImplemented
+    def "serializable lambda can be used as task action"() {
+        file("buildSrc/src/main/java/LambdaAction.java") << javaClass("LambdaAction", serializableLambdaPrintingString("ACTION", "From Lambda"))
+        setupCustomTask()
+
+        def script = """
+            task myTask(type: CustomTask)
+        """
+
+        buildFile << script <<
+            """
+            myTask.doLast(LambdaAction.ACTION)
+        """
+
+        when:
+        // There shouldn't be a deprecation message
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':myTask')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        })
+        run "myTask"
+        then:
+        executedAndNotSkipped(":myTask")
+//
+//        when:
+//        run "myTask"
+//        then:
+//        skipped(":myTask")
+    }
+
     private TestFile setupCustomTask() {
         file("buildSrc/src/main/java/CustomTask.java") << """
                     import org.gradle.api.Action;
@@ -409,6 +441,14 @@ ${classBody}
     private static String lambdaPrintingString(String constantName, String outputString) {
         """
                 public static final Action<Task> ${constantName} = task -> {
+                    System.out.println("${outputString}");
+                };
+        """
+    }
+
+    private static String serializableLambdaPrintingString(String constantName, String outputString) {
+        """
+                public static final org.gradle.api.internal.lambdas.SerializableLambdas.SerializableAction<Task> ${constantName} = task -> {
                     System.out.println("${outputString}");
                 };
         """
