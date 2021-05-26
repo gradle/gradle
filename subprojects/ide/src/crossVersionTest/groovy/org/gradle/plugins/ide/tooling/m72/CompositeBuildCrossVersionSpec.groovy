@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.tooling.m71
+package org.gradle.plugins.ide.tooling.m72
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -92,6 +92,104 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         nested.includedBuilds.empty
         nested.editableBuilds.empty
         included.includedBuilds[0].is(nested)
+    }
+
+    def "includes buildSrc builds of plugin builds"() {
+        settingsFile << """
+            pluginManagement {
+                includeBuild("child")
+            }
+        """
+        buildSrc(file("child"))
+
+        given:
+        def model = withConnection {
+            it.getModel(GradleBuild)
+        }
+
+        expect:
+        model.includedBuilds.size() == 1
+
+        def included = model.includedBuilds[0]
+        included.buildIdentifier.rootDir == file("child")
+        included.includedBuilds.empty
+        included.editableBuilds.empty
+
+        model.editableBuilds.size() == 2
+
+        model.editableBuilds[0].is(included)
+
+        def includedBuildSrc = model.editableBuilds[1]
+        includedBuildSrc.buildIdentifier.rootDir == file("child/buildSrc")
+        includedBuildSrc.includedBuilds.empty
+        includedBuildSrc.editableBuilds.empty
+    }
+
+    @TargetGradleVersion(">=3.0")
+    def "can query model when there are cycles in the included build graph"() {
+        settingsFile << """
+            includeBuild("child1")
+        """
+        file("child1/settings.gradle") << """
+            includeBuild("../child2")
+        """
+        file("child2/settings.gradle") << """
+            includeBuild("../child1")
+        """
+
+        given:
+        def model = withConnection {
+            it.getModel(GradleBuild)
+        }
+
+        expect:
+        model.includedBuilds.size() == 1
+
+        def included1 = model.includedBuilds[0]
+        included1.buildIdentifier.rootDir == file("child1")
+        included1.includedBuilds.size() == 1
+        included1.editableBuilds.empty
+
+        model.editableBuilds.size() == 2
+
+        model.editableBuilds[0].is(included1)
+
+        def included2 = model.editableBuilds[1]
+        included2.buildIdentifier.rootDir == file("child2")
+        included2.includedBuilds.size() == 1
+        included2.editableBuilds.empty
+
+        included1.includedBuilds[0].is(included2)
+        included2.includedBuilds[0].is(included1)
+    }
+
+    @TargetGradleVersion(">=3.0")
+    def "can query model when included build includes root build"() {
+        settingsFile << """
+            includeBuild("child")
+        """
+        file("child/settings.gradle") << """
+            includeBuild("..")
+        """
+
+        given:
+        def model = withConnection {
+            it.getModel(GradleBuild)
+        }
+
+        expect:
+        model.includedBuilds.size() == 1
+
+        def included = model.includedBuilds[0]
+        included.buildIdentifier.rootDir == file("child")
+        included.includedBuilds.size() == 1
+        included.editableBuilds.empty
+
+        model.editableBuilds.size() == 1
+
+        model.editableBuilds[0].is(included)
+
+        included.includedBuilds[0].is(model)
     }
 
     def "build action can fetch model for buildSrc project"() {

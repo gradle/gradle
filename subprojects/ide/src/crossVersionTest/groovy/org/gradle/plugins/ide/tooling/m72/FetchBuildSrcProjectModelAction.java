@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.tooling.m71;
+package org.gradle.plugins.ide.tooling.m72;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
-public class FetchBuildSrcModelAction implements BuildAction<GradleProject> {
+public class FetchBuildSrcProjectModelAction implements BuildAction<GradleProject> {
     @Override
     public GradleProject execute(BuildController controller) {
         GradleBuild buildModel = controller.getModel(GradleBuild.class);
         for (GradleBuild build : buildModel.getEditableBuilds()) {
             if (build.getBuildIdentifier().getRootDir().getName().equals("buildSrc")) {
-                return controller.getModel(build, GradleProject.class);
+                return controller.getModel(build.getRootProject(), GradleProject.class);
             }
         }
         return null;
