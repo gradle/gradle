@@ -46,7 +46,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -182,12 +181,10 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
         // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
         Class<?> workType = workClass.get();
         TypeValidationContext workValidationContext = validationContext.forType(workType, true);
-        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(),
-            () -> "Implementation of " + work.getDisplayName() + " " + beforeExecutionState.getImplementation().getUnknownReason()
+        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work
         );
-        beforeExecutionState.getAdditionalImplementations().forEach(additionalImplementation -> validateImplementation(workValidationContext, additionalImplementation,
-            () -> "Additional action of " + work.getDisplayName() + " " + additionalImplementation.getUnknownReason()
-        ));
+        beforeExecutionState.getAdditionalImplementations()
+            .forEach(additionalImplementation -> validateImplementation(workValidationContext, additionalImplementation, "Additional action of ", work));
         beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
             if (valueSnapshot instanceof ImplementationSnapshot) {
                 ImplementationSnapshot implementationSnapshot = (ImplementationSnapshot) valueSnapshot;
@@ -198,16 +195,26 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
 
     private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementationSnapshot) {
         if (implementationSnapshot.isUnknown()) {
-            workValidationContext.visitPropertyProblem(problem -> configureImplementationValidationProblem(problem)
-                .forProperty(propertyName)
-                .withDescription(implementationSnapshot::getUnknownReason));
+            workValidationContext.visitPropertyProblem(problem -> {
+                ImplementationSnapshot.UnknownReason unknownReason = implementationSnapshot.getUnknownReason();
+                configureImplementationValidationProblem(problem)
+                    .forProperty(propertyName)
+                    .withDescription(() -> unknownReason.descriptionFor(implementationSnapshot))
+                    .happensBecause(unknownReason.getReason())
+                    .addPossibleSolution(unknownReason.getSolution());
+            });
         }
     }
 
-    private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, Supplier<String> description) {
+    private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
         if (implementation.isUnknown()) {
-            workValidationContext.visitPropertyProblem(problem -> configureImplementationValidationProblem(problem)
-                .withDescription(description));
+            workValidationContext.visitPropertyProblem(problem -> {
+                ImplementationSnapshot.UnknownReason unknownReason = implementation.getUnknownReason();
+                configureImplementationValidationProblem(problem)
+                    .withDescription(() -> descriptionPrefix + work + " " + unknownReason.descriptionFor(implementation))
+                    .happensBecause(unknownReason.getReason())
+                    .addPossibleSolution(unknownReason.getSolution());
+            });
         }
     }
 
@@ -216,8 +223,6 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
             .typeIsIrrelevantInErrorMessage()
             .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
             .reportAs(Severity.WARNING)
-            .happensBecause("Gradle cannot track inputs when it doesn't know their implementation")
-            .addPossibleSolution("Use an (anonymous) inner class instead")
             .documentedAt("validation_problems", "implementation_unknown");
     }
 

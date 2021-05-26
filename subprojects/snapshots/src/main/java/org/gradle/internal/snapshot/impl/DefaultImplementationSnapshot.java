@@ -65,7 +65,7 @@ public class DefaultImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     @Nullable
-    public String getUnknownReason() {
+    public UnknownReason getUnknownReason() {
         return null;
     }
 

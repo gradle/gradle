@@ -338,9 +338,9 @@ trait ValidationMessageChecker {
     )
     String implementationUnknown(boolean renderSolutions = false, @DelegatesTo(value = UnknownImplementation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(UnknownImplementation, 'implementation_unknown', spec)
-        config.description("${config.prefix} ${config.reason}")
-            .reason("Gradle cannot track inputs when it doesn't know their implementation")
-            .solution("Use an (anonymous) inner class instead")
+        config.description("${config.prefix} ${config.postfix}")
+            .reason(config.reason)
+            .solution(config.solution)
             .render(renderSolutions)
     }
 
@@ -808,7 +808,9 @@ trait ValidationMessageChecker {
     static class UnknownImplementation extends ValidationMessageDisplayConfiguration<UnknownImplementation> {
 
         String prefix
+        String postfix
         String reason
+        String solution
 
         UnknownImplementation(ValidationMessageChecker checker) {
             super(checker)
@@ -830,12 +832,16 @@ trait ValidationMessageChecker {
         }
 
         UnknownImplementation unknownClassloader(String className) {
-            reason = "was loaded with an unknown classloader (class '${className}')."
+            postfix = "was loaded with an unknown classloader (class '${className}')."
+            reason = "Gradle cannot track the implementation for classes loaded with an unknown classloader."
+            solution = "Load your class by using one of Gradle's built-in ways."
             this
         }
 
         UnknownImplementation implementedByLambda(String lambdaPrefix) {
-            reason = "was implemented by the Java lambda '${lambdaPrefix}\$\$Lambda\$<non-deterministic>'. Using Java lambdas is not supported, use an (anonymous) inner class instead."
+            postfix = "was implemented by the Java lambda '${lambdaPrefix}\$\$Lambda\$<non-deterministic>'."
+            reason = "Using Java lambdas is not supported as task inputs."
+            solution = "Use an (anonymous inner) class instead."
             this
         }
     }

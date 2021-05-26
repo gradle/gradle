@@ -58,8 +58,8 @@ public class UnknownClassloaderImplementationSnapshot extends ImplementationSnap
 
     @Override
     @Nullable
-    public String getUnknownReason() {
-        return "was loaded with an unknown classloader (class '" + getTypeName() + "').";
+    public UnknownReason getUnknownReason() {
+        return UnknownReason.UNKNOWN_CLASSLOADER;
     }
 
     @Override

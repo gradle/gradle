@@ -783,11 +783,11 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
 
         then:
         outputEquals """
-Property 'action' was implemented by the Java lambda 'LambdaAction\$\$Lambda\$<non-deterministic>'. Using Java lambdas is not supported, use an (anonymous) inner class instead.
+Property 'action' was implemented by the Java lambda 'LambdaAction\$\$Lambda\$<non-deterministic>'.
 
-Reason: Gradle cannot track inputs when it doesn't know their implementation.
+Reason: Using Java lambdas is not supported as task inputs.
 
-Possible solution: Use an (anonymous) inner class instead.
+Possible solution: Use an (anonymous inner) class instead.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
     }
@@ -805,11 +805,11 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
 
         then:
         outputEquals """
-Additional action of task ':myTask' was implemented by the Java lambda 'LambdaAction\$\$Lambda\$<non-deterministic>'. Using Java lambdas is not supported, use an (anonymous) inner class instead.
+Additional action of task ':myTask' was implemented by the Java lambda 'LambdaAction\$\$Lambda\$<non-deterministic>'.
 
-Reason: Gradle cannot track inputs when it doesn't know their implementation.
+Reason: Using Java lambdas is not supported as task inputs.
 
-Possible solution: Use an (anonymous) inner class instead.
+Possible solution: Use an (anonymous inner) class instead.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
     }
@@ -829,9 +829,9 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
         outputEquals """
 Implementation of task ':myTask' was loaded with an unknown classloader (class 'Unknown').
 
-Reason: Gradle cannot track inputs when it doesn't know their implementation.
+Reason: Gradle cannot track the implementation for classes loaded with an unknown classloader.
 
-Possible solution: Use an (anonymous) inner class instead.
+Possible solution: Load your class by using one of Gradle's built-in ways.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
     }

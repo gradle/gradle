@@ -58,8 +58,8 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     @Nullable
-    public String getUnknownReason() {
-        return "was implemented by the Java lambda '" + getTypeName() + "'. Using Java lambdas is not supported, use an (anonymous) inner class instead.";
+    public UnknownReason getUnknownReason() {
+        return UnknownReason.LAMBDA;
     }
 
     @Override
