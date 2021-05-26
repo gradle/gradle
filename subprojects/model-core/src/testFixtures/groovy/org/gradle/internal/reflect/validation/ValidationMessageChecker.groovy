@@ -34,10 +34,6 @@ trait ValidationMessageChecker {
         messageIndent = indent
     }
 
-    void expectUnindentedValidationMessage() {
-        messageIndent = ''
-    }
-
     String userguideLink(String id, String section) {
         documentationRegistry.getDocumentationFor(id, section)
     }

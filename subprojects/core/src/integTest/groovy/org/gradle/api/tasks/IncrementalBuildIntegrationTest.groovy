@@ -1087,7 +1087,6 @@ task b(dependsOn: a)
     )
     @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTask")
     def "task loaded with custom classloader disables execution optimizations"() {
-        expectUnindentedValidationMessage()
         file("input.txt").text = "data"
         buildFile << """
             def CustomTask = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
@@ -1144,7 +1143,6 @@ task b(dependsOn: a)
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
     def "can switch between task with implementation from unknown classloader and from known classloader"() {
-        expectUnindentedValidationMessage()
         file("input.txt").text = "data"
         buildFile << """
             ${customTaskImplementation("CustomTaskFromBuildFile")}
@@ -1230,7 +1228,6 @@ task b(dependsOn: a)
     )
     @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTaskAction")
     def "task with custom action loaded with custom classloader is never up-to-date"() {
-        expectUnindentedValidationMessage()
         file("input.txt").text = "data"
         buildFile << """
             import org.gradle.api.*

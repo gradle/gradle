@@ -291,7 +291,11 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         """
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown { additionalTaskAction(':myTask').implementedByLambda('LambdaAction').includeLink() })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':myTask')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        })
         withBuildCache().run "myTask"
         then:
         executedAndNotSkipped(":myTask")
@@ -307,7 +311,11 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         skipped(":myTask")
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown { additionalTaskAction(':myTask').implementedByLambda('LambdaAction').includeLink() })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':myTask')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        })
         withBuildCache().run "myTask"
         then:
         executedAndNotSkipped(":myTask")

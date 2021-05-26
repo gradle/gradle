@@ -782,7 +782,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     )
     @ToBeFixedForConfigurationCache(because = "uses custom GroovyClassLoader")
     def "task with nested bean loaded with custom classloader disables execution optimizations"() {
-        expectUnindentedValidationMessage()
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
 
