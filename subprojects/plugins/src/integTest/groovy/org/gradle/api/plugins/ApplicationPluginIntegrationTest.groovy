@@ -203,7 +203,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         given:
         succeeds('installDist')
         def binFile = file('build/install/sample/bin/sample')
-        binFile.text = """#!/usr/bin/env bash
+        binFile.text = """#!/usr/bin/env sh
 echo Script PID: \$\$
 
 $binFile.text
@@ -527,6 +527,7 @@ startScripts {
         generateMainClass """
             System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
             System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+            System.out.println("FOO: " + System.getProperty("FOO"));
             System.out.println("Hello World!");
         """
     }
@@ -690,7 +691,107 @@ rootProject.name = 'sample'
         fails('execStartScript')
 
         then:
-        errorOutput.contains("Could not find or load main class `\$(touch")
+        result.assertTaskExecuted(":execStartScript")
         !exploit.exists()
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "environment variables can have spaces in their values"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment ${envVar}: '-DFOO="with a space"'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains("FOO: with a space")
+
+        where:
+        envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "environment variables can have spaces in their values that should be treated as separate tokens"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment ${envVar}: '-DNOTFOO "-DFOO=with a space"'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains("FOO: with a space")
+
+        where:
+        envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "environment variables that do not have spaces in their values that should be treated as separate tokens"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment ${envVar}: '-DNOTFOO -DFOO="withoutspaces"'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains("FOO: withoutspaces")
+
+        where:
+        envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "environment variables that do not have spaces in their values that should be treated as one token"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment ${envVar}: '-DFOO=withoutspaces'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains("FOO: withoutspaces")
+
+        where:
+        envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
 }
