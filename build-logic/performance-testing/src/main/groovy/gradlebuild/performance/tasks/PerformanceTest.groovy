@@ -210,7 +210,8 @@ abstract class PerformanceTest extends DistributionTest {
         this.scenarios = scenarios
     }
 
-    @Internal
+    @Optional
+    @Input
     @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
     Property<String> getBaselines() {
         return baselines
