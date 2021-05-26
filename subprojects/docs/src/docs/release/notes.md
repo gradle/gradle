@@ -18,7 +18,8 @@ We would like to thank the following community members for their contributions t
 [xhudik](https://github.com/xhudik),
 [Anuraag Agrawal](https://github.com/anuraaga),
 [Florian Schmitt](https://github.com/florianschmitt),
-[Evgeny Mandrikov](https://github.com/Godin).
+[Evgeny Mandrikov](https://github.com/Godin),
+[Sverre Moe](https://github.com/DJViking).
 
 ## Upgrade Instructions
 
