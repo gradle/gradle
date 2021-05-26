@@ -23,6 +23,7 @@ import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
+import java.util.function.Consumer
 import java.util.function.Function
 
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
@@ -73,7 +74,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
         and:
         1 * buildController.scheduleRequestedTasks()
-        1 * workController.execute(_) >> { throw failure }
+        1 * workController.execute(_) >> { Consumer consumer -> consumer.accept(failure) }
         0 * action._
 
         and:
