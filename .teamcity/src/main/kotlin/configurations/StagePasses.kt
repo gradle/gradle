@@ -24,9 +24,9 @@ import projects.StageProject
 class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) : BaseGradleBuildType(init = {
     id(stageTriggerId(model, stage))
     name = stage.stageName.stageName + " (Trigger)"
+    type = Type.COMPOSITE
 
     applyDefaultSettings()
-    artifactRules = "subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties"
 
     features {
         publishBuildStatusToGithub(model)
@@ -59,25 +59,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
             param("revisionRule", "lastFinished")
             branchFilter = branchFilter(model.branch)
             enabled = enableTriggers
-        }
-    }
-
-    val buildScanTags = model.buildScanTags + stage.id
-
-    val defaultGradleParameters = (
-        buildToolGradleParameters() +
-            buildScanTags.map(::buildScanTag)
-        ).joinToString(" ") + " -Porg.gradle.java.installations.auto-download=false"
-    steps {
-        gradleWrapper {
-            name = "GRADLE_RUNNER"
-            tasks = ":base-services:createBuildReceipt" + if (stage.stageName == StageNames.READY_FOR_NIGHTLY) " updateBranchStatus" else ""
-            gradleParams = defaultGradleParameters
-        }
-        script {
-            name = "CHECK_CLEAN_M2"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = m2CleanScriptUnixLike
         }
     }
 
