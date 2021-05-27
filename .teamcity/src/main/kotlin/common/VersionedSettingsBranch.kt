@@ -6,6 +6,7 @@ data class VersionedSettingsBranch(val branchName: String) {
 
     companion object {
         val MASTER = VersionedSettingsBranch("master")
+        val EXPERIMENTAL = VersionedSettingsBranch("experimental")
 
         fun fromDslContext(): VersionedSettingsBranch {
             val branch = DslContext.getParameter("Branch")
