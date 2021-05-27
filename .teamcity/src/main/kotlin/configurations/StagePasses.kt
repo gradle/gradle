@@ -1,15 +1,11 @@
 package configurations
 
 import common.applyDefaultSettings
-import common.buildToolGradleParameters
-import common.gradleWrapper
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.SnapshotDependency
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.VcsTrigger
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
@@ -17,7 +13,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
 import model.CIBuildModel
 import model.Stage
 import model.StageName
-import model.StageNames
 import model.Trigger
 import projects.StageProject
 

@@ -3,7 +3,6 @@ import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
 import configurations.FunctionalTest
-import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
