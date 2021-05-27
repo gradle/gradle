@@ -66,11 +66,11 @@
             </tr>
             <tr>
                 <td>destinationDir</td>
-                <td><literal>project.distsDir</literal></td>
+                <td><literal>project.distsDirectory</literal></td>
             </tr>
             <tr>
                 <td>destinationDirectory</td>
-                <td><literal>project.distsDir</literal></td>
+                <td><literal>project.distsDirectory</literal></td>
             </tr>
             <tr>
                 <td>preserveFileTimestamps</td>
