@@ -29,7 +29,7 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
     GradleInternal gradle
     BuildExecutionContext context
     CommandLineTaskParser parser
-    def TaskNameResolvingBuildConfigurationAction action
+    TaskNameResolvingBuildConfigurationAction action
 
     def setup() {
         gradle = Mock(GradleInternal)
