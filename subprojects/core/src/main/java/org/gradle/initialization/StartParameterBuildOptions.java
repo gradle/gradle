@@ -484,8 +484,10 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     }
 
     public static class IsolatedProjectsOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects";
+
         public IsolatedProjectsOption() {
-            super("org.gradle.unsafe.isolated-projects");
+            super(PROPERTY_NAME);
         }
 
         @Override
@@ -495,7 +497,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     }
 
     public static class ConfigurationCacheProblemsOption extends EnumBuildOption<ConfigurationCacheProblemsOption.Value, StartParameterInternal> {
-
         public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache-problems";
         public static final String LONG_OPTION = "configuration-cache-problems";
 

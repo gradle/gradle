@@ -35,17 +35,6 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractOptInFe
     static final String MAX_PROBLEMS_GRADLE_PROP = "${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
     static final String MAX_PROBLEMS_SYS_PROP = "-D$MAX_PROBLEMS_GRADLE_PROP"
 
-    def setup() {
-        // Verify that the previous test cleaned up state correctly
-        assert System.getProperty(ConfigurationCacheOption.PROPERTY_NAME) == null
-    }
-
-    @Override
-    def cleanup() {
-        // Verify that the test (or fixtures) has cleaned up state correctly
-        assert System.getProperty(ConfigurationCacheOption.PROPERTY_NAME) == null
-    }
-
     void buildKotlinFile(@Language(value = "kotlin") String script) {
         buildKotlinFile << script
     }

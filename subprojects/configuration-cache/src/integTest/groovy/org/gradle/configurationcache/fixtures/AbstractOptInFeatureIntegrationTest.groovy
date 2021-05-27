@@ -29,7 +29,16 @@ abstract class AbstractOptInFeatureIntegrationTest extends AbstractIntegrationSp
     protected ConfigurationCacheProblemsFixture problems
 
     def setup() {
+        // Verify that the previous test cleaned up state correctly
+        assert System.getProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME) == null
+        assert System.getProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME) == null
         problems = new ConfigurationCacheProblemsFixture(executer, testDirectory)
+    }
+
+    def cleanup() {
+        // Verify that the test (or fixtures) has cleaned up state correctly
+        assert System.getProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME) == null
+        assert System.getProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME) == null
     }
 
     abstract void configurationCacheRun(String... tasks)
