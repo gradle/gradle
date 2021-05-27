@@ -31,11 +31,11 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
             return maybeCreateRangeSelector(selectorString);
         }
 
-        if (isSubVersion(selectorString)) {
+        if (selectorString.endsWith("+")) {
             return new SubVersionSelector(selectorString);
         }
 
-        if (isLatestVersion(selectorString)) {
+        if (selectorString.startsWith("latest.")) {
             return new LatestVersionSelector(selectorString);
         }
 
@@ -68,11 +68,4 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
         return new InverseVersionSelector(selector);
     }
 
-    public static boolean isSubVersion(String selectorString) {
-        return selectorString.endsWith("+");
-    }
-
-    public static boolean isLatestVersion(String selectorString) {
-        return selectorString.startsWith("latest.");
-    }
 }

@@ -65,15 +65,11 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
-        javaLibrary(mavenRepo.module("org.test", "baz", "1.0+10")).withModuleMetadata().publish()
-        javaLibrary(mavenRepo.module("org.test", "qux", "1.0-latest")).withModuleMetadata().publish()
 
         createBuildScripts("""
             dependencies {
                 api "org.test:foo:1.0"
                 implementation "org.test:bar:1.0"
-                implementation "org.test:baz:1.0+10"
-                implementation "org.test:qux:1.0-latest"
             }
             publishing {
                 publications {
@@ -88,14 +84,13 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
         javaLibrary.assertPublished()
         javaLibrary.assertApiDependencies("org.test:foo:1.0")
-        javaLibrary.assertRuntimeDependencies("org.test:bar:1.0", "org.test:baz:1.0+10", "org.test:qux:1.0-latest")
+        javaLibrary.assertRuntimeDependencies("org.test:bar:1.0")
 
         and:
         resolveArtifacts(javaLibrary) {
-            expectFiles "bar-1.0.jar", "baz-1.0+10.jar", "qux-1.0-latest.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
@@ -110,7 +105,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
         and:
         resolveRuntimeArtifacts(javaLibrary) {
-            expectFiles "bar-1.0.jar", "baz-1.0+10.jar", "qux-1.0-latest.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
         }
     }
 
@@ -508,7 +503,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
 
         where:
-        version << ['1.+', 'latest.milestone', '+']
+        version << ['1.+', 'latest.milestone']
     }
 
     def "can publish java-library with attached artifacts"() {

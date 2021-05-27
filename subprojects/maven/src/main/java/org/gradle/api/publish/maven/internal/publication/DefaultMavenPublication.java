@@ -46,7 +46,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -387,10 +386,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (version == null) {
             return false;
         }
-        if (DefaultVersionSelectorScheme.isSubVersion(version)) {
+        if (version.contains("+")) {
             return true;
         }
-        if (DefaultVersionSelectorScheme.isLatestVersion(version)) {
+        if (version.contains("latest")) {
             return !MavenVersionSelectorScheme.isSubstituableLatest(version);
         }
         return false;
