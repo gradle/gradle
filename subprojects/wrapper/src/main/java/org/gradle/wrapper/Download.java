@@ -185,8 +185,10 @@ public class Download implements IDownload {
     }
 
     private String calculateUserInfo(URI uri) {
-        String username = systemProperties.get("gradle.wrapperUser");
-        String password = systemProperties.get("gradle.wrapperPassword");
+        String usernameKey = systemProperties.get("gradle.wrapperUserKey");
+        String passwordKey = systemProperties.get("gradle.wrapperPasswordKey");
+        String username = usernameKey != null ? systemProperties.get(usernameKey): systemProperties.get("gradle.wrapperUser");
+        String password = passwordKey != null ? systemProperties.get(passwordKey): systemProperties.get("gradle.wrapperPassword");
         if (username != null && password != null) {
             return username + ':' + password;
         }

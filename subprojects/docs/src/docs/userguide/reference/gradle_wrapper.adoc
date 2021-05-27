@@ -225,6 +225,15 @@ systemProp.gradle.wrapperUser=username
 systemProp.gradle.wrapperPassword=password
 ----
 
+[source,properties]
+.Specifying the wrapper credentials key to reuse the existing credentials defined by system properties: repoUsername and repoPassword, which property name could be re-defined by users
+----
+systemProp.repoUsername=username
+systemProp.repoPassword=password
+systemProp.gradle.wrapperUserKey=repoUsername
+systemProp.gradle.wrapperPasswordKey=repoPassword
+----
+
 Embedding credentials in the `distributionUrl` in the `gradle/wrapper/gradle-wrapper.properties` file also works. Please note that this file is to be committed into your source control system. Shared credentials embedded in `distributionUrl` should only be used in a controlled environment.
 
 [listing]
