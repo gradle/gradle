@@ -16,7 +16,7 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
     buildType(PublishBranchSnapshotFromQuickFeedback)
     buildType(PublishMilestone(branch))
 
-    if (branch == VersionedSettingsBranch.MASTER) {
+    if (branch.isMaster) {
         buildType(StartReleaseCycle)
         buildType(StartReleaseCycleTest)
     } else {

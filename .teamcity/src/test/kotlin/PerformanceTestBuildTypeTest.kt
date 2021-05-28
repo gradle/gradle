@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import common.VersionedSettingsBranch
-import configurations.PerformanceTest
-import model.JsonBasedGradleSubprojectProvider
-import model.PerformanceTestCoverage
 import common.JvmVendor
 import common.JvmVersion
 import common.Os
+import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
+import configurations.PerformanceTest
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
+import model.JsonBasedGradleSubprojectProvider
+import model.PerformanceTestCoverage
 import model.PerformanceTestType
 import model.SpecificBuild
 import model.Stage
@@ -39,7 +39,7 @@ class PerformanceTestBuildTypeTest {
     private
     val buildModel = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = VersionedSettingsBranch.MASTER,
+        branch = VersionedSettingsBranch("master", true),
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     )
