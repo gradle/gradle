@@ -36,6 +36,7 @@ class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDis
                 }
                 triggerBuild = always()
                 withPendingChangesOnly = false
+                enabled = VersionedSettingsBranch.fromDslContext().enableTriggers
             }
         }
     }

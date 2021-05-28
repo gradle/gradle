@@ -16,6 +16,7 @@
 
 package promotion
 
+import common.VersionedSettingsBranch
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
@@ -39,6 +40,7 @@ object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = gradlePromotio
         triggers {
             vcs {
                 branchFilter = "+:master"
+                enabled = VersionedSettingsBranch.fromDslContext().enableTriggers
             }
             schedule {
                 schedulingPolicy = daily {
@@ -47,6 +49,7 @@ object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = gradlePromotio
                 branchFilter = "+:master"
                 triggerBuild = always()
                 withPendingChangesOnly = false
+                enabled = VersionedSettingsBranch.fromDslContext().enableTriggers
             }
         }
     }

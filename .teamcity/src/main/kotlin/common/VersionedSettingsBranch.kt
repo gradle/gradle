@@ -2,11 +2,14 @@ package common
 
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 
-data class VersionedSettingsBranch(val branchName: String) {
+private
+val mainBranches = setOf("master", "release")
+
+data class VersionedSettingsBranch(val branchName: String, val enableTriggers: Boolean) {
 
     companion object {
-        val MASTER = VersionedSettingsBranch("master")
-        val EXPERIMENTAL = VersionedSettingsBranch("experimental")
+        val MASTER = VersionedSettingsBranch("master", true)
+        val EXPERIMENTAL = VersionedSettingsBranch("experimental", false)
 
         fun fromDslContext(): VersionedSettingsBranch {
             val branch = DslContext.getParameter("Branch")
@@ -14,7 +17,7 @@ data class VersionedSettingsBranch(val branchName: String) {
             if (branch.contains("placeholder-1")) {
                 return MASTER
             }
-            return VersionedSettingsBranch(branch.toLowerCase())
+            return VersionedSettingsBranch(branch.toLowerCase(), mainBranches.contains(branch.toLowerCase()))
         }
     }
 }
