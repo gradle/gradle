@@ -16,15 +16,12 @@
 
 package org.gradle.configurationcache
 
-
 import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
-@Ignore("https://github.com/gradle/gradle-private/issues/3396")
 class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ArtifactTransformTestFixture {
     @Rule
     HttpServer httpServer = new HttpServer()

@@ -18,8 +18,10 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
 
+import static org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME
+
 abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractOptInFeatureIntegrationTest {
-    public static final String ENABLE_CLI = "-Dorg.gradle.unsafe.isolated-projects=true"
+    public static final String ENABLE_CLI = "-D${PROPERTY_NAME}=true"
 
     @Override
     void configurationCacheRun(String... tasks) {
