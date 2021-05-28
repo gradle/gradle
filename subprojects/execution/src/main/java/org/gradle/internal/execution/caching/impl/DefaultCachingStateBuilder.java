@@ -19,7 +19,6 @@ package org.gradle.internal.execution.caching.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingInputs;
@@ -53,9 +52,6 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
 
     @OverridingMethodsMustInvokeSuper
     protected void processImplementation(ImplementationSnapshot implementation) {
-        if (implementation.isUnknown()) {
-            throw new GradleException("Cannot calculate build cache key for work item with unknown implementation");
-        }
     }
 
     @Override
@@ -68,9 +64,6 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
 
     @OverridingMethodsMustInvokeSuper
     protected void processAdditionalImplementation(ImplementationSnapshot additionalImplementation) {
-        if (additionalImplementation.isUnknown()) {
-            throw new GradleException("Cannot calculate build cache key for additional action with unknown implementation");
-        }
     }
 
     @Override

@@ -18,7 +18,6 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
-import org.gradle.api.GradleException;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 public class ImplementationChanges implements ChangeContainer {
@@ -44,13 +43,12 @@ public class ImplementationChanges implements ChangeContainer {
 
     @Override
     public boolean accept(ChangeVisitor visitor) {
+        // In this method, the current implementation and additional implementations can't be unknown, since that causes already a validation warning.
+        // Previous implementations can still be unknown, since we store the inputs in the task history even if validation fails.
+        // When we fail the build for unknown implementations, then the previous implementations also can't be unknown.
         if (!currentImplementation.getTypeName().equals(previousImplementation.getTypeName())) {
             return visitor.visitChange(new DescriptiveChange("The type of %s has changed from '%s' to '%s'.",
                 executable.getDisplayName(), previousImplementation.getTypeName(), currentImplementation.getTypeName()));
-        }
-        if (currentImplementation.isUnknown()) {
-            // We already validate that the current implementation can't be unknown.
-            throw new GradleException("Cannot determine changes for work with unknown implementation");
         }
         if (previousImplementation.isUnknown()) {
             // When we fail on an unknown implementation, the previous one can't be unknown.
@@ -64,19 +62,10 @@ public class ImplementationChanges implements ChangeContainer {
                     executable.getDisplayName(), previousImplementation.getClassLoaderHash(), currentImplementation.getClassLoaderHash()));
         }
 
-        validateImplementationsKnown(currentAdditionalImplementations);
         if (!currentAdditionalImplementations.equals(previousAdditionalImplementations)) {
             return visitor.visitChange(new DescriptiveChange("One or more additional actions for %s have changed.",
                     executable.getDisplayName()));
         }
         return true;
-    }
-
-    private static void validateImplementationsKnown(Iterable<ImplementationSnapshot> implementations) {
-        for (ImplementationSnapshot implementation : implementations) {
-            if (implementation.isUnknown()) {
-                throw new GradleException("Cannot determine changes for additional action with unknown implementation");
-            }
-        }
     }
 }

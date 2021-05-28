@@ -19,11 +19,8 @@ package org.gradle.internal.execution.history.changes
 import com.google.common.collect.ImmutableList
 import org.gradle.api.DefaultTask
 import org.gradle.api.Describable
-import org.gradle.api.GradleException
 import org.gradle.api.Task
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
-import org.gradle.internal.Cast
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
@@ -91,33 +88,6 @@ class ImplementationChangesTest extends Specification {
             impl(SimpleTask), [impl(TestAction)],
             impl(SimpleTask), [impl(TestAction), impl(TestAction)]
         ) == ["One or more additional actions for task ':test' have changed."]
-    }
-
-    def "cannot determine changes when task is loaded with an unknown classloader"() {
-        def taskClassLoader = new GroovyClassLoader(getClass().getClassLoader())
-        Class<? extends TaskInternal> simpleTaskClass = Cast.uncheckedCast(taskClassLoader.parseClass("""
-            import org.gradle.api.*
-
-            class SimpleTask extends DefaultTask {}
-        """))
-
-        when:
-        changesBetween(
-            impl(simpleTaskClass), [impl(TestAction)],
-            impl(simpleTaskClass, null), [impl(TestAction)]
-        )
-        then:
-        thrown(GradleException)
-    }
-
-    def "cannot determine changes when task action is loaded with an unknown classloader"() {
-        when:
-        changesBetween(
-            impl(SimpleTask), [impl(TestAction)],
-            impl(SimpleTask), [impl(TestAction, null)]
-        )
-        then:
-        thrown(GradleException)
     }
 
     def "not up-to-date when task was previously loaded with an unknown classloader"() {
