@@ -99,11 +99,12 @@ public class TarFileTree extends AbstractArchiveFileTree {
         NoCloseTarInputStream tar = new NoCloseTarInputStream(inputStream);
         TarEntry entry;
         File expandedDir = getExpandedDir();
+        ReadableResourceInternal resource = this.resource.get();
         while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
             if (entry.isDirectory()) {
-                visitor.visitDir(new DetailsImpl(resource.get(), expandedDir, entry, tar, stopFlag, chmod));
+                visitor.visitDir(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
             } else {
-                visitor.visitFile(new DetailsImpl(resource.get(), expandedDir, entry, tar, stopFlag, chmod));
+                visitor.visitFile(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
             }
         }
     }

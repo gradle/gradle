@@ -15,5 +15,9 @@ subprojects/snapshots/              @gradle/execution
 # Gradle Enterprise
 subprojects/enterprise/             @ldaley @marcphilipp
 
+# Testing
+subprojects/testing-junit-platform/ @gradle/ge-test-distribution
+subprojects/testing-jvm/            @gradle/ge-test-distribution
+
 # Release notes
 subprojects/docs/src/docs/release/notes.md @pioterj

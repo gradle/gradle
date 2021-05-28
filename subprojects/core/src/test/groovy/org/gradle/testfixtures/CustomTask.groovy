@@ -21,7 +21,7 @@ import org.gradle.api.tasks.TaskAction
 
 
 public class CustomTask extends DefaultTask {
-    def String property
+    String property
 
     @TaskAction
     def doStuff() {
