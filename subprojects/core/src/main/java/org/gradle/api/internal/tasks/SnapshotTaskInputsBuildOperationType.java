@@ -186,7 +186,9 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          */
         @Deprecated
         @Nullable
-        Set<String> getInputPropertiesLoadedByUnknownClassLoader();
+        default Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
+            return null;
+        }
 
         /**
          * The names of the output properties.
