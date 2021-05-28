@@ -21,6 +21,7 @@ We would like to thank the following community members for their contributions t
 [Anuraag Agrawal](https://github.com/anuraaga),
 [Florian Schmitt](https://github.com/florianschmitt),
 [Evgeny Mandrikov](https://github.com/Godin),
+[Ievgenii Shepeliuk](https://github.com/eshepelyuk),
 [Sverre Moe](https://github.com/DJViking).
 
 ## Upgrade instructions
