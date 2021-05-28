@@ -67,10 +67,17 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action) {
-        return doBuild((buildController, failures) -> {
+        return doBuild((buildController, failureCollector) -> {
             if (runTasks) {
                 buildController.scheduleRequestedTasks();
-                workExecutor.execute(failures);
+                List<Throwable> failures = new ArrayList<>();
+                workExecutor.execute(throwable -> {
+                    failures.add(throwable);
+                    failureCollector.accept(throwable);
+                });
+                if (!failures.isEmpty()) {
+                    return null;
+                }
             } else {
                 buildController.getConfiguredBuild();
             }

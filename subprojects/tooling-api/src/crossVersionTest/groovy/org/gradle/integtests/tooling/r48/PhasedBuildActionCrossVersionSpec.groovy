@@ -26,7 +26,6 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import spock.lang.Ignore
 
 import java.util.regex.Pattern
 
@@ -204,7 +203,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         assertHasConfigureFailedLogging()
     }
 
-    @Ignore("Needs fixing: the test started failing as we lost coverage for [TAPI X -> Gradle current]")
     @TargetGradleVersion(">=4.8")
     def "build finished action does not run when build fails"() {
         def projectsLoadedHandler = new IntermediateResultHandlerCollector()
