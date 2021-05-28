@@ -38,15 +38,15 @@ class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDis
                 }
                 triggerBuild = always()
                 withPendingChangesOnly = false
-                enabled = VersionedSettingsBranch.fromDslContext().enableTriggers
+                enabled = branch.enableTriggers
             }
         }
     }
 }
 
 // Avoid two jobs running at the same time and causing troubles
-private fun VersionedSettingsBranch.triggeredHour() = when (this.branchName) {
-    "master" -> 0
-    "release" -> 1
+private fun VersionedSettingsBranch.triggeredHour() = when {
+    isMaster -> 0
+    isRelease -> 1
     else -> null
 }

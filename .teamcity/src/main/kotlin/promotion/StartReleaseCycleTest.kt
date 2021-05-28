@@ -37,10 +37,11 @@ object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = gradlePromotio
             }
         }
 
+        val enableTriggers = VersionedSettingsBranch.fromDslContext().enableTriggers
         triggers {
             vcs {
                 branchFilter = "+:master"
-                enabled = VersionedSettingsBranch.fromDslContext().enableTriggers
+                enabled = enableTriggers
             }
             schedule {
                 schedulingPolicy = daily {
@@ -49,7 +50,7 @@ object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = gradlePromotio
                 branchFilter = "+:master"
                 triggerBuild = always()
                 withPendingChangesOnly = false
-                enabled = VersionedSettingsBranch.fromDslContext().enableTriggers
+                enabled = enableTriggers
             }
         }
     }

@@ -1,6 +1,5 @@
 package configurations
 
-import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.gradleWrapper
@@ -33,7 +32,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         publishBuildStatusToGithub(model)
     }
 
-    val enableTriggers = VersionedSettingsBranch.fromDslContext().enableTriggers
+    val enableTriggers = model.branch.enableTriggers
     if (stage.trigger == Trigger.eachCommit) {
         triggers.vcs {
             quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM

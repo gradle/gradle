@@ -33,12 +33,13 @@ class CIConfigIntegrationTests {
     init {
         // Set the project id here, so we can use methods on the DslContext
         DslContext.projectId = AbsoluteId("Gradle_Master")
+        DslContext.addParameters("Branch" to "master")
     }
 
     private val subprojectProvider = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     private val model = CIBuildModel(
         projectId = "Check",
-        branch = VersionedSettingsBranch.MASTER,
+        branch = VersionedSettingsBranch.fromDslContext(),
         buildScanTags = listOf("Check"),
         subprojects = subprojectProvider
     )

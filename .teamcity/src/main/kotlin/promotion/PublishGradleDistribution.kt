@@ -59,8 +59,8 @@ abstract class PublishGradleDistribution(
     }
 }
 
-fun VersionedSettingsBranch.promoteNightlyTaskName(): String = when (this) {
-    VersionedSettingsBranch.MASTER -> "promoteNightly"
-    VersionedSettingsBranch("release") -> "promoteReleaseNightly"
+fun VersionedSettingsBranch.promoteNightlyTaskName(): String = when {
+    isMaster -> "promoteNightly"
+    isRelease -> "promoteReleaseNightly"
     else -> "promotePatchReleaseNightly"
 }
