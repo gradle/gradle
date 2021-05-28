@@ -4,6 +4,8 @@ import common.Os
 import common.VersionedSettingsBranch
 import configurations.FunctionalTest
 import configurations.StagePasses
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
@@ -28,9 +30,14 @@ import projects.StageProject
 import java.io.File
 
 class CIConfigIntegrationTests {
+    init {
+        // Set the project id here, so we can use methods on the DslContext
+        DslContext.projectId = AbsoluteId("Gradle_Master")
+    }
+
     private val subprojectProvider = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     private val model = CIBuildModel(
-        projectId = "Gradle_Check",
+        projectId = "Check",
         branch = VersionedSettingsBranch.MASTER,
         buildScanTags = listOf("Check"),
         subprojects = subprojectProvider
@@ -50,7 +57,7 @@ class CIConfigIntegrationTests {
     @Test
     fun macBuildsHasEmptyRepoMirrorUrlsParam() {
         val rootProject = CheckProject(model, gradleBuildBucketProvider)
-        val readyForRelease = rootProject.searchSubproject("Gradle_Check_Stage_ReadyforRelease")
+        val readyForRelease = rootProject.searchSubproject("Gradle_Master_Check_Stage_ReadyforRelease")
         val macBuilds = readyForRelease.subProjects.filter { it.name.contains("Macos") }.flatMap { (it as FunctionalTestProject).functionalTests }
         assertTrue(macBuilds.isNotEmpty())
         assertTrue(macBuilds.all { it.params.findRawParam("env.REPO_MIRROR_URLS")!!.value == "" })
@@ -192,7 +199,7 @@ class CIConfigIntegrationTests {
         }
     }
 
-    private fun toTriggerId(id: String) = "Gradle_Check_Stage_${id}_Trigger"
+    private fun toTriggerId(id: String) = "Gradle_Master_Check_Stage_${id}_Trigger"
     private fun subProjectFolderList(): List<File> {
         val subProjectFolders = File("../subprojects").listFiles()!!.filter { it.isDirectory }
         assertFalse(subProjectFolders.isEmpty())
@@ -294,13 +301,13 @@ class CIConfigIntegrationTests {
         val testCoverage = TestCoverage(1, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmVersion.java11, JvmVendor.oracle)
         val shortenedId = testCoverage.asConfigurationId(model, "veryLongSubprojectNameLongerThanEverythingWeHave")
         assertTrue(shortenedId.length < 80)
-        assertEquals("Gradle_Check_QckFdbckCrssVrsn_1_vryLngSbprjctNmLngrThnEvrythngWHv", shortenedId)
+        assertEquals("Check_QckFdbckCrssVrsn_1_vryLngSbprjctNmLngrThnEvrythngWHv", shortenedId)
 
-        assertEquals("Gradle_Check_QuickFeedbackCrossVersion_1_iIntegT", testCoverage.asConfigurationId(model, "internalIntegTesting"))
+        assertEquals("Check_QuickFeedbackCrossVersion_1_iIntegT", testCoverage.asConfigurationId(model, "internalIntegTesting"))
 
-        assertEquals("Gradle_Check_QuickFeedbackCrossVersion_1_buildCache", testCoverage.asConfigurationId(model, "buildCache"))
+        assertEquals("Check_QuickFeedbackCrossVersion_1_buildCache", testCoverage.asConfigurationId(model, "buildCache"))
 
-        assertEquals("Gradle_Check_QuickFeedbackCrossVersion_1_0", testCoverage.asConfigurationId(model))
+        assertEquals("Check_QuickFeedbackCrossVersion_1_0", testCoverage.asConfigurationId(model))
     }
 
     @Test
