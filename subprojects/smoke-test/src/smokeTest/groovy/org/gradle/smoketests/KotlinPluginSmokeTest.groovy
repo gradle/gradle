@@ -31,6 +31,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
     public static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
+    private static final VersionNumber KOTLIN_VERSION_USING_NEW_WORKERS_API = VersionNumber.parse('1.5.0')
     private static final String ARTIFACT_TRANSFORM_DEPRECATION_WARNING =
         "Registering artifact transforms extending ArtifactTransform has been deprecated. " +
             "This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead. " +
@@ -52,11 +53,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         def result = runner(workers, 'run')
-            .expectDeprecationWarningIf(workers && version != TestedVersions.kotlin.latest(),
+            .expectLegacyDeprecationWarningIf(workers && VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_WORKERS_API,
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",
-                "https://youtrack.jetbrains.com/issue/KT-46019"
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
             )
             .expectLegacyDeprecationWarningIf(VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
             .build()
@@ -92,11 +92,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         def result = runner(workers, 'compileKotlin2Js')
-            .expectDeprecationWarningIf(workers && version != TestedVersions.kotlin.latest(),
+            .expectLegacyDeprecationWarningIf(workers && VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_WORKERS_API,
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.",
-                "https://youtrack.jetbrains.com/issue/KT-46019"
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
             )
             .build()
 
