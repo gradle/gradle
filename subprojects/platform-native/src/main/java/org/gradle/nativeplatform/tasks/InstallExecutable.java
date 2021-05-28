@@ -262,6 +262,7 @@ public class InstallExecutable extends DefaultTask {
             copySpec.into(binaryDir);
             copySpec.from(executableFile);
             copySpec.from(libs);
+            copySpec.setFileMode(0755);
         });
     }
 }
