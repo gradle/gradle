@@ -1395,22 +1395,26 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
                         .forModule("org", "foo", "1.0")
                         .withArtifacts(JvmLibrary, SourcesArtifact, JavadocArtifact)
                         .execute()
+                        .components
+                        .each {
+                            // trigger file access for verification to happen
+                            it.getArtifacts(SourcesArtifact)*.file
+                            it.getArtifacts(JavadocArtifact)*.file
+                        }
                 }
             }
         """
 
         when:
         module.pom.expectGet()
-        module.artifact.expectGet()
         module.getArtifact(type:'pom.asc').expectGet()
-        module.getArtifact(type:'jar.asc').expectGet()
         module.getArtifact(classifier:'sources').expectHead()
         module.getArtifact(classifier:'sources').expectGet()
         module.getArtifact(classifier:'sources', type:'jar.asc').expectGet()
         module.getArtifact(classifier:'javadoc').expectHead()
         module.getArtifact(classifier:'javadoc').expectGet()
         module.getArtifact(classifier:'javadoc', type:'jar.asc').expectGet()
-        run ":artifactQuery", ":classes"
+        run ":artifactQuery"
 
         then:
         noExceptionThrown()
