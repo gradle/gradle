@@ -19,19 +19,20 @@ package org.gradle.internal.execution.history.changes;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.KnownImplementationSnapshot;
 
 public class ImplementationChanges implements ChangeContainer {
     private final ImplementationSnapshot previousImplementation;
     private final ImmutableList<ImplementationSnapshot> previousAdditionalImplementations;
-    private final ImplementationSnapshot currentImplementation;
-    private final ImmutableList<ImplementationSnapshot> currentAdditionalImplementations;
+    private final KnownImplementationSnapshot currentImplementation;
+    private final ImmutableList<KnownImplementationSnapshot> currentAdditionalImplementations;
     private final Describable executable;
 
     public ImplementationChanges(
         ImplementationSnapshot previousImplementation,
         ImmutableList<ImplementationSnapshot> previousAdditionalImplementations,
-        ImplementationSnapshot currentImplementation,
-        ImmutableList<ImplementationSnapshot> currentAdditionalImplementations,
+        KnownImplementationSnapshot currentImplementation,
+        ImmutableList<KnownImplementationSnapshot> currentAdditionalImplementations,
         Describable executable
     ) {
         this.previousImplementation = previousImplementation;
@@ -43,16 +44,11 @@ public class ImplementationChanges implements ChangeContainer {
 
     @Override
     public boolean accept(ChangeVisitor visitor) {
-        // In this method, the current implementation and additional implementations can't be unknown, since that causes already a validation warning.
-        // Previous implementations can still be unknown, since we store the inputs in the task history even if validation fails.
-        // When we fail the build for unknown implementations, then the previous implementations also can't be unknown.
         if (!currentImplementation.getTypeName().equals(previousImplementation.getTypeName())) {
             return visitor.visitChange(new DescriptiveChange("The type of %s has changed from '%s' to '%s'.",
                 executable.getDisplayName(), previousImplementation.getTypeName(), currentImplementation.getTypeName()));
         }
         if (previousImplementation.isUnknown()) {
-            // When we fail on an unknown implementation, the previous one can't be unknown.
-            // Currently, we only emit a deprecation warning
             return visitor.visitChange(new DescriptiveChange("The implementation of %s has changed.",
                 executable.getDisplayName())
             );

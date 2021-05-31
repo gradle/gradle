@@ -50,7 +50,6 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         processImplementation(implementation);
     }
 
-    @OverridingMethodsMustInvokeSuper
     protected void processImplementation(ImplementationSnapshot implementation) {
     }
 
@@ -62,7 +61,6 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         }
     }
 
-    @OverridingMethodsMustInvokeSuper
     protected void processAdditionalImplementation(ImplementationSnapshot additionalImplementation) {
     }
 

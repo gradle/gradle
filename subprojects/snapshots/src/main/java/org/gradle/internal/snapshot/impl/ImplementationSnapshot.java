@@ -81,7 +81,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         if (lambda) {
             return new LambdaImplementationSnapshot(typeName);
         }
-        return new DefaultImplementationSnapshot(typeName, classLoaderHash);
+        return new KnownImplementationSnapshot(typeName, classLoaderHash);
     }
 
     private static boolean isLambdaClassName(String className) {
