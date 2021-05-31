@@ -38,7 +38,7 @@ object StartReleaseCycle : BasePromotionBuildType(vcsRootId = gradlePromotionMas
                 name = "Promote"
                 tasks = "clean promoteStartReleaseCycle"
                 useGradleWrapper = true
-                gradleParams = """-PcommitId=%dep.Gradle_Master_Check_Stage_ReadyforNightly_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" """
+                gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_ReadyforNightly_Trigger")}.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" """
                 param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
             }
         }
