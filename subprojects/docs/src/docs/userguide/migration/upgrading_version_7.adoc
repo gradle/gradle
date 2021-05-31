@@ -33,6 +33,18 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_7.2]]
+== Upgrading from 7.1 and earlier
+=== Deprecations
+
+[[equals_up_to_date_deprecation]]
+==== Relying on equals for up-to-date checks is deprecated
+
+When a task input is annotated with `@Input` and is not a type Gradle understand directly (like `String`), then Gradle compares uses the serialized form of the input for up-to-date checks and the build cache key.
+Historically, Gradle also loads the serialized value from the last execution and then uses `equals` to compare it to the current value for up-to-date checks.
+Doing so is error prone, doesn't work with the build cache and has a performance impact, therefore it has been deprecated.
+Instead of using at `@Input` on a type Gradle doesn't understand directly, use `@Nested` and annotate the properties of the type accordingly.
+
 [[changes_7.1]]
 == Upgrading from 7.0 and earlier
 
