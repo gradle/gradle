@@ -73,6 +73,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -178,7 +179,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private Object version;
 
-    private Object status;
+    private Property<Object> status;
 
     private final Map<String, Project> childProjects = Maps.newTreeMap();
 
@@ -470,12 +471,20 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object getStatus() {
-        return status == null ? DEFAULT_STATUS : status;
+        return getInternalStatus().get();
     }
 
     @Override
-    public void setStatus(Object status) {
-        this.status = status;
+    public void setStatus(Object s) {
+        getInternalStatus().set(s);
+    }
+
+    @Override
+    public Property<Object> getInternalStatus() {
+        if (status == null) {
+            status = getObjects().property(Object.class).convention(DEFAULT_STATUS);
+        }
+        return status;
     }
 
     @Override

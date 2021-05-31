@@ -45,16 +45,21 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
+import org.gradle.api.internal.model.DefaultObjectFactory
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.resources.ApiTextResourceAdapter
 import org.gradle.api.internal.tasks.TaskContainerInternal
@@ -157,6 +162,7 @@ class DefaultProjectTest extends Specification {
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope("root", getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache(), Stub(ClassLoaderScopeRegistryListener))
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
+    ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorMock, Stub(NamedObjectInstantiator), Stub(DirectoryFileTreeFactory),  TestFiles.patternSetFactory,  new DefaultPropertyFactory(Stub(PropertyHost)), Stub(FilePropertyFactory), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
 
     def setup() {
         rootDir = new File("/path/root").absoluteFile
@@ -216,6 +222,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
         serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry)
+        serviceRegistryMock.get(ObjectFactory) >> objectFactory
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)
@@ -309,6 +316,7 @@ class DefaultProjectTest extends Specification {
         when:
         project.version = 'version'
         project.status = 'status'
+
         then:
         project.version == 'version'
         project.status == 'status'
