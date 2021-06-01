@@ -486,9 +486,16 @@ However, if the signature cannot be verified with at least one other key, Gradle
 Gradle automatically downloads the required keys but this operation can be quite slow and requires everyone to download the keys.
 To avoid this, Gradle offers the ability to use a local keyring file containing the required public keys.
 
-If the `gradle/verification-keyring.gpg` file is present, Gradle will search for keys there in priority.
+Gradle supports 2 different file formats for keyrings: a binary format (`.gpg` file) and a plain text format (`.keys`).
 
-You can generate this file using GPG, for example issuing the following commands (syntax may depend on the tool you use):
+There are pros and cons for each of the formats: the binary format is more compact and can be updated directly via GPG commands, but is completely opaque (binary).
+On the opposite, the plain text format is human readable, can be easily updated by hand and makes it easier to do code reviews thanks to readable diffs.
+
+If the `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` file is present, Gradle will search for keys there in priority.
+
+Note that the plain text file will be ignored if there's already a `.gpg` file (the binary version takes precedence).
+
+You can generate the binary version using GPG, for example issuing the following commands (syntax may depend on the tool you use):
 
 [source,bash]
 ----
@@ -506,8 +513,28 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 ----
 
-Or, alternatively, you can _ask Gradle to export all keys it used for verification of this build to the keyring_ during bootstrapping:
+The plain text version, on the other hand, can be updated manually.
+The file must be formatted with the `US-ASCII` encoding and consists of a list of keys in ASCII armored format.
 
+In the example above, you could amend an existing KEYS file by issuing the following commands:
+
+[source,bash]
+----
+$ gpg --no-default-keyring --keyring /tmp/keyring.gpg --recv-keys 379ce192d401ab61
+
+gpg: keybox '/tmp/keyring.gpg' created
+gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+# First let's add a header so that we can recognize the added key
+$ gpg --keyring /tmp/keyring.gpg --list-sigs 379CE192D401AB61 > gradle/verification-keyring.keys
+
+# Then write its ASCII armored version
+$ gpg --keyring /tmp/keyring.gpg --export --armor 379CE192D401AB61 > gradle/verification-keyring.keys
+----
+
+Or, alternatively, you can _ask Gradle to export all keys it used for verification of this build to the keyring_ during bootstrapping:
 
 ----
 ./gradlew --write-verification-metadata pgp,sha256 --export-keys
@@ -515,8 +542,11 @@ Or, alternatively, you can _ask Gradle to export all keys it used for verificati
 
 [NOTE]
 ====
+This command will generate *both* the binary version and the ASCII armored file.
+You should only pick one for your project.
+
 It's a good idea to commit this file to VCS (as long as you trust your VCS).
-If you use git, make sure to make it treat this file as binary, by adding this to your `.gitattributes` file:
+If you use git and use the binary version, make sure to make it treat this file as binary, by adding this to your `.gitattributes` file:
 
 ----
 *.gpg           binary
