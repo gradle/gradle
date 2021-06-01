@@ -91,7 +91,8 @@ abstract class PerformanceTest extends DistributionTest {
     String checks
 
     @Nullable
-    @Internal
+    @Optional
+    @Input
     String channel
 
     /************** properties configured by PerformanceTestPlugin ***************/
