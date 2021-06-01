@@ -437,7 +437,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.results*.startTime == [currentTime - 1000, currentTime - 2000, currentTime - 3000]
 
         when:
-        history = readStore.getTestResults(experiment1, 2, Integer.MAX_VALUE, channel)
+        history = readStore.getTestResults(experiment1, 2, Integer.MAX_VALUE, channel, [])
 
         then:
         history.results*.startTime == [currentTime - 1000, currentTime - 2000]

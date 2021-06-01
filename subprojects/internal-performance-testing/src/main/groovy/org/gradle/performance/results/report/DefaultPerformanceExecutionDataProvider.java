@@ -67,11 +67,12 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
     private ScenarioBuildResultData queryAndSortExecutionData(List<ScenarioBuildResultData> scenarios) {
         ScenarioBuildResultData mergedScenario = mergeScenarioWithSameName(scenarios);
 
-        PerformanceTestHistory history = resultsStore.getTestResults(scenarios.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
+        List<String> teamcityBuildIds = scenarios.stream().map(ScenarioBuildResultData::getTeamCityBuildId).collect(toList());
+        PerformanceTestHistory history = resultsStore.getTestResults(scenarios.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel(), teamcityBuildIds);
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
 
         scenarios.forEach(scenario -> setExecutions(scenario, singletonList(scenario.getTeamCityBuildId()), recentExecutions));
-        setExecutions(mergedScenario,  scenarios.stream().map(ScenarioBuildResultData::getTeamCityBuildId).collect(toList()), recentExecutions);
+        setExecutions(mergedScenario, teamcityBuildIds, recentExecutions);
 
         mergedScenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
 

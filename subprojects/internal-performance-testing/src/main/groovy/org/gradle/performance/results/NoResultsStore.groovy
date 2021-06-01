@@ -39,7 +39,7 @@ class NoResultsStore<T extends PerformanceTestResult> implements WritableResults
     }
 
     @Override
-    PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel) {
+    PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel, List<String> teamcityBuildIds) {
         new EmptyPerformanceTestHistory(experiment)
     }
 

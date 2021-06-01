@@ -17,6 +17,7 @@
 package org.gradle.performance.results;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.internal.UncheckedException;
@@ -225,30 +226,35 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     @Override
     public CrossVersionPerformanceTestHistory getTestResults(PerformanceExperiment experiment, String channel) {
-        return getTestResults(experiment, Integer.MAX_VALUE, Integer.MAX_VALUE, channel);
+        return getTestResults(experiment, Integer.MAX_VALUE, Integer.MAX_VALUE, channel, ImmutableList.of());
     }
 
 
     @Override
-    public CrossVersionPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final String channel) {
+    public CrossVersionPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final String channel, List<String> teamcityBuildIds) {
             return withConnection("load results", connection -> {
+                String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
                 try (
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
+                    PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (channel = ?" + buildIdQuery + ") order by startTime desc limit ?");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
-                        + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?) as t)")
+                        + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (channel = ?" + buildIdQuery + ") order by startTime desc limit ?) as t)")
                 ) {
                     Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
                     Set<String> allVersions = new TreeSet<>(Comparator.comparing(this::resolveGradleVersion));
                     Set<String> allBranches = new TreeSet<>();
 
+                    int idx = 0;
                     executionsForName.setFetchSize(mostRecentN);
-                    executionsForName.setString(1, experiment.getScenario().getClassName());
-                    executionsForName.setString(2, experiment.getScenario().getTestName());
-                    executionsForName.setString(3, experiment.getTestProject());
+                    executionsForName.setString(++idx, experiment.getScenario().getClassName());
+                    executionsForName.setString(++idx, experiment.getScenario().getTestName());
+                    executionsForName.setString(++idx, experiment.getTestProject());
                     Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
-                    executionsForName.setTimestamp(4, minDate);
-                    executionsForName.setString(5, channel);
-                    executionsForName.setInt(6, mostRecentN);
+                    executionsForName.setTimestamp(++idx, minDate);
+                    executionsForName.setString(++idx, channel);
+                    for (String teamcityBuildId : teamcityBuildIds) {
+                        executionsForName.setString(++idx, teamcityBuildId);
+                    }
+                    executionsForName.setInt(++idx, mostRecentN);
 
                     try (ResultSet testExecutions = executionsForName.executeQuery()) {
                         while (testExecutions.next()) {
@@ -279,12 +285,16 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                     }
 
                     operationsForExecution.setFetchSize(10 * results.size());
-                    operationsForExecution.setString(1, experiment.getScenario().getClassName());
-                    operationsForExecution.setString(2, experiment.getScenario().getTestName());
-                    operationsForExecution.setString(3, experiment.getTestProject());
-                    operationsForExecution.setTimestamp(4, minDate);
-                    operationsForExecution.setString(5, channel);
-                    operationsForExecution.setInt(6, mostRecentN);
+                    idx = 0;
+                    operationsForExecution.setString(++idx, experiment.getScenario().getClassName());
+                    operationsForExecution.setString(++idx, experiment.getScenario().getTestName());
+                    operationsForExecution.setString(++idx, experiment.getTestProject());
+                    operationsForExecution.setTimestamp(++idx, minDate);
+                    operationsForExecution.setString(++idx, channel);
+                    for (String teamcityBuildId : teamcityBuildIds) {
+                        operationsForExecution.setString(++idx, teamcityBuildId);
+                    }
+                    operationsForExecution.setInt(++idx, mostRecentN);
 
                     try (ResultSet operations = operationsForExecution.executeQuery()){
                         while (operations.next()) {
