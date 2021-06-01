@@ -1295,7 +1295,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         addLocalKey << [true, false]
     }
 
-    def "can read public keys from keyring"() {
+    def "can read public keys from #keyRingFormat keyring"() {
         // key will not be published on the server fixture but available locally
         def keyring = newKeyRing()
         def pkId = toLongIdHexString(keyring.publicKey.keyID)
@@ -1306,7 +1306,13 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
             addTrustedKey("org:foo:1.0", pkId)
             addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
         }
-        keyring.writePublicKeyRingTo(file("gradle/verification-keyring.gpg"))
+
+        def verifFile = file("gradle/verification-keyring.${extension}")
+        keyring.writePublicKeyRingTo(verifFile)
+        if (header != null) {
+            verifFile.setText("""$header
+${verifFile.getText('us-ascii')}""", 'us-ascii')
+        }
 
         given:
         javaLibrary()
@@ -1324,6 +1330,11 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         expect:
         succeeds ":compileJava"
 
+        where:
+        keyRingFormat       | extension | header
+        'GPG'               | 'gpg'     | null
+        'ASCII'             | 'keys'    | null
+        'ASCII with header' | 'keys'    | 'some comment showing we can have arbitrary text'
     }
 
     @Unroll

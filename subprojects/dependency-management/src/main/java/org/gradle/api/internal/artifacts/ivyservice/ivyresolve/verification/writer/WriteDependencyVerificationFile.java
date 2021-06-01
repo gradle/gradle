@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.api.Action;
@@ -70,7 +71,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -488,12 +491,54 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             .addAll(existingRings)
             .addAll(keysSeenInVerifier)
             .build();
+        writeBinaryKeyringFile(keyringFile, allKeyRings);
+        File asciiArmoredFile = SecuritySupport.asciiArmoredFileFor(keyringFile);
+        writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
+        LOGGER.lifecycle("Exported {} keys to {} and {}", allKeyRings.size(), keyringFile, asciiArmoredFile);
+    }
+
+    private void writeAsciiArmoredKeyRingFile(File ascii, ImmutableList<PGPPublicKeyRing> allKeyRings) throws IOException {
+        if (ascii.exists()) {
+            ascii.delete();
+        }
+        boolean hasKey = false;
+        for (PGPPublicKeyRing keyRing : allKeyRings) {
+            // First let's write some human readable info about the keyring being serialized
+            try (OutputStream out = new FileOutputStream(ascii, true)) {
+                if (hasKey) {
+                    out.write('\n');
+                }
+                Iterator<PGPPublicKey> pks = keyRing.getPublicKeys();
+                while (pks.hasNext()) {
+                    boolean hasUid = false;
+                    PGPPublicKey pk = pks.next();
+                    String keyType = pk.isMasterKey() ? "pub" : "sub";
+                    out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase() + "\n").getBytes(StandardCharsets.US_ASCII));
+                    Iterator<String> userIDs = pk.getUserIDs();
+                    while (userIDs.hasNext()) {
+                        hasUid = true;
+                        String uid = userIDs.next();
+                        out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.US_ASCII));
+                    }
+                    if (hasUid) {
+                        out.write('\n');
+                    }
+                }
+            }
+            // Then write the ascii armored keyring
+            try (ArmoredOutputStream out = new ArmoredOutputStream(new FileOutputStream(ascii, true))) {
+                keyRing.encode(out, true);
+            }
+            hasKey = true;
+        }
+    }
+
+    private void writeBinaryKeyringFile(File keyringFile, ImmutableList<PGPPublicKeyRing> allKeyRings) throws IOException {
         try (OutputStream out = new FileOutputStream(keyringFile)) {
             for (PGPPublicKeyRing keyRing : allKeyRings) {
                 keyRing.encode(out, true);
             }
         }
-        LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), keyringFile);
     }
 
     private static class PGPPublicKeyRingListBuilder implements PublicKeyResultBuilder {
@@ -519,6 +564,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     private List<PGPPublicKeyRing> loadExistingKeyRing(File keyringFile) throws IOException {
         List<PGPPublicKeyRing> existingRings;
+        if (!isDryRun && !keyringFile.exists()) {
+            keyringFile = SecuritySupport.asciiArmoredFileFor(keyringsFile);
+        }
         if (!isDryRun && keyringFile.exists()) {
             existingRings = SecuritySupport.loadKeyRingFile(keyringFile);
             LOGGER.info("Existing keyring file contains {} keyrings", existingRings.size());

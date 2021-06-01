@@ -15,6 +15,7 @@
  */
 package org.gradle.security.internal;
 
+import org.bouncycastle.bcpg.ArmoredInputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPObjectFactory;
@@ -44,6 +45,7 @@ public class SecuritySupport {
     private static final Logger LOGGER = Logging.getLogger(SecuritySupport.class);
 
     private static final int BUFFER = 4096;
+    public static final String KEYS_FILE_EXT = ".keys";
 
     static {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
@@ -103,7 +105,7 @@ public class SecuritySupport {
     public static List<PGPPublicKeyRing> loadKeyRingFile(File keyringFile) throws IOException {
         List<PGPPublicKeyRing> existingRings = new ArrayList<>();
         // load existing keys from keyring before
-        try (InputStream ins = new BufferedInputStream(new FileInputStream(keyringFile))) {
+        try (InputStream ins = new BufferedInputStream(createInputStreamFor(keyringFile))) {
             PGPObjectFactory objectFactory = new JcaPGPObjectFactory(
                 PGPUtil.getDecoderStream(ins));
             try {
@@ -117,5 +119,18 @@ public class SecuritySupport {
             }
         }
         return existingRings;
+    }
+
+    private static InputStream createInputStreamFor(File keyringFile) throws IOException {
+        InputStream stream = new FileInputStream(keyringFile);
+        if (keyringFile.getName().endsWith(KEYS_FILE_EXT)) {
+            return new ArmoredInputStream(stream);
+        }
+        return stream;
+    }
+
+    public static File asciiArmoredFileFor(File keyringsFile) {
+        String baseName = keyringsFile.getName().substring(0, keyringsFile.getName().toLowerCase().lastIndexOf(".gpg"));
+        return new File(keyringsFile.getParentFile(), baseName + KEYS_FILE_EXT);
     }
 }

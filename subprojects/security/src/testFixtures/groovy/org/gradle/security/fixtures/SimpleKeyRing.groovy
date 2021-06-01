@@ -42,10 +42,12 @@ class SimpleKeyRing {
     final String password
 
     void writePublicKeyRingTo(File file) {
-        file.withOutputStream { out ->
+        def asciiArmored = file.name.endsWith(".keys")
+        def stream = asciiArmored ? new ArmoredOutputStream(file.newOutputStream()) : file.newOutputStream()
+        stream.withCloseable { out ->
             new PGPPublicKeyRingCollection(
                 [new PGPPublicKeyRing([publicKey])]
-            ).encode(out)
+            ).encode(stream)
         }
     }
 

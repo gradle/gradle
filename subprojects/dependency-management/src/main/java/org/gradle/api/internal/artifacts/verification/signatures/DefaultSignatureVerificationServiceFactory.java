@@ -87,6 +87,9 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         });
         PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), connector);
         PublicKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
+        if (!keyringsFile.exists()) {
+            keyringsFile = SecuritySupport.asciiArmoredFileFor(keyringsFile);
+        }
         if (keyringsFile.exists()) {
             KeyringFilePublicKeyService keyringFilePublicKeyService = new KeyringFilePublicKeyService(keyringsFile);
             keyService = PublicKeyServiceChain.of(keyringFilePublicKeyService, keyService);
