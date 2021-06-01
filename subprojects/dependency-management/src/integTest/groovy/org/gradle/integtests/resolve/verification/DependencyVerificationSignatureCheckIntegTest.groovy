@@ -1368,6 +1368,58 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         terse << [true, false]
     }
 
+    def "dependency verification should work correctly with artifact queries"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "jar", "jar")
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-javadoc.jar", validPublicKeyHexString)
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-sources.jar", validPublicKeyHexString)
+        }
+
+        terseConsoleOutput(false)
+        javaLibrary()
+        def module = mavenHttpRepo.module("org", "foo", "1.0")
+            .withSourceAndJavadoc()
+            .publish()
+
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+
+            tasks.register("artifactQuery") {
+                doLast {
+                    dependencies.createArtifactResolutionQuery()
+                        .forModule("org", "foo", "1.0")
+                        .withArtifacts(JvmLibrary, SourcesArtifact, JavadocArtifact)
+                        .execute()
+                        .components
+                        .each {
+                            // trigger file access for verification to happen
+                            it.getArtifacts(SourcesArtifact)*.file
+                            it.getArtifacts(JavadocArtifact)*.file
+                        }
+                }
+            }
+        """
+
+        when:
+        module.pom.expectGet()
+        module.getArtifact(type:'pom.asc').expectGet()
+        module.getArtifact(classifier:'sources').expectHead()
+        module.getArtifact(classifier:'sources').expectGet()
+        module.getArtifact(classifier:'sources', type:'jar.asc').expectGet()
+        module.getArtifact(classifier:'javadoc').expectHead()
+        module.getArtifact(classifier:'javadoc').expectGet()
+        module.getArtifact(classifier:'javadoc', type:'jar.asc').expectGet()
+        run ":artifactQuery"
+
+        then:
+        noExceptionThrown()
+    }
+
     private static void tamperWithFile(File file) {
         file.bytes = [0, 1, 2, 3] + file.readBytes().toList() as byte[]
     }
