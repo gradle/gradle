@@ -36,6 +36,11 @@ public abstract class AbstractBuildState implements BuildState {
         throw new UnsupportedOperationException("Cannot include build '" + includedBuildSpec.rootDir.getName() + "' in " + getBuildIdentifier() + ". This is not supported yet.");
     }
 
+    @Override
+    public boolean isImportableBuild() {
+        return true;
+    }
+
     protected abstract ProjectStateRegistry getProjectStateRegistry();
 
     @Override

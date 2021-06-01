@@ -102,6 +102,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
+    public boolean isImportableBuild() {
+        return !isImplicit;
+    }
+
+    @Override
     public IncludedBuild getModel() {
         return this;
     }

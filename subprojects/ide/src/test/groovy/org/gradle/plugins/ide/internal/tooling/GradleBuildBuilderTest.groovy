@@ -16,27 +16,27 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
-
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
 
-@UsesNativeServices
+import java.util.function.Consumer
+
 @CleanupTestDirectory
 class GradleBuildBuilderTest extends Specification {
     @Shared
     @ClassRule
     public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-    def builder = new GradleBuildBuilder()
     @Shared
     def project = TestUtil.builder(temporaryFolder).withName("root").build()
     @Shared
@@ -45,6 +45,8 @@ class GradleBuildBuilderTest extends Specification {
     def child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
 
     def "builds model"() {
+        def builder = new GradleBuildBuilder(project.services.get(BuildStateRegistry))
+
         expect:
         def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", startProject)
         model.rootProject.path == ":"
@@ -65,6 +67,8 @@ class GradleBuildBuilderTest extends Specification {
     }
 
     def "builds model for included builds"() {
+        def buildRegistry = Mock(BuildStateRegistry)
+
         def rootProject = Mock(ProjectInternal)
         def project1 = Mock(ProjectInternal)
         def project2 = Mock(ProjectInternal)
@@ -76,6 +80,8 @@ class GradleBuildBuilderTest extends Specification {
         def rootBuild = Mock(GradleInternal)
         def build1 = Mock(GradleInternal)
         def build2 = Mock(GradleInternal)
+
+        def rootBuildState = Mock(BuildState)
 
         def includedBuild1 = Mock(TestIncludedBuild)
         def includedBuild2 = Mock(TestIncludedBuild)
@@ -93,20 +99,39 @@ class GradleBuildBuilderTest extends Specification {
         project2.childProjects >> [:]
         project2.allprojects >> [project2]
 
+        rootBuild.owner >> rootBuildState
         rootBuild.rootProject >> rootProject
         rootBuild.includedBuilds >> [includedBuild1]
 
-        includedBuild1.configuredBuild >> build1
+        rootBuildState.mutableModel >> rootBuild
 
+        includedBuild1.configuredBuild >> build1
+        includedBuild1.importableBuild >> true
+
+        build1.owner >> includedBuild1
         build1.includedBuilds >> [includedBuild2]
         build1.rootProject >> project1
         build1.parent >> rootBuild
 
-        includedBuild2.configuredBuild >> build2
+        includedBuild1.mutableModel >> build1
 
+        includedBuild2.configuredBuild >> build2
+        includedBuild2.importableBuild >> true
+
+        build2.owner >> includedBuild2
         build2.includedBuilds >> []
         build2.rootProject >> project2
         build2.parent >> rootBuild
+
+        includedBuild2.mutableModel >> build2
+
+        buildRegistry.visitBuilds(_) >> { Consumer consumer ->
+            consumer.accept(rootBuildState)
+            consumer.accept(includedBuild1)
+            consumer.accept(includedBuild2)
+        }
+
+        def builder = new GradleBuildBuilder(buildRegistry)
 
         expect:
         def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", rootProject)

@@ -35,11 +35,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val modelParameters = if (createsModel) {
             // When creating a model, disable certain features
-            BuildModelParameters(false, false, startParameter.isolatedProjects.get())
+            BuildModelParameters(false, false, startParameter.isolatedProjects.get(), true)
         } else {
             val isolatedProjects = startParameter.isolatedProjects.get()
             val configurationCache = startParameter.configurationCache.get() || isolatedProjects
-            BuildModelParameters(startParameter.isConfigureOnDemand, configurationCache, isolatedProjects)
+            BuildModelParameters(startParameter.isConfigureOnDemand, configurationCache, isolatedProjects, false)
         }
 
         if (!startParameter.isConfigurationCacheQuiet) {
@@ -61,7 +61,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
-            registration.add(BuildModelParameters::class.java, BuildModelParameters(startParameter.isConfigureOnDemand, false, false))
+            registration.add(BuildModelParameters::class.java, BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true))
         }
     }
 }

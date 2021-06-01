@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
 @ToolingApiVersion(">=6.8")
 @TargetGradleVersion('>=6.8')
-class CompositeBuildIncludeCycleCrossVersionSpec extends ToolingApiSpecification {
+class EclipseModelCompositeBuildIncludeCycleCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         settingsFile << """
