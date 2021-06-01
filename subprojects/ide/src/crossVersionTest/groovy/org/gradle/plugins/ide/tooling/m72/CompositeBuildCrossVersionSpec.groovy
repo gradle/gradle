@@ -67,7 +67,7 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         nestedBuildSrc.editableBuilds.empty
     }
 
-    @TargetGradleVersion(">3.5.1 <7.1") // older versions do not like nested buildSrc builds
+    @TargetGradleVersion(">4.9 <7.1") // older versions do not like nested included builds or nested buildSrc builds
     def "older versions do not include buildSrc builds in model"() {
         buildsWithBuildSrc()
 
@@ -125,7 +125,7 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         includedBuildSrc.editableBuilds.empty
     }
 
-    @TargetGradleVersion(">5.6.4") // older versions do not handle cycles
+    @TargetGradleVersion(">=6.8") // older versions do not handle cycles
     def "can query model when there are cycles in the included build graph"() {
         settingsFile << """
             includeBuild("child1")
@@ -163,7 +163,7 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         included2.includedBuilds[0].is(included1)
     }
 
-    @TargetGradleVersion(">5.6.4") // older versions do not allow root to be included by child
+    @TargetGradleVersion(">=6.8") // older versions do not allow root to be included by child
     def "can query model when included build includes root build"() {
         settingsFile << """
             includeBuild("child")
