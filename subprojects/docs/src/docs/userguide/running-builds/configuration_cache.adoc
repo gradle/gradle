@@ -325,7 +325,6 @@ link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_re
 [.green]#✓#:: Supported plugin
 [.yellow]#⚠#:: Partially supported plugin
 [.red]#✖#:: Unsupported plugin
-[.gray]#🚫#:: Won't fix
 
 [[config_cache:plugins:community]]
 === Community plugins
