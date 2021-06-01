@@ -17,7 +17,6 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -33,18 +32,18 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private final BuildLifecycleController buildLifecycleController;
     private final WorkerLeaseService workerLeaseService;
     private final BuildTreeWorkExecutor workExecutor;
-    private final IncludedBuildControllers includedBuildControllers;
+    private final BuildTreeFinishExecutor finishExecutor;
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
                                                WorkerLeaseService workerLeaseService,
                                                BuildTreeWorkExecutor workExecutor,
-                                               IncludedBuildControllers includedBuildControllers,
+                                               BuildTreeFinishExecutor finishExecutor,
                                                ExceptionAnalyser exceptionAnalyser) {
         this.buildLifecycleController = buildLifecycleController;
         this.workerLeaseService = workerLeaseService;
         this.workExecutor = workExecutor;
-        this.includedBuildControllers = includedBuildControllers;
+        this.finishExecutor = finishExecutor;
         this.exceptionAnalyser = exceptionAnalyser;
     }
 
@@ -108,9 +107,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
                 failures.add(t);
             }
 
-            includedBuildControllers.finishBuild(collector);
-            RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
-            buildLifecycleController.finishBuild(reportableFailure, collector);
+            finishExecutor.finishBuildTree(Collections.unmodifiableList(failures), collector);
 
             RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
             if (finalReportableFailure != null) {

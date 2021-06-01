@@ -98,7 +98,7 @@ class ConfigurationCacheKeyTest {
                     file("settings"),
                     null
                 ),
-                BuildModelParameters(false, true, false),
+                BuildModelParameters(false, true, false, false),
                 StartParameterInternal().apply(configure)
             )
         ).string

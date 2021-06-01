@@ -416,7 +416,6 @@ class PerformanceTestExtension(
             val identityExtension = project.the<ModuleIdentityExtension>()
             val gradleBuildBranch = identityExtension.gradleBuildBranch.get()
             branchName = gradleBuildBranch
-            systemProperty("gradleBuildBranch", gradleBuildBranch)
             commitId.set(identityExtension.gradleBuildCommitId)
 
             reportGeneratorClass.set("org.gradle.performance.results.report.DefaultReportGenerator")

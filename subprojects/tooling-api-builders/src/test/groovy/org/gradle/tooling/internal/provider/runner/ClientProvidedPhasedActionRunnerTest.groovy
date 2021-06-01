@@ -20,12 +20,9 @@ import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.ProjectConfigurer
-import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
@@ -69,7 +66,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
     def buildController = Mock(BuildTreeLifecycleController) {
         getGradle() >> gradle
     }
-    def runner = new ClientProvidedPhasedActionRunner(Stub(BuildCancellationToken), Stub(BuildOperationExecutor), Stub(ProjectLeaseRegistry), payloadSerializer, buildEventConsumer)
+    def runner = new ClientProvidedPhasedActionRunner(Stub(BuildControllerFactory), payloadSerializer, buildEventConsumer)
 
     def "can run actions and results are sent to event consumer"() {
         def result1 = 'result1'

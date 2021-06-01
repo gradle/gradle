@@ -91,8 +91,7 @@ abstract class PerformanceTest extends DistributionTest {
     String checks
 
     @Nullable
-    @Optional
-    @Input
+    @Internal
     String channel
 
     /************** properties configured by PerformanceTestPlugin ***************/
@@ -211,7 +210,8 @@ abstract class PerformanceTest extends DistributionTest {
         this.scenarios = scenarios
     }
 
-    @Internal
+    @Optional
+    @Input
     @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
     Property<String> getBaselines() {
         return baselines
@@ -318,6 +318,7 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.regression.checks", checks)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel)
             addSystemPropertyIfExist(result, "org.gradle.performance.debugArtifactsDirectory", getDebugArtifactsDirectory())
+            addSystemPropertyIfExist(result, "gradleBuildBranch", branchName)
 
             if (profiler.isPresent() && profiler.get() != "none") {
                 addSystemPropertyIfExist(result, "org.gradle.performance.profiler", profiler.get())

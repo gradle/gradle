@@ -32,7 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import static org.gradle.util.Matchers.matchesRegexp;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -84,7 +84,7 @@ public class TextResourceScriptSourceTest {
         ScriptSource source = forFile(scriptFile);
         assertThat(source, instanceOf(TextResourceScriptSource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
-        assertThat(source.getResource().getCharset(), equalTo(Charset.forName("utf-8")));
+        assertThat(source.getResource().getCharset(), equalTo(StandardCharsets.UTF_8));
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
         assertThat(source.getResource().getText(), equalTo("content"));
@@ -113,7 +113,7 @@ public class TextResourceScriptSourceTest {
         ScriptSource source = forUri(scriptFileUri);
         assertThat(source.getResource(), instanceOf(UriTextResource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
-        assertThat(source.getResource().getCharset(), equalTo(Charset.forName("utf-8")));
+        assertThat(source.getResource().getCharset(), equalTo(StandardCharsets.UTF_8));
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getLocation().getURI(), equalTo(this.scriptFileUri));
     }

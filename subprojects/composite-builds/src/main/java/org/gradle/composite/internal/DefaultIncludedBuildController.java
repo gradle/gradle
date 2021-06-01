@@ -86,9 +86,7 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
         Set<String> tasksToExecute = new LinkedHashSet<>();
         lock.lock();
         try {
-            if (state != State.CollectingTasks) {
-                throw new IllegalStateException();
-            }
+            assertBuildInState(State.CollectingTasks);
             for (Map.Entry<String, TaskState> taskEntry : tasks.entrySet()) {
                 if (taskEntry.getValue().status == TaskStatus.QUEUED) {
                     String taskName = taskEntry.getKey();
@@ -133,15 +131,19 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
     public void startTaskExecution(ExecutorService executorService) {
         lock.lock();
         try {
-            if (state != State.CollectingTasks) {
-                throw new IllegalStateException();
-            }
+            assertBuildInState(State.CollectingTasks);
             state = State.RunningTasks;
             stateChange.signalAll();
         } finally {
             lock.unlock();
         }
         executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get()));
+    }
+
+    private void assertBuildInState(State expectedState) {
+        if (state != expectedState) {
+            throw new IllegalStateException("Build " + includedBuild.getName() + " is in wrong state. Expected: " + expectedState + " actual: " + state);
+        }
     }
 
     @Override
@@ -290,9 +292,7 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
     public void queueForExecution(String taskPath) {
         lock.lock();
         try {
-            if (state != State.CollectingTasks) {
-                throw new IllegalStateException();
-            }
+            assertBuildInState(State.CollectingTasks);
             if (!tasks.containsKey(taskPath)) {
                 tasks.put(taskPath, new TaskState());
             }

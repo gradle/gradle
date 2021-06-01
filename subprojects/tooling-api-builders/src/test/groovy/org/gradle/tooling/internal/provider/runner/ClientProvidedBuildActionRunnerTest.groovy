@@ -16,14 +16,10 @@
 
 package org.gradle.tooling.internal.provider.runner
 
-
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
@@ -45,7 +41,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
         getGradle() >> this.gradle
     }
     def clientProvidedBuildAction = new ClientProvidedBuildAction(startParameter, action, false /* isRunTasks */, clientSubscriptions)
-    def runner = new ClientProvidedBuildActionRunner(Stub(BuildCancellationToken), Stub(BuildOperationExecutor), Stub(ProjectLeaseRegistry), payloadSerializer)
+    def runner = new ClientProvidedBuildActionRunner(Stub(BuildControllerFactory), payloadSerializer)
 
     def "can run action and returns result when completed"() {
         given:

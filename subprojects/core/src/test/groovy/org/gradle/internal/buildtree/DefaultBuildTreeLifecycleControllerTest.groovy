@@ -17,7 +17,6 @@
 package org.gradle.internal.buildtree
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
@@ -30,10 +29,10 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def gradle = Mock(GradleInternal)
     def buildController = Mock(BuildLifecycleController)
     def workerLeaseService = new TestWorkerLeaseService()
-    def workController = Mock(BuildTreeWorkExecutor)
-    def includedBuildController = Mock(IncludedBuildControllers)
+    def workExecutor = Mock(BuildTreeWorkExecutor)
+    def finishExecutor = Mock(BuildTreeFinishExecutor)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, workerLeaseService, workController, includedBuildController, exceptionAnalyzer)
+    def controller = new DefaultBuildTreeLifecycleController(buildController, workerLeaseService, workExecutor, finishExecutor, exceptionAnalyzer)
     def reportableFailure = new RuntimeException()
 
     def setup() {
@@ -51,14 +50,13 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
         and:
         1 * buildController.scheduleRequestedTasks()
-        1 * workController.execute(_)
+        1 * workExecutor.execute(_)
 
         and:
         1 * action.apply(gradle) >> "result"
 
         and:
-        1 * includedBuildController.finishBuild(_)
-        1 * buildController.finishBuild(null, _)
+        1 * finishExecutor.finishBuildTree([], _)
     }
 
     def "does not run action if task execution fails"() {
@@ -74,12 +72,11 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
         and:
         1 * buildController.scheduleRequestedTasks()
-        1 * workController.execute(_) >> { Consumer consumer -> consumer.accept(failure) }
+        1 * workExecutor.execute(_) >> { Consumer consumer -> consumer.accept(failure) }
         0 * action._
 
         and:
-        1 * includedBuildController.finishBuild(_)
-        1 * buildController.finishBuild(_, _)
+        1 * finishExecutor.finishBuildTree([failure], _)
         _ * exceptionAnalyzer.transform([failure]) >> reportableFailure
     }
 
@@ -99,8 +96,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * action.apply(gradle) >> "result"
 
         and:
-        1 * includedBuildController.finishBuild(_)
-        1 * buildController.finishBuild(null, _)
+        1 * finishExecutor.finishBuildTree([], _)
     }
 
     def "does not run action if configuration fails"() {
@@ -119,8 +115,26 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         0 * action._
 
         and:
-        1 * includedBuildController.finishBuild(_)
-        1 * buildController.finishBuild(_, _)
+        1 * finishExecutor.finishBuildTree([failure], _)
         _ * exceptionAnalyzer.transform([failure]) >> reportableFailure
+    }
+
+    def "collects configuration and build finish failures"() {
+        def failure = new RuntimeException()
+        def failure2 = new RuntimeException()
+
+        when:
+        controller.fromBuildModel(false, Stub(Function))
+
+        then:
+        def e = thrown(RuntimeException)
+        e == reportableFailure
+
+        and:
+        1 * buildController.configuredBuild >> { throw failure }
+
+        and:
+        1 * finishExecutor.finishBuildTree([failure], _) >> { List l, Consumer c -> c.accept(failure2) }
+        _ * exceptionAnalyzer.transform([failure, failure2]) >> reportableFailure
     }
 }

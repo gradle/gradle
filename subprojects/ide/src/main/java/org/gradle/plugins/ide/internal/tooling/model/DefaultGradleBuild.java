@@ -32,6 +32,11 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
     private final Set<DefaultGradleBuild> includedBuilds = new LinkedHashSet<>();
     private final Set<DefaultGradleBuild> allBuilds = new LinkedHashSet<>();
 
+    @Override
+    public String toString() {
+        return buildIdentifier.toString();
+    }
+
     public PartialBasicGradleProject getRootProject() {
         return rootProject;
     }

@@ -16,14 +16,15 @@
 
 package org.gradle.configurationcache
 
-
 import org.gradle.configurationcache.fixtures.SomeToolingModelBuildAction
 import org.gradle.configurationcache.fixtures.ToolingApiBackedGradleExecuter
 import org.gradle.configurationcache.fixtures.ToolingApiSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import spock.lang.Ignore
+import spock.lang.IgnoreIf
 
-@Ignore("https://github.com/gradle/gradle-private/issues/3395")
+// Currently, combining embedded execution and embedded tooling API build execution in the same process can cause a deadlock, when those builds use worker processes
+@IgnoreIf({ GradleContextualExecuter.embedded })
 class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ToolingApiSpec {
     @Override
     GradleExecuter createExecuter() {
