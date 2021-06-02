@@ -50,6 +50,9 @@ import java.util.Set;
  * @see <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html">Java Platform plugin reference</a>
  */
 public class JavaPlatformPlugin implements Plugin<Project> {
+    public static final String COMPONENT_NAME = "javaPlatform";
+    public static final String EXTENSION_NAME = "javaPlatform";
+
     // Buckets of dependencies
     public static final String API_CONFIGURATION_NAME = "api";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
@@ -111,7 +114,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {
-        AdhocComponentWithVariants component = softwareComponentFactory.adhoc("javaPlatform");
+        AdhocComponentWithVariants component = softwareComponentFactory.adhoc(COMPONENT_NAME);
         project.getComponents().add(component);
         component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
         component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false));
@@ -170,7 +173,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private void configureExtension(Project project) {
-        final DefaultJavaPlatformExtension platformExtension = (DefaultJavaPlatformExtension) project.getExtensions().create(JavaPlatformExtension.class, "javaPlatform", DefaultJavaPlatformExtension.class);
+        final DefaultJavaPlatformExtension platformExtension = (DefaultJavaPlatformExtension) project.getExtensions().create(JavaPlatformExtension.class, EXTENSION_NAME, DefaultJavaPlatformExtension.class);
         project.afterEvaluate(project1 -> {
             if (!platformExtension.isAllowDependencies()) {
                 checkNoDependencies(project1);
