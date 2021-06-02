@@ -27,6 +27,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.GFileUtils;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -995,6 +996,10 @@ public class BuildScriptBuilder {
         public void writeCodeTo(PrettyPrinter printer) {
             ScriptBlockImpl statements = new ScriptBlockImpl();
             statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))), true);
+            if (url.toLowerCase().startsWith("http:")) {
+                LoggerFactory.getLogger(BuildScriptBuilder.class).warn("WARNING: "+url+" uses an insecure protocol.");
+                statements.propertyAssignment(null, "allowInsecureProtocol", new LiteralValue(true), false);
+            }
             printer.printBlock("maven", statements);
         }
     }
