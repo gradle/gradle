@@ -585,6 +585,31 @@ This situation is common as explained for <<sec:trusting-several-checksums,this 
 
 In addition, Gradle will try to group keys automatically and generate the `trusted-keys` block which reduced the configuration file size as much as possible.
 
+[[sec:local-keyring-only]]
+== Forcing use of local keyrings only
+
+The local keyring files (`.gpg` or `.keys`) can be used to avoid reaching out to key servers whenever a key is required to verify an artifact.
+However, it may be that the local keyring doesn't contain a key, in which case Gradle would use the key servers to fetch the missing key.
+If the local keyring file isn't regularly updated, using <<sec:local-keyring,key export>>, then it may be that your CI builds, for example, would reach out to key servers too often (especially if you use disposable containers for builds).
+
+To avoid this, Gradle offers the ability to disallow use of key servers altogether: only the local keyring file would be used, and if a key is missing from this file, the build will fail.
+
+To enable this mode, you need to disable key servers in the configuration file:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <key-servers enabled="false"/>
+      ...
+   </configuration>
+   ...
+</verification-metadata>
+----
+
+NOTE: If you are asking Gradle to <<sec:bootstrapping-verification,generate a verification metadata file>> and that an existing verification metadata file sets `enabled` to `false`, then this flag will be ignored, so that potentially missing keys are downloaded.
+
 [[sec:troubleshooting-verification]]
 == Troubleshooting dependency verification
 

@@ -170,11 +170,18 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     public void buildFinished(Gradle gradle) {
         ensureOutputDirCreated();
         maybeReadExistingFile();
+        // when we generate the verification file, we intentionally ignore if the "use key servers" flag is false
+        // because otherwise it forces the user to disable the flag in the XML file, generate, then switch it back
+        // to false
+        boolean offline = gradle.getStartParameter().isOffline();
         SignatureVerificationService signatureVerificationService = signatureVerificationServiceFactory.create(
             keyringsFile,
             DefaultKeyServers.getOrDefaults(verificationsBuilder.getKeyServers()),
-            verificationsBuilder.isUseKeyServers()
+            !offline
         );
+        if (!verificationsBuilder.isUseKeyServers() && !offline) {
+            LOGGER.lifecycle("Will use key servers to download missing keys. If you really want to ignore key servers when generating the verification file, you can use the --offline flag in addition");
+        }
         try {
             validateChecksums();
             resolveAllConfigurationsConcurrently(gradle);
