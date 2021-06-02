@@ -29,7 +29,7 @@ public class UnknownClassloaderImplementationSnapshot extends ImplementationSnap
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.markAsInvalid(getUnknownReason());
+        throw new RuntimeException("Cannot hash implementation of class " + getTypeName() + " loaded by an unknown classloader");
     }
 
     @Override
@@ -58,8 +58,8 @@ public class UnknownClassloaderImplementationSnapshot extends ImplementationSnap
 
     @Override
     @Nullable
-    public String getUnknownReason() {
-        return "was loaded with an unknown classloader (class '" + getTypeName() + "').";
+    public UnknownReason getUnknownReason() {
+        return UnknownReason.UNKNOWN_CLASSLOADER;
     }
 
     @Override

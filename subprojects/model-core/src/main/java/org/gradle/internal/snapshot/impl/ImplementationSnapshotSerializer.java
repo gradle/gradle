@@ -29,7 +29,7 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
             @Override
             protected ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception {
                 HashCode classLoaderHash = hashCodeSerializer.read(decoder);
-                return new DefaultImplementationSnapshot(typeName, classLoaderHash);
+                return new KnownImplementationSnapshot(typeName, classLoaderHash);
             }
 
             @Override
@@ -84,7 +84,7 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
     }
 
     private static Impl determineSerializer(ImplementationSnapshot implementationSnapshot) {
-        if (implementationSnapshot instanceof DefaultImplementationSnapshot) {
+        if (implementationSnapshot instanceof KnownImplementationSnapshot) {
             return Impl.DEFAULT;
         }
         if (implementationSnapshot instanceof UnknownClassloaderImplementationSnapshot) {

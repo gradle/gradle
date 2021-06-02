@@ -33,6 +33,18 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_7.2]]
+== Upgrading from 7.1 and earlier
+
+=== Deprecations
+
+[[java_lamdba_action]]
+==== Using Java lambdas as task actions
+
+When using a Java lambda to implement a task action, Gradle cannot track the implementation and the task will never be up-to-date of from the build cache.
+Since it is easy to add such a task action, using task actions implemented by Java lambdas is now deprecated.
+See <<validation_problems.adoc#implementation_unknown,Validation problems>> for more details how to fix the issue.
+
 [[changes_7.1]]
 == Upgrading from 7.0 and earlier
 

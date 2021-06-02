@@ -76,7 +76,7 @@ public class TypeValidationProblemRenderer {
      * a better way to display multiline deprecation warnings
      */
     public static String convertToSingleLine(String message) {
-        return message.replaceAll("(\\r?\\n)+", ". ")
+        return message.replaceAll("(\\r?\\n *)+", ". ")
             .replaceAll("[.]+", ".")
             .replaceAll("[ ]+", " ")
             .replaceAll(": ?[. ]", ": ");

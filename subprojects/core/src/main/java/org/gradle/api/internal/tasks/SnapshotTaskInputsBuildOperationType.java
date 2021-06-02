@@ -181,9 +181,14 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * Ordered by property name, lexicographically.
          * No null values.
          * Never empty.
+         *
+         * @deprecated Always null, since we don't capture inputs when anything is loaded by an unknown classloader.
          */
+        @Deprecated
         @Nullable
-        Set<String> getInputPropertiesLoadedByUnknownClassLoader();
+        default Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
+            return null;
+        }
 
         /**
          * The names of the output properties.

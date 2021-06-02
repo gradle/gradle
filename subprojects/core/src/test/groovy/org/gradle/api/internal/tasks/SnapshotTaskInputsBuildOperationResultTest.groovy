@@ -44,11 +44,6 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification {
         adapter.inputValueHashesBytes.collectEntries { [(it.key):HashCode.fromBytes(it.value).toString()] } == [a: "000000aa", b: "000000bb"]
 
         when:
-        inputs.nonCacheableInputProperties >> ImmutableSortedSet.of("bean", "someOtherBean")
-        then:
-        adapter.inputPropertiesLoadedByUnknownClassLoader == ["bean", "someOtherBean"] as SortedSet
-
-        when:
         inputs.implementation >> ImplementationSnapshot.of("org.gradle.TaskType", HashCode.fromInt(0x000000cc))
         then:
         HashCode.fromBytes(adapter.classLoaderHashBytes).toString() == "000000cc"

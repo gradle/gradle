@@ -882,6 +882,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 @Override
                 void visitImplementations(UnitOfWork.ImplementationVisitor visitor) {
                     visitor.visitImplementation(implementation)
+                    visitor.visitImplementation(Object)
                 }
 
                 @Override

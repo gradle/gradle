@@ -17,7 +17,6 @@
 package org.gradle.internal.hash;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 
 import java.io.OutputStream;
@@ -317,7 +316,6 @@ public class Hashing {
 
     private static class DefaultHasher implements Hasher {
         private final PrimitiveHasher hasher;
-        private String invalidReason;
 
         public DefaultHasher(PrimitiveHasher unsafeHasher) {
             this.hasher = unsafeHasher;
@@ -388,25 +386,7 @@ public class Hashing {
         }
 
         @Override
-        public void markAsInvalid(String invalidReason) {
-            this.invalidReason = invalidReason;
-        }
-
-        @Override
-        public boolean isValid() {
-            return invalidReason == null;
-        }
-
-        @Override
-        public String getInvalidReason() {
-            return Preconditions.checkNotNull(invalidReason);
-        }
-
-        @Override
         public HashCode hash() {
-            if (!isValid()) {
-                throw new IllegalStateException("Hash is invalid: " + getInvalidReason());
-            }
             return hasher.hash();
         }
     }
