@@ -36,6 +36,13 @@ class ScenarioBuildResultData {
     String testFailure
     String status
     boolean crossBuild
+
+    /**
+     * The commit id of the current build which is generating the report.
+     *
+     * Set after loading from the JSON/DB so we can determine if an execution is from cache or not.
+     */
+    String currentCommitId
     List<ExecutionData> currentBuildExecutions = []
     List<ExecutionData> recentExecutions = []
 
@@ -71,7 +78,11 @@ class ScenarioBuildResultData {
     }
 
     boolean isFromCache() {
-        return status == STATUS_SUCCESS && currentBuildExecutions.empty
+        // Current approximation: If the current executions are for a different commit id,
+        // then the build result is from the cache.
+        // It could be that the performance test did re-run on the same commit with a cache hit and we won't detect that here.
+        // For now, this should be good enough.
+        return status == STATUS_SUCCESS && !(currentBuildExecutions*.commitId.contains(currentCommitId))
     }
 
     double getDifferenceSortKey() {
