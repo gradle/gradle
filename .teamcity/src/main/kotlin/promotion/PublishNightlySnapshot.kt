@@ -17,6 +17,7 @@
 package promotion
 
 import common.VersionedSettingsBranch
+import configurations.branchFilter
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
 class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistribution(
@@ -37,8 +38,9 @@ class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDis
                     }
                 }
                 triggerBuild = always()
-                withPendingChangesOnly = false
+                withPendingChangesOnly = true
                 enabled = branch.enableTriggers
+                branchFilter = branch.branchFilter()
             }
         }
     }

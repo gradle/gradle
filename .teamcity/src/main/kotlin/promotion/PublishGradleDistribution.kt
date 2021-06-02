@@ -41,7 +41,6 @@ abstract class PublishGradleDistribution(
         **/smoke-tests/build/reports/tests/** => post-smoke-tests
     """.trimIndent()
 
-        val absoluteId = RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")
         steps {
             gradleWrapper {
                 name = "Promote"
