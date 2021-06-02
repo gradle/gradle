@@ -105,9 +105,8 @@ public class SecuritySupport {
     public static List<PGPPublicKeyRing> loadKeyRingFile(File keyringFile) throws IOException {
         List<PGPPublicKeyRing> existingRings = new ArrayList<>();
         // load existing keys from keyring before
-        try (InputStream ins = new BufferedInputStream(createInputStreamFor(keyringFile))) {
-            PGPObjectFactory objectFactory = new JcaPGPObjectFactory(
-                PGPUtil.getDecoderStream(ins));
+        try (InputStream ins = PGPUtil.getDecoderStream(createInputStreamFor(keyringFile))) {
+            PGPObjectFactory objectFactory = new JcaPGPObjectFactory(ins);
             try {
                 for (Object o : objectFactory) {
                     if (o instanceof PGPPublicKeyRing) {
