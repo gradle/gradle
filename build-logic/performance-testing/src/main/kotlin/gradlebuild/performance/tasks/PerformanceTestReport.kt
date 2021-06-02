@@ -81,11 +81,19 @@ abstract class PerformanceTestReport : DefaultTask() {
     @get:Input
     abstract val projectName: Property<String>
 
+    @get:Option(option = "debug-jvm", description = "Debug the JVM started for report generation.")
+    @get:Input
+    abstract val debugReportGeneration: Property<Boolean>
+
     @get:Inject
     abstract val fileOperations: FileSystemOperations
 
     @get:Inject
     abstract val execOperations: ExecOperations
+
+    init {
+        outputs.doNotCacheIf("Debug enabled") { debugReportGeneration.get() }
+    }
 
     @TaskAction
     fun generateReport() {
@@ -99,7 +107,8 @@ abstract class PerformanceTestReport : DefaultTask() {
             branchName.get(),
             commitId.get(),
             classpath,
-            projectName.get()
+            projectName.get(),
+            debugReportGeneration.getOrElse(false)
         )
     }
 }
