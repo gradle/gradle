@@ -172,7 +172,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         maybeReadExistingFile();
         SignatureVerificationService signatureVerificationService = signatureVerificationServiceFactory.create(
             keyringsFile,
-            DefaultKeyServers.getOrDefaults(verificationsBuilder.getKeyServers())
+            DefaultKeyServers.getOrDefaults(verificationsBuilder.getKeyServers()),
+            verificationsBuilder.isUseKeyServers()
         );
         try {
             validateChecksums();

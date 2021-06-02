@@ -41,6 +41,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ENABLED;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTING;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
@@ -86,7 +87,7 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(VERIFICATION_METADATA);
         writeAttribute("xmlns", "https://schema.gradle.org/dependency-verification");
         writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.0.xsd");
+        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.1.xsd");
         writeConfiguration(verifier.getConfiguration());
         writeVerifications(verifier.getVerificationMetadata());
         writer.endElement();
@@ -203,8 +204,11 @@ public class DependencyVerificationsXmlWriter {
 
     private void writeKeyServers(DependencyVerificationConfiguration configuration) throws IOException {
         List<URI> keyServers = configuration.getKeyServers();
-        if (!keyServers.isEmpty()) {
+        if (!keyServers.isEmpty() || !configuration.isUseKeyServers()) {
             writer.startElement(KEY_SERVERS);
+            if (!configuration.isUseKeyServers()) {
+                writer.attribute(ENABLED, "false");
+            }
             for (URI keyServer : keyServers) {
                 writer.startElement(KEY_SERVER);
                 writeAttribute(URI, keyServer.toASCIIString());

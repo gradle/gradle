@@ -1431,6 +1431,39 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         noExceptionThrown()
     }
 
+    def "can disable reaching out to key servers"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri) // make sure we declare a key server for tests
+            disableKeyServers() // but disable access to the key server
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath'
+2 artifacts failed verification:
+  - foo-1.0.jar (org:foo:1.0) from repository maven
+  - foo-1.0.pom (org:foo:1.0) from repository maven
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+    }
+
     private static void tamperWithFile(File file) {
         file.bytes = [0, 1, 2, 3] + file.readBytes().toList() as byte[]
     }

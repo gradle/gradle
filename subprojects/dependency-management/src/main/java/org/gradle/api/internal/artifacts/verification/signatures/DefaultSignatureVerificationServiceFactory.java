@@ -31,6 +31,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
+import org.gradle.security.internal.EmptyPublicKeyService;
 import org.gradle.security.internal.Fingerprint;
 import org.gradle.security.internal.KeyringFilePublicKeyService;
 import org.gradle.security.internal.PublicKeyDownloadService;
@@ -82,11 +83,17 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     }
 
     @Override
-    public SignatureVerificationService create(File keyringsFile, List<URI> keyServers) {
+    public SignatureVerificationService create(File keyringsFile, List<URI> keyServers, boolean useKeyServers) {
+        boolean refreshKeys = this.refreshKeys || !useKeyServers;
         ExternalResourceConnector connector = httpConnectorFactory.createResourceConnector(new ResourceConnectorSpecification() {
         });
-        PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), connector);
-        PublicKeyService keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
+        PublicKeyService keyService;
+        if (useKeyServers) {
+            PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), connector);
+            keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
+        } else {
+            keyService = EmptyPublicKeyService.getInstance();
+        }
         if (!keyringsFile.exists()) {
             keyringsFile = SecuritySupport.asciiArmoredFileFor(keyringsFile);
         }

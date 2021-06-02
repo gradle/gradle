@@ -97,7 +97,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         } catch (InvalidUserDataException e) {
             throw new InvalidUserDataException("Unable to read dependency verification metadata from " + verificationsFile, e.getCause());
         }
-        this.signatureVerificationService = signatureVerificationServiceFactory.create(keyRingsFile, keyServers());
+        this.signatureVerificationService = signatureVerificationServiceFactory.create(keyRingsFile, keyServers(), verifier.getConfiguration().isUseKeyServers());
     }
 
     private List<URI> keyServers() {
