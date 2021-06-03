@@ -62,6 +62,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
@@ -236,6 +237,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getStatus(): Any {
             onAccess()
             return delegate.status
+        }
+
+        override fun getInternalStatus(): Property<Any> {
+            onAccess()
+            return delegate.internalStatus
         }
 
         override fun setStatus(status: Any) {

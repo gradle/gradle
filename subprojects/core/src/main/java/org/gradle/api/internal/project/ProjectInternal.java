@@ -34,6 +34,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -181,6 +182,16 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * @return a detached resolver
      */
     DetachedResolver newDetachedResolver();
+
+
+    /**
+     * Returns the property that stored {@link Project#getStatus()}.
+     * <p>
+     * By exposing this property, the {@code base} plugin can override the default value without overriding the build configuration.
+     * <p>
+     * See: https://github.com/gradle/gradle/issues/16946
+     */
+    Property<Object> getInternalStatus();
 
     DependencyMetaDataProvider getDependencyMetaDataProvider();
 
