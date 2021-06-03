@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 
 import java.io.File;
@@ -70,7 +71,7 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    protected TaskDependencyInternal getDefaultBuildDependencies() {
+    protected TaskDependency getDefaultBuildDependencies() {
         return buildDependencies;
     }
 
