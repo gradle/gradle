@@ -43,11 +43,12 @@ class SimpleKeyRing {
 
     void writePublicKeyRingTo(File file) {
         def asciiArmored = file.name.endsWith(".keys")
-        def stream = asciiArmored ? new ArmoredOutputStream(file.newOutputStream()) : file.newOutputStream()
-        stream.withCloseable { out ->
-            new PGPPublicKeyRingCollection(
-                [new PGPPublicKeyRing([publicKey])]
-            ).encode(stream)
+        file.newOutputStream().withCloseable {stream ->
+            (asciiArmored ? new ArmoredOutputStream(stream) : stream).withCloseable { out ->
+                new PGPPublicKeyRingCollection(
+                    [new PGPPublicKeyRing([publicKey])]
+                ).encode(out)
+            }
         }
     }
 
