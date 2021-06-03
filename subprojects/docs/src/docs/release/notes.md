@@ -100,7 +100,7 @@ When declaring arguments for a compiler daemon using [jvmArgs](javadoc/org/gradl
 Sometimes these arguments represent paths to files that need to be captured as part of the build cache key. Modeling these arguments as input files can improve the incrementality of the compile task and avoid unnecessary cache misses.
 
 Previously, arguments for the Java compiler invocation could be declared in a using [compiler argument providers](javadoc/org/gradle/api/tasks/compile/CompileOptions.html#getCompilerArgumentProviders--), but there was no way to do this for the command-line arguments to the compiler daemon process itself.
-You can now provide command-line arguments to the compiler daemon for [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html), [GroovyCompile](javadoc/org/gradle/api/tasks/compile/GroovyCompile.html), and [ScalaCompile](javadoc/org/gradle/api/tasks/scala/ScalaCompile.html) tasks using [jvmArgumentProviders](javadoc/org/gradle/api/tasks/compile/ProviderAwareForkOptions.html#getJvmArgumentProviders--).
+You can now provide command-line arguments to the compiler daemon for [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html), [GroovyCompile](javadoc/org/gradle/api/tasks/compile/GroovyCompile.html), and [ScalaCompile](javadoc/org/gradle/api/tasks/scala/ScalaCompile.html) tasks using [jvmArgumentProviders](javadoc/org/gradle/api/tasks/compile/ProviderAwareCompilerDaemonForkOptions.html#getJvmArgumentProviders--).
 
 [CommandLineArgumentProvider](javadoc/org/gradle/process/CommandLineArgumentProvider.html) objects configured via `jvmArgumentProviders` will be interrogated for input and/or output annotations and Gradle will add these to the respective task.
 
