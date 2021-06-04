@@ -1202,6 +1202,50 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
+    def "supports aliases which also have children using empty complex intermediate levels (separator = #separator)"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("foo${separator}bar${separator}baz${separator}a").to("org:a:1.0")
+                        alias("foo${separator}bar${separator}baz${separator}b").to("org:b:1.0")
+                        alias("foo${separator}bar").to("org:bar:1.0")
+                    }
+                }
+            }
+        """
+        def a = mavenHttpRepo.module("org", "a", "1.0").publish()
+        def bar = mavenHttpRepo.module("org", "bar", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.foo.bar.baz.a
+                implementation libs.foo.bar
+            }
+        """
+
+        when:
+        a.pom.expectGet()
+        bar.pom.expectGet()
+        a.artifact.expectGet()
+        bar.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:a:1.0')
+                module('org:bar:1.0')
+            }
+        }
+
+        where:
+        separator << ['.', '_', '-']
+    }
+
     def "can access all version catalogs with optional API"() {
         settingsFile << """
             dependencyResolutionManagement {

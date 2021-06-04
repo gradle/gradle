@@ -172,7 +172,7 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         ex = thrown()
         verify(ex.message, """Cannot generate dependency accessors:
 ${nameClash { noIntro().inConflict('groovy.json', 'groovyJson').getterName('getGroovyJson') }}
-${nameClash { noIntro().inConflict('tada.one', 'tadaOne', 'tada_one').getterName('getTadaOne') }}
+${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne') }}
 """)
     }
 
@@ -211,7 +211,7 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne', 'tada_one').getterName
         then:
         ex = thrown()
         verify(ex.message, """Cannot generate dependency accessors:
-${nameClash { noIntro().kind('bundles').inConflict('other.cool', 'otherCool', 'other_cool').getterName('getOtherCoolBundle') }}
+${nameClash { noIntro().kind('bundles').inConflict('other.cool', 'otherCool').getterName('getOtherCoolBundle') }}
 ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
 """)
     }
@@ -344,6 +344,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         void hasDependencyAlias(String name, String methodName = "get${toJavaName(name)}", String javadoc = null) {
+            name = AliasNormalizer.normalize(name)
             def lookup = "public Provider<MinimalExternalModuleDependency> $methodName() { return create(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
@@ -353,6 +354,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         void hasBundle(String name, String methodName = "get${toJavaName(name)}Bundle", String javadoc = null) {
+            name = AliasNormalizer.normalize(name)
             def lookup = "public Provider<ExternalModuleDependencyBundle> $methodName() { return createBundle(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
@@ -362,6 +364,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         void hasVersion(String name, String methodName = "get${toJavaName(name)}Version", String javadoc = null) {
+            name = AliasNormalizer.normalize(name)
             def lookup = "public Provider<String> $methodName() { return getVersion(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match

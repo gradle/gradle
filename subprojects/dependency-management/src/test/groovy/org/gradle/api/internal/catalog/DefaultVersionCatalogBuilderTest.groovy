@@ -180,7 +180,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         })
     }
 
-    def "model reflects what is declared"() {
+    def "normalizes alias separators to dot"() {
         builder.alias("guava").to("com.google.guava:guava:17.0")
         builder.alias("groovy").to("org.codehaus.groovy", "groovy").version {
             it.strictly("3.0.5")
@@ -195,13 +195,58 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
 
         then:
         model.bundleAliases == ["groovy"]
-        model.getBundle("groovy").components == ["groovy", "groovy-json"]
+        model.getBundle("groovy").components == ["groovy", "groovy.json"]
 
-        model.dependencyAliases == ["groovy", "groovy-json", "guava"]
+        model.dependencyAliases == ["groovy", "groovy.json", "guava"]
         model.getDependencyData("guava").version.requiredVersion == '17.0'
         model.getDependencyData("groovy").version.strictVersion == '3.0.5'
         model.getDependencyData("groovy-json").version.strictVersion == ''
+        model.getDependencyData("groovy.json").version.strictVersion == ''
         model.getDependencyData("groovy-json").version.preferredVersion == '3.0.5'
+        model.getDependencyData("groovy.json").version.preferredVersion == '3.0.5'
+        model.getDependencyData("groovy_json").version.preferredVersion == '3.0.5'
+    }
+
+    def "can use arbitrary separators when building bundles"() {
+        builder.alias("foo.bar").to("foo:bar:1.0")
+        builder.alias("foo-baz").to("foo:baz:1.0")
+        builder.alias("foo_qux").to("foo:qux:1.0")
+
+        builder.bundle("my", ["foo-bar", "foo_baz", "foo.qux"])
+        builder.bundle("a.b", ["foo.bar"])
+        builder.bundle("a_c", ["foo.bar"])
+        builder.bundle("a-d", ["foo.bar"])
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.dependencyAliases == ["foo.bar", "foo.baz", "foo.qux"]
+        model.bundleAliases == ["a.b", "a.c", "a.d", "my"]
+        model.getBundle("my").components == ["foo.bar", "foo.baz", "foo.qux"]
+
+        model.getBundle("a.b").is(model.getBundle("a-b"))
+        model.getBundle("a.b").is(model.getBundle("a_b"))
+    }
+
+    def "can use arbitrary separators when referencing versions"() {
+        builder.version("my-v1", "1.0")
+        builder.version("my_v2", "1.0")
+        builder.version("my.v3") {
+            it.prefer("1.0")
+        }
+        builder.alias("foo").to("org", "foo").versionRef("my.v1")
+        builder.alias("bar").to("org", "foo").versionRef("my-v2")
+        builder.alias("baz").to("org", "foo").versionRef("my_v3")
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.versionAliases == ["my.v1", "my.v2", "my.v3"]
+        model.getDependencyData("foo").versionRef == "my.v1"
+        model.getDependencyData("bar").versionRef == "my.v2"
+        model.getDependencyData("baz").versionRef == "my.v3"
     }
 
     def "can use rich versions in short-hand notation"() {
