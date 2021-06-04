@@ -171,6 +171,7 @@ abstract class PerformanceTest extends DistributionTest {
                 commitId.get(),
                 classpath,
                 projectName.get(),
+                buildId,
                 false
             )
         }

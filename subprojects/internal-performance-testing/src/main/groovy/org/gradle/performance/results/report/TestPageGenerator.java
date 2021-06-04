@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static org.gradle.performance.results.report.AbstractTablePageGenerator.getTeamCityWebUrlFromBuildId;
+
 public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> implements PerformanceExecutionGraphRenderer {
     private final String projectName;
 
@@ -156,7 +158,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                     if (results.getTeamCityBuildId() == null) {
                         text(date);
                     } else {
-                        a().href("https://builds.gradle.org/viewLog.html?buildId=" + results.getTeamCityBuildId()).target("_blank").text(date).end();
+                        a().href(getTeamCityWebUrlFromBuildId(results.getTeamCityBuildId())).target("_blank").text(date).end();
                     }
                 end();
             }
