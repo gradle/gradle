@@ -222,6 +222,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         val performanceTestReport = tasks.register<PerformanceTestReport>(name) {
             this.reportGeneratorClass.set(reportGeneratorClass)
             this.depBuildIds.set(findProperty(PropertyNames.depBuildIds)?.toString() ?: "")
+            this.debugReportGeneration.convention(false)
         }
         val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)
         performanceTestReport {
