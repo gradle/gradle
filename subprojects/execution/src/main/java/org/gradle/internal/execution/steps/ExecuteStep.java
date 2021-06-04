@@ -37,7 +37,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
-public class ExecuteStep<C extends InputChangesContext> implements Step<C, ExecuteWorkResult> {
+public class ExecuteStep<C extends InputChangesContext> implements Step<C, Result> {
 
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -46,11 +46,11 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Execu
     }
 
     @Override
-    public ExecuteWorkResult execute(UnitOfWork work, C context) {
-        return buildOperationExecutor.call(new CallableBuildOperation<ExecuteWorkResult>() {
+    public Result execute(UnitOfWork work, C context) {
+        return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
-            public ExecuteWorkResult call(BuildOperationContext operationContext) {
-                ExecuteWorkResult result = executeInternal(work, context);
+            public Result call(BuildOperationContext operationContext) {
+                Result result = executeInternal(work, context);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return result;
             }
@@ -64,7 +64,7 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Execu
         });
     }
 
-    private static ExecuteWorkResult executeInternal(UnitOfWork work, InputChangesContext context) {
+    private static Result executeInternal(UnitOfWork work, InputChangesContext context) {
         UnitOfWork.ExecutionRequest executionRequest = new UnitOfWork.ExecutionRequest() {
             @Override
             public File getWorkspace() {
@@ -88,23 +88,13 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Execu
         try {
             workOutput = work.execute(executionRequest);
         } catch (Throwable t) {
-            return failed(t, Duration.ofMillis(timer.getElapsedMillis()));
+            return ResultImpl.failed(t, Duration.ofMillis(timer.getElapsedMillis()));
         }
 
         Duration duration = Duration.ofMillis(timer.getElapsedMillis());
         ExecutionOutcome outcome = determineOutcome(context, workOutput);
 
-        return success(duration, new ExecutionResult() {
-            @Override
-            public ExecutionOutcome getOutcome() {
-                return outcome;
-            }
-
-            @Override
-            public Object getOutput() {
-                return workOutput.getOutput();
-            }
-        });
+        return ResultImpl.success(duration, new ExecutionResultImpl(outcome, workOutput));
     }
 
     private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
@@ -132,40 +122,62 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Execu
      */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
-            Operation.Details INSTANCE = new Operation.Details() {};
+            Operation.Details INSTANCE = new Operation.Details() {
+            };
         }
 
         interface Result {
-            Operation.Result INSTANCE = new Operation.Result() {};
+            Operation.Result INSTANCE = new Operation.Result() {
+            };
         }
     }
 
-    private static ExecuteWorkResult failed(Throwable t, Duration duration) {
-        return new ExecuteWorkResult() {
-            @Override
-            public Duration getDuration() {
-                return duration;
-            }
+    private static final class ResultImpl implements Result {
 
-            @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return Try.failure(t);
-            }
-        };
+        private final Duration duration;
+        private final Try<ExecutionResult> executionResultTry;
+
+        private ResultImpl(Duration duration, Try<ExecutionResult> executionResultTry) {
+            this.duration = duration;
+            this.executionResultTry = executionResultTry;
+        }
+
+        private static Result failed(Throwable t, Duration duration) {
+            return new ResultImpl(duration, Try.failure(t));
+        }
+
+        private static Result success(Duration duration, ExecutionResult executionResult) {
+            return new ResultImpl(duration, Try.successful(executionResult));
+        }
+
+        @Override
+        public Duration getDuration() {
+            return duration;
+        }
+
+        @Override
+        public Try<ExecutionResult> getExecutionResult() {
+            return executionResultTry;
+        }
     }
 
-    private static ExecuteWorkResult success(Duration duration, ExecutionResult executionResult) {
-        return new ExecuteWorkResult() {
-            @Override
-            public Duration getDuration() {
-                return duration;
-            }
+    private static final class ExecutionResultImpl implements ExecutionResult {
+        private final ExecutionOutcome outcome;
+        private final UnitOfWork.WorkOutput workOutput;
 
-            @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return Try.successful(executionResult);
-            }
-        };
+        public ExecutionResultImpl(ExecutionOutcome outcome, UnitOfWork.WorkOutput workOutput) {
+            this.outcome = outcome;
+            this.workOutput = workOutput;
+        }
+
+        @Override
+        public ExecutionOutcome getOutcome() {
+            return outcome;
+        }
+
+        @Override
+        public Object getOutput() {
+            return workOutput.getOutput();
+        }
     }
-
 }

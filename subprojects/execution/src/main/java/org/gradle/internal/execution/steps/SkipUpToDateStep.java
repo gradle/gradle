@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
@@ -87,6 +88,11 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                             }
                         });
                     }
+
+                    @Override
+                    public Duration getDuration() {
+                        return Duration.ZERO;
+                    }
                 };
             } else {
                 return executeBecause(work, reasons, context);
@@ -113,6 +119,11 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                 return result.isReused()
                     ? Optional.of(result.getOriginMetadata())
                     : Optional.empty();
+            }
+
+            @Override
+            public Duration getDuration() {
+                return result.getDuration();
             }
 
             @Override

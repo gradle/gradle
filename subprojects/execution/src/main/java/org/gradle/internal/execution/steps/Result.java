@@ -18,7 +18,22 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.UnitOfWork;
+
+import java.time.Duration;
 
 public interface Result {
+
+    /**
+     * The elapsed wall clock time of the corresponding {@link UnitOfWork#execute(UnitOfWork.ExecutionRequest)} invocation.
+     *
+     * The meaning of value is undefined for results that do not represent an attempt to perform the work.
+     * For example, result specializations such as {@link CachingResult} that represent a result where the work
+     * as avoided do not have a meaningful value.
+     *
+     * For results representing an attempt to perform the work, the duration is available for successful and failed attempts.
+     */
+    Duration getDuration();
+
     Try<ExecutionResult> getExecutionResult();
 }

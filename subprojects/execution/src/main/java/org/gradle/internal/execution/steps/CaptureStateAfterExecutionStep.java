@@ -32,18 +32,20 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
+import java.time.Duration;
+
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
 
 public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
-    private final Step<? super C, ? extends ExecuteWorkResult> delegate;
+    private final Step<? super C, ? extends Result> delegate;
 
     public CaptureStateAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
-        Step<? super C, ? extends ExecuteWorkResult> delegate
+        Step<? super C, ? extends Result> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
@@ -53,7 +55,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
 
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
-        ExecuteWorkResult result = delegate.execute(work, context);
+        Result result = delegate.execute(work, context);
         Timer timer = Time.startTimer();
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProduceByWork = operation(
             operationContext -> {
@@ -88,6 +90,11 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
             @Override
             public Try<ExecutionResult> getExecutionResult() {
                 return result.getExecutionResult();
+            }
+
+            @Override
+            public Duration getDuration() {
+                return result.getDuration();
             }
 
             @Override
