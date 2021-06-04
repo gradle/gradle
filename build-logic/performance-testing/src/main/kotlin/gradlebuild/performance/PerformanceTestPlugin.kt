@@ -68,7 +68,7 @@ object PropertyNames {
     const val performanceTestVerbose = "performanceTest.verbose"
 
     const val baselines = "performanceBaselines"
-    const val depBuildIds = "depBuildIds"
+    const val performanceTestBuildIds = "performanceTestBuildIds"
 }
 
 
@@ -221,7 +221,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
         val performanceTestReport = tasks.register<PerformanceTestReport>(name) {
             this.reportGeneratorClass.set(reportGeneratorClass)
-            this.depBuildIds.set(findProperty(PropertyNames.depBuildIds)?.toString() ?: "")
+            this.performanceTestBuildIds.set(findProperty(PropertyNames.performanceTestBuildIds)?.toString() ?: "")
             this.debugReportGeneration.convention(false)
         }
         val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)

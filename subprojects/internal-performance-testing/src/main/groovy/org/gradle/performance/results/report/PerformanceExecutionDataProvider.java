@@ -44,14 +44,14 @@ public abstract class PerformanceExecutionDataProvider {
     protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 7;
     protected TreeSet<PerformanceReportScenario> scenarioExecutions;
     protected final ResultsStore resultsStore;
-    protected final Set<String> teamCityBuildIds;
+    protected final Set<String> performanceTestBuildIds;
     private final List<File> resultJsons;
     protected final String commitId = Git.current().getCommitId();
 
-    public PerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> teamCityBuildIds) {
+    public PerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> performanceTestBuildIds) {
         this.resultJsons = resultJsons;
         this.resultsStore = resultsStore;
-        this.teamCityBuildIds = teamCityBuildIds;
+        this.performanceTestBuildIds = performanceTestBuildIds;
     }
 
     public TreeSet<PerformanceReportScenario> getReportScenarios() {

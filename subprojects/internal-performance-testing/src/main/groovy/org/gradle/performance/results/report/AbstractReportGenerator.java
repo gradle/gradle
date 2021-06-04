@@ -53,10 +53,10 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             resultJsons.add(new File(args[i]));
         }
 
-        Set<String> teamCityBuildIds = new HashSet<>(Arrays.asList(System.getProperty("depBuildIds", "").split(",")));
+        Set<String> performanceTestBuildIds = new HashSet<>(Arrays.asList(System.getProperty("performanceTestBuildIds", "").split(",")));
 
         try (ResultsStore store = getResultsStore()) {
-            PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJsons, teamCityBuildIds);
+            PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJsons, performanceTestBuildIds);
             PerformanceFlakinessDataProvider flakinessDataProvider = getFlakinessDataProvider();
             generateReport(store, flakinessDataProvider, executionDataProvider, outputDirectory, projectName);
             checkResult(flakinessDataProvider, executionDataProvider);
@@ -69,8 +69,8 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         return EmptyPerformanceFlakinessDataProvider.INSTANCE;
     }
 
-    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, List<File> resultJsons, Set<String> teamCityBuildIds) {
-        return new DefaultPerformanceExecutionDataProvider(store, resultJsons, teamCityBuildIds);
+    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, List<File> resultJsons, Set<String> performanceTestBuildIds) {
+        return new DefaultPerformanceExecutionDataProvider(store, resultJsons, performanceTestBuildIds);
     }
 
     protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File outputDirectory, String projectName) throws IOException {

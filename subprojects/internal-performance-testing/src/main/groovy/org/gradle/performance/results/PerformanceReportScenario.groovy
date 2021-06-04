@@ -40,10 +40,10 @@ class PerformanceReportScenario {
     final boolean fromCache
 
     PerformanceReportScenario(
-        List<PerformanceReportScenarioTeamCityExecution> teamCityExecutions,
-        List<PerformanceReportScenarioHistoryExecution> historyExecutions,
-        boolean crossBuild,
-        boolean fromCache
+            List<PerformanceReportScenarioTeamCityExecution> teamCityExecutions,
+            List<PerformanceReportScenarioHistoryExecution> historyExecutions,
+            boolean crossBuild,
+            boolean fromCache
     ) {
         if (teamCityExecutions.empty) {
             throw new IllegalArgumentException("teamCity executions must not be empty!")
@@ -62,7 +62,7 @@ class PerformanceReportScenario {
     }
 
     String getName() {
-        return "$scenarioName | $testProject | $scenarioClass"
+        return "$scenarioName | $testProject | ${scenarioClass.substring(scenarioClass.lastIndexOf(".") + 1)}"
     }
 
     String getScenarioName() {

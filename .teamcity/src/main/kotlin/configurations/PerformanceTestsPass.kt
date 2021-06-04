@@ -66,7 +66,7 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                 "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                 "-Porg.gradle.performance.db.url" to "%performance.db.url%",
                 "-Porg.gradle.performance.db.username" to "%performance.db.username%",
-                "-PdepBuildIds" to depBuildIds
+                "-PperformanceTestBuildIds" to depBuildIds
             ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
         )
     }

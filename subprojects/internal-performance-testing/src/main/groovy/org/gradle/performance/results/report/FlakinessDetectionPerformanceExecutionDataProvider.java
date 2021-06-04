@@ -46,8 +46,8 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
             .thenComparing(comparing(PerformanceReportScenario::getDifferencePercentage).reversed())
             .thenComparing(PerformanceReportScenario::getName);
 
-    public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> teamCityBuildIds) {
-        super(resultsStore, resultJsons, teamCityBuildIds);
+    public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> performanceTestBuildIds) {
+        super(resultsStore, resultJsons, performanceTestBuildIds);
     }
 
     @Override
