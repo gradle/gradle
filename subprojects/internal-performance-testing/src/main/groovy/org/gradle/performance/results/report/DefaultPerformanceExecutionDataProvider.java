@@ -72,7 +72,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
             teamCityExecutionsOfSameScenario,
             historyExecutions,
             history instanceof CrossBuildPerformanceTestHistory,
-            historyExecutions.stream().noneMatch(performanceTestBuildIds::contains)
+            historyExecutions.stream().map(PerformanceReportScenarioHistoryExecution::getTeamCityBuildId).noneMatch(performanceTestBuildIds::contains)
         );
     }
 
