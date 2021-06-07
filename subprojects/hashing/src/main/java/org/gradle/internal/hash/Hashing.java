@@ -18,8 +18,11 @@ package org.gradle.internal.hash;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 
-import java.io.OutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -89,17 +92,17 @@ public class Hashing {
     }
 
     /**
-     * Creates a {@link HashingOutputStream} with the default hash function.
+     * Hash the contents of the given {@link java.io.InputStream} with the default hash function.
      */
-    public static HashingOutputStream primitiveStreamHasher() {
-        return primitiveStreamHasher(ByteStreams.nullOutputStream());
+    public static HashCode hashStream(InputStream stream) throws IOException {
+        return DEFAULT.hashStream(stream);
     }
 
     /**
-     * Creates a {@link HashingOutputStream} with the default hash function.
+     * Hash the contents of the given {@link java.io.File} with the default hash function.
      */
-    public static HashingOutputStream primitiveStreamHasher(OutputStream output) {
-        return new HashingOutputStream(DEFAULT, output);
+    public static HashCode hashFile(File file) throws IOException {
+        return DEFAULT.hashFile(file);
     }
 
     /**
@@ -183,6 +186,24 @@ public class Hashing {
             PrimitiveHasher hasher = newPrimitiveHasher();
             hasher.putString(string);
             return hasher.hash();
+        }
+
+        @Override
+        public HashCode hashStream(InputStream stream) throws IOException {
+            HashingOutputStream hashingOutputStream = primitiveStreamHasher();
+            ByteStreams.copy(stream, hashingOutputStream);
+            return hashingOutputStream.hash();
+        }
+
+        @Override
+        public HashCode hashFile(File file) throws IOException {
+            HashingOutputStream hashingOutputStream = primitiveStreamHasher();
+            Files.copy(file, hashingOutputStream);
+            return hashingOutputStream.hash();
+        }
+
+        private HashingOutputStream primitiveStreamHasher() {
+            return new HashingOutputStream(this, ByteStreams.nullOutputStream());
         }
 
         protected abstract MessageDigest createDigest();

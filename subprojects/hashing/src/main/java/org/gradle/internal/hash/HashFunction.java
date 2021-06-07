@@ -16,6 +16,10 @@
 
 package org.gradle.internal.hash;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * Hash function that can create new {@link Hasher}s and {@link PrimitiveHasher}s on demand.
  * Inspired by the Google Guava project – https://github.com/google/guava.
@@ -40,6 +44,16 @@ public interface HashFunction {
      * Hash the given string using the hash function.
      */
     HashCode hashString(CharSequence string);
+
+    /**
+     * Hash the contents of the given {@link java.io.InputStream}.
+     */
+    HashCode hashStream(InputStream stream) throws IOException;
+
+    /**
+     * Hash the contents of the given {@link java.io.File}.
+     */
+    HashCode hashFile(File file) throws IOException;
 
     /**
      * Returns the number of hexadecimal digits needed to represent the hash.
