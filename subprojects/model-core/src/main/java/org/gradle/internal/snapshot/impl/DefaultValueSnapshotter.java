@@ -270,7 +270,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         @Override
         public ValueSnapshot hashValue(HashCode value) {
-            return new HashValueSnapshot(value);
+            return new HashCodeSnapshot(value);
         }
 
         @Override
@@ -390,7 +390,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         @Override
         public Isolatable<?> hashValue(HashCode value) {
-            return new HashValueSnapshot(value);
+            return new HashCodeSnapshot(value);
         }
 
         @Override
