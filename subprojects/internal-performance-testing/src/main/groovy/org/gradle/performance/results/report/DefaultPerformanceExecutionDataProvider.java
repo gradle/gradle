@@ -17,10 +17,11 @@
 package org.gradle.performance.results.report;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.performance.results.CrossBuildPerformanceTestHistory;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
-import org.gradle.performance.results.PerformanceReportScenarioTeamCityExecution;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
@@ -34,7 +35,6 @@ import java.util.TreeSet;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutionDataProvider {
     private static final int DEFAULT_RETRY_COUNT = 3;
@@ -53,18 +53,22 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
     }
 
     @Override
-    protected TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceReportScenarioTeamCityExecution> scenarioExecutions) {
+    protected TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceTestExecutionResult> scenarioExecutions) {
         // scenarioExecutions contains duplicate scenarios because of rerun
         return scenarioExecutions.stream()
-            .collect(groupingBy(PerformanceReportScenarioTeamCityExecution::getPerformanceExperiment))
+            .collect(groupingBy(PerformanceTestExecutionResult::getPerformanceExperiment))
             .values()
             .stream()
             .map(this::queryAndSortExecutionData)
             .collect(treeSetCollector(SCENARIO_COMPARATOR));
     }
 
-    private PerformanceReportScenario queryAndSortExecutionData(List<PerformanceReportScenarioTeamCityExecution> teamCityExecutionsOfSameScenario) {
-        List<String> teamcityBuildIds = teamCityExecutionsOfSameScenario.stream().map(PerformanceReportScenarioTeamCityExecution::getTeamCityBuildId).collect(toList());
+    private PerformanceReportScenario queryAndSortExecutionData(List<PerformanceTestExecutionResult> teamCityExecutionsOfSameScenario) {
+        List<String> teamcityBuildIds = teamCityExecutionsOfSameScenario
+            .stream()
+            .map(PerformanceTestExecutionResult::getTeamCityBuildId)
+            .filter(StringUtils::isNotBlank)
+            .collect(toList());
         PerformanceTestHistory history = resultsStore.getTestResults(teamCityExecutionsOfSameScenario.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel(), teamcityBuildIds);
 
         List<PerformanceReportScenarioHistoryExecution> historyExecutions = removeEmptyExecution(history.getExecutions());
@@ -74,9 +78,5 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
             history instanceof CrossBuildPerformanceTestHistory,
             historyExecutions.stream().map(PerformanceReportScenarioHistoryExecution::getTeamCityBuildId).noneMatch(performanceTestBuildIds::contains)
         );
-    }
-
-    private boolean allScenarioHaveSameStatus(List<PerformanceReportScenarioTeamCityExecution> scenariosWithSameName) {
-        return scenariosWithSameName.stream().map(PerformanceReportScenarioTeamCityExecution::getStatus).collect(toSet()).size() == 1;
     }
 }

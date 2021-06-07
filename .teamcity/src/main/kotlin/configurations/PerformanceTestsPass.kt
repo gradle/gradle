@@ -55,7 +55,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
 subprojects/$performanceProjectName/build/performance-test-results.zip
 """
     if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
-        val depBuildIds = performanceTestProject.performanceTests
+        val performanceTestBuildIds = performanceTestProject.performanceTests
             .filter { it.testProjects.isNotEmpty() }
             .joinToString(",") { "%dep.${it.id}.env.BUILD_ID%" }
 
@@ -66,7 +66,7 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                 "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                 "-Porg.gradle.performance.db.url" to "%performance.db.url%",
                 "-Porg.gradle.performance.db.username" to "%performance.db.username%",
-                "-PperformanceTestBuildIds" to depBuildIds
+                "-Porg.gradle.performance.performanceTestBuildIds" to performanceTestBuildIds
             ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
         )
     }

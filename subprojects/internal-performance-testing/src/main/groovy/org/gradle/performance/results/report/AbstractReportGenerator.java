@@ -26,7 +26,7 @@ import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
-import org.gradle.performance.results.PerformanceReportScenarioTeamCityExecution;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
@@ -76,7 +76,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File outputDirectory, String projectName) throws IOException {
         renderIndexPage(flakinessDataProvider, executionDataProvider, new File(outputDirectory, "index.html"));
         List<String> executedBuildIds = executionDataProvider.getReportScenarios().stream()
-            .flatMap(scenario -> scenario.getTeamCityExecutions().stream().map(PerformanceReportScenarioTeamCityExecution::getTeamCityBuildId))
+            .flatMap(scenario -> scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getTeamCityBuildId))
             .collect(Collectors.toList());
 
         executionDataProvider.getReportScenarios().stream()

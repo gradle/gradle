@@ -31,12 +31,12 @@ public class ScenarioResult {
     }
 
     private final Status status;
-    private final List<PerformanceReportScenarioTeamCityExecution> individualResults;
+    private final List<PerformanceTestExecutionResult> individualResults;
     private final List<PerformanceReportScenarioHistoryExecution> currentBuildExecutions = new ArrayList<>();
     private final List<PerformanceReportScenarioHistoryExecution> recentExecutions = new ArrayList<>();
     private final boolean crossVersion;
 
-    public ScenarioResult(Status status, List<PerformanceReportScenarioTeamCityExecution> individualResults, boolean crossVersion) {
+    public ScenarioResult(Status status, List<PerformanceTestExecutionResult> individualResults, boolean crossVersion) {
         this.status = status;
         this.individualResults = individualResults;
         this.crossVersion = crossVersion;
@@ -46,7 +46,7 @@ public class ScenarioResult {
         return status;
     }
 
-    public List<PerformanceReportScenarioTeamCityExecution> getIndividualResults() {
+    public List<PerformanceTestExecutionResult> getIndividualResults() {
         return individualResults;
     }
 

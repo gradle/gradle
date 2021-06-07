@@ -23,7 +23,7 @@ import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.ResultsStore;
-import org.gradle.performance.results.PerformanceReportScenarioTeamCityExecution;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.util.Git;
 
 import java.io.File;
@@ -66,18 +66,18 @@ public abstract class PerformanceExecutionDataProvider {
         return commitId;
     }
 
-    protected abstract TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceReportScenarioTeamCityExecution> scenarioExecutions);
+    protected abstract TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceTestExecutionResult> scenarioExecutions);
 
     private TreeSet<PerformanceReportScenario> readResultJsonAndQueryFromDatabase() {
-        List<PerformanceReportScenarioTeamCityExecution> buildResultData = resultJsons.stream()
+        List<PerformanceTestExecutionResult> buildResultData = resultJsons.stream()
             .flatMap(PerformanceExecutionDataProvider::parseResultsJson)
             .collect(toList());
         return queryExecutionData(buildResultData);
     }
 
-    private static Stream<PerformanceReportScenarioTeamCityExecution> parseResultsJson(File resultsJson) {
+    private static Stream<PerformanceTestExecutionResult> parseResultsJson(File resultsJson) {
         try {
-            return new ObjectMapper().readValue(resultsJson, new TypeReference<List<PerformanceReportScenarioTeamCityExecution>>() {
+            return new ObjectMapper().readValue(resultsJson, new TypeReference<List<PerformanceTestExecutionResult>>() {
             }).stream();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -87,10 +87,6 @@ public abstract class PerformanceExecutionDataProvider {
     protected <T> Collector<T, ?, TreeSet<T>> treeSetCollector(Comparator<T> scenarioComparator) {
         return toCollection(() -> new TreeSet<>(scenarioComparator));
     }
-
-//    protected boolean sameCommit(PerformanceReportScenarioTeamCityExecution.ExecutionData execution) {
-//        return commitId.equals(execution.getCommitId());
-//    }
 
     protected List<PerformanceReportScenarioHistoryExecution> removeEmptyExecution(List<? extends PerformanceTestExecution> executions) {
         return executions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList());

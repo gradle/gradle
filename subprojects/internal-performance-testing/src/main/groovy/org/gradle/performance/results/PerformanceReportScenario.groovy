@@ -20,10 +20,11 @@ package org.gradle.performance.results
  * Represents a row in performance report, i.e. a specific scenario.
  */
 class PerformanceReportScenario {
+    final PerformanceExperiment performanceExperiment
     /**
      * The executions read from TeamCity-build-generated-result-JSONs.
      */
-    final List<PerformanceReportScenarioTeamCityExecution> teamCityExecutions
+    final List<PerformanceTestExecutionResult> teamCityExecutions
 
     /**
      * The execution read from performance database which has the same TC build id as `teamCityExecutions`.
@@ -40,7 +41,7 @@ class PerformanceReportScenario {
     final boolean fromCache
 
     PerformanceReportScenario(
-            List<PerformanceReportScenarioTeamCityExecution> teamCityExecutions,
+            List<PerformanceTestExecutionResult> teamCityExecutions,
             List<PerformanceReportScenarioHistoryExecution> historyExecutions,
             boolean crossBuild,
             boolean fromCache
@@ -48,6 +49,7 @@ class PerformanceReportScenario {
         if (teamCityExecutions.empty) {
             throw new IllegalArgumentException("teamCity executions must not be empty!")
         }
+        this.performanceExperiment = teamCityExecutions[0].performanceExperiment
         this.teamCityExecutions = teamCityExecutions
         this.crossBuild = crossBuild
         this.fromCache = fromCache
@@ -66,19 +68,15 @@ class PerformanceReportScenario {
     }
 
     String getScenarioName() {
-        return teamCityExecutions[0].getScenarioName()
+        return performanceExperiment.scenario.testName
     }
 
     String getScenarioClass() {
-        return teamCityExecutions[0].getScenarioClass()
+        return performanceExperiment.scenario.className
     }
 
     String getTestProject() {
-        return teamCityExecutions[0].getTestProject()
-    }
-
-    PerformanceExperiment getPerformanceExperiment() {
-        return teamCityExecutions[0].getPerformanceExperiment()
+        return performanceExperiment.testProject
     }
 
     boolean isCrossVersion() {

@@ -18,7 +18,7 @@ package org.gradle.performance.results.report;
 
 import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceReportScenario;
-import org.gradle.performance.results.PerformanceReportScenarioTeamCityExecution;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
 
@@ -136,7 +136,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected void renderScenarioButtons(int index, PerformanceReportScenario scenario) {
-                List<String> webUrls = scenario.getTeamCityExecutions().stream().map(PerformanceReportScenarioTeamCityExecution::getWebUrl).collect(toList());
+                List<String> webUrls = scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(toList());
                 if (webUrls.size() == 1) {
                     a().target("_blank").classAttr("btn btn-primary btn-sm").href(webUrls.get(0)).text("Build").end();
                 } else {

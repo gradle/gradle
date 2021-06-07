@@ -21,7 +21,7 @@ import org.gradle.performance.measure.Duration;
 import org.gradle.performance.results.FormatSupport;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
-import org.gradle.performance.results.PerformanceReportScenarioTeamCityExecution;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 
@@ -200,7 +200,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     div().id("collapse" + index).classAttr("collapse");
                         div().classAttr("card-body");
                             if(scenario.isBuildFailed()) {
-                                pre().text(scenario.getTeamCityExecutions().stream().map(PerformanceReportScenarioTeamCityExecution::getTestFailure).collect(joining("\n"))).end();
+                                pre().text(scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getTestFailure).collect(joining("\n"))).end();
                             } else {
                                 renderDetailsTable(scenario);
                             }

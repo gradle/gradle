@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,16 @@
 
 package org.gradle.performance.results
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.gradle.performance.measure.DataSeries
 
+import java.time.Instant
 
 /**
  * Each instance represents a performance execution, i.e. a row in performance execution database
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-class PerformanceReportScenarioTeamCityExecution {
-    public static final String STATUS_SUCCESS = "SUCCESS"
-    public static final String STATUS_FAILURE = "FAILURE"
-    public static final String STATUS_UNKNOWN = "UNKNOWN"
-    public static final int FLAKINESS_DETECTION_THRESHOLD = 99
-    String teamCityBuildId
-    String scenarioName
-    String scenarioClass
-    String testProject
-    String webUrl
-    String testFailure
-    String status
-    String commitId
-
-    boolean isBuildFailed() {
-        return status == STATUS_FAILURE
-    }
-
-    boolean isUnknown() {
-        return status == STATUS_UNKNOWN
-    }
-
-    boolean isSuccessful() {
-        return status == STATUS_SUCCESS
-    }
-
-    PerformanceExperiment getPerformanceExperiment() {
-        new PerformanceExperiment(getTestProject(), new PerformanceScenario(getScenarioClass(), getScenarioName()))
-    }
-}
-
 class PerformanceReportScenarioHistoryExecution {
     private static final int ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD = 90
-    Date time
+    Instant time
     String teamCityBuildId
     String commitId
     String shortCommitId
@@ -65,7 +33,7 @@ class PerformanceReportScenarioHistoryExecution {
     MeasuredOperationList currentVersion
 
     PerformanceReportScenarioHistoryExecution(long time, String teamCityBuildId, String commitId, MeasuredOperationList baseVersion, MeasuredOperationList currentVersion) {
-        this.time = new Date(time)
+        this.time = Instant.ofEpochMilli(time)
         this.teamCityBuildId = teamCityBuildId
         this.commitId = commitId
         this.shortCommitId = commitId.substring(0, Math.min(7, commitId.length()))

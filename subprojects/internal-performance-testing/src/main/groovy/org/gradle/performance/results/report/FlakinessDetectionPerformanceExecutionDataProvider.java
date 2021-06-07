@@ -19,7 +19,7 @@ package org.gradle.performance.results.report;
 import com.google.common.collect.ImmutableList;
 import org.gradle.performance.results.CrossBuildPerformanceTestHistory;
 import org.gradle.performance.results.PerformanceReportScenario;
-import org.gradle.performance.results.PerformanceReportScenarioTeamCityExecution;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
@@ -34,7 +34,7 @@ import java.util.TreeSet;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.performance.results.PerformanceReportScenarioTeamCityExecution.FLAKINESS_DETECTION_THRESHOLD;
+import static org.gradle.performance.results.PerformanceTestExecutionResult.FLAKINESS_DETECTION_THRESHOLD;
 
 class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExecutionDataProvider {
     public static final int MOST_RECENT_EXECUTIONS = 9;
@@ -51,17 +51,17 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
     }
 
     @Override
-    protected TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceReportScenarioTeamCityExecution> scenarioList) {
-        Set<PerformanceReportScenarioTeamCityExecution> distinctScenarios = scenarioList
+    protected TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceTestExecutionResult> scenarioList) {
+        Set<PerformanceTestExecutionResult> distinctScenarios = scenarioList
             .stream()
-            .collect(treeSetCollector(comparing(PerformanceReportScenarioTeamCityExecution::getPerformanceExperiment)));
+            .collect(treeSetCollector(comparing(PerformanceTestExecutionResult::getPerformanceExperiment)));
 
         return distinctScenarios.stream()
             .map(this::queryExecutionData)
             .collect(treeSetCollector(SCENARIO_COMPARATOR));
     }
 
-    private PerformanceReportScenario queryExecutionData(PerformanceReportScenarioTeamCityExecution execution) {
+    private PerformanceReportScenario queryExecutionData(PerformanceTestExecutionResult execution) {
         PerformanceTestHistory history = resultsStore.getTestResults(execution.getPerformanceExperiment(), MOST_RECENT_EXECUTIONS, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel(), ImmutableList.of());
         List<? extends PerformanceTestExecution> executionsOfSameCommit = history.getExecutions().stream().filter(e -> e.getVcsCommits().contains(commitId)).collect(toList());
         List<? extends PerformanceTestExecution> currentExecutions = executionsOfSameCommit.isEmpty()

@@ -95,6 +95,7 @@ abstract class PerformanceTestReport : DefaultTask() {
     abstract val execOperations: ExecOperations
 
     init {
+        debugReportGeneration.convention(false)
         outputs.doNotCacheIf("Debug enabled") { debugReportGeneration.get() }
     }
 

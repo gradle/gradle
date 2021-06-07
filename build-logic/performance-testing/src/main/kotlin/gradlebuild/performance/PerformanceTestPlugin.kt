@@ -221,8 +221,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
         val performanceTestReport = tasks.register<PerformanceTestReport>(name) {
             this.reportGeneratorClass.set(reportGeneratorClass)
-            this.performanceTestBuildIds.set(findProperty(PropertyNames.performanceTestBuildIds)?.toString() ?: "")
-            this.debugReportGeneration.convention(false)
+            this.performanceTestBuildIds.set(providers.gradleProperty(PropertyNames.performanceTestBuildIds).orElse(""))
         }
         val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)
         performanceTestReport {
@@ -404,7 +403,7 @@ class PerformanceTestExtension(
     fun createPerformanceTest(name: String, generatorTask: TaskProvider<out Task>, configure: PerformanceTest.() -> Unit = {}): TaskProvider<out PerformanceTest> {
         val performanceTest = project.tasks.register(name, PerformanceTest::class) {
             group = "verification"
-            buildId = System.getenv("BUILD_ID")
+            buildId = System.getenv("BUILD_ID") ?: "localBuild"
             reportDir = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestReportsDir}").get().asFile
             resultsJson = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestResultsJson}").get().asFile
             addDatabaseParameters(project.propertiesForPerformanceDb())

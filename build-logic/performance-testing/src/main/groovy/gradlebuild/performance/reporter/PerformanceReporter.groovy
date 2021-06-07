@@ -68,7 +68,7 @@ class PerformanceReporter {
                 spec.debug = debugReportGeneration
                 spec.systemProperty("org.gradle.performance.execution.channel", channel)
                 spec.systemProperty("org.gradle.performance.execution.branch", branchName)
-                spec.systemProperty("performanceTestBuildIds", performanceTestBuildIds)
+                spec.systemProperty("org.gradle.performance.performanceTestBuildIds", performanceTestBuildIds)
 
                 // For org.gradle.performance.util.Git
                 spec.systemProperty("gradleBuildBranch", branchName)

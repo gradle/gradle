@@ -21,7 +21,7 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceReportScenario
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution
 import org.gradle.performance.results.ResultsStore
-import org.gradle.performance.results.PerformanceReportScenarioTeamCityExecution
+import org.gradle.performance.results.PerformanceTestExecutionResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Subject
@@ -58,7 +58,7 @@ class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
 
     private PerformanceReportScenario createFailedData() {
         return new PerformanceReportScenario(
-            [new PerformanceReportScenarioTeamCityExecution(scenarioName: 'failed', status: 'FAILURE')],
+            [new PerformanceTestExecutionResult(scenarioName: 'failed', status: 'FAILURE')],
             [Mock(PerformanceReportScenarioHistoryExecution)],
             false,
             false
@@ -89,7 +89,7 @@ class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
         MeasuredOperationList baseVersion = measuredOperationList(baseVersionResult)
         MeasuredOperationList currentVersion = measuredOperationList(currentVersionResult)
         PerformanceReportScenarioHistoryExecution historyExecution = new PerformanceReportScenarioHistoryExecution(new Date().getTime(), 'teamCityBuild', '', baseVersion, currentVersion)
-        PerformanceReportScenarioTeamCityExecution teamCityExecution = new PerformanceReportScenarioTeamCityExecution(scenarioName: name, status: 'SUCCESS', teamCityBuildId: 'teamCityBuild')
+        PerformanceTestExecutionResult teamCityExecution = new PerformanceTestExecutionResult(scenarioName: name, status: 'SUCCESS', teamCityBuildId: 'teamCityBuild')
         return new PerformanceReportScenario([teamCityExecution], [historyExecution], false, false)
     }
 }
