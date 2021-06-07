@@ -48,6 +48,11 @@ public interface BuildState {
     boolean isImplicitBuild();
 
     /**
+     * Should this build be imported into an IDE? Some implicit builds, such as source dependency builds, are not intended to be imported into the IDE or editable by users.
+     */
+    boolean isImportableBuild();
+
+    /**
      * The configured settings object for this build, if available.
      *
      * This should not be exposed directly, but should be behind some method that coordinates access from multiple threads.

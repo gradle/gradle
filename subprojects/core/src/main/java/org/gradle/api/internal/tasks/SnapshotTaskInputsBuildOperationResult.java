@@ -17,11 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingInputs;
@@ -43,11 +39,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * This operation represents the work of analyzing the task's inputs plus the calculating the cache key.
@@ -70,22 +68,10 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Override
     public Map<String, byte[]> getInputValueHashesBytes() {
         return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, Map<String, byte[]>>() {
-                @Nullable
-                @Override
-                public Map<String, byte[]> apply(CachingInputs cachingInputs) {
-                    ImmutableSortedMap<String, HashCode> inputValueFingerprints = cachingInputs.getInputValueFingerprints();
-                    if (inputValueFingerprints.isEmpty()) {
-                        return null;
-                    }
-                    return Maps.transformValues(inputValueFingerprints, new Function<HashCode, byte[]>() {
-                        @Override
-                        public byte[] apply(HashCode input) {
-                            return input.toByteArray();
-                        }
-                    });
-                }
-            })
+            .map(CachingInputs::getInputValueFingerprints)
+            .filter(inputValueFingerprints -> !inputValueFingerprints.isEmpty())
+            .map(inputValueFingerprints -> inputValueFingerprints.entrySet().stream()
+                .collect(toLinkedHashMap(HashCode::toByteArray)))
             .orElse(null);
     }
 
@@ -190,44 +176,22 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Override
     public void visitInputFileProperties(final InputFilePropertyVisitor visitor) {
-        cachingState.getInputs().ifPresent(new Consumer<CachingInputs>() {
-            @Override
-            public void accept(CachingInputs inputs) {
-                State state = new State(visitor);
-                for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputs.getInputFileFingerprints().entrySet()) {
-                    CurrentFileCollectionFingerprint fingerprint = entry.getValue();
+        cachingState.getInputs().ifPresent(inputs -> {
+            State state = new State(visitor);
+            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputs.getInputFileFingerprints().entrySet()) {
+                CurrentFileCollectionFingerprint fingerprint = entry.getValue();
 
-                    state.propertyName = entry.getKey();
-                    state.propertyHash = fingerprint.getHash();
-                    state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
-                    state.fingerprints = fingerprint.getFingerprints();
+                state.propertyName = entry.getKey();
+                state.propertyHash = fingerprint.getHash();
+                state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
+                state.fingerprints = fingerprint.getFingerprints();
 
-                    visitor.preProperty(state);
-                    fingerprint.getSnapshot().accept(state);
-                    visitor.postProperty();
-                }
+                visitor.preProperty(state);
+                fingerprint.getSnapshot().accept(state);
+                visitor.postProperty();
             }
         });
     }
-
-    @Nullable
-    @Override
-    public Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
-        return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, Set<String>>() {
-                @Nullable
-                @Override
-                public Set<String> apply(CachingInputs inputs) {
-                    ImmutableSortedSet<String> invalidInputProperties = inputs.getNonCacheableInputProperties();
-                    if (invalidInputProperties.isEmpty()) {
-                        return null;
-                    }
-                    return invalidInputProperties;
-                }
-            })
-            .orElse(null);
-    }
-
 
     @Override
     public byte[] getClassLoaderHashBytes() {
@@ -249,22 +213,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Override
     public List<byte[]> getActionClassLoaderHashesBytes() {
         return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, List<byte[]>>() {
-                @Nullable
-                @Override
-                public List<byte[]> apply(CachingInputs inputs) {
-                    List<ImplementationSnapshot> additionalImplementations = inputs.getAdditionalImplementations();
-                    if (additionalImplementations.isEmpty()) {
-                        return null;
-                    }
-                    return Lists.transform(additionalImplementations, new Function<ImplementationSnapshot, byte[]>() {
-                        @Override
-                        public byte[] apply(ImplementationSnapshot input) {
-                            return input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toByteArray();
-                        }
-                    });
-                }
-            })
+            .map(CachingInputs::getAdditionalImplementations)
+            .filter(additionalImplementation -> !additionalImplementation.isEmpty())
+            .map(additionalImplementations -> additionalImplementations.stream()
+                .map(input -> input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toByteArray())
+                .collect(Collectors.toList()))
             .orElse(null);
     }
 
@@ -272,22 +225,12 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Override
     public List<String> getActionClassNames() {
         return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, List<String>>() {
-                @Nullable
-                @Override
-                public List<String> apply(CachingInputs inputs) {
-                    List<ImplementationSnapshot> additionalImplementations = inputs.getAdditionalImplementations();
-                    if (additionalImplementations.isEmpty()) {
-                        return null;
-                    }
-                    return Lists.transform(additionalImplementations, new Function<ImplementationSnapshot, String>() {
-                        @Override
-                        public String apply(ImplementationSnapshot input) {
-                            return input.getTypeName();
-                        }
-                    });
-                }
-            })
+            .map(CachingInputs::getAdditionalImplementations)
+            .filter(additionalImplementations -> !additionalImplementations.isEmpty())
+            .map(additionalImplementations -> additionalImplementations.stream()
+                .map(ImplementationSnapshot::getTypeName)
+                .collect(Collectors.toList())
+            )
             .orElse(null);
     }
 
@@ -295,50 +238,30 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Override
     public List<String> getOutputPropertyNames() {
         return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, List<String>>() {
-                @Nullable
-                @Override
-                public List<String> apply(CachingInputs inputs) {
-                    ImmutableSortedSet<String> outputPropertyNames = inputs.getOutputProperties();
-                    if (outputPropertyNames.isEmpty()) {
-                        return null;
-                    }
-                    return outputPropertyNames.asList();
-                }
-            })
+            .map(CachingInputs::getOutputProperties)
+            .filter(outputPropertyNames -> !outputPropertyNames.isEmpty())
+            .map(ImmutableSet::asList)
             .orElse(null);
     }
 
     @Override
     public byte[] getHashBytes() {
         return cachingState.getKey()
-            .map(new java.util.function.Function<BuildCacheKey, byte[]>() {
-                @Override
-                public byte[] apply(BuildCacheKey cacheKey) {
-                    return cacheKey.toByteArray();
-                }
-            })
+            .map(BuildCacheKey::toByteArray)
             .orElse(null);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Object getCustomOperationTraceSerializableModel() {
-        Map<String, Object> model = new TreeMap<String, Object>();
-
-        final Function<byte[], String> bytesToString = new Function<byte[], String>() {
-            @Nullable
-            @Override
-            public String apply(@Nullable byte[] input) {
-                if (input == null) {
-                    return null;
-                }
-                return HashCode.fromBytes(input).toString();
-            }
-        };
+        Map<String, Object> model = new TreeMap<>();
 
         List<byte[]> actionClassLoaderHashesBytes = getActionClassLoaderHashesBytes();
         if (actionClassLoaderHashesBytes != null) {
-            model.put("actionClassLoaderHashes", Lists.transform(getActionClassLoaderHashesBytes(), bytesToString));
+            List<String> actionClassloaderHashes = getActionClassLoaderHashesBytes().stream()
+                .map(hash -> hash == null ? null : HashCode.fromBytes(hash).toString())
+                .collect(Collectors.toList());
+            model.put("actionClassLoaderHashes", actionClassloaderHashes);
         } else {
             model.put("actionClassLoaderHashes", null);
         }
@@ -366,16 +289,9 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
         Map<String, byte[]> inputValueHashesBytes = getInputValueHashesBytes();
         if (inputValueHashesBytes != null) {
-            model.put("inputValueHashes", Maps.transformEntries(inputValueHashesBytes, new Maps.EntryTransformer<String, byte[], String>() {
-                @Nullable
-                @Override
-                public String transformEntry(@Nullable String key, @Nullable byte[] value) {
-                    if (value == null) {
-                        return null;
-                    }
-                    return HashCode.fromBytes(value).toString();
-                }
-            }));
+            Map<String, String> inputValueHashes = inputValueHashesBytes.entrySet().stream()
+                .collect(toLinkedHashMap(value -> value == null ? null : HashCode.fromBytes(value).toString()));
+            model.put("inputValueHashes", inputValueHashes);
         } else {
             model.put("inputValueHashes", null);
         }
@@ -385,16 +301,25 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         return model;
     }
 
+    private static <K, V, U> Collector<Map.Entry<K, V>, ?, LinkedHashMap<K, U>> toLinkedHashMap(Function<? super V, ? extends U> valueMapper) {
+        return Collectors.toMap(
+            Map.Entry::getKey,
+            entry -> valueMapper.apply(entry.getValue()),
+            (a, b) -> b,
+            LinkedHashMap::new
+        );
+    }
+
     protected Map<String, Object> fileProperties() {
-        final Map<String, Object> fileProperties = new TreeMap<String, Object>();
+        final Map<String, Object> fileProperties = new TreeMap<>();
         visitInputFileProperties(new InputFilePropertyVisitor() {
             Property property;
-            Deque<DirEntry> dirStack = new ArrayDeque<DirEntry>();
+            final Deque<DirEntry> dirStack = new ArrayDeque<>();
 
             class Property {
                 private final String hash;
                 private final String normalization;
-                private final List<Entry> roots = new ArrayList<Entry>();
+                private final List<Entry> roots = new ArrayList<>();
 
                 public Property(String hash, String normalization) {
                     this.hash = hash;
@@ -441,7 +366,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             }
 
             class DirEntry extends Entry {
-                private final List<Entry> children = new ArrayList<Entry>();
+                private final List<Entry> children = new ArrayList<>();
 
                 DirEntry(String path) {
                     super(path);

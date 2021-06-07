@@ -20,7 +20,9 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.provider.Provider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -69,6 +71,11 @@ class AbstractArchiveFileTreeTest extends Specification {
         @Override
         void visit(FileVisitor visitor) {
             throw new UnsupportedOperationException()
+        }
+
+        @Override
+        protected Provider<File> getBackingFileProvider() {
+            TestUtil.providerFactory().provider { backingFile }
         }
     }
 }

@@ -38,12 +38,14 @@ class ToolchainReportRendererTest extends Specification {
         def metadata = JvmInstallationMetadata.from(
             new File("path"),
             "1.8.0",
+            "1.8.0-b01",
+            "25.292-b01",
             "vendorName",
             "")
         installation.source >> "SourceSupplier"
 
         expect:
-        assertOutput(metadata, """{identifier} + vendorName JRE 1.8.0{normal}
+        assertOutput(metadata, """{identifier} + vendorName JRE 1.8.0-b01{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}vendorName{normal}
@@ -59,6 +61,8 @@ class ToolchainReportRendererTest extends Specification {
         def metadata = JvmInstallationMetadata.from(
             javaHome,
             "1.8.0",
+            "1.8.0-b01",
+            "25.292-b01",
             "adoptopenjdk",
             "")
         installation.source >> "SourceSupplier"
@@ -70,7 +74,7 @@ class ToolchainReportRendererTest extends Specification {
         }
 
         expect:
-        assertOutput(metadata, """{identifier} + AdoptOpenJDK 1.8.0{normal}
+        assertOutput(metadata, """{identifier} + AdoptOpenJDK 1.8.0-b01{normal}
      | Location:           {description}$javaHome{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}

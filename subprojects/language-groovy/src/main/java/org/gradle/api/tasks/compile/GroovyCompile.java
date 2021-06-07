@@ -36,8 +36,8 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFa
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
-import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptions;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;

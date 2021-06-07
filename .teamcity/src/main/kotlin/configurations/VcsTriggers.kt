@@ -26,8 +26,8 @@ val triggerExcludes = """
         -:subprojects/docs/src/docs/release
     """.trimIndent()
 
-fun branchFilter(branch: VersionedSettingsBranch) = """
-    +:${branch.branchName}
+fun VersionedSettingsBranch.branchFilter() = """
+    +:$branchName
 """.trimIndent()
 
 fun branchesFilterExcluding(vararg excludedBranch: String) = """

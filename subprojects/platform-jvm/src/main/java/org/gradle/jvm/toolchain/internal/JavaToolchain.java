@@ -48,7 +48,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         this.javaVersion = JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
-        this.implementationVersion = VersionNumber.parse(metadata.getImplementationVersion());
+        this.implementationVersion = VersionNumber.withPatchNumber().parse(metadata.getImplementationVersion());
         this.metadata = metadata;
         this.input = input;
     }
@@ -76,6 +76,17 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     @Internal
     public JavaLanguageVersion getLanguageVersion() {
         return javaVersion;
+    }
+
+    @Internal
+    @Override
+    public String getJavaRuntimeVersion() {
+        return metadata.getRuntimeVersion();
+    }
+
+    @Override
+    public String getJvmVersion() {
+        return metadata.getJvmVersion();
     }
 
     @Internal

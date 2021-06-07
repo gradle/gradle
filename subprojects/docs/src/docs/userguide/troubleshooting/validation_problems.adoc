@@ -360,3 +360,49 @@ To fix this problem, you have two options:
 - remove the `@Optional` annotation
 - or use the boxed type (e.g Integer instead of int) if you intend to make the property nullable
 
+
+[[implementation_unknown]]
+== Cannot use an input with an unknown implementation
+
+This error indicates that a task uses a class as an input and Gradle cannot track the implementation of the class.
+Gradle considers the implementation of the following classes as inputs to a task:
+
+- the task class,
+- the classes of the actions of the task,
+- and the classes of nested inputs of the task, i.e. inputs annotated with `@Nested`.
+
+There are two reasons why Gradle cannot track the implementation of a class:
+
+- a Java lambda was used to implement the class,
+- or the class has been loaded by a classloader unknown to Gradle.
+
+Using a Java lambda means that the bytecode uses invoke-dynamic instead of creating an actual sub-class.
+The class for the invoke-dynamic instruction is generated at JVM runtime and Gradle cannot uniquely identify this class across different JVMs.
+From Java code, it is quite easy to accidentally use a lambda to implement a task action.
+
+```java
+tasks.register("myTask",
+    myTask -> myTask.doLast(t -> System.out.println("Hello from task"))
+);
+```
+
+Gradle isn't able to track the implementation of this task action.
+What you can do instead is to use an anonymous inner class.
+
+```java
+tasks.register("myTask",
+    myTask -> myTask.doLast(new Action<Task>() {
+        @Override
+        public void execute(Task task) {
+            System.out.println("Hello from task");
+        }
+    })
+);
+```
+
+Using Groovy closures works out of the box since they don't compile to lambdas in the bytecode.
+Same is true for Kotlin up to Kotlin 1.4.
+Starting with Kotlin 1.5, the Kotlin compiler is also using invoke-dynamic in the byte code for SAM wrappers in Kotlin source code, making it impossible for Gradle to uniquely identify the class at runtime.
+You need to pass `-Xsam-conversions=class` to the Kotlin compiler to switch back to the previous, supported behavior.
+
+For the case where Gradle cannot track the implementation because it was loaded by a classloader unknown to Gradle, you can use Gradle's built-in ways to load the class.

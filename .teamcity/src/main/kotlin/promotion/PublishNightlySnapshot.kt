@@ -17,6 +17,7 @@
 package promotion
 
 import common.VersionedSettingsBranch
+import configurations.branchFilter
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
 class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistribution(
@@ -31,19 +32,23 @@ class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDis
 
         triggers {
             schedule {
-                schedulingPolicy = daily {
-                    this.hour = branch.triggeredHour()
+                branch.triggeredHour()?.apply {
+                    schedulingPolicy = daily {
+                        this.hour = this@apply
+                    }
                 }
                 triggerBuild = always()
-                withPendingChangesOnly = false
+                withPendingChangesOnly = true
+                enabled = branch.enableTriggers
+                branchFilter = branch.branchFilter()
             }
         }
     }
 }
 
 // Avoid two jobs running at the same time and causing troubles
-private fun VersionedSettingsBranch.triggeredHour() = when (this.branchName) {
-    "master" -> 0
-    "release" -> 1
-    else -> 0
+private fun VersionedSettingsBranch.triggeredHour() = when {
+    isMaster -> 0
+    isRelease -> 1
+    else -> null
 }

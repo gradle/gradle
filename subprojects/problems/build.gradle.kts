@@ -26,3 +26,7 @@ description = """A problems description API
     |It's a stripped down version of the original code available
     |at https://github.com/melix/jdoctor/
 """.trimMargin()
+
+dependencies {
+    implementation(project(":base-annotations"))
+}

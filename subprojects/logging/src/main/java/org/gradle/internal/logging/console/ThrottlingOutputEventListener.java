@@ -68,8 +68,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
         synchronized (lock) {
             queue.add(newEvent);
 
-            if (newEvent instanceof UpdateNowEvent) {
-                // Flush any buffered events and update the clock
+            if (queue.size() == 10000 || newEvent instanceof UpdateNowEvent) {
                 renderNow();
                 return;
             }

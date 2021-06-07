@@ -47,7 +47,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             private ExecutionRequestContext createExecutionRequestContext() {
                 WorkValidationContext validationContext = this.validationContext != null
                     ? this.validationContext
-                    : new DefaultWorkValidationContext(documentationRegistry);
+                    : new DefaultWorkValidationContext(documentationRegistry, work.getTypeOriginInspector());
                 return new ExecutionRequestContext() {
                     @Override
                     public Optional<String> getRebuildReason() {

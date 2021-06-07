@@ -45,8 +45,8 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -327,6 +327,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     @SuppressWarnings("deprecation")
     public void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction) {
+        DeprecationLogger.deprecate("Registering artifact transforms extending ArtifactTransform")
+            .withAdvice("Implement TransformAction instead.")
+            .willBeRemovedInGradle8()
+            .withUserManual("artifact_transforms")
+            .nagUser();
         transforms.registerTransform(registrationAction);
     }
 

@@ -35,6 +35,7 @@ import org.junit.platform.engine.TestEngine;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.descriptor.EngineDescriptor;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
 import org.spockframework.runtime.RunContext;
@@ -43,8 +44,8 @@ import org.spockframework.runtime.SpockEngineDescriptor;
 import org.spockframework.runtime.SpockExecutionContext;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -54,6 +55,7 @@ import static org.gradle.integtests.fixtures.compatibility.AbstractContextualMul
 public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutionContext> {
 
     private final TestEngine delegateEngine = new SpockEngine();
+
     @Override
     public String getId() {
         return "cross-version-test-engine";
@@ -145,10 +147,22 @@ class DelegatingDiscoveryRequest implements EngineDiscoveryRequest {
 
     @Override
     public <T extends DiscoverySelector> List<T> getSelectorsByType(Class<T> selectorType) {
-        if (!selectorType.isAssignableFrom(ClassSelector.class)) {
-            return Collections.emptyList();
+        if (selectorType.equals(ClassSelector.class)) {
+            return Cast.uncheckedCast(selectors);
         }
-        return Cast.uncheckedCast(selectors);
+        if (selectorType.equals(DiscoverySelector.class)) {
+            List<DiscoverySelector> result = new ArrayList<DiscoverySelector>(delegate.getSelectorsByType(selectorType));
+            Iterator<DiscoverySelector> iterator = result.iterator();
+            while (iterator.hasNext()) {
+                DiscoverySelector selector = iterator.next();
+                if (selector instanceof ClassSelector) {
+                    iterator.remove();
+                }
+            }
+            result.addAll(selectors);
+            return Cast.uncheckedCast(result);
+        }
+        return delegate.getSelectorsByType(selectorType);
     }
 
     @Override
@@ -170,11 +184,12 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 
     private static final GradleVersion MIN_LOADABLE_TAPI_VERSION = GradleVersion.version("2.6");
 
+    private final String toolingApiVersionToLoad;
     private ToolingApiDistribution toolingApi;
 
     ToolingApiClassloaderDiscoveryRequest(EngineDiscoveryRequest delegate) {
         super(delegate);
-        String toolingApiVersionToLoad = getToolingApiVersionToLoad();
+        this.toolingApiVersionToLoad = getToolingApiVersionToLoad();
         if (toolingApiVersionToLoad == null) {
             return;
         }
@@ -188,7 +203,7 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 
         for (ClassSelector selector : delegate.getSelectorsByType(ClassSelector.class)) {
             if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
-                ClassLoader classLoader = ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(toolingApiVersionToLoad), selector.getJavaClass());
+                ClassLoader classLoader = toolingApiClassLoaderForTest(selector.getJavaClass());
                 try {
                     addSelector(DiscoverySelectors.selectClass(classLoader.loadClass(selector.getClassName())));
                 } catch (ClassNotFoundException e) {
@@ -196,6 +211,39 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
                 }
             }
         }
+    }
+
+    @Override
+    public <T extends DiscoverySelector> List<T> getSelectorsByType(Class<T> selectorType) {
+        List<T> selectors = super.getSelectorsByType(selectorType);
+        if (selectorType.equals(DiscoverySelector.class)) {
+            List<ClassSelector> result = new ArrayList<ClassSelector>();
+            for (T selector : selectors) {
+                // Test distribution uses UniqueIdSelectors and we have to set the correct classloader for this thread that will run the test
+                if (selector instanceof UniqueIdSelector) {
+                    UniqueIdSelector uniqueIdSelector = (UniqueIdSelector) selectors.get(0);
+                    if (toolingApiVersionToLoad != null && uniqueIdSelector.toString().contains("[variant:selected]")) {
+                        String classToLoad = uniqueIdSelector.getUniqueId().getLastSegment().getValue();
+                        try {
+                            Class<?> testClass = Class.forName(classToLoad);
+                            if (ToolingApiSpecification.class.isAssignableFrom(testClass)) {
+                                result.add(DiscoverySelectors.selectClass(toolingApiClassLoaderForTest(testClass).loadClass(classToLoad)));
+                            }
+                        } catch (ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                } else {
+                    return selectors;
+                }
+            }
+            return Cast.uncheckedCast(result);
+        }
+        return selectors;
+    }
+
+    private ClassLoader toolingApiClassLoaderForTest(Class<?> testClass) {
+        return ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(toolingApiVersionToLoad), testClass);
     }
 
     private ToolingApiDistribution getToolingApi(String versionToTestAgainst) {

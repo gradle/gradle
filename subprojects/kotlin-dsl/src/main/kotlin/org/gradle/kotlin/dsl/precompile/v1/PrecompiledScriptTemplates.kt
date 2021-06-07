@@ -91,6 +91,21 @@ open class PrecompiledSettingsScript(
     target: Settings
 ) : DefaultKotlinScript(SettingsScriptHost(target)), PluginAware by target {
 
+    /**
+     * Configures the plugin dependencies for this settings script.
+     *
+     * @see [PluginDependenciesSpec]
+     */
+    @Suppress("unused")
+    fun plugins(block: PluginDependenciesSpec.() -> Unit) {
+        block(
+            PluginDependenciesSpec { pluginId ->
+                pluginManager.apply(pluginId)
+                NullPluginDependencySpec
+            }
+        )
+    }
+
     private
     class SettingsScriptHost(val settings: Settings) : Host {
         override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
@@ -156,12 +171,6 @@ open class PrecompiledProjectScript(
             }
         )
     }
-
-    private
-    object NullPluginDependencySpec : PluginDependencySpec {
-        override fun apply(apply: Boolean) = this
-        override fun version(version: String?) = this
-    }
 }
 
 
@@ -214,3 +223,10 @@ fun scriptResolverEnvironmentOf(context: ScriptConfigurationRefinementContext): 
         .compilationConfiguration[ScriptCompilationConfiguration.hostConfiguration]
         ?.get(ScriptingHostConfiguration.getEnvironment)
         ?.invoke()
+
+
+private
+object NullPluginDependencySpec : PluginDependencySpec {
+    override fun apply(apply: Boolean) = this
+    override fun version(version: String?) = this
+}

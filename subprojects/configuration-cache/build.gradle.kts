@@ -22,6 +22,10 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.contracts.ExperimentalContracts"
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
@@ -72,11 +76,13 @@ dependencies {
     integTestImplementation(project(":platform-jvm"))
     integTestImplementation(project(":test-kit"))
     integTestImplementation(project(":launcher"))
+    integTestImplementation(project(":cli"))
 
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
 
+    integTestImplementation(testFixtures(project(":tooling-api")))
     integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":jacoco")))
     integTestImplementation(testFixtures(project(":model-core")))

@@ -55,7 +55,7 @@ public class BuildSrcUpdateFactory {
         GradleInternal gradle = buildController.getGradle();
         gradle.addListener(listener);
 
-        buildController.run();
+        buildController.scheduleAndRunTasks();
 
         return listener.getRuntimeClasspath();
     }

@@ -27,7 +27,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
@@ -48,6 +47,7 @@ public class AntlrPlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
@@ -74,10 +74,13 @@ public class AntlrPlugin implements Plugin<Project> {
                     public void execute(final SourceSet sourceSet) {
                         // for each source set we will:
                         // 1) Add a new 'antlr' virtual directory mapping
-                        final AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate
-                                = new AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
+
+
+                        org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate
+                                = new org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
                         new DslObject(sourceSet).getConvention().getPlugins().put(
                                 AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate);
+                        sourceSet.getExtensions().add(AntlrSourceDirectorySet.class, AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate.getAntlr());
                         final String srcDir = "src/"+ sourceSet.getName() +"/antlr";
                         antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
                         sourceSet.getAllSource().source(antlrDirectoryDelegate.getAntlr());

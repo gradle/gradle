@@ -153,7 +153,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task customTask(type: CustomTask) {
-                int numOutputs = Integer.valueOf(
+                int numOutputs = Integer.parseInt(
                     providers.gradleProperty('numOutputs').forUseAtConfigurationTime().get()
                 )
                 outputFiles = (0..(numOutputs-1)).collect { lazyProperty("output\$it") }

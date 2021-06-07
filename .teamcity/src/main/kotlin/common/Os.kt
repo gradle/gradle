@@ -19,6 +19,9 @@ package common
 private const val killAllGradleProcessesUnixLike = """
 free -m
 ps aux | egrep 'Gradle(Daemon|Worker)'
+ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill
+sleep 10
+ps aux | egrep 'Gradle(Daemon|Worker)'
 ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
 free -m
 ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'

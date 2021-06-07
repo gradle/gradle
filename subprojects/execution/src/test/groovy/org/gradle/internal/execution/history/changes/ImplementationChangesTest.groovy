@@ -20,12 +20,11 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.DefaultTask
 import org.gradle.api.Describable
 import org.gradle.api.Task
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
-import org.gradle.internal.Cast
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
+import org.gradle.internal.snapshot.impl.KnownImplementationSnapshot
 import spock.lang.Specification
 
 class ImplementationChangesTest extends Specification {
@@ -92,48 +91,25 @@ class ImplementationChangesTest extends Specification {
         ) == ["One or more additional actions for task ':test' have changed."]
     }
 
-    def "not up-to-date when task is loaded with an unknown classloader"() {
-        def taskClassLoader = new GroovyClassLoader(getClass().getClassLoader())
-        Class<? extends TaskInternal> simpleTaskClass = Cast.uncheckedCast(taskClassLoader.parseClass("""
-            import org.gradle.api.*
-
-            class SimpleTask extends DefaultTask {}
-        """))
-
-        expect:
-        changesBetween(
-            impl(simpleTaskClass, null), [impl(TestAction)],
-            impl(simpleTaskClass, null), [impl(TestAction)]
-        ) == ["The type of task ':test' was loaded with an unknown classloader (class 'SimpleTask')."]
-    }
-
-    def "not up-to-date when task action is loaded with an unknown classloader"() {
-        expect:
-        changesBetween(
-            impl(SimpleTask), [impl(TestAction)],
-            impl(SimpleTask), [impl(TestAction, null)]
-        ) == ["Additional action for task ':test': was loaded with an unknown classloader (class '$TestAction.name')." as String]
-    }
-
     def "not up-to-date when task was previously loaded with an unknown classloader"() {
         expect:
         changesBetween(
-            impl(SimpleTask, null), [impl(TestAction)],
+            unknownImpl(SimpleTask), [impl(TestAction)],
             impl(SimpleTask), [impl(TestAction)]
-        ) == ["During the previous execution of task ':test', it was loaded with an unknown classloader (class '$SimpleTask.name')." as String]
+        ) == ["The implementation of task ':test' has changed." as String]
     }
 
     def "not up-to-date when task action was previously loaded with an unknown classloader"() {
         expect:
         changesBetween(
-            impl(SimpleTask), [impl(TestAction, null)],
+            impl(SimpleTask), [unknownImpl(TestAction)],
             impl(SimpleTask), [impl(TestAction)]
-        ) == ["During the previous execution of task ':test', it had an additional action that was loaded with an unknown classloader (class '$TestAction.name')." as String]
+        ) == ["One or more additional actions for task ':test' have changed." as String]
     }
 
     List<String> changesBetween(
-            ImplementationSnapshot previousImpl, List<ImplementationSnapshot> previousAdditionalImpls,
-            ImplementationSnapshot currentImpl, List<ImplementationSnapshot> currentAdditionalImpls
+        ImplementationSnapshot previousImpl, List<ImplementationSnapshot> previousAdditionalImpls,
+        KnownImplementationSnapshot currentImpl, List<KnownImplementationSnapshot> currentAdditionalImpls
     ) {
         def visitor = new CollectingChangeVisitor()
         new ImplementationChanges(
@@ -144,8 +120,12 @@ class ImplementationChangesTest extends Specification {
         return visitor.changes*.message
     }
 
-    private ImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash = taskLoaderHash) {
-        ImplementationSnapshot.of(type.getName(), classLoaderHash)
+    private KnownImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash = taskLoaderHash) {
+        new KnownImplementationSnapshot(type.getName(), classLoaderHash)
+    }
+
+    private static ImplementationSnapshot unknownImpl(Class<?> type) {
+        ImplementationSnapshot.of(type.getName(), null)
     }
 
     private class SimpleTask extends DefaultTask {}

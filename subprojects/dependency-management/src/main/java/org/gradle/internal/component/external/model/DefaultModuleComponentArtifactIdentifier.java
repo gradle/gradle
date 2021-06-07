@@ -52,11 +52,15 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
 
     @Override
     public ModuleComponentArtifactIdentifier getSignatureArtifactId() {
+        String extension = name.getExtension();
+        if (extension == null) {
+            extension = name.getType();
+        }
         return new DefaultModuleComponentArtifactIdentifier(
             componentIdentifier,
             name.getName(),
             "asc",
-            name.getType() + ".asc",
+            extension + ".asc",
             name.getClassifier()
         );
     }

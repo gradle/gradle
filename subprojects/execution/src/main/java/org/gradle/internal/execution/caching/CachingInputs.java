@@ -49,9 +49,4 @@ public interface CachingInputs {
      * Names of the output properties of the work.
      */
     ImmutableSortedSet<String> getOutputProperties();
-
-    /**
-     * A list of input value property names that were not cacheable.
-     */
-    ImmutableSortedSet<String> getNonCacheableInputProperties();
 }

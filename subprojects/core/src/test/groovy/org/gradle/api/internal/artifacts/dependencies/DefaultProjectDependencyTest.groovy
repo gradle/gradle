@@ -117,7 +117,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
     void "doesn't allow selection of configuration is not consumable"() {
         def context = Mock(TaskDependencyResolveContext)
 
-        def conf = project.configurations.create('conf') {
+        project.configurations.create('conf') {
             canBeConsumed = false
         }
         def listener = Mock(ProjectAccessListener)

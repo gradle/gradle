@@ -34,7 +34,6 @@ abstract class PublishGradleDistribution(
 
     init {
         artifactRules = """
-        incoming-build-receipt/build-receipt.properties => incoming-build-receipt
         **/build/git-checkout/subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
         **/build/distributions/*.zip => promote-build-distributions
         **/build/website-checkout/data/releases.xml
@@ -46,20 +45,19 @@ abstract class PublishGradleDistribution(
             gradleWrapper {
                 name = "Promote"
                 tasks = task
-                gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail"  """
+                gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail"  """
             }
         }
+
         dependencies {
-            artifacts(RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
-                buildRule = lastSuccessful(promotedBranch)
-                cleanDestination = true
-                artifactRules = "build-receipt.properties => incoming-build-receipt/"
+            snapshot(RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
             }
         }
     }
 }
 
-fun VersionedSettingsBranch.promoteNightlyTaskName(): String = when (this) {
-    VersionedSettingsBranch.MASTER -> "promoteNightly"
-    else -> "promoteReleaseNightly"
+fun VersionedSettingsBranch.promoteNightlyTaskName(): String = when {
+    isMaster -> "promoteNightly"
+    isRelease -> "promoteReleaseNightly"
+    else -> "promotePatchReleaseNightly"
 }

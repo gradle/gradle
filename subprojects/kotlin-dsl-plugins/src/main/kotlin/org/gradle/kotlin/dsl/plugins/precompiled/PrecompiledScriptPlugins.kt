@@ -78,4 +78,4 @@ val Project.sourceSets
 
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = withConvention(KotlinSourceSet::class) { kotlin }
+    get() = @Suppress("deprecation") withConvention(KotlinSourceSet::class) { kotlin }

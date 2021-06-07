@@ -285,7 +285,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     public boolean isToolingApiHasExecutionPhaseBuildOperation() {
-        return isSameOrNewer("7.1");
+        return isSameOrNewer("7.1-rc-1");
     }
 
     @Override

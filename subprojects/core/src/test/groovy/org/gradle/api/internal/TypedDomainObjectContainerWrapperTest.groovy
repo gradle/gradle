@@ -139,19 +139,19 @@ class TypedDomainObjectContainerWrapperTest extends Specification {
         true
     }
 
-    def Type type(def name) {
+    Type type(def name) {
         Stub(Type) {
             getName() >> name
         }
     }
 
-    def SubType subtype(def name) {
+    SubType subtype(def name) {
         Stub(SubType) {
             getName() >> name
         }
     }
 
-    def OtherSubType otherSubtype(def name) {
+    OtherSubType otherSubtype(def name) {
         Stub(OtherSubType) {
             getName() >> name
         }

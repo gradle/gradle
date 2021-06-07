@@ -347,7 +347,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             public class TestCase {
                 @Test
                 public void test() {
-                    assertTrue(Double.valueOf(System.getProperty("java.specification.version")) >= 1.8);
+                    assertTrue(Double.parseDouble(System.getProperty("java.specification.version")) >= 1.8);
                 }
             }
         """

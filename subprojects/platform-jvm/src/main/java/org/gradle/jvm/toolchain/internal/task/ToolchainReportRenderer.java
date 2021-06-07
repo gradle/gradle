@@ -34,7 +34,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         StyledTextOutput output = getTextOutput();
         JvmInstallationMetadata metadata = toolchain.metadata;
         String displayName = metadata.getDisplayName();
-        output.withStyle(Identifier).println(" + " + displayName + " " + metadata.getImplementationVersion());
+        output.withStyle(Identifier).println(" + " + displayName + " " + metadata.getRuntimeVersion());
         printAttribute("Location", metadata.getJavaHome().toString());
         printAttribute("Language Version", metadata.getLanguageVersion().getMajorVersion());
         printAttribute("Vendor", metadata.getVendor().getDisplayName());

@@ -36,6 +36,7 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
 
@@ -68,12 +69,15 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
 
     protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File outputDirectory, String projectName) throws IOException {
         renderIndexPage(flakinessDataProvider, executionDataProvider, new File(outputDirectory, "index.html"));
+        List<String> includedBuildIds = executionDataProvider.getScenarioExecutionData().stream()
+            .map(ScenarioBuildResultData::getTeamCityBuildId)
+            .collect(Collectors.toList());
 
         executionDataProvider.getScenarioExecutionData().stream()
             .map(ScenarioBuildResultData::getPerformanceExperiment)
             .distinct()
             .forEach(experiment -> {
-                PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, ResultsStoreHelper.determineChannel());
+                PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, ResultsStoreHelper.determineChannel(), includedBuildIds);
                 renderScenarioPage(projectName, outputDirectory, testResults);
             });
 

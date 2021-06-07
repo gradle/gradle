@@ -67,7 +67,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run "hello", "--info"
         then:
         outputContains "Hello from original task!"
-        assertWatchableHierarchies([ImmutableSet.of(testDirectory)] * 2)
+        assertWatchableHierarchies([ImmutableSet.of(testDirectory), ImmutableSet.of(testDirectory, file("buildSrc"))])
     }
 
     def "works with composite build"() {

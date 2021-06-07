@@ -32,8 +32,8 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DefaultPropertyFactory;
@@ -42,6 +42,7 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
@@ -90,7 +91,8 @@ public class WorkerSharedProjectScopeServices {
             FileSystem fileSystem,
             Factory<PatternSet> patternSetFactory,
             Deleter deleter,
-            DocumentationRegistry documentationRegistry
+            DocumentationRegistry documentationRegistry,
+            ProviderFactory providers
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -104,8 +106,8 @@ public class WorkerSharedProjectScopeServices {
                 fileSystem,
                 patternSetFactory,
                 deleter,
-                documentationRegistry
-        );
+                documentationRegistry,
+                providers);
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {

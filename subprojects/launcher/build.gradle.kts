@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":build-events"))
     implementation(project(":tooling-api"))
     implementation(project(":file-watching"))
+    implementation(project(":problems"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
@@ -68,7 +69,7 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-native")) {
-        because("'native' distribution requried for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
+        because("'native' distribution required for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
     }
 }
 

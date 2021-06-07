@@ -205,7 +205,7 @@ class SnapshotSerializerTest extends Specification {
         copy.typeName == original.typeName
         copy.classLoaderHash == null
         copy.unknown
-        copy.unknownReason.contains("unknown classloader")
+        copy.unknownReason == ImplementationSnapshot.UnknownReason.UNKNOWN_CLASSLOADER
     }
 
     def "serializes implementation properties with lambda"() {
@@ -217,7 +217,7 @@ class SnapshotSerializerTest extends Specification {
         copy.typeName == original.typeName
         copy.classLoaderHash == null
         copy.isUnknown()
-        copy.unknownReason.contains("lambda")
+        copy.unknownReason == ImplementationSnapshot.UnknownReason.LAMBDA
     }
 
     private ArrayValueSnapshot array(ValueSnapshot... elements) {

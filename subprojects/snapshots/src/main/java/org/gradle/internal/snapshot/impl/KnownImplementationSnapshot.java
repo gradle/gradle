@@ -19,12 +19,13 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class DefaultImplementationSnapshot extends ImplementationSnapshot {
+public class KnownImplementationSnapshot extends ImplementationSnapshot {
     private final HashCode classLoaderHash;
 
-    public DefaultImplementationSnapshot(String typeName, HashCode classLoaderHash) {
+    public KnownImplementationSnapshot(String typeName, HashCode classLoaderHash) {
         super(typeName);
         this.classLoaderHash = classLoaderHash;
     }
@@ -45,7 +46,7 @@ public class DefaultImplementationSnapshot extends ImplementationSnapshot {
             return false;
         }
 
-        DefaultImplementationSnapshot that = (DefaultImplementationSnapshot) o;
+        KnownImplementationSnapshot that = (KnownImplementationSnapshot) o;
 
         if (!getTypeName().equals(that.getTypeName())) {
             return false;
@@ -53,6 +54,7 @@ public class DefaultImplementationSnapshot extends ImplementationSnapshot {
         return classLoaderHash.equals(that.classLoaderHash);
     }
 
+    @Nonnull
     @Override
     public HashCode getClassLoaderHash() {
         return classLoaderHash;
@@ -65,7 +67,7 @@ public class DefaultImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     @Nullable
-    public String getUnknownReason() {
+    public UnknownReason getUnknownReason() {
         return null;
     }
 
@@ -74,7 +76,7 @@ public class DefaultImplementationSnapshot extends ImplementationSnapshot {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultImplementationSnapshot that = (DefaultImplementationSnapshot) o;
+        KnownImplementationSnapshot that = (KnownImplementationSnapshot) o;
         if (this == o) {
             return true;
         }

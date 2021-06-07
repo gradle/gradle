@@ -31,6 +31,7 @@ import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
@@ -81,6 +82,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         services.add(Stub(IncludedBuildControllers))
         services.add(Stub(ExceptionAnalyser))
         services.add(Stub(BuildOperationExecutor))
+        services.add(Stub(BuildStateRegistry))
 
         when:
         def rootBuild = registry.createRootBuild(buildDefinition)

@@ -54,7 +54,7 @@ public class BuildOperationSettingsProcessor implements SettingsProcessor {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Evaluate settings").
+                return BuildOperationDescriptor.displayName(gradle.contextualize("Evaluate settings")).
                     progressDisplayName("Evaluating settings").
                     details(new Details() {
 

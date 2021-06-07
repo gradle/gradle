@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-
 import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository

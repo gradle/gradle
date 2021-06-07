@@ -550,9 +550,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected DefaultToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
-                                                                                       final BuildOperationExecutor buildOperationExecutor,
-                                                                                       ProjectStateRegistry projectStateRegistry) {
-        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry);
+                                                                                       BuildOperationExecutor buildOperationExecutor,
+                                                                                       ProjectStateRegistry projectStateRegistry,
+                                                                                       UserCodeApplicationContext userCodeApplicationContext) {
+        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, userCodeApplicationContext);
         for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
             registryAction.execute(registry);
         }

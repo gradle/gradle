@@ -1,6 +1,5 @@
-import common.VersionedSettingsBranch
-import model.JsonBasedGradleSubprojectProvider
 import common.Os
+import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
 import configurations.applyDefaults
 import configurations.applyTestDefaults
@@ -13,6 +12,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
+import model.JsonBasedGradleSubprojectProvider
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -48,7 +48,7 @@ class ApplyDefaultConfigurationTest {
     private
     val buildModel = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = VersionedSettingsBranch.MASTER,
+        branch = VersionedSettingsBranch("master", true),
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     )

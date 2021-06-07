@@ -79,6 +79,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
             }
         }
         if (target is Project) {
+            @Suppress("deprecation")
             accessibleConventionsSchema(target.convention.plugins).forEach { (name, type) ->
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
                 collectSchemaOf(target.convention.plugins[name]!!, type)

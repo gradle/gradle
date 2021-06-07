@@ -2047,6 +2047,7 @@ Found the following transforms:
             }
 """
         then:
+        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
         fails "help"
 
         and:
@@ -2560,6 +2561,29 @@ Found the following transforms:
         output.contains("> Dependency: task ':app:dependent' -> task ':app:resolve'")
         output.contains("> Transform lib1.jar (project :lib) with FileSizer")
         output.contains("> Task :app:resolve")
+    }
+
+    def "emits deprecation warning when old style transform is registered"() {
+        buildFile << """
+            dependencies {
+                registerTransform {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
+                    artifactTransform(OldStyleTransform)
+                }
+            }
+
+            class OldStyleTransform extends ArtifactTransform {
+                List<File> transform(File input) {
+                    return []
+                }
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
+        then:
+        succeeds "help"
     }
 
     def declareTransform(String transformImplementation) {

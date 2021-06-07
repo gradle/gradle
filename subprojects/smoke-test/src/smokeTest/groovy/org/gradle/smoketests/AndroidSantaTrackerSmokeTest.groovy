@@ -113,7 +113,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         def runner = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
-                "kotlin-android-extensions-runtime-1.5.0-RC.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0-RC)"
+                "kotlin-android-extensions-runtime-1.5.10.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.10)"
             ])
         def result = runner.buildAndFail()
 
@@ -125,7 +125,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         result = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
-                "kotlin-android-extensions-runtime-1.5.0-RC.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0-RC)",
+                "kotlin-android-extensions-runtime-1.5.10.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.10)",
                 "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
             ])
             .buildAndFail()
@@ -143,7 +143,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         artifacts.each { artifact ->
             runner.expectLegacyDeprecationWarningIf(
                 agpVersion.startsWith("4.1"),
-                "Type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
+                "In plugin 'com.android.internal.version-check' type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
                     "Cannot convert the provided notation to a File or URI: $artifact. " +
                     "The following types/formats are supported:  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'. - A String or CharSequence URI, for example 'file:/usr/include'. - A File instance. - A Path instance. - A Directory instance. - A RegularFile instance. - A URI or URL instance. - A TextResource instance. " +
                     "Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. " +

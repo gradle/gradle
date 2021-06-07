@@ -39,7 +39,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
     @Override
     protected BeforeExecutionContext createContext() {
-        def validationContext = new DefaultWorkValidationContext(documentationRegistry)
+        def validationContext = new DefaultWorkValidationContext(documentationRegistry, WorkValidationContext.TypeOriginInspector.NO_OP)
         return Stub(BeforeExecutionContext) {
             getValidationContext() >> validationContext
         }

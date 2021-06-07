@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import com.google.common.reflect.TypeToken
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.uncheckedCast
@@ -268,6 +269,21 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
                 "it allows writeReplace to initialize the object",
                 first.value,
                 equalTo("42")
+            )
+        }
+    }
+
+    @Test
+    fun `can handle circular writeReplace`() {
+        verifyRoundtripOf({ pairOf(TypeToken.of(String::class.java)) }) { (first, second) ->
+            assertThat(
+                "it preserves identity",
+                first,
+                sameInstance(second)
+            )
+            assertThat(
+                first,
+                equalTo(TypeToken.of(String::class.java))
             )
         }
     }

@@ -581,6 +581,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     continue;
                 }
 
+                if (!tryAcquireWorkerLeaseForNode(node, workerLease)) {
+                    resourceLockState.releaseLocks();
+                    // if we can't get a worker lease, we won't be able to execute any other nodes, either
+                    break;
+                }
+
                 if (node.allDependenciesSuccessful()) {
                     node.startExecution(this::recordNodeExecutionStarted);
                     if (mutations.hasValidationProblem) {
@@ -605,15 +611,20 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         } else if (!tryLockSharedResourceFor(node)) {
             LOGGER.debug("Cannot acquire shared resource lock for node {}", node);
             return false;
-        } else if (!workerLease.tryLock()) {
-            LOGGER.debug("Cannot acquire worker lease lock for node {}", node);
-            return false;
-            // TODO: convert output file checks to a resource lock
         } else if (!canRunWithCurrentlyExecutedNodes(mutations)) {
             LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
             return false;
         } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
             return false;
+        }
+        return true;
+    }
+
+    private boolean tryAcquireWorkerLeaseForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease) {
+        if (!workerLease.tryLock()) {
+            LOGGER.debug("Cannot acquire worker lease lock for node {}", node);
+            return false;
+            // TODO: convert output file checks to a resource lock
         }
         return true;
     }

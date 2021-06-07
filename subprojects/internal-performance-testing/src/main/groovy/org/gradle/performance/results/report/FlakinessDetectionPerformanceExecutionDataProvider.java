@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results.report;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
@@ -58,7 +59,7 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
     }
 
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
-        PerformanceTestHistory history = resultsStore.getTestResults(scenario.getPerformanceExperiment(), MOST_RECENT_EXECUTIONS, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
+        PerformanceTestHistory history = resultsStore.getTestResults(scenario.getPerformanceExperiment(), MOST_RECENT_EXECUTIONS, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel(), ImmutableList.of());
         List<? extends PerformanceTestExecution> executionsOfSameCommit = history.getExecutions().stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
         List<? extends PerformanceTestExecution> currentExecutions = executionsOfSameCommit.isEmpty()
             ? history.getExecutions().stream().limit(3).collect(toList())

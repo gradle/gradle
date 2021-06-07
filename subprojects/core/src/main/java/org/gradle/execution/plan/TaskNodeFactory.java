@@ -17,16 +17,32 @@
 package org.gradle.execution.plan;
 
 
+import com.google.common.collect.Maps;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
+import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 
+import javax.annotation.Nullable;
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public class TaskNodeFactory {
@@ -35,12 +51,14 @@ public class TaskNodeFactory {
     private final GradleInternal thisBuild;
     private final BuildIdentifier currentBuildId;
     private final DocumentationRegistry documentationRegistry;
+    private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
 
     public TaskNodeFactory(GradleInternal thisBuild, IncludedBuildTaskGraph taskGraph) {
         this.thisBuild = thisBuild;
         this.currentBuildId = thisBuild.getServices().get(BuildState.class).getBuildIdentifier();
         this.documentationRegistry = thisBuild.getServices().get(DocumentationRegistry.class);
         this.taskGraph = taskGraph;
+        this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
     }
 
     public Set<Task> getTasks() {
@@ -51,7 +69,7 @@ public class TaskNodeFactory {
         TaskNode node = nodes.get(task);
         if (node == null) {
             if (task.getProject().getGradle() == thisBuild) {
-                node = new LocalTaskNode((TaskInternal) task, documentationRegistry);
+                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)));
             } else {
                 node = TaskInAnotherBuild.of((TaskInternal) task, currentBuildId, taskGraph);
             }
@@ -64,4 +82,53 @@ public class TaskNodeFactory {
         nodes.clear();
     }
 
+    private static class DefaultTypeOriginInspectorFactory {
+        private final Map<Project, ProjectScopedTypeOriginInspector> projectToInspector = Maps.newConcurrentMap();
+        private final Map<Class<?>, File> clazzToFile = Maps.newConcurrentMap();
+
+        public ProjectScopedTypeOriginInspector forTask(Task task) {
+            return projectToInspector.computeIfAbsent(task.getProject(), ProjectScopedTypeOriginInspector::new);
+        }
+
+        @Nullable
+        private File jarFileFor(Class<?> pluginClass) {
+            return clazzToFile.computeIfAbsent(pluginClass, clazz -> toFile(pluginClass.getProtectionDomain().getCodeSource().getLocation()));
+        }
+
+        @Nullable
+        private static File toFile(@Nullable URL url) {
+            if (url == null) {
+                return null;
+            }
+            try {
+                return new File(url.toURI());
+            } catch (URISyntaxException e) {
+                return null;
+            }
+        }
+
+        private class ProjectScopedTypeOriginInspector implements WorkValidationContext.TypeOriginInspector {
+            private final PluginContainer plugins;
+            private final PluginManagerInternal pluginManager;
+            private final Map<Class<?>, Optional<PluginId>> classToPlugin = Maps.newConcurrentMap();
+
+            private ProjectScopedTypeOriginInspector(Project project) {
+                this.plugins = project.getPlugins();
+                this.pluginManager = (PluginManagerInternal) project.getPluginManager();
+            }
+
+            @Override
+            public Optional<PluginId> findPluginDefining(Class<?> type) {
+                return classToPlugin.computeIfAbsent(type, clazz -> {
+                    File taskJar = jarFileFor(type);
+                    return plugins.stream()
+                        .map(plugin -> Cast.<Class<Plugin<?>>>uncheckedNonnullCast(plugin.getClass()))
+                        .filter(pluginType -> Objects.equals(jarFileFor(pluginType), taskJar))
+                        .map(pluginType -> pluginManager.findPluginIdForClass(pluginType)
+                            .orElseGet(() -> new DefaultPluginId(pluginType.getName())))
+                        .findFirst();
+                });
+            }
+        }
+    }
 }

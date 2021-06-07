@@ -54,32 +54,30 @@ The following sections describe use of the Gradle command-line interface, groupe
 [[sec:command_line_executing_tasks]]
 == Executing tasks
 
-You can run a task and all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,dependencies>>.
-----
-$ gradle myTask
-----
-
 You can learn about what projects and tasks are available in the <<#sec:command_line_project_reporting, project reporting section>>.
-
 Most builds support a common set of tasks known as <<more_about_tasks#sec:lifecycle_tasks,_lifecycle tasks_>>. These include the `build`, `assemble`, and `check` tasks.
+
+In order to execute a task called "myTask" on the root project, type:
+----
+$ gradle :myTask
+----
+
+This will run the single "myTask" and also all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependencies>>.
 
 [[executing_tasks_in_multi_project_builds]]
 === Executing tasks in multi-project builds
-In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_.
-
+In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_:
 ----
 $ gradle :my-subproject:taskName
 $ gradle my-subproject:taskName
 ----
 
-You can also run a task for all subprojects using the task name only. For example, this will run the "test" task for all subprojects when invoked from the root project directory.
-
+You can also run a task for _all_ subprojects by again using a task _selector_ that consists of the task name only. For example, this will run the "test" task for all subprojects when invoked from the root project directory:
 ----
 $ gradle test
 ----
 
 When invoking Gradle from within a subproject, the project name should be omitted:
-
 ----
 $ cd my-subproject
 $ gradle taskName

@@ -207,7 +207,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             def reserved = file("${it}/build/${forbiddenPath}")
             failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask' (type 'DefaultTask').")
             failure.assertThatDescription(containsString(cannotWriteToReservedLocation {
-                type('org.gradle.api.DefaultTask').property('output')
+                property('output')
                     .forbiddenAt(reserved)
                     .includeLink()
             }))
@@ -1331,6 +1331,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform(parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
 
         file("lib/dir1.classes").file("child").createFile()
+        def firstBuild = true
+        executer.beforeExecute {
+            if ((firstBuild || !GradleContextualExecuter.isConfigCache()) && !useParameterObject) {
+                expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
+            }
+            firstBuild = false
+        }
 
         when:
         succeeds ":util:resolve", ":app:resolve"
@@ -1354,6 +1361,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         // change the implementation
         buildFile.text = ""
         buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue: "'new value'", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
+        firstBuild = true
         succeeds ":util:resolve", ":app:resolve"
 
         then:
@@ -1380,6 +1388,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         // Use another script to define the value, so that transform implementation does not change when the value is changed
         def otherScript = file("other.gradle")
         otherScript.text = "ext.value = 123"
+        boolean firstBuild = true
+        executer.beforeExecute {
+            if ((firstBuild || !GradleContextualExecuter.configCache) && !useParameterObject) {
+                expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
+            }
+            firstBuild = false
+        }
 
         buildFile << """
             apply from: 'other.gradle'
@@ -1407,6 +1422,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         when:
         otherScript.replace('123', '123.4')
+        firstBuild = true
         succeeds ":util:resolve", ":app:resolve"
 
         then:

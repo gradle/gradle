@@ -149,7 +149,7 @@ Unless a task's `scalaClasspath` is configured explicitly, the Scala (base) plug
 [[sec:configure_zinc_compiler]]
 == Configuring the Zinc compiler
 
-The Scala plugin uses a configuration named `zinc` to resolve the https://github.com/typesafehub/zinc[Zinc compiler] and its dependencies.
+The Scala plugin uses a configuration named `zinc` to resolve the https://github.com/sbt/zinc[Zinc compiler] and its dependencies.
 Gradle will provide a default version of Zinc, but if you need to use a particular Zinc version, you can change it.
 Gradle supports version 1.2.0 of Zinc and above.
 
@@ -194,7 +194,7 @@ The Scala plugin does not add any convention properties to the project.
 [[sec:scala_source_set_properties]]
 == Source set properties
 
-The Scala plugin adds the following convention properties to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
+The Scala plugin adds the following extensions to each source set in the project. You can use these  in your build script as though they were properties of the source set object.
 
 `scala` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
 The Scala source files of this source set. Contains all `.scala` and `.java` files found in the Scala source directories, and excludes all other types of files. _Default value:_ non-null.
@@ -207,7 +207,7 @@ _Default value:_ `[__projectDir__/src/__name__/scala]`.
 `allScala` — link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
 All Scala source files of this source set. Contains only the `.scala` files found in the Scala source directories. _Default value:_ non-null.
 
-These convention properties are provided by a convention object of type link:{groovyDslPath}/org.gradle.api.tasks.ScalaSourceSet.html[ScalaSourceSet].
+These extensions are backed by an object of type link:{groovyDslPath}/org.gradle.api.plugins.scala.ScalaSourceSet.html[ScalaSourceSet].
 
 The Scala plugin also modifies some source set properties:
 

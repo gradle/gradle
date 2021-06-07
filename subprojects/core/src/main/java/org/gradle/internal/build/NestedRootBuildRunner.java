@@ -31,7 +31,7 @@ public class NestedRootBuildRunner {
 
     public static void runNestedRootBuild(String buildName, StartParameterInternal startParameter, ServiceRegistry services) {
         createNestedRootBuild(buildName, startParameter, services).run(buildController -> {
-            buildController.run();
+            buildController.scheduleAndRunTasks();
             return null;
         });
     }

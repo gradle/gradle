@@ -409,6 +409,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         def buildFinished = server.expectAndBlock('build-finished')
 
         when:
+        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
         gradle = executer.withTasks(":util:resolve").start()
 
         then:
