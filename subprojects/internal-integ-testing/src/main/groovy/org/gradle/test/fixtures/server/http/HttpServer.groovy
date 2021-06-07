@@ -22,7 +22,7 @@ import groovy.transform.CompileStatic
 import groovy.xml.MarkupBuilder
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.server.ExpectOne
 import org.gradle.test.fixtures.server.ForbidOne
 import org.gradle.test.fixtures.server.OneRequestServerExpectation
@@ -65,8 +65,8 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     enum EtagStrategy {
         NONE({ null }),
-        RAW_SHA1_HEX({ HashUtil.sha1(it as byte[]).asHexString() }),
-        NEXUS_ENCODED_SHA1({ "{SHA1{" + HashUtil.sha1(it as byte[]).asHexString() + "}}" })
+        RAW_SHA1_HEX({ Hashing.sha1().hashBytes(it as byte[]).toString() }),
+        NEXUS_ENCODED_SHA1({ "{SHA1{" + Hashing.sha1().hashBytes(it as byte[]) + "}}" })
 
         private final Closure generator
 
@@ -521,7 +521,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
         response.setContentType(contentType ?: new MimeTypes().getMimeByExtension(file.name).toString())
         if (sendSha1Header) {
-            response.addHeader("X-Checksum-Sha1", HashUtil.sha1(content).asHexString())
+            response.addHeader("X-Checksum-Sha1", Hashing.sha1().hashString(content).toZeroPaddedString(Hashing.sha1().hexDigits))
         }
 
         addEtag(response, content, etags)

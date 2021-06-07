@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
@@ -159,11 +158,6 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             ExternalResourceReadResult<HashCode> result = resource.withContentIfPresent(inputStream -> {
                 try {
                     String sha = IOUtils.toString(inputStream, StandardCharsets.US_ASCII);
-                    if (sha.length() < 40) {
-                        // servers may return sha-1 with leading 0 stripped, which is not
-                        // supported by HashCode.fromString
-                        return HashCode.fromBytes(HashValue.parse(sha).asByteArray());
-                    }
                     return HashCode.fromString(sha);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);

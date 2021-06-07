@@ -18,11 +18,10 @@ package org.gradle.configurationcache
 
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
-import org.gradle.internal.hash.HashValue
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
-import org.gradle.util.internal.GFileUtils.relativePathOf
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.GFileUtils.relativePathOf
 import java.io.File
 
 
@@ -31,11 +30,9 @@ class ConfigurationCacheKey(
 ) {
 
     val string: String by unsafeLazy {
-        HashValue(
-            Hashing.md5().newHasher().apply {
-                putCacheKeyComponents()
-            }.hash().toByteArray()
-        ).asCompactString()
+        Hashing.md5().newHasher().apply {
+            putCacheKeyComponents()
+        }.hash().toCompactString()
     }
 
     override fun toString() = string

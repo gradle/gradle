@@ -16,7 +16,7 @@
 
 package org.gradle.language.objectivec
 
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.Hashing
 import org.gradle.language.AbstractNativeLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
@@ -44,12 +44,12 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractNativeLa
         when:
         invocation.times{
             run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
-            def oldHash= HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).asCompactString()
+            def oldHash = Hashing.sha1().hashFile(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).toCompactString()
 
             //to ensure it's not a timestamp issue
             sleep(1000)
             run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
-            def newHash = HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).asCompactString()
+            def newHash = Hashing.sha1().hashFile(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).toCompactString()
             recordings << (oldHash == newHash)
         }
         then:

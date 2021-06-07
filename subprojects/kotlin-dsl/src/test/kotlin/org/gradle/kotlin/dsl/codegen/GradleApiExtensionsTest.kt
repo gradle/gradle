@@ -23,7 +23,6 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
