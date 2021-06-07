@@ -136,7 +136,7 @@ abstract class AbstractModule implements Module {
     private TestFile hashFile(TestFile file, HashFunction hashFunction) {
         def hashFile = getHashFile(file, hashFunction)
         def hash = hashFunction.hashFile(file)
-        hashFile.text = String.format("%0${hashFunction.hexDigits}x", hash)
+        hashFile.text = hash.toZeroPaddedString(hashFunction.hexDigits)
         return hashFile
     }
 
