@@ -176,6 +176,15 @@ class HashCodeTest extends Specification {
         Hashing.md5().hashString("i").toCompactString() == "7ycx034q3zbhupl01mv32dx6p"
     }
 
+    def "can create zero-padded hex representation"() {
+        expect:
+        HashCode.fromString("12345678").toZeroPaddedString(8) == "12345678"
+        HashCode.fromString("12345678").toZeroPaddedString(7) == "12345678"
+        HashCode.fromString("12345678").toZeroPaddedString(0) == "12345678"
+        HashCode.fromString("12345678").toZeroPaddedString(9) == "012345678"
+        HashCode.fromString("12345678").toZeroPaddedString(16) == "0000000012345678"
+    }
+
     private static byte[] toBytes(int ... elements) {
         toBytes(elements as List<Integer>)
     }

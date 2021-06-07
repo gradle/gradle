@@ -22,7 +22,6 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -284,12 +283,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     def artifact = getArtifact(file.url)
                     assert artifact.file.file
                     assert artifact.file.length() == file.size
-                    assert HashUtil.createHash(artifact.file, "sha1") == file.sha1
+                    assert Hashing.sha1().hashFile(artifact.file) == file.sha1
                     if (checkExtraChecksums && (!artifact.file.name in missingExtra)) {
-                        assert HashUtil.createHash(artifact.file, "sha-256") == file.sha256
-                        assert HashUtil.createHash(artifact.file, "sha-512") == file.sha512
+                        assert Hashing.sha256().hashFile(artifact.file) == file.sha256
+                        assert Hashing.sha512().hashFile(artifact.file) == file.sha512
                     }
-                    assert HashUtil.createHash(artifact.file, "md5") == file.md5
+                    assert Hashing.md5(). hashFile(artifact.file) == file.md5
                 }
             }
         }

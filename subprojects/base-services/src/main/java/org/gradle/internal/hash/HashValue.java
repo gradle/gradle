@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.hash;
 
-import com.google.common.base.Strings;
-
 import java.math.BigInteger;
 
 public class HashValue {
@@ -66,14 +64,6 @@ public class HashValue {
 
     public byte[] asByteArray() {
         return digest.toByteArray();
-    }
-
-    public BigInteger asBigInteger() {
-        return digest;
-    }
-
-    public String asZeroPaddedHexString(int expectedLength) {
-        return Strings.padStart(asHexString(), expectedLength, '0');
     }
 
     @Override

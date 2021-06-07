@@ -212,6 +212,11 @@ public class Hashing {
         public int getHexDigits() {
             return hexDigits;
         }
+
+        @Override
+        public String toString() {
+            return getAlgorithm();
+        }
     }
 
     private static class CloningMessageDigestHashFunction extends MessageDigestHashFunction {

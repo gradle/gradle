@@ -24,6 +24,7 @@ import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
@@ -370,7 +371,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                 apiMetadataJar
             ) {}
             assertThat(
-                HashUtil.createHash(generatedJar, "MD5").asZeroPaddedHexString(32),
+                Hashing.md5().hashFile(generatedJar).toZeroPaddedString(32),
                 equalTo(hash)
             )
         }

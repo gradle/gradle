@@ -54,11 +54,4 @@ class HashValueTest extends Specification {
         expect:
         hash.equals(new HashValue(hash.asHexString()))
     }
-
-    def "creates a zero padded hex string"() {
-        def md5 = new HashValue("19981ffd09dbfad8cb0d33ee3f72d6a")
-        expect:
-        md5.asHexString() == '19981ffd09dbfad8cb0d33ee3f72d6a'
-        md5.asZeroPaddedHexString(32) == '019981ffd09dbfad8cb0d33ee3f72d6a'
-    }
 }

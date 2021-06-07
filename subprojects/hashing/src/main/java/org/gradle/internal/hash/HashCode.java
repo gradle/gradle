@@ -161,11 +161,24 @@ public class HashCode implements Serializable, Comparable<HashCode> {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(2 * bytes.length);
+        StringBuilder sb = toStringBuilder(2 * bytes.length);
+        return sb.toString();
+    }
+
+    public String toZeroPaddedString(int length) {
+        StringBuilder sb = toStringBuilder(length);
+        while (sb.length() < length) {
+            sb.insert(0, '0');
+        }
+        return sb.toString();
+    }
+
+    private StringBuilder toStringBuilder(int capacity) {
+        StringBuilder sb = new StringBuilder(capacity);
         for (byte b : bytes) {
             sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
         }
-        return sb.toString();
+        return sb;
     }
 
     public String toCompactString() {
