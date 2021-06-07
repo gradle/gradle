@@ -39,7 +39,7 @@ public class HashUtil {
         }
     }
 
-    public static HashValue createHash(InputStream instr, String algorithm) {
+    private static HashValue createHash(InputStream instr, String algorithm) {
         MessageDigest messageDigest;
         try {
             messageDigest = createMessageDigest(algorithm);
