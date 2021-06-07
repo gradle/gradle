@@ -44,6 +44,7 @@ class DefaultTaskTest extends AbstractTaskTest {
     Object testCustomPropValue
 
     def setup() {
+        throw new IllegalStateException()
         testCustomPropValue = new Object()
         defaultTask = createTask(DefaultTask.class)
         cl = Thread.currentThread().contextClassLoader
