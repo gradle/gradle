@@ -26,6 +26,11 @@ import java.io.InputStream;
  */
 public interface HashFunction {
     /**
+     * Returns the algorithm used for this hashing function.
+     */
+    String getAlgorithm();
+
+    /**
      * Returns a primitive hasher using the hash function.
      */
     PrimitiveHasher newPrimitiveHasher();

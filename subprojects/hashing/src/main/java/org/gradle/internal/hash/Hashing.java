@@ -223,6 +223,11 @@ public class Hashing {
         }
 
         @Override
+        public String getAlgorithm() {
+            return prototype.getAlgorithm();
+        }
+
+        @Override
         protected MessageDigest createDigest() {
             try {
                 return (MessageDigest) prototype.clone();
@@ -238,6 +243,11 @@ public class Hashing {
         public RegularMessageDigestHashFunction(String algorithm, int hashBits) {
             super(hashBits);
             this.algorithm = algorithm;
+        }
+
+        @Override
+        public String getAlgorithm() {
+            return algorithm;
         }
 
         @Override
