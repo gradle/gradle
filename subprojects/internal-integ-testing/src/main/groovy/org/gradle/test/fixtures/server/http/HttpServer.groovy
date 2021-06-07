@@ -521,7 +521,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
         response.setContentType(contentType ?: new MimeTypes().getMimeByExtension(file.name).toString())
         if (sendSha1Header) {
-            response.addHeader("X-Checksum-Sha1", Hashing.sha1().hashString(content).toZeroPaddedString(Hashing.sha1().hexDigits))
+            response.addHeader("X-Checksum-Sha1", Hashing.sha1().hashBytes(content).toZeroPaddedString(Hashing.sha1().hexDigits))
         }
 
         addEtag(response, content, etags)
