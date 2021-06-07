@@ -22,6 +22,7 @@ import com.google.common.primitives.Longs;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.math.BigInteger;
 
 /**
  * An immutable hash code. Must be 4-255 bytes long.
@@ -165,6 +166,10 @@ public class HashCode implements Serializable, Comparable<HashCode> {
             sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
         }
         return sb.toString();
+    }
+
+    public String toCompactString() {
+        return new BigInteger(1, bytes).toString(36);
     }
 
     // Package private accessor used by MessageDigestHasher.putHash for performance reasons

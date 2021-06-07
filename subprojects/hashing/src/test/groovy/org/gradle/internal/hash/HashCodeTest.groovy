@@ -169,6 +169,13 @@ class HashCodeTest extends Specification {
         thrown Exception
     }
 
+    def "can create compact string representation"() {
+        expect:
+        Hashing.md5().hashString("").toCompactString() == "ck2u8j60r58fu0sgyxrigm3cu"
+        Hashing.md5().hashString("a").toCompactString() == "r6p51cluyxfm1x21kf967yw1"
+        Hashing.md5().hashString("i").toCompactString() == "7ycx034q3zbhupl01mv32dx6p"
+    }
+
     private static byte[] toBytes(int ... elements) {
         toBytes(elements as List<Integer>)
     }

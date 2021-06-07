@@ -55,13 +55,6 @@ class HashValueTest extends Specification {
         hash.equals(new HashValue(hash.asHexString()))
     }
 
-    def "creates short MD5 for string input"() {
-        expect:
-        HashUtil.createCompactMD5("") == "ck2u8j60r58fu0sgyxrigm3cu"
-        HashUtil.createCompactMD5("a") == "r6p51cluyxfm1x21kf967yw1"
-        HashUtil.createCompactMD5("i") == "7ycx034q3zbhupl01mv32dx6p"
-    }
-
     def "creates a zero padded hex string"() {
         def md5 = new HashValue("19981ffd09dbfad8cb0d33ee3f72d6a")
         expect:

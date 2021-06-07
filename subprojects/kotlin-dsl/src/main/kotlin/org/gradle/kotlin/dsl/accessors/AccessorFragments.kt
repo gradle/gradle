@@ -21,7 +21,7 @@ import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.Hashing.hashString
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
@@ -780,7 +780,7 @@ fun MethodVisitor.invokeRuntime(function: String, desc: String) {
 
 private
 fun hashOf(accessorSpec: TypedAccessorSpec) =
-    HashUtil.createCompactMD5(accessorSpec.toString())
+    hashString(accessorSpec.toString()).toCompactString()
 
 
 private
