@@ -27,11 +27,6 @@ class HashUtilTest extends Specification {
     String sha256HashString = "b830543dc5d1466110538736d35c37cc61d32076a69de65c42913dfbb1961f46"
     String sha512HashString = "fd308aadbf52384412c4ba3e2dfe3551e0faa2e7455898dae04fda4f238569e3889c56cbd4d120cf69f81a5f06456f327c19100eaed2e590888342f1ce3e0261"
 
-    def "createHash from String returns MD5 hash" () {
-        expect:
-        HashUtil.createHash(stringToHash, "MD5").asHexString() == md5HashString
-    }
-
     def "createHash from File returns MD5 hash" () {
         setup:
         File file = File.createTempFile("HashUtilTest", null)

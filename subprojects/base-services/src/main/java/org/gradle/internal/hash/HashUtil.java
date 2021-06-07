@@ -28,12 +28,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class HashUtil {
-    public static HashValue createHash(String scriptText, String algorithm) {
-        MessageDigest messageDigest = createMessageDigest(algorithm);
-        messageDigest.update(scriptText.getBytes());
-        return new HashValue(messageDigest.digest());
-    }
-
     public static HashValue createHash(File file, String algorithm) {
         try {
             return createHash(new FileInputStream(file), algorithm);
