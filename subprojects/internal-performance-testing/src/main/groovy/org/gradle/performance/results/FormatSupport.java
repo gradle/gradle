@@ -25,7 +25,6 @@ import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.TimeZone;
@@ -38,9 +37,7 @@ public class FormatSupport {
     }
 
     public static String timestamp(Instant time) {
-        return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-            .withZone(ZoneId.systemDefault())
-            .format(time);
+        return DateTimeFormatter.ISO_INSTANT.format(time);
     }
 
     public static String date(Date date) {

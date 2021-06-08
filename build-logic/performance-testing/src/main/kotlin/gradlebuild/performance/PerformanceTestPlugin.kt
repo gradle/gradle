@@ -68,7 +68,7 @@ object PropertyNames {
     const val performanceTestVerbose = "performanceTest.verbose"
 
     const val baselines = "performanceBaselines"
-    const val performanceTestBuildIds = "performanceTestBuildIds"
+    const val dependencyBuildIds = "org.gradle.performance.dependencyBuildIds"
 }
 
 
@@ -221,7 +221,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
         val performanceTestReport = tasks.register<PerformanceTestReport>(name) {
             this.reportGeneratorClass.set(reportGeneratorClass)
-            this.performanceTestBuildIds.set(providers.gradleProperty(PropertyNames.performanceTestBuildIds).orElse(""))
+            this.dependencyBuildIds.set(providers.gradleProperty(PropertyNames.dependencyBuildIds).orElse(""))
         }
         val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)
         performanceTestReport {

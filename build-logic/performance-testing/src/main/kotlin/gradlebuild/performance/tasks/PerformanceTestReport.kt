@@ -82,7 +82,7 @@ abstract class PerformanceTestReport : DefaultTask() {
     abstract val projectName: Property<String>
 
     @get:Input
-    abstract val performanceTestBuildIds: Property<String>
+    abstract val dependencyBuildIds: Property<String>
 
     @get:Option(option = "debug-jvm", description = "Debug the JVM started for report generation.")
     @get:Input
@@ -112,7 +112,7 @@ abstract class PerformanceTestReport : DefaultTask() {
             commitId.get(),
             classpath,
             projectName.get(),
-            performanceTestBuildIds.getOrElse(""),
+            dependencyBuildIds.getOrElse(""),
             debugReportGeneration.getOrElse(false)
         )
     }

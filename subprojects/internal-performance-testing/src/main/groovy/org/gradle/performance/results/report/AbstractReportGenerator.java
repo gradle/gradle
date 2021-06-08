@@ -53,7 +53,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             resultJsons.add(new File(args[i]));
         }
 
-        Set<String> performanceTestBuildIds = new HashSet<>(Arrays.asList(System.getProperty("performanceTestBuildIds", "").split(",")));
+        Set<String> performanceTestBuildIds = new HashSet<>(Arrays.asList(System.getProperty("org.gradle.performance.dependencyBuildIds", "").split(",")));
 
         try (ResultsStore store = getResultsStore()) {
             PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJsons, performanceTestBuildIds);

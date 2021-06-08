@@ -51,7 +51,7 @@ class PerformanceReporter {
         String commitId,
         FileCollection classpath,
         String projectName,
-        String performanceTestBuildIds,
+        String dependencyBuildIds,
         boolean debugReportGeneration
     ) {
         fileOperations.delete {
@@ -68,7 +68,7 @@ class PerformanceReporter {
                 spec.debug = debugReportGeneration
                 spec.systemProperty("org.gradle.performance.execution.channel", channel)
                 spec.systemProperty("org.gradle.performance.execution.branch", branchName)
-                spec.systemProperty("org.gradle.performance.performanceTestBuildIds", performanceTestBuildIds)
+                spec.systemProperty("org.gradle.performance.dependencyBuildIds", dependencyBuildIds)
 
                 // For org.gradle.performance.util.Git
                 spec.systemProperty("gradleBuildBranch", branchName)
