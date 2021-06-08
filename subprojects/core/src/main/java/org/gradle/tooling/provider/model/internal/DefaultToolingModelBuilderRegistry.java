@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.provider.model.internal;
 
+import com.google.common.collect.Iterators;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -32,13 +33,30 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
 import javax.annotation.Nullable;
+import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRegistry, ToolingModelBuilderLookup {
     private final ToolingModelBuilderLookup parent;
 
     private final List<RegistrationImpl> registrations = new ArrayList<>();
+    // This is a workaround for https://github.com/gradle/gradle/issues/17319. IDEA reads this field in an attempt to check if its Builder is already registered.
+    @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
+    private final Collection<ToolingModelBuilder> builders = new AbstractCollection<ToolingModelBuilder>() {
+        @Override
+        public Iterator<ToolingModelBuilder> iterator() {
+            return Iterators.transform(registrations.iterator(), RegistrationImpl::getBuilder);
+        }
+
+        @Override
+        public int size() {
+            return registrations.size();
+        }
+    };
+
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectStateRegistry projectStateRegistry;
     private final UserCodeApplicationContext userCodeApplicationContext;
