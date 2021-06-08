@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.security.AccessControlException;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
@@ -50,9 +50,16 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     public static final String WORKER_TMPDIR_SYS_PROPERTY = "org.gradle.internal.worker.tmpdir";
 
     private final WorkerTestClassProcessorFactory factory;
-    private CountDownLatch completed;
+    private LinkedBlockingQueue<TestClassRunInfo> toRun;
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
+
+    private static final TestClassRunInfo SENTINEL_START_STOP = new TestClassRunInfo() {
+        @Override
+        public String getTestClassName() {
+            throw new UnsupportedOperationException();
+        }
+    };
 
     public TestWorker(WorkerTestClassProcessorFactory factory) {
         this.factory = factory;
@@ -63,7 +70,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
         SecurityManager securityManager = System.getSecurityManager();
-        completed = new CountDownLatch(1);
+        toRun = new LinkedBlockingQueue<TestClassRunInfo>();
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
 
@@ -72,9 +79,31 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
         try {
             try {
-                completed.await();
+                TestClassRunInfo next = toRun.take();
+                if (next != SENTINEL_START_STOP) {
+                    throw new IllegalArgumentException("Expected sentinel value, not " + next.getTestClassName());
+                }
+                processor.startProcessing(resultProcessor);
+
+                while ((next = toRun.take()) != SENTINEL_START_STOP) {
+                    try {
+                        processor.processTestClass(next);
+                    } catch (AccessControlException e) {
+                        throw e;
+                    } finally {
+                        // Clean the interrupted status
+                        Thread.interrupted();
+                    }
+                }
             } catch (InterruptedException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
+            }
+            try {
+                processor.stop();
+            } finally {
+                // Clean the interrupted status
+                // because some test class processors do work here, e.g. JUnitPlatform
+                Thread.interrupted();
             }
         } finally {
             LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
@@ -110,34 +139,24 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     @Override
     public void startProcessing() {
-        Thread.currentThread().setName("Test worker");
-        processor.startProcessing(resultProcessor);
+        submitToRun(SENTINEL_START_STOP);
     }
 
     @Override
     public void processTestClass(final TestClassRunInfo testClass) {
-        Thread.currentThread().setName("Test worker");
-        try {
-            processor.processTestClass(testClass);
-        } catch (AccessControlException e) {
-            completed.countDown();
-            throw e;
-        } finally {
-            // Clean the interrupted status
-            Thread.interrupted();
-        }
+        submitToRun(testClass);
     }
 
     @Override
     public void stop() {
-        Thread.currentThread().setName("Test worker");
+        submitToRun(SENTINEL_START_STOP);
+    }
+
+    private void submitToRun(TestClassRunInfo classToRun) {
         try {
-            processor.stop();
-        } finally {
-            completed.countDown();
-            // Clean the interrupted status
-            // because some test class processors do work here, e.g. JUnitPlatform
-            Thread.interrupted();
+            toRun.put(classToRun);
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
