@@ -20,8 +20,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
-import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.FileInfo;
+import org.gradle.internal.hash.FileInfoCollector;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -38,15 +38,15 @@ import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyD
 public class FileSystemSnapshotBuilder {
 
     private final Interner<String> stringInterner;
-    private final FileHasher fileHasher;
+    private final FileInfoCollector fileInfoCollector;
     private DirectoryBuilder rootDirectoryBuilder;
     private String rootPath;
     private String rootName;
     private RegularFileSnapshot rootFileSnapshot;
 
-    public FileSystemSnapshotBuilder(Interner<String> stringInterner, FileHasher fileHasher) {
+    public FileSystemSnapshotBuilder(Interner<String> stringInterner, FileInfoCollector fileInfoCollector) {
         this.stringInterner = stringInterner;
-        this.fileHasher = fileHasher;
+        this.fileInfoCollector = fileInfoCollector;
     }
 
     public void addDir(File dir, String[] segments) {
@@ -57,8 +57,8 @@ public class FileSystemSnapshotBuilder {
 
     public void addFile(File file, String[] segments, String fileName, FileMetadata metadata) {
         checkNoRootFileSnapshot("another root file", file);
-        HashCode contentHash = fileHasher.hash(file, metadata.getLength(), metadata.getLastModified());
-        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, contentHash, metadata);
+        FileInfo fileInfo = fileInfoCollector.collect(file, metadata.getLength(), metadata.getLastModified());
+        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, fileInfo.getHash(), metadata, fileInfo.getContentType());
         if (segments.length == 0) {
             rootFileSnapshot = fileSnapshot;
         } else {

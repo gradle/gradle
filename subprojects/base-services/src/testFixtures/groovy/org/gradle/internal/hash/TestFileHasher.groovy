@@ -16,7 +16,7 @@
 
 package org.gradle.internal.hash
 
-class TestFileHasher implements FileHasher {
+class TestFileHasher implements FileInfoCollector {
     @Override
     HashCode hash(File file) {
         try {
@@ -29,5 +29,10 @@ class TestFileHasher implements FileHasher {
     @Override
     HashCode hash(File file, long length, long lastModified) {
         return hash(file)
+    }
+
+    @Override
+    FileInfo collect(File file, long length, long lastModified) {
+        return new FileInfo(hash(file), length, lastModified, FileContentType.UNKNOWN)
     }
 }

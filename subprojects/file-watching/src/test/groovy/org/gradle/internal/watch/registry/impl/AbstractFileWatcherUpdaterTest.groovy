@@ -56,7 +56,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
     def watchableFileSystemDetector = Stub(WatchableFileSystemDetector)
     def watchableHiearchies = new WatchableHierarchies(watchableFileSystemDetector, watchFilter)
-    def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
+    def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileInfoCollector(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
     FileWatcherUpdater updater
     def virtualFileSystem = new TestVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) {
         @Override

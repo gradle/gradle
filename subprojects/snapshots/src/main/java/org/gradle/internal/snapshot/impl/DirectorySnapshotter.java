@@ -24,8 +24,8 @@ import com.google.common.collect.Lists;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
-import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.FileInfo;
+import org.gradle.internal.hash.FileInfoCollector;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -80,13 +80,13 @@ public class DirectorySnapshotter {
         }
     };
 
-    private final FileHasher hasher;
+    private final FileInfoCollector hasher;
     private final Interner<String> stringInterner;
     private final DefaultExcludes defaultExcludes;
     private final DirectorySnapshotterStatistics.Collector collector;
 
-    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, Collection<String> defaultExcludes, DirectorySnapshotterStatistics.Collector collector) {
-        this.hasher = hasher;
+    public DirectorySnapshotter(FileInfoCollector fileInfoCollector, Interner<String> stringInterner, Collection<String> defaultExcludes, DirectorySnapshotterStatistics.Collector collector) {
+        this.hasher = fileInfoCollector;
         this.stringInterner = stringInterner;
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
         this.collector = collector;
@@ -225,7 +225,7 @@ public class DirectorySnapshotter {
         private final MerkleDirectorySnapshotBuilder builder;
         private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
-        private final FileHasher hasher;
+        private final FileInfoCollector fileInfoCollector;
         private final Interner<String> stringInterner;
         private final DefaultExcludes defaultExcludes;
         private final SymbolicLinkMapping symbolicLinkMapping;
@@ -234,7 +234,7 @@ public class DirectorySnapshotter {
         public PathVisitor(
             @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
             AtomicBoolean hasBeenFiltered,
-            FileHasher hasher,
+            FileInfoCollector fileInfoCollector,
             Interner<String> stringInterner,
             DefaultExcludes defaultExcludes,
             DirectorySnapshotterStatistics.Collector statisticsCollector,
@@ -244,7 +244,7 @@ public class DirectorySnapshotter {
             this.builder = MerkleDirectorySnapshotBuilder.sortingRequired();
             this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;
-            this.hasher = hasher;
+            this.fileInfoCollector = fileInfoCollector;
             this.stringInterner = stringInterner;
             this.defaultExcludes = defaultExcludes;
             this.symbolicLinkMapping = symbolicLinkMapping;
@@ -282,7 +282,7 @@ public class DirectorySnapshotter {
                                 PathVisitor subtreeVisitor = new PathVisitor(
                                     predicate,
                                     hasBeenFiltered,
-                                    hasher,
+                                    fileInfoCollector,
                                     stringInterner,
                                     defaultExcludes,
                                     collector,
@@ -341,8 +341,8 @@ public class DirectorySnapshotter {
                     long lastModified = attrs.lastModifiedTime().toMillis();
                     long fileLength = attrs.size();
                     FileMetadata metadata = DefaultFileMetadata.file(lastModified, fileLength, accessType);
-                    HashCode hash = hasher.hash(absoluteFilePath.toFile(), fileLength, lastModified);
-                    return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, hash, metadata);
+                    FileInfo fileInfo = fileInfoCollector.collect(absoluteFilePath.toFile(), fileLength, lastModified);
+                    return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, fileInfo.getHash(), metadata, fileInfo.getContentType());
                 } catch (UncheckedIOException e) {
                     LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
                 }

@@ -19,6 +19,7 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
+import org.gradle.internal.hash.FileContentType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -92,7 +93,8 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                     HashCode contentHash = readHashCode(decoder);
                     long lastModified = decoder.readSmallLong();
                     long length = decoder.readSmallLong();
-                    stack.add(new RegularFileSnapshot(internedAbsolutePath, internedName, contentHash, DefaultFileMetadata.file(lastModified, length, accessType)));
+                    FileContentType fileContentType = FileContentType.valueOf(decoder.readString());
+                    stack.add(new RegularFileSnapshot(internedAbsolutePath, internedName, contentHash, DefaultFileMetadata.file(lastModified, length, accessType), fileContentType));
                     break;
                 case MISSING:
                     stack.add(new MissingFileSnapshot(internedAbsolutePath, internedName, accessType));
@@ -135,6 +137,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                             FileMetadata metadata = fileSnapshot.getMetadata();
                             encoder.writeSmallLong(metadata.getLastModified());
                             encoder.writeSmallLong(metadata.getLength());
+                            encoder.writeString(fileSnapshot.getFileContentType().name());
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
                         }

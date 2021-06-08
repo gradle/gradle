@@ -30,12 +30,12 @@ import java.util.Set;
  *
  * Uses the same strategy for detection of file changes as {@link FileTimeStampInspector}.
  *
- * Discards hashes for all files from the {@link CachingFileHasher} which have been queried on this daemon
+ * Discards hashes for all files from the {@link CachingFileInfoCollector} which have been queried on this daemon
  * during the last build and which have a timestamp equal to the end of build timestamp.
  */
 @ServiceScope(Scopes.UserHome.class)
 public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
-    private CachingFileHasher fileHasher;
+    private CachingFileInfoCollector fileHasher;
     private final Object lock = new Object();
     private long currentTimestamp;
     private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
@@ -44,8 +44,8 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
         super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion));
     }
 
-    public void attach(CachingFileHasher fileHasher) {
-        this.fileHasher = fileHasher;
+    public void attach(CachingFileInfoCollector fileInfoCollector) {
+        this.fileHasher = fileInfoCollector;
     }
 
     @Override

@@ -18,6 +18,8 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.FileInfo;
+import org.gradle.internal.hash.FileInfoCollector;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
@@ -26,32 +28,41 @@ import java.io.File;
  * A {@link FileHasher} that delegates to the global hasher for immutable files
  * and uses the local hasher for all other files. This ensures optimal cache utilization.
  */
-public class SplitFileHasher implements FileHasher {
-    private final FileHasher globalHasher;
-    private final FileHasher localHasher;
+public class SplitFileInfoCollector implements FileInfoCollector {
+    private final FileInfoCollector globalFileInfoCollector;
+    private final FileInfoCollector localFileInfoCollector;
     private final GlobalCacheLocations globalCacheLocations;
 
-    public SplitFileHasher(FileHasher globalHasher, FileHasher localHasher, GlobalCacheLocations globalCacheLocations) {
-        this.globalHasher = globalHasher;
-        this.localHasher = localHasher;
+    public SplitFileInfoCollector(FileInfoCollector globalFileInfoCollector, FileInfoCollector localFileInfoCollector, GlobalCacheLocations globalCacheLocations) {
+        this.globalFileInfoCollector = globalFileInfoCollector;
+        this.localFileInfoCollector = localFileInfoCollector;
         this.globalCacheLocations = globalCacheLocations;
     }
 
     @Override
     public HashCode hash(File file) {
         if (globalCacheLocations.isInsideGlobalCache(file.getPath())) {
-            return globalHasher.hash(file);
+            return globalFileInfoCollector.hash(file);
         } else {
-            return localHasher.hash(file);
+            return localFileInfoCollector.hash(file);
         }
     }
 
     @Override
     public HashCode hash(File file, long length, long lastModified) {
         if (globalCacheLocations.isInsideGlobalCache(file.getPath())) {
-            return globalHasher.hash(file, length, lastModified);
+            return globalFileInfoCollector.hash(file, length, lastModified);
         } else {
-            return localHasher.hash(file, length, lastModified);
+            return localFileInfoCollector.hash(file, length, lastModified);
+        }
+    }
+
+    @Override
+    public FileInfo collect(File file, long length, long lastModified) {
+        if (globalCacheLocations.isInsideGlobalCache(file.getPath())) {
+            return globalFileInfoCollector.collect(file, length, lastModified);
+        } else {
+            return localFileInfoCollector.collect(file, length, lastModified);
         }
     }
 }

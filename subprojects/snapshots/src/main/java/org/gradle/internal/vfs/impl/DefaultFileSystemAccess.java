@@ -23,7 +23,8 @@ import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
-import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.FileInfo;
+import org.gradle.internal.hash.FileInfoCollector;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -56,11 +57,11 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     private final DirectorySnapshotterStatistics.Collector statisticsCollector;
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
-    private final FileHasher hasher;
+    private final FileInfoCollector fileInfoCollector;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
 
     public DefaultFileSystemAccess(
-        FileHasher hasher,
+        FileInfoCollector fileInfoCollector,
         Interner<String> stringInterner,
         Stat stat,
         VirtualFileSystem virtualFileSystem,
@@ -73,8 +74,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         this.writeListener = writeListener;
         this.statisticsCollector = statisticsCollector;
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
-        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes, statisticsCollector);
-        this.hasher = hasher;
+        this.directorySnapshotter = new DirectorySnapshotter(fileInfoCollector, stringInterner, this.defaultExcludes, statisticsCollector);
+        this.fileInfoCollector = fileInfoCollector;
         this.virtualFileSystem = virtualFileSystem;
     }
 
@@ -107,8 +108,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 HashCode hash = producingSnapshots.guardByKey(location,
                     () -> virtualFileSystem.getSnapshot(location)
                         .orElseGet(() -> {
-                            HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                            RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
+                            FileInfo fileInfo = fileInfoCollector.collect(file, fileMetadata.getLength(), fileMetadata.getLastModified());
+                            RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), fileInfo.getHash(), fileMetadata, fileInfo.getContentType());
                             virtualFileSystem.store(snapshot.getAbsolutePath(), snapshot);
                             return snapshot;
                         }).getHash());
@@ -147,8 +148,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         FileMetadata fileMetadata = this.stat.stat(file);
         switch (fileMetadata.getType()) {
             case RegularFile:
-                HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, fileMetadata);
+                FileInfo fileInfo = fileInfoCollector.collect(file, fileMetadata.getLength(), fileMetadata.getLastModified());
+                RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), fileInfo.getHash(), fileMetadata, fileInfo.getContentType());
                 virtualFileSystem.store(regularFileSnapshot.getAbsolutePath(), regularFileSnapshot);
                 return regularFileSnapshot;
             case Missing:
@@ -228,7 +229,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         if (!defaultExcludes.equals(newDefaultExcludes)) {
             LOGGER.debug("Default excludes changes from {} to {}", defaultExcludes, newDefaultExcludes);
             defaultExcludes = newDefaultExcludes;
-            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes, statisticsCollector);
+            directorySnapshotter = new DirectorySnapshotter(fileInfoCollector, stringInterner, newDefaultExcludes, statisticsCollector);
             virtualFileSystem.invalidateAll();
         }
     }

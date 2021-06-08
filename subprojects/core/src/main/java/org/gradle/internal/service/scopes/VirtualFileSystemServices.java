@@ -26,7 +26,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
-import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.CachingFileInfoCollector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
@@ -35,7 +35,7 @@ import org.gradle.api.internal.changedetection.state.PropertiesFileFilter;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.SplitFileHasher;
+import org.gradle.api.internal.changedetection.state.SplitFileInfoCollector;
 import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCacheService;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
@@ -74,8 +74,8 @@ import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
-import org.gradle.internal.hash.DefaultFileHasher;
-import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.DefaultFileInfoCollector;
+import org.gradle.internal.hash.FileInfoCollector;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
@@ -179,7 +179,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
         }
 
-        FileHasher createCachingFileHasher(
+        CachingFileInfoCollector createCachingFileHasher(
             FileHasherStatistics.Collector statisticsCollector,
             CrossBuildFileHashCache fileStore,
             FileSystem fileSystem,
@@ -187,7 +187,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StreamHasher streamHasher,
             StringInterner stringInterner
         ) {
-            CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, FILE_HASHER_MEMORY_CACHE_SIZE, statisticsCollector);
+            CachingFileInfoCollector fileHasher = new CachingFileInfoCollector(new DefaultFileInfoCollector(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, FILE_HASHER_MEMORY_CACHE_SIZE, statisticsCollector);
             fileTimeStampInspector.attach(fileHasher);
             return fileHasher;
         }
@@ -243,7 +243,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         FileSystemAccess createFileSystemAccess(
-            FileHasher hasher,
+            FileInfoCollector fileInfoCollector,
             VirtualFileSystem virtualFileSystem,
             Stat stat,
             StringInterner stringInterner,
@@ -253,7 +253,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             DirectorySnapshotterStatistics.Collector statisticsCollector
         ) {
             DefaultFileSystemAccess fileSystemAccess = new DefaultFileSystemAccess(
-                hasher,
+                fileInfoCollector,
                 stringInterner,
                 stat,
                 virtualFileSystem,
@@ -304,8 +304,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return Optional.empty();
         }
 
-        GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
-            return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
+        GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileInfoCollector fileInfoCollector, StringInterner stringInterner) {
+            return new DefaultGenericFileTreeSnapshotter(fileInfoCollector, stringInterner);
         }
 
         FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
@@ -336,22 +336,22 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
         }
 
-        FileHasher createFileHasher(
+        FileInfoCollector createFileInfoCollector(
             GlobalCacheLocations globalCacheLocations,
             BuildSessionScopeFileTimeStampInspector fileTimeStampInspector,
             CrossBuildFileHashCache cacheAccess,
-            FileHasher globalHasher,
+            FileInfoCollector globalFileInfoCollector,
             FileSystem fileSystem,
             StreamHasher streamHasher,
             StringInterner stringInterner,
             FileHasherStatistics.Collector statisticsCollector
         ) {
-            CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, FILE_HASHER_MEMORY_CACHE_SIZE, statisticsCollector);
-            return new SplitFileHasher(globalHasher, localHasher, globalCacheLocations);
+            CachingFileInfoCollector localFileInfoCollector = new CachingFileInfoCollector(new DefaultFileInfoCollector(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, FILE_HASHER_MEMORY_CACHE_SIZE, statisticsCollector);
+            return new SplitFileInfoCollector(globalFileInfoCollector, localFileInfoCollector, globalCacheLocations);
         }
 
         FileSystemAccess createFileSystemAccess(
-            FileHasher hasher,
+            FileInfoCollector fileInfoCollector,
             ListenerManager listenerManager,
             Stat stat,
             StringInterner stringInterner,
@@ -360,7 +360,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             DirectorySnapshotterStatistics.Collector statisticsCollector
         ) {
             DefaultFileSystemAccess buildSessionsScopedVirtualFileSystem = new DefaultFileSystemAccess(
-                hasher,
+                fileInfoCollector,
                 stringInterner,
                 stat,
                 root,
@@ -376,8 +376,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return buildSessionsScopedVirtualFileSystem;
         }
 
-        GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
-            return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
+        GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileInfoCollector fileInfoCollector, StringInterner stringInterner) {
+            return new DefaultGenericFileTreeSnapshotter(fileInfoCollector, stringInterner);
         }
 
         FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {

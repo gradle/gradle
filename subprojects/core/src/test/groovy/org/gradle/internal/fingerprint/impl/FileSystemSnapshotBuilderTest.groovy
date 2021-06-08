@@ -20,7 +20,9 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
-import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.FileContentType
+import org.gradle.internal.hash.FileInfo
+import org.gradle.internal.hash.FileInfoCollector
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -45,16 +47,16 @@ class FileSystemSnapshotBuilderTest extends Specification {
     def stringInterner = Stub(StringInterner) {
             intern(_) >> { String string -> string }
     }
-    def hasher = Stub(FileHasher) {
-        hash(_, _, _) >> {
-            HashCode.fromInt(1234)
+    def fileInfoCollector = Stub(FileInfoCollector) {
+        collect(_, _, _) >> {
+            return new FileInfo(HashCode.fromInt(1234), 0, 0, FileContentType.UNKNOWN)
         }
     }
 
     String basePath = tmpDir.file("some/path").absolutePath
 
     def "can rebuild tree from relative paths"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, fileInfoCollector)
         def expectedRelativePaths = ['one', 'one/two', 'one/two/some.txt', 'three', 'three/four.txt']
 
         when:
@@ -75,7 +77,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
 
     def "cannot replace a file with a directory"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, fileInfoCollector)
         def relativePath = ["some", "file.txt"] as String[]
         builder.addFile(new File(basePath, "some/file.txt"), relativePath, "file.txt", fileMetadata())
 
@@ -87,7 +89,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
 
     def "cannot replace a directory with a file"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, fileInfoCollector)
         def relativePath = ["some", "file.txt"] as String[]
         builder.addDir(new File(basePath, "some/file.txt"), relativePath)
 
@@ -99,7 +101,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
 
     def "can add root file"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, fileInfoCollector)
         def snapshot = fileMetadata()
 
         when:
@@ -108,11 +110,11 @@ class FileSystemSnapshotBuilderTest extends Specification {
 
         then:
         result instanceof RegularFileSnapshot
-        result.hash == hasher.hash(new File(basePath), snapshot.length, snapshot.lastModified)
+        result.hash == fileInfoCollector.collect(new File(basePath), snapshot.length, snapshot.lastModified).getHash()
     }
 
     def "can add nothing"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, fileInfoCollector)
 
         expect:
         builder.build() == FileSystemSnapshot.EMPTY
@@ -120,7 +122,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
 
     @Requires(TestPrecondition.SYMLINKS)
     def "can add symlinked files"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, fileInfoCollector)
         def symlink = fileMetadata(AccessType.VIA_SYMLINK)
 
         when:
@@ -134,7 +136,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
 
     @Requires(TestPrecondition.SYMLINKS)
     def "detects symlinked directories"() {
-        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def builder = new FileSystemSnapshotBuilder(stringInterner, fileInfoCollector)
         def actualRootDir = tmpDir.file("actualDir").createDir()
         def actualSubDir = tmpDir.file("actualSubDir").createDir()
         def rootDir = tmpDir.file("rootDir")

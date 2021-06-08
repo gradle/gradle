@@ -16,7 +16,7 @@
 package org.gradle.internal.hash;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.CachingFileInfoCollector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
@@ -26,12 +26,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
+import static org.gradle.internal.hash.FileInfoCollector.Adapter.from;
+
 @ServiceScope(Scopes.BuildSession.class)
 public class DefaultChecksumService implements ChecksumService {
-    private final CachingFileHasher md5;
-    private final CachingFileHasher sha1;
-    private final CachingFileHasher sha256;
-    private final CachingFileHasher sha512;
+    private final CachingFileInfoCollector md5;
+    private final CachingFileInfoCollector sha1;
+    private final CachingFileInfoCollector sha256;
+    private final CachingFileInfoCollector sha512;
 
     public DefaultChecksumService(
         StringInterner stringInterner,
@@ -46,7 +48,7 @@ public class DefaultChecksumService implements ChecksumService {
         sha512 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha512", Hashing.sha512(), statisticsCollector);
     }
 
-    private CachingFileHasher createCache(
+    private CachingFileInfoCollector createCache(
         StringInterner stringInterner,
         CrossBuildFileHashCache fileStore,
         FileSystem fileSystem,
@@ -55,7 +57,7 @@ public class DefaultChecksumService implements ChecksumService {
         HashFunction hashFunction,
         FileHasherStatistics.Collector statisticsCollector
     ) {
-        return new CachingFileHasher(new ChecksumHasher(hashFunction), fileStore, stringInterner, fileTimeStampInspector, name + "-checksums", fileSystem, 1000, statisticsCollector);
+        return new CachingFileInfoCollector(from(new ChecksumHasher(hashFunction)), fileStore, stringInterner, fileTimeStampInspector, name + "-checksums", fileSystem, 1000, statisticsCollector);
     }
 
     @Override
@@ -93,11 +95,10 @@ public class DefaultChecksumService implements ChecksumService {
             case "sha-512":
                 return sha512(src);
         }
-        throw new UnsupportedOperationException("Cannot hash with algorith " + algorithm);
+        throw new UnsupportedOperationException("Cannot hash with algorithm " + algorithm);
     }
 
-    private HashCode doHash(File file, CachingFileHasher hasher) {
+    private HashCode doHash(File file, CachingFileInfoCollector hasher) {
         return hasher.hash(file);
     }
-
 }

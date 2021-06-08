@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.FileContentType;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Optional;
@@ -30,11 +31,17 @@ import java.util.Optional;
 public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot implements FileSystemLeafSnapshot {
     private final HashCode contentHash;
     private final FileMetadata metadata;
+    private final FileContentType fileContentType;
 
     public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, FileMetadata metadata) {
+        this(absolutePath, name, contentHash, metadata, FileContentType.UNKNOWN);
+    }
+
+    public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, FileMetadata metadata, FileContentType fileContentType) {
         super(absolutePath, name, metadata.getAccessType());
         this.contentHash = contentHash;
         this.metadata = metadata;
+        this.fileContentType = fileContentType;
     }
 
     @Override
@@ -50,6 +57,10 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot impl
     // Used by the Maven caching client. Do not remove
     public FileMetadata getMetadata() {
         return metadata;
+    }
+
+    public FileContentType getFileContentType() {
+        return fileContentType;
     }
 
     @Override

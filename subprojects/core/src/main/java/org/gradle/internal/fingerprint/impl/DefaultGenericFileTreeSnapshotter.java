@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
-import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.FileInfoCollector;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.nio.file.Files;
@@ -31,17 +31,17 @@ import java.nio.file.Paths;
 
 public class DefaultGenericFileTreeSnapshotter implements GenericFileTreeSnapshotter {
 
-    private final FileHasher hasher;
+    private final FileInfoCollector fileInfoCollector;
     private final Interner<String> stringInterner;
 
-    public DefaultGenericFileTreeSnapshotter(FileHasher hasher, Interner<String> stringInterner) {
-        this.hasher = hasher;
+    public DefaultGenericFileTreeSnapshotter(FileInfoCollector fileInfoCollector, Interner<String> stringInterner) {
+        this.fileInfoCollector = fileInfoCollector;
         this.stringInterner = stringInterner;
     }
 
     @Override
     public FileSystemSnapshot snapshotFileTree(FileTreeInternal tree) {
-        FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner, hasher);
+        FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner, fileInfoCollector);
         tree.visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {

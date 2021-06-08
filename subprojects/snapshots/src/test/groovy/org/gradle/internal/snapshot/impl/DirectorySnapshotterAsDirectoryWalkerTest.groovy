@@ -73,7 +73,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
     }
 
     private DirectorySnapshotter directorySnapshotter() {
-        new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
+        new DirectorySnapshotter(TestFiles.fileInfoCollector(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
     }
 
     private static List<FileVisitDetails> walkFiles(rootDir) {

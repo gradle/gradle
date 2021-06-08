@@ -23,7 +23,10 @@ import org.gradle.internal.file.FileException
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileType
 import org.gradle.internal.file.Stat
+import org.gradle.internal.hash.FileContentType
 import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.FileInfo
+import org.gradle.internal.hash.FileInfoCollector
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -71,7 +74,7 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         return result.get()
     }
 
-    static class AllowingHasher implements FileHasher {
+    static class AllowingHasher implements FileHasher, FileInfoCollector {
 
         private final FileHasher delegate
         private boolean hashingAllowed
@@ -90,6 +93,11 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         HashCode hash(File file, long length, long lastModified) {
             checkIfAllowed()
             return delegate.hash(file, length, lastModified)
+        }
+
+        @Override
+        FileInfo collect(File file, long length, long lastModified) {
+            return new FileInfo(hash(file), length, lastModified, FileContentType.UNKNOWN)
         }
 
         private void checkIfAllowed() {

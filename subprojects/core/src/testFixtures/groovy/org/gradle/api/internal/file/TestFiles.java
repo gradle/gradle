@@ -37,6 +37,7 @@ import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
+import org.gradle.internal.hash.DefaultFileInfoCollector;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
@@ -191,8 +192,12 @@ public class TestFiles {
         return new DefaultFileHasher(streamHasher());
     }
 
+    public static DefaultFileInfoCollector fileInfoCollector() {
+        return new DefaultFileInfoCollector(streamHasher());
+    }
+
     public static GenericFileTreeSnapshotter genericFileTreeSnapshotter() {
-        return new DefaultGenericFileTreeSnapshotter(fileHasher(), new StringInterner());
+        return new DefaultGenericFileTreeSnapshotter(fileInfoCollector(), new StringInterner());
     }
 
     public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
@@ -210,7 +215,7 @@ public class TestFiles {
 
     public static FileSystemAccess fileSystemAccess(VirtualFileSystem virtualFileSystem) {
         return new DefaultFileSystemAccess(
-            fileHasher(),
+            fileInfoCollector(),
             new StringInterner(),
             fileSystem(),
             virtualFileSystem,
