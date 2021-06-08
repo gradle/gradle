@@ -42,6 +42,8 @@ import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
+import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.composite.IncludedRootBuild;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -104,6 +106,11 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     @Override
     public File getBuildRootDir() {
         return buildLifecycleController.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
+    }
+
+    @Override
+    public IncludedBuildInternal getModel() {
+        return new IncludedRootBuild(this);
     }
 
     @Override

@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 
 import java.util.function.Consumer;
 
@@ -38,15 +37,11 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         return targetBuild.equals(DefaultBuildIdentifier.ROOT);
     }
 
-    private CompositeBuildParticipantBuildState rootBuild() {
-        return (CompositeBuildParticipantBuildState) buildRegistry.getRootBuild();
-    }
-
     @Override
     public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
         if (isRoot(targetBuild)) {
             if (findTaskInRootBuild(taskPath) == null) {
-                rootBuild().getBuild().getTaskGraph().addAdditionalEntryTask(taskPath);
+                buildRegistry.getRootBuild().getBuild().getTaskGraph().addAdditionalEntryTask(taskPath);
             }
         } else {
             buildControllerFor(targetBuild).queueForExecution(taskPath);
@@ -96,7 +91,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     }
 
     private TaskInternal findTaskInRootBuild(String taskPath) {
-        for (Task task : rootBuild().getBuild().getTaskGraph().getAllTasks()) {
+        for (Task task : buildRegistry.getRootBuild().getBuild().getTaskGraph().getAllTasks()) {
             if (task.getPath().equals(taskPath)) {
                 return (TaskInternal) task;
             }

@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -33,6 +32,7 @@ import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -42,7 +42,7 @@ import org.gradle.util.Path;
 import java.io.File;
 import java.util.function.Consumer;
 
-public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState, IncludedBuild, Stoppable {
+public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState, IncludedBuildInternal, Stoppable {
     private final BuildIdentifier buildIdentifier;
     private final Path identityPath;
     private final BuildDefinition buildDefinition;
@@ -107,7 +107,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public IncludedBuild getModel() {
+    public IncludedBuildInternal getModel() {
         return this;
     }
 
@@ -130,6 +130,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public String getName() {
         return identityPath.getName();
+    }
+
+    @Override
+    public BuildState getTarget() {
+        return this;
     }
 
     @Override

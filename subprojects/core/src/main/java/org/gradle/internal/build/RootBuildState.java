@@ -24,7 +24,7 @@ import java.util.function.Function;
 /**
  * Represents the root build of a build tree.
  */
-public interface RootBuildState extends BuildState {
+public interface RootBuildState extends CompositeBuildParticipantBuildState {
     /**
      * Returns the start parameter used to define this build.
      */
