@@ -20,6 +20,10 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
         javaCrash = false
     }
 
+    params {
+        param("maxParallelForks", "8")
+    }
+
     val buildScanTagForType = buildScanTag("Gradleception")
     val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType) + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
 
