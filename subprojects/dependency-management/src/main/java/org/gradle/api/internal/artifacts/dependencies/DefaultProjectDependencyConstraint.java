@@ -119,4 +119,9 @@ public class DefaultProjectDependencyConstraint implements DependencyConstraintI
     public boolean isForce() {
         return force;
     }
+
+    @Override
+    public DependencyConstraint copy() {
+        return new DefaultProjectDependencyConstraint(projectDependency.copy());
+    }
 }
