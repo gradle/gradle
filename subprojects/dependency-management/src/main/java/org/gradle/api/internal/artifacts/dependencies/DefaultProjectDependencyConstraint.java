@@ -122,6 +122,9 @@ public class DefaultProjectDependencyConstraint implements DependencyConstraintI
 
     @Override
     public DependencyConstraint copy() {
-        return new DefaultProjectDependencyConstraint(projectDependency.copy());
+        DefaultProjectDependencyConstraint result = new DefaultProjectDependencyConstraint(projectDependency.copy());
+        result.force = force;
+        result.reason = reason;
+        return result;
     }
 }
