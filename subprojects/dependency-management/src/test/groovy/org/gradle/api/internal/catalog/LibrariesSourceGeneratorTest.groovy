@@ -222,6 +222,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
             alias('foo') to 'g:a:v'
             alias('bar') to 'g2:a2:v2'
             bundle('myBundle', ['foo', 'bar'])
+            alias('pl') toPluginId('org.plugin') version('1.2')
         }
 
         then:
@@ -238,12 +239,16 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
 
         def bundle = libs.bundles.myBundle.get()
         assert bundle == [foo, bar]
+
+        def plugin = libs.plugins.pl.get()
+        plugin.pluginId == 'org.plugin'
+        plugin.version.requiredVersion == '1.2'
     }
 
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    def "puts limit on the number of methods"() {
+    def "reasonable error message in case a reserved alias name is used"() {
         when:
         generate {
             alias(reservedName).to("org:test:1.0")
@@ -253,17 +258,20 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         InvalidUserDataException ex = thrown()
         verify ex.message, reservedAlias {
             alias(reservedName).shouldNotEndWith(suffix)
-            reservedAliasSuffix("bundle", "bundles", "version", "versions")
+            reservedAliasSuffix("bundle", "bundles", "version", "versions", "plugin", "plugins")
         }
 
         where:
         reservedName   | suffix
         'versions'     | 'versions'
         'bundles'      | 'bundles'
+        'plugins'      | 'plugins'
         'someVersions' | 'versions'
         'someBundles'  | 'bundles'
+        'somePlugins'  | 'plugins'
         'some.version' | 'version'
         'some.bundle'  | 'bundle'
+        'some.plugin'  | 'plugin'
     }
 
     @VersionCatalogProblemTestFor(

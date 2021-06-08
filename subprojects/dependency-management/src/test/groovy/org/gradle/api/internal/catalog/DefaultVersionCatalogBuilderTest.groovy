@@ -88,15 +88,18 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         verify(ex.message, reservedAlias {
             inCatalog('libs')
             alias(name).shouldNotEndWith(suffix)
-            reservedAliasSuffix('bundle', 'bundles', 'version', 'versions')
+            reservedAliasSuffix('bundle', 'bundles', 'version', 'versions', 'plugin', 'plugins')
         })
 
         where:
         name          | suffix
         "bundles"     | "bundles"
         "versions"    | "versions"
+        "plugins"     | "plugins"
         "fooBundle"   | "bundle"
         "fooVersion"  | "version"
+        "fooPlugin"   | "plugin"
+        "foo.plugin"  | "plugin"
         "foo.bundle"  | "bundle"
         "foo.version" | "version"
     }
@@ -289,6 +292,27 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
 
         then:
         model.getDependencyData("foo").version.strictVersion == "1.7"
+    }
+
+    def "can declare a plugin with a version"() {
+        builder.alias("my").toPluginId("org.plugin").version("1.3")
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.getPlugin("my").version.requiredVersion == "1.3"
+    }
+
+    def "can declare a plugin referencing a version"() {
+        builder.version("ver", "1.5")
+        builder.alias("my").toPluginId("org.plugin").versionRef("ver")
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.getPlugin("my").version.requiredVersion == "1.5"
     }
 
     def "can create an alias with an empty version"() {

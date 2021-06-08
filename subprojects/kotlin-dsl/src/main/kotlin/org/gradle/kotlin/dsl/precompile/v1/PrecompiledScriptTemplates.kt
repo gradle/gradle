@@ -25,12 +25,14 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
+import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
 import org.jetbrains.kotlin.scripting.definitions.getEnvironment
 import kotlin.script.dependencies.Environment
@@ -99,9 +101,16 @@ open class PrecompiledSettingsScript(
     @Suppress("unused")
     fun plugins(block: PluginDependenciesSpec.() -> Unit) {
         block(
-            PluginDependenciesSpec { pluginId ->
-                pluginManager.apply(pluginId)
-                NullPluginDependencySpec
+            object : PluginDependenciesSpec {
+                override fun id(id: String): PluginDependencySpec {
+                    pluginManager.apply(id)
+                    return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: Provider<PluginDependency>): PluginDependencySpec {
+                    pluginManager.apply(notation.get().pluginId)
+                    return NullPluginDependencySpec
+                }
             }
         )
     }
@@ -165,9 +174,16 @@ open class PrecompiledProjectScript(
     @Suppress("unused")
     fun plugins(block: PluginDependenciesSpec.() -> Unit) {
         block(
-            PluginDependenciesSpec { pluginId ->
-                pluginManager.apply(pluginId)
-                NullPluginDependencySpec
+            object : PluginDependenciesSpec {
+                override fun id(id: String): PluginDependencySpec {
+                    pluginManager.apply(id)
+                    return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: Provider<PluginDependency>): PluginDependencySpec {
+                    pluginManager.apply(notation.get().pluginId)
+                    return NullPluginDependencySpec
+                }
             }
         )
     }

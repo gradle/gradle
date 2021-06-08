@@ -28,18 +28,22 @@ public class DefaultVersionCatalog implements Serializable {
     private final Map<String, DependencyModel> aliasToDependency;
     private final Map<String, BundleModel> bundles;
     private final Map<String, VersionModel> versions;
+    private final Map<String, PluginModel> plugins;
+
     private final int hashCode;
 
     public DefaultVersionCatalog(String name,
                                  String description,
                                  Map<String, DependencyModel> aliasToDependency,
                                  Map<String, BundleModel> bundles,
-                                 Map<String, VersionModel> versions) {
+                                 Map<String, VersionModel> versions,
+                                 Map<String, PluginModel> plugins) {
         this.name = name;
         this.description = description;
         this.aliasToDependency = aliasToDependency;
         this.bundles = bundles;
         this.versions = versions;
+        this.plugins = plugins;
         this.hashCode = doComputeHashCode();
     }
 
@@ -77,12 +81,23 @@ public class DefaultVersionCatalog implements Serializable {
             .collect(Collectors.toList());
     }
 
+    public List<String> getPluginAliases() {
+        return plugins.keySet()
+            .stream()
+            .sorted()
+            .collect(Collectors.toList());
+    }
+
     public BundleModel getBundle(String name) {
         return bundles.get(normalize(name));
     }
 
     public VersionModel getVersion(String name) {
         return versions.get(normalize(name));
+    }
+
+    public PluginModel getPlugin(String name) {
+        return plugins.get(normalize(name));
     }
 
     @Override
@@ -102,7 +117,10 @@ public class DefaultVersionCatalog implements Serializable {
         if (!bundles.equals(that.bundles)) {
             return false;
         }
-        return versions.equals(that.versions);
+        if (!versions.equals(that.versions)) {
+            return false;
+        }
+        return plugins.equals(that.plugins);
     }
 
     @Override
@@ -114,10 +132,11 @@ public class DefaultVersionCatalog implements Serializable {
         int result = aliasToDependency.hashCode();
         result = 31 * result + bundles.hashCode();
         result = 31 * result + versions.hashCode();
+        result = 31 * result + plugins.hashCode();
         return result;
     }
 
     public boolean isNotEmpty() {
-        return !(aliasToDependency.isEmpty() && bundles.isEmpty() && versions.isEmpty());
+        return !(aliasToDependency.isEmpty() && bundles.isEmpty() && versions.isEmpty() && plugins.isEmpty());
     }
 }

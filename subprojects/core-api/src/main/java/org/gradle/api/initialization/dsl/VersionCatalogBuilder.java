@@ -115,6 +115,15 @@ public interface VersionCatalogBuilder extends Named {
          * @return a builder to configure the version
          */
         LibraryAliasBuilder to(String group, String name);
+
+        /**
+         * Sets the plugin id this alias will reference
+         * @param id the plugin id
+         * @return a builder to configure the plugin
+         *
+         * @since 7.2
+         */
+        PluginAliasBuilder toPluginId(String id);
     }
 
     /**
@@ -148,6 +157,32 @@ public interface VersionCatalogBuilder extends Named {
          *
          */
         void withoutVersion();
+    }
+
+    /**
+     * Allows configuring the version of a plugin
+     *
+     * @since 7.2
+     */
+    @Incubating
+    interface PluginAliasBuilder {
+        /**
+         * Configures the version for this alias
+         */
+        void version(Action<? super MutableVersionConstraint> versionSpec);
+
+        /**
+         * Configures the required version for this alias
+         */
+        void version(String version);
+
+        /**
+         * Configures this alias to use a version reference, created
+         * via the {@link #version(String, Action)} method.
+         *
+         * @param versionRef the version reference
+         */
+        void versionRef(String versionRef);
     }
 
 }

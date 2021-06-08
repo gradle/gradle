@@ -78,13 +78,19 @@ import java.io.OutputStream
 import java.io.PrintStream
 
 import kotlin.reflect.KClass
+import kotlin.script.experimental.api.KotlinType
 
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
+import kotlin.script.experimental.api.providedProperties
+import kotlin.script.experimental.host.ScriptingHostConfiguration
+import kotlin.script.experimental.host.configurationDependencies
+import kotlin.script.experimental.host.getScriptingClass
+import kotlin.script.experimental.jvm.JvmDependency
+import kotlin.script.experimental.jvm.JvmGetScriptingClass
 
 
 fun compileKotlinScriptModuleTo(
@@ -108,9 +114,14 @@ fun compileKotlinScriptModuleTo(
 fun scriptDefinitionFromTemplate(
     template: KClass<out Any>,
     implicitImports: List<String>,
-    implicitReceiver: KClass<*>? = null
+    implicitReceiver: KClass<*>? = null,
+    injectedProperties: Map<String, KotlinType> = mapOf(),
+    classPath: List<File> = listOf()
 ): ScriptDefinition {
-    val hostConfiguration = defaultJvmScriptingHostConfiguration
+    val hostConfiguration = ScriptingHostConfiguration {
+        getScriptingClass(JvmGetScriptingClass())
+        configurationDependencies(JvmDependency(classPath))
+    }
     return ScriptDefinition.FromConfigurations(
         hostConfiguration = hostConfiguration,
         compilationConfiguration = ScriptCompilationConfiguration {
@@ -120,6 +131,7 @@ fun scriptDefinitionFromTemplate(
             implicitReceiver?.let {
                 implicitReceivers(it)
             }
+            providedProperties(injectedProperties)
         },
         evaluationConfiguration = null
     )
@@ -159,25 +171,25 @@ fun compileKotlinScriptModuleTo(
 ) {
     withRootDisposable {
 
-        withCompilationExceptionHandler(messageCollector) {
+//        withCompilationExceptionHandler(messageCollector) {
 
-            val configuration = compilerConfigurationFor(messageCollector).apply {
-                put(RETAIN_OUTPUT_IN_MEMORY, false)
-                put(OUTPUT_DIRECTORY, outputDirectory)
-                setModuleName(moduleName)
-                addScriptingCompilerComponents()
-                addScriptDefinition(scriptDef)
-                scriptFiles.forEach { addKotlinSourceRoot(it) }
-                classPath.forEach { addJvmClasspathRoot(it) }
-            }
-
-            val environment = kotlinCoreEnvironmentFor(configuration).apply {
-                HasImplicitReceiverCompilerPlugin.apply(project)
-            }
-
-            compileBunchOfSources(environment)
-                || throw ScriptCompilationException(messageCollector.errors)
+        val configuration = compilerConfigurationFor(messageCollector).apply {
+            put(RETAIN_OUTPUT_IN_MEMORY, false)
+            put(OUTPUT_DIRECTORY, outputDirectory)
+            setModuleName(moduleName)
+            addScriptingCompilerComponents()
+            addScriptDefinition(scriptDef)
+            scriptFiles.forEach { addKotlinSourceRoot(it) }
+            classPath.forEach { addJvmClasspathRoot(it) }
         }
+
+        val environment = kotlinCoreEnvironmentFor(configuration).apply {
+            HasImplicitReceiverCompilerPlugin.apply(project)
+        }
+
+        compileBunchOfSources(environment)
+            || throw ScriptCompilationException(messageCollector.errors)
+//        }
     }
 }
 

@@ -25,6 +25,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.ExtensionContainer
 
 import org.junit.Test
 
@@ -34,7 +35,7 @@ class SimplifiedKotlinScriptEvaluatorTest : TestWithTempFiles() {
     @Test
     fun `can eval script against Project mock`() {
 
-        val project = mock<Project>()
+        val project = project()
         eval(
             script = """
                 version = "1.0"
@@ -71,6 +72,11 @@ class SimplifiedKotlinScriptEvaluatorTest : TestWithTempFiles() {
             target = gradle
         )
         verify(gradle).includedBuild("foo")
+    }
+
+    private
+    fun project() = mock<Project> {
+        on { extensions } doReturn mock<ExtensionContainer>()
     }
 
     private
