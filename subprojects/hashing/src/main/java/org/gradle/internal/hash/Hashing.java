@@ -18,13 +18,20 @@ package org.gradle.internal.hash;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 
+import java.io.File;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Some popular hash functions. Replacement for Guava's hashing utilities.
@@ -89,17 +96,17 @@ public class Hashing {
     }
 
     /**
-     * Creates a {@link HashingOutputStream} with the default hash function.
+     * Hash the contents of the given {@link java.io.InputStream} with the default hash function.
      */
-    public static HashingOutputStream primitiveStreamHasher() {
-        return primitiveStreamHasher(ByteStreams.nullOutputStream());
+    public static HashCode hashStream(InputStream stream) throws IOException {
+        return DEFAULT.hashStream(stream);
     }
 
     /**
-     * Creates a {@link HashingOutputStream} with the default hash function.
+     * Hash the contents of the given {@link java.io.File} with the default hash function.
      */
-    public static HashingOutputStream primitiveStreamHasher(OutputStream output) {
-        return new HashingOutputStream(DEFAULT, output);
+    public static HashCode hashFile(File file) throws IOException {
+        return DEFAULT.hashFile(file);
     }
 
     /**
@@ -185,11 +192,34 @@ public class Hashing {
             return hasher.hash();
         }
 
+        @Override
+        public HashCode hashStream(InputStream stream) throws IOException {
+            HashingOutputStream hashingOutputStream = primitiveStreamHasher();
+            ByteStreams.copy(stream, hashingOutputStream);
+            return hashingOutputStream.hash();
+        }
+
+        @Override
+        public HashCode hashFile(File file) throws IOException {
+            HashingOutputStream hashingOutputStream = primitiveStreamHasher();
+            Files.copy(file, hashingOutputStream);
+            return hashingOutputStream.hash();
+        }
+
+        private HashingOutputStream primitiveStreamHasher() {
+            return new HashingOutputStream(this, ByteStreams.nullOutputStream());
+        }
+
         protected abstract MessageDigest createDigest();
 
         @Override
         public int getHexDigits() {
             return hexDigits;
+        }
+
+        @Override
+        public String toString() {
+            return getAlgorithm();
         }
     }
 
@@ -199,6 +229,11 @@ public class Hashing {
         public CloningMessageDigestHashFunction(MessageDigest prototype, int hashBits) {
             super(hashBits);
             this.prototype = prototype;
+        }
+
+        @Override
+        public String getAlgorithm() {
+            return prototype.getAlgorithm();
         }
 
         @Override
@@ -217,6 +252,11 @@ public class Hashing {
         public RegularMessageDigestHashFunction(String algorithm, int hashBits) {
             super(hashBits);
             this.algorithm = algorithm;
+        }
+
+        @Override
+        public String getAlgorithm() {
+            return algorithm;
         }
 
         @Override
@@ -388,6 +428,40 @@ public class Hashing {
         @Override
         public HashCode hash() {
             return hasher.hash();
+        }
+    }
+
+    /**
+     * Output stream decorator that hashes data written to the stream.
+     * Inspired by the Google Guava project.
+     */
+    private static final class HashingOutputStream extends FilterOutputStream {
+        private final PrimitiveHasher hasher;
+
+        public HashingOutputStream(HashFunction hashFunction, OutputStream out) {
+            super(checkNotNull(out));
+            this.hasher = checkNotNull(hashFunction.newPrimitiveHasher());
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            hasher.putByte((byte) b);
+            out.write(b);
+        }
+
+        @Override
+        public void write(byte[] bytes, int off, int len) throws IOException {
+            hasher.putBytes(bytes, off, len);
+            out.write(bytes, off, len);
+        }
+
+        public HashCode hash() {
+            return hasher.hash();
+        }
+
+        @Override
+        public void close() throws IOException {
+            out.close();
         }
     }
 }

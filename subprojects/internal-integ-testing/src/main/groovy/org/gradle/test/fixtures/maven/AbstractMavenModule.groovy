@@ -21,7 +21,8 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
@@ -282,12 +283,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     def artifact = getArtifact(file.url)
                     assert artifact.file.file
                     assert artifact.file.length() == file.size
-                    assert HashUtil.createHash(artifact.file, "sha1") == file.sha1
+                    assert Hashing.sha1().hashFile(artifact.file) == file.sha1
                     if (checkExtraChecksums && (!artifact.file.name in missingExtra)) {
-                        assert HashUtil.createHash(artifact.file, "sha-256") == file.sha256
-                        assert HashUtil.createHash(artifact.file, "sha-512") == file.sha512
+                        assert Hashing.sha256().hashFile(artifact.file) == file.sha256
+                        assert Hashing.sha512().hashFile(artifact.file) == file.sha512
                     }
-                    assert HashUtil.createHash(artifact.file, "md5") == file.md5
+                    assert Hashing.md5(). hashFile(artifact.file) == file.md5
                 }
             }
         }
@@ -350,18 +351,18 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     void assertChecksumsPublishedFor(TestFile testFile) {
         def sha1File = sha1File(testFile)
         sha1File.assertIsFile()
-        assert new BigInteger(sha1File.text, 16) == getHash(testFile, "SHA1")
+        assert HashCode.fromString(sha1File.text) == Hashing.sha1().hashFile(testFile)
         if (extraChecksums && !(testFile.name in missingExtraChecksums)) {
             def sha256File = sha256File(testFile)
             sha256File.assertIsFile()
-            assert new BigInteger(sha256File.text, 16) == getHash(testFile, "SHA-256")
+            assert HashCode.fromString(sha256File.text) == Hashing.sha256().hashFile(testFile)
             def sha512File = sha512File(testFile)
             sha512File.assertIsFile()
-            assert new BigInteger(sha512File.text, 16) == getHash(testFile, "SHA-512")
+            assert HashCode.fromString(sha512File.text) == Hashing.sha512().hashFile(testFile)
         }
         def md5File = md5File(testFile)
         md5File.assertIsFile()
-        assert new BigInteger(md5File.text, 16) == getHash(testFile, "MD5")
+        assert HashCode.fromString(md5File.text) == Hashing.md5().hashFile(testFile)
     }
 
     String correctURLForSnapshot(String url) {

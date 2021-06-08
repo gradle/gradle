@@ -71,7 +71,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             case SHORT_SNAPSHOT:
                 return new ShortValueSnapshot((short) decoder.readInt());
             case HASH_SNAPSHOT:
-                return new HashValueSnapshot(HashCode.fromBytes(decoder.readBinary()));
+                return new HashCodeSnapshot(HashCode.fromBytes(decoder.readBinary()));
             case FILE_SNAPSHOT:
                 return new FileValueSnapshot(decoder.readString());
             case ENUM_SNAPSHOT:
@@ -162,8 +162,8 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             ShortValueSnapshot shortSnapshot = (ShortValueSnapshot) snapshot;
             encoder.writeSmallInt(SHORT_SNAPSHOT);
             encoder.writeInt(shortSnapshot.getValue());
-        } else if (snapshot instanceof HashValueSnapshot) {
-            HashValueSnapshot hashSnapshot = (HashValueSnapshot) snapshot;
+        } else if (snapshot instanceof HashCodeSnapshot) {
+            HashCodeSnapshot hashSnapshot = (HashCodeSnapshot) snapshot;
             encoder.writeSmallInt(HASH_SNAPSHOT);
             encoder.writeBinary(hashSnapshot.getValue().toByteArray());
         } else if (snapshot instanceof FileValueSnapshot) {

@@ -26,7 +26,6 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
@@ -44,6 +43,7 @@ import java.util.Set;
 
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import static org.gradle.internal.hash.Hashing.hashString;
 
 public class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryConnectionFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
@@ -135,7 +135,7 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
                     try {
                         String repoName = spec.getRepoName();
                         String prefix = repoName.length() <= 9 ? repoName : repoName.substring(0, 10);
-                        String versionId = prefix + "_" + HashUtil.createCompactMD5(getUniqueId() + "-" + ref.getCanonicalId());
+                        String versionId = prefix + "_" + hashString(getUniqueId() + "-" + ref.getCanonicalId()).toCompactString();
                         File baseDir = new File(directoryLayout.getCheckoutDir(), versionId);
                         File workingDir = new File(baseDir, repoName);
                         GFileUtils.mkdirs(workingDir);

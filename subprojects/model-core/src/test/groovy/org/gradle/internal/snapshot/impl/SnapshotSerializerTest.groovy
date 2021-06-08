@@ -72,7 +72,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes hash properties"() {
-        def value = new HashValueSnapshot(HashCode.fromInt(123))
+        def value = new HashCodeSnapshot(HashCode.fromInt(123))
 
         when:
         write(value)

@@ -161,7 +161,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
             return visitor.fromIsolatable((Isolatable<?>) value);
         }
         if (value instanceof HashCode) {
-            return visitor.hashValue((HashCode) value);
+            return visitor.hashCode((HashCode) value);
         }
 
         // Fall back to serialization
@@ -204,7 +204,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         T shortValue(Short value);
 
-        T hashValue(HashCode value);
+        T hashCode(HashCode value);
 
         T attributeValue(Attribute<?> value);
 
@@ -269,8 +269,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public ValueSnapshot hashValue(HashCode value) {
-            return new HashValueSnapshot(value);
+        public ValueSnapshot hashCode(HashCode value) {
+            return new HashCodeSnapshot(value);
         }
 
         @Override
@@ -389,8 +389,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public Isolatable<?> hashValue(HashCode value) {
-            return new HashValueSnapshot(value);
+        public Isolatable<?> hashCode(HashCode value) {
+            return new HashCodeSnapshot(value);
         }
 
         @Override

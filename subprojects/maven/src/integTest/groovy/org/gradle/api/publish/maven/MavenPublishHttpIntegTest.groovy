@@ -115,8 +115,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         succeeds 'publish'
-        outputContains("remote repository doesn't support sha-256. This will not fail the build.")
-        outputContains("remote repository doesn't support sha-512. This will not fail the build.")
+        outputContains("remote repository doesn't support SHA-256. This will not fail the build.")
+        outputContains("remote repository doesn't support SHA-512. This will not fail the build.")
     }
 
 

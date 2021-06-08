@@ -19,8 +19,8 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
-public class HashValueSnapshot extends AbstractIsolatableScalarValue<HashCode> {
-    public HashValueSnapshot(HashCode value) {
+public class HashCodeSnapshot extends AbstractIsolatableScalarValue<HashCode> {
+    public HashCodeSnapshot(HashCode value) {
         super(value);
     }
 
