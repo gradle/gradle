@@ -56,6 +56,10 @@ import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.w3c.dom.Document
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.time.Instant.now
+import java.time.ZoneId.systemDefault
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatter.ofPattern
 import javax.xml.parsers.DocumentBuilderFactory
 
 
@@ -403,7 +407,7 @@ class PerformanceTestExtension(
     fun createPerformanceTest(name: String, generatorTask: TaskProvider<out Task>, configure: PerformanceTest.() -> Unit = {}): TaskProvider<out PerformanceTest> {
         val performanceTest = project.tasks.register(name, PerformanceTest::class) {
             group = "verification"
-            buildId = System.getenv("BUILD_ID") ?: "localBuild"
+            buildId = System.getenv("BUILD_ID") ?: "localBuild-${ofPattern("yyyyMMddHHmmss").withZone(systemDefault()).format(now())}"
             reportDir = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestReportsDir}").get().asFile
             resultsJson = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestResultsJson}").get().asFile
             addDatabaseParameters(project.propertiesForPerformanceDb())
