@@ -35,10 +35,7 @@ import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
-// Currently, combining embedded execution and embedded tooling API build execution in the same process can cause a deadlock, when those builds use worker processes
-@IgnoreIf({ GradleContextualExecuter.embedded })
 @Requires(TestPrecondition.NOT_WINDOWS)
 class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     TestFile jar

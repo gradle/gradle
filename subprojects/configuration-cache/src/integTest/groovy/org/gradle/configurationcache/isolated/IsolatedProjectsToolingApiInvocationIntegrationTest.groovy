@@ -18,12 +18,8 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.configurationcache.fixtures.ToolingApiBackedGradleExecuter
 import org.gradle.configurationcache.fixtures.ToolingApiSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import spock.lang.IgnoreIf
 
-// Currently, combining embedded execution and embedded tooling API build execution in the same process can cause a deadlock, when those builds use worker processes
-@IgnoreIf({ GradleContextualExecuter.embedded })
 class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec {
     @Override
     GradleExecuter createExecuter() {
