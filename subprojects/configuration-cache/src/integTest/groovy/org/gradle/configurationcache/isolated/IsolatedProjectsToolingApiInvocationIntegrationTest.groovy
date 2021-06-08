@@ -26,6 +26,36 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)
     }
 
+    def setup() {
+        settingsFile << """
+            rootProject.name = 'root'
+        """
+    }
+
+    def "does not (yet) cache tooling models"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = fetchModel()
+
+        then:
+        model.message == "It works!"
+        outputContains("creating model for root project 'root'")
+
+        when:
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model2 = fetchModel()
+
+        then:
+        model2.message == "It works!"
+        outputContains("creating model for root project 'root'")
+    }
+
     def "reports cross project access from build script when fetching tooling model"() {
         given:
         settingsFile << """
@@ -48,7 +78,19 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         model.message == "It works!"
         problems.assertResultHasProblems(result) {
             withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
-            "Build file 'build.gradle': Cannot access project ':b' from project ':'")
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
+        }
+        result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
+
+        when:
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model2 = fetchModel()
+
+        then:
+        model2.message == "It works!"
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
     }
@@ -77,5 +119,85 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
                 "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
+
+        when:
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model2 = fetchModel()
+
+        then:
+        model2.message == "It works!"
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
+                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
+        }
+        result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
     }
+
+    def "reports configuration cache problems in build script when fetching tooling model"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+            gradle.buildFinished {
+                println("build finished")
+            }
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model = fetchModel()
+
+        then:
+        model.message == "It works!"
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
+        result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
+
+        when:
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model2 = fetchModel()
+
+        then:
+        model2.message == "It works!"
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
+        result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
+    }
+
+    def "reports configuration cache problems in model builder while fetching tooling model"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc("""
+            project.gradle.buildFinished {
+                println("build finished")
+            }
+        """)
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model = fetchModel()
+
+        then:
+        model.message == "It works!"
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
+        result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
+
+        when:
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model2 = fetchModel()
+
+        then:
+        model2.message == "It works!"
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
+        result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
+    }
+
 }

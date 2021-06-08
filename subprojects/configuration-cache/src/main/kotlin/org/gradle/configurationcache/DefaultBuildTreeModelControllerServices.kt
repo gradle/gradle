@@ -33,11 +33,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             }
         }
 
+        val isolatedProjects = startParameter.isolatedProjects.get()
         val modelParameters = if (createsModel) {
-            // When creating a model, disable certain features
-            BuildModelParameters(false, false, startParameter.isolatedProjects.get(), true)
+            // When creating a model, disable certain features - don't enable configure on demand and only enable configuration cache when isolated projects is enabled
+            BuildModelParameters(false, isolatedProjects, isolatedProjects, true)
         } else {
-            val isolatedProjects = startParameter.isolatedProjects.get()
             val configurationCache = startParameter.configurationCache.get() || isolatedProjects
             BuildModelParameters(startParameter.isConfigureOnDemand, configurationCache, isolatedProjects, false)
         }
