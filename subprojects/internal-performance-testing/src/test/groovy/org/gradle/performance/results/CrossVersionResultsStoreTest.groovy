@@ -223,7 +223,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results.resultsOldestFirst*.versionUnderTest == ["1.7-rc-1", "1.7-rc-2", "1.7-rc-3"]
 
         when:
-        results = readStore.getTestResults(experiment1, 2, Integer.MAX_VALUE, channel)
+        results = readStore.getTestResults(experiment1, 2, Integer.MAX_VALUE, channel, [])
 
         then:
         results.results.size() == 2

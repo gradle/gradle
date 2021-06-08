@@ -29,7 +29,7 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.markAsInvalid(getUnknownReason());
+        throw new RuntimeException("Cannot hash implementation of lambda " + getTypeName());
     }
 
     @Override
@@ -58,8 +58,8 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
     @Override
     @Nullable
-    public String getUnknownReason() {
-        return "was implemented by the Java lambda '" + getTypeName() + "'. Using Java lambdas is not supported, use an (anonymous) inner class instead.";
+    public UnknownReason getUnknownReason() {
+        return UnknownReason.LAMBDA;
     }
 
     @Override

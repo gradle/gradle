@@ -145,23 +145,28 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
 
     @Override
     public CrossBuildPerformanceTestHistory getTestResults(PerformanceExperiment experiment, String channel) {
-        return getTestResults(experiment, Integer.MAX_VALUE, Integer.MAX_VALUE, channel);
+        return getTestResults(experiment, Integer.MAX_VALUE, Integer.MAX_VALUE, channel, ImmutableList.of());
     }
 
     @Override
-    public CrossBuildPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final String channel) {
+    public CrossBuildPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final String channel, List<String> teamcityBuildIds) {
         return withConnection("load results", connection -> {
+            String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
             try (
-                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
+                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (channel = ?" + buildIdQuery + ") order by startTime desc limit ?");
                 PreparedStatement operationsForExecution = connection.prepareStatement("select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?")
             ) {
-                executionsForName.setString(1, experiment.getScenario().getClassName());
-                executionsForName.setString(2, experiment.getScenario().getTestName());
-                executionsForName.setString(3, experiment.getTestProject());
+                int idx = 0;
+                executionsForName.setString(++idx, experiment.getScenario().getClassName());
+                executionsForName.setString(++idx, experiment.getScenario().getTestName());
+                executionsForName.setString(++idx, experiment.getTestProject());
                 Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
-                executionsForName.setTimestamp(4, minDate);
-                executionsForName.setString(5, channel);
-                executionsForName.setInt(6, mostRecentN);
+                executionsForName.setTimestamp(++idx, minDate);
+                executionsForName.setString(++idx, channel);
+                for (String teamcityBuildId : teamcityBuildIds) {
+                    executionsForName.setString(++idx, teamcityBuildId);
+                }
+                executionsForName.setInt(++idx, mostRecentN);
                 try (ResultSet testExecutions = executionsForName.executeQuery()) {
                     List<CrossBuildPerformanceResults> results = Lists.newArrayList();
                     Set<BuildDisplayInfo> builds = Sets.newTreeSet(Comparator.comparing(BuildDisplayInfo::getDisplayName));

@@ -334,6 +334,17 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    String implementationUnknown(boolean renderSolutions = false, @DelegatesTo(value = UnknownImplementation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(UnknownImplementation, 'implementation_unknown', spec)
+        config.description("${config.prefix} ${config.postfix}")
+            .reason(config.reason)
+            .solution(config.solution)
+            .render(renderSolutions)
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
@@ -791,6 +802,47 @@ trait ValidationMessageChecker {
 
         ConflictingAnnotation inConflict(String... conflicting) {
             inConflict(Arrays.asList(conflicting))
+        }
+    }
+
+    static class UnknownImplementation extends ValidationMessageDisplayConfiguration<UnknownImplementation> {
+
+        String prefix
+        String postfix
+        String reason
+        String solution
+
+        UnknownImplementation(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnknownImplementation nestedProperty(String propertyName) {
+            prefix = "Property '${propertyName}'"
+            this
+        }
+
+        UnknownImplementation implementationOfTask(String taskPath) {
+            prefix = "Implementation of task '${taskPath}'"
+            this
+        }
+
+        UnknownImplementation additionalTaskAction(String taskPath) {
+            prefix = "Additional action of task '${taskPath}'"
+            this
+        }
+
+        UnknownImplementation unknownClassloader(String className) {
+            postfix = "was loaded with an unknown classloader (class '${className}')."
+            reason = "Gradle cannot track the implementation for classes loaded with an unknown classloader."
+            solution = "Load your class by using one of Gradle's built-in ways."
+            this
+        }
+
+        UnknownImplementation implementedByLambda(String lambdaPrefix) {
+            postfix = "was implemented by the Java lambda '${lambdaPrefix}\$\$Lambda\$<non-deterministic>'."
+            reason = "Using Java lambdas is not supported as task inputs."
+            solution = "Use an (anonymous inner) class instead."
+            this
         }
     }
 }

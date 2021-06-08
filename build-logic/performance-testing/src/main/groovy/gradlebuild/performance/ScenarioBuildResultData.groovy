@@ -19,7 +19,7 @@ package gradlebuild.performance
 import groovy.transform.CompileStatic
 import groovy.transform.MapConstructor
 
-// Modify this class with care, see class org.gradle.performance.results.ScenarioBuildResultData
+// Modify this class with care, see class org.gradle.performance.results.PerformanceTestExecutionResult
 @MapConstructor
 @CompileStatic
 class ScenarioBuildResultData {

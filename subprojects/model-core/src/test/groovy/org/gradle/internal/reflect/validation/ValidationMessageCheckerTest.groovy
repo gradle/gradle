@@ -771,6 +771,72 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "tests output of unknown implementation of nested property implemented by lambda"() {
+        when:
+        render implementationUnknown(true) {
+            nestedProperty('action')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Property 'action' was implemented by the Java lambda 'LambdaAction\$\$Lambda\$<non-deterministic>'.
+
+Reason: Using Java lambdas is not supported as task inputs.
+
+Possible solution: Use an (anonymous inner) class instead.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "tests output of unknown implementation of additional task action implemented by lambda"() {
+        when:
+        render implementationUnknown(true) {
+            additionalTaskAction(':myTask')
+            implementedByLambda('LambdaAction')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Additional action of task ':myTask' was implemented by the Java lambda 'LambdaAction\$\$Lambda\$<non-deterministic>'.
+
+Reason: Using Java lambdas is not supported as task inputs.
+
+Possible solution: Use an (anonymous inner) class instead.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    def "tests output of unknown implementation with unknown classloader"() {
+        when:
+        render implementationUnknown(true) {
+            implementationOfTask(':myTask')
+            unknownClassloader('Unknown')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Implementation of task ':myTask' was loaded with an unknown classloader (class 'Unknown').
+
+Reason: Gradle cannot track the implementation for classes loaded with an unknown classloader.
+
+Possible solution: Load your class by using one of Gradle's built-in ways.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     def "tests output of dummyValidationProblem"() {

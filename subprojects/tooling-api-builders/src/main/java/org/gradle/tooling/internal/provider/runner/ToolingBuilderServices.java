@@ -27,6 +27,7 @@ public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.add(BuildControllerFactory.class);
         registration.add(BuildModelActionRunner.class);
         registration.add(TestExecutionRequestActionRunner.class);
         registration.add(ClientProvidedBuildActionRunner.class);

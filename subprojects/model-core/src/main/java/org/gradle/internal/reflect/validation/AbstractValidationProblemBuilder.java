@@ -96,7 +96,7 @@ abstract class AbstractValidationProblemBuilder<T extends ValidationProblemBuild
     }
 
     @Override
-    public PropertyProblemBuilder typeIsIrrelevantInErrorMessage() {
+    public T typeIsIrrelevantInErrorMessage() {
         this.typeIrrelevantInErrorMessage = true;
         return Cast.uncheckedCast(this);
     }

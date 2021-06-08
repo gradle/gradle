@@ -39,8 +39,8 @@ public class AllResultsStore implements ResultsStore, Closeable {
     }
 
     @Override
-    public PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel) {
-        return store.getTestResults(experiment, mostRecentN, maxDaysOld, channel);
+    public PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel, List<String> teamcityBuildIds) {
+        return store.getTestResults(experiment, mostRecentN, maxDaysOld, channel, teamcityBuildIds);
     }
 
     @Override

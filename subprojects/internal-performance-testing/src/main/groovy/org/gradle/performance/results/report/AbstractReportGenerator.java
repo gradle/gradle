@@ -22,10 +22,11 @@ import org.gradle.performance.results.FileRenderer;
 import org.gradle.performance.results.NoResultsStore;
 import org.gradle.performance.results.PerformanceDatabase;
 import org.gradle.performance.results.PerformanceExperiment;
+import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
-import org.gradle.performance.results.ScenarioBuildResultData;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
@@ -35,7 +36,11 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
 
@@ -48,8 +53,10 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             resultJsons.add(new File(args[i]));
         }
 
+        Set<String> performanceTestBuildIds = new HashSet<>(Arrays.asList(System.getProperty("org.gradle.performance.dependencyBuildIds", "").split(",")));
+
         try (ResultsStore store = getResultsStore()) {
-            PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJsons);
+            PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJsons, performanceTestBuildIds);
             PerformanceFlakinessDataProvider flakinessDataProvider = getFlakinessDataProvider();
             generateReport(store, flakinessDataProvider, executionDataProvider, outputDirectory, projectName);
             checkResult(flakinessDataProvider, executionDataProvider);
@@ -62,18 +69,21 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         return EmptyPerformanceFlakinessDataProvider.INSTANCE;
     }
 
-    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, List<File> resultJsons) {
-        return new DefaultPerformanceExecutionDataProvider(store, resultJsons);
+    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, List<File> resultJsons, Set<String> performanceTestBuildIds) {
+        return new DefaultPerformanceExecutionDataProvider(store, resultJsons, performanceTestBuildIds);
     }
 
     protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File outputDirectory, String projectName) throws IOException {
         renderIndexPage(flakinessDataProvider, executionDataProvider, new File(outputDirectory, "index.html"));
+        List<String> executedBuildIds = executionDataProvider.getReportScenarios().stream()
+            .flatMap(scenario -> scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getTeamCityBuildId))
+            .collect(Collectors.toList());
 
-        executionDataProvider.getScenarioExecutionData().stream()
-            .map(ScenarioBuildResultData::getPerformanceExperiment)
+        executionDataProvider.getReportScenarios().stream()
+            .map(PerformanceReportScenario::getPerformanceExperiment)
             .distinct()
             .forEach(experiment -> {
-                PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, ResultsStoreHelper.determineChannel());
+                PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, ResultsStoreHelper.determineChannel(), executedBuildIds);
                 renderScenarioPage(projectName, outputDirectory, testResults);
             });
 
@@ -91,7 +101,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     }
 
     protected void checkResult(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider) {
-        boolean onlyOneTestExecuted = executionDataProvider.getScenarioExecutionData().size() == 1;
+        boolean onlyOneTestExecuted = executionDataProvider.getReportScenarios().size() == 1;
         FailureCollector failureCollector = new FailureCollector();
         collectFailures(flakinessDataProvider, executionDataProvider, failureCollector);
         String resultString = onlyOneTestExecuted
@@ -137,7 +147,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     }
 
     private String formatSingleResultString(PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
-        PerformanceExperiment performanceExperiment = executionDataProvider.getScenarioExecutionData().first().getPerformanceExperiment();
+        PerformanceExperiment performanceExperiment = executionDataProvider.getReportScenarios().first().getPerformanceExperiment();
         String messageTemplate;
         if (failureCollector.getBuildFailures() != 0) {
             messageTemplate = ", scenario %s failed.";

@@ -10,12 +10,12 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.6.1")
+    id("com.gradle.enterprise").version("3.6.2")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
     id("gradlebuild.base.allprojects")
     id("gradlebuild.internal.testfiltering")
-    id("com.gradle.enterprise.test-distribution").version("2.1-rc-2") // Sync with `build-logic/build-platform/build.gradle.kts`
-    id("com.gradle.internal.test-selection").version("0.5.3-rc-1")
+    id("com.gradle.enterprise.test-distribution").version("2.1") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.internal.test-selection").version("0.6.0-rc-1")
 }
 
 includeBuild("build-logic-commons")

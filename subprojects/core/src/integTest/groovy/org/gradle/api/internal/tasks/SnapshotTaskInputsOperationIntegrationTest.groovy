@@ -29,10 +29,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Unroll
 
 @Unroll
-class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec {
+class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -135,6 +138,9 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
     def "handles invalid implementation classloader"() {
         given:
         buildScript """
@@ -147,19 +153,32 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+            includeLink()
+        })
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+            includeLink()
+        })
         succeeds('customTask', '--build-cache')
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
-        result.actionClassLoaderHashes.last() == null
-        result.actionClassNames != null
-        result.inputValueHashes != null
+        result.actionClassLoaderHashes == null
+        result.actionClassNames == null
+        result.inputValueHashes == null
         result.inputPropertiesLoadedByUnknownClassLoader == null
-        result.outputPropertyNames != null
+        result.outputPropertyNames == null
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
     def "handles invalid action classloader"() {
         given:
         buildScript """
@@ -174,17 +193,22 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('A')
+            includeLink()
+        })
         succeeds('customTask', '--build-cache')
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
-        result.classLoaderHash != null
-        result.actionClassLoaderHashes.last() == null
-        result.actionClassNames != null
-        result.inputValueHashes != null
+        result.classLoaderHash == null
+        result.actionClassLoaderHashes == null
+        result.actionClassNames == null
+        result.inputValueHashes == null
         result.inputPropertiesLoadedByUnknownClassLoader == null
-        result.outputPropertyNames != null
+        result.outputPropertyNames == null
     }
 
     def "exposes file inputs"() {
@@ -347,6 +371,9 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
     def "handles invalid nested bean classloader"() {
         given:
         buildScript """
@@ -362,17 +389,22 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+            nestedProperty('bean')
+            unknownClassloader('A')
+            includeLink()
+        })
         succeeds('customTask', '--build-cache')
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
-        result.inputPropertiesLoadedByUnknownClassLoader == ["bean"]
-        result.classLoaderHash != null
-        result.actionClassLoaderHashes != null
-        result.actionClassNames != null
-        result.inputValueHashes != null
-        result.outputPropertyNames != null
+        result.inputPropertiesLoadedByUnknownClassLoader == null
+        result.classLoaderHash == null
+        result.actionClassLoaderHashes == null
+        result.actionClassNames == null
+        result.inputValueHashes == null
+        result.outputPropertyNames == null
     }
 
     private static String customTaskCode(String input1, String input2) {

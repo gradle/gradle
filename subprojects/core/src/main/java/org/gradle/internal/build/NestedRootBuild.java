@@ -16,5 +16,5 @@
 
 package org.gradle.internal.build;
 
-public interface NestedRootBuild extends NestedBuildState, RootBuildState {
+public interface NestedRootBuild extends RootBuildState {
 }

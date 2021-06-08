@@ -17,116 +17,66 @@
 package org.gradle.performance.results.report;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.performance.results.CrossBuildPerformanceTestHistory;
-import org.gradle.performance.results.PerformanceTestExecution;
+import org.gradle.performance.results.PerformanceReportScenario;
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
-import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
-import static java.util.Collections.singletonList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_SUCCESS;
-import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_UNKNOWN;
 
 public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutionDataProvider {
     private static final int DEFAULT_RETRY_COUNT = 3;
     @VisibleForTesting
-    static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
-        .thenComparing(comparing(ScenarioBuildResultData::isFlaky).reversed())
-        .thenComparing(ScenarioBuildResultData::isSuccessful)
-        .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
-        .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
-        .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
-        .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
-        .thenComparing(ScenarioBuildResultData::getPerformanceExperiment);
+    static final Comparator<PerformanceReportScenario> SCENARIO_COMPARATOR = comparing(PerformanceReportScenario::isBuildFailed).reversed()
+        .thenComparing(comparing(PerformanceReportScenario::isFlaky).reversed())
+        .thenComparing(PerformanceReportScenario::isSuccessful)
+        .thenComparing(comparing(PerformanceReportScenario::isBuildFailed).reversed())
+        .thenComparing(comparing(PerformanceReportScenario::isAboutToRegress).reversed())
+        .thenComparing(comparing(PerformanceReportScenario::getDifferenceSortKey).reversed())
+        .thenComparing(comparing(PerformanceReportScenario::getDifferencePercentage).reversed())
+        .thenComparing(PerformanceReportScenario::getName);
 
-    public DefaultPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
-        super(resultsStore, resultJsons);
+    public DefaultPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> performanceTestBuildIds) {
+        super(resultsStore, resultJsons, performanceTestBuildIds);
     }
 
     @Override
-    protected TreeSet<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList) {
-        // scenarioList contains duplicate scenarios because of rerun
-        return scenarioList.stream()
-            .collect(groupingBy(ScenarioBuildResultData::getPerformanceExperiment))
+    protected TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceTestExecutionResult> scenarioExecutions) {
+        // scenarioExecutions contains duplicate scenarios because of rerun
+        return scenarioExecutions.stream()
+            .collect(groupingBy(PerformanceTestExecutionResult::getPerformanceExperiment))
             .values()
             .stream()
             .map(this::queryAndSortExecutionData)
             .collect(treeSetCollector(SCENARIO_COMPARATOR));
     }
 
-    private ScenarioBuildResultData queryAndSortExecutionData(List<ScenarioBuildResultData> scenarios) {
-        ScenarioBuildResultData mergedScenario = mergeScenarioWithSameName(scenarios);
-
-        PerformanceTestHistory history = resultsStore.getTestResults(scenarios.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
-        List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
-
-        scenarios.forEach(scenario -> setExecutions(scenario, singletonList(scenario.getTeamCityBuildId()), recentExecutions));
-        setExecutions(mergedScenario,  scenarios.stream().map(ScenarioBuildResultData::getTeamCityBuildId).collect(toList()), recentExecutions);
-
-        mergedScenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
-
-        return mergedScenario;
-    }
-
-    private void setExecutions(ScenarioBuildResultData scenarioBuildResultData, List<String> teamCityBuildIds, List<? extends PerformanceTestExecution> recentExecutions) {
-        List<? extends PerformanceTestExecution> currentBuildExecutions = recentExecutions.stream()
-            .filter(execution -> teamCityBuildIds.contains(execution.getTeamCityBuildId()))
+    private PerformanceReportScenario queryAndSortExecutionData(List<PerformanceTestExecutionResult> teamCityExecutionsOfSameScenario) {
+        List<String> teamcityBuildIds = teamCityExecutionsOfSameScenario
+            .stream()
+            .map(PerformanceTestExecutionResult::getTeamCityBuildId)
+            .filter(StringUtils::isNotBlank)
             .collect(toList());
-        if (currentBuildExecutions.isEmpty()) {
-            scenarioBuildResultData.setRecentExecutions(determineRecentExecutions(removeEmptyExecution(recentExecutions)));
-        } else {
-            scenarioBuildResultData.setCurrentBuildExecutions(removeEmptyExecution(currentBuildExecutions));
-        }
-    }
+        PerformanceTestHistory history = resultsStore.getTestResults(teamCityExecutionsOfSameScenario.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel(), teamcityBuildIds);
 
-    private ScenarioBuildResultData mergeScenarioWithSameName(List<ScenarioBuildResultData> scenariosWithSameName) {
-        if (scenariosWithSameName.size() == 1) {
-            ScenarioBuildResultData result = scenariosWithSameName.get(0);
-            result.setRawData(singletonList(result));
-            return result;
-        } else {
-            ScenarioBuildResultData mergedScenario = new ScenarioBuildResultData();
-            mergedScenario.setScenarioName(scenariosWithSameName.get(0).getScenarioName());
-            mergedScenario.setTestProject(scenariosWithSameName.get(0).getTestProject());
-            mergedScenario.setScenarioClass(scenariosWithSameName.get(0).getScenarioClass());
-            mergedScenario.setRawData(scenariosWithSameName);
-            mergedScenario.setStatus(determineMergedScenarioStatus(scenariosWithSameName));
-            return mergedScenario;
-        }
-    }
-
-    private String determineMergedScenarioStatus(List<ScenarioBuildResultData> scenariosWithSameName) {
-        if (allScenarioHaveSameStatus(scenariosWithSameName)) {
-            return scenariosWithSameName.get(0).getStatus();
-        } else if (scenariosWithSameName.stream().anyMatch(scenario -> STATUS_SUCCESS.equals(scenario.getStatus()))) {
-            // Flaky
-            return STATUS_SUCCESS;
-        } else {
-            return STATUS_UNKNOWN;
-        }
-    }
-
-
-    private boolean allScenarioHaveSameStatus(List<ScenarioBuildResultData> scenariosWithSameName) {
-        return scenariosWithSameName.stream().map(ScenarioBuildResultData::getStatus).collect(toSet()).size() == 1;
-    }
-
-    private List<ScenarioBuildResultData.ExecutionData> determineRecentExecutions(List<ScenarioBuildResultData.ExecutionData> executions) {
-        List<ScenarioBuildResultData.ExecutionData> executionsOfSameCommit = executions.stream().filter(this::sameCommit).collect(toList());
-        if (executionsOfSameCommit.isEmpty()) {
-            return executions;
-        } else {
-            return executionsOfSameCommit;
-        }
+        List<PerformanceReportScenarioHistoryExecution> historyExecutions = removeEmptyExecution(history.getExecutions());
+        return new PerformanceReportScenario(
+            teamCityExecutionsOfSameScenario,
+            historyExecutions,
+            history instanceof CrossBuildPerformanceTestHistory,
+            historyExecutions.stream().map(PerformanceReportScenarioHistoryExecution::getTeamCityBuildId).noneMatch(performanceTestBuildIds::contains)
+        );
     }
 }

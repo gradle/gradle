@@ -45,8 +45,8 @@ public class CompositeResultsStore implements ResultsStore {
     }
 
     @Override
-    public PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel) {
-        return getStoreForTest(experiment).getTestResults(experiment, mostRecentN, maxDaysOld, channel);
+    public PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel, List<String> teamcityBuildIds) {
+        return getStoreForTest(experiment).getTestResults(experiment, mostRecentN, maxDaysOld, channel, teamcityBuildIds);
     }
 
     @Override

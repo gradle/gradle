@@ -31,9 +31,11 @@ import org.gradle.performance.util.Git;
 
 import javax.annotation.Nullable;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
+
+import static org.gradle.performance.results.report.AbstractTablePageGenerator.getTeamCityWebUrlFromBuildId;
 
 public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> implements PerformanceExecutionGraphRenderer {
     private final String projectName;
@@ -152,11 +154,11 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
 
             private void renderDateAndLink(PerformanceTestExecution results) {
                 td();
-                    String date = FormatSupport.timestamp(new Date(results.getStartTime()));
+                    String date = FormatSupport.timestamp(Instant.ofEpochMilli(results.getStartTime()));
                     if (results.getTeamCityBuildId() == null) {
                         text(date);
                     } else {
-                        a().href("https://builds.gradle.org/viewLog.html?buildId=" + results.getTeamCityBuildId()).target("_blank").text(date).end();
+                        a().href(getTeamCityWebUrlFromBuildId(results.getTeamCityBuildId())).target("_blank").text(date).end();
                     }
                 end();
             }

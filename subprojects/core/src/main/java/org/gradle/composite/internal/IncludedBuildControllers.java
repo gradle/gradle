@@ -39,9 +39,9 @@ public interface IncludedBuildControllers {
     void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
 
     /**
-     * Completes the build, blocking until complete.
+     * Completes any pending work, blocking until complete.
      */
-    void finishBuild(Consumer<? super Throwable> collector);
+    void finishPendingWork(Consumer<? super Throwable> collector);
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
 }

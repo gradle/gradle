@@ -63,32 +63,6 @@ public enum CachingDisabledReasonCategory {
     VALIDATION_FAILURE,
 
     /**
-     * The work's implementation is not cacheable.
-     *
-     * Reasons for non-cacheable implementations:
-     * <ul>
-     *     <li>the type is loaded via an unknown classloader,</li>
-     *     <li>a Java lambda was used.</li>
-     * </ul>
-     *
-     * @see <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:how_does_it_work">How fingerprinting works</a>
-     */
-    NON_CACHEABLE_IMPLEMENTATION,
-
-    /**
-     * Additional implementation is not cacheable. Reasons for non-cacheable task action:
-     *
-     * Reasons for non-cacheable implementations:
-     * <ul>
-     *     <li>the type is loaded via an unknown classloader,</li>
-     *     <li>a Java lambda was used.</li>
-     * </ul>
-     *
-     * @see <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:how_does_it_work">How fingerprinting works</a>
-     */
-    NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION,
-
-    /**
      * One of the work's inputs is not cacheable.
      *
      * Reasons for non-cacheable inputs:

@@ -18,7 +18,27 @@ package common
 
 private const val killAllGradleProcessesUnixLike = """
 free -m
-ps aux | egrep 'Gradle(Daemon|Worker)'
+ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
+
+COUNTER=0
+
+while [ ${'$'}COUNTER -lt 30 ]
+do
+    if [ `ps aux | egrep 'Gradle(Daemon|Worker)' | wc -l` -eq "0" ]; then
+       echo "All daemons are killed, exit."
+       free -m
+       exit 0
+    fi
+
+    echo "Attempt ${'$'}COUNTER: failed to kill daemons."
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill
+    sleep 1
+
+    COUNTER=`expr ${'$'}COUNTER + 1`
+done
+
+echo "Waiting timeout for daemons to exit, kill -9 now."
+
 ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
 free -m
 ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
