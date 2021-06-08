@@ -21,6 +21,7 @@ import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.util.internal.TextUtil
 import org.junit.Assert
 
+import static org.gradle.internal.hash.Hashing.hashFile
 import static org.gradle.internal.hash.Hashing.hashStream
 
 class UrlValidator {
@@ -78,13 +79,7 @@ class UrlValidator {
      */
     static void assertBinaryUrlContent(URL url, File file) {
         url.withInputStream {urlInput ->
-            file.withInputStream { fileInput ->
-                assert compareHashes(urlInput, fileInput)
-            }
+            assert hashStream(urlInput) == hashFile(file)
         }
-    }
-
-    private static boolean compareHashes(InputStream a, InputStream b) {
-        return hashStream(a) == hashStream(b)
     }
 }
