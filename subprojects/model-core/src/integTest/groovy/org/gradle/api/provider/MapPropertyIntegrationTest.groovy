@@ -616,7 +616,7 @@ task thing {
         succeeds('verify')
     }
 
-    @Issue('gradle/gradle#11036')
+    @Issue('https://github.com/gradle/gradle/issues/11036')
     def "fails with precise error message when property is a map literal with null values"() {
         given:
         buildFile << """
