@@ -58,7 +58,6 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.time.Instant.now
 import java.time.ZoneId.systemDefault
-import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ofPattern
 import javax.xml.parsers.DocumentBuilderFactory
 
