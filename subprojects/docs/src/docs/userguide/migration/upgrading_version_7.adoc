@@ -45,6 +45,14 @@ When using a Java lambda to implement a task action, Gradle cannot track the imp
 Since it is easy to add such a task action, using task actions implemented by Java lambdas is now deprecated.
 See <<validation_problems.adoc#implementation_unknown,Validation problems>> for more details how to fix the issue.
 
+[[equals_up_to_date_deprecation]]
+==== Relying on equals for up-to-date checks is deprecated
+
+When a task input is annotated with `@Input` and is not a type Gradle understand directly (like `String`), then Gradle uses the serialized form of the input for up-to-date checks and the build cache key.
+Historically, Gradle also loads the serialized value from the last execution and then uses `equals()` to compare it to the current value for up-to-date checks.
+Doing so is error prone, doesn't work with the build cache and has a performance impact, therefore it has been deprecated.
+Instead of using at `@Input` on a type Gradle doesn't understand directly, use `@Nested` and annotate the properties of the type accordingly.
+
 [[changes_7.1]]
 == Upgrading from 7.0 and earlier
 
