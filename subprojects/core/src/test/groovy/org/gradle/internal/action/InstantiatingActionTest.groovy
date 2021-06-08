@@ -18,6 +18,7 @@ package org.gradle.internal.action
 
 import org.gradle.api.Action
 import org.gradle.api.ActionConfiguration
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -26,6 +27,9 @@ import spock.lang.Specification
 import javax.inject.Inject
 
 class InstantiatingActionTest extends Specification {
+    def setup() {
+        assert !OperatingSystem.current().isWindows()
+    }
 
     final shouldNotFail = new InstantiatingAction.ExceptionHandler() {
         @Override
