@@ -56,7 +56,6 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -150,12 +149,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
             final GradleInternal gradle = buildLifecycleController.getGradle();
             BuildOperationExecutor executor = gradle.getServices().get(BuildOperationExecutor.class);
             IncludedBuildControllers controllers = gradle.getServices().get(IncludedBuildControllers.class);
-            WorkerLeaseService workerLeaseService = gradle.getServices().get(WorkerLeaseService.class);
             ExceptionAnalyser exceptionAnalyser = gradle.getServices().get(ExceptionAnalyser.class);
             BuildStateRegistry buildStateRegistry = gradle.getServices().get(BuildStateRegistry.class);
             BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
             BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(controllers, buildStateRegistry, exceptionAnalyser, buildLifecycleController);
-            final DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workerLeaseService, buildTreeWorkExecutor, buildTreeFinishExecutor, exceptionAnalyser);
+            final DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor, exceptionAnalyser);
             return executor.call(new CallableBuildOperation<T>() {
                 @Override
                 public T call(BuildOperationContext context) {

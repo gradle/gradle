@@ -19,7 +19,6 @@ package org.gradle.internal.buildtree
 import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -28,11 +27,10 @@ import java.util.function.Function
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def gradle = Mock(GradleInternal)
     def buildController = Mock(BuildLifecycleController)
-    def workerLeaseService = new TestWorkerLeaseService()
     def workExecutor = Mock(BuildTreeWorkExecutor)
     def finishExecutor = Mock(BuildTreeFinishExecutor)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, workerLeaseService, workExecutor, finishExecutor, exceptionAnalyzer)
+    def controller = new DefaultBuildTreeLifecycleController(buildController, workExecutor, finishExecutor, exceptionAnalyzer)
     def reportableFailure = new RuntimeException()
 
     def setup() {
