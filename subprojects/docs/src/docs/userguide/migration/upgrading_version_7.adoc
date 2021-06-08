@@ -48,8 +48,8 @@ See <<validation_problems.adoc#implementation_unknown,Validation problems>> for 
 [[equals_up_to_date_deprecation]]
 ==== Relying on equals for up-to-date checks is deprecated
 
-When a task input is annotated with `@Input` and is not a type Gradle understand directly (like `String`), then Gradle compares uses the serialized form of the input for up-to-date checks and the build cache key.
-Historically, Gradle also loads the serialized value from the last execution and then uses `equals` to compare it to the current value for up-to-date checks.
+When a task input is annotated with `@Input` and is not a type Gradle understand directly (like `String`), then Gradle uses the serialized form of the input for up-to-date checks and the build cache key.
+Historically, Gradle also loads the serialized value from the last execution and then uses `equals()` to compare it to the current value for up-to-date checks.
 Doing so is error prone, doesn't work with the build cache and has a performance impact, therefore it has been deprecated.
 Instead of using at `@Input` on a type Gradle doesn't understand directly, use `@Nested` and annotate the properties of the type accordingly.
 
