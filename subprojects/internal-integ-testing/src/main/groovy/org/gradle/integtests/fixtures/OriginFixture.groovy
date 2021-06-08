@@ -34,6 +34,8 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
+import java.time.Duration
+
 class OriginFixture extends UserInitScriptExecuterFixture {
 
     Map<String, OriginMetadata> origins = [:]
@@ -104,7 +106,7 @@ class OriginFixture extends UserInitScriptExecuterFixture {
         rawOrigins.each {
             origins[it.key] = it.value == null ? null : new OriginMetadata(
                 it.value.buildInvocationId as String,
-                it.value.executionTime as long
+                Duration.ofMillis(it.value.executionTime as long)
             )
         }
     }

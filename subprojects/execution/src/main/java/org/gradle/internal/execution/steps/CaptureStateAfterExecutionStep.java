@@ -72,7 +72,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
         // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
         // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
         // which is currently the _only_ thing this value is used for.
-        long originExecutionTime = result.getDuration().toMillis() + snapshotOutputDuration;
+        Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));
 
         OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
 
@@ -131,11 +131,13 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
      */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
-            Details INSTANCE = new Details() {};
+            Details INSTANCE = new Details() {
+            };
         }
 
         interface Result {
-            Result INSTANCE = new Result() {};
+            Result INSTANCE = new Result() {
+            };
         }
     }
 }

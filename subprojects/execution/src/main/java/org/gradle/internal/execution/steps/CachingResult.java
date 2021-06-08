@@ -19,14 +19,7 @@ package org.gradle.internal.execution.steps;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.caching.CachingState;
 
-import java.time.Duration;
-
 public interface CachingResult extends UpToDateResult, ExecutionEngine.Result {
-
-    @Override
-    default Duration getDuration() {
-        return Duration.ZERO;
-    }
 
     CachingState getCachingState();
 }

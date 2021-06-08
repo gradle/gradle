@@ -91,7 +91,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
                     @Override
                     public Duration getDuration() {
-                        return Duration.ZERO;
+                        return afterPreviousExecutionState.getOriginMetadata().getExecutionTime();
                     }
                 };
             } else {

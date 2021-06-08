@@ -108,7 +108,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
 
                         @Override
                         public Duration getDuration() {
-                            return Duration.ZERO;
+                            return originMetadata.getExecutionTime();
                         }
 
                         @Override
