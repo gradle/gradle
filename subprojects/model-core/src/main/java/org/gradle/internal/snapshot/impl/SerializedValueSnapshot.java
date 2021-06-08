@@ -74,9 +74,9 @@ public class SerializedValueSnapshot implements ValueSnapshot {
             // Deserialize the old value and use the equals() implementation. This will be removed at some point
             Object oldValue = populateClass(value.getClass());
             if (oldValue.equals(value)) {
-                DeprecationLogger.deprecateIndirectUsage("Using objects as inputs which have a different serialized form but are equals")
-                    .withContext("Type '" + value.getClass().getName() + "' has a custom equals implementation.")
-                    .withAdvice("Use @Nested instead.")
+                DeprecationLogger.deprecateIndirectUsage("Using objects as inputs that have a different serialized form but are equal")
+                    .withContext("Type '" + value.getClass().getName() + "' has a custom implementation for equals().")
+                    .withAdvice("Declare the property as @Nested instead to expose its properties as inputs.")
                     .willBeRemovedInGradle8()
                     .withUserManual("upgrading_7", "equals_up_to_date_deprecation")
                     .nagUser();
