@@ -50,7 +50,9 @@ class PerformanceReporter {
         String branchName,
         String commitId,
         FileCollection classpath,
-        String projectName
+        String projectName,
+        String dependencyBuildIds,
+        boolean debugReportGeneration
     ) {
         fileOperations.delete {
            it.delete(reportDir)
@@ -63,8 +65,10 @@ class PerformanceReporter {
                 spec.args(reportDir.path, projectName)
                 spec.args(resultJsons*.path)
                 spec.systemProperties(databaseParameters)
+                spec.debug = debugReportGeneration
                 spec.systemProperty("org.gradle.performance.execution.channel", channel)
                 spec.systemProperty("org.gradle.performance.execution.branch", branchName)
+                spec.systemProperty("org.gradle.performance.dependencyBuildIds", dependencyBuildIds)
 
                 // For org.gradle.performance.util.Git
                 spec.systemProperty("gradleBuildBranch", branchName)

@@ -18,8 +18,8 @@ package org.gradle.performance.results.report;
 
 import org.gradle.performance.results.CrossVersionResultsStore;
 import org.gradle.performance.results.PerformanceExperiment;
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.PerformanceScenario;
-import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -60,8 +60,8 @@ public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlaki
     }
 
     @Override
-    public ScenarioRegressionResult getScenarioRegressionResult(ScenarioBuildResultData scenario) {
-        return getScenarioRegressionResult(scenario.getPerformanceExperiment(), scenario.getDifferencePercentage());
+    public ScenarioRegressionResult getScenarioRegressionResult(PerformanceExperiment experiment, PerformanceReportScenarioHistoryExecution execution) {
+        return getScenarioRegressionResult(experiment, execution.getDifferencePercentage());
     }
 
     private ScenarioRegressionResult getScenarioRegressionResult(PerformanceExperiment experiment, double regressionPercentage) {
