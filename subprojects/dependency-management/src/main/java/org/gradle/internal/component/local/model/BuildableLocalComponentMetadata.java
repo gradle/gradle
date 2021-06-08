@@ -47,7 +47,7 @@ public interface BuildableLocalComponentMetadata {
     /**
      * Adds a variant to this component, extending from the given configuration. Every configuration should include at least one variant.
      */
-    void addVariant(String configuration, String name, VariantResolveMetadata.Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
+    void addVariant(String configuration, String name, VariantResolveMetadata.Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, Collection<? extends PublishArtifact> artifacts);
 
     /**
      * Adds a configuration to this component.
