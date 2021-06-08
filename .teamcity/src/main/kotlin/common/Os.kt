@@ -22,7 +22,7 @@ ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
 
 COUNTER=0
 
-while [ ${'$'}COUNTER -lt 10 ]
+while [ ${'$'}COUNTER -lt 30 ]
 do
     if [ `ps aux | egrep 'Gradle(Daemon|Worker)' | wc -l` -eq "0" ]; then
        echo "All daemons are killed, exit."
