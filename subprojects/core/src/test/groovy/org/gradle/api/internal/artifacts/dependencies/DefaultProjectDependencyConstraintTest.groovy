@@ -47,6 +47,23 @@ class DefaultProjectDependencyConstraintTest extends Specification {
         constraintCopy.force == constraint.force
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17179")
+    def "modifying mutable properties on the copy does not affect the original"() {
+        setup:
+        DefaultProjectDependencyConstraint constraint = createProjectDependencyConstraint()
+        constraint.force = false
+        constraint.reason = 'reason1'
+        DefaultProjectDependencyConstraint constraintCopy = constraint.copy()
+
+        when:
+        constraintCopy.force = true
+        constraintCopy.reason = 'reason2'
+
+        then:
+        constraint.force == false
+        constraint.reason == 'reason1'
+    }
+
     private DefaultProjectDependencyConstraint createProjectDependencyConstraint() {
         def project = Mock(ProjectInternal) {
             getGroup() >> "org.example"
