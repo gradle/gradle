@@ -33,6 +33,8 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.file.Deleter
 
+import java.time.Duration
+
 class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnasphotterFixture {
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
@@ -240,8 +242,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
         1 * delegateResult.originMetadata >> originMetadata
-        1 * originMetadata.executionTime >> 123L
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFilesProduceByWork, 123L) >> storeCommand
+        1 * originMetadata.executionTime >> Duration.ofMillis(123L)
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFilesProduceByWork, Duration.ofMillis(123L)) >> storeCommand
         1 * buildCacheController.store(storeCommand) >> { storeResult() }
     }
 }

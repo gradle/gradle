@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Properties;
 
 public class OriginMetadataFactory {
@@ -60,14 +61,14 @@ public class OriginMetadataFactory {
         this.hostnameLookup = hostnameLookup;
     }
 
-    public OriginWriter createWriter(CacheableEntity entry, long elapsedTime) {
+    public OriginWriter createWriter(CacheableEntity entry, Duration elapsedTime) {
         return outputStream -> {
             Properties properties = new Properties();
             properties.setProperty(BUILD_INVOCATION_ID_KEY, currentBuildInvocationId);
             properties.setProperty(TYPE_KEY, entry.getType().getCanonicalName());
             properties.setProperty(IDENTITY_KEY, entry.getIdentity());
             properties.setProperty(CREATION_TIME_KEY, Long.toString(System.currentTimeMillis()));
-            properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime));
+            properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime.toMillis()));
             properties.setProperty(ROOT_PATH_KEY, rootDir.getAbsolutePath());
             properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
             properties.setProperty(HOST_NAME_KEY, hostnameLookup.getHostname());
@@ -92,7 +93,7 @@ public class OriginMetadataFactory {
                 throw new IllegalStateException("Cached result format error, corrupted origin metadata");
             }
 
-            long originalExecutionTime = Long.parseLong(executionTimeAsString);
+            Duration originalExecutionTime = Duration.ofMillis(Long.parseLong(executionTimeAsString));
             return new OriginMetadata(originBuildInvocationId, originalExecutionTime);
         };
     }

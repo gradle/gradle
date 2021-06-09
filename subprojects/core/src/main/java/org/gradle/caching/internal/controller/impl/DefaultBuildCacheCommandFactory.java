@@ -38,6 +38,7 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Duration;
 import java.util.Map;
 
 public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory {
@@ -60,7 +61,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
     }
 
     @Override
-    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, long executionTime) {
+    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, Duration executionTime) {
         return new StoreCommand(cacheKey, entity, snapshots, executionTime);
     }
 
@@ -84,7 +85,8 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
             ImmutableList.Builder<String> roots = ImmutableList.builder();
             entity.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
             // TODO: Actually unpack the roots inside of the action
-            fileSystemAccess.write(roots.build(), () -> {});
+            fileSystemAccess.write(roots.build(), () -> {
+            });
             BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
             // TODO: Update the snapshots from the action
             ImmutableSortedMap<String, FileSystemSnapshot> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
@@ -137,9 +139,9 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
         private final BuildCacheKey cacheKey;
         private final CacheableEntity entity;
         private final Map<String, ? extends FileSystemSnapshot> snapshots;
-        private final long executionTime;
+        private final Duration executionTime;
 
-        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, long executionTime) {
+        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, Duration executionTime) {
             this.cacheKey = cacheKey;
             this.entity = entity;
             this.snapshots = snapshots;
