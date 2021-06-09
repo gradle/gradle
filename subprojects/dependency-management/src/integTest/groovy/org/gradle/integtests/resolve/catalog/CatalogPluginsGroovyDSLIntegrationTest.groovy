@@ -60,6 +60,32 @@ dependencyResolutionManagement {
         alias << ['greeter', 'some.greeter', 'some-greeter']
     }
 
+    def "can apply a plugin declared in a catalog in a TOML file"() {
+        String taskName = 'greet'
+        String message = 'Hello from plugin!'
+        String pluginId = 'com.acme.greeter'
+        String pluginVersion = '1.5'
+        def plugin = new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask(taskName, message, pluginId)
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+
+        file("gradle/libs.versions.toml") << """
+            [plugins]
+            ${alias.replace('.', '-')} = "$pluginId:${pluginVersion}"
+        """
+        withPluginAlias "libs.plugins.${alias.replace('-', '.')}"
+
+        when:
+        plugin.allowAll()
+        succeeds taskName
+
+        then:
+        outputContains message
+
+        where:
+        alias << ['greeter', 'some.greeter', 'some-greeter']
+    }
+
     def "can override version of a plugin declared in a catalog"() {
         String taskName = 'greet'
         String message = 'Hello from plugin!'

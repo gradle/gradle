@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.catalog.DefaultVersionCatalog;
 import org.gradle.api.internal.catalog.DependencyModel;
+import org.gradle.api.internal.catalog.PluginModel;
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 
 import java.io.IOException;
@@ -63,6 +64,7 @@ class TomlWriter {
         writeVersions(model);
         writeLibraries(model);
         writeBundles(model);
+        writePlugins(model);
     }
 
     private void writeVersions(DefaultVersionCatalog model) {
@@ -120,6 +122,33 @@ class TomlWriter {
                 .map(TomlWriter::normalizeForToml)
                 .map(TomlWriter::quoted)
                 .collect(Collectors.joining(", ")) + "]");
+        }
+        writeLn();
+    }
+
+    private void writePlugins(DefaultVersionCatalog model) {
+        List<String> aliases = model.getPluginAliases();
+        if (aliases.isEmpty()) {
+            return;
+        }
+        writeTableHeader("plugins");
+        for (String alias : aliases) {
+            PluginModel data = model.getPlugin(alias);
+            String id = data.getId();
+            String versionRef = data.getVersionRef();
+            ImmutableVersionConstraint version = data.getVersion();
+            StringBuilder sb = new StringBuilder();
+            sb.append(normalizeForToml(alias))
+                .append(" = {")
+                .append(keyValuePair("id", id))
+                .append(", ");
+            if (versionRef != null) {
+                sb.append(keyValuePair("version.ref", normalizeForToml(versionRef)));
+            } else {
+                sb.append("version = ").append(versionString(version));
+            }
+            sb.append(" }");
+            writeLn(sb.toString());
         }
         writeLn();
     }
