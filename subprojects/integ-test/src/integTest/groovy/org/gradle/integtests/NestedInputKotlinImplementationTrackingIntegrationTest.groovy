@@ -137,6 +137,62 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         project2.file('build/tmp/myTask/output.txt').text == "hello"
     }
 
+    def "task action defined in Kotlin 1.5 can be tracked when using language versino 1.4"() {
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                kotlin("jvm") version("1.5.10")
+                `java-gradle-plugin`
+            }
+
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            repositories {
+                mavenCentral()
+            }
+
+            gradlePlugin {
+                plugins {
+                    create("myPlugin") {
+                        id = "my-plugin"
+                        implementationClass = "MyPlugin"
+                    }
+                }
+            }
+
+            tasks.withType<KotlinCompile>().configureEach {
+                kotlinOptions {
+                    apiVersion = "1.4"
+                    languageVersion = "1.4"
+                }
+            }
+        """
+        file("buildSrc/src/main/kotlin/MyPlugin.kt") << """
+            import org.gradle.api.Action
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class MyPlugin : Plugin<Project> {
+                override fun apply(target: Project) {
+                    target.tasks.register("myTask") { task ->
+                        task.outputs.file("build/output.txt")
+                        task.doLast(Action { println("Hello") })
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                `my-plugin`
+            }
+        """
+
+        when:
+        run "myTask"
+        then:
+        executedAndNotSkipped(":myTask")
+    }
+
     private void setupTaskWithNestedAction(String actionType, String actionInvocation, TestFile projectDir = temporaryFolder.testDirectory) {
         projectDir.with {
             file('buildSrc/settings.gradle.kts') << ""
