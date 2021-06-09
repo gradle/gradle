@@ -17,6 +17,7 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
 import javax.annotation.Nullable;
@@ -182,6 +183,7 @@ public class HttpBuildCache extends AbstractBuildCache {
      * @param useExpectContinue whether HTTP expect-continue should be used for store requests
      * @since 7.2
      */
+    @Incubating
     public void setUseExpectContinue(boolean useExpectContinue) {
         this.useExpectContinue = useExpectContinue;
     }
@@ -192,6 +194,7 @@ public class HttpBuildCache extends AbstractBuildCache {
      * @see #setUseExpectContinue(boolean)
      * @since 7.2
      */
+    @Incubating
     public boolean isUseExpectContinue() {
         return useExpectContinue;
     }
