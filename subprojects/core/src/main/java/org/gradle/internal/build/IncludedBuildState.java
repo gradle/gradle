@@ -38,7 +38,7 @@ public interface IncludedBuildState extends NestedBuildState, CompositeBuildPart
 
     GradleInternal getConfiguredBuild();
     void addTasks(Iterable<String> tasks);
-    void execute(Iterable<String> tasks, Object listener);
+    void execute(Object listener);
 
     <T> T withState(Transformer<T, ? super GradleInternal> action);
 }

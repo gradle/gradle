@@ -173,7 +173,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
             BuildStateRegistry buildStateRegistry = gradle.getServices().get(BuildStateRegistry.class);
             BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
             BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(controllers, buildStateRegistry, exceptionAnalyser, buildLifecycleController);
-            final DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor, exceptionAnalyser);
+            final DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, controllers, buildTreeWorkExecutor, buildTreeFinishExecutor, exceptionAnalyser);
             return executor.call(new CallableBuildOperation<T>() {
                 @Override
                 public T call(BuildOperationContext context) {

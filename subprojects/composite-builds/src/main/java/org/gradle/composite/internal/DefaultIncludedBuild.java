@@ -195,13 +195,12 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public synchronized void addTasks(Iterable<String> taskPaths) {
-        scheduleTasks(taskPaths);
+        buildLifecycleController.scheduleTasks(taskPaths);
     }
 
     @Override
-    public synchronized void execute(final Iterable<String> tasks, final Object listener) {
+    public synchronized void execute(final Object listener) {
         buildLifecycleController.addListener(listener);
-        scheduleTasks(tasks);
         WorkerLeaseService workerLeaseService = gradleService(WorkerLeaseService.class);
         workerLeaseService.withSharedLease(
             parentLease,
@@ -212,10 +211,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public void stop() {
         buildLifecycleController.stop();
-    }
-
-    protected void scheduleTasks(Iterable<String> tasks) {
-        buildLifecycleController.scheduleTasks(tasks);
     }
 
     protected GradleInternal getGradle() {

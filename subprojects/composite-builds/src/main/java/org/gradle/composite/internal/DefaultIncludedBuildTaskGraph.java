@@ -49,7 +49,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     }
 
     @Override
-    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
+    public void runScheduledTasks(Consumer<? super Throwable> taskFailures) {
         // Start task execution if necessary: this is required for building plugin artifacts,
         // since these are built on-demand prior to the regular start signal for included builds.
         includedBuilds.populateTaskGraphs();

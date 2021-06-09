@@ -76,7 +76,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         BuildStateRegistry buildStateRegistry = buildScopeServices.get(BuildStateRegistry.class);
         BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController), buildOperationExecutor);
         BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(controllers, buildStateRegistry, exceptionAnalyser, buildLifecycleController);
-        this.buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workExecutor, finishExecutor, exceptionAnalyser);
+        this.buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, controllers, workExecutor, finishExecutor, exceptionAnalyser);
     }
 
     @Override

@@ -17,6 +17,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
 
@@ -29,15 +30,18 @@ import java.util.function.Function;
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
     private boolean completed;
     private final BuildLifecycleController buildLifecycleController;
+    private final IncludedBuildControllers includedBuildControllers;
     private final BuildTreeWorkExecutor workExecutor;
     private final BuildTreeFinishExecutor finishExecutor;
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
+                                               IncludedBuildControllers includedBuildControllers,
                                                BuildTreeWorkExecutor workExecutor,
                                                BuildTreeFinishExecutor finishExecutor,
                                                ExceptionAnalyser exceptionAnalyser) {
         this.buildLifecycleController = buildLifecycleController;
+        this.includedBuildControllers = includedBuildControllers;
         this.workExecutor = workExecutor;
         this.finishExecutor = finishExecutor;
         this.exceptionAnalyser = exceptionAnalyser;
@@ -55,6 +59,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     public void scheduleAndRunTasks() {
         doBuild((buildController, failures) -> {
             buildController.scheduleRequestedTasks();
+            includedBuildControllers.populateTaskGraphs();
             workExecutor.execute(failures);
             return null;
         });
@@ -65,6 +70,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return doBuild((buildController, failureCollector) -> {
             if (runTasks) {
                 buildController.scheduleRequestedTasks();
+                includedBuildControllers.populateTaskGraphs();
                 List<Throwable> failures = new ArrayList<>();
                 workExecutor.execute(throwable -> {
                     failures.add(throwable);
