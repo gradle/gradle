@@ -62,7 +62,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
     def "build does not fail if connection drops during store"() {
         httpBuildCacheServer.dropConnectionForPutAfterBytes(1024)
         settingsFile << withHttpBuildCacheServer()
-        String errorPattern = /(Broken pipe|Connection reset|Software caused connection abort: socket write error|An established connection was aborted by the software in your host machine|127.0.0.1:.+ failed to respond)/
+        String errorPattern = /(Broken pipe|Connection reset|Software caused connection abort: socket write error|An established connection was aborted by the software in your host machine|127.0.0.1:.+ failed to respond|Connect to 127\.0\.0\.1:\d+ \[\/127\.0\.0\.1\] failed: Connection refused \(.+?\))/
 
         when:
         executer.withStackTraceChecksDisabled()
