@@ -34,6 +34,7 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -42,7 +43,7 @@ import org.gradle.util.Path;
 import java.io.File;
 import java.util.function.Consumer;
 
-public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState, IncludedBuildInternal, Stoppable {
+public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState, Stoppable {
     private final BuildIdentifier buildIdentifier;
     private final Path identityPath;
     private final BuildDefinition buildDefinition;
@@ -52,6 +53,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final ProjectStateRegistry projectStateRegistry;
 
     private final BuildLifecycleController buildLifecycleController;
+    private final IncludedBuildImpl model;
 
     public DefaultIncludedBuild(
         BuildIdentifier buildIdentifier,
@@ -62,7 +64,8 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildTreeState buildTree,
         WorkerLeaseRegistry.WorkerLease parentLease,
         BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-        ProjectStateRegistry projectStateRegistry
+        ProjectStateRegistry projectStateRegistry,
+        Instantiator instantiator
     ) {
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
@@ -74,6 +77,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildScopeServices);
+        this.model = instantiator.newInstance(IncludedBuildImpl.class, this);
     }
 
     @Override
@@ -108,7 +112,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public IncludedBuildInternal getModel() {
-        return this;
+        return model;
     }
 
     @Override
@@ -116,25 +120,13 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         return buildDefinition.isPluginBuild();
     }
 
-    @Override
-    public File getProjectDir() {
+    File getProjectDir() {
         return buildDefinition.getBuildRootDir();
-    }
-
-    @Override
-    public TaskReference task(String path) {
-        Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
-        return new IncludedBuildTaskReference(this, path);
     }
 
     @Override
     public String getName() {
         return identityPath.getName();
-    }
-
-    @Override
-    public BuildState getTarget() {
-        return this;
     }
 
     @Override
@@ -237,5 +229,34 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     private <T> T gradleService(Class<T> serviceType) {
         return getGradle().getServices().get(serviceType);
+    }
+
+    public static class IncludedBuildImpl implements IncludedBuildInternal {
+        private final DefaultIncludedBuild buildState;
+
+        public IncludedBuildImpl(DefaultIncludedBuild buildState) {
+            this.buildState = buildState;
+        }
+
+        @Override
+        public String getName() {
+            return buildState.getName();
+        }
+
+        @Override
+        public File getProjectDir() {
+            return buildState.getProjectDir();
+        }
+
+        @Override
+        public TaskReference task(String path) {
+            Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
+            return new IncludedBuildTaskReference(buildState, path);
+        }
+
+        @Override
+        public BuildState getTarget() {
+            return buildState;
+        }
     }
 }
