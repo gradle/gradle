@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
@@ -36,8 +35,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.StreamSupport.stream;
 
 /**
  * Provides information related to the Groovy runtime(s) used in a project. Added by the
@@ -73,12 +74,10 @@ public class GroovyRuntime {
         "groovy-nio", "groovy-sql", "groovy-test",
         "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc");
 
-    private final Project project;
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final ProjectInternal project;
 
-    public GroovyRuntime(Project project) {
+    public GroovyRuntime(ProjectInternal project) {
         this.project = project;
-        this.jvmEcosystemUtilities = ((ProjectInternal) project).getServices().get(JvmEcosystemUtilities.class);
     }
 
     /**
@@ -95,6 +94,7 @@ public class GroovyRuntime {
         // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
+
             @Override
             public String getDisplayName() {
                 return "Groovy runtime classpath";
@@ -125,15 +125,17 @@ public class GroovyRuntime {
                 }
 
                 VersionNumber groovyVersion = groovyJar.getVersion();
+
                 // Groovy 3 does not have groovy-all yet we may have the required pieces on classpath via localGroovy()
                 if (groovyVersion.getMajor() == 3) {
                     return inferGroovy3Classpath(groovyVersion);
                 }
 
                 String notation = groovyJar.getDependencyNotation();
+
                 List<Dependency> dependencies = new ArrayList<>();
-                // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
-                dependencies.add(project.getDependencies().create(notation));
+                addDependencyTo(dependencies, notation);
+
                 if (groovyVersion.compareTo(GROOVY_VERSION_WITH_SEPARATE_ANT) >= 0) {
                     // add groovy-ant to bring in Groovydoc for Groovy 2.0+
                     addGroovyDependency(notation, dependencies, "groovy-ant");
@@ -146,16 +148,18 @@ public class GroovyRuntime {
             }
 
             private void addGroovyDependency(String groovyDependencyNotion, List<Dependency> dependencies, String otherDependency) {
-                dependencies.add(project.getDependencies().create(groovyDependencyNotion.replace(":groovy:", ":" + otherDependency + ":")));
+                String notation = groovyDependencyNotion.replace(":groovy:", ":" + otherDependency + ":");
+                addDependencyTo(dependencies, notation);
+            }
+
+            private void addDependencyTo(List<Dependency> dependencies, String notation) {
+                // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
+                dependencies.add(project.getDependencies().create(notation));
             }
 
             private FileCollection inferGroovy3Classpath(VersionNumber groovyVersion) {
-                Set<String> groovyJarNames = GROOVY3_LIBS.stream()
-                    .map(libName -> libName + "-" + groovyVersion + ".jar")
-                    .collect(Collectors.toSet());
-                List<File> groovyClasspath = StreamSupport.stream(classpath.spliterator(), false)
-                    .filter(f -> groovyJarNames.contains(f.getName()))
-                    .collect(Collectors.toList());
+                Set<String> groovyJarNames = groovyJarNamesFor(groovyVersion);
+                List<File> groovyClasspath = collectJarsFromClasspath(classpath, groovyJarNames);
                 if (groovyClasspath.size() == GROOVY3_LIBS.size()) {
                     return project.getLayout().files(groovyClasspath);
                 }
@@ -165,6 +169,12 @@ public class GroovyRuntime {
                         .map(libName -> project.getDependencies().create("org.codehaus.groovy:" + libName + ":" + groovyVersion))
                         .toArray(Dependency[]::new)
                 );
+            }
+
+            private Configuration detachedRuntimeClasspath(Dependency... dependencies) {
+                Configuration classpath = project.getConfigurations().detachedConfiguration(dependencies);
+                jvmEcosystemUtilities().configureAsRuntimeClasspath(classpath);
+                return classpath;
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
@@ -177,10 +187,16 @@ public class GroovyRuntime {
         };
     }
 
-    private Configuration detachedRuntimeClasspath(Dependency... dependencies) {
-        Configuration classpath = project.getConfigurations().detachedConfiguration(dependencies);
-        jvmEcosystemUtilities.configureAsRuntimeClasspath(classpath);
-        return classpath;
+    private static List<File> collectJarsFromClasspath(Iterable<File> classpath, Set<String> jarNames) {
+        return stream(classpath.spliterator(), false)
+            .filter(file -> jarNames.contains(file.getName()))
+            .collect(toList());
+    }
+
+    private static Set<String> groovyJarNamesFor(VersionNumber groovyVersion) {
+        return GROOVY3_LIBS.stream()
+            .map(libName -> libName + "-" + groovyVersion + ".jar")
+            .collect(toSet());
     }
 
     @Nullable
@@ -192,5 +208,9 @@ public class GroovyRuntime {
             }
         }
         return null;
+    }
+
+    private JvmEcosystemUtilities jvmEcosystemUtilities() {
+        return project.getServices().get(JvmEcosystemUtilities.class);
     }
 }
