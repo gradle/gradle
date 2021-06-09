@@ -86,11 +86,16 @@ public class LockStateAccess {
         }
     }
 
-    public FileLock tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {
+    public FileLockOutcome tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {
         try {
-            return lockFileAccess.getChannel().tryLock(REGION_START, stateRegionSize, shared);
+            FileLock fileLock = lockFileAccess.getChannel().tryLock(REGION_START, stateRegionSize, shared);
+            if (fileLock == null) {
+                return FileLockOutcome.LOCKED_BY_ANOTHER_PROCESS;
+            } else {
+                return FileLockOutcome.acquired(fileLock);
+            }
         } catch (OverlappingFileLockException e) {
-            return null;
+            return FileLockOutcome.LOCKED_BY_THIS_PROCESS;
         }
     }
 

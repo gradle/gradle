@@ -24,7 +24,9 @@ import org.gradle.api.internal.ClassPathProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
@@ -54,7 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -68,13 +69,12 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class WorkerProcessClassPathProvider implements ClassPathProvider, Closeable {
+public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
     private final CacheRepository cacheRepository;
     private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
     private ClassPath workerClassPath;
-    private PersistentCache workerClassPathCache;
 
     public static final String[] RUNTIME_MODULES = new String[] {
             "gradle-core-api",
@@ -162,11 +162,16 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
                 if (workerClassPath == null) {
-                    workerClassPathCache = cacheRepository
-                            .cache("workerMain")
-                            .withInitializer(new CacheInitializer())
-                            .open();
-                    workerClassPath = DefaultClassPath.of(jarFile(workerClassPathCache));
+                    PersistentCache workerClassPathCache = cacheRepository
+                        .cache("workerMain")
+                        .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
+                        .withInitializer(new CacheInitializer())
+                        .open();
+                    try {
+                        workerClassPath = DefaultClassPath.of(jarFile(workerClassPathCache));
+                    } finally {
+                        workerClassPathCache.close();
+                    }
                 }
                 LOGGER.debug("Using worker process classpath: {}", workerClassPath);
                 return workerClassPath;
@@ -220,22 +225,6 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         }
         classpath = optimizedForLoading.plus(optimizedFiles).plus(remainder);
         return classpath;
-    }
-
-    @Override
-    public void close() {
-        // This isn't quite right. Should close the worker classpath cache once we're finished with the worker processes. This may be before the end of this build
-        // or they may be used across multiple builds
-        synchronized (lock) {
-            try {
-                if (workerClassPathCache != null) {
-                    workerClassPathCache.close();
-                }
-            } finally {
-                workerClassPathCache = null;
-                workerClassPath = null;
-            }
-        }
     }
 
     private static File jarFile(PersistentCache cache) {
