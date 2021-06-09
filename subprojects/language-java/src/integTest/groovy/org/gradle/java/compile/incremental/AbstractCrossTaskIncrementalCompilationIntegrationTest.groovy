@@ -20,7 +20,6 @@ package org.gradle.java.compile.incremental
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
@@ -86,13 +85,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         out
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "detects changed class in an upstream project"() {
         source api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -105,13 +97,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("ImplA")
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "detects change to transitive superclass in an upstream project"() {
         settingsFile << """
             include 'app'
@@ -131,13 +116,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         app.recompiledClasses("C", "D")
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "detects change to transitive dependency in an upstream project"() {
         settingsFile << """
             include 'app'
@@ -157,13 +135,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         app.recompiledClasses("C")
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "distinguishes between api and implementation changes"() {
         settingsFile << """
             include 'app'
@@ -183,13 +154,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         app.recompiledClasses("D")
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "detects deletions of transitive dependency in an upstream project"() {
         settingsFile << """
             include 'app'
@@ -214,13 +178,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         app.recompiledClasses("C")
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "deletion of jar without dependents does not recompile any classes"() {
         source api: ["class A {}"], impl: ["class SomeImpl {}"]
         impl.snapshot { run language.compileTaskName }
@@ -234,13 +191,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "deletion of jar with dependents causes compilation failure"() {
         source api: ["class A {}"], impl: ["class ImplA extends A {}"]
         impl.snapshot { run language.compileTaskName }
@@ -253,13 +203,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "detects change to dependency and ensures class dependency info refreshed"() {
         source api: ["class A {}", "class B extends A {}"]
         source impl: ["class SomeImpl {}", "class ImplB extends B {}", "class ImplB2 extends ImplB {}"]
@@ -281,13 +224,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled() //because after earlier change to B, class A is no longer a dependency
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "detects deleted class in an upstream project and fails compilation"() {
         def b = source(api: ["class A {}", "class B {}"])
         source impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
@@ -301,13 +237,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "recompilation not necessary when upstream does not change any of the actual dependencies"() {
         source api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}"]
         impl.snapshot { run language.compileTaskName }
@@ -335,14 +264,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses('Y')
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
-
     def "change in an upstream transitive class with non-private constant does not cause full rebuild"() {
         source api: ["class A { final static int x = 1; }", "class B extends A {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -355,13 +276,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses('ImplB')
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "private constant in upstream project does not trigger full rebuild"() {
         source api: ["class A {}", "class B { private final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -374,13 +288,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "addition of unused class in upstream project does not rebuild"() {
         source api: ["class A {}", "class B { private final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -393,13 +300,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "removal of unused class in upstream project does not rebuild"() {
         source api: ["class A {}", "class B { private final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         def c = source api: ["class C { }"]
@@ -413,13 +313,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "doesn't recompile if external dependency has ABI incompatible change but not on class we use"() {
         given:
         buildFile << """
@@ -443,13 +336,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "detects changed classes when upstream project was built in isolation"() {
         source api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -463,13 +349,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("ImplA")
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "detects class changes in subsequent runs ensuring the jar snapshots are refreshed"() {
         source api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -504,13 +383,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "handles multiple compile tasks in the same project"() {
         settingsFile << "\n include 'other'" //add an extra project
         source impl: ["class ImplA extends A {}"], api: ["class A {}"], other: ["class Other {}"]
@@ -703,13 +575,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "change to class referenced by an annotation recompiles annotated types"() {
         source api: [
             """
@@ -743,13 +608,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "change to class referenced by an array value in an annotation recompiles annotated types"() {
         source api: [
             """
@@ -783,13 +641,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "detects that changed class still has the same constants so no recompile is necessary"() {
         source api: ["class A { public static final int FOO = 123;}"],
             impl: ["class B { void foo() { int x = 123; }}"]
@@ -803,13 +654,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "does not recompile on non-abi change across projects"() {
         source api: ["class A { }"],
             impl: ["class B { A a; }", "class C { B b; }"]
@@ -826,13 +670,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     // This test checks the current behavior, not necessarily the desired one.
     // If all classes are compiled by the same compile task, we do not know if a
     // change is an abi change or not. Hence, an abi change is always assumed.
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     def "does recompile on non-abi changes inside one project"() {
         source impl: ["class A { }", "class B { A a; }", "class C { B b; }"]
         impl.snapshot { run language.compileTaskName }
