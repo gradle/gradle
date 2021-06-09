@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ import spock.lang.Specification
 class DefaultProjectDependencyConstraintTest extends Specification {
 
     @Issue("https://github.com/gradle/gradle/issues/17179")
-    def "can copy project dependency constraint" () {
+    def "can copy project dependency constraint"() {
         setup:
         DefaultProjectDependencyConstraint constraint = createProjectDependencyConstraint()
         constraint.force = true
         constraint.reason = "reason"
 
         when:
-        DefaultProjectDependencyConstraint constraintCopy = constraint.copy()
+        def constraintCopy = constraint.copy()
 
         then:
         constraintCopy.group == constraint.group
@@ -48,19 +48,18 @@ class DefaultProjectDependencyConstraintTest extends Specification {
     }
 
     private DefaultProjectDependencyConstraint createProjectDependencyConstraint() {
-        def projectDummy = Mock(ProjectInternal) {
+        def project = Mock(ProjectInternal) {
             getGroup() >> "org.example"
             getVersion() >> "0.0.1"
         }
-        def depFactory = new DefaultProjectDependencyFactory(
+        def dependencyFactory = new DefaultProjectDependencyFactory(
             Mock(ProjectAccessListener),
             TestUtil.instantiatorFactory().decorateLenient(),
             true,
             new CapabilityNotationParserFactory(false).create(),
             AttributeTestUtil.attributesFactory()
         )
-
-        def projectDependency = depFactory.create(projectDummy, "mockConfiguration")
+        def projectDependency = dependencyFactory.create(project, "mockConfiguration")
         new DefaultProjectDependencyConstraint(projectDependency)
     }
 }
