@@ -254,10 +254,13 @@ class ResidualProgramCompiler(
             // ${plugins}(temp.createSpec(lineNumber))
             emitPluginRequestCollectorCreateSpecFor(plugins)
             loadTargetOf(implicitReceiverType)
+            injectedProperties.forEach { name, type ->
+                emitLoadExtension(name, type)
+            }
             INVOKESPECIAL(
                 precompiledBuildscriptWithPluginsBlock,
                 "<init>",
-                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;L${implicitReceiverType.internalName};)V"
+                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;L${implicitReceiverType.internalName};$injectedPropertiesDescriptors)V"
             )
 
             emitApplyPluginsTo()
@@ -351,12 +354,18 @@ class ResidualProgramCompiler(
             INVOKESPECIAL(
                 precompiledPluginsBlock,
                 "<init>",
-                "(Lorg/gradle/plugin/use/PluginDependenciesSpec;${injectedProperties.values.map { Type.getType(it.fromClass?.java).descriptor }.joinToString()})V"
+                "(Lorg/gradle/plugin/use/PluginDependenciesSpec;$injectedPropertiesDescriptors)V"
             )
 
             emitApplyPluginsTo()
         }
     }
+
+    private
+    val injectedPropertiesDescriptors
+        get() = injectedProperties.values
+            .map { Type.getType(it.fromClass?.java).descriptor }
+            .joinToString()
 
     /**
      * extensions.getByName(name) as ExtensionType
@@ -568,12 +577,21 @@ class ResidualProgramCompiler(
                 if (implicitReceiverType != null) {
                     ALOAD(Vars.ScriptHost)
                     loadTargetOf(implicitReceiverType)
-                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;L${implicitReceiverType.internalName};)V"
+                    emitLoadExtensions()
+                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;L${implicitReceiverType.internalName};$injectedPropertiesDescriptors)V"
                 } else {
                     ALOAD(Vars.ScriptHost)
-                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)V"
+                    emitLoadExtensions()
+                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;$injectedPropertiesDescriptors)V"
                 }
             INVOKESPECIAL(precompiledScriptClass, "<init>", constructorSignature)
+        }
+    }
+
+    private
+    fun MethodVisitor.emitLoadExtensions() {
+        injectedProperties.forEach { name, type ->
+            emitLoadExtension(name, type)
         }
     }
 

@@ -141,4 +141,50 @@ dependencyResolutionManagement {
         then:
         outputContains message
     }
+
+    def "can apply a plugin declared in a catalog via buildscript"() {
+        String taskName = 'greet'
+        String message = 'Hello from plugin!'
+        String pluginId = 'com.acme.greeter'
+        String pluginVersion = '1.5'
+        def plugin = new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask(taskName, message, pluginId)
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+
+        file("settings.gradle") << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            alias('$alias').to('some', 'artifact').version('1.5')
+        }
+    }
+}"""
+        buildFile.text = """
+            buildscript {
+                repositories {
+                    maven {
+                        url = "${pluginPortal.uri}"
+                    }
+                }
+                dependencies {
+                    classpath(libs.${alias.replace('-', '.')})
+                }
+            }
+        """ + buildFile.text
+
+        buildFile << """
+            apply plugin: org.gradle.test.TestPlugin
+        """
+
+        when:
+        plugin.pluginModule.allowAll()
+        succeeds taskName
+
+        then:
+        outputContains message
+
+        where:
+        alias << ['greeter', 'some.greeter', 'some-greeter']
+    }
+
 }
