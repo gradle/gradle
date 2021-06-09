@@ -18,7 +18,6 @@
 package org.gradle.testkit.runner.enduser
 
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.internal.util.RetryUtil
@@ -64,7 +63,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     }
 
     @UsesSample("testKit/spockQuickstart")
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def spockQuickstart() {
         expect:
         executer.inDirectory(sample.dir.file('groovy'))
@@ -96,7 +94,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     @Requires([ONLINE, JDK11_OR_EARLIER])
     // Uses Gradle 5.0 which does not support Java versions >11
     @UsesSample("testKit/gradleVersion")
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def gradleVersion() {
         expect:
         RetryUtil.retry { //This test is also affected by gradle/gradle#1111 on Windows
