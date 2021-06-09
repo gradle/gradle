@@ -170,26 +170,24 @@ fun compileKotlinScriptModuleTo(
     messageCollector: LoggingMessageCollector
 ) {
     withRootDisposable {
+        withCompilationExceptionHandler(messageCollector) {
+            val configuration = compilerConfigurationFor(messageCollector).apply {
+                put(RETAIN_OUTPUT_IN_MEMORY, false)
+                put(OUTPUT_DIRECTORY, outputDirectory)
+                setModuleName(moduleName)
+                addScriptingCompilerComponents()
+                addScriptDefinition(scriptDef)
+                scriptFiles.forEach { addKotlinSourceRoot(it) }
+                classPath.forEach { addJvmClasspathRoot(it) }
+            }
 
-//        withCompilationExceptionHandler(messageCollector) {
+            val environment = kotlinCoreEnvironmentFor(configuration).apply {
+                HasImplicitReceiverCompilerPlugin.apply(project)
+            }
 
-        val configuration = compilerConfigurationFor(messageCollector).apply {
-            put(RETAIN_OUTPUT_IN_MEMORY, false)
-            put(OUTPUT_DIRECTORY, outputDirectory)
-            setModuleName(moduleName)
-            addScriptingCompilerComponents()
-            addScriptDefinition(scriptDef)
-            scriptFiles.forEach { addKotlinSourceRoot(it) }
-            classPath.forEach { addJvmClasspathRoot(it) }
+            compileBunchOfSources(environment)
+                || throw ScriptCompilationException(messageCollector.errors)
         }
-
-        val environment = kotlinCoreEnvironmentFor(configuration).apply {
-            HasImplicitReceiverCompilerPlugin.apply(project)
-        }
-
-        compileBunchOfSources(environment)
-            || throw ScriptCompilationException(messageCollector.errors)
-//        }
     }
 }
 
