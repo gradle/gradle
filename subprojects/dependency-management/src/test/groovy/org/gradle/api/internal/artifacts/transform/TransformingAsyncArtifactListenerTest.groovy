@@ -56,7 +56,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         artifacts.size() == 1
-        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, artifact) }
+        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, [], artifact) }
         0 * _
 
         when:
@@ -75,7 +75,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         artifacts.size() == 1
-        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, artifact) }
+        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, [], artifact) }
         0 * _
 
         when:

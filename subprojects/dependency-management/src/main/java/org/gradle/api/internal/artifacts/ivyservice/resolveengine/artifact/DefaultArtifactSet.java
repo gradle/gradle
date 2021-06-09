@@ -152,7 +152,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             identifier = null;
         }
 
-        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, resolvedArtifacts.build());
+        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, variant.getCapabilities(), resolvedArtifacts.build());
     }
 
     @Override
