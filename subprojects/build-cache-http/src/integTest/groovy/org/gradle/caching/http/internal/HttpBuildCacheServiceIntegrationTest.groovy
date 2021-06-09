@@ -372,6 +372,8 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
 
     /**
      * This scenario represents a potentially misconfigured server trying to redirect writes, but using the wrong status to do so.
+     * This is still potentially valid usage though, and is valid HTTP.
+     * Theoretically, a service could accept the write and then redirect to another page that polls for the success of that write.
      */
     def "non method preserving redirects on write result in discarded write"() {
         given:
