@@ -138,30 +138,6 @@ class HttpBuildCacheServiceTest extends Specification {
         writer.writeCount == 2
     }
 
-    static class Writer implements BuildCacheEntryWriter {
-        private final byte[] content
-        private int writeCount = 0
-
-        Writer(byte[] content) {
-            this.content = content
-        }
-
-        @Override
-        void writeTo(OutputStream output) throws IOException {
-            ++writeCount
-            output << content
-        }
-
-        @Override
-        long getSize() {
-            return content.length
-        }
-    }
-
-    private static Writer writer(byte[] content) {
-        new Writer(content)
-    }
-
     def "can load artifact from cache"() {
         def srcFile = tempDir.file("cached.zip")
         srcFile.text = "Data"
@@ -400,4 +376,29 @@ class HttpBuildCacheServiceTest extends Specification {
         BuildCacheServiceFactory.Describer config(String name, String value) { this }
 
     }
+
+    static class Writer implements BuildCacheEntryWriter {
+        private final byte[] content
+        private int writeCount = 0
+
+        Writer(byte[] content) {
+            this.content = content
+        }
+
+        @Override
+        void writeTo(OutputStream output) throws IOException {
+            ++writeCount
+            output << content
+        }
+
+        @Override
+        long getSize() {
+            return content.length
+        }
+    }
+
+    private static Writer writer(byte[] content) {
+        new Writer(content)
+    }
+
 }
