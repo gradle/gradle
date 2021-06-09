@@ -155,7 +155,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
 
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
-            final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, output, originMetadataFactory.createWriter(entity,  executionTime));
+            final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, output, originMetadataFactory.createWriter(entity, executionTime));
             return packResult::getEntries;
         }
     }
