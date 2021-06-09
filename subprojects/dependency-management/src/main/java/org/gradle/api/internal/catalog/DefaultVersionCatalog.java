@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
+
 public class DefaultVersionCatalog implements Serializable {
     private final String name;
     private final String description;
@@ -65,7 +67,7 @@ public class DefaultVersionCatalog implements Serializable {
     }
 
     public DependencyModel getDependencyData(String alias) {
-        return aliasToDependency.get(alias);
+        return aliasToDependency.get(normalize(alias));
     }
 
     public List<String> getVersionAliases() {
@@ -76,11 +78,11 @@ public class DefaultVersionCatalog implements Serializable {
     }
 
     public BundleModel getBundle(String name) {
-        return bundles.get(name);
+        return bundles.get(normalize(name));
     }
 
     public VersionModel getVersion(String name) {
-        return versions.get(name);
+        return versions.get(normalize(name));
     }
 
     @Override

@@ -23,6 +23,13 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- 
 
+<a name="VERSION-CATALOG-IMPROVEMENTS"></a>
+### Version catalog improvements
+
+In previous Gradle releases, it wasn't possible to declare a [version catalog](userguide/platforms.html#sub:version-catalog) where an alias would also contain sub-aliases.
+For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
+This limitation is now lifted.
+
 ================== TEMPLATE ==============================
 
 <a name="FILL-IN-KEY-AREA"></a>

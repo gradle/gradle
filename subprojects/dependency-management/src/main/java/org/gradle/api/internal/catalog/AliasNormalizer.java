@@ -15,22 +15,17 @@
  */
 package org.gradle.api.internal.catalog;
 
-import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.VersionCatalog;
-import org.gradle.api.provider.Provider;
+import javax.annotation.Nullable;
+import java.util.regex.Pattern;
 
-public interface ExternalModuleDependencyFactory extends VersionCatalog {
-    interface ProviderConvertible<T> {
-        Provider<T> asProvider();
-    }
+abstract class AliasNormalizer {
+    private final static Pattern SEPARATOR = Pattern.compile("[_.-]");
 
-    interface DependencyNotationSupplier extends ProviderConvertible<MinimalExternalModuleDependency> {
-    }
-
-    interface VersionNotationSupplier extends ProviderConvertible<String> {
-    }
-
-    interface BundleNotationSupplier extends ProviderConvertible<ExternalModuleDependencyBundle> {
+    @Nullable
+    static String normalize(@Nullable String name) {
+        if (name == null) {
+            return null;
+        }
+        return SEPARATOR.matcher(name).replaceAll(".");
     }
 }

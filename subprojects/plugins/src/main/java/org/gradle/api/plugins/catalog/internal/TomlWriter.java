@@ -24,10 +24,16 @@ import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
-import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 class TomlWriter {
+    private final static Pattern SEPARATOR = Pattern.compile("[_.-]");
+
+    private static String normalizeForToml(String alias) {
+        return SEPARATOR.matcher(alias).replaceAll("-");
+    }
+
     private final Writer writer;
 
     TomlWriter(Writer writer) {
@@ -66,7 +72,7 @@ class TomlWriter {
         }
         writeTableHeader("versions");
         for (String alias : versions) {
-            write(alias + " = ");
+            write(normalizeForToml(alias) + " = ");
             writeLn(versionString(model.getVersion(alias).getVersion()));
         }
         writeLn();
@@ -85,14 +91,14 @@ class TomlWriter {
             String versionRef = data.getVersionRef();
             ImmutableVersionConstraint version = data.getVersion();
             StringBuilder sb = new StringBuilder();
-            sb.append(alias)
+            sb.append(normalizeForToml(alias))
                 .append(" = {")
                 .append(keyValuePair("group", group))
                 .append(", ")
                 .append(keyValuePair("name", name))
                 .append(", ");
             if (versionRef != null) {
-                sb.append(keyValuePair("version.ref", versionRef));
+                sb.append(keyValuePair("version.ref", normalizeForToml(versionRef)));
             } else {
                 sb.append("version = ").append(versionString(version));
             }
@@ -110,7 +116,10 @@ class TomlWriter {
         writeTableHeader("bundles");
         for (String alias : aliases) {
             List<String> bundle = model.getBundle(alias).getComponents();
-            writeLn(alias + " = [" + bundle.stream().map(TomlWriter::quoted).collect(Collectors.joining(", ")) + "]");
+            writeLn(normalizeForToml(alias) + " = [" + bundle.stream()
+                .map(TomlWriter::normalizeForToml)
+                .map(TomlWriter::quoted)
+                .collect(Collectors.joining(", ")) + "]");
         }
         writeLn();
     }
@@ -160,25 +169,8 @@ class TomlWriter {
         writeLn();
     }
 
-    private void writePlugins(Map<String, String> plugins) {
-        if (plugins.isEmpty()) {
-            return;
-        }
-        writeTableHeader("plugins");
-        plugins.entrySet()
-            .stream()
-            .sorted(Map.Entry.comparingByKey())
-            .map(TomlWriter::keyValuePair)
-            .forEach(this::writeLn);
-        writeLn();
-    }
-
     private void writeTableHeader(String title) {
         writeLn("[" + title + "]");
-    }
-
-    private static String keyValuePair(Map.Entry<String, String> entry) {
-        return keyValuePair(entry.getKey(), entry.getValue());
     }
 
     private static String keyValuePair(String key, String value) {

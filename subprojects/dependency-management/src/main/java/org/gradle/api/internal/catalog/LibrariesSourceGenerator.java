@@ -19,7 +19,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -150,25 +149,38 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writeBundleAccessorClass(ClassNode classNode) throws IOException {
-        classNode.validate();
+        boolean isProvider = classNode.isAlsoProvider();
+        String interfaces = isProvider ? " implements BundleNotationSupplier":"";
         String bundleClassName = classNode.getClassName();
         List<String> aliases = classNode.aliases
             .stream()
             .sorted()
             .collect(Collectors.toList());
-        writeLn("public static class " + bundleClassName + " extends BundleFactory {");
+        writeLn("public static class " + bundleClassName + " extends BundleFactory " + interfaces + "{");
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
             writeLn();
             writeLn("public " + bundleClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
             writeLn();
-            for (String alias : aliases) {
-                BundleModel bundle = config.getBundle(alias);
+            if (isProvider) {
+                String path = classNode.getFullAlias();
+                BundleModel bundle = config.getBundle(path);
                 List<String> coordinates = bundle.getComponents().stream()
                     .map(config::getDependencyData)
                     .map(this::coordinatesDescriptorFor)
                     .collect(Collectors.toList());
-                writeBundle(alias, coordinates, bundle.getContext());
+                writeBundle(path, coordinates, bundle.getContext(), true);
+            }
+            for (String alias : aliases) {
+                String childName = leafNodeForAlias(alias);
+                if (!classNode.hasChild(childName)) {
+                    BundleModel bundle = config.getBundle(alias);
+                    List<String> coordinates = bundle.getComponents().stream()
+                        .map(config::getDependencyData)
+                        .map(this::coordinatesDescriptorFor)
+                        .collect(Collectors.toList());
+                    writeBundle(alias, coordinates, bundle.getContext(), false);
+                }
             }
             for (ClassNode child : classNode.getChildren()) {
                 writeSubAccessor(child, AccessorKind.bundle);
@@ -179,12 +191,14 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writeLibraryAccessors(ClassNode classNode) throws IOException {
-        classNode.validate();
         Set<String> dependencies = classNode.aliases;
         for (String alias : dependencies) {
-            DependencyModel model = config.getDependencyData(alias);
-            String coordinates = coordinatesDescriptorFor(model);
-            writeDependencyAccessor(alias, coordinates, model.getContext());
+            String childName = leafNodeForAlias(alias);
+            if (!classNode.hasChild(childName)) {
+                DependencyModel model = config.getDependencyData(alias);
+                String coordinates = coordinatesDescriptorFor(model);
+                writeDependencyAccessor(alias, coordinates, model.getContext(), false);
+            }
         }
         for (ClassNode child : classNode.getChildren()) {
             writeSubAccessor(child, AccessorKind.library);
@@ -192,11 +206,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writeVersionAccessors(ClassNode classNode) throws IOException {
-        classNode.validate();
         Set<String> versionsAliases = classNode.aliases;
         for (String alias : versionsAliases) {
-            VersionModel model = config.getVersion(alias);
-            writeSingleVersionAccessor(alias, model.getContext(), model.getVersion().getDisplayName());
+            String childName = leafNodeForAlias(alias);
+            if (!classNode.hasChild(childName)) {
+                VersionModel model = config.getVersion(alias);
+                writeSingleVersionAccessor(alias, model.getContext(), model.getVersion().getDisplayName(), false);
+            }
         }
         for (ClassNode child : classNode.getChildren()) {
             writeSubAccessor(child, AccessorKind.version);
@@ -204,15 +220,17 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writeBundleAccessors(ClassNode classNode) throws IOException {
-        classNode.validate();
         Set<String> versionsAliases = classNode.aliases;
         for (String alias : versionsAliases) {
-            BundleModel model = config.getBundle(alias);
-            List<String> coordinates = model.getComponents().stream()
-                .map(config::getDependencyData)
-                .map(this::coordinatesDescriptorFor)
-                .collect(Collectors.toList());
-            writeBundle(alias, coordinates, model.getContext());
+            String childName = leafNodeForAlias(alias);
+            if (!classNode.hasChild(childName)) {
+                BundleModel model = config.getBundle(alias);
+                List<String> coordinates = model.getComponents().stream()
+                    .map(config::getDependencyData)
+                    .map(this::coordinatesDescriptorFor)
+                    .collect(Collectors.toList());
+                writeBundle(alias, coordinates, model.getContext(), false);
+            }
         }
         for (ClassNode child : classNode.getChildren()) {
             writeSubAccessor(child, AccessorKind.bundle);
@@ -231,17 +249,26 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writeLibraryAccessorClass(ClassNode classNode) throws IOException {
-        classNode.validate();
-        writeLn("public static class " + classNode.getClassName() + " extends SubDependencyFactory {");
+        boolean isProvider = classNode.isAlsoProvider();
+        String interfaces = isProvider ? " implements DependencyNotationSupplier":"";
+        writeLn("public static class " + classNode.getClassName() + " extends SubDependencyFactory" + interfaces + " {");
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.library);
             writeLn();
             writeLn("public " + classNode.getClassName() + "(AbstractExternalDependencyFactory owner) { super(owner); }");
             writeLn();
+            if (isProvider) {
+                String path = classNode.getFullAlias();
+                DependencyModel model = config.getDependencyData(path);
+                writeDependencyAccessor(path, coordinatesDescriptorFor(model), model.getContext(), true);
+            }
             for (String alias : classNode.aliases) {
-                DependencyModel model = config.getDependencyData(alias);
-                String coordinates = coordinatesDescriptorFor(model);
-                writeDependencyAccessor(alias, coordinates, model.getContext());
+                String childName = leafNodeForAlias(alias);
+                if (!classNode.hasChild(childName)) {
+                    DependencyModel model = config.getDependencyData(alias);
+                    String coordinates = coordinatesDescriptorFor(model);
+                    writeDependencyAccessor(alias, coordinates, model.getContext(), false);
+                }
             }
             for (ClassNode child : classNode.getChildren()) {
                 writeSubAccessor(child, AccessorKind.library);
@@ -252,19 +279,29 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writeVersionAccessorClass(ClassNode classNode) throws IOException {
-        classNode.validate();
+        boolean isProvider = classNode.isAlsoProvider();
+        String interfaces = isProvider ? " implements VersionNotationSupplier":"";
         String versionsClassName = classNode.getClassName();
         Set<String> versionAliases = classNode.getAliases();
-        writeLn("public static class " + versionsClassName + " extends VersionFactory {");
+        writeLn("public static class " + versionsClassName + " extends VersionFactory " + interfaces + " {");
         writeLn();
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.version);
             writeLn("public " + versionsClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
             writeLn();
-            for (String alias : versionAliases) {
-                VersionModel vm = config.getVersion(alias);
+            if (isProvider) {
+                String path = classNode.getFullAlias();
+                VersionModel vm = config.getVersion(path);
                 String context = vm.getContext();
-                indent(() -> writeSingleVersionAccessor(alias, context, vm.getVersion().getDisplayName()));
+                writeSingleVersionAccessor(path, context, vm.getVersion().getDisplayName(), true);
+            }
+            for (String alias : versionAliases) {
+                String childName = leafNodeForAlias(alias);
+                if (!classNode.hasChild(childName)) {
+                    VersionModel vm = config.getVersion(alias);
+                    String context = vm.getContext();
+                    indent(() -> writeSingleVersionAccessor(alias, context, vm.getVersion().getDisplayName(), false));
+                }
             }
             for (ClassNode child : classNode.getChildren()) {
                 writeSubAccessor(child, AccessorKind.version);
@@ -274,7 +311,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
     }
 
-    private void writeSingleVersionAccessor(String versionAlias, @Nullable String context, String version) throws IOException {
+    private void writeSingleVersionAccessor(String versionAlias, @Nullable String context, String version, boolean asProvider) throws IOException {
         writeLn("/**");
         writeLn(" * Returns the version associated to this alias: " + versionAlias + " (" + version + ")");
         writeLn(" * If the version is a rich version and that its not expressible as a");
@@ -283,7 +320,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeLn(" * This version was declared in " + context);
         }
         writeLn(" */");
-        writeLn("public Provider<String> get" + toJavaName(leafNodeForAlias(versionAlias)) + "() { return getVersion(\"" + versionAlias + "\"); }");
+        String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(versionAlias));
+        writeLn("public Provider<String> " +  methodName + "() { return getVersion(\"" + versionAlias + "\"); }");
         writeLn();
     }
 
@@ -329,7 +367,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         return dependencyData.getGroup() + ":" + dependencyData.getName();
     }
 
-    private void writeDependencyAccessor(String alias, String coordinates, @Nullable String context) throws IOException {
+    private void writeDependencyAccessor(String alias, String coordinates, @Nullable String context, boolean asProvider) throws IOException {
         String name = leafNodeForAlias(alias);
         writeLn("    /**");
         writeLn("     * Creates a dependency provider for " + name + " (" + coordinates + ")");
@@ -337,11 +375,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeLn("     * This dependency was declared in " + context);
         }
         writeLn("     */");
-        writeLn("    public Provider<MinimalExternalModuleDependency> get" + toJavaName(name) + "() { return create(\"" + alias + "\"); }");
+        String methodName = asProvider ? "asProvider": "get" + toJavaName(name);
+        writeLn("    public Provider<MinimalExternalModuleDependency> " + methodName + "() { return create(\"" + alias + "\"); }");
         writeLn();
     }
 
-    private String leafNodeForAlias(String alias) {
+    private static String leafNodeForAlias(String alias) {
         List<String> splitted = nameSplitter().splitToList(alias);
         return splitted.get(splitted.size() - 1);
     }
@@ -356,7 +395,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
     }
 
-    private void writeBundle(String alias, List<String> coordinates, @Nullable String context) throws IOException {
+    private void writeBundle(String alias, List<String> coordinates, @Nullable String context, boolean asProvider) throws IOException {
         indent(() -> {
             writeLn("/**");
             writeLn(" * Creates a dependency bundle provider for " + alias + " which is an aggregate for the following dependencies:");
@@ -369,7 +408,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 writeLn(" * This bundle was declared in " + context);
             }
             writeLn(" */");
-            writeLn("public Provider<ExternalModuleDependencyBundle> get" + toJavaName(leafNodeForAlias(alias)) + "() { return createBundle(\"" + alias + "\"); }");
+            String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
+            writeLn("public Provider<ExternalModuleDependencyBundle> " + methodName + "() { return createBundle(\"" + alias + "\"); }");
         });
         writeLn();
     }
@@ -406,6 +446,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         private final String name;
         private final Map<String, ClassNode> children = Maps.newLinkedHashMap();
         private final Set<String> aliases = Sets.newLinkedHashSet();
+        private final Set<String> leafAliases = Sets.newLinkedHashSet();
         public boolean wrapping;
 
         private ClassNode(AccessorKind kind, @Nullable ClassNode parent, @Nullable String name) {
@@ -431,6 +472,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
         void addAlias(String alias) {
             aliases.add(alias);
+            leafAliases.add(leafNodeForAlias(alias));
         }
 
         public Collection<ClassNode> getChildren() {
@@ -441,6 +483,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             return aliases;
         }
 
+        public boolean hasChild(String name) {
+            return children.containsKey(name);
+        }
+
         String getPath() {
             if (parent == null) {
                 return "";
@@ -449,22 +495,18 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             return parentPath.isEmpty() ? name : parentPath + "." + name;
         }
 
-        private static String shortAlias(String fullAlias) {
-            List<String> dotted = nameSplitter().splitToList(fullAlias);
-            return dotted.get(dotted.size() - 1);
+        String getFullAlias() {
+            if (parent == null || wrapping) {
+                return "";
+            }
+            String parentPath = parent.getFullAlias();
+            return parentPath.isEmpty() ? name : parentPath + "." + name;
         }
 
-        void validate() {
-            Set<String> intersection = Sets.intersection(aliases.stream().map(ClassNode::shortAlias).collect(Collectors.toSet()), children.keySet());
-            if (!intersection.isEmpty()) {
-                String path = getPath();
-                if (path.isEmpty()) {
-                    path = "top level accessors";
-                } else {
-                    path = "accessors for " + path;
-                }
-                throw new InvalidUserDataException("Cannot generate " + path + " because it contains both aliases and groups of the same name: " + intersection);
-            }
+        public boolean isAlsoProvider() {
+            return parent != null &&
+                parent.leafAliases.contains(name) &&
+                parent.children.containsKey(name);
         }
 
         @Override
