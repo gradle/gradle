@@ -39,6 +39,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.time.Duration
+
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
@@ -137,13 +139,13 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
         def output = Mock(OutputStream)
         def entity = entity(prop("output"))
         def outputSnapshots = Mock(Map)
-        def command = commandFactory.createStore(key, entity, outputSnapshots, 421L)
+        def command = commandFactory.createStore(key, entity, outputSnapshots, Duration.ofMillis(421L))
 
         when:
         def result = command.store(output)
 
         then:
-        1 * originFactory.createWriter(entity, 421L) >> originWriter
+        1 * originFactory.createWriter(entity, Duration.ofMillis(421L)) >> originWriter
 
         then:
         1 * packer.pack(entity, outputSnapshots, output, originWriter) >> new BuildCacheEntryPacker.PackResult(123)
