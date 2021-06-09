@@ -95,32 +95,11 @@ public class HttpBuildCacheService implements BuildCacheService {
                 return false;
             } else {
                 String defaultMessage = String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
-                if (isRedirect(statusCode)) {
-                    return handleRedirect(uri, response, statusCode, defaultMessage, "loading entry from");
-                } else {
-                    return throwHttpStatusCodeException(statusCode, defaultMessage);
-                }
+                return throwHttpStatusCodeException(statusCode, defaultMessage);
             }
         } catch (IOException e) {
             throw wrap(e);
         }
-    }
-
-    private boolean handleRedirect(URI uri, HttpClientResponse response, int statusCode, String defaultMessage, String action) {
-        String locationHeader = response.getHeader(HttpHeaders.LOCATION);
-        if (locationHeader == null) {
-            return throwHttpStatusCodeException(statusCode, defaultMessage);
-        }
-        try {
-            throw new BuildCacheException(String.format("Received unexpected redirect (HTTP %d) to %s when " + action + " '%s'. "
-                + "Ensure the configured URL for the remote build cache is correct.", statusCode, safeUri(new URI(locationHeader)), safeUri(uri)));
-        } catch (URISyntaxException e) {
-            return throwHttpStatusCodeException(statusCode, defaultMessage);
-        }
-    }
-
-    private boolean isRedirect(int statusCode) {
-        return statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY || statusCode == HttpStatus.SC_TEMPORARY_REDIRECT;
     }
 
     @Override
@@ -133,7 +112,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         httpPut.setEntity(new AbstractHttpEntity() {
             @Override
             public boolean isRepeatable() {
-                return false;
+                return true;
             }
 
             @Override
@@ -164,11 +143,7 @@ public class HttpBuildCacheService implements BuildCacheService {
             int statusCode = statusLine.getStatusCode();
             if (!isHttpSuccess(statusCode)) {
                 String defaultMessage = String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
-                if (isRedirect(statusCode)) {
-                    handleRedirect(uri, response, statusCode, defaultMessage, "storing entry at");
-                } else {
-                    throwHttpStatusCodeException(statusCode, defaultMessage);
-                }
+                throwHttpStatusCodeException(statusCode, defaultMessage);
             }
         } catch (ClientProtocolException e) {
             Throwable cause = e.getCause();

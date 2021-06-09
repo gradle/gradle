@@ -16,7 +16,11 @@
 
 package org.gradle.caching.http.internal
 
+
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.http.HttpBuildCache
+import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.test.fixtures.keystore.TestKeyStore
@@ -38,6 +42,8 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
                 }
             }
         """
+
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         settingsFile << withHttpBuildCacheServer()
@@ -332,4 +338,118 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         output.contains("invalid.invalid")
         output.contains("The remote build cache was disabled during the build due to errors.")
     }
+
+    def "storing to cache does follow method preserving redirects"() {
+        given:
+        httpBuildCacheServer.cacheDir.createDir("redirect")
+        httpBuildCacheServer.addResponder { req, res ->
+            if (!req.requestURI.startsWith("/redirect")) {
+                res.setHeader("location", "redirect$req.requestURI")
+                res.setStatus(307)
+                res.writer.close()
+                false
+            } else {
+                true
+            }
+        }
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+        and:
+        // Only one store operation, not one per redirect
+        def compileJavaStoreOperations = buildOperations.all(BuildCacheRemoteStoreBuildOperationType) {
+            buildOperations.parentsOf(it).any {
+                it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":compileJava"
+            }
+        }
+        compileJavaStoreOperations.size() == 1
+
+        expect:
+        withBuildCache().run "clean"
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        skipped ":compileJava"
+    }
+
+    /**
+     * This scenario represents a potentially misconfigured server trying to redirect writes, but using the wrong status to do so.
+     */
+    def "non method preserving redirects on write result in discarded write"() {
+        given:
+        httpBuildCacheServer.cacheDir.createDir("redirect")
+        httpBuildCacheServer.addResponder { req, res ->
+            if (req.method == "PUT") {
+                res.setHeader("location", "/ok")
+                res.setStatus(301)
+                res.writer.close()
+                false
+            } else if (req.requestURI == "/ok") {
+                res.setStatus(200)
+                res.writer.close()
+                false
+            } else {
+                true
+            }
+        }
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        expect:
+        withBuildCache().run "clean"
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+    }
+
+    def "treats redirect loop as failure"() {
+        given:
+        httpBuildCacheServer.cacheDir.createDir("redirect")
+        httpBuildCacheServer.addResponder { req, res ->
+            res.setHeader("location", req.requestURI)
+            res.setStatus(301)
+            res.writer.close()
+            false
+        }
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        and:
+        output.contains("Could not load entry")
+        output.contains("Circular redirect to")
+    }
+
+    def "treats too many redirects as failure"() {
+        given:
+        httpBuildCacheServer.cacheDir.createDir("redirect")
+        httpBuildCacheServer.addResponder { req, res ->
+            res.setHeader("location", "/r$req.requestURI")
+            res.setStatus(301)
+            res.writer.close()
+            false
+        }
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        and:
+        output.contains("Could not load entry")
+        output.contains("Maximum redirects (10) exceeded")
+    }
+
 }

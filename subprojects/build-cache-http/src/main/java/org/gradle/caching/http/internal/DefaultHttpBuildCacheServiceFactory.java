@@ -28,6 +28,7 @@ import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
+import org.gradle.internal.resource.transport.http.HttpSettings;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
@@ -42,6 +43,8 @@ import java.util.Collections;
  * Build cache factory for HTTP backend.
  */
 public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
+
+    private static final int MAX_REDIRECTS = Integer.getInteger("org.gradle.cache.http.max-redirects", 10);
 
     private final SslContextFactory sslContextFactory;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
@@ -84,7 +87,8 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
         DefaultHttpSettings.Builder builder = DefaultHttpSettings.builder()
             .withAuthenticationSettings(authentications)
-            .followRedirects(false)
+            .maxRedirects(MAX_REDIRECTS)
+            .withRedirectMethodHandlingStrategy(HttpSettings.RedirectMethodHandlingStrategy.ALLOW_FOLLOW_FOR_MUTATIONS)
             .withRedirectVerifier(redirectVerifier);
         if (allowUntrustedServer) {
             builder.allowUntrustedConnections();

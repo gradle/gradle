@@ -104,16 +104,28 @@ class HttpBuildCacheServiceTest extends Specification {
         destFile.bytes == content
     }
 
-    def "storing to cache does not follow redirects"() {
+    def "storing to cache can follow non method preserving redirects"() {
         def content = "Data".bytes
         server.expectPutRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}")
+        server.expectGetEmptyOk("/redirect/cache/${key.hashCode}")
+
+        when:
+        cache.store(key, writer(content))
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "storing to cache can follow method preserving redirects"() {
+        def destFile = tempDir.file("cached.zip")
+        def content = "Data".bytes
+        server.expectPutRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}", null, HttpServer.RedirectType.TEMP_307)
+        server.expectPut("/redirect/cache/${key.hashCode}", destFile, HttpStatus.SC_OK, null, content.length)
 
         when:
         cache.store(key, writer(content))
         then:
-        BuildCacheException exception = thrown()
-
-        exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when storing entry at '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
+        destFile.bytes == content
     }
 
     private static BuildCacheEntryWriter writer(byte[] content) {
@@ -145,10 +157,11 @@ class HttpBuildCacheServiceTest extends Specification {
         receivedInput == "Data"
     }
 
-    def "loading from cache does not follow redirects"() {
+    def "loading from cache does follows redirects"() {
         def srcFile = tempDir.file("cached.zip")
         srcFile.text = "Data"
         server.expectGetRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}")
+        server.expectGet("/redirect/cache/${key.hashCode}", srcFile)
 
         when:
         def receivedInput = null
@@ -157,9 +170,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         then:
-        BuildCacheException exception = thrown()
-
-        exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when loading entry from '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
+        receivedInput == "Data"
     }
 
     def "reports cache miss on 404"() {

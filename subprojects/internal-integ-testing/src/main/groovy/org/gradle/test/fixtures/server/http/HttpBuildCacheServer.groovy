@@ -40,6 +40,7 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     private TestFile cacheDir
     private long dropConnectionForPutBytes = -1
     private int blockIncomingConnectionsForSeconds = 0
+    private final List<Responder> responders = []
 
     HttpBuildCacheServer(TestDirectoryProvider provider) {
         this.provider = provider
@@ -65,6 +66,29 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
         if (blockIncomingConnectionsForSeconds > 0) {
             this.webapp.addFilter(new FilterHolder(new BlockFilter(blockIncomingConnectionsForSeconds)), "/*", EnumSet.of(DispatcherType.REQUEST))
         }
+        def filter = new Filter() {
+            @Override
+            void init(FilterConfig filterConfig) throws ServletException {
+
+            }
+
+            @Override
+            void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+                for (responder in responders) {
+                    if (!responder.respond(request as HttpServletRequest, response as HttpServletResponse)) {
+                        return
+                    }
+                }
+                chain.doFilter(request, response)
+            }
+
+            @Override
+            void destroy() {
+
+            }
+        }
+        webapp.addFilter(new FilterHolder(filter), "/*", EnumSet.of(DispatcherType.REQUEST))
+
         // TODO: Find Jetty 9 idiomatic way to get rid of this filter
         this.webapp.addFilter(RestFilter, "/*", EnumSet.of(DispatcherType.REQUEST))
     }
@@ -78,26 +102,7 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     }
 
     HttpBuildCacheServer addResponder(Responder responder) {
-        def filter = new Filter() {
-            @Override
-            void init(FilterConfig filterConfig) throws ServletException {
-
-            }
-
-            @Override
-            void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-                if (responder.respond(request as HttpServletRequest, response as HttpServletResponse)) {
-                    chain.doFilter(request, response)
-                }
-            }
-
-            @Override
-            void destroy() {
-
-            }
-        }
-
-        webapp.addFilter(new FilterHolder(filter), "/*", EnumSet.of(DispatcherType.REQUEST))
+        responders << responder
         this
     }
 
