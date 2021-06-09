@@ -949,6 +949,77 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.contains("files: [lib.jar]")
     }
 
+    def "transforms registering the input as an output can use normalization"() {
+        file("input1.jar").text = "jar"
+        file("input2.jar").text = "jar"
+        buildFile("""
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            configurations {
+                api1 {
+                    attributes { attribute usage, 'api' }
+                }
+                api2 {
+                    attributes { attribute usage, 'api' }
+                }
+            }
+
+            abstract class IdentityTransform implements TransformAction<TransformParameters.None> {
+                @Classpath
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    println "Selecting input artifact \${inputArtifact.get().asFile}"
+                    outputs.file(inputArtifact)
+                }
+            }
+
+            dependencies {
+                registerTransform(IdentityTransform) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'transformed')
+                }
+            }
+
+            task producer1(type: Jar)
+            task producer2(type: Jar)
+            tasks.withType(Jar).configureEach {
+                destinationDirectory = layout.buildDirectory.dir("produced")
+                archiveBaseName = name
+            }
+
+            ["api1", "api2"].each { conf ->
+                tasks.register("resolve\$conf", Copy) {
+                    duplicatesStrategy = 'INCLUDE'
+                    def artifacts = configurations."\$conf".incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'transformed') }
+                    }.artifacts
+                    from artifacts.artifactFiles
+                    into "\${buildDir}/libs1"
+                    doLast {
+                        println "files: " + artifacts.collect { it.file.name }
+                        println "ids: " + artifacts.collect { it.id }
+                        println "components: " + artifacts.collect { it.id.componentIdentifier }
+                        println "variants: " + artifacts.collect { it.variant.attributes }
+                    }
+                }
+            }
+
+            dependencies {
+                api1 files(producer1)
+                api2 files(producer2)
+            }
+        """)
+
+        when:
+        run "resolveapi1", "resolveapi2"
+        then:
+        executedAndNotSkipped(":resolveapi1", ":resolveapi2")
+        outputContains("ids: [producer1.jar (producer1.jar)]")
+        outputContains("ids: [producer2.jar (producer2.jar)]")
+    }
+
     def "transform can generate multiple output files for a single input"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"

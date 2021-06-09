@@ -103,7 +103,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result
-                .map(transformedFiles -> transformedFiles.stream()
+                .map(transformedFiles -> transformedFiles.getResultsInWorkspace().stream()
                     .allMatch(transformedFile -> globalCacheLocations.isInsideGlobalCache(transformedFile.getAbsolutePath()))
                 ).getOrMapFailure(__ -> false)
             )

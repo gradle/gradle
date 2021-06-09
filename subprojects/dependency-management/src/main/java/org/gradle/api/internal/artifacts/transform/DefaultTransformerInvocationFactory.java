@@ -65,12 +65,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static org.gradle.internal.UncheckedException.unchecked;
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
@@ -153,22 +153,23 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         return executionEngine.createRequest(execution)
             .withIdentityCache(workspaceServices.getIdentityCache())
-            .getOrDeferExecution(new DeferredExecutionHandler<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
+            .getOrDeferExecution(new DeferredExecutionHandler<TransformationResult, CacheableInvocation<ImmutableList<File>>>() {
                 @Override
-                public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
+                public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<TransformationResult> cachedOutput) {
                     return CacheableInvocation.cached(mapResult(cachedOutput));
                 }
 
                 @Override
-                public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<ImmutableList<File>>> deferredExecution) {
+                public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<TransformationResult>> deferredExecution) {
                     return CacheableInvocation.nonCached(() ->
                         fireTransformListeners(transformer, subject, () ->
                             mapResult(deferredExecution.get())));
                 }
 
                 @Nonnull
-                private Try<ImmutableList<File>> mapResult(Try<ImmutableList<File>> cachedOutput) {
+                private Try<ImmutableList<File>> mapResult(Try<TransformationResult> cachedOutput) {
                     return cachedOutput
+                        .map(result -> result.resultRelativeTo(inputArtifact))
                         .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
                 }
             });
@@ -302,14 +303,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public WorkOutput execute(ExecutionRequest executionRequest) {
-            ImmutableList<File> result = buildOperationExecutor.call(new CallableBuildOperation<ImmutableList<File>>() {
+            TransformationResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformationResult>() {
                 @Override
-                public ImmutableList<File> call(BuildOperationContext context) {
+                public TransformationResult call(BuildOperationContext context) {
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     ImmutableList<File> result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    writeResultsFile(workspace, result);
-                    return result;
+                    return writeResultsFile(workspace, result);
                 }
 
                 @Override
@@ -348,39 +348,52 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             return inputFingerprinter;
         }
 
-        private void writeResultsFile(File workspace, ImmutableList<File> result) {
+        private TransformationResult writeResultsFile(File workspace, ImmutableList<File> result) {
+            TransformationResult.Builder builder = TransformationResult.builder();
             File outputDir = getOutputDir(workspace);
             String outputDirPrefix = outputDir.getPath() + File.separator;
             String inputFilePrefix = inputArtifact.getPath() + File.separator;
-            Stream<String> relativePaths = result.stream().map(file -> {
+            List<String> resultFileContents = new ArrayList<>(result.size());
+            result.forEach(file -> {
                 if (file.equals(outputDir)) {
-                    return OUTPUT_FILE_PATH_PREFIX;
+                    builder.addOutput(outputDir);
+                    resultFileContents.add(OUTPUT_FILE_PATH_PREFIX);
+                } else if (file.equals(inputArtifact)) {
+                    builder.addInputArtifact();
+                    resultFileContents.add(INPUT_FILE_PATH_PREFIX);
+                } else {
+                    String absolutePath = file.getAbsolutePath();
+                    if (absolutePath.startsWith(outputDirPrefix)) {
+                        builder.addOutput(file);
+                        resultFileContents.add(OUTPUT_FILE_PATH_PREFIX + RelativePath.parse(true, absolutePath.substring(outputDirPrefix.length())).getPathString());
+                    } else if (absolutePath.startsWith(inputFilePrefix)) {
+                        String relativePath = RelativePath.parse(true, absolutePath.substring(inputFilePrefix.length())).getPathString();
+                        builder.addInputArtifact(relativePath);
+                        resultFileContents.add(INPUT_FILE_PATH_PREFIX + relativePath);
+                    } else {
+                        throw new IllegalStateException("Invalid result path: " + absolutePath);
+                    }
                 }
-                if (file.equals(inputArtifact)) {
-                    return INPUT_FILE_PATH_PREFIX;
-                }
-                String absolutePath = file.getAbsolutePath();
-                if (absolutePath.startsWith(outputDirPrefix)) {
-                    return OUTPUT_FILE_PATH_PREFIX + RelativePath.parse(true, absolutePath.substring(outputDirPrefix.length())).getPathString();
-                }
-                if (absolutePath.startsWith(inputFilePrefix)) {
-                    return INPUT_FILE_PATH_PREFIX + RelativePath.parse(true, absolutePath.substring(inputFilePrefix.length())).getPathString();
-                }
-                throw new IllegalStateException("Invalid result path: " + absolutePath);
             });
-            unchecked(() -> Files.write(getResultsFile(workspace).toPath(), (Iterable<String>) relativePaths::iterator));
+            unchecked(() -> Files.write(getResultsFile(workspace).toPath(), resultFileContents));
+            return builder.build();
         }
 
-        private ImmutableList<File> readResultsFile(File workspace) {
+        private TransformationResult readResultsFile(File workspace) {
             Path transformerResultsPath = getResultsFile(workspace).toPath();
             try {
-                ImmutableList.Builder<File> builder = ImmutableList.builder();
+                TransformationResult.Builder builder = TransformationResult.builder();
                 List<String> paths = Files.readAllLines(transformerResultsPath, StandardCharsets.UTF_8);
                 for (String path : paths) {
                     if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
-                        builder.add(new File(getOutputDir(workspace), path.substring(2)));
+                        builder.addOutput(new File(getOutputDir(workspace), path.substring(2)));
                     } else if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
-                        builder.add(new File(inputArtifact, path.substring(2)));
+                        String relativePathString = path.substring(2);
+                        if (relativePathString.isEmpty()) {
+                            builder.addInputArtifact();
+                        } else {
+                            builder.addInputArtifact(relativePathString);
+                        }
                     } else {
                         throw new IllegalStateException("Cannot parse result path string: " + path);
                     }
