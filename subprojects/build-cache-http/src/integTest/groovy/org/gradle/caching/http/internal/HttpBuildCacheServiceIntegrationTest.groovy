@@ -16,7 +16,6 @@
 
 package org.gradle.caching.http.internal
 
-
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType
