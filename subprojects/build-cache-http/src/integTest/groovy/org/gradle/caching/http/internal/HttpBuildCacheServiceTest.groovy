@@ -153,7 +153,7 @@ class HttpBuildCacheServiceTest extends Specification {
         receivedInput == "Data"
     }
 
-    def "loading from cache does follows redirects"() {
+    def "loading from cache does follow redirects"() {
         def srcFile = tempDir.file("cached.zip")
         srcFile.text = "Data"
         server.expectGetRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}")
