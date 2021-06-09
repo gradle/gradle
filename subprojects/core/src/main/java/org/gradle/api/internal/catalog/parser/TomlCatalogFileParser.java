@@ -339,7 +339,7 @@ public class TomlCatalogFileParser {
                 registerPlugin(builder, alias, id, null, rich.require, rich.strictly, rich.prefer, null, null);
                 return;
             } else {
-                throwVersionCatalogProblem(builder, VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
+                throwVersionCatalogProblem(builder, VersionCatalogProblemId.INVALID_PLUGIN_NOTATION, spec ->
                     spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + coordinates + "' is not a valid plugin notation")
                         .happensBecause(() -> "When using a string to declare plugin coordinates, you must use a valid plugin notation")
                         .addSolution("Make sure that the coordinates consist of 2 parts separated by colons, eg: my.plugin.id:1.2")

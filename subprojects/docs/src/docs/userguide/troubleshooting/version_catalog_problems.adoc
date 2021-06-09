@@ -147,3 +147,11 @@ This error indicates that you are trying to read a version catalog file which ha
 This would usually mean that the version catalog file you're trying to use has been produced with a higher release of Gradle than the one you're using.
 
 A potential solution to this is to upgrade your Gradle version.
+
+[[invalid_plugin_notation]]
+== Invalid plugin notation
+
+This error indicates that the dependency notation associated with a plugin alias is incorrect.
+The TOML version catalog supports the simplified `plugin.id:version` notation when declaring a plugin alias.
+
+Therefore this usually means that you have a notation which consists of a string, but which doesn't separate the plugin id from the plugin version using a semicolon.
