@@ -30,14 +30,14 @@ class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDis
         description = "Promotes the latest successful changes on '${branch.branchName}' from Ready for Nightly as a new nightly snapshot"
 
         triggers {
-            schedule {
-                branch.triggeredHour()?.apply {
+            branch.triggeredHour()?.apply {
+                schedule {
                     schedulingPolicy = daily {
                         this.hour = this@apply
                     }
+                    triggerBuild = always()
+                    withPendingChangesOnly = false
                 }
-                triggerBuild = always()
-                withPendingChangesOnly = false
             }
         }
     }
