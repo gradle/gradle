@@ -171,8 +171,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         ensureOutputDirCreated();
         maybeReadExistingFile();
         // when we generate the verification file, we intentionally ignore if the "use key servers" flag is false
-        // because otherwise it forces the user to disable the flag in the XML file, generate, then switch it back
-        // to false
+        // because otherwise it forces the user to remove the option in the XML file, generate, then switch it back.
         boolean offline = gradle.getStartParameter().isOffline();
         SignatureVerificationService signatureVerificationService = signatureVerificationServiceFactory.create(
             keyringsFile,

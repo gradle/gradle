@@ -171,7 +171,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                     Collection<RepositoryAwareVerificationFailure> value = entry.getValue();
                     return value.stream().noneMatch(wrapper -> wrapper.getFailure().isFatal());
                 });
-                VerificationReport report = reportWriter.generateReport(displayName, failures);
+                VerificationReport report = reportWriter.generateReport(displayName, failures, verifier.getConfiguration().isUseKeyServers());
                 String errorMessage = buildConsoleErrorMessage(report);
                 if (verificationMode == DependencyVerificationMode.LENIENT) {
                     LOGGER.error(errorMessage);

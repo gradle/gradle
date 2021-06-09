@@ -1461,7 +1461,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven
-This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
     }
 
     private static void tamperWithFile(File file) {
