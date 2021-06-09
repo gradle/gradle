@@ -114,7 +114,10 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     @Override
     public <T> void configureAsRuntimeClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().runtimeUsage().asJar().withExternalDependencies().preferStandardJVM());
+        configureAttributes(
+            configuration,
+            details -> details.library().runtimeUsage().asJar().withExternalDependencies().preferStandardJVM()
+        );
     }
 
     @Override
