@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.catalog
 
 
 import org.gradle.integtests.resolve.PluginDslSupport
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
@@ -29,6 +30,7 @@ import org.junit.Rule
  * Because it requires the generated Gradle API it runs significantly slower than the other
  * tests so avoid adding tests here if they cannot be expressed with the Groovy DSL.
  */
+@LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
