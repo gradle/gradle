@@ -254,9 +254,7 @@ class ResidualProgramCompiler(
             // ${plugins}(temp.createSpec(lineNumber))
             emitPluginRequestCollectorCreateSpecFor(plugins)
             loadTargetOf(implicitReceiverType)
-            injectedProperties.forEach { name, type ->
-                emitLoadExtension(name, type)
-            }
+            emitLoadExtensions()
             INVOKESPECIAL(
                 precompiledBuildscriptWithPluginsBlock,
                 "<init>",
@@ -348,9 +346,7 @@ class ResidualProgramCompiler(
             // ${precompiledPluginsBlock}(collector.createSpec(lineNumber))
             NEW(precompiledPluginsBlock)
             emitPluginRequestCollectorCreateSpecFor(program)
-            injectedProperties.forEach { name, type ->
-                emitLoadExtension(name, type)
-            }
+            emitLoadExtensions()
             INVOKESPECIAL(
                 precompiledPluginsBlock,
                 "<init>",
@@ -365,7 +361,7 @@ class ResidualProgramCompiler(
     val injectedPropertiesDescriptors
         get() = injectedProperties.values
             .map { Type.getType(it.fromClass?.java).descriptor }
-            .joinToString()
+            .joinToString(separator = "")
 
     /**
      * extensions.getByName(name) as ExtensionType

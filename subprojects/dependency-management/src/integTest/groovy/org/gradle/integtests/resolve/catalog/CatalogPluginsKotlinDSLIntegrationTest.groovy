@@ -76,6 +76,48 @@ dependencyResolutionManagement {
         alias << ['greeter', 'some.greeter', 'some-greeter']
     }
 
+    def "can declare multiple catalogs"() {
+        String taskName = 'greet'
+        String message = 'Hello from plugin!'
+        String pluginId = 'com.acme.greeter'
+        String pluginVersion = '1.5'
+        def plugin = new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask(taskName, message, pluginId)
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+
+        // We use the Groovy DSL for settings because that's not what we want to
+        // test and the setup would be more complicated with Kotlin
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            alias("$alias").toPluginId("com.acme.greeter").version("1.5")
+        }
+        create("other") {
+            alias("$alias").toPluginId("com.acme.greeter").version("1.5")
+        }
+    }
+}"""
+        buildFile.renameTo(file('fixture.gradle'))
+        buildKotlinFile << """
+            plugins {
+                alias(other.plugins.${alias.replace('-', '.')})
+            }
+
+            apply(from="fixture.gradle")
+        """
+
+        when:
+        plugin.allowAll()
+        succeeds taskName
+
+        then:
+        outputContains message
+
+        where:
+        alias << ['greeter', 'some.greeter', 'some-greeter']
+    }
+
     def "can override version of a plugin declared in a catalog"() {
         String taskName = 'greet'
         String message = 'Hello from plugin!'
