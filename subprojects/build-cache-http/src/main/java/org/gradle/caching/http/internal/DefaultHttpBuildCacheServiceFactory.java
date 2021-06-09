@@ -81,6 +81,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         boolean authenticated = !authentications.isEmpty();
         boolean allowUntrustedServer = configuration.isAllowUntrustedServer();
         boolean allowInsecureProtocol = configuration.isAllowInsecureProtocol();
+        boolean useExpectContinue = configuration.isUseExpectContinue();
 
         HttpRedirectVerifier redirectVerifier =
             createRedirectVerifier(noUserInfoUrl, allowInsecureProtocol);
@@ -101,9 +102,10 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             .config("url", noUserInfoUrl.toASCIIString())
             .config("authenticated", Boolean.toString(authenticated))
             .config("allowUntrustedServer", Boolean.toString(allowUntrustedServer))
-            .config("allowInsecureProtocol", Boolean.toString(allowInsecureProtocol));
+            .config("allowInsecureProtocol", Boolean.toString(allowInsecureProtocol))
+            .config("useExpectContinue", Boolean.toString(useExpectContinue));
 
-        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer);
+        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer, useExpectContinue);
     }
 
     private HttpRedirectVerifier createRedirectVerifier(URI url, boolean allowInsecureProtocol) {

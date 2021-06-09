@@ -21,10 +21,10 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.protocol.HTTP;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -65,9 +65,11 @@ public class HttpBuildCacheService implements BuildCacheService {
     private final URI root;
     private final HttpClientHelper httpClientHelper;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
+    private final boolean useExpectContinue;
 
-    public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url, HttpBuildCacheRequestCustomizer requestCustomizer) {
+    public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url, HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
         this.requestCustomizer = requestCustomizer;
+        this.useExpectContinue = useExpectContinue;
         if (!url.getPath().endsWith("/")) {
             throw new IllegalArgumentException("HTTP cache root URI must end with '/'");
         }
@@ -106,6 +108,9 @@ public class HttpBuildCacheService implements BuildCacheService {
     public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
         HttpPut httpPut = new HttpPut(uri);
+        if (useExpectContinue) {
+            httpPut.setHeader(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
+        }
         httpPut.addHeader(HttpHeaders.CONTENT_TYPE, BUILD_CACHE_CONTENT_TYPE);
         requestCustomizer.customize(httpPut);
 
@@ -146,12 +151,7 @@ public class HttpBuildCacheService implements BuildCacheService {
                 throwHttpStatusCodeException(statusCode, defaultMessage);
             }
         } catch (ClientProtocolException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof NonRepeatableRequestException) {
-                throw wrap(cause.getCause());
-            } else {
-                throw wrap(cause);
-            }
+            throw wrap(e.getCause());
         } catch (IOException e) {
             throw wrap(e);
         }

@@ -23,6 +23,7 @@ import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperatio
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.deprecation.Documentation
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
 @IntegrationTestTimeout(120)
@@ -359,12 +360,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         noneSkipped()
         and:
         // Only one store operation, not one per redirect
-        def compileJavaStoreOperations = buildOperations.all(BuildCacheRemoteStoreBuildOperationType) {
-            buildOperations.parentsOf(it).any {
-                it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":compileJava"
-            }
-        }
-        compileJavaStoreOperations.size() == 1
+        compileJavaStoreOperations().size() == 1
 
         expect:
         withBuildCache().run "clean"
@@ -452,4 +448,67 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         output.contains("Maximum redirects (10) exceeded")
     }
 
+    def "can use expect continue"() {
+        given:
+        settingsFile << """
+            buildCache {
+                remote {
+                    useExpectContinue = true
+                }
+            }
+        """.stripIndent()
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        expect:
+        withBuildCache().run "clean"
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        skipped ":compileJava"
+    }
+
+    def "store can be rejected when using expect continue"() {
+        given:
+        settingsFile << """
+            buildCache {
+                remote {
+                    useExpectContinue = true
+                }
+            }
+        """.stripIndent()
+
+        and:
+        httpBuildCacheServer.addResponder { req, res ->
+            if (req.method == "PUT") {
+                assert req.getHeader("expect") == "100-continue"
+                res.sendError(401)
+                false
+            } else {
+                true
+            }
+        }
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+        and:
+        def storeOps = compileJavaStoreOperations()
+        storeOps.size() == 1
+        storeOps.first().failure.contains("response status 401: Unauthorized")
+    }
+
+    private List<BuildOperationRecord> compileJavaStoreOperations() {
+        buildOperations.all(BuildCacheRemoteStoreBuildOperationType) {
+            buildOperations.parentsOf(it).any {
+                it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":compileJava"
+            }
+        }
+    }
 }
