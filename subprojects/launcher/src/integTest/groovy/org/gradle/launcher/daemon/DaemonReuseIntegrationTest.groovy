@@ -26,6 +26,8 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
+import java.util.concurrent.CyclicBarrier
+
 class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
@@ -63,15 +65,20 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
             println("Listening with non-daemon process on ${listeningAddress}")
             nonDaemonProcess.bind(listeningAddress)
         }
+        def latch = new CyclicBarrier(2)
         def thread = new Thread({
             while (!nonDaemonProcess.closed) {
                 try {
-                    nonDaemonProcess.accept {client ->
+                    nonDaemonProcess.accept(false) {client ->
                         // When a client connects, drain the input from the client and shutdown any IO
                         // This causes the launcher to receive an empty result
                         println("Client ${client.remoteSocketAddress} tried to connect")
-                        client.shutdownInput()
+                        while (client.inputStream.available() > 0) {
+                            client.inputStream.skip(client.inputStream.available())
+                        }
                         client.shutdownOutput()
+                        latch.await() // wait for the end of the test before closing the connection
+                        println("Closing client ${client.remoteSocketAddress}")
                     }
                 } catch (SocketException e) {
                     // don't care
@@ -80,13 +87,6 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         })
         thread.daemon = true
         thread.start()
-
-        // Wait until a client can connect to the non-daemon server
-        ConcurrentTestUtil.poll {
-            new Socket().withCloseable {
-                it.connect(nonDaemonProcess.getLocalSocketAddress())
-            }
-        }
 
 
         // Try to run another build that should try to reuse the previous daemon, fail and then start another daemon
@@ -103,6 +103,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         outputContains("(unable to communicate with daemon)")
 
         cleanup:
+        latch.await()
         nonDaemonProcess.close()
     }
 
