@@ -32,12 +32,10 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
-import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
-import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
@@ -154,17 +152,17 @@ class ConfigurationCacheHost internal constructor(
             buildDefinition: BuildDefinition,
             isImplicit: Boolean,
             owner: BuildState
-        ): IncludedBuildState = service<Instantiator>().newInstance(
-            ConfigurationCacheIncludedBuildState::class.java,
+        ): IncludedBuildState = ConfigurationCacheIncludedBuildState(
             buildIdentifier,
             identityPath,
             buildDefinition,
             isImplicit,
             owner,
-            service<BuildTreeState>(),
+            service(),
             service<WorkerLeaseService>().currentWorkerLease,
-            service<BuildLifecycleControllerFactory>(),
-            service<ProjectStateRegistry>()
+            service(),
+            service(),
+            service()
         )
 
         override fun prepareBuild(includedBuild: IncludedBuildState) {

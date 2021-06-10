@@ -63,7 +63,7 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
     private final ProjectStateRegistry projectStateRegistry;
 
     private enum State {
-        CollectingTasks, RunningTasks
+        QueueingTasks, ReadyToRun, RunningTasks
     }
 
     // Fields guarded by lock
@@ -72,8 +72,7 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
     private final Map<String, TaskState> tasks = new LinkedHashMap<>();
     private final Set<String> tasksAdded = new HashSet<>();
     private final List<Throwable> taskFailures = new ArrayList<>();
-    private State state = State.CollectingTasks;
-    private boolean stopRequested;
+    private State state = State.ReadyToRun;
 
     public DefaultIncludedBuildController(IncludedBuildState includedBuild, ResourceLockCoordinationService coordinationService, ProjectStateRegistry projectStateRegistry) {
         this.includedBuild = includedBuild;
@@ -86,7 +85,11 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
         Set<String> tasksToExecute = new LinkedHashSet<>();
         lock.lock();
         try {
-            assertBuildInState(State.CollectingTasks);
+            if (state == State.ReadyToRun) {
+                // Nothing left to schedule
+                return false;
+            }
+            assertBuildInState(State.QueueingTasks);
             for (Map.Entry<String, TaskState> taskEntry : tasks.entrySet()) {
                 if (taskEntry.getValue().status == TaskStatus.QUEUED) {
                     String taskName = taskEntry.getKey();
@@ -98,40 +101,16 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
         } finally {
             lock.unlock();
         }
-        if (tasksToExecute.isEmpty()) {
-            return false;
-        }
         includedBuild.addTasks(tasksToExecute);
+        setState(State.ReadyToRun);
         return true;
-    }
-
-    private void run() {
-        try {
-            Set<String> tasksToExecute = getQueuedTasks();
-            if (tasksToExecute == null) {
-                return;
-            }
-            doBuild(tasksToExecute);
-        } finally {
-            setState(State.CollectingTasks);
-        }
-    }
-
-    private void setState(State state) {
-        lock.lock();
-        try {
-            this.state = state;
-            stateChange.signalAll();
-        } finally {
-            lock.unlock();
-        }
     }
 
     @Override
     public void startTaskExecution(ExecutorService executorService) {
         lock.lock();
         try {
-            assertBuildInState(State.CollectingTasks);
+            assertBuildInState(State.ReadyToRun);
             state = State.RunningTasks;
             stateChange.signalAll();
         } finally {
@@ -186,25 +165,33 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
         if (!failures.isEmpty()) {
             throw new MultipleBuildFailures(failures);
         }
+    }
+
+    private void run() {
+        try {
+            Set<String> tasksToExecute = getQueuedTasks();
+            if (tasksToExecute.isEmpty()) {
+                return;
+            }
+            doBuild(tasksToExecute);
+        } finally {
+            setState(State.ReadyToRun);
+        }
+    }
+
+    private void setState(State state) {
         lock.lock();
         try {
-            stopRequested = true;
+            this.state = state;
             stateChange.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
-    @Nullable
     private Set<String> getQueuedTasks() {
         lock.lock();
         try {
-            while (state == State.CollectingTasks && !stopRequested) {
-                awaitStateChange();
-            }
-            if (stopRequested) {
-                return null;
-            }
             Set<String> tasksToExecute = new LinkedHashSet<>();
             for (Map.Entry<String, TaskState> taskEntry : tasks.entrySet()) {
                 if (taskEntry.getValue().status == TaskStatus.QUEUED) {
@@ -226,14 +213,11 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
         }
     }
 
-    private void doBuild(final Collection<String> tasksToExecute) {
-        if (tasksToExecute.isEmpty()) {
-            return;
-        }
+    private void doBuild(Collection<String> tasksToExecute) {
         LOGGER.info("Executing {} tasks {}", includedBuild.getName(), tasksToExecute);
         IncludedBuildExecutionListener listener = new IncludedBuildExecutionListener(tasksToExecute);
         try {
-            includedBuild.execute(tasksToExecute, listener);
+            includedBuild.execute(listener);
             tasksDone(tasksToExecute, null);
         } catch (RuntimeException failure) {
             tasksDone(tasksToExecute, failure);
@@ -292,10 +276,13 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
     public void queueForExecution(String taskPath) {
         lock.lock();
         try {
-            assertBuildInState(State.CollectingTasks);
+            if (state == State.RunningTasks) {
+                throw new IllegalStateException();
+            }
             if (!tasks.containsKey(taskPath)) {
                 tasks.put(taskPath, new TaskState());
             }
+            setState(State.QueueingTasks);
         } finally {
             lock.unlock();
         }

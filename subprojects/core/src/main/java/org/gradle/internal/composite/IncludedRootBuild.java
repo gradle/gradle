@@ -19,16 +19,16 @@ package org.gradle.internal.composite;
 import com.google.common.base.Preconditions;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskReference;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.util.Path;
 
 import java.io.File;
 
-public class IncludedRootBuild implements IncludedBuild {
+public class IncludedRootBuild implements IncludedBuildInternal {
     private final CompositeBuildParticipantBuildState rootBuild;
 
     public IncludedRootBuild(CompositeBuildParticipantBuildState rootBuild) {
@@ -53,6 +53,11 @@ public class IncludedRootBuild implements IncludedBuild {
     public TaskReference task(String path) {
         Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
         return new IncludedRootBuildTaskReference(rootBuild, path);
+    }
+
+    @Override
+    public BuildState getTarget() {
+        return rootBuild;
     }
 
     private static class IncludedRootBuildTaskReference implements TaskReference, TaskDependencyContainer {

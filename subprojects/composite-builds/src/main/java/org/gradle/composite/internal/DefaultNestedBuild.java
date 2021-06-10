@@ -36,7 +36,6 @@ import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -101,7 +100,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
         IncludedBuildControllers controllers = buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class);
-        WorkerLeaseService workerLeaseService = buildLifecycleController.getGradle().getServices().get(WorkerLeaseService.class);
         ExceptionAnalyser exceptionAnalyser = buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class);
         BuildModelParameters modelParameters = buildLifecycleController.getGradle().getServices().get(BuildModelParameters.class);
         BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
@@ -113,7 +111,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         } else {
             finishExecutor = new FinishThisBuildOnlyFinishExecutor(exceptionAnalyser);
         }
-        DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workerLeaseService, workExecutor, finishExecutor, exceptionAnalyser);
+        DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, controllers, workExecutor, finishExecutor, exceptionAnalyser);
         return buildAction.apply(buildController);
     }
 
