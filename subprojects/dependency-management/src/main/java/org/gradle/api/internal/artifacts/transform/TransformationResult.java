@@ -19,20 +19,21 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 
 import java.io.File;
-import java.util.stream.Stream;
 
 /**
  * The result of running a transformation.
+ *
+ * The result of running a transformation is a list of outputs.
+ * There are two kinds of outputs for a transformation:
+ * - Produced outputs in the workspace. Those are absolute paths which do not change depending on the input artifact.
+ * - Selected parts of the input artifact. These are relative paths of locations selected in the input artifact.
  */
 public interface TransformationResult {
     /**
-     * The outputs of the transformation for a given input artifact.
+     * Resolves location of the outputs of this results for a given input artifact.
      *
-     * A transform can have two kinds of outputs:
-     * - Produced outputs in the workspace. Those are absolute paths which do not change depending on the input artifact.
-     * - Selected parts of the input artifact. These outputs are considered relative to the given input artifact.
-     *   If two input artifacts have the same normalization, and therefore we re-use the result, we still need
-     *   to resolve the relative paths of the outputs to the currently transformed input artifact.
+     * Produced outputs don't need to be resolved to locations, since they are absolute paths and can be returned as is.
+     * The relative paths of selected parts of the input artifact need to resolved based on the provided input artifact location.
      */
     ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact);
 
@@ -41,68 +42,69 @@ public interface TransformationResult {
     }
 
     class Builder {
-        private final ImmutableList.Builder<TransformationResultFile> builder = ImmutableList.builder();
+        private final ImmutableList.Builder<TransformationOutput> builder = ImmutableList.builder();
+        boolean onlyProducedOutputs = true;
 
         public void addInputArtifact(String relativePath) {
+            onlyProducedOutputs = false;
             builder.add(new InInputArtifact(relativePath));
         }
 
         public void addInputArtifact() {
+            onlyProducedOutputs = false;
             builder.add(new InputArtifact());
         }
 
         public void addOutput(File outputLocation) {
-            builder.add(new WorkspaceLocation(outputLocation));
+            builder.add(new ProducedOutput(outputLocation));
         }
 
         public TransformationResult build() {
-            ImmutableList<TransformationResultFile> transformationResults = builder.build();
-            ImmutableList.Builder<File> workspaceFileBuilder = ImmutableList.builder();
-            transformationResults.stream()
-                .flatMap(TransformationResultFile::getWorkspaceFile)
-                .forEach(workspaceFileBuilder::add);
-            ImmutableList<File> workspaceFiles = workspaceFileBuilder.build();
-            return transformationResults.size() == workspaceFiles.size()
-                ? new WorkspaceOnlyTransformationResult(workspaceFiles)
-                : new DefaultTransformationResult(transformationResults);
+            ImmutableList<TransformationOutput> transformationOutputs = builder.build();
+            return onlyProducedOutputs
+                ? new OnlyProducedOutputTransformationResult(convertToProducedOutputLocations(transformationOutputs))
+                : new DefaultTransformationResult(transformationOutputs);
         }
 
-        private interface TransformationResultFile {
-            Stream<File> getWorkspaceFile();
-            File resultRelativeTo(File inputArtifact);
+        private interface TransformationOutput {
+            File resolveForInputArtifact(File inputArtifact);
         }
 
-        private static class WorkspaceOnlyTransformationResult implements TransformationResult {
-            private final ImmutableList<File> result;
+        private static ImmutableList<File> convertToProducedOutputLocations(ImmutableList<TransformationOutput> transformationOutputs) {
+            ImmutableList.Builder<File> builder = new ImmutableList.Builder<>();
+            transformationOutputs.forEach(output -> builder.add(((ProducedOutput) output).getOutputLocation()));
+            return builder.build();
+        }
 
-            public WorkspaceOnlyTransformationResult(ImmutableList<File> result) {
-                this.result = result;
+        private static class OnlyProducedOutputTransformationResult implements TransformationResult {
+            private final ImmutableList<File> producedOutputLocations;
+
+            public OnlyProducedOutputTransformationResult(ImmutableList<File> producedOutputLocations) {
+                this.producedOutputLocations = producedOutputLocations;
             }
 
             @Override
             public ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact) {
-                return result;
+                return producedOutputLocations;
             }
-
         }
 
         private static class DefaultTransformationResult implements TransformationResult {
-            private final ImmutableList<TransformationResultFile> transformationResults;
+            private final ImmutableList<TransformationOutput> transformationOutputs;
 
-            public DefaultTransformationResult(ImmutableList<TransformationResultFile> transformationResults) {
-                this.transformationResults = transformationResults;
+            public DefaultTransformationResult(ImmutableList<TransformationOutput> transformationOutputs) {
+                this.transformationOutputs = transformationOutputs;
             }
 
             @Override
             public ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact) {
-                ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(transformationResults.size());
-                transformationResults.forEach(resultFile -> builder.add(resultFile.resultRelativeTo(inputArtifact)));
+                ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(transformationOutputs.size());
+                transformationOutputs.forEach(output -> builder.add(output.resolveForInputArtifact(inputArtifact)));
                 return builder.build();
             }
-
         }
 
-        private static class InInputArtifact implements TransformationResultFile {
+        private static class InInputArtifact implements TransformationOutput {
             private final String relativePath;
 
             public InInputArtifact(String relativePath) {
@@ -110,42 +112,31 @@ public interface TransformationResult {
             }
 
             @Override
-            public Stream<File> getWorkspaceFile() {
-                return Stream.empty();
-            }
-
-            @Override
-            public File resultRelativeTo(File inputArtifact) {
+            public File resolveForInputArtifact(File inputArtifact) {
                 return new File(inputArtifact, relativePath);
             }
         }
 
-        private static class InputArtifact implements TransformationResultFile {
+        private static class InputArtifact implements TransformationOutput {
             @Override
-            public Stream<File> getWorkspaceFile() {
-                return Stream.empty();
-            }
-
-            @Override
-            public File resultRelativeTo(File inputArtifact) {
+            public File resolveForInputArtifact(File inputArtifact) {
                 return inputArtifact;
             }
         }
 
-        private static class WorkspaceLocation implements TransformationResultFile {
+        private static class ProducedOutput implements TransformationOutput {
             private final File outputFile;
 
-            public WorkspaceLocation(File outputFile) {
+            public ProducedOutput(File outputFile) {
                 this.outputFile = outputFile;
             }
 
-            @Override
-            public Stream<File> getWorkspaceFile() {
-                return Stream.of(outputFile);
+            public File getOutputLocation() {
+                return outputFile;
             }
 
             @Override
-            public File resultRelativeTo(File inputArtifact) {
+            public File resolveForInputArtifact(File inputArtifact) {
                 return outputFile;
             }
         }
