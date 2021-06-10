@@ -16,13 +16,27 @@
 
 package org.gradle.wrapper;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
-import java.util.*;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Formatter;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.security.MessageDigest;
+
+import static java.lang.String.format;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
@@ -114,8 +128,7 @@ public class Install {
             fis.close();
         }
 
-        byte byteData[] = md.digest();
-
+        byte[] byteData = md.digest();
         StringBuffer hexString = new StringBuffer();
         for (int i = 0; i < byteData.length; i++) {
             String hex = Integer.toHexString(0xff & byteData[i]);
@@ -128,19 +141,18 @@ public class Install {
         return hexString.toString();
     }
 
-    private InstallCheck verifyDistributionRoot(File distDir, String distributionDescription)
-        throws Exception {
+    private InstallCheck verifyDistributionRoot(File distDir, String distributionDescription) {
         List<File> dirs = listDirs(distDir);
         if (dirs.isEmpty()) {
-            return InstallCheck.failure(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
+            return InstallCheck.failure(format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
         }
         if (dirs.size() != 1) {
-            return InstallCheck.failure(String.format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionDescription));
+            return InstallCheck.failure(format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionDescription));
         }
 
         File gradleHome = dirs.get(0);
         if (BootstrapMainStarter.findLauncherJar(gradleHome) == null) {
-            return InstallCheck.failure(String.format("Gradle distribution '%s' does not appear to contain a Gradle distribution.", distributionDescription));
+            return InstallCheck.failure(format("Gradle distribution '%s' does not appear to contain a Gradle distribution.", distributionDescription));
         }
         return InstallCheck.success(gradleHome);
     }
@@ -151,7 +163,7 @@ public class Install {
             String actualSum = calculateSha256Sum(localZipFile);
             if (!expectedSum.equals(actualSum)) {
                 localZipFile.delete();
-                String message = String.format("Verification of Gradle distribution failed!%n"
+                String message = format("Verification of Gradle distribution failed!%n"
                         + "%n"
                         + "Your Gradle distribution may have been tampered with.%n"
                         + "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n"
@@ -213,19 +225,18 @@ public class Install {
 
     private boolean isWindows() {
         String osName = System.getProperty("os.name").toLowerCase(Locale.US);
-        if (osName.indexOf("windows") > -1) {
-            return true;
-        }
-        return false;
+        return osName.contains("windows");
     }
 
     private boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
-            for (int i = 0; i < children.length; i++) {
-                boolean success = deleteDir(new File(dir, children[i]));
-                if (!success) {
-                    return false;
+            if (children != null) {
+                for (int i = 0; i < children.length; i++) {
+                    boolean success = deleteDir(new File(dir, children[i]));
+                    if (!success) {
+                        return false;
+                    }
                 }
             }
         }
@@ -242,12 +253,13 @@ public class Install {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
+                File destFile = new File(dest, entry.getName());
                 if (entry.isDirectory()) {
-                    (new File(dest, entry.getName())).mkdirs();
+                    destFile.mkdirs();
                     continue;
                 }
 
-                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(new File(dest, entry.getName())));
+                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(destFile));
                 try {
                     copyInputStream(zipFile.getInputStream(entry), outputStream);
                 } finally {
