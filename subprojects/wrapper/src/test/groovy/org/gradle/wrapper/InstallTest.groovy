@@ -37,9 +37,9 @@ class InstallTest extends Specification {
     PathAssembler pathAssembler = Mock()
     PathAssembler.LocalDistribution localDistribution = Mock()
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    public void setup() {
+    void setup() {
         downloadCalled = false
         testDir = temporaryFolder.testDirectory
         configuration.zipBase = PathAssembler.PROJECT_STRING
@@ -49,7 +49,7 @@ class InstallTest extends Specification {
         configuration.distribution = new URI('http://server/gradle-0.9.zip')
         distributionDir = new TestFile(testDir, 'someDistPath')
         gradleHomeDir = new TestFile(distributionDir, 'gradle-0.9')
-        zipStore = new File(testDir, 'zips');
+        zipStore = new File(testDir, 'zips')
         zipDestination = new TestFile(zipStore, 'gradle-0.9.zip')
         install = new Install(new Logger(true), download, pathAssembler)
     }
