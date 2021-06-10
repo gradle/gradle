@@ -49,7 +49,7 @@ For example, to show dependencies that would be on the test runtime classpath in
 gradle -q dependencies --configuration testRuntimeClasspath
 ----
 
-TIP: You can use _camelCase_ shortcut to select configuration like `tRC` instead of `testRuntimeClasspath` if that shortcut points to unique configuration.
+TIP: Just like with <<command_line_interface#sec:name_abbreviation, project and task names>>, you can use abbreviated names to select a configuration. For example, you can specify `tRC` instead of `testRuntimeClasspath` if the pattern matches to a single configuration.
 
 TIP: To see a list of all the pre-defined configurations added by the `java` plugin, see <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the documentation for the Java Plugin>>.
 
