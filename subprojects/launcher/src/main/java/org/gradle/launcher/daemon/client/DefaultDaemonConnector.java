@@ -111,6 +111,11 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     @Override
+    public void markDaemonAsUnavailable(DaemonConnectDetails daemon) {
+        removeDaemonFromRegistry(daemon, "unable to communicate with daemon");
+    }
+
+    @Override
     public DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint) {
         final Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> idleBusy = partitionByState(daemonRegistry.getAll(), Idle);
         final Collection<DaemonInfo> idleDaemons = idleBusy.getLeft();
@@ -276,6 +281,14 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return new DaemonClientConnection(connection, daemon, staleAddressDetector);
     }
 
+    private void removeDaemonFromRegistry(DaemonConnectDetails daemon, String reason) {
+        LOGGER.info("{}{}", DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE, daemon);
+        final Date timestamp = new Date(System.currentTimeMillis());
+        final DaemonStopEvent stopEvent = new DaemonStopEvent(timestamp, daemon.getPid(), null, reason);
+        daemonRegistry.storeStopEvent(stopEvent);
+        daemonRegistry.remove(daemon.getAddress());
+    }
+
     private class CleanupOnStaleAddress implements DaemonClientConnection.StaleAddressDetector {
         private final DaemonConnectDetails daemon;
         private final boolean exposeAsStale;
@@ -287,11 +300,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
         @Override
         public boolean maybeStaleAddress(Exception failure) {
-            LOGGER.info("{}{}", DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE, daemon);
-            final Date timestamp = new Date(System.currentTimeMillis());
-            final DaemonStopEvent stopEvent = new DaemonStopEvent(timestamp, daemon.getPid(), null, "by user or operating system");
-            daemonRegistry.storeStopEvent(stopEvent);
-            daemonRegistry.remove(daemon.getAddress());
+            removeDaemonFromRegistry(daemon, "by user or operating system");
             return exposeAsStale;
         }
     }
