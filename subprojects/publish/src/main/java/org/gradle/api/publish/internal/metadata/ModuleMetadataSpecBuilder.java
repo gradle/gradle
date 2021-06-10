@@ -183,8 +183,7 @@ class ModuleMetadataSpecBuilder {
     }
 
     private boolean shouldNotBePublished(PublishArtifact artifact) {
-        return artifact instanceof PublishArtifactInternal
-            && !((PublishArtifactInternal) artifact).shouldBePublished();
+        return !PublishArtifactInternal.shouldBePublished(artifact);
     }
 
     private ModuleMetadataSpec.AvailableAt availableAt(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates) {
